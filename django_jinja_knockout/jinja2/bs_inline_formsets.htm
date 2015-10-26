@@ -1,0 +1,80 @@
+{#
+ # One or zero ModelForm with one or multiple one to many related inline formsets
+ #}
+{% from 'bs_form_body.htm' import bs_form_body with context %}
+{% macro bs_inline_formsets(related_form, formsets, action, html) -%}
+{% if formsets|get_type == 'list' %}
+<div class="formsets panel panel-default default-padding {{ html.class }}">
+    <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
+    {% if action != '' %}
+    <form action="{{ action }}" method="post" enctype="multipart/form-data" role="form">
+    {% endif %}
+        {% if related_form %}
+        <div class="panel-body default-padding">
+            {% if action == '' %}
+            {# DisplayText fields use tr/td #}
+            <table class="table">
+            {% endif %}
+            {{ bs_form_body(related_form) }}
+            {% if action == '' %}
+            </table>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% for formset in formsets %}
+            <div class="formset default-padding">
+                <div class="management-form">
+                    {{ formset.management_form }}
+                </div>
+                {% if formset.total_error_count() %}
+                    <div class="alert alert-warning">
+                    {% for error in formset.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+                {% do html.update({'inline_title': formset.model._meta.verbose_name}) %}
+                {% if action == '' %}
+                    <table class="table">
+                {% endif %}
+                {% for form in formset %}
+                    {% set formset_index = loop.index0 %}
+                    {% if formset.can_delete %}
+                        {% if formset_index < formset.min_num %}
+                            {% do html.update({'formset_form_class': 'form-required'}) %}
+                        {% else %}
+                            {% do html.update({'formset_form_class': 'form-optional'}) %}
+                        {% endif %}
+                    {% endif %}
+                    {% include 'bs_formset_form.htm' %}
+                {% endfor %}
+                {% if action == '' %}
+                    </table>
+                {% endif %}
+                {% if formset.knockout_template %}
+                <div data-bind="foreach: {data: forms, afterRender: afterFormRendered}">
+                    <div data-bind="anonymous_template: {'base-selector': '.formsets', 'template-index': {{ loop.index0 }}}"></div>
+                </div>
+                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">Добавить "{{ formset.model._meta.verbose_name }}"</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+        {% if html.submit_text != '' %}
+        <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>
+        {% endif %}
+        {% if caller %}
+            {{ caller() }}
+        {% endif %}
+    {% if action != '' %}
+    </form>
+    {% endif %}
+    {% for formset in formsets %}
+        {% if formset.knockout_template %}
+        <textarea class="ko-template">{{ formset.knockout_template }}</textarea>
+        {% endif %}
+    {% endfor %}
+</div>
+{% else %}
+{{ raise('Formset should be list of formsets') }}
+{% endif %}
+{%- endmacro %}

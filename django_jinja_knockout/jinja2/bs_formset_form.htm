@@ -1,0 +1,24 @@
+{% from 'bs_form_body.htm' import bs_form_body with context %}
+{% if action == '' %}
+    {# DisplayText fields use tr/td #}
+    {% if formset_index == 0 %}
+    <tr>
+        <th colspan="2">{{ html.inline_title }}</th>
+    </tr>
+    {% else %}
+    <tr>
+        <th colspan="2"></th>
+    </tr>
+    {% endif %}
+{% else %}
+<div class="formset-form-wrap {{ html.formset_form_class }}">
+    <div class="panel panel-default inline-formset-wrap">
+        <div class="panel-heading"><h3 class="panel-title">{{ html.inline_title }}</h3></div>
+        <div class="panel-body">
+{% endif %}
+            {{ bs_form_body(form) }}
+{% if action != '' %}
+        </div>
+    </div>
+</div>
+{% endif %}

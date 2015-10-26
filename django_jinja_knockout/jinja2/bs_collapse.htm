@@ -1,0 +1,18 @@
+{# http://anvoz.github.io/bootstrap-tldr/ #}
+{% macro bs_collapse(accordion_id, header) -%}
+<div class="panel-group" id="{{ accordion_id }}">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <button class="btn btn-large btn-info accordion-toggle" data-toggle="collapse" data-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+                {{ header }}
+            </h4>
+        </div>
+        <div style="" aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
+            <div class="panel-body">{{ caller() }}</div>
+        </div>
+    </div>
+</div>
+{%- endmacro %}

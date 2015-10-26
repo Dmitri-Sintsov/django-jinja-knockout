@@ -1,0 +1,105 @@
+{% macro render_field_standard(form, field, classes) -%}
+{% if field.auto_id %}
+<label class="control-label {{ classes.label }} {% if field.field.required %}required{% endif %}" for="{{ field.auto_id }}">{{ field.label }}</label>
+{% endif %}
+
+<div class="field {{ classes.field }}">
+    {{ field|safe }}
+    {% for error in field.errors %}
+    <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+    {% endfor %}
+    {% if field.help_text %}
+    <p class="help-block">
+        {{ field.help_text|safe }}
+    </p>
+    {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro render_field_displaytext(form, field, classes) -%}
+<tr>
+    {% if field.auto_id %}
+    <td class="success {{ classes.label }} {% if field.field.required %}required{% endif %}" for="{{ field.auto_id }}">{{ field.label }}</td>
+    {% endif %}
+
+    <td class="info {{ classes.field }}">
+        {{ field|safe }}
+        {% for error in field.errors %}
+        <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+        {% endfor %}
+        {% if field.help_text %}
+        <p class="help-block">
+            {{ field.help_text|safe }}
+        </p>
+        {% endif %}
+    </td>
+</tr>
+{%- endmacro %}
+
+{% macro render_field_checkbox(form, field, classes) -%}
+<div class="field {{ classes.field }}">
+    <div class="checkbox">
+        {% if field.auto_id %}
+        <label class="control-label {{ classes.label }} {% if field.field.required %}required{% endif %}">
+            {{ field|safe }} <span>{{ field.label }}</span>
+        </label>
+        {% endif %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+        {% endfor %}
+        {% if field.help_text %}
+        <p class="help-block">
+            {{ field.help_text|safe }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro render_field_multiple(form, field, classes) -%}
+{% if field.auto_id %}
+<label class="control-label {{ classes.label }} {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+{% endif %}
+<div class="field {{ classes.field }}">
+    {% for choice in field %}
+    <div class="{{ classes.multiple_type }}">
+        <label>
+        {{ choice.tag()|safe }}
+        {{ choice.choice_label }}
+        </label>
+    </div>
+    {% endfor %}
+    {% for error in field.errors %}
+    <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+    {% endfor %}
+    {% if field.help_text %}
+    <p class="help-block">
+        {{ field.help_text|safe }}
+    </p>
+    {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro bs_field(field, classes={}) -%}
+{% set def_classes = {'label': 'col-md-2', 'field': 'col-md-6', 'multiple_type': ''} %}
+{% do def_classes.update(classes) %}
+{% if field|get_displaytext_layout == 'table' %}
+    {{ render_field_displaytext(form, field, def_classes) }}
+{% else %}
+<div class="row form-group{% if field.errors %} has-error{% endif %}">
+    {% if field|get_displaytext_layout == 'div' %}
+        {{ render_field_standard(form, field, def_classes) }}
+    {% elif field|is_checkbox %}
+        {{ render_field_checkbox(form, field, def_classes) }}
+    {% elif field|is_multiple_checkbox %}
+        {% do classes.update({'multiple_type': 'checkbox'}) %}
+        {{ render_field_multiple(form, field, def_classes) }}
+    {% elif field|is_radio %}
+        {% do classes.update({'multiple_type': 'radio'}) %}
+        {{ render_field_multiple(form, field, def_classes) }}
+    {% else %}
+        {{ render_field_standard(form, field, def_classes) }}
+    {% endif %}
+</div>
+{% endif %}
+{%- endmacro %}

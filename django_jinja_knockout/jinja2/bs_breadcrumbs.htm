@@ -1,0 +1,11 @@
+{% macro bs_breadcrumbs(navs) -%}
+<ol class="breadcrumb">
+    {% for nav in navs %}
+    <li class="{{ nav.class }}">
+        {% if nav.class != 'active' %}<a href="{{ nav.url }}">{% endif %}
+        {{ nav.text }}
+        {% if nav.class != 'active' %}</a>{% endif %}
+    </li>
+    {% endfor %}
+</ol>
+{%- endmacro %}

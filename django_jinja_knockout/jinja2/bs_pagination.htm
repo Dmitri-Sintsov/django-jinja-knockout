@@ -1,0 +1,27 @@
+{% macro bs_pagination(url, page_obj) -%}
+<ul class="pagination">
+    {% if page_obj.number - 1 > 1 %}
+    <li>
+        <a href="{{ url }}?page=1">{{ _('First page') }}</a>
+    </li>
+    {% endif %}
+    {% if page_obj.has_previous() %}
+    <li>
+        <a href="{{ url }}?page={{ page_obj.previous_page_number() }}">{{ _('Previous') }}</a>
+    </li>
+    {% endif %}
+    <li class="active">
+        <a href="#">{{ _('Page %(number)d of %(numpages)d', number=page_obj.number, numpages=page_obj.paginator.num_pages) }}</a>
+    </li>
+    {% if page_obj.has_next() %}
+    <li>
+        <a href="{{ url }}?page={{ page_obj.next_page_number() }}">{{ _('Next') }}</a>
+    </li>
+    {% endif %}
+    {% if page_obj.number + 1 < page_obj.paginator.num_pages %}
+    <li>
+        <a href="{{ url }}?page={{ page_obj.paginator.num_pages }}">{{ _('Last page') }}</a>
+    </li>
+    {% endif %}
+</ul>
+{%- endmacro %}

@@ -1,0 +1,6 @@
+django>=1.8.0
+django-jinja>=1.4.1
+lxml>=3.4.4
+ensure>=0.3.2
+wheel>=0.24.0
+# Additional requirements go here
