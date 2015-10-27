@@ -8,10 +8,10 @@ from django.contrib.admin.actions import delete_selected
 
 
 # Use to optionally inject app css / scripts into django.admin.
-class IspAdminMixin(object):
+class AppAdminMixin(object):
     class Media:
         css = {
-            'all': ('css/front/app.css',)
+            'all': ('css/front/common.css',)
         }
         js = ('js/front/plugins.js', 'js/front/app.js',)
 

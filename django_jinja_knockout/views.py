@@ -54,9 +54,9 @@ def exception_response(request, e):
         raise e
 
 
-# @note: Currently is unused, because ispdev.middleware checks permission_required from urls.py kwargs.
+# @note: Currently is unused, because url permission middleware checks permission_required from urls.py kwargs.
 # @note: Usage:
-# @cbv_decorator(permission_required('isp_project.change_project'))
+# @cbv_decorator(permission_required('my_project.change_project'))
 # class ProjectUpdate(BsTabsMixin, InlineDetailView):
 # ...
 def cbv_decorator(decorator):

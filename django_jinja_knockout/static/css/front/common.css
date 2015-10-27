@@ -1,0 +1,106 @@
+@font-face {
+	font-family: 'Glyphicons Halflings';
+	src: url('/static/fonts/glyphicons-halflings-regular.eot');
+	src: url('/static/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/glyphicons-halflings-regular.woff') format('woff'),
+		url('/static/fonts/glyphicons-halflings-regular.ttf') format('truetype'),
+		url('/static/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+}
+
+.hidden {
+	display: none;
+}
+
+.relative {
+	position: relative;
+}
+
+.preformatted {
+	white-space: pre-wrap;
+}
+
+.bold {
+	font-weight: 800;
+}
+
+.vscroll,
+.bootstrap-dialog-message {
+	max-height: 500px;
+	overflow-y: auto;
+}
+
+.default-padding {
+	padding: 0.5em;
+}
+
+table.table {
+	table-layout: fixed;
+	word-wrap: break-word;
+}
+
+.validation-error {
+	color: white;
+	background-color: red;
+}
+
+.bootstrap-dialog.type-danger .bootstrap-dialog-message {
+	color: red;
+}
+
+.close {
+	float: right;
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1;
+	color: #000;
+	text-shadow: 0px 1px 0px #FFF;
+	opacity: 0.2;
+}
+
+.close:focus, .close:hover {
+	color: #000;
+	text-decoration: none;
+	cursor: pointer;
+	opacity: 0.5;
+}
+
+button.close {
+	padding: 0px 0px 0px 5px;
+	cursor: pointer;
+	background: transparent none repeat scroll 0px 0px;
+	border: 0px none;
+}
+
+form label {
+	font-weight: normal;
+}
+
+form label.required {
+	font-weight: 800;
+}
+
+form label.required:after {
+	color: red;
+	font-family: 'Glyphicons Halflings';
+	font-size: 14px;
+	content: "\e162";
+}
+
+form .form-optional,
+form .form-empty {
+	opacity: 0.8;
+}
+
+form .form-empty input[name$='-DELETE'] {
+	color: red;
+}
+
+form .optional-input[type="checkbox"] {
+	margin-right: 0.5em;
+}
+
+textarea.ko-template {
+	display: none;
+	visibility: hidden;
+}
+
