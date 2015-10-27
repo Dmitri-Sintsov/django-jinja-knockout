@@ -4,4 +4,5 @@ bleach==1.4.2
 lxml>=3.4.4
 ensure>=0.3.2
 wheel>=0.24.0
+pyquestpc>=0.1.0
 # Additional requirements go here

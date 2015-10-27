@@ -1,4 +1,4 @@
-from QuestPC import sdv
+from pyquestpc import sdv
 from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict
 import types
 from django.utils.encoding import force_text

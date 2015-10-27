@@ -1,4 +1,4 @@
-from QuestPC import sdv
+from pyquestpc import sdv
 from io import StringIO
 import json
 import lxml.html

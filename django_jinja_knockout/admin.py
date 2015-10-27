@@ -1,4 +1,4 @@
-from QuestPC import sdv
+from pyquestpc import sdv
 from ensure import ensure_annotations
 from django.core.urlresolvers import reverse
 from django.utils.html import mark_safe, escape

@@ -1,5 +1,5 @@
 # https://github.com/samuelcolvin/django-jinja-bootstrap-form
-from QuestPC import sdv
+from pyquestpc import sdv
 import bleach
 import json
 from django.utils.html import escape
