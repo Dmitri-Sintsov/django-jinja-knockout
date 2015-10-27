@@ -7,7 +7,7 @@ from django.db import transaction
 from django import forms
 from django.forms.models import ModelFormMetaclass
 from django.template import loader as tpl_loader
-from ispdev.templatetags.bootstrap import add_input_classes_to_field
+from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
 
 

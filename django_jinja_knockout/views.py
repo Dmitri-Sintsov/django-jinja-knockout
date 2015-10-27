@@ -5,7 +5,6 @@ from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.views.generic import TemplateView, DetailView, ListView
-from django.conf import settings
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 

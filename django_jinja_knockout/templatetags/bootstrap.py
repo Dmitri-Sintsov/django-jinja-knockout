@@ -7,7 +7,7 @@ from django import forms
 from django_jinja import library
 from django.utils.translation import string_concat, ugettext as _
 from django.utils.safestring import mark_safe
-from ispdev.widgets import DisplayText
+from ..widgets import DisplayText
 
 # http://niwinz.github.io/django-jinja/#_registring_filters_in_a_django_way
 
