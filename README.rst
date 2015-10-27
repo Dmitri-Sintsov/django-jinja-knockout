@@ -5,9 +5,6 @@ django-jinja-knockout
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
     :target: https://badge.fury.io/py/django-jinja-knockout
 
-.. image:: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout.png?branch=master
-    :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
-
 Bootstrap / Jinja2 / Knockout.js integration into Django projects.
 
 Documentation
