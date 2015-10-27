@@ -1,6 +1,7 @@
 from pyquestpc import sdv
 from ensure import ensure_annotations
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe, escape
 from django.db import models
 from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
@@ -44,7 +45,7 @@ class ProtectMixin(object):
         # call Django's delete_selected with limited queryset
         delete_selected(self, request, queryset)
         pass
-    delete_empty.short_description = "Удалить невстроенные записи"
+    delete_empty.short_description = _('Delete non-builtin records')
 
     def get_actions(self, request):
         actions = super().get_actions(request)

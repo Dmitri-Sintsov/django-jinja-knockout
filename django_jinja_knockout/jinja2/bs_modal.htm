@@ -16,7 +16,7 @@
                     {{ caller('buttons') }}
                 {% endif %}
                 {% if not buttons %}
-                    {% set buttons = [{'dismiss': 'modal', 'name': 'modal_close', 'text': 'Закрыть'}] %}
+                    {% set buttons = [{'dismiss': 'modal', 'name': 'modal_close', 'text': _('Close')}] %}
                 {% endif %}
                 {% for button in buttons %}
                     <button type="button" class="btn btn-default" data-dismiss="{{ button.dismiss }}" name="{{ button.name }}">{{ button.text }}</button>

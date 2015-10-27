@@ -55,7 +55,7 @@
                 <div data-bind="foreach: {data: forms, afterRender: afterFormRendered}">
                     <div data-bind="anonymous_template: {'base-selector': '.formsets', 'template-index': {{ loop.index0 }}}"></div>
                 </div>
-                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">Добавить "{{ formset.model._meta.verbose_name }}"</button>
+                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">{{ _('Add "%(verbose_name)s"', verbose_name=formset.model._meta.verbose_name) }}</button>
                 {% endif %}
             </div>
         {% endfor %}

@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-10-26 16:10+0300\n"
-"PO-Revision-Date: 2015-10-26 16:38+0300\n"
+"PO-Revision-Date: 2015-10-27 18:46+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -34,3 +34,12 @@ msgstr "Следующая"
 
 msgid "Last page"
 msgstr "В конец"
+
+msgid "Add \"%(verbose_name)s\""
+msgstr "Добавить \"%(verbose_name)s\""
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Delete non-builtin records"
+msgstr "Удалить невстроенные записи"
