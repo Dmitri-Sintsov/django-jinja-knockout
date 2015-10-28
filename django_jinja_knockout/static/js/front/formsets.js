@@ -137,5 +137,5 @@ App.initClientHooks.push(function($selector) {
     $requiredFormsDeleteFields.parents('.field').empty().html(App.trans('Required'));
     // Display different label for optional previously saved forms loaded at server-side.
     var $optionalFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-optional input[name$="-DELETE"]');
-    $optionalFormsDeleteFields.next('span').html('Delete when saved')
+    $optionalFormsDeleteFields.next('span').html(App.trans('Delete when saved'))
 });
