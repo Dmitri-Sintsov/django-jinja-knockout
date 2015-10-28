@@ -13,9 +13,13 @@ App = window.App;
 
 if (typeof django === 'object' && typeof django.gettext === 'function') {
     App.trans = function() {
-        var args = Array.prototype.slice.call(arguments);
-        args[0] = django.gettext(args[0]);
-        return sprintf.apply(this, args);
+        if (arguments.length < 2) {
+            return django.gettext(arguments[0]);
+        } else {
+            var args = Array.prototype.slice.call(arguments);
+            args[0] = django.gettext(args[0]);
+            return sprintf.apply(this, args);
+        }
     }
 } else if (typeof sprintf === 'function') {
     App.trans = sprintf;
