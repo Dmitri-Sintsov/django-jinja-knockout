@@ -14,7 +14,7 @@ App = window.App;
 if (typeof django === 'object' && typeof django.gettext === 'function') {
     App.trans = function() {
         var args = Array.prototype.slice.call(arguments);
-        var args[0] = django.gettext(args[0]);
+        args[0] = django.gettext(args[0]);
         return sprintf.apply(this, args);
     }
 } else if (typeof sprintf === 'function') {
