@@ -13,7 +13,7 @@ App = window.App;
 
 if (typeof gettext === 'function') {
     App.trans = gettext;
-} elseif (typeof sprintf === 'function') {
+} else if (typeof sprintf === 'function') {
     App.trans = sprintf;
     console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js')
 } else {
