@@ -563,7 +563,6 @@ App.initClientApply = function(selector) {
 };
 
 
-App.socketioLoadedHooks = [];
 App.documentReadyHooks = [];
 
 $(document)
