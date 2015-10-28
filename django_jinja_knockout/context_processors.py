@@ -14,19 +14,30 @@ def raise_helper(msg):
 class TemplateContextProcessor():
 
     def __init__(self, HttpRequest=None):
+        self.user_id = 0
+        self.HttpRequest = HttpRequest
+
+    def skip_request(self):
         """
         Will be called for application response() views.
         Currently is used only with jinja2 templates to do not interfere with django.admin.
         """
-        if HttpRequest is None or not hasattr(HttpRequest, 'client_data'):
-            self.context_data = {}
-            return
-        self.user_id = HttpRequest.user.pk if HttpRequest.user.is_authenticated() and HttpRequest.user.is_active else 0
-        self.context_data = {
+        return self.HttpRequest is None or not hasattr(self.HttpRequest, 'client_data')
+
+    def get_user_id(self):
+        return self.HttpRequest.user.pk \
+            if self.HttpRequest.user.is_authenticated() and self.HttpRequest.user.is_active \
+            else 0
+
+    def get_context_data(self):
+        if self.skip_request():
+            return {}
+        self.user_id = self.get_user_id()
+        return {
             'add_css_classes': add_css_classes,
-            'client_data': HttpRequest.client_data,
+            'client_data': self.HttpRequest.client_data,
             'client_conf': {
-                'csrfToken': get_token(HttpRequest),
+                'csrfToken': get_token(self.HttpRequest),
                 'staticPath': static(''),
                 'userId': self.user_id,
             },
@@ -38,17 +49,15 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'force_text': force_text,
             'isinstance': isinstance,
-            'request_path': HttpRequest.get_full_path(),
+            'request_path': self.HttpRequest.get_full_path(),
             'raise': raise_helper,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
             'sdv_dbg': sdv.dbg,
             'str': str,
         }
-        sdv.dbg('context_data', self.context_data)
 
 
 # Inherit and extend TemplateContextProcessor class if you want to pass more data to Jinja2 templates.
 def template_context_processor(HttpRequest=None):
-    tpl_context_proc = TemplateContextProcessor(HttpRequest)
-    return tpl_context_proc.context_data
+    return TemplateContextProcessor(HttpRequest).get_context_data()
