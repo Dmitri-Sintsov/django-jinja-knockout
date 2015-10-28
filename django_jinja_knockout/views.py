@@ -2,6 +2,7 @@ from . import tpl as qtpl
 import traceback
 from django.conf import settings
 from django.utils.six.moves.urllib.parse import urlparse
+from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.views.generic import TemplateView, DetailView, ListView
@@ -14,7 +15,7 @@ def auth_redirect(request):
         # Will use viewmodel framework to display client-side alert.
         return JsonResponse({
             'view': 'alert_error',
-            'message': 'Вы не имеете доступа к данной операции'
+            'message': _('Access to current url is denied')
         })
     # Borrowed from django.contrib.auth.decorators.user_passes_test()
     path = request.build_absolute_uri()

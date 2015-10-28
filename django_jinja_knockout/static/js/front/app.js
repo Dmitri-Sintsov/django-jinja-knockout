@@ -11,6 +11,15 @@ if (typeof window.App === 'undefined') {
 };
 App = window.App;
 
+if (typeof gettext === 'function') {
+    App.trans = gettext;
+} elseif (typeof sprintf === 'function') {
+    App.trans = sprintf;
+    console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js')
+} else {
+    throw "Neither Django gettext nor sprintf.js is available."
+}
+
 App.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
@@ -42,9 +51,9 @@ App.Dialog = function(options) {
             type: BootstrapDialog.TYPE_WARNING,
             closable: false,
             draggable: true,
-            buttonLabel: 'OK',
-            btnCancelLabel: 'Нет',
-            btnOKLabel: 'Да',
+            buttonLabel: App.trans('OK'),
+            btnCancelLabel: App.trans('No'),
+            btnOKLabel: App.trans('Yes'),
             onshown: function(bootstrapDialog) {
                 self.onShown();
             },
@@ -225,8 +234,8 @@ App.showView = function(viewModel, bindContext) {
             }
         }
         new App.Dialog({
-            'title': 'Ошибка ajax запроса',
-            'message': 'Неопределен response.view ' + App.htmlEncode(viewModelStr),
+            'title': App.trans('AJAX request error'),
+            'message': App.trans('Undefined response view %s', App.htmlEncode(viewModelStr)),
         }).alertError();
         throw "App.showView() error";
     }
@@ -379,7 +388,7 @@ App.showAjaxError = function(jqXHR, exception) {
     }
     App.viewResponse({
         'view': 'alert_error',
-        'title': 'Ошибка запроса',
+        'title': App.trans('Request error'),
         'message': message
     });
 };
@@ -424,7 +433,7 @@ App.datetimewidget = function($parent) {
         }
     });
     // Picker window button help.
-    $parent.find('.picker-switch').prop('title', 'Выбор года / десятилетия.');
+    $parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
     // Icon clicking.
     $dateControls.next('.input-group-addon').on('click', function(ev) {
         var $target = $(ev.target);

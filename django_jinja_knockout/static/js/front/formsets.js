@@ -87,8 +87,8 @@ App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
             var koFormIndex = parseInt(match.pop()) - self.serversideFormsCount;
             $elements.addClass('alert alert-danger');
             new App.Dialog({
-                'title': 'Удалить "' + formModelName + '"',
-                'message': 'Вы уверены что хотите удалить "' + formModelName + '" ?',
+                'title': App.trans('Delete "%s"', formModelName),
+                'message': App.trans('Are you sure you want to delete "%s" ?', formModelName),
                 'callback': function(result) {
                     if (result) {
                         self.forms.splice(koFormIndex, 1);
@@ -134,8 +134,8 @@ App.documentReadyHooks.push(function() {
 App.initClientHooks.push(function($selector) {
     // Do not display delete input for required forms.
     var $requiredFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-required input[name$="-DELETE"]');
-    $requiredFormsDeleteFields.parents('.field').empty().html('Обязательное');
+    $requiredFormsDeleteFields.parents('.field').empty().html(App.trans('Required'));
     // Display different label for optional previously saved forms loaded at server-side.
     var $optionalFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-optional input[name$="-DELETE"]');
-    $optionalFormsDeleteFields.next('span').html('Удалить при сохранении')
+    $optionalFormsDeleteFields.next('span').html('Delete when saved')
 });

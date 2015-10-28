@@ -1,6 +1,7 @@
 from pyquestpc import sdv
-from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict
 import types
+from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict
+from django.utils.translation import gettext as _
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
@@ -30,8 +31,8 @@ class DisplayText(Widget):
     def __init__(self, attrs=None, scalar_display=None, get_text_cb=None, layout='table'):
         self.scalar_display = {
             None: '',
-            True: 'Да',
-            False: 'Нет'
+            True: _('Yes'),
+            False: _('No')
         }
         if scalar_display is not None:
             self.scalar_display.update(scalar_display)
