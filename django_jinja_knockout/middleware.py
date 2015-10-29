@@ -77,6 +77,7 @@ class ContextMiddleware(object):
                         return auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['permission_required']
+        request.view_kwargs = view_kwargs
         return True
 
     def process_view(self, request, view_func, view_args, view_kwargs):
