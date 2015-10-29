@@ -1,2 +1,2 @@
-pip3 install git+https://github.com/Dmitri-Sintsov/pyquestpc.git
+pip3 install --upgrade git+https://github.com/Dmitri-Sintsov/pyquestpc.git
 
