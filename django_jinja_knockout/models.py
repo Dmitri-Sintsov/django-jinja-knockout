@@ -6,15 +6,14 @@ class ContentTypeLinker(object):
 
     def __init__(self, obj, typefield, idfield):
         self.model = None
-        self.viewname = None
-        self.kwargs = {}
+        self.url = None
         self.description = ''
         self.obj_type = getattr(obj, typefield)
         if self.obj_type is not None:
             model_class = self.obj_type.model_class()
             self.model = model_class.objects.filter(pk=getattr(obj, idfield)).first()
             if self.model is not None:
-                if hasattr(self.model, 'get_canonical_reverse') and callable(self.model.get_canonical_reverse):
-                    self.description, self.viewname, self.kwargs = self.model.get_canonical_reverse()
+                if hasattr(self.model, 'get_canonical_link') and callable(self.model.get_canonical_link):
+                    self.description, self.url = self.model.get_canonical_link()
                 else:
                     self.description = str(self.model)
