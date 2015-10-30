@@ -35,12 +35,14 @@ class ContextMiddleware(object):
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
-        if view_kwargs.get('ajax', False):
+        requires_ajax = view_kwargs.get('ajax')
+        if requires_ajax is not None:
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['ajax']
+        if requires_ajax is True:
             if not request.is_ajax():
                 return error_response('AJAX request is required')
-        else:
+        elif requires_ajax is False:
             if request.is_ajax():
                 return error_response(request, 'AJAX request is not required')
 
