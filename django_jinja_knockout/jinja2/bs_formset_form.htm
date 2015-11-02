@@ -1,6 +1,6 @@
 {% from 'bs_form_body.htm' import bs_form_body with context %}
 {% if action == '' %}
-    {# DisplayText fields use tr/td #}
+    {# DisplayText fields may use tr/td when displaying as tables or div when embedded into "normal" forms. #}
     {% if formset_index == 0 %}
     <tr>
         <th colspan="2">{{ html.inline_title }}</th>
@@ -11,6 +11,9 @@
     </tr>
     {% endif %}
 {% else %}
+{% if not html.formset_form_class %}
+    {% do html.update({'formset_form_class': ''}) %}
+{% endif %}
 <div class="formset-form-wrap {{ html.formset_form_class }}">
     <div class="panel panel-default inline-formset-wrap">
         <div class="panel-heading"><h3 class="panel-title">{{ html.inline_title }}</h3></div>
