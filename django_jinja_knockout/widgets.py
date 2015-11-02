@@ -29,6 +29,7 @@ class OptionalWidget(MultiWidget):
 class DisplayText(Widget):
 
     def __init__(self, attrs=None, scalar_display=None, get_text_cb=None, layout='table'):
+        self.name = None
         self.scalar_display = {
             None: '',
             True: _('Yes'),
@@ -36,7 +37,8 @@ class DisplayText(Widget):
         }
         if scalar_display is not None:
             self.scalar_display.update(scalar_display)
-        self.get_text_cb = get_text_cb
+        if callable(get_text_cb):
+            self.get_text = types.MethodType(get_text_cb, self)
         self.layout = layout
         super().__init__(attrs)
 
@@ -51,6 +53,8 @@ class DisplayText(Widget):
         if name == 'projectmember_set-0-profile':
             sdv.dbg('name', name)
         """
+        # Save self.name so it may be used in get_text_cb callback.
+        self.name = name
         is_list = type(values) is list
         if not is_list:
             values = [values]
@@ -70,8 +74,6 @@ class DisplayText(Widget):
                 values[value_key] = value
         final_attrs = self.build_attrs(attrs, name=name)
         remove_css_classes_from_dict(final_attrs, 'form-control')
-        if callable(self.get_text_cb):
-            self.get_text = types.MethodType(self.get_text_cb, self)
         if is_list:
             add_css_classes_to_dict(final_attrs, 'list-group')
             return print_list(
