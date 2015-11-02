@@ -20,9 +20,9 @@ def lim_str(stri, minmsg, maxmsg, minlen=1, maxlen=255):
         })
 
 
-def load_json_ids(data, errmsg):
+def load_json_ids(json_str, errmsg):
     try:
-        ids = json.loads(data)
+        ids = json.loads(json_str)
         if type(ids) is not list:
             raise ValueError(errmsg)
         for id in ids:

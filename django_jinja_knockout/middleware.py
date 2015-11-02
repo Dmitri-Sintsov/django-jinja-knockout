@@ -69,11 +69,13 @@ class ContextMiddleware(object):
             for backend in get_backends():
                 if get_fqn(backend) in settings.AUTHENTICATION_BACKENDS:
                     # Found our custom auth backend.
-                    if not backend.has_perm(
-                            user_obj=request.user,
-                            perm=view_kwargs['permission_required'],
-                            request=request
-                    ):
+                    kwargs = {
+                        'user_obj': request.user,
+                        'perm': view_kwargs['permission_required']
+                    }
+                    if getattr(backend.__class__, 'uses_request', False):
+                        kwargs['request'] = request
+                    if not backend.has_perm(**kwargs):
                         # Current user has no access to context blog / project.
                         # Redirect to login url with 'next' link.
                         return auth_redirect(request)
