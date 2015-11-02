@@ -37,8 +37,7 @@ class DisplayText(Widget):
         }
         if scalar_display is not None:
             self.scalar_display.update(scalar_display)
-        if callable(get_text_cb):
-            self.get_text = types.MethodType(get_text_cb, self)
+        self.get_text_cb = get_text_cb
         self.layout = layout
         super().__init__(attrs)
 
@@ -74,6 +73,8 @@ class DisplayText(Widget):
                 values[value_key] = value
         final_attrs = self.build_attrs(attrs, name=name)
         remove_css_classes_from_dict(final_attrs, 'form-control')
+        if callable(self.get_text_cb):
+            self.get_text = types.MethodType(self.get_text_cb, self)
         if is_list:
             add_css_classes_to_dict(final_attrs, 'list-group')
             return print_list(

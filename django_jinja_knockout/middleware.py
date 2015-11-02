@@ -76,7 +76,7 @@ class ContextMiddleware(object):
                     if getattr(backend.__class__, 'uses_request', False):
                         kwargs['request'] = request
                     if not backend.has_perm(**kwargs):
-                        # Current user has no access to context blog / project.
+                        # Current user has no access to current view.
                         # Redirect to login url with 'next' link.
                         return auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
