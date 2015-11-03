@@ -1,4 +1,4 @@
-from . import tpl as qtpl
+import json
 import traceback
 from django.conf import settings
 from django.utils.six.moves.urllib.parse import urlparse
@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonRespon
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from . import tpl as qtpl
 
 
 def auth_redirect(request):
@@ -175,6 +176,27 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
     def get_object_from_url(self):
         return self.get_object()
 
+
+class ListViewSortMixin(ListView):
+
+    order_key = 'list_order_by'
+    # Do not need to duplicate both accending and descending ('-' prefix) orders.
+    # Both are counted in.
+    allowed_orders = []
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort_order = self.request.GET.get(self.__class__.order_key)
+        if sort_order is None:
+            return queryset
+        sort_order = json.loads(sort_order)
+        # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
+        is_iterable = type(sort_order) is list
+        stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
+        if stripped_order in self.__class__.allowed_orders:
+            return queryset.order_by(*sort_order) if is_iterable else queryset.order_by(sort_order)
+        else:
+            return queryset
 
 class PostListView(ListView):
 
