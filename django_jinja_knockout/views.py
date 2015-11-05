@@ -181,7 +181,7 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
         return self.get_object()
 
 
-class ListViewSortMixin(ListView):
+class ListSortingView(ListView):
 
     order_key = 'list_order_by'
     # Do not need to duplicate both accending and descending ('-' prefix) orders.
@@ -192,6 +192,15 @@ class ListViewSortMixin(ListView):
         super().__init__()
         self.current_sort_order = None
         self.current_stripped_sort_order = None
+        self.is_iterable_order = False
+
+    def dispatch(self, request, *args, **kwargs):
+        sort_order = self.request.GET.get(self.__class__.order_key)
+        if sort_order is not None:
+            sort_order = json.loads(sort_order)
+            self.is_iterable_order, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
+            self.current_sort_order = sort_order
+        return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
         if type(sort_order) not in [str, list]:
@@ -229,7 +238,7 @@ class ListViewSortMixin(ListView):
         result.update(query)
         return result
 
-    def get_sort_order_link(self, viewname, sort_order, kwargs, query={}, text=None):
+    def get_sort_order_link(self, viewname, sort_order, kwargs={}, query={}, text=None):
         if text is None:
             obj = self.__class__.model()
             text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
@@ -256,14 +265,11 @@ class ListViewSortMixin(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        sort_order = self.request.GET.get(self.__class__.order_key)
-        if sort_order is None:
-            self.current_sort_order = None
+        if self.current_sort_order is None:
             return queryset
-        sort_order = json.loads(sort_order)
-        is_iterable, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
-        self.current_sort_order = sort_order
-        return queryset.order_by(*sort_order) if is_iterable else queryset.order_by(sort_order)
+        return queryset.order_by(*self.current_sort_order) \
+            if self.is_iterable_order \
+            else queryset.order_by(self.current_sort_order)
 
 class PostListView(ListView):
 
