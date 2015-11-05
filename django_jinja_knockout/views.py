@@ -182,21 +182,62 @@ class ListViewSortMixin(ListView):
     order_key = 'list_order_by'
     # Do not need to duplicate both accending and descending ('-' prefix) orders.
     # Both are counted in.
-    allowed_orders = []
+    allowed_sort_orders = []
+
+    def __init__(self):
+        super().__init__()
+        self.current_sort_order = None
+
+    def try_allowed_sort_order(self, sort_order):
+        if type(sort_order) not in [str, list]:
+            raise ValueError('Invalid type of sorting order')
+        # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
+        is_iterable = type(sort_order) is list
+        stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
+        if stripped_order not in self.__class__.allowed_sort_orders:
+            raise ValueError('Non-allowed sorting order')
+        return is_iterable
+
+    def get_current_sort_order_kwargs(self, query={}):
+        if self.current_sort_order is None:
+            return query
+        else:
+            result = {self.__class__.order_key: json.dumps(self.current_sort_order)}
+            result.update(query)
+            return result
+
+    @staticmethod
+    def negate_order_key(cls, order_key):
+         return order_key.lstrip('-') if order_key[0] == '-' else '-{0}'.format(order_key)
+
+    def get_sort_order_kwargs(self, sort_order, query={}):
+        is_iterable = self.try_allowed_sort_order(sort_order)
+        if self.current_sort_order == sort_order:
+            # Negate current sort order.
+            if is_iterable:
+                sort_order = [self.__class__.negate_order_key(self.__class__, order_key) for order_key in sort_order]
+            else:
+                sort_order = self.__class__.negate_order_key(self.__class__, sort_order)
+        result = {self.__class__.order_key: json.dumps(sort_order)}
+        result.update(query)
+        return result
+
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['cbv'] = self
+        return context_data
 
     def get_queryset(self):
         queryset = super().get_queryset()
         sort_order = self.request.GET.get(self.__class__.order_key)
         if sort_order is None:
+            self.current_sort_order = None
             return queryset
         sort_order = json.loads(sort_order)
-        # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
-        is_iterable = type(sort_order) is list
-        stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
-        if stripped_order in self.__class__.allowed_orders:
-            return queryset.order_by(*sort_order) if is_iterable else queryset.order_by(sort_order)
-        else:
-            return queryset
+        is_iterable = self.try_allowed_sort_order(sort_order)
+        self.current_sort_order = sort_order
+        return queryset.order_by(*sort_order) if is_iterable else queryset.order_by(sort_order)
 
 class PostListView(ListView):
 
