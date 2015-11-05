@@ -71,6 +71,24 @@ button.close {
 	border: 0px none;
 }
 
+.halflings-before:before {
+	color: Green;
+	font-family: 'Glyphicons Halflings';
+	font-size: 14px;
+}
+
+a.sort-asc:before {
+	content: "\e093";
+}
+
+a.sort-desc:before {
+	content: "\e094";
+}
+
+a.sort-inactive:before {
+	content: "\e150";
+}
+
 form label {
 	font-weight: normal;
 }
@@ -80,7 +98,7 @@ form label.required {
 }
 
 form label.required:after {
-	color: red;
+	color: Red;
 	font-family: 'Glyphicons Halflings';
 	font-size: 14px;
 	content: "\e162";

@@ -1,6 +1,9 @@
 import json
 import traceback
 from django.conf import settings
+from django.utils.encoding import force_text
+from django.utils.html import format_html
+from django.forms.utils import flatatt
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
@@ -8,6 +11,7 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonRespon
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from .models import get_verbose_name
 from . import tpl as qtpl
 
 
@@ -187,8 +191,9 @@ class ListViewSortMixin(ListView):
     def __init__(self):
         super().__init__()
         self.current_sort_order = None
+        self.current_stripped_sort_order = None
 
-    def try_allowed_sort_order(self, sort_order):
+    def strip_sort_order(self, sort_order):
         if type(sort_order) not in [str, list]:
             raise ValueError('Invalid type of sorting order')
         # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
@@ -196,7 +201,7 @@ class ListViewSortMixin(ListView):
         stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
         if stripped_order not in self.__class__.allowed_sort_orders:
             raise ValueError('Non-allowed sorting order')
-        return is_iterable
+        return is_iterable, stripped_order
 
     def get_current_sort_order_kwargs(self, query={}):
         if self.current_sort_order is None:
@@ -206,22 +211,43 @@ class ListViewSortMixin(ListView):
             result.update(query)
             return result
 
-    @staticmethod
-    def negate_order_key(cls, order_key):
-         return order_key.lstrip('-') if order_key[0] == '-' else '-{0}'.format(order_key)
+    def negate_sort_order_key(self, order_key):
+        return order_key.lstrip('-') if order_key[0] == '-' else '-{0}'.format(order_key)
+
+    def is_negate_sort_order(self, sort_order):
+        return sort_order[0][0] == '-' if type(sort_order) is list else sort_order[0] == '-'
 
     def get_sort_order_kwargs(self, sort_order, query={}):
-        is_iterable = self.try_allowed_sort_order(sort_order)
+        is_iterable, stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
             if is_iterable:
-                sort_order = [self.__class__.negate_order_key(self.__class__, order_key) for order_key in sort_order]
+                sort_order = [self.negate_sort_order_key(order_key) for order_key in sort_order]
             else:
-                sort_order = self.__class__.negate_order_key(self.__class__, sort_order)
+                sort_order = self.negate_sort_order_key(sort_order)
         result = {self.__class__.order_key: json.dumps(sort_order)}
         result.update(query)
         return result
 
+    def get_sort_order_link(self, viewname, sort_order, kwargs, query={}, text=None):
+        if text is None:
+            obj = self.__class__.model()
+            text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
+        link_attrs = {
+            'class': 'halflings-before',
+            'href': qtpl.reverseq(viewname, kwargs=kwargs, query=self.get_sort_order_kwargs(sort_order, query))
+        }
+        if sort_order == self.current_stripped_sort_order:
+            link_attrs['class'] += ' sort-desc' if self.is_negate_sort_order(self.current_sort_order) else ' sort-asc'
+        else:
+            # link_attrs['class'] = 'sort-desc' if self.is_negate_sort_order(sort_order) else 'sort-asc'
+            link_attrs['class'] += ' sort-inactive'
+
+        return format_html(
+            '<a{}>{}</a>',
+            flatatt(link_attrs),
+            force_text(text)
+        )
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
@@ -235,7 +261,7 @@ class ListViewSortMixin(ListView):
             self.current_sort_order = None
             return queryset
         sort_order = json.loads(sort_order)
-        is_iterable = self.try_allowed_sort_order(sort_order)
+        is_iterable, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
         self.current_sort_order = sort_order
         return queryset.order_by(*sort_order) if is_iterable else queryset.order_by(sort_order)
 
