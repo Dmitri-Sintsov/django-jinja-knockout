@@ -209,7 +209,7 @@ class ListSortingView(ListView):
         is_iterable = type(sort_order) is list
         stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
         if stripped_order not in self.__class__.allowed_sort_orders:
-            raise ValueError('Non-allowed sorting order')
+            raise ValueError('Non-allowed sorting order: {0}'.format(json.dumps(stripped_order)))
         return is_iterable, stripped_order
 
     def get_current_sort_order_kwargs(self, query={}):
