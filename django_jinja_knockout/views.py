@@ -271,6 +271,7 @@ class ListSortingView(ListView):
             if self.is_iterable_order \
             else queryset.order_by(self.current_sort_order)
 
+
 class PostListView(ListView):
 
     def dispatch(self, request, *args, **kwargs):
