@@ -5,7 +5,7 @@ import lxml.html
 from lxml.etree import tostring
 from django.db import transaction
 from django import forms
-from django.forms.models import ModelFormMetaclass
+from django.forms.models import BaseInlineFormSet, ModelFormMetaclass
 from django.template import loader as tpl_loader
 from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
@@ -223,6 +223,17 @@ class FormWithInlineFormsets(object):
         self.get_form()
         self.get_formsets()
 
+
+class InlineFormSet(BaseInlineFormSet):
+
+    FormClass = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form = self.get_form
+
+    def get_form(self, **defaults):
+        return self.__class__.FormClass(**defaults)
 
 # Mixed to BaseInlineFormset to use different form classes for already existing entries
 # and for newly added ones (empty_form).
