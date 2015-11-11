@@ -224,6 +224,7 @@ class FormWithInlineFormsets(object):
         self.get_formsets()
 
 
+# Currently is unused, becaause 'form' kwarg is passed to inlineformset_factory() instead. #
 class InlineFormSet(BaseInlineFormSet):
 
     FormClass = None

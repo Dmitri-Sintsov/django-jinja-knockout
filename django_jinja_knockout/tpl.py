@@ -18,7 +18,9 @@ def print_table(rows, top_tpl='<table>{0}</table>\n', row_tpl='<tr>{0}</tr>\n', 
 
 
 def print_bs_labels(row, bs_type='info'):
-    return mark_safe(print_list(row, elem_tpl='<span class="label label-' + bs_type + ' preformatted">{0}</span><br />', top_tpl='{0}'))
+    # See app.css how .conditional-display can be displayed as block element or inline element
+    # via outer .display-block / .display-inline classes.
+    return mark_safe(print_list(row, elem_tpl='<span class="label label-' + bs_type + ' preformatted">{0}</span><span class="conditional-display"></span>', top_tpl='{0}'))
 
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
