@@ -49,12 +49,15 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'force_text': force_text,
             'isinstance': isinstance,
+            # Used for 'next' query arg in signup view.
             'request_path': self.HttpRequest.get_full_path(),
             'raise': raise_helper,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
             'sdv_dbg': sdv.dbg,
             'str': str,
+            # required for CBV bs_pagination() to work correctly.
+            'view_name': self.HttpRequest.resolver_match.url_name
         }
 
 

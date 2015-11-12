@@ -238,7 +238,9 @@ class ListSortingView(ListView):
         result.update(query)
         return result
 
-    def get_sort_order_link(self, viewname, sort_order, kwargs={}, query={}, text=None):
+    def get_sort_order_link(self, sort_order, kwargs={}, query={}, text=None, viewname=None):
+        if viewname is None:
+            viewname = self.request.resolver_match.url_name
         if text is None:
             obj = self.__class__.model()
             text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])

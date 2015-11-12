@@ -1,4 +1,7 @@
-{% macro bs_pagination(viewname, kwargs, query={}, page_obj=None) -%}
+{% macro bs_pagination(kwargs, query={}, page_obj=None, viewname=None) -%}
+{% if viewname is none %}
+    {% set viewname = view_name %}
+{% endif %}
 <ul class="pagination">
     {% if page_obj.number - 1 > 1 %}
     <li>
