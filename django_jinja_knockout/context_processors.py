@@ -56,8 +56,6 @@ class TemplateContextProcessor():
             'reverseq': reverseq,
             'sdv_dbg': sdv.dbg,
             'str': str,
-            # required for CBV bs_pagination() to work correctly.
-            'view_name': self.HttpRequest.resolver_match.url_name
         }
 
 

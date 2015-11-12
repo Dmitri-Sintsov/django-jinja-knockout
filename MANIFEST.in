@@ -4,3 +4,4 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 recursive-include django_jinja_knockout *.htm *.js *.css *.py *.po *.mo
+

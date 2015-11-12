@@ -1,18 +1,24 @@
-{% macro bs_pagination(kwargs, query={}, page_obj=None, viewname=None) -%}
-{% if viewname is none %}
-    {% set viewname = view_name %}
+{% macro bs_pagination(url_name=None, kwargs=None, query={}, cbv=None, page_obj=None) -%}
+{% if url_name is none %}
+    {% set url_name = request.url_name %}
+{% endif %}
+{% if kwargs is none %}
+    {% set kwargs = request.view_kwargs %}
+{% endif %}
+{% if cbv is not none %}
+    {% set query = cbv.get_current_sort_order_querypart() %}
 {% endif %}
 <ul class="pagination">
     {% if page_obj.number - 1 > 1 %}
     <li>
         {% do query.update({'page' : 1}) %}
-        <a href="{{ reverseq(viewname, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
+            <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
     </li>
     {% endif %}
     {% if page_obj.has_previous() %}
     <li>
         {% do query.update({'page' : page_obj.previous_page_number()}) %}
-        <a href="{{ reverseq(viewname, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
+        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
     </li>
     {% endif %}
     <li class="active">
@@ -21,13 +27,13 @@
     {% if page_obj.has_next() %}
     <li>
         {% do query.update({'page' : page_obj.next_page_number()}) %}
-        <a href="{{ reverseq(viewname, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
+        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
     </li>
     {% endif %}
     {% if page_obj.number + 1 < page_obj.paginator.num_pages %}
     <li>
         {% do query.update({'page' : page_obj.paginator.num_pages}) %}
-        <a href="{{ reverseq(viewname, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
+        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
     </li>
     {% endif %}
 </ul>

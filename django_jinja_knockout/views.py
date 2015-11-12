@@ -212,7 +212,7 @@ class ListSortingView(ListView):
             raise ValueError('Non-allowed sorting order: {0}'.format(json.dumps(stripped_order)))
         return is_iterable, stripped_order
 
-    def get_current_sort_order_kwargs(self, query={}):
+    def get_current_sort_order_querypart(self, query={}):
         if self.current_sort_order is None:
             return query
         else:
@@ -226,7 +226,7 @@ class ListSortingView(ListView):
     def is_negate_sort_order(self, sort_order):
         return sort_order[0][0] == '-' if type(sort_order) is list else sort_order[0] == '-'
 
-    def get_sort_order_kwargs(self, sort_order, query={}):
+    def get_sort_order_querypart(self, sort_order, query={}):
         is_iterable, stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
@@ -238,7 +238,9 @@ class ListSortingView(ListView):
         result.update(query)
         return result
 
-    def get_sort_order_link(self, sort_order, kwargs={}, query={}, text=None, viewname=None):
+    def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
+        if kwargs is None:
+            kwargs = self.request.view_kwargs
         if viewname is None:
             viewname = self.request.resolver_match.url_name
         if text is None:
@@ -246,7 +248,7 @@ class ListSortingView(ListView):
             text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
         link_attrs = {
             'class': 'halflings-before',
-            'href': qtpl.reverseq(viewname, kwargs=kwargs, query=self.get_sort_order_kwargs(sort_order, query))
+            'href': qtpl.reverseq(viewname, kwargs=kwargs, query=self.get_sort_order_querypart(sort_order, query))
         }
         if sort_order == self.current_stripped_sort_order:
             link_attrs['class'] += ' sort-desc' if self.is_negate_sort_order(self.current_sort_order) else ' sort-asc'

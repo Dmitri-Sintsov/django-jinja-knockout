@@ -33,6 +33,7 @@ class ContextMiddleware(object):
         # Optional server-side injected JSON.
         request.client_data = {}
 
+
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
         requires_ajax = view_kwargs.get('ajax')
@@ -88,6 +89,8 @@ class ContextMiddleware(object):
         acl_result = self.check_acl(request, view_kwargs)
         if acl_result is not True:
             return acl_result
+        # required for CBV bs_pagination() to work correctly.
+        request.url_name = request.resolver_match.url_name
 
         try:
             result = view_func(request, *view_args, **view_kwargs)
