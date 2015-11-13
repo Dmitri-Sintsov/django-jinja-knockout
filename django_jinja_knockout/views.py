@@ -285,6 +285,7 @@ class ListSortingView(ListView):
             return False
         return self.current_list_filter[fieldname] == fieldval
 
+    # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template. #
     def get_filter_navs(self, filter_field):
         reset_list_filter = copy(self.current_list_filter)
         link = {}
