@@ -6,7 +6,7 @@
     {% set kwargs = request.view_kwargs %}
 {% endif %}
 {% if cbv is not none %}
-    {% set query = cbv.get_current_sort_order_querypart() %}
+    {% set query = cbv.get_current_querypart() %}
 {% endif %}
 <ul class="pagination">
     {% if page_obj.number - 1 > 1 %}

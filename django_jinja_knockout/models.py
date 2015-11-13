@@ -1,5 +1,11 @@
+from django.apps import apps
+
 def get_verbose_name(obj, fieldname):
-    return obj._meta.get_field_by_name(fieldname)[0].verbose_name
+    if type(obj) is str:
+        Model = apps.get_model(*obj.split('.'))
+        return Model._meta.get_field_by_name(fieldname)[0].verbose_name
+    else:
+        return obj._meta.get_field_by_name(fieldname)[0].verbose_name
 
 
 class ContentTypeLinker(object):

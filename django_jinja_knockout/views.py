@@ -183,13 +183,18 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
 
 class ListSortingView(ListView):
 
+    filter_key = 'list_filter'
     order_key = 'list_order_by'
     # Do not need to duplicate both accending and descending ('-' prefix) orders.
     # Both are counted in.
     allowed_sort_orders = []
+    # Be careful about enabling filters.
+    # @todo: Support '__in' suffix automatically.
+    allowed_filter_fields = []
 
     def __init__(self):
         super().__init__()
+        self.current_list_filter = None
         self.current_sort_order = None
         self.current_stripped_sort_order = None
         self.is_iterable_order = False
@@ -200,6 +205,19 @@ class ListSortingView(ListView):
             sort_order = json.loads(sort_order)
             self.is_iterable_order, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
+
+        list_filter = self.request.GET.get(self.__class__.filter_key)
+        if list_filter is not None:
+            list_filter = json.loads(list_filter)
+            if type(list_filter) is not dict:
+                raise ValueError('List of filters must be dictionary: {0}'.format(json.dumps(list_filter)))
+            for key, val in list_filter.items():
+                if key not in self.__class__.allowed_filter_fields:
+                    raise ValueError('Non-allowed filter field: {0}'.format(json.dumps(filter)))
+                if type(val) not in (type(None),str,int,float,bool):
+                    raise ValueError('Non-aloowed type of filter field value: {0}'.format(json.dumps(val)))
+                self.current_list_filter = list_filter
+
         return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
@@ -226,7 +244,9 @@ class ListSortingView(ListView):
     def is_negate_sort_order(self, sort_order):
         return sort_order[0][0] == '-' if type(sort_order) is list else sort_order[0] == '-'
 
-    def get_sort_order_querypart(self, sort_order, query={}):
+    def get_negate_sort_order_querypart(self, sort_order, query={}):
+        if sort_order is None:
+            return query
         is_iterable, stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
@@ -238,6 +258,28 @@ class ListSortingView(ListView):
         result.update(query)
         return result
 
+    def get_list_filter_querypart(self, list_filter, query={}):
+        if list_filter is None:
+            return query
+        result = {self.__class__.filter_key: json.dumps(list_filter)}
+        result.update(query)
+        return result
+
+    def get_current_list_filter_querypart(self, query={}):
+        return self.get_list_filter_querypart(self.current_list_filter, query)
+
+    def get_current_querypart(self, query={}):
+        return self.get_current_list_filter_querypart(
+            self.get_current_sort_order_querypart(query)
+        )
+
+    def has_current_filter(self, fieldname, fieldval):
+        if self.current_list_filter is None:
+            return False
+        if fieldname not in self.current_list_filter:
+            return False
+        return self.current_list_filter[fieldname] == fieldval
+
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if kwargs is None:
             kwargs = self.request.view_kwargs
@@ -248,7 +290,14 @@ class ListSortingView(ListView):
             text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
         link_attrs = {
             'class': 'halflings-before',
-            'href': qtpl.reverseq(viewname, kwargs=kwargs, query=self.get_sort_order_querypart(sort_order, query))
+            'href': qtpl.reverseq(
+                viewname,
+                kwargs=kwargs,
+                query=self.get_negate_sort_order_querypart(
+                    sort_order=sort_order,
+                    query=self.get_current_list_filter_querypart(query)
+                )
+            )
         }
         if sort_order == self.current_stripped_sort_order:
             link_attrs['class'] += ' sort-desc' if self.is_negate_sort_order(self.current_sort_order) else ' sort-asc'
@@ -267,13 +316,25 @@ class ListSortingView(ListView):
         context_data['cbv'] = self
         return context_data
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
+    def order_queryset(self, queryset):
         if self.current_sort_order is None:
             return queryset
         return queryset.order_by(*self.current_sort_order) \
             if self.is_iterable_order \
             else queryset.order_by(self.current_sort_order)
+
+    def filter_queryset(self, queryset):
+        if self.current_list_filter is None:
+            return queryset
+        else:
+            return queryset.filter(**self.current_list_filter)
+
+    def get_queryset(self):
+        return self.filter_queryset(
+            self.order_queryset(
+                super().get_queryset()
+            )
+        )
 
 
 class PostListView(ListView):
