@@ -1,3 +1,4 @@
+from copy import copy
 import json
 import traceback
 from django.conf import settings
@@ -190,11 +191,15 @@ class ListSortingView(ListView):
     allowed_sort_orders = []
     # Be careful about enabling filters.
     # @todo: Support '__in' suffix automatically.
-    allowed_filter_fields = []
+    # key is field name (may be one to many related field as well)
+    # value is list of field choices, as specified in model.
+    allowed_filter_fields = {}
 
     def __init__(self):
         super().__init__()
+        # queryset.filter(**self.current_list_filter)
         self.current_list_filter = None
+        # queryset.order_by(*self.current_sort_order) or queryset.order_by(self.current_sort_order)
         self.current_sort_order = None
         self.current_stripped_sort_order = None
         self.is_iterable_order = False
@@ -280,11 +285,55 @@ class ListSortingView(ListView):
             return False
         return self.current_list_filter[fieldname] == fieldval
 
+    def get_filter_navs(self, filter_field):
+        reset_list_filter = copy(self.current_list_filter)
+        link = {}
+        if self.current_list_filter is None:
+            link['class'] = 'active'
+            reset_list_filter = {}
+        elif filter_field in reset_list_filter:
+            del reset_list_filter[filter_field]
+        else:
+            link['class'] = 'active'
+        link.update({
+            'url': qtpl.reverseq(
+                self.request.url_name,
+                kwargs=self.kwargs,
+                query=self.get_current_sort_order_querypart(
+                    query=self.get_list_filter_querypart(
+                        list_filter=reset_list_filter
+                    )
+                )
+            ),
+            'text': 'Все'
+        })
+        navs = [link]
+        display = []
+        for filter_type, filter_type_display in self.__class__.allowed_filter_fields[filter_field]:
+            reset_list_filter[filter_field] = filter_type
+            link = {
+                'url': qtpl.reverseq(
+                    self.request.url_name,
+                    kwargs=self.kwargs,
+                    query=self.get_current_sort_order_querypart(
+                        query=self.get_list_filter_querypart(
+                            list_filter=reset_list_filter
+                        )
+                    )
+                ),
+                'text': filter_type_display
+            }
+            if self.has_current_filter(filter_field, filter_type):
+                display.append(filter_type_display)
+                link['class'] = 'active'
+            navs.append(link)
+        return navs, display
+
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if kwargs is None:
-            kwargs = self.request.view_kwargs
+            kwargs = self.kwargs
         if viewname is None:
-            viewname = self.request.resolver_match.url_name
+            viewname = self.request.url_name
         if text is None:
             obj = self.__class__.model()
             text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
@@ -313,7 +362,16 @@ class ListSortingView(ListView):
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data['cbv'] = self
+        context_data.update({
+            'cbv': self,
+            'filter_navs': {},
+            'filter_display': {}
+        })
+        for fieldname in self.__class__.allowed_filter_fields:
+            navs, display = self.get_filter_navs(fieldname)
+            context_data['filter_navs'][fieldname] = navs
+            context_data['filter_display'][fieldname] = display
+        return context_data
         return context_data
 
     def order_queryset(self, queryset):
