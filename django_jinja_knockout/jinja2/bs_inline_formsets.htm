@@ -22,6 +22,7 @@
         </div>
         {% endif %}
         {% for formset in formsets %}
+            {{ caller(formset_begin=formset) }}
             <div class="formset default-padding">
                 <div class="management-form">
                     {{ formset.management_form }}
@@ -38,6 +39,7 @@
                     <table class="table">
                 {% endif %}
                 {% for form in formset %}
+                    {{ caller(form_begin=form) }}
                     {% set formset_index = loop.index0 %}
                     {% if formset.can_delete %}
                         {% if formset_index < formset.min_num %}
@@ -47,6 +49,7 @@
                         {% endif %}
                     {% endif %}
                     {% include 'bs_formset_form.htm' %}
+                    {{ caller(form_end=form) }}
                 {% endfor %}
                 {% if action == '' %}
                     </table>
@@ -58,7 +61,7 @@
                 <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">{{ _('Add "%(verbose_name)s"', verbose_name=formset.model._meta.verbose_name) }}</button>
                 {% endif %}
             </div>
-            {{ caller(formset.prefix) }}
+            {{ caller(formset_end=formset) }}
         {% endfor %}
         {% if html.submit_text != '' %}
         <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>

@@ -35,11 +35,19 @@ def display_model_formfield_callback(db_field, **kwargs):
     return db_field.formfield(**defaults)
 
 
+class UnchangableModelMixin():
+
+    def has_changed(self):
+        # Display forms never change.
+        return False
+
+
 # Metaclass used to create read-only forms (display models). #
 class DisplayModelMetaclass(ModelFormMetaclass):
     def __new__(mcs, name, bases, attrs):
         if attrs is None:
             attrs = {}
+        bases = bases + (UnchangableModelMixin,)
         attrs.update({'formfield_callback': display_model_formfield_callback})
         return ModelFormMetaclass.__new__(mcs, name, bases, attrs)
 

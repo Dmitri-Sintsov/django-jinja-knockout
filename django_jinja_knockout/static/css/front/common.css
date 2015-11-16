@@ -23,6 +23,11 @@
 	font-weight: 800;
 }
 
+.href-target:target {
+	border: 2px solid Aquamarine;
+	background-color: Aquamarine;
+}
+
 .vscroll,
 .bootstrap-dialog-message {
 	max-height: 500px;
@@ -122,12 +127,12 @@ textarea.ko-template {
 	visibility: hidden;
 }
 
-.display-block .conditional-display {
+.display-block-condition .conditional-display {
 	display: block;
 	margin: 0.25em 0 0.25em 0;
 }
 
-.display-inline .conditional-display {
+.display-inline-condition .conditional-display {
 	display: inline-block;
 	margin: 0 0.25em 0 0.25em;
 }

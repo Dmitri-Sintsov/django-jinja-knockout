@@ -1,5 +1,8 @@
-{% macro bs_breadcrumbs(navs) -%}
+{% macro bs_breadcrumbs(title=None, navs) -%}
 <ol class="breadcrumb">
+    {% if title is not none %}
+    <li class="bold">{{ title }}:</li>
+    {% endif %}
     {% for nav in navs %}
     <li class="{{ nav.class }}">
         {% if nav.class != 'active' %}<a href="{{ nav.url }}">{% endif %}

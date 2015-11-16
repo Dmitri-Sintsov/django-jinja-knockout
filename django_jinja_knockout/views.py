@@ -365,10 +365,12 @@ class ListSortingView(ListView):
         context_data = super().get_context_data(**kwargs)
         context_data.update({
             'cbv': self,
+            'filter_title': {},
             'filter_navs': {},
             'filter_display': {}
         })
         for fieldname in self.__class__.allowed_filter_fields:
+            context_data['filter_title'][fieldname] = get_verbose_name(self.__class__.model, fieldname)
             navs, display = self.get_filter_navs(fieldname)
             context_data['filter_navs'][fieldname] = navs
             context_data['filter_display'][fieldname] = display
