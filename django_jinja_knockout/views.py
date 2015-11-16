@@ -6,7 +6,7 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.utils.six.moves.urllib.parse import urlparse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.views.generic import TemplateView, DetailView, ListView
@@ -21,7 +21,7 @@ def auth_redirect(request):
         # Will use viewmodel framework to display client-side alert.
         return JsonResponse({
             'view': 'alert_error',
-            'message': _('Access to current url is denied')
+            'message': _u('Access to current url is denied')
         })
     # Borrowed from django.contrib.auth.decorators.user_passes_test()
     path = request.build_absolute_uri()
@@ -306,7 +306,7 @@ class ListSortingView(ListView):
                     )
                 )
             ),
-            'text': 'Все'
+            'text': _('All')
         })
         navs = [link]
         display = []
