@@ -82,18 +82,21 @@ class ContextMiddleware(object):
                         return auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['permission_required']
-        if 'view_title' in view_kwargs:
-            request.view_title = view_kwargs['view_title']
-            del view_kwargs['view_title']
         request.view_kwargs = view_kwargs
         return True
+
+    def setup_context(self, request, view_kwargs):
+        # required for CBV bs_pagination() to work correctly.
+        request.url_name = request.resolver_match.url_name
+        if 'view_name' in view_kwargs:
+            request.view_name = view_kwargs['view_name']
+            del view_kwargs['view_name']
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         acl_result = self.check_acl(request, view_kwargs)
         if acl_result is not True:
             return acl_result
-        # required for CBV bs_pagination() to work correctly.
-        request.url_name = request.resolver_match.url_name
+        self.setup_context(request, view_kwargs)
 
         try:
             result = view_func(request, *view_args, **view_kwargs)
