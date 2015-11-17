@@ -82,6 +82,9 @@ class ContextMiddleware(object):
                         return auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['permission_required']
+        if 'view_title' in view_kwargs:
+            request.view_title = view_kwargs['view_title']
+            del view_kwargs['view_title']
         request.view_kwargs = view_kwargs
         return True
 
