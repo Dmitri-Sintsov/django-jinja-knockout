@@ -1,8 +1,10 @@
+# Additional requirements go here
 django>=1.8.0,<1.9
 django-jinja>=1.4.1
 bleach==1.4.2
 lxml>=3.4.4
 ensure>=0.3.2
 wheel>=0.24.0
-pyquestpc>=0.1.0
-# Additional requirements go here
+# pyquestpc is not available in pypi, install it via requirements.sh instead.
+# pyquestpc>=0.1.0
+

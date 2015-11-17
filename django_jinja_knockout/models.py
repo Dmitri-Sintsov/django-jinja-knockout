@@ -1,5 +1,6 @@
 from django.apps import apps
 
+
 def get_verbose_name(obj, fieldname):
     if type(obj) is str:
         obj = apps.get_model(*obj.split('.'))
