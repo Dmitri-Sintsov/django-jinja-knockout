@@ -7,4 +7,3 @@ ensure>=0.3.2
 wheel>=0.24.0
 # pyquestpc is not available in pypi, install it via requirements.sh instead.
 # pyquestpc>=0.1.0
-
