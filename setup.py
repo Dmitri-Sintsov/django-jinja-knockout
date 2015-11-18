@@ -31,7 +31,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 # http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
 install_reqs = [
-    str(ir.req) for ir in parse_requirements('requirements.txt', session=session=pip.download.PipSession())
+    str(ir.req) for ir in parse_requirements('requirements.txt', session=pip.download.PipSession()
 ]
 
 setup(
