@@ -3,6 +3,7 @@
 
 import os
 import sys
+import pip.download
 from pip.req import parse_requirements
 
 import django_jinja_knockout
@@ -29,7 +30,9 @@ readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 # http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
-install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt')]
+install_reqs = [
+    str(ir.req) for ir in parse_requirements('requirements.txt', session=session=pip.download.PipSession())
+]
 
 setup(
     name='django-jinja-knockout',
