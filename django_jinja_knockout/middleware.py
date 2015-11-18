@@ -94,6 +94,7 @@ class ContextMiddleware(object):
     def before_acl(self):
         # required for CBV bs_pagination() to work correctly.
         self.request.url_name = self.request.resolver_match.url_name
+        # Useful for building current page title.
         if 'view_title' in self.view_kwargs:
             self.request.view_title = self.view_kwargs['view_title']
             del self.view_kwargs['view_title']
