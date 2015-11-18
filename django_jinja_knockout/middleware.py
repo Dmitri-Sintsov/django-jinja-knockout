@@ -29,6 +29,12 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 
 class ContextMiddleware(object):
 
+    def __init__(self):
+        self.request = None
+        self.view_func = None
+        self.view_args = None
+        self.view_kwargs = None
+
     def process_request(self, request):
         # Optional server-side injected JSON.
         request.client_data = {}
@@ -85,18 +91,30 @@ class ContextMiddleware(object):
         request.view_kwargs = view_kwargs
         return True
 
-    def setup_context(self, request, view_kwargs):
+    def before_acl(self):
         # required for CBV bs_pagination() to work correctly.
-        request.url_name = request.resolver_match.url_name
-        if 'view_title' in view_kwargs:
-            request.view_title = view_kwargs['view_title']
-            del view_kwargs['view_title']
+        self.request.url_name = self.request.resolver_match.url_name
+        if 'view_title' in self.view_kwargs:
+            self.request.view_title = self.view_kwargs['view_title']
+            del self.view_kwargs['view_title']
+        return True
+
+    def after_acl(self):
+        return True
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        self.request = request
+        self.view_func = view_func
+        self.view_args = view_args
+        self.view_kwargs = view_kwargs
+
+        if self.before_acl() is not True:
+            return None
         acl_result = self.check_acl(request, view_kwargs)
         if acl_result is not True:
             return acl_result
-        self.setup_context(request, view_kwargs)
+        if self.after_acl() is not True:
+            return None
 
         try:
             result = view_func(request, *view_args, **view_kwargs)
