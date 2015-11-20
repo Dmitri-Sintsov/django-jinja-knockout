@@ -231,6 +231,42 @@ App.requireViewHandlers = function(list) {
     }
 };
 
+App.addViewHandler = function(viewname, fn) {
+    var handlerType = typeof App.viewHandlers[viewname];
+    if (handlerType === 'undefined') {
+        App.viewHandlers[viewname] = fn;
+    } else if (handlerType === 'function') {
+        App.viewHandlers[viewname] = [
+            App.viewHandlers[viewname], fn
+        ];
+    } else if (_.isArray(App.viewHandlers[viewname])) {
+        App.viewHandlers[viewname].push(fn);
+    } else {
+        throw sprintf(
+            "Invalid value of viewhandler '%s': %s",
+            viewname,
+            JSON.stringify(App.viewHandlers[viewname])
+        );
+    }
+};
+
+App.execViewHandler = function(viewModel, bindContext) {
+    var handler = App.viewHandlers[viewModel.view];
+    if (typeof handler === 'function') {
+        handler(viewModel, bindContext);
+    } else if (_.isArray(handler)) {
+        for (var i = 0; i < handler.length; i++) {
+            handler[i](viewModel, bindContext);
+        }
+    } else {
+        throw sprintf(
+            "Invalid previous value of viewhandler '%s': %s",
+            viewname,
+            JSON.stringify(App.viewHandlers[viewname])
+        );
+    }
+}
+
 App.showView = function(viewModel, bindContext) {
     if (typeof viewModel.view === 'undefined') {
         var viewModelStr = '';
@@ -249,7 +285,7 @@ App.showView = function(viewModel, bindContext) {
     }
     var hasView;
     if (hasView = (typeof App.viewHandlers[viewModel.view] !== 'undefined')) {
-        App.viewHandlers[viewModel.view](viewModel, bindContext);
+        App.execViewHandler(viewModel, bindContext);
     }
     return hasView;
 };
