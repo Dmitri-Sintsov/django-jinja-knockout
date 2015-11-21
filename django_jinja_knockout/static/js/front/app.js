@@ -617,3 +617,13 @@ $(document)
 .on('formset:added', function(event, $row, formsetName) {
     App.initClient($row);
 });
+
+// Use with care. Do not put custom bindings into App.documentReadyHooks,
+// there are ko.bindingHandlers for that.
+ko.bindingHandlers.initclient = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        App.initClient(element);
+    },
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    },
+};
