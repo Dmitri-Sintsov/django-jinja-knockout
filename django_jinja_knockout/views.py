@@ -186,14 +186,8 @@ class ListSortingView(ListView):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'
-    # Do not need to duplicate both accending and descending ('-' prefix) orders.
-    # Both are counted in.
-    allowed_sort_orders = []
-    # Be careful about enabling filters.
-    # @todo: Support '__in' suffix automatically.
-    # key is field name (may be one to many related field as well)
-    # value is list of field choices, as specified in model.
-    allowed_filter_fields = {}
+    allowed_sort_orders = None
+    allowed_filter_fields = None
 
     def __init__(self):
         super().__init__()
@@ -204,7 +198,23 @@ class ListSortingView(ListView):
         self.current_stripped_sort_order = None
         self.is_iterable_order = False
 
+    def get_allowed_sort_orders(self):
+        # Do not need to duplicate both accending and descending ('-' prefix) orders.
+        # Both are counted in.
+        return []
+
+    def get_allowed_filter_fields(self):
+        # Be careful about enabling filters.
+        # @todo: Support '__in' suffix automatically.
+        # key is field name (may be one to many related field as well)
+        # value is list of field choices, as specified in model.
+        return {}
+
     def dispatch(self, request, *args, **kwargs):
+        if self.__class__.allowed_sort_orders is None:
+            self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
+        if self.__class__.allowed_filter_fields is None:
+            self.__class__.allowed_filter_fields = self.init_allowed_filter_fields()
         sort_order = self.request.GET.get(self.__class__.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
