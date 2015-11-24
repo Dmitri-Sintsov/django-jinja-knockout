@@ -392,7 +392,6 @@ class ListSortingView(ListView):
             context_data['filter_navs'][fieldname] = navs
             context_data['filter_display'][fieldname] = display
         return context_data
-        return context_data
 
     def order_queryset(self, queryset):
         if self.current_sort_order is None:
