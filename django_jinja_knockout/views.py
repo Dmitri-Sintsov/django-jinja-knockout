@@ -12,6 +12,7 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonRespon
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.contenttypes.models import ContentType
 from .models import get_verbose_name
 from . import tpl as qtpl
 
@@ -210,11 +211,17 @@ class ListSortingView(ListView):
         # value is list of field choices, as specified in model.
         return {}
 
+    def set_contenttype_filter(self, allowed_filter_fields, field, apps_models):
+        allowed_filter_fields[field] = []
+        for app_label, model in apps_models:
+            ct = ContentType.objects.filter(app_label=app_label, model=model).first()
+            allowed_filter_fields[field].append((ct.pk, ct.name))
+
     def dispatch(self, request, *args, **kwargs):
         if self.__class__.allowed_sort_orders is None:
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
         if self.__class__.allowed_filter_fields is None:
-            self.__class__.allowed_filter_fields = self.init_allowed_filter_fields()
+            self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
         sort_order = self.request.GET.get(self.__class__.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
