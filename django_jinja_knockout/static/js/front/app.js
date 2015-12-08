@@ -168,6 +168,10 @@ App.Dialog = function(options) {
         // alert('Sample action');
     };
 
+    Dialog.remove = function() {
+        $(this.bdialog).remove();
+    };
+
 })(App.Dialog.prototype);
 
 // Runtime script shared objects.
