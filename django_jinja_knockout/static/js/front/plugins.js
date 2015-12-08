@@ -115,7 +115,9 @@ $.fn.optionalInput = function(method) {
     }[method].call(this);
 };
 
-// Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
+/**
+ * Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
+ */
 $.fn.collapsibleSubmit = function(method) {
     return {
         // Applied to outer container.
@@ -145,6 +147,9 @@ $.fn.collapsibleSubmit = function(method) {
     }[method].call(this);
 };
 
+/**
+ * Change properties of bootstrap3 popover.
+ */
 $.fn.changePopover = function(opts) {
     return this.each(function() {
         for (var opt in opts) {
@@ -155,6 +160,10 @@ $.fn.changePopover = function(opts) {
     });
 };
 
+/**
+ * Bootstrap3 popover notification.
+ * Changes properties of bootstrap3 popover, show popover and move window scrollpos to related location hash.
+ */
 $.fn.toPopover = function(opts) {
     return this.each(function() {
         var $this = $(this);
@@ -165,12 +174,19 @@ $.fn.toPopover = function(opts) {
     });
 };
 
+/**
+ * Infinite virtual scroller plugin.
+ * Another functionality of jQuery mobile is not used.
+ */
 $.fn.scroller = function(method) {
 
     function Scroller(scroller) {
         this.scrollPadding = 20;
+        // Milliseconds.
+        this.scrollThrottleTime = 100;
         this.$scroller = $(scroller);
         this.getPos();
+        this.$scroller.focus()
     }
 
     (function(Scroller) {
@@ -224,14 +240,32 @@ $.fn.scroller = function(method) {
             return scrollDelta;
         };
 
+        Scroller.setLastScrollTime = function() {
+            // Scroller throttling to prevent ugly glitches.
+            var lastScrollTime = this.$scroller.data('lastScrollTime');
+            var currScrollTime = Date.now();
+            this.$scroller.data('lastScrollTime', currScrollTime);
+            return currScrollTime - lastScrollTime;
+        };
+
+        Scroller.getScrollTimeDelta = function() {
+            return Date.now() - this.$scroller.data('lastScrollTime');
+        };
+
         Scroller.expand = function() {
             var padHeight = this.getScrollDelta() / 2 + this.scrollPadding;
             this.$scroller
             .css('padding-top', padHeight)
             .css('padding-bottom', padHeight);
+            // Vertical padding expansion causes scrolling as side-effect, which may cause infinite expansion glitch.
+            // Observed in Chrome 46, not observed in Firefox 42.
+            var scrollTimeDelta = this.setLastScrollTime();
+            console.log('expanded scroll, scrollTimeDelta:' + scrollTimeDelta);
+
         };
 
         Scroller.trigger = function(eventType) {
+            /*
             if (this.maxHeight < this.scrollHeight) {
                 // Element already has overflow.
                 if (eventType !== 'scroll') {
@@ -239,6 +273,16 @@ $.fn.scroller = function(method) {
                     return;
                 }
             }
+            */
+            var scrollTimeDelta = this.getScrollTimeDelta();
+            // if (eventType === 'scroll') {
+                console.log('trigger scrollTimeDelta: ' + scrollTimeDelta);
+                if (scrollTimeDelta < this.scrollThrottleTime) {
+                    // Too fast automated scrolling glitch.
+                    console.log('Scroll: skipping scroll glitch');
+                    return;
+                }
+            // }
             console.log('Scroll: trigger event type: ' + eventType);
             if (this.scrollTopPos === 0) {
                 this.$scroller.trigger('scroll:top');
@@ -254,6 +298,11 @@ $.fn.scroller = function(method) {
         'init': function() {
             return this.each(function() {
                 var $this = $(this);
+                // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+                // Make target focusable so arrow keys will also work.
+                if ($this.prop('tabindex') !== undefined) {
+                    $this.prop('tabindex', '-1');
+                }
                 var scroller = new Scroller($this);
                 $this.on('scroll wheel touchstart', function(ev) {
                     scroller.getPos().trigger(ev.type);
