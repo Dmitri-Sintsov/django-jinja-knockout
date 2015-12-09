@@ -272,7 +272,8 @@ $.fn.scroller = function(method) {
             .css('padding-top', padHeight)
             .css('padding-bottom', padHeight);
             // Vertical padding expansion causes scrolling as side-effect, which may cause infinite expansion glitch.
-            // Observed in Chrome 46, not observed in Firefox 42.
+            // Thus Scroller.trigger implements events throttling.
+            // Observed in Chrome 46, not observed in Firefox 42. Painful in IE11.
         };
 
         Scroller.trigger = function(eventType) {
@@ -285,24 +286,26 @@ $.fn.scroller = function(method) {
                 }
             }
             */
-            console.log('Scroll: trigger event type: ' + eventType);
-            var scrollTopTimeDelta = this.getScrollTimeDelta('top');
-            if (scrollTopTimeDelta < this.scrollThrottleTime) {
-                // Too fast automated scrolling glitch.
-                console.log('Scroll: skipping top scroll glitch');
-            } else if (this.scrollTopPos === 0) {
+            console.log('Scroll: source event type: ' + eventType);
+            if (this.scrollTopPos === 0) {
                 var scrollTimeDelta = this.setLastScrollTime('top');
-                console.log('scroll expanded top, scrollTimeDelta:' + scrollTimeDelta);
-                this.$scroller.trigger('scroll:top');
+                if (scrollTimeDelta < this.scrollThrottleTime) {
+                    // Too fast automated scrolling glitch.
+                    console.log('Scroll: throttling top scroll: ' + scrollTimeDelta);
+                } else {
+                    console.log('Scroll:top, scrollTimeDelta:' + scrollTimeDelta);
+                    this.$scroller.trigger('scroll:top');
+                }
             }
-            var scrollBottomTimeDelta = this.getScrollTimeDelta('bottom');
-            if (scrollBottomTimeDelta < this.scrollThrottleTime) {
-                // Too fast automated scrolling glitch.
-                console.log('Scroll: skipping bottom scroll glitch');
-            } else if (this.scrollBottomPos >= this.scrollHeight) {
+            if (this.scrollBottomPos >= this.scrollHeight) {
                 var scrollTimeDelta = this.setLastScrollTime('bottom');
-                console.log('scroll expanded bottom, scrollTimeDelta:' + scrollTimeDelta);
-                this.$scroller.trigger('scroll:bottom');
+                if (scrollTimeDelta < this.scrollThrottleTime) {
+                    // Too fast automated scrolling glitch.
+                    console.log('Scroll: throttling bottom scroll: ' + scrollTimeDelta);
+                } else {
+                    console.log('Scroll:bottom, scrollTimeDelta:' + scrollTimeDelta);
+                    this.$scroller.trigger('scroll:bottom');
+                }
             }
         };
 
