@@ -180,12 +180,21 @@ $.fn.toPopover = function(opts) {
  */
 $.fn.scroller = function(method) {
 
+    var directions = ['top', 'bottom'];
+
     function Scroller(scroller) {
         this.scrollPadding = 20;
         // Milliseconds.
-        this.scrollThrottleTime = 100;
+        this.scrollThrottleTime = 300;
         this.$scroller = $(scroller);
         this.getPos();
+        if (this.$scroller.data('lastScrollTime') === undefined) {
+            var lastScrollTime = {};
+            for (var i = 0; i < directions.length; i++) {
+                lastScrollTime[directions[i]] = 0;
+            }
+            this.$scroller.data('lastScrollTime', lastScrollTime);
+        }
         this.$scroller.focus()
     }
 
@@ -240,16 +249,21 @@ $.fn.scroller = function(method) {
             return scrollDelta;
         };
 
-        Scroller.setLastScrollTime = function() {
+        Scroller.setLastScrollTime = function(direction) {
             // Scroller throttling to prevent ugly glitches.
             var lastScrollTime = this.$scroller.data('lastScrollTime');
-            var currScrollTime = Date.now();
+            var currScrollTime = {};
+            var now = Date.now();
+            for (var i = 0; i < directions.length; i++) {
+                currScrollTime[directions[i]] = (directions[i] === direction) ?
+                    now : lastScrollTime[directions[i]];
+            }
             this.$scroller.data('lastScrollTime', currScrollTime);
-            return currScrollTime - lastScrollTime;
+            return now - lastScrollTime[direction];
         };
 
-        Scroller.getScrollTimeDelta = function() {
-            return Date.now() - this.$scroller.data('lastScrollTime');
+        Scroller.getScrollTimeDelta = function(direction) {
+            return Date.now() - this.$scroller.data('lastScrollTime')[direction];
         };
 
         Scroller.expand = function() {
@@ -259,9 +273,6 @@ $.fn.scroller = function(method) {
             .css('padding-bottom', padHeight);
             // Vertical padding expansion causes scrolling as side-effect, which may cause infinite expansion glitch.
             // Observed in Chrome 46, not observed in Firefox 42.
-            var scrollTimeDelta = this.setLastScrollTime();
-            console.log('expanded scroll, scrollTimeDelta:' + scrollTimeDelta);
-
         };
 
         Scroller.trigger = function(eventType) {
@@ -274,20 +285,23 @@ $.fn.scroller = function(method) {
                 }
             }
             */
-            var scrollTimeDelta = this.getScrollTimeDelta();
-            // if (eventType === 'scroll') {
-                console.log('trigger scrollTimeDelta: ' + scrollTimeDelta);
-                if (scrollTimeDelta < this.scrollThrottleTime) {
-                    // Too fast automated scrolling glitch.
-                    console.log('Scroll: skipping scroll glitch');
-                    return;
-                }
-            // }
             console.log('Scroll: trigger event type: ' + eventType);
-            if (this.scrollTopPos === 0) {
+            var scrollTopTimeDelta = this.getScrollTimeDelta('top');
+            if (scrollTopTimeDelta < this.scrollThrottleTime) {
+                // Too fast automated scrolling glitch.
+                console.log('Scroll: skipping top scroll glitch');
+            } else if (this.scrollTopPos === 0) {
+                var scrollTimeDelta = this.setLastScrollTime('top');
+                console.log('scroll expanded top, scrollTimeDelta:' + scrollTimeDelta);
                 this.$scroller.trigger('scroll:top');
             }
-            if (this.scrollBottomPos >= this.scrollHeight) {
+            var scrollBottomTimeDelta = this.getScrollTimeDelta('bottom');
+            if (scrollBottomTimeDelta < this.scrollThrottleTime) {
+                // Too fast automated scrolling glitch.
+                console.log('Scroll: skipping bottom scroll glitch');
+            } else if (this.scrollBottomPos >= this.scrollHeight) {
+                var scrollTimeDelta = this.setLastScrollTime('bottom');
+                console.log('scroll expanded bottom, scrollTimeDelta:' + scrollTimeDelta);
                 this.$scroller.trigger('scroll:bottom');
             }
         };
