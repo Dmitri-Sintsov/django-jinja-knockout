@@ -1,5 +1,17 @@
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
+$.randomHash = function() {
+    return Math.random().toString(36).slice(2);
+};
+
+$.htmlEncode = function(value) {
+	return $('<div/>').text(value).html();
+};
+
+$.htmlDecode = function(value) {
+	return $('<div/>').html(value).text();
+};
+
 /**
  * Meta inheritance.
  * Copies parent object _prototype_ methods into _instance_ of pseudo-child.
@@ -145,6 +157,47 @@ $.fn.collapsibleSubmit = function(method) {
             });
         }
     }[method].call(this);
+};
+
+$.fn.linkPreview = function() {
+    return this.each(function() {
+        $.each($(this).findSelf('.link-preview'), function(k, v) {
+            // var scale = '0.125';
+            var scale = 1;
+            var id = 'iframe_' + $.randomHash();
+            var popover = $(v).popover({
+                html: true,
+                trigger: 'hover',
+                placement: 'auto',
+                content: '<iframe id="' + id + '"frameborder="0" scrolling="no" src="' +
+                    $.htmlEncode($(v).prop('href')) +
+                    '" class="transform-origin"></iframe>',
+            });
+            popover.on('shown.bs.popover', function(ev) {
+                console.log('shown.bs.popover');
+                var iframe = document.getElementById(id)
+                var body = iframe.contentWindow.document.body;
+                var scrollWidth = body.scrollWidth;
+                var width = $(body).width();
+                console.log('scrolWidth: ' + scrollWidth);
+                console.log('width: ' + width);
+                var containerHeight = $(iframe).parent().height();
+                if (scrollWidth > width) {
+                    var scale = width / scrollWidth;
+                    $(iframe).css({
+                        'width': 100 / scale + '%',
+                        'height':  containerHeight / scale,
+                        '-webkit-transform' : 'scale(' + scale + ')',
+                        '-moz-transform'    : 'scale(' + scale + ')',
+                        '-ms-transform'     : 'scale(' + scale + ')',
+                        '-o-transform'      : 'scale(' + scale + ')',
+                        'transform'         : 'scale(' + scale + ')'
+                    });
+                }
+                $(iframe).parent().height(containerHeight);
+            })
+        });
+    });
 };
 
 /**

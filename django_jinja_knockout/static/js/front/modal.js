@@ -3,7 +3,7 @@
 App.$alertModal = null;
 
 /**
- * Use App.htmlEncode() on html strings to avoid client-side XSS.
+ * Use $.htmlEncode() on html strings to avoid client-side XSS.
  */
 App.showModal = function($modal, title, html, cssClass) {
 	if ($modal === null) {

@@ -53,7 +53,7 @@ App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
         if (this.hasMoreForms()) {
             // Add new knockout template form.
             // Value does not matter because ko template uses foreach $index().
-            this.forms.push(App.randomHash());
+            this.forms.push($.randomHash());
             // Update DOM node for forms total count, otherwise Django will not create extra model forms.
             this.$formsTotalCount.val(this.getTotalFormsCount());
         }

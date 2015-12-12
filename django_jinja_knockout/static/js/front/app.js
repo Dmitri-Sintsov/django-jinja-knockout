@@ -28,18 +28,6 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
-App.randomHash = function() {
-    return Math.random().toString(36).slice(2);
-};
-
-App.htmlEncode = function(value) {
-	return $('<div/>').text(value).html();
-};
-
-App.htmlDecode = function(value) {
-	return $('<div/>').html(value).text();
-};
-
 /**
  * BootstrapDialog wrapper.
  */
@@ -283,7 +271,7 @@ App.showView = function(viewModel, bindContext) {
         }
         new App.Dialog({
             'title': App.trans('AJAX request error'),
-            'message': App.trans('Undefined response view %s', App.htmlEncode(viewModelStr)),
+            'message': App.trans('Undefined response view %s', $.htmlEncode(viewModelStr)),
         }).alertError();
         throw "App.showView() error";
     }
@@ -432,7 +420,7 @@ App.showAjaxError = function(jqXHR, exception) {
     } else if (exception === 'abort') {
         message = 'Ajax request aborted.';
     } else {
-        message = 'Uncaught Error.\n' + App.htmlEncode(jqXHR.responseText);
+        message = 'Uncaught Error.\n' + $.htmlEncode(jqXHR.responseText);
     }
     App.viewResponse({
         'view': 'alert_error',
@@ -583,6 +571,7 @@ App.initClient = function(selector) {
     $selector.autogrow('init');
     $selector.optionalInput('init');
     $selector.collapsibleSubmit('init');
+    $selector.linkPreview();
     for (var i = 0; i < App.initClientHooks.length; i++) {
         App.initClientHooks[i]($selector);
     }
