@@ -571,7 +571,7 @@ App.initClient = function(selector) {
     $selector.autogrow('init');
     $selector.optionalInput('init');
     $selector.collapsibleSubmit('init');
-    $selector.linkPreview();
+    $selector.findSelf('.link-preview').linkPreview();
     for (var i = 0; i < App.initClientHooks.length; i++) {
         App.initClientHooks[i]($selector);
     }

@@ -160,43 +160,64 @@ $.fn.collapsibleSubmit = function(method) {
 };
 
 $.fn.linkPreview = function() {
-    return this.each(function() {
-        $.each($(this).findSelf('.link-preview'), function(k, v) {
-            // var scale = '0.125';
-            var scale = 1;
-            var id = 'iframe_' + $.randomHash();
-            var popover = $(v).popover({
-                html: true,
-                trigger: 'hover',
-                placement: 'auto',
-                content: '<iframe id="' + id + '"frameborder="0" scrolling="no" src="' +
-                    $.htmlEncode($(v).prop('href')) +
-                    '" class="transform-origin"></iframe>',
-            });
-            popover.on('shown.bs.popover', function(ev) {
-                console.log('shown.bs.popover');
-                var iframe = document.getElementById(id)
-                var body = iframe.contentWindow.document.body;
-                var scrollWidth = body.scrollWidth;
-                var width = $(body).width();
-                console.log('scrolWidth: ' + scrollWidth);
-                console.log('width: ' + width);
-                var containerHeight = $(iframe).parent().height();
-                if (scrollWidth > width) {
-                    var scale = width / scrollWidth;
-                    $(iframe).css({
-                        'width': 100 / scale + '%',
-                        'height':  containerHeight / scale,
-                        '-webkit-transform' : 'scale(' + scale + ')',
-                        '-moz-transform'    : 'scale(' + scale + ')',
-                        '-ms-transform'     : 'scale(' + scale + ')',
-                        '-o-transform'      : 'scale(' + scale + ')',
-                        'transform'         : 'scale(' + scale + ')'
-                    });
-                }
-                $(iframe).parent().height(containerHeight);
-            })
+
+    var scaledPreview = function($anchor) {
+        var self = this;
+        this.scale = 1;
+        this.id = 'iframe_' + $.randomHash();
+        this.popover = $anchor.popover({
+            // non-default container is required for block elements which has overflow.
+            container: 'body',
+            html: true,
+            trigger: 'hover',
+            placement: 'auto',
+            content: '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
+                '"frameborder="0" scrolling="no" src="' +
+                $.htmlEncode($anchor.prop('href')) +
+                '" class="transform-origin"></iframe>',
         });
+        this.popover.on('shown.bs.popover', function(ev) {
+            return self.show(ev);
+        });
+    };
+
+    scaledPreview.prototype.show = function(ev) {
+        console.log('shown.bs.popover');
+        var iframe = document.getElementById(this.id)
+        try {
+            var body = iframe.contentWindow.document.body;
+        } catch(e) {
+            $(iframe).parent().html('<img id="' + this.id + '" src="/static/img/spinner.gif">');
+        }
+        var scrollWidth = body.scrollWidth;
+        var width = $(body).width();
+        console.log('scrolWidth: ' + scrollWidth);
+        console.log('width: ' + width);
+        var containerHeight = $(iframe).parent().height();
+        if (scrollWidth > width) {
+            var scale = width / scrollWidth;
+            $(iframe).css({
+                'width': 100 / scale + '%',
+                'height':  containerHeight / scale,
+                '-webkit-transform' : 'scale(' + scale + ')',
+                '-moz-transform'    : 'scale(' + scale + ')',
+                '-ms-transform'     : 'scale(' + scale + ')',
+                '-o-transform'      : 'scale(' + scale + ')',
+                'transform'         : 'scale(' + scale + ')'
+            });
+        }
+        $(iframe).parent().height(containerHeight);
+    };
+
+    return this.each(function() {
+        var $elem = $(this);
+        if ($elem.prop('href') !== undefined) {
+            new scaledPreview($elem);
+        } else {
+            $.each($elem.find('a'), function(k, anchor) {
+                new scaledPreview($(anchor));
+            });
+        }
     });
 };
 
