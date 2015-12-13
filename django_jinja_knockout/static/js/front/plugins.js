@@ -1,5 +1,17 @@
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
+$.randomHash = function() {
+    return Math.random().toString(36).slice(2);
+};
+
+$.htmlEncode = function(value) {
+	return $('<div/>').text(value).html();
+};
+
+$.htmlDecode = function(value) {
+	return $('<div/>').html(value).text();
+};
+
 /**
  * Meta inheritance.
  * Copies parent object _prototype_ methods into _instance_ of pseudo-child.
@@ -115,7 +127,9 @@ $.fn.optionalInput = function(method) {
     }[method].call(this);
 };
 
-// Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
+/**
+ * Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
+ */
 $.fn.collapsibleSubmit = function(method) {
     return {
         // Applied to outer container.
@@ -145,6 +159,50 @@ $.fn.collapsibleSubmit = function(method) {
     }[method].call(this);
 };
 
+$.fn.linkPreview = function() {
+    return this.each(function() {
+        $.each($(this).findSelf('.link-preview'), function(k, v) {
+            // var scale = '0.125';
+            var scale = 1;
+            var id = 'iframe_' + $.randomHash();
+            var popover = $(v).popover({
+                html: true,
+                trigger: 'hover',
+                placement: 'auto',
+                content: '<iframe id="' + id + '"frameborder="0" scrolling="no" src="' +
+                    $.htmlEncode($(v).prop('href')) +
+                    '" class="transform-origin"></iframe>',
+            });
+            popover.on('shown.bs.popover', function(ev) {
+                console.log('shown.bs.popover');
+                var iframe = document.getElementById(id)
+                var body = iframe.contentWindow.document.body;
+                var scrollWidth = body.scrollWidth;
+                var width = $(body).width();
+                console.log('scrolWidth: ' + scrollWidth);
+                console.log('width: ' + width);
+                var containerHeight = $(iframe).parent().height();
+                if (scrollWidth > width) {
+                    var scale = width / scrollWidth;
+                    $(iframe).css({
+                        'width': 100 / scale + '%',
+                        'height':  containerHeight / scale,
+                        '-webkit-transform' : 'scale(' + scale + ')',
+                        '-moz-transform'    : 'scale(' + scale + ')',
+                        '-ms-transform'     : 'scale(' + scale + ')',
+                        '-o-transform'      : 'scale(' + scale + ')',
+                        'transform'         : 'scale(' + scale + ')'
+                    });
+                }
+                $(iframe).parent().height(containerHeight);
+            })
+        });
+    });
+};
+
+/**
+ * Change properties of bootstrap3 popover.
+ */
 $.fn.changePopover = function(opts) {
     return this.each(function() {
         for (var opt in opts) {
@@ -155,6 +213,10 @@ $.fn.changePopover = function(opts) {
     });
 };
 
+/**
+ * Bootstrap3 popover notification.
+ * Changes properties of bootstrap3 popover, show popover and move window scrollpos to related location hash.
+ */
 $.fn.toPopover = function(opts) {
     return this.each(function() {
         var $this = $(this);
@@ -165,12 +227,28 @@ $.fn.toPopover = function(opts) {
     });
 };
 
+/**
+ * Infinite virtual scroller plugin.
+ * Another functionality of jQuery mobile is not used.
+ */
 $.fn.scroller = function(method) {
+
+    var directions = ['top', 'bottom'];
 
     function Scroller(scroller) {
         this.scrollPadding = 20;
+        // Milliseconds.
+        this.scrollThrottleTime = 300;
         this.$scroller = $(scroller);
         this.getPos();
+        if (this.$scroller.data('lastScrollTime') === undefined) {
+            var lastScrollTime = {};
+            for (var i = 0; i < directions.length; i++) {
+                lastScrollTime[directions[i]] = 0;
+            }
+            this.$scroller.data('lastScrollTime', lastScrollTime);
+        }
+        this.$scroller.focus()
     }
 
     (function(Scroller) {
@@ -224,14 +302,35 @@ $.fn.scroller = function(method) {
             return scrollDelta;
         };
 
+        Scroller.setLastScrollTime = function(direction) {
+            // Scroller throttling to prevent ugly glitches.
+            var lastScrollTime = this.$scroller.data('lastScrollTime');
+            var currScrollTime = {};
+            var now = Date.now();
+            for (var i = 0; i < directions.length; i++) {
+                currScrollTime[directions[i]] = (directions[i] === direction) ?
+                    now : lastScrollTime[directions[i]];
+            }
+            this.$scroller.data('lastScrollTime', currScrollTime);
+            return now - lastScrollTime[direction];
+        };
+
+        Scroller.getScrollTimeDelta = function(direction) {
+            return Date.now() - this.$scroller.data('lastScrollTime')[direction];
+        };
+
         Scroller.expand = function() {
             var padHeight = this.getScrollDelta() / 2 + this.scrollPadding;
             this.$scroller
             .css('padding-top', padHeight)
             .css('padding-bottom', padHeight);
+            // Vertical padding expansion causes scrolling as side-effect, which may cause infinite expansion glitch.
+            // Thus Scroller.trigger implements events throttling.
+            // Observed in Chrome 46, not observed in Firefox 42. Painful in IE11.
         };
 
         Scroller.trigger = function(eventType) {
+            /*
             if (this.maxHeight < this.scrollHeight) {
                 // Element already has overflow.
                 if (eventType !== 'scroll') {
@@ -239,12 +338,27 @@ $.fn.scroller = function(method) {
                     return;
                 }
             }
-            console.log('Scroll: trigger event type: ' + eventType);
+            */
+            console.log('Scroll: source event type: ' + eventType);
             if (this.scrollTopPos === 0) {
-                this.$scroller.trigger('scroll:top');
+                var scrollTimeDelta = this.setLastScrollTime('top');
+                if (scrollTimeDelta < this.scrollThrottleTime) {
+                    // Too fast automated scrolling glitch.
+                    console.log('Scroll: throttling top scroll: ' + scrollTimeDelta);
+                } else {
+                    console.log('Scroll:top, scrollTimeDelta:' + scrollTimeDelta);
+                    this.$scroller.trigger('scroll:top');
+                }
             }
             if (this.scrollBottomPos >= this.scrollHeight) {
-                this.$scroller.trigger('scroll:bottom');
+                var scrollTimeDelta = this.setLastScrollTime('bottom');
+                if (scrollTimeDelta < this.scrollThrottleTime) {
+                    // Too fast automated scrolling glitch.
+                    console.log('Scroll: throttling bottom scroll: ' + scrollTimeDelta);
+                } else {
+                    console.log('Scroll:bottom, scrollTimeDelta:' + scrollTimeDelta);
+                    this.$scroller.trigger('scroll:bottom');
+                }
             }
         };
 
@@ -254,6 +368,11 @@ $.fn.scroller = function(method) {
         'init': function() {
             return this.each(function() {
                 var $this = $(this);
+                // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+                // Make target focusable so arrow keys will also work.
+                if ($this.prop('tabindex') !== undefined) {
+                    $this.prop('tabindex', '-1');
+                }
                 var scroller = new Scroller($this);
                 $this.on('scroll wheel touchstart', function(ev) {
                     scroller.getPos().trigger(ev.type);

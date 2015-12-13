@@ -1,7 +1,7 @@
 {% macro bs_navs(navs) -%}
 <ul class="nav nav-tabs">
     {% for nav in navs %}
-    <li class="{{ nav.class }}"><a href="{{ nav.url }}">{{ nav.text }}</a></li>
+    <li {{ flatatt(nav.atts) }}><a href="{{ nav.url }}">{{ nav.text }}</a></li>
     {% endfor %}
 </ul>
 {%- endmacro %}

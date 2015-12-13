@@ -83,11 +83,13 @@ def cbv_decorator(decorator):
 def prepare_bs_navs(navs, request):
     # Select active nav tab according to request.path, if any.
     for key, nav in enumerate(navs):
+        if 'atts' not in nav:
+            nav['atts'] = {}
+        if 'class' not in nav['atts']:
+            nav['atts']['class'] = ''
         if nav['url'] == request.path:
-            navs[key]['class'] = 'active'
-        if 'class' not in nav:
-            nav['class'] = ''
-
+            nav['atts']['class'] += ' active'
+        nav['atts']['class'].strip()
 
 # Automatic template context processor for bs_navs() jinja2 macro. #
 class BsTabsMixin(object):
