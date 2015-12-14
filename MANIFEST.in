@@ -3,5 +3,5 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
-recursive-include django_jinja_knockout *.htm *.js *.css *.py *.po *.mo
+recursive-include django_jinja_knockout *.htm *.js *.css *.py *.po *.mo *.gif
 
