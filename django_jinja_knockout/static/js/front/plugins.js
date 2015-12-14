@@ -187,7 +187,8 @@ $.fn.linkPreview = function() {
         try {
             var body = iframe.contentWindow.document.body;
         } catch(e) {
-            $(iframe).parent().html('<img id="' + this.id + '" src="/static/img/spinner.gif">');
+            var body = $(iframe).parent().get(0);
+            $(body).html('<img id="' + this.id + '" src="/static/img/spinner.gif">');
         }
         var scrollWidth = body.scrollWidth;
         var width = $(body).width();
