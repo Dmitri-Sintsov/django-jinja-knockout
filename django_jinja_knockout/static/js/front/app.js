@@ -620,3 +620,40 @@ ko.bindingHandlers.initclient = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
     },
 };
+
+// Usage: <textarea data-bind="autogrow: {rows: 4}"></textarea>
+// @note: Currently is unused in script#messaging_dialog, due to dialog / messages vertical overflow issues.
+ko.bindingHandlers.autogrow = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        $(element).addClass('autogrow').prop('rows', valueAccessor().rows).autogrow('init');
+    }
+};
+
+// Usage: <textarea data-bind="autogrow: {rows: 4}"></textarea>
+// @note: Currently is unused in script#messaging_dialog, due to dialog / messages vertical overflow issues.
+ko.bindingHandlers.linkPreview = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        $(element).linkPreview();
+    }
+};
+
+// Set observable property value to bound DOM element.
+// data-bind="element: viewmodel_property_name_to_store_bound_dom_element"
+ko.bindingHandlers.element = {
+    init: function(element, valueAccessor) {
+        valueAccessor()(element);
+    }
+};
+
+ko.bindingHandlers.scroller = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        viewModel.$scroller = $(element);
+        viewModel.$scroller.scroller('init')
+        .on('scroll:top', function(ev) {
+            viewModel[valueAccessor()['top']]();
+        })
+        .on('scroll:bottom', function(ev) {
+            viewModel[valueAccessor()['bottom']]();
+        });
+    }
+};
