@@ -163,6 +163,7 @@ $.fn.linkPreview = function() {
 
     var scaledPreview = function($anchor) {
         var self = this;
+        this.$anchor = $anchor;
         this.scale = 1;
         this.id = 'iframe_' + $.randomHash();
         this.popover = $anchor.popover({
@@ -183,15 +184,29 @@ $.fn.linkPreview = function() {
 
     scaledPreview.prototype.show = function(ev) {
         console.log('shown.bs.popover');
-        var iframe = document.getElementById(this.id)
+        var iframe = document.getElementById(this.id);
+        var isLoaded = true;
         try {
-            var body = iframe.contentWindow.document.body;
-        } catch(e) {
-            var body = $(iframe).parent().get(0);
-            $(body).html('<img id="' + this.id + '" src="/static/img/spinner.gif">');
+            var doc = iframe.contentWindow.document;
+        } catch (e) {
+            isLoaded = false;
         }
-        var scrollWidth = body.scrollWidth;
+        if (isLoaded && doc.location.hostname != '') {
+            var body = doc.body;
+            if (doc.body === null) {
+                // Embedded object (not html / image); for example pdf
+                var $object = $('<object data="' + this.$anchor.prop('href') + '"></object');
+                $(iframe).replaceWith($object);
+                body = $object.parent().get(0);
+            }
+        } else {
+            // Force reload after the failure (pdf randomly fails to load in Chrome 47 Ubuntu Linux).
+            doc.location = this.$anchor.prop('href');
+            // iframe.src = '/static/img/loading.gif';
+            return;
+        }
         var width = $(body).width();
+        var scrollWidth = body.scrollWidth;
         console.log('scrolWidth: ' + scrollWidth);
         console.log('width: ' + width);
         var containerHeight = $(iframe).parent().height();
