@@ -164,28 +164,42 @@ $.fn.linkPreview = function() {
     var scaledPreview = function($anchor) {
         var self = this;
         this.$anchor = $anchor;
+        this.isObject = false;
         this.scale = 1;
         this.id = 'iframe_' + $.randomHash();
+        var content = this.getPopoverContent();
         this.popover = $anchor.popover({
             // non-default container is required for block elements which has overflow.
             container: 'body',
             html: true,
             trigger: 'hover',
             placement: 'auto',
-            content:
-                '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
-                '"frameborder="0" scrolling="no" src="' +
-                $.htmlEncode($anchor.prop('href')) +
-                '" class="transform-origin-0"></iframe>' +
-                '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>',
+            content: this.getPopoverContent(),
         });
         this.popover.on('shown.bs.popover', function(ev) {
             return self.show(ev);
         });
     };
 
+    scaledPreview.prototype.getPopoverContent = function() {
+        var result;
+        if (this.isObject) {
+            result =
+                '<object id="' + this.id + '" style="overflow:hidden; margin:0; padding:0;" data="' +
+                this.$anchor.prop('href') + '"></object'
+        } else {
+            result =
+                '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
+                '"frameborder="0" scrolling="no" src="' +
+                $.htmlEncode(this.$anchor.prop('href')) +
+                '" class="transform-origin-0"></iframe>' +
+                '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>';
+        }
+        return result;
+    };
+
     scaledPreview.prototype.show = function(ev) {
-        console.log('shown.bs.popover');
+        // console.log('shown.bs.popover');
         var iframe = document.getElementById(this.id);
         var doc;
         try {
@@ -194,28 +208,35 @@ $.fn.linkPreview = function() {
             // Usually means 'X-Frame-Options' is set to 'DENY' or to 'SAMEORIGIN'.
             return;
         }
-        if (doc.location.hostname != '') {
-            var $iframe = $(iframe);
-            $iframe.parent().find('.link-preview-spinner').remove();
-            var body = doc.body;
-            if (doc.body === null) {
-                // Embedded object (not html / image); for example pdf
-                // Fix works in Chrome 47. In Firefox 43 / IE 11 it is seem to very hard to fix.
-                var $object = $('<object style="overflow:hidden; margin:0; padding:0;" data="' + this.$anchor.prop('href') + '"></object');
-                $iframe.replaceWith($object);
-                // Imitate document body without real iframe as popover-content parent.
-                $object.parent().css({
-                    'overflow': 'hidden',
-                    'margin': 0,
-                    'padding': 0,
-                });
+        var $iframe = $(iframe);
+        $iframe.parent().find('.link-preview-spinner').remove();
+        var body = doc.body;
+        // console.log('doc.location: ' + doc.location);
+        // console.log('doc.location.hostname: ' + doc.location.hostname);
+        if (doc.body === null) {
+            if (doc.location.hostname == '') {
+                // Embedded object loading random failure in Chrome 47.
+                // Refresh the popover content to try load it again.
+                $iframe.parent().html(this.getPopoverContent());
                 return;
             }
-        } else {
-            // Force reload after the failure (pdf randomly fails to load in Chrome 47 Ubuntu Linux).
-            doc.location = this.$anchor.prop('href');
+            // console.log('doc.body is null');
+            // Embedded object (not html / image); for example pdf
+            // Fix works in Chrome 47. In Firefox 43 / IE 11 it is seem to very hard to fix.
+            this.isObject = true;
+            $iframe.parent()
+            .css({
+                'overflow': 'hidden',
+                'margin': 0,
+                'padding': 0,
+            })
+            .html(this.getPopoverContent());
+            // Imitate document body without real iframe as popover-content parent.
             return;
+        } else {
+            // console.log('doc.body is not null');
         }
+        // Rescale iframe document body to fit into popover-content.
         var width = $(body).width();
         var scrollWidth = body.scrollWidth;
         console.log('scrolWidth: ' + scrollWidth);
