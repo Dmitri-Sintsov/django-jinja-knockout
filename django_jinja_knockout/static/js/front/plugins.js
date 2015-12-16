@@ -200,6 +200,7 @@ $.fn.linkPreview = function() {
             var body = doc.body;
             if (doc.body === null) {
                 // Embedded object (not html / image); for example pdf
+                // Fix works in Chrome 47. In Firefox 43 / IE 11 it is seem to very hard to fix.
                 var $object = $('<object style="overflow:hidden; margin:0; padding:0;" data="' + this.$anchor.prop('href') + '"></object');
                 $iframe.replaceWith($object);
                 // Imitate document body without real iframe as popover-content parent.
