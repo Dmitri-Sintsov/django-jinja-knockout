@@ -137,10 +137,20 @@ textarea.ko-template {
 	margin: 0 0.25em 0 0.25em;
 }
 
-.transform-origin {
+.transform-origin-0 {
 	transform-origin: 0 0;
 	-ms-transform-origin: 0 0;
 	-moz-transform-origin: 0 0;
 	-o-transform-origin: 0 0;
 	-webkit-transform-origin: 0 0;
+}
+
+.link-preview-spinner {
+	margin: auto;
+	text-align: center;
+}
+
+.link-preview-spinner > img {
+	width: 20px;
+	height: 20px;
 }

@@ -172,10 +172,12 @@ $.fn.linkPreview = function() {
             html: true,
             trigger: 'hover',
             placement: 'auto',
-            content: '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
+            content:
+                '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
                 '"frameborder="0" scrolling="no" src="' +
                 $.htmlEncode($anchor.prop('href')) +
-                '" class="transform-origin"></iframe>',
+                '" class="transform-origin-0"></iframe>' +
+                '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>',
         });
         this.popover.on('shown.bs.popover', function(ev) {
             return self.show(ev);
@@ -185,34 +187,42 @@ $.fn.linkPreview = function() {
     scaledPreview.prototype.show = function(ev) {
         console.log('shown.bs.popover');
         var iframe = document.getElementById(this.id);
-        var isLoaded = true;
+        var doc;
         try {
-            var doc = iframe.contentWindow.document;
+            doc = iframe.contentWindow.document;
         } catch (e) {
-            isLoaded = false;
+            // Usually means 'X-Frame-Options' is set to 'DENY' or to 'SAMEORIGIN'.
+            return;
         }
-        if (isLoaded && doc.location.hostname != '') {
+        if (doc.location.hostname != '') {
+            var $iframe = $(iframe);
+            $iframe.parent().find('.link-preview-spinner').remove();
             var body = doc.body;
             if (doc.body === null) {
                 // Embedded object (not html / image); for example pdf
-                var $object = $('<object data="' + this.$anchor.prop('href') + '"></object');
-                $(iframe).replaceWith($object);
-                body = $object.parent().get(0);
+                var $object = $('<object style="overflow:hidden; margin:0; padding:0;" data="' + this.$anchor.prop('href') + '"></object');
+                $iframe.replaceWith($object);
+                // Imitate document body without real iframe as popover-content parent.
+                $object.parent().css({
+                    'overflow': 'hidden',
+                    'margin': 0,
+                    'padding': 0,
+                });
+                return;
             }
         } else {
             // Force reload after the failure (pdf randomly fails to load in Chrome 47 Ubuntu Linux).
             doc.location = this.$anchor.prop('href');
-            // iframe.src = '/static/img/loading.gif';
             return;
         }
         var width = $(body).width();
         var scrollWidth = body.scrollWidth;
         console.log('scrolWidth: ' + scrollWidth);
         console.log('width: ' + width);
-        var containerHeight = $(iframe).parent().height();
+        var containerHeight = $iframe.parent().height();
         if (scrollWidth > width) {
             var scale = width / scrollWidth;
-            $(iframe).css({
+            $iframe.css({
                 'width': 100 / scale + '%',
                 'height':  containerHeight / scale,
                 '-webkit-transform' : 'scale(' + scale + ')',
@@ -222,7 +232,7 @@ $.fn.linkPreview = function() {
                 'transform'         : 'scale(' + scale + ')'
             });
         }
-        $(iframe).parent().height(containerHeight);
+        $iframe.parent().height(containerHeight);
     };
 
     return this.each(function() {
