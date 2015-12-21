@@ -1,0 +1,21 @@
+{% extends "base.htm" %}
+{% from 'bs_form_body.htm' import bs_form_body with context %}
+
+{% block main %}
+
+<p>{{ _('Already have an account? Then please <a href="%(login_url)s">sign in</a>.', login_url=login_url) }}</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
+    <div class="panel-body">
+        <form role="form" class="signup" id="signup_form" method="post" action="{{ url('account_signup') }}">
+            {{ bs_form_body(form) }}
+            {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+            <button class="btn btn-primary" type="submit">{{ _("Sign Up") }} &raquo;</button>
+        </form>
+    </div>
+</div>
+
+{% endblock main %}

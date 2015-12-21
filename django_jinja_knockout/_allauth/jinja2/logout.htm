@@ -1,0 +1,24 @@
+{% extends "base.htm" %}
+{% from 'bs_page_header.htm' import bs_page_header with context %}
+
+{% block main %}
+{{ bs_page_header(request.view_title) }}
+
+<div class="jumbotron">
+    {{ _('Are you sure you want to sign out?') }}
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
+    <div class="panel-body">
+        <form role="form" method="post" action="{{ url('account_logout') }}">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+            {% endif %}
+            <button class="btn btn-primary" type="submit">{{ _('Sign Out') }}</button>
+        </form>
+    </div>
+</div>
+
+{% endblock main %}

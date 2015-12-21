@@ -1,0 +1,10 @@
+{% extends "base.htm" %}
+{% from 'bs_page_header.htm' import bs_page_header with context %}
+
+{% block main %}
+{{ bs_page_header(request.view_title) }}
+
+<div class="jumbotron">
+    {{ _('We have sent an e-mail to you for verification. Follow the link provided to finalize the signup process. Please contact us if you do not receive it within a few minutes.') }}
+</div>
+{% endblock main %}
