@@ -38,6 +38,10 @@
 	padding: 0.5em;
 }
 
+.vmargin {
+	margin: 0.5em 0 0.5em 0;
+}
+
 table.table {
 	table-layout: fixed;
 	word-wrap: break-word;

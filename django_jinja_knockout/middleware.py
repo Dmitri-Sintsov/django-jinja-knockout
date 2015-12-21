@@ -1,3 +1,4 @@
+import re
 from pyquestpc import sdv
 from pyquestpc.modules import get_fqn
 from django.conf import settings
@@ -103,7 +104,12 @@ class ContextMiddleware(object):
     def after_acl(self):
         return True
 
+    def is_our_module(self, module):
+        return re.match(r'^django_jinja_knockout.', module)
+
     def process_view(self, request, view_func, view_args, view_kwargs):
+        if not self.is_our_module(view_func.__module__):
+            return
         self.request = request
         self.view_func = view_func
         self.view_args = view_args

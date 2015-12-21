@@ -49,8 +49,7 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'force_text': force_text,
             'isinstance': isinstance,
-            # Used for 'next' query arg in signup view.
-            'request_path': self.HttpRequest.get_full_path(),
+            'request': self.HttpRequest,
             'raise': raise_helper,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
