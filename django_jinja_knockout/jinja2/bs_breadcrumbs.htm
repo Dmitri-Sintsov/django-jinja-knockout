@@ -4,10 +4,10 @@
     <li class="bold">{{ title }}:</li>
     {% endif %}
     {% for nav in navs %}
-    <li class="{{ nav.class }}">
-        {% if nav.class != 'active' %}<a href="{{ nav.url }}">{% endif %}
+    <li {{ flatatt(nav.atts) }}>
+        {% if nav.atts.class != 'active' %}<a href="{{ nav.url }}">{% endif %}
         {{ nav.text }}
-        {% if nav.class != 'active' %}</a>{% endif %}
+        {% if nav.atts.class != 'active' %}</a>{% endif %}
     </li>
     {% endfor %}
 </ol>

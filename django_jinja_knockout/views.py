@@ -307,14 +307,14 @@ class ListSortingView(ListView):
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template. #
     def get_filter_navs(self, filter_field):
         reset_list_filter = copy(self.current_list_filter)
-        link = {}
+        link = {'atts': {}}
         if self.current_list_filter is None:
-            link['class'] = 'active'
+            link['atts']['class'] = 'active'
             reset_list_filter = {}
         elif filter_field in reset_list_filter:
             del reset_list_filter[filter_field]
         else:
-            link['class'] = 'active'
+            link['atts']['class'] = 'active'
         link.update({
             'url': qtpl.reverseq(
                 self.request.url_name,
@@ -341,11 +341,12 @@ class ListSortingView(ListView):
                         )
                     )
                 ),
-                'text': filter_type_display
+                'text': filter_type_display,
+                'atts': {}
             }
             if self.has_current_filter(filter_field, filter_type):
                 display.append(filter_type_display)
-                link['class'] = 'active'
+                link['atts']['class'] = 'active'
             navs.append(link)
         return navs, display
 
