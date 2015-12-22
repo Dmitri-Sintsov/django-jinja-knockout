@@ -1,12 +1,22 @@
 {# https://gist.github.com/bearz/7394681 #}
-{% macro bs_form(form, action, html, method='post') -%}
+{% macro bs_form(form, action, opts, method='post') -%}
 {% from 'bs_form_body.htm' import bs_form_body with context %}
-<div class="panel panel-default {{ html.class }}">
-    <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
+<div class="panel panel-default {{ opts.class }}">
+    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     <div class="panel-body">
-        <form action="{{ action }}" method="{{ method }}" enctype="multipart/form-data" role="form">
+        {% if opts.is_ajax %}
+            {% set atts = {'data-route': action, 'class': 'ajax-form'} %}
+        {% else %}
+            {% set atts = {'action': action} %}
+        {% endif %}
+        {% do atts.update({
+            'method': method,
+            'enctype': "multipart/form-data",
+            'role': 'form'
+        }) %}
+        <form{{ flatatt(atts) }}>
             {{ bs_form_body(form) }}
-            <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>
+            <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
             {% if caller %}
                 {{ caller() }}
             {% endif %}
