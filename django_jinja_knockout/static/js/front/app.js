@@ -496,7 +496,7 @@ App.ladder.prototype.remove = function() {
 };
 
 App.ajaxButton = function($selector) {
-    $selector.findSelf('a[data-route], button[data-route]')
+    $selector.findSelf('a[data-route], button[data-route][type!="submit"]')
     .on('click', function(ev) {
         var $target = $(ev.target).closest('[data-route]');
         App.disableInput($target);
@@ -533,8 +533,23 @@ App.ajaxForm = function($selector) {
         var always = function() {
             App.enableInputs($form);
         };
+        var route;
+        // Supposely clicked button. Each submit button may optionally have it's own route.
+        // @note: forms may not have active button when submitted via keyboard or programmatically.
+        // In such case do not forget to define form[data-route] value.
+        var $btn = $(document.activeElement);
+        if ($btn.length && $form.has($btn) &&
+                $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
+            route = $btn.data('route');
+        }
+        if (route === undefined) {
+            route = $form.data('route');
+        }
+        if (route === undefined) {
+            throw "Please define data-route attribute on form or on form submit button.";
+        }
         $form.ajaxSubmit({
-            url: $form.data('route'),
+            url: route,
             type: 'post',
             dataType: 'json',
             beforeSubmit: function() {
