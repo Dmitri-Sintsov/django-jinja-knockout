@@ -1,5 +1,6 @@
 from pyquestpc import sdv
 from django.utils.html import format_html, force_text, escape
+from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
@@ -12,6 +13,8 @@ def raise_helper(msg):
 
 
 class TemplateContextProcessor():
+
+    CLIENT_ROUTES = ()
 
     def __init__(self, HttpRequest=None):
         self.user_id = 0
@@ -33,14 +36,19 @@ class TemplateContextProcessor():
         if self.skip_request():
             return {}
         self.user_id = self.get_user_id()
+        client_conf = {
+            'csrfToken': get_token(self.HttpRequest),
+            'staticPath': static(''),
+            'userId': self.user_id,
+        }
+        client_conf['url'] = {}
+        for url, is_anon in self.__class__.CLIENT_ROUTES:
+            if is_anon or self.user_id != 0:
+                client_conf['url'][url] = reverse(url)
         return {
             'add_css_classes': add_css_classes,
             'client_data': self.HttpRequest.client_data,
-            'client_conf': {
-                'csrfToken': get_token(self.HttpRequest),
-                'staticPath': static(''),
-                'userId': self.user_id,
-            },
+            'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,
             'escape': escape,
             'getattr': getattr,
