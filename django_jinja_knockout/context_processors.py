@@ -1,4 +1,5 @@
 from pyquestpc import sdv
+from django.conf import settings
 from django.utils.html import format_html, force_text, escape
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
@@ -7,6 +8,8 @@ from django.middleware.csrf import get_token
 from .models import get_verbose_name, ContentTypeLinker
 from .tpl import add_css_classes, reverseq
 
+
+LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
 def raise_helper(msg):
     raise Exception(msg)
@@ -57,6 +60,7 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'force_text': force_text,
             'isinstance': isinstance,
+            'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
             'request': self.HttpRequest,
             'raise': raise_helper,
             # Use url() provided by django-jinja for reverse without query args.

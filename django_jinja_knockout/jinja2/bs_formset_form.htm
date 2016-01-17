@@ -1,5 +1,8 @@
 {% from 'bs_form_body.htm' import bs_form_body with context %}
-{# do sdv_dbg('html bs_formset_form', html) #}
+{# @note: Also called in forms.set_knockout_template #}
+{% if not html.layout_classes %}
+    {% do html.update({'layout_classes': layout_classes}) %}
+{% endif %}
 {% if action == '' %}
     {# DisplayText fields may use tr/td when displaying as tables or div when embedded into "normal" forms. #}
     {% if formset_index == 0 %}
@@ -20,8 +23,7 @@
         <div class="panel-heading"><h3 class="panel-title">{{ html.inline_title }}</h3></div>
         <div class="panel-body">
 {% endif %}
-            {# @todo: why does not work: bs_form_body(form, html.layout_classes) #}
-            {{ bs_form_body(form) }}
+            {{ bs_form_body(form, html.layout_classes) }}
 {% if action != '' %}
         </div>
     </div>

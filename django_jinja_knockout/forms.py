@@ -3,6 +3,8 @@ from io import StringIO
 import json
 import lxml.html
 from lxml.etree import tostring
+from django.conf import settings
+from .context_processors import LAYOUT_CLASSES
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass
@@ -78,6 +80,7 @@ def set_knockout_template(formset, request):
         'html': {
             'formset_form_class': 'form-empty',
             'inline_title': formset.model._meta.verbose_name,
+            'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
         }
     })
     # return str(empty_form)
