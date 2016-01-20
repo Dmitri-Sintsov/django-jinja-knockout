@@ -606,6 +606,27 @@ App.initClientApply = function(selector) {
     $selector.find('.init-client-end').remove();
 };
 
+App.get = function(route, data) {
+    $.get(
+        App.conf.url[route],
+        typeof data === 'undefined' ? {} : data,
+        App.viewResponse,
+        'json'
+    ).fail(App.showAjaxError);
+};
+
+App.post = function(route, data) {
+    if (typeof data === 'undefined') {
+        data = {};
+    }
+    data.csrfmiddlewaretoken = App.conf.csrfToken
+    $.post(
+        App.conf.url[route],
+        typeof data === 'undefined'? {} : data,
+        App.viewResponse,
+        'json'
+    ).fail(App.showAjaxError);
+};
 
 App.documentReadyHooks = [];
 
