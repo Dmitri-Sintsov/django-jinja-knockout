@@ -1,4 +1,5 @@
 from smtplib import SMTPDataError
+import lxml.html
 from bleach import linkify
 from django.conf import settings
 from django.utils.html import linebreaks
@@ -11,15 +12,19 @@ def send_mail(**kwargs):
 
     if 'html_message' not in kwargs:
         kwargs['html_message'] = linebreaks(linkify(kwargs['message']))
+    elif 'message' not in kwargs:
+        doc = lxml.html.fromstring(kwargs['html_message'])
+        kwargs['message'] = doc.text_content()
     if 'from_email' not in kwargs:
         kwargs['from_email'] = settings.DEFAULT_FROM_EMAIL
     if 'fail_silently' not in kwargs:
         kwargs['fail_silently'] = False
 
-    if 'request' not in kwargs:
+    request = kwargs.pop('request', None)
+    form = kwargs.pop('form', None)
+    if request is None and form is None:
         return django_send_mail(**kwargs)
 
-    request = kwargs.pop('request')
     try:
         # raise SMTPDataError(code=123, msg='Big error')
         return django_send_mail(**kwargs)
@@ -29,4 +34,9 @@ def send_mail(**kwargs):
             'msg': e.smtp_error,
             'email_list': ', '.join(['"{}"'.format(email) for email in kwargs['recipient_list']])
         }
-        messages.error(request, msg)
+        if 'form' is not None:
+            form.add_error(None, msg)
+        elif request is not None:
+            messages.error(request, msg)
+        else:
+            raise e
