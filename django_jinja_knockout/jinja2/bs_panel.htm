@@ -1,8 +1,20 @@
 {# http://anvoz.github.io/bootstrap-tldr/ #}
 {# type can be: 'success', 'info', 'warning', 'danger' #}
-{% macro bs_panel(type, heading) -%}
+{% macro bs_panel(type, heading=None) -%}
 <div class="panel panel-{{ type }}">
-    <div class="panel-heading">{{ heading }}</div>
-    <div class="panel-body">{{ caller() }}</div>
+    <div class="panel-heading">
+    {% if heading is not none -%}
+        {{ heading }}
+    {% else %}
+        {{ caller('heading') }}
+    {%- endif %}
+    </div>
+    <div class="panel-body">
+    {% if heading is not none -%}
+        {{ caller() }}
+    {% else %}
+        {{ caller('body') }}
+    {%- endif %}
+    </div>
 </div>
 {%- endmacro %}
