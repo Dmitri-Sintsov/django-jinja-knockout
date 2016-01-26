@@ -53,6 +53,20 @@
     </header>
     <main class="col-md-10">
         <div class="container">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    {% set msg_class='alert alert-danger' %}
+                    {% if message.tags %}
+                        {% set msg_class = add_css_classes(msg_class, message.tags) %}
+                    {% endif %}
+                <div class="{{ msg_class}}">
+                    <a class="close" data-dismiss="alert">&times;</a>
+                        {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% block main %}
             {% endblock main %}
         </div>
