@@ -34,7 +34,7 @@ def send_mail(**kwargs):
             'msg': e.smtp_error,
             'email_list': ', '.join(['"{}"'.format(email) for email in kwargs['recipient_list']])
         }
-        if 'form' is not None:
+        if form is not None:
             form.add_error(None, msg)
         elif request is not None:
             messages.error(request, msg)
