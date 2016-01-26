@@ -5,6 +5,8 @@ from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
+from django.contrib.messages.api import get_messages
+from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
 from .tpl import add_css_classes, reverseq
 
@@ -53,6 +55,7 @@ class TemplateContextProcessor():
             'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,
+            'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'escape': escape,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
@@ -61,6 +64,7 @@ class TemplateContextProcessor():
             'force_text': force_text,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
+            'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
             'raise': raise_helper,
             # Use url() provided by django-jinja for reverse without query args.
