@@ -53,6 +53,6 @@ msgstr "Удалить невстроенные записи"
 msgid "Access to current url is denied"
 msgstr "Вы не имеете доступа к данному url"
 
-msgid "Error \"%(code)s\" \"%(msg)s\" while sending email to %(email_list)s."
-msgstr "Ошибка \"%(code)s\" \"%(msg)s\" при отправке почты на %(email_list)s."
+msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
+msgstr "Ошибка \"%(code)s\" \"%(msg)s\" при отправке почты."
 
