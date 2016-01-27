@@ -50,9 +50,12 @@ class TemplateContextProcessor():
         for url, is_anon in self.__class__.CLIENT_ROUTES:
             if is_anon or self.user_id != 0:
                 client_conf['url'][url] = reverse(url)
+        client_data = self.HttpRequest.client_data
+        if 'onloadViewModels' in self.HttpRequest.session:
+            client_data['onloadViewModels'] = self.HttpRequest.session['onloadViewModels']
         return {
             'add_css_classes': add_css_classes,
-            'client_data': self.HttpRequest.client_data,
+            'client_data': client_data,
             'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
