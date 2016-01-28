@@ -98,4 +98,14 @@ def linkify(text):
 
 @library.filter
 def escapejs(val):
-    return mark_safe(json.dumps(val))
+    try:
+        json_str = json.dumps(val)
+    except TypeError as e:
+        json_str = json.dumps({
+            'onloadViewModels': {
+                'view': 'alert_error',
+                'title': 'escapejs TypeError',
+                'message': str(e)
+            }
+        })
+    return mark_safe(json_str)
