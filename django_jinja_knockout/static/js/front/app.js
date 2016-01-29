@@ -590,6 +590,10 @@ App.initClient = function(selector) {
     for (var i = 0; i < App.initClientHooks.length; i++) {
         App.initClientHooks[i]($selector);
     }
+    $.each($selector.findSelf('.ko-modal-dialog'), function(k, v) {
+        var dialog = new App.ko.ModalDialog($(v).data('values'));
+        ko.applyBindings(dialog, v);
+    });
 };
 
 App.initClientMark = function(html) {
@@ -692,4 +696,9 @@ ko.bindingHandlers.scroller = {
             viewModel[valueAccessor()['bottom']]();
         });
     }
+};
+
+App.ko.ModalDialog = function(options) {
+    this.title = ko.observable(options.title);
+    this.body = ko.observable(options.body);
 };
