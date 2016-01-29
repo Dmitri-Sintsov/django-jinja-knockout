@@ -86,8 +86,8 @@
     <script src="{{ static('js/front/plugins.js') }}"></script>
     <script src="{{ static('js/front/app.js') }}"></script>
     <script language="JavaScript">
-        App.conf = {{ client_conf|escapejs }};
-        App.clientData = {{ client_data|escapejs }};
+        App.conf = {{ client_conf|escapejs(True) }};
+        App.clientData = {{ client_data|escapejs(True) }};
     </script>
     <script src="{{ static('js/front/button-popover.js') }}"></script>
     <script src="{{ static('js/front/tooltips.js') }}"></script>

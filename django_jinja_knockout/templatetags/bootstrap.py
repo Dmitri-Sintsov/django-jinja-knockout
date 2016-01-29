@@ -97,15 +97,18 @@ def linkify(text):
     return mark_safe(bleach.linkify(escape(text)))
 
 @library.filter
-def escapejs(val):
-    try:
+def escapejs(val, view_error=False):
+    if view_error:
+        try:
+            json_str = json.dumps(val)
+        except TypeError as e:
+            json_str = json.dumps({
+                'onloadViewModels': {
+                    'view': 'alert_error',
+                    'title': 'escapejs TypeError',
+                    'message': str(e)
+                }
+            })
+    else:
         json_str = json.dumps(val)
-    except TypeError as e:
-        json_str = json.dumps({
-            'onloadViewModels': {
-                'view': 'alert_error',
-                'title': 'escapejs TypeError',
-                'message': str(e)
-            }
-        })
     return mark_safe(json_str)
