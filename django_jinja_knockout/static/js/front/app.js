@@ -62,6 +62,10 @@ App.Dialog = function(options) {
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
         }
+        if (typeof this.dialogOptions.method !== 'undefined') {
+            this.showMethod = this.dialogOptions.method;
+            delete this.dialogOptions.method;
+        }
         // Shortcut.
         this.$dialogContent = this.dialogOptions.message;
         // Remove unused properties possibly extended from options.
@@ -91,7 +95,11 @@ App.Dialog = function(options) {
     };
 
     Dialog.show = function() {
-        this.bdialog = BootstrapDialog.show(this.dialogOptions);
+        if (typeof this.showMethod !== 'undefined') {
+            this[this.showMethod](this.dialogOptions);
+        } else {
+            this.bdialog = BootstrapDialog.show(this.dialogOptions);
+        }
     };
 
     Dialog.onShown = function() {
@@ -574,6 +582,15 @@ App.ajaxForm = function($selector) {
     });
 };
 
+App.dialogButton = function($selector) {
+    $.each($selector.findSelf('.dialog-button'), function(k, v) {
+        var dialog = new App.Dialog($(v).data('options'));
+        $(v).on('click', function(ev) {
+            dialog.show();
+        });
+    });
+};
+
 App.initClientHooks = [];
 
 // @note: Do not forget to call this method for newly loaded AJAX DOM.
@@ -583,6 +600,7 @@ App.initClient = function(selector) {
     App.datetimewidget($selector);
     App.ajaxForm($selector);
     App.ajaxButton($selector);
+    App.dialogButton($selector);
     $selector.autogrow('init');
     $selector.optionalInput('init');
     $selector.collapsibleSubmit('init');
