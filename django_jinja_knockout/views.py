@@ -409,10 +409,15 @@ class ListSortingView(ListView):
         else:
             return queryset.filter(**self.current_list_filter)
 
+    # This method is required because child class custom queryset.filter will not work after self.order_queryset().
+    # Thus, filter ListView queryset by overriding this method, not get_queryset().
+    def get_base_queryset(self):
+        return super().get_queryset()
+
     def get_queryset(self):
         return self.filter_queryset(
             self.order_queryset(
-                super().get_queryset()
+                self.get_base_queryset()
             )
         )
 
