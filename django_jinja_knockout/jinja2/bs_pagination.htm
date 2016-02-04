@@ -12,7 +12,7 @@
     {% if page_obj.number - 1 > 1 %}
     <li>
         {% do query.update({'page' : 1}) %}
-            <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
+        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
     </li>
     {% endif %}
     {% if page_obj.has_previous() %}

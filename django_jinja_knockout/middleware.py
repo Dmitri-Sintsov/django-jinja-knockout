@@ -1,6 +1,7 @@
 import re
 from pyquestpc import sdv
 from pyquestpc.modules import get_fqn
+from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import get_backends, logout as auth_logout
@@ -125,7 +126,11 @@ class ContextMiddleware(object):
 
         try:
             result = view_func(request, *view_args, **view_kwargs)
-            return JsonResponse(result) if request.is_ajax() else result
+            if request.is_ajax():
+                # @note: safe parameter enables json serializing for lists.
+                return JsonResponse(result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list))
+            else:
+                return result
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
                 return e.response if request.is_ajax() else error_response('AJAX request is required')

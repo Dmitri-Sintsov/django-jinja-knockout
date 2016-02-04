@@ -297,7 +297,7 @@ App.viewResponse = function(response, options) {
         options = {};
     }
     bindContext = (typeof options.bindContext ==='undefined') ? this : options.bindContext;
-    if (typeof response[0] === 'undefined') {
+    if (!_.isArray(response)) {
         response = [response];
     }
     options = $.extend({before: {}, after: {}}, options);
@@ -625,6 +625,9 @@ App.initClientApply = function(selector) {
 };
 
 App.get = function(route, data) {
+    if (typeof App.conf.url[route] === 'undefined') {
+        throw "Undefined route: " + route;
+    }
     $.get(
         App.conf.url[route],
         typeof data === 'undefined' ? {} : data,
@@ -634,6 +637,9 @@ App.get = function(route, data) {
 };
 
 App.post = function(route, data) {
+    if (typeof App.conf.url[route] === 'undefined') {
+        throw "Undefined route: " + route;
+    }
     if (typeof data === 'undefined') {
         data = {};
     }
