@@ -1,12 +1,12 @@
 from smtplib import SMTPDataError
-import lxml.html
 from bleach import linkify
 from django.utils.html import linebreaks
 from django.utils.translation import ugettext_lazy as _
 from django.core import mail
 from django.contrib import messages
+from ..tpl import html_to_text
 
-
+# @todo: Use Celery to send mass-mails, check whether it is possible to report async mail errors via socket.io.
 class SendmailQueue:
 
     def __init__(self, defaults={}):
@@ -31,8 +31,7 @@ class SendmailQueue:
             html_body = linebreaks(linkify(kwargs['body']))
         elif 'body' not in kwargs:
             html_body = kwargs.pop('html_body')
-            doc = lxml.html.fromstring(html_body)
-            kwargs['body'] = doc.text_content()
+            kwargs['body'] = html_to_text(html_body)
         kwargs = dict(self.defaults, **kwargs)
         message = mail.EmailMultiAlternatives(**kwargs)
         message.attach_alternative(html_body, 'text/html')

@@ -1,3 +1,5 @@
+import lxml.html
+from lxml import etree
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import reverse
 from urllib.parse import urlencode
@@ -59,3 +61,15 @@ def remove_css_classes_from_dict(element, classnames, key='class'):
             del element[key]
     else:
         element[key] = result
+
+
+# Convert html fragment with anchor links into plain text with text links.
+def html_to_text(html):
+    doc = lxml.html.fromstring(html)
+    els = doc.xpath('//a[@href]')
+    for el in els:
+        if el.text != el.attrib['href']:
+            href_span = etree.Element('span')
+            href_span.text = ' ' + el.attrib['href']
+            el.addnext(href_span)
+    return doc.text_content()
