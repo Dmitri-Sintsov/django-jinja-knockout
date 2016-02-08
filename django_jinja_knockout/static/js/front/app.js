@@ -596,6 +596,7 @@ App.initClientHooks = [];
 // @note: Do not forget to call this method for newly loaded AJAX DOM.
 App.initClient = function(selector) {
     var $selector = App.getSelector(selector);
+    $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
     App.SelectMultipleAutoSize($selector);
     App.datetimewidget($selector);
     App.ajaxForm($selector);
