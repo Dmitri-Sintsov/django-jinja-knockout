@@ -8,7 +8,7 @@ from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
-from .tpl import add_css_classes, reverseq
+from .tpl import add_css_classes, add_css_classes_to_dict, reverseq
 from .utils.viewmodels import vm_list, to_vm_list, has_vm_list
 
 
@@ -58,6 +58,7 @@ class TemplateContextProcessor():
             vm_list.extend(vm_session)
         return {
             'add_css_classes': add_css_classes,
+            'add_css_classes_to_dict': add_css_classes_to_dict,
             'client_data': client_data,
             'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,

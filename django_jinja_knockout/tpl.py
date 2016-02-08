@@ -33,18 +33,25 @@ def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, q
 
 
 def add_css_classes(existing_classes=None, new_classes=''):
-    existing_set = set([]) if existing_classes is None else set(existing_classes.split(' '))
-    new_set = set(new_classes.split(' '))
-    result = ' '.join(list(existing_set | new_set)).strip()
+    existing_list = [] if existing_classes is None else existing_classes.split(' ')
+    new_list = new_classes.split(' ')
+    result_dict = {css_class:False for css_class in set(existing_list) | set(new_list)}
+    result_list = []
+    for css_class in existing_list + new_list:
+        if result_dict[css_class] is False:
+            result_dict[css_class] = True
+            result_list.append(css_class)
+    result = ' '.join(result_list).strip()
     if result == '' and existing_classes is None:
         return None
     return result
 
 
 def remove_css_classes(existing_classes=None, remove_classes=''):
-    existing_set = set([]) if existing_classes is None else set(existing_classes.split(' '))
+    existing_list = [] if existing_classes is None else existing_classes.split(' ')
     remove_set = set(remove_classes.split(' '))
-    result = ' '.join(list(existing_set - remove_set)).strip()
+    result_list = filter(lambda css_class: css_class not in remove_set, existing_list)
+    result = ' '.join(result_list).strip()
     if result == '' and existing_classes is None:
         return None
     return result
