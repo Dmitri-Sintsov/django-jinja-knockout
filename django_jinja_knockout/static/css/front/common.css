@@ -47,12 +47,12 @@ table.table {
 	word-wrap: break-word;
 }
 
-.validation-error {
+.error-bg, .validation-error {
 	color: white;
 	background-color: red;
 }
 
-.bootstrap-dialog.type-danger .bootstrap-dialog-message {
+.error-fg, .bootstrap-dialog.type-danger .bootstrap-dialog-message {
 	color: red;
 }
 
