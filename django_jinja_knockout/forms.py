@@ -145,6 +145,7 @@ class FormWithInlineFormsets(object):
 
     def prepare_formset(self, formset):
         formset.set_knockout_template(self.request)
+        formset.request = self.request
         for form in formset:
             if hasattr(form, 'set_request') and callable(form.set_request):
                 form.set_request(self.request)
