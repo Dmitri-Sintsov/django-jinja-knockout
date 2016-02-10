@@ -15,6 +15,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from .models import get_verbose_name
 from . import tpl as qtpl
+from .utils.viewmodels import vm_list
 
 
 def auth_redirect(request):
@@ -125,21 +126,46 @@ class FormWithInlineFormsetsMixin(object):
             self.model = form_class._meta.model
         return super().dispatch(request, *args, **kwargs)
 
+    def get_success_viewmodels(self):
+        return vm_list({
+            'view': 'redirect_to',
+            'url': self.get_success_url()
+        })
+
+    def get_error_viewmodel(self, bound_field):
+        return {
+            'view': 'popover_error',
+            'id': bound_field.auto_id,
+            'message': qtpl.print_bs_labels(bound_field.errors)
+        }
+
     def form_valid(self, form, formsets):
         """
         Called if all forms are valid. Creates a model instance along with
         associated formsets models and then redirects to a success page.
         """
-        return HttpResponseRedirect(self.get_success_url())
+        if self.request.is_ajax():
+            return self.get_success_viewmodels()
+        else:
+            return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formsets):
         """
         Called if a form is invalid. Re-renders the context data with the
         data-filled forms and errors.
         """
-        return self.render_to_response(
-            self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
-        )
+        vms = vm_list()
+        if self.request.is_ajax():
+            for formset in formsets:
+                for form in formset:
+                    for bound_field in form:
+                        if len(bound_field.errors) > 0:
+                            vms.append(self.get_error_viewmodel(bound_field))
+            return vms
+        else:
+            return self.render_to_response(
+                self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
+            )
 
     def get_object_from_url(self):
         raise ValueError('Abstract')

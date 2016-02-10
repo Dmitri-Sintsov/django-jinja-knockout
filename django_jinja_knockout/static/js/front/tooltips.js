@@ -1,8 +1,5 @@
 App.viewHandlers['tooltip_error'] = function(viewModel) {
-    var fieldTooltip = new App.fieldTooltip(
-        viewModel.selector,
-        viewModel.message
-    );
+    var fieldTooltip = new App.fieldTooltip(viewModel);
     // Save instance of tooltip to delete it later via applying _.filter() to
     // App.executedViewModels only when there was no previous instance created
     // for the matching or the same selector.
@@ -12,32 +9,28 @@ App.viewHandlers['tooltip_error'] = function(viewModel) {
 };
 
 App.viewHandlers['popover_error'] = function(viewModel) {
-    viewModel.instance = new App.fieldPopover(
-        viewModel.selector,
-        // Used as text, no need to escape from XSS.
-        viewModel.message
-    );
+    // viewModel.message is used as text, no need to escape from XSS.
+    viewModel.instance = new App.fieldPopover(viewModel);
 };
 
 /**
  * Information popover (useful to show ajax form errors and more).
- *
- * @param String
- *   jQuery selector
- * @param String
- *   message
  */
-App.genericPopover = function(selector, message) {
-    this.create(selector, message);
+App.genericPopover = function(options) {
+    this.create(options);
 };
 
 (function(genericPopover) {
-    genericPopover.create = function(selector, message) {
+    genericPopover.create = function(options) {
         this.destroyEventName = 'input';
-        this.$messageTarget = $(selector);
+        if (typeof options.selector !== 'undefined') {
+            this.$messageTarget = $(options.selector);
+        } else {
+            this.$messageTarget = $(document.getElementById(options.id));
+        }
         this.$cssTarget = this.$messageTarget;
         if (this.$messageTarget.length === 0) {
-            throw "Unmatched target: " + selector;
+            throw "Unmatched target: " + JSON.stringify(options);
         }
 
         switch (this.$messageTarget.prop('tagName')) {
@@ -67,7 +60,7 @@ App.genericPopover = function(selector, message) {
                     this.destroyEventName += ' select2-selecting';
                 }
                 if (this.$messageTarget.length === 0) {
-                    throw "Unmatched target: " + selector;
+                    throw "Unmatched target: " + JSON.stringify(options);
                 }
                 break;
             default:
@@ -76,18 +69,18 @@ App.genericPopover = function(selector, message) {
         }
 
         if (this.$field.length === 0) {
-            throw "Unmatched input: " + selector;
+            throw "Unmatched input: " + JSON.stringify(options);
         }
 
-        this.message = message;
+        this.message = options.message;
         this.setupEvents();
     }
 })(App.genericPopover.prototype);
 
 
-App.fieldPopover = function(selector, message) {
+App.fieldPopover = function(options) {
     $.inherit(App.genericPopover.prototype, this);
-    this.create(selector, message);
+    this.create(options);
 };
 
 (function(fieldPopover) {
@@ -98,9 +91,11 @@ App.fieldPopover = function(selector, message) {
         this.status = 'show';
         var _popover;
         _popover = this.$messageTarget.popover({
-            trigger: "manual",
-            placement: "top",
+            trigger: 'manual',
+            placement: 'bottom',
+            container: 'body',
             content: self.message,
+            html: true,
             template: "<div class=\"popover\"><div class=\"arrow\"></div><div class=\"popover-inner\"><div class=\"popover-content\"><p></p></div></div></div>"
         });
         _popover.data("bs.popover").options.content = self.message;
@@ -124,9 +119,9 @@ App.fieldPopover = function(selector, message) {
 }) (App.fieldPopover.prototype);
 
 
-App.fieldTooltip = function(selector, message) {
+App.fieldTooltip = function(options) {
     $.inherit(App.genericPopover.prototype, this);
-    this.create(selector, message);
+    this.create(options);
 };
 
 (function(fieldTooltip) {
@@ -141,7 +136,10 @@ App.fieldTooltip = function(selector, message) {
         } else {
             this.$messageTarget
               .attr('title', this.message);
-            App.tooltip(this.$messageTarget);
+            this.$messageTarget.tooltip({
+                'container': 'body',
+                'placement': 'bottom'
+            });
             this.destroyed = false;
             this.$cssTarget.addClass('validation-error');
             this.$field.on(this.destroyEventName, function(ev) {
