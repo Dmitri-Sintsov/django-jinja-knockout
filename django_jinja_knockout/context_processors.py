@@ -9,7 +9,7 @@ from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
 from .tpl import add_css_classes, add_css_classes_to_dict, reverseq
-from .utils.viewmodels import vm_list, to_vm_list, has_vm_list
+from .viewmodels import vm_list, to_vm_list, has_vm_list
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}

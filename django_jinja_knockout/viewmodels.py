@@ -3,15 +3,17 @@ import json
 
 # dict manipulation functions are used on HttpRequest.client_data or HttpRequest.session.
 
+KEY = 'onloadViewModels'
+
 def has_vm_list(dict):
-    return 'onloadViewModels' in dict
+    return KEY in dict
 
-def get_vm_list(dict):
-    return dict['onloadViewModels']
-
-def to_vm_list(dict, key='onloadViewModels'):
-    dict[key] = vm_list(*dict.get(key, []))
-    return dict[key]
+def to_vm_list(dict):
+    if type(dict.get(KEY)) is vm_list:
+        return dict[KEY]
+    else:
+        dict[KEY] = vm_list(*dict.get(KEY, []))
+        return dict[KEY]
 
 # List of client-side viewmodels, which can be serialized to json
 class vm_list(list):

@@ -15,7 +15,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from .models import get_verbose_name
 from . import tpl as qtpl
-from .utils.viewmodels import vm_list
+from .viewmodels import vm_list
 
 
 def auth_redirect(request):
