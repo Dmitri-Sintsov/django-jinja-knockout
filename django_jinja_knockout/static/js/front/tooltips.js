@@ -8,9 +8,23 @@ App.viewHandlers['tooltip_error'] = function(viewModel) {
     }
 };
 
+// Do not forget to escape viewModel.message from XSS.
 App.viewHandlers['popover_error'] = function(viewModel) {
-    // viewModel.message is used as text, no need to escape from XSS.
     viewModel.instance = new App.fieldPopover(viewModel);
+};
+
+App.viewHandlers['form_error'] = function(viewModel) {
+    var $field = $(document.getElementById(viewModel.id));
+    if ($field.length == 0) {
+        throw "Unknown field auto_id:" + viewModel.id;
+    }
+    var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
+    $.each(viewModel.messages, function(k, v) {
+        $field.before($(sprintf(
+            '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
+            alert_class, v
+        )));
+    });
 };
 
 /**

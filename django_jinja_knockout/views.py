@@ -3,7 +3,7 @@ import json
 import traceback
 from django.conf import settings
 from django.utils.encoding import force_text
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.forms.utils import flatatt
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
@@ -127,17 +127,46 @@ class FormWithInlineFormsetsMixin(object):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_viewmodels(self):
+        # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
+        # after successful submission. Use as callback for view: 'alert' or make your own view.
         return vm_list({
             'view': 'redirect_to',
             'url': self.get_success_url()
         })
 
-    def get_error_viewmodel(self, bound_field):
+    def get_form_error_viewmodel(self, form):
+        for bound_field in form:
+            return {
+                'view': 'form_error',
+                'class': 'danger',
+                'id': bound_field.auto_id,
+                'messages': list((escape(message) for message in form.errors['__all__']))
+            }
+        return None
+
+    def get_field_error_viewmodel(self, bound_field):
+        return {
+            'view': 'form_error',
+            'id': bound_field.auto_id,
+            'messages': list((escape(message) for message in bound_field.errors))
+        }
+        # Alternative version, different from 'bs_field.htm' macro rendering.
+        """
         return {
             'view': 'popover_error',
             'id': bound_field.auto_id,
             'message': qtpl.print_bs_labels(bound_field.errors)
         }
+        """
+
+    def add_form_viewmodels(self, form):
+        if '__all__' in form.errors:
+            vm = self.get_form_error_viewmodel(form)
+            if vm is not None:
+                self.forms_vms.append(vm)
+        for bound_field in form:
+            if len(bound_field.errors) > 0:
+                self.fields_vms.append(self.get_field_error_viewmodel(bound_field))
 
     def form_valid(self, form, formsets):
         """
@@ -154,14 +183,15 @@ class FormWithInlineFormsetsMixin(object):
         Called if a form is invalid. Re-renders the context data with the
         data-filled forms and errors.
         """
-        vms = vm_list()
         if self.request.is_ajax():
+            self.fields_vms = vm_list()
+            self.forms_vms = vm_list()
+            if form is not None:
+                self.add_form_viewmodels(form)
             for formset in formsets:
-                for form in formset:
-                    for bound_field in form:
-                        if len(bound_field.errors) > 0:
-                            vms.append(self.get_error_viewmodel(bound_field))
-            return vms
+                for formset_form in formset:
+                    self.add_form_viewmodels(formset_form)
+            return self.forms_vms + self.fields_vms
         else:
             return self.render_to_response(
                 self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
