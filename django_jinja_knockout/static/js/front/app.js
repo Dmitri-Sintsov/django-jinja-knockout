@@ -524,6 +524,7 @@ App.ajaxButton = function($selector) {
 //     Please use form[data-route] attribute.
 //     Do not define form[action], otherwise form may be submitted twice.
 App.ajaxForm = function($selector) {
+    var submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
     if (typeof $.fn.ajaxForm === 'undefined') {
         console.log('@note: jQuery AJAX form plugin is disabled.');
         return;
@@ -533,10 +534,11 @@ App.ajaxForm = function($selector) {
         var $form = $(ev.target).closest('form');
         App.clearInputs($form);
     });
+    // Do not use ajaxForm plugin submit event, otherwise form will be double-POSTed.
     $form.ajaxForm()
-    .submit(function(ev) {
+    .find(submitSelector)
+    .on('click', function(ev) {
         ev.preventDefault();
-        var $form = $(this);
         var l = new App.ladder($form);
         var always = function() {
             App.enableInputs($form);
@@ -545,11 +547,15 @@ App.ajaxForm = function($selector) {
         // Supposely clicked button. Each submit button may optionally have it's own route.
         // @note: forms may not have active button when submitted via keyboard or programmatically.
         // In such case do not forget to define form[data-route] value.
+        /*
         var $btn = $(document.activeElement);
         if ($btn.length && $form.has($btn) &&
-                $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
+                $btn.is(submitSelector)) {
             route = $btn.data('route');
         }
+        */
+        var $btn = $(ev.target);
+        route = $btn.data('route');
         if (route === undefined) {
             route = $form.data('route');
         }
