@@ -8,7 +8,11 @@ def get_verbose_name(obj, fieldname):
     if len(fieldpath) > 1:
         fieldname = fieldpath.pop()
         for _fieldname in fieldpath:
-            obj = obj._meta.get_field(_fieldname).rel.to
+            curr_field = obj._meta.get_field(_fieldname)
+            if hasattr(curr_field, 'rel'):
+                obj = curr_field.rel.to
+            else:
+                obj = curr_field.related_model
     return obj._meta.get_field_by_name(fieldname)[0].verbose_name
 
 
