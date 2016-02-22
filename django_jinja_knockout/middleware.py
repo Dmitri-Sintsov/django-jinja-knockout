@@ -1,4 +1,5 @@
 import re
+import threading
 from pyquestpc import sdv
 from pyquestpc.modules import get_fqn
 from django.core.serializers.json import DjangoJSONEncoder
@@ -31,16 +32,30 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 
 class ContextMiddleware(object):
 
+    _threadmap = {}
+
     def __init__(self):
         self.request = None
         self.view_func = None
         self.view_args = None
         self.view_kwargs = None
 
+    # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
+    @classmethod
+    def get_request(cls):
+        return cls._threadmap[threading.get_ident()]
+
     def process_request(self, request):
+        self.__class__._threadmap[threading.get_ident()] = request
         # Optional server-side injected JSON.
         request.client_data = {}
 
+    def process_exception(self, request, exception):
+        self.__class__._threadmap.pop(threading.get_ident(), None)
+
+    def process_response(self, request, response):
+        self.__class__._threadmap.pop(threading.get_ident(), None)
+        return response
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
