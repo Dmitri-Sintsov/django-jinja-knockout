@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core import mail
 from django.contrib import messages
 from ..tpl import html_to_text
+from ..middleware import ImmediateJsonResponse
 
 # @todo: Use Celery to send mass-mails, check whether it is possible to report async mail errors via socket.io.
 class SendmailQueue:
@@ -66,7 +67,14 @@ class SendmailQueue:
             if form is not None:
                 form.add_error(None, msg)
             elif request is not None:
-                messages.error(request, msg)
+                if request.is_ajax():
+                    raise ImmediateJsonResponse({
+                        'view': 'alert_error',
+                        'title': e.smtp_code,
+                        'message': msg
+                    })
+                else:
+                    messages.error(request, msg)
             else:
                 raise e
 
