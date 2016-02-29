@@ -185,20 +185,30 @@ App.getSelector = function(selector) {
 App.viewHandlers = {
     'redirect_to' : function(viewModel) {
         var href = viewModel.url;
+        var hash = href.match('(#.*)$')
+        if (hash !== null) {
+            hash = hash.pop();
+        }
+        if (hash != window.location.hash) {
+            // Hash changes are not refreshed automatically by default.
+            $(window).on('hashchange', function() {
+                window.location.reload();
+            });
+        }
         if (typeof viewModel.query !== 'undefined') {
             href += '?' + $.param(viewModel.query);
         }
         window.location.href = href;
     },
-	'alert' : function(viewModel) {
-	    new App.Dialog(viewModel).alert();
-	},
-	'alert_error' : function(viewModel) {
-	    new App.Dialog(viewModel).alertError();
-	},
-	'confirm' : function(viewModel) {
-	    new App.Dialog(viewModel).confirm();
-	},
+    'alert' : function(viewModel) {
+        new App.Dialog(viewModel).alert();
+    },
+    'alert_error' : function(viewModel) {
+        new App.Dialog(viewModel).alertError();
+    },
+    'confirm' : function(viewModel) {
+        new App.Dialog(viewModel).confirm();
+    },
     'append': function(response) {
         $(response.selector).append(response.html);
     },
@@ -539,11 +549,6 @@ App.ajaxForm = function($selector) {
     .find(submitSelector)
     .on('click', function(ev) {
         ev.preventDefault();
-        var l = new App.ladder($form);
-        var always = function() {
-            App.enableInputs($form);
-        };
-        var route;
         // Supposely clicked button. Each submit button may optionally have it's own route.
         // @note: forms may not have active button when submitted via keyboard or programmatically.
         // In such case do not forget to define form[data-route] value.
@@ -555,6 +560,8 @@ App.ajaxForm = function($selector) {
         }
         */
         var $btn = $(ev.target);
+        var l = new App.ladder($btn);
+        var route;
         route = $btn.data('route');
         if (route === undefined) {
             route = $form.data('route');
@@ -562,7 +569,13 @@ App.ajaxForm = function($selector) {
         if (route === undefined) {
             throw "Please define data-route attribute on form or on form submit button.";
         }
-        $form.ajaxSubmit({
+        var always = function() {
+            App.enableInputs($form);
+            if (typeof options['uploadProgress'] !== 'undefined') {
+                $progressBar.remove();
+            }
+        };
+        var options = {
             url: route,
             type: 'post',
             dataType: 'json',
@@ -583,7 +596,15 @@ App.ajaxForm = function($selector) {
             complete: function() {
                 l.remove();
             }
-        });
+        };
+        if ($form.has('input[type="file"]')) {
+            var $progressBar = $('<div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div>');
+            $progressBar.insertBefore($btn);
+            options['uploadProgress'] = function(event, position, total, percentComplete) {
+                $progressBar.find('.progress-bar').css('width', percentComplete + '%');
+            };
+        }
+        $form.ajaxSubmit(options);
         return false;
     });
 };
