@@ -684,6 +684,8 @@ App.documentReadyHooks = [];
 
 $(document)
 .ready(function() {
+    var m = moment();
+    Cookies.set('local_tz', parseInt(m.zone() / 60));
     App.initClient();
     if (typeof App.clientData === 'undefined') {
         console.log('@note: client_data middleware is disabled at server side.')

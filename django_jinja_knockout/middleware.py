@@ -1,8 +1,10 @@
+import pytz
 import re
 import threading
 from pyquestpc import sdv
 from pyquestpc.modules import get_fqn
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import get_backends, logout as auth_logout
@@ -46,6 +48,18 @@ class ContextMiddleware(object):
         return cls._threadmap[threading.get_ident()]
 
     def process_request(self, request):
+        if getattr(settings, 'USE_JS_TIMEZONE', False) and 'local_tz' in request.COOKIES:
+            try:
+                local_tz = int(request.COOKIES['local_tz'])
+                if local_tz == 0:
+                    tz_name = 'Etc/GMT'
+                elif local_tz < 0:
+                    tz_name = 'Etc/GMT{}'.format(local_tz)
+                else:
+                    tz_name = 'Etc/GMT+{}'.format(local_tz)
+                timezone.activate(pytz.timezone(tz_name))
+            except ValueError:
+                pass
         self.__class__._threadmap[threading.get_ident()] = request
         # Optional server-side injected JSON.
         request.client_data = {}

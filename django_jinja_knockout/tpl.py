@@ -1,5 +1,6 @@
 import lxml.html
 from lxml import etree
+from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import reverse
 from urllib.parse import urlencode
@@ -80,3 +81,7 @@ def html_to_text(html):
             href_span.text = ' ' + el.attrib['href']
             el.addnext(href_span)
     return doc.text_content()
+
+
+def format_local_date(value, *args, **kwargs):
+    return formats.date_format(timezone.localtime(value), *args, **kwargs)
