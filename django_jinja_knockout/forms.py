@@ -1,6 +1,5 @@
 from pyquestpc import sdv
 from io import StringIO
-import json
 import lxml.html
 from lxml.etree import tostring
 from django.conf import settings
@@ -11,6 +10,7 @@ from django.forms.models import BaseInlineFormSet, ModelFormMetaclass
 from django.template import loader as tpl_loader
 from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
+from .viewmodels import to_json
 
 
 # Form with field classes stylized for bootstrap3. #
@@ -91,8 +91,8 @@ def set_knockout_template(formset, request):
         for attr in ['for', 'id', 'name']:
             if attr in element.attrib:
                 attr_parts = element.attrib[attr].split('__prefix__')
-                attr_parts = json.dumps(attr_parts[0]) + ' + ($index() + $parent.serversideFormsCount) + ' + json.dumps(attr_parts[1])
-                data_bind_args.append(json.dumps(attr) + ': ' + attr_parts)
+                attr_parts = to_json(attr_parts[0]) + ' + ($index() + $parent.serversideFormsCount) + ' + to_json(attr_parts[1])
+                data_bind_args.append(to_json(attr) + ': ' + attr_parts)
                 del element.attrib[attr]
         # sdv.dbg('data_bind_args', data_bind_args)
         if len(data_bind_args) > 0:
@@ -109,6 +109,7 @@ def set_knockout_template(formset, request):
     # sdv.dbg('knockout_template after', formset.knockout_template)
     formset.knockout_template = knockout_template[body_begin + len('<body>'):body_end]
     # @note: Uncomment next line to test knockout.js template for XSS.
+    # alert() should execute only when new form is added into formset, not during the page load.
     # formset.knockout_template += '<script language="javascript">alert(1);</script>'
 
 

@@ -9,6 +9,7 @@ from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import get_backends, logout as auth_logout
 from .views import auth_redirect, error_response, exception_response
+from .viewmodels import vm_list, to_vm_list, has_vm_list
 
 
 class ImmediateHttpResponse(Exception):
@@ -51,18 +52,23 @@ class ContextMiddleware(object):
         if getattr(settings, 'USE_JS_TIMEZONE', False) and 'local_tz' in request.COOKIES:
             try:
                 local_tz = int(request.COOKIES['local_tz'])
-                if local_tz == 0:
-                    tz_name = 'Etc/GMT'
-                elif local_tz < 0:
-                    tz_name = 'Etc/GMT{}'.format(local_tz)
-                else:
-                    tz_name = 'Etc/GMT+{}'.format(local_tz)
-                timezone.activate(pytz.timezone(tz_name))
+                if -14 <= local_tz <= 12:
+                    if local_tz == 0:
+                        tz_name = 'Etc/GMT'
+                    elif local_tz < 0:
+                        tz_name = 'Etc/GMT{}'.format(local_tz)
+                    else:
+                        tz_name = 'Etc/GMT+{}'.format(local_tz)
+                    timezone.activate(pytz.timezone(tz_name))
             except ValueError:
                 pass
         self.__class__._threadmap[threading.get_ident()] = request
         # Optional server-side injected JSON.
         request.client_data = {}
+        vm_list = to_vm_list(request.client_data)
+        if has_vm_list(request.session):
+            vm_session = to_vm_list(request.session)
+            vm_list.extend(vm_session)
 
     def process_exception(self, request, exception):
         self.__class__._threadmap.pop(threading.get_ident(), None)

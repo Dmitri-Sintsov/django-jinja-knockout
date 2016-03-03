@@ -9,7 +9,6 @@ from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
 from .tpl import add_css_classes, add_css_classes_to_dict, reverseq
-from .viewmodels import vm_list, to_vm_list, has_vm_list
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
@@ -51,15 +50,10 @@ class TemplateContextProcessor():
         for url, is_anon in self.__class__.CLIENT_ROUTES:
             if is_anon or self.user_id != 0:
                 client_conf['url'][url] = reverse(url)
-        client_data = self.HttpRequest.client_data
-        vm_list = to_vm_list(client_data)
-        if has_vm_list(self.HttpRequest.session):
-            vm_session = to_vm_list(self.HttpRequest.session)
-            vm_list.extend(vm_session)
         return {
             'add_css_classes': add_css_classes,
             'add_css_classes_to_dict': add_css_classes_to_dict,
-            'client_data': client_data,
+            'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,

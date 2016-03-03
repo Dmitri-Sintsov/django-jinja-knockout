@@ -560,7 +560,6 @@ App.ajaxForm = function($selector) {
         }
         */
         var $btn = $(ev.target);
-        var l = new App.ladder($btn);
         var route;
         route = $btn.data('route');
         if (route === undefined) {
@@ -597,13 +596,14 @@ App.ajaxForm = function($selector) {
                 l.remove();
             }
         };
-        if ($form.has('input[type="file"]')) {
-            var $progressBar = $('<div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div>');
-            $progressBar.insertBefore($btn);
+        if ($form.find('input[type="file"]').length > 0) {
+            var $progressBar = $('<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>');
+            $progressBar.insertAfter($btn);
             options['uploadProgress'] = function(event, position, total, percentComplete) {
                 $progressBar.find('.progress-bar').css('width', percentComplete + '%');
             };
         }
+        var l = new App.ladder($btn);
         $form.ajaxSubmit(options);
         return false;
     });

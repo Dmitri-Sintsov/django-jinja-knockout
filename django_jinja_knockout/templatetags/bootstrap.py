@@ -1,13 +1,13 @@
 # https://github.com/samuelcolvin/django-jinja-bootstrap-form
 from pyquestpc import sdv
 import bleach
-import json
 from django.utils.html import escape
 from django import forms
 from django_jinja import library
 from django.utils.translation import string_concat, ugettext as _
 from django.utils.safestring import mark_safe
 from ..widgets import DisplayText
+from ..viewmodels import to_json
 
 # http://niwinz.github.io/django-jinja/#_registring_filters_in_a_django_way
 
@@ -100,9 +100,9 @@ def linkify(text):
 def escapejs(val, view_error=False):
     if view_error:
         try:
-            json_str = json.dumps(val)
+            json_str = to_json(val)
         except TypeError as e:
-            json_str = json.dumps({
+            json_str = to_json({
                 'onloadViewModels': {
                     'view': 'alert_error',
                     'title': 'escapejs TypeError',
@@ -110,5 +110,5 @@ def escapejs(val, view_error=False):
                 }
             })
     else:
-        json_str = json.dumps(val)
+        json_str = to_json(val)
     return mark_safe(json_str)

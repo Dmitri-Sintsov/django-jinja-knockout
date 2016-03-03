@@ -79,7 +79,5 @@ def find_by_vm(self, partial_vm):
 vm_list.find_by_vm = find_by_vm
 
 def to_json(self):
-    if not isinstance(self, list):
-        raise ValueError('Self is not the list of viewmodels')
-    return json.dumps(self)
+    return json.dumps(self, ensure_ascii=False)
 vm_list.to_json = to_json
