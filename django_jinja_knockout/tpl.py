@@ -18,7 +18,7 @@ def repeat_insert(s, separator=' ', each=3):
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
     result = []
     for elem in row:
-        if isinstance(elem, list):
+        if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
             result.append(print_list(elem, elem_tpl, top_tpl, cb))
         else:
             result.append(elem_tpl.format(cb(elem) if callable(cb) else elem))
