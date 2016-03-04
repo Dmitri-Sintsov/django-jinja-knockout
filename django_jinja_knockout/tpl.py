@@ -10,11 +10,22 @@ def limitstr(value, maxlen=50, suffix='...'):
     return '{0}{1}'.format(value[:maxlen - len(suffix)], suffix) if len(value) > maxlen else value
 
 
+def repeat_insert(s, separator=' ', each=3):
+    return ' '.join(s[i:i+each] for i in range(0, len(s), each))
+
+
+# Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
-    row_str = ''.join([elem_tpl.format(cb(elem) if callable(cb) else elem) for elem in row])
-    return top_tpl.format(row_str)
+    result = []
+    for elem in row:
+        if isinstance(elem, list):
+            result.append(print_list(elem, elem_tpl, top_tpl, cb))
+        else:
+            result.append(elem_tpl.format(cb(elem) if callable(cb) else elem))
+    return top_tpl.format(''.join(result))
 
 
+# Print uniform 2D table.
 def print_table(rows, top_tpl='<table>{0}</table>\n', row_tpl='<tr>{0}</tr>\n', elem_tpl='<td>{0}</td>\n', cb=escape):
     rows_str = ''.join([print_list(row, elem_tpl=elem_tpl, top_tpl=row_tpl, cb=cb) for row in rows])
     return top_tpl.format(rows_str)
