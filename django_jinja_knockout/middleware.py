@@ -1,8 +1,8 @@
 import pytz
 import re
 import threading
-from pyquestpc import sdv
-from pyquestpc.modules import get_fqn
+from .utils import sdv
+from .utils.modules import get_fqn
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.conf import settings

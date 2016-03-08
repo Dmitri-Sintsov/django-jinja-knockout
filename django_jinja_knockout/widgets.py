@@ -1,4 +1,4 @@
-from pyquestpc import sdv
+from .utils import sdv
 import types
 from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict
 from django.utils.translation import gettext as _

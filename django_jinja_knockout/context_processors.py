@@ -1,4 +1,4 @@
-from pyquestpc import sdv
+from .utils import sdv
 from django.conf import settings
 from django.utils.html import format_html, force_text, escape
 from django.core.urlresolvers import reverse

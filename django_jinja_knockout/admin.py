@@ -1,4 +1,4 @@
-from pyquestpc import sdv
+from .utils import sdv
 from ensure import ensure_annotations
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
