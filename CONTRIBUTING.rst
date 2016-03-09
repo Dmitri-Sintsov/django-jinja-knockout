@@ -22,10 +22,10 @@ If you are reporting a bug, please include:
 
 * Your operating system name and Python / Django version used.
 * Currently this reusable app supports only Python 3.4+ and Django 1.8 LTS, because I do not have enough time and
-resources to write unit tests and to check it througly against newer versions of Python / Django.
+  resources to write unit tests and to check it througly against newer versions of Python / Django.
 * While there is no automated tests, the app is used in large enough project which is tested via manual test cases.
 * If I'll have the chance, I'd write unit tests and expand version usage, or you may help with that if this reusable app
-is useful to you.
+  is useful to you.
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
 * Feel free to fix bug or to suggest / implement a feature at github.
@@ -62,6 +62,7 @@ Fork the `django_jinja_knockout` repo on GitHub.
     $ pip3 install -U -r requirements.txt
 
 See the following link, if you are using Ubuntu 14.04::
+
     https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
 
 Note that without `Django` installed, there is not much of usage in this pluggable app.
@@ -106,6 +107,7 @@ To check documentation changes install sphinx::
     pip3 install sphinx
 
 then run in your active virtual environment::
+
     $ cd $VIRTUAL_ENV/django-jinja-knockout/docs
     $ make html
 
