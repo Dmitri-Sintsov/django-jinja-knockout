@@ -61,9 +61,7 @@ Fork the `django_jinja_knockout` repo on GitHub.
     $ cd django-jinja-knockout
     $ pip3 install -U -r requirements.txt
 
-See the following link, if you are using Ubuntu 14.04::
-
-    https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
+See the following link, if you are using Ubuntu 14.04 https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
 
 Note that without `Django` installed, there is not much of usage in this pluggable app.
 
@@ -97,8 +95,7 @@ Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
 `django_jinja_knockout` reusable app could always use more documentation, whether as part of the
-official docs, in docstrings (but please no very long bloated ones), or even on the web in blog posts,
-articles, and such.
+official docs, in docstrings (but please not very long bloated ones).
 
 Especially because I am not native English speaker, though I try my best to avoid mistakes.
 
@@ -110,6 +107,7 @@ then run in your active virtual environment::
 
     $ cd $VIRTUAL_ENV/django-jinja-knockout/docs
     $ make html
+    $ firefox _build/html/index.html &
 
 Pull Request Guidelines
 -----------------------
