@@ -1,4 +1,4 @@
-from pyquestpc import sdv
+from .utils import sdv
 from io import StringIO
 import lxml.html
 from lxml.etree import tostring
