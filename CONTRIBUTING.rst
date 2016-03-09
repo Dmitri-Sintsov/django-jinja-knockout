@@ -2,8 +2,11 @@
 Contributing
 ============
 
-Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given. 
+`django_jinja_knockout` is an open source project originally written by very poor guy from Russia so feel free
+to support it either by contributing new features / fixes / unit tests or by hiring me remotely to develop additional
+required features.
+
+Any non-trivial contribution will be recorded in authors list.
 
 You can contribute in many ways:
 
@@ -13,60 +16,55 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/Dmitri-Sintsov/django-jinja-knockout/issues.
+Report bugs at https://github.com/Dmitri-Sintsov/django-jinja-knockout/issues
 
 If you are reporting a bug, please include:
 
-* Your operating system name and version.
+* Your operating system name and Python / Django version used.
+* Currently this reusable app supports only Python 3.4+ and Django 1.8 LTS, because I do not have enough time and
+resources to write unit tests and to check it througly against newer versions of Python / Django.
+* While there is no automated tests, the app is used in large enough project which is tested via manual test cases.
+* If I'll have the chance, I'd write unit tests and expand version usage, or you may help with that if this reusable app
+is useful to you.
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
-
-Fix Bugs
-~~~~~~~~
-
-Look through the GitHub issues for bugs. Anything tagged with "bug"
-is open to whoever wants to implement it.
-
-Implement Features
-~~~~~~~~~~~~~~~~~~
-
-Look through the GitHub issues for features. Anything tagged with "feature"
-is open to whoever wants to implement it.
-
-Write Documentation
-~~~~~~~~~~~~~~~~~~~
-
-django-jinja-knockout could always use more documentation, whether as part of the 
-official django-jinja-knockout docs, in docstrings, or even on the web in blog posts,
-articles, and such.
+* Feel free to fix bug or to suggest / implement a feature at github.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/Dmitri-Sintsov/django-jinja-knockout/issues.
+The best way to send feedback is to file an issue at https://github.com/Dmitri-Sintsov/django-jinja-knockout/issues
 
 If you are proposing a feature:
 
 * Explain in detail how it would work.
 * Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
+* Remember that this is a volunteer-driven project, and that good quality contributions are welcome!
 
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `django-jinja-knockout` for local development.
+Ready to contribute? Here's how to set up `django_jinja_knockout` for local development.
 
-1. Fork the `django-jinja-knockout` repo on GitHub.
-2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/django-jinja-knockout.git
+Fork the `django_jinja_knockout` repo on GitHub.
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv django-jinja-knockout
+    $ apt-get install python3-pip
+    $ python3 -m venv django-jinja-knockout
     $ cd django-jinja-knockout/
-    $ python setup.py develop
+    # Clone your fork locally
+    $ git clone https://github.com/your_github_account/django-jinja-knockout.git
+    $ source bin/activate
+    # python setup.py develop
+    $ cd django-jinja-knockout
+    $ pip3 install -U -r requirements.txt
+
+See the following link, if you are using Ubuntu 14.04::
+    https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
+
+Note that without `Django` installed, there is not much of usage in this pluggable app.
 
 4. Create a branch for local development::
 
@@ -74,37 +72,56 @@ Ready to contribute? Here's how to set up `django-jinja-knockout` for local deve
 
 Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
+5. There is no automated tests and no continuous integration yet, alas.
+When these will be available (not now!!!), check that your changes passes flake8 and the
 tests, including testing other Python versions with tox::
 
     $ flake8 django_jinja_knockout tests
     $ python setup.py test
     $ tox
 
-To get flake8 and tox, just pip install them into your virtualenv. 
+To get flake8 and tox::
+
+    pip3 install flake8 tox
 
 6. Commit your changes and push your branch to GitHub::
 
     $ git add .
-    $ git commit -m "Your detailed description of your changes."
+    $ git commit -m "Detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
 7. Submit a pull request through the GitHub website.
+
+Write Documentation
+~~~~~~~~~~~~~~~~~~~
+
+`django_jinja_knockout` reusable app could always use more documentation, whether as part of the
+official docs, in docstrings (but please no very long bloated ones), or even on the web in blog posts,
+articles, and such.
+
+Especially because I am not native English speaker, though I try my best to avoid mistakes.
+
+To check documentation changes install sphinx::
+
+    pip3 install sphinx
+
+then run in your active virtual environment::
+    $ cd $VIRTUAL_ENV/django-jinja-knockout/docs
+    $ make html
 
 Pull Request Guidelines
 -----------------------
 
 Before you submit a pull request, check that it meets these guidelines:
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 3.4.
+1. It would be great if the pull request included automated tests, but that is not required yet.
+2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function
+   with a docstring, and add the feature to the list in README.rst.
+3. The pull request should work for Python 3.4 / Django 1.8 at least.
 
 Tips
 ----
 
-To run a subset of tests::
+To run a subset of tests (not available yet!)::
 
     $ python -m unittest tests.test_django_jinja_knockout

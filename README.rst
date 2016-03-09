@@ -12,6 +12,11 @@ Documentation
 
 The full documentation is at https://django-jinja-knockout.readthedocs.org.
 
+Quick notes:
+
+* How to contribute: contributing_
+.. _contributing: CONTRIBUTING.rst
+
 Quickstart
 ----------
 
