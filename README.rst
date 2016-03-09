@@ -58,19 +58,19 @@ Context processors
 Context processor adds many useful functions and classes into Jinja2 template context, allowing to write more powerful
 and more flexible Jinja2 templates.
 
-* Functions to manipulate css classes in Jinja2 templates.
+* Functions to manipulate css classes in Jinja2 templates: `add_css_classes()` / `add_css_classes_to_dict()`.
 * Client data to be injected as JSON to HTML page, which is accessible then at client-side, including optional JSON
   response view models (client-side response routing).
 * Client configuration passed to be accessible at client-side (in Javascript app):
 
  * `'csrfToken'` - current CSRF token to be used with AJAX POST from Javascript;
  * `'staticPath'` - root static url path to be used with AJAX requests from Javascript;
- * `'userId'` - current user id, 0 for anonymous; used both in templates to detect authorized users and from Javascript
-   mostly with AJAX requests;
+ * `'userId'` - current user id, 0 for anonymous; used both in Jinja2 templates to detect authorized users and from
+   Javascript mostly with AJAX requests;
  * `'url'` - Python dict mapped to Javascript object with the selected list of url routes to be used with AJAX
-   requests from Javascript;
+   requests from Javascript (to do not have hard-coded app urls in Javascript code);
 
-* ContentTypeLinker class to easily generate contenttypes framework links in Jinja2 templates.
+* `ContentTypeLinker` class to easily generate contenttypes framework links in Jinja2 templates.
 * `get_verbose_name()` allows to get verbose_name of Django model field, including related (foreign) and reverse-related
   fields.
 * Django functions to format html content: `flat_att()` / `format_html()` / `force_text()`.
@@ -94,8 +94,9 @@ Middleware
   Anonymous views require explicit permission::
 
     url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'allow_anonymous': True})
-* View title is optionally defined as url kwargs key to be used in generic templates (one template per many views).
-* View kwargs are stored into request.view_kwargs to access these in forms when needed.
+* View title is optionally defined as url kwargs `'view_title'` key value, to be used in generic templates
+  (one template per many views).
+* View kwargs are stored into `request.view_kwargs` to make these accessible in forms when needed.
 * Middleware is inheritable which allows greater flexibility to implement your own extended features via overloaded
   methods.
 
