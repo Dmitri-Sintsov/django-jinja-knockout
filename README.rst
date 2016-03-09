@@ -41,12 +41,12 @@ app.js
 * Implements client-side helper classes for Twitter Bootstrap 3.
 * Implements client-side response routing:
 
- * It separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
+ * Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
    attributes without implicit callback.
- * It allows to write more modular Javascript code.
+ * Allows to write more modular Javascript code.
  * Client-side view models can also be executed from Javascript code directly.
- * Possibility to optionally inject view models into html pages, executing these onload.
- * Possibility to execute viewmodels from current user session (also onload).
+ * Possibility to optionally inject client-side view models into html pages, executing these onload.
+ * Possibility to execute client-side viewmodels from current user session (also onload).
 
 Admin
 ~~~~~
@@ -59,8 +59,8 @@ Context processor adds many useful functions and classes into Jinja2 template co
 and more flexible Jinja2 templates.
 
 * Functions to manipulate css classes in Jinja2 templates.
-* Client data to be injected as JSON which is processed then at client-side as response view models
- (client-side response routing).
+* Client data to be injected as JSON to HTML page, which is accessible then at client-side, including optional JSON
+  response view models (client-side response routing).
 * Client configuration passed to be accessible at client-side (in Javascript app):
 
  * `'csrfToken'` - current CSRF token to be used with AJAX POST from Javascript;
@@ -71,12 +71,12 @@ and more flexible Jinja2 templates.
    requests from Javascript;
 
 * ContentTypeLinker class to easily generate contenttypes framework links in Jinja2 templates.
-* get_verbose_name() allows to get verbose_name of Django model field, including related (foreign) and reverse-related
+* `get_verbose_name()` allows to get verbose_name of Django model field, including related (foreign) and reverse-related
   fields.
-* Django functions to format html content: flat_att() / format_html() / force_text().
+* Django functions to format html content: `flat_att()` / `format_html()` / `force_text()`.
 * Possibility to raise exceptions in Jinja2 templates via `{{ raise('Error message') }}`
-* reverseq() allows to build reverse urls with optional query string specified as Python dict.
-* sdv_dbg() for optional template variables dump (debug).
+* `reverseq()` allows to build reverse urls with optional query string specified as Python dict.
+* `sdv_dbg()` for optional template variables dump (debug).
 * Context processor is inheritable which allows greater flexibility to implement your own custom features by
   overloading methods.
 
