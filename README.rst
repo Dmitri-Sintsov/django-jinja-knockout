@@ -33,11 +33,48 @@ Then use it in a project::
 
     import django_jinja_knockout
 
+But of course it is better not to import the whole namespace but only required names, for example::
+
+    from django_jinja_knockout.forms import (
+        BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin,
+        set_knockout_template, set_empty_template, FormWithInlineFormsets
+    )
+
 Key features overview
 ---------------------
 
-app.js
-~~~~~~
+Templating languages are my favorite topic in programming. I love compact and semantically organic way of HTML
+templating in Knockout.js, which uses html5 data-bind JSON-like attributes instead of semantically alien double braces,
+which conflict almost every server-side templating language out there (including Jinja2).
+
+When developing with Django, I felt a lack of very powerful server-side templating when used built-in DTL templates.
+So I switched to Jinja2, thank to Django 1.8+ built-in support of this templating engine and to great project
+https://github.com/niwinz/django-jinja
+which simplifies Jinja2 integration.
+
+So, basically in this project two great templating engines (client-side https://github.com/knockout/knockout and
+server-side https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
+effort, cleaner look and easily readable. Both also are very fast, Knockout.js templates being one of the fastest at
+client-side, while Jinja2 estimated to be faster few times than built-in DTL templates, and is more powerful.
+
+When thinking of Angluar.js, not only I dislike curly braces in templates but also I believe that using such large
+framework for non-SPA applications is an overkill. And Django primary usage are non-SPA classical Web applications,
+which aren't "outdated" in any way - because such applications are much better indexable by web crawlers and Python is
+better language than Javascript in general and server-side has less glitches than browsers.
+
+Most of client-side scripts included into this redistributable app are server-side agnostic and are not tied much to
+Django, except for client-side localization. In fact, most of that client-side code is also used in Laravel project as
+well. They are included for developer's convenience. Also my personal feeling is, that Django itself lacks a bit heavier
+support of client-side Javascript out-of-box (Knockout.js would be great inclusion, considering it's small size).
+
+However, some of server-side functionality, like AJAX form validation and viewmodels manipulation is either
+useless or will not work without these scripts.
+
+Obviously, only AJAX response parts and DOM manipulation (eg. Knockout.js processing of `formset.empty_form`)
+are tied to client-side scripts.
+
+app.js / tooltips.js
+~~~~~~~~~~~~~~~~~~~~
 * Implements client-side helper classes for Twitter Bootstrap 3.
 * Implements client-side response routing:
 
@@ -47,6 +84,35 @@ app.js
  * Client-side view models can also be executed from Javascript code directly.
  * Possibility to optionally inject client-side view models into html pages, executing these onload.
  * Possibility to execute client-side viewmodels from current user session (also onload).
+ * `App.viewHandlers` - predefined standard response routing viewmodels to display BootstrapDialogs and to manipulate
+   DOM.
+ * `App.ajaxButton` - maximal automation of button click event AJAX POST handling for Django.
+ * `App.ajaxForm` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
+   By default requires just a `is_ajax=True` argument of `bs_form()` / `bs_inline_formsets()` Jinja2 macros.
+   The whole process of server-side to client-side validation errors translation is performed by
+   `django_jinja_knockout.views.FormWithInlineFormsetsMixin.form_valid()` / `form_invalid()`.
+   Also supports standard class-based view `get_success_url()` automatic client-side redirect on success (again via
+   response routing client-side viewmodels).
+   Supports multiple Django POST routes via multiple `input[type="submit"]` buttons in the generated form html body.
+
+* `App.Dialog` BootstrapDialog wrapper.
+* `App.get()` / `App.post()` maximally automate execution of AJAX POST handling for Django.
+* Client initialization is separated from `$(document).ready()` initialization, because client initialization also
+  might be performed for dynamically added HTML DOM content (from AJAX response or via Knockout.js templates).
+  For example, custom `'formset:added'` jQuery event automatically supports client initialization (field classes /
+  field event handlers) when new form is added to inline formset dynamically.
+  `$(document).ready()` uses it's own hook system for plugins, to do not interfere with external scripts code.
+
+plugins.js
+~~~~~~~~~~
+Set of jQuery plugins.
+
+* `$.inherit` - Meta inheritance.
+  Copies parent object _prototype_ methods into _instance_ of pseudo-child.
+  Multi-inheritance is possible via calling $.inherit multiple times with
+  different superName value.
+* `linkPreview` plugin;
+* `scroller` plugin for AJAX driven infinite vertical scrolling;
 
 admin.py
 ~~~~~~~~
@@ -80,8 +146,8 @@ and more flexible Jinja2 templates.
 * Context processor is inheritable which allows greater flexibility to implement your own custom features by
   overloading methods.
 
-forms.py
-~~~~~~~~
+forms.py / formsets.js
+~~~~~~~~~~~~~~~~~~~~~~
 * `BootstrapModelForm` - Form with field classes stylized for Bootstrap 3
 * `DisplayModelMetaclass` - Metaclass used to create read-only forms (display models).
 * `WidgetInstancesMixin` - Provides model instances of model bound ModelForm in field widgets. It allows to make custom
@@ -133,10 +199,12 @@ widgets.
 * `print_bs_labels()` - print HTML list as Boostrap 3 labels.
 * `reverseq()` - construct url with query parameters.
 * Manipulation with css classes:
+
  * `add_css_classes()`
  * `remove_css_classes()`
  * `add_css_classes_to_dict()` - optimized for usage as argument of django.forms.utils.flatatt;
  * `remove_css_classes_from_dict()` - optimized for usage as argument of django.forms.utils.flatatt;
+
 * `html_to_text()` - convert html fragment with anchor links into plain text with text links.
 * `format_local_date()` - output localized Date / DateTime.
 
