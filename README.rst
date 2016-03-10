@@ -124,6 +124,7 @@ tpl.py
 ~~~~~~
 Various formatting functions, primarily to be used in django.admin readonly_fields, Jinja2 templates and `DisplayText`
 widgets.
+
 * `limitstr()` - cut string after specified length.
 * `repeat_insert()` - separate string every nth character with specified separator characters.
 * `print_list()` - print nested HTML list. It's used to format HTML in JSON responses and in custom `DisplayText`
