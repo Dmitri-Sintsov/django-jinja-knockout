@@ -237,7 +237,7 @@ class FormWithInlineFormsets(object):
         self.get_formsets()
 
 
-# Currently is unused, becaause 'form' kwarg is passed to inlineformset_factory() instead. #
+# Currently is unused, because 'form' kwarg is passed to inlineformset_factory() instead. #
 class InlineFormSet(BaseInlineFormSet):
 
     FormClass = None
@@ -249,10 +249,11 @@ class InlineFormSet(BaseInlineFormSet):
     def get_form(self, **defaults):
         return self.__class__.FormClass(**defaults)
 
-# Mixed to BaseInlineFormset to use different form classes for already existing entries
+
+# Mixed to BaseInlineFormset to use different form classes for already existing model objects
 # and for newly added ones (empty_form).
 # May be used with DisplayModelMetaclass to display existing forms as read-only, while
-# making editable newly added ones.
+# making newly added ones editable.
 class SeparateInitialFormMixin(object):
 
     InitialForm = None
@@ -285,4 +286,3 @@ class SeparateInitialFormMixin(object):
     def _construct_form(self, i, **kwargs):
         self.form_index = i
         return super()._construct_form(i, **kwargs)
-

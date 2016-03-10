@@ -1,12 +1,14 @@
-from pudb import set_trace
+# from pudb import set_trace
 import json
 
 # dict manipulation functions are used on HttpRequest.client_data or HttpRequest.session.
 
 KEY = 'onloadViewModels'
 
+
 def has_vm_list(dict):
     return KEY in dict
+
 
 def to_vm_list(dict):
     if type(dict.get(KEY)) is vm_list:
@@ -14,6 +16,7 @@ def to_vm_list(dict):
     else:
         dict[KEY] = vm_list(*dict.get(KEY, []))
         return dict[KEY]
+
 
 # List of client-side viewmodels, which can be serialized to json
 class vm_list(list):
@@ -48,6 +51,7 @@ class vm_list(list):
 # Next functions may be used with ordinary lists or as methods of vm_list,
 # because list of viewmodels might be instance of ordinary list or vm_list.
 
+
 def find_by_keys(self, *match_vm_keys):
     if not isinstance(self, list):
         raise ValueError('Self is not the list of viewmodels')
@@ -57,6 +61,7 @@ def find_by_keys(self, *match_vm_keys):
             return (idx, vm)
     return (False, None)
 vm_list.find_by_keys = find_by_keys
+
 
 def find_by_kw(self, **partial_vm):
     if not isinstance(self, list):
@@ -72,11 +77,13 @@ def find_by_kw(self, **partial_vm):
     return (False, None)
 vm_list.find_by_kw = find_by_kw
 
+
 def find_by_vm(self, partial_vm):
     if not isinstance(self, list):
         raise ValueError('Self is not the list of viewmodels')
     return self.find_by_kw(**partial_vm)
 vm_list.find_by_vm = find_by_vm
+
 
 def to_json(self):
     return json.dumps(self, ensure_ascii=False)

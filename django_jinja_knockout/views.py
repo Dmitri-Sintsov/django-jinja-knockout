@@ -92,6 +92,7 @@ def prepare_bs_navs(navs, request):
             nav['atts']['class'] += ' active'
         nav['atts']['class'].strip()
 
+
 # Automatic template context processor for bs_navs() jinja2 macro. #
 class BsTabsMixin(object):
 
@@ -478,6 +479,7 @@ class ListSortingView(ListView):
         )
 
 
+# @todo: it should patch allowed REQUEST methods. Do not use as it may fail with POST.
 class PostListView(ListView):
 
     def dispatch(self, request, *args, **kwargs):
