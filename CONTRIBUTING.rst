@@ -2,7 +2,7 @@
 Contributing
 ============
 
-`django_jinja_knockout` is an open source project originally written by very poor guy from Russia so feel free
+``django_jinja_knockout`` is an open source project originally written by very poor guy from Russia so feel free
 to support it either by contributing new features / fixes / unit tests or by hiring me remotely to develop additional
 required features.
 
@@ -44,10 +44,10 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `django_jinja_knockout` for local development.
+Ready to contribute? Here's how to set up ``django_jinja_knockout`` for local development.
 
 
-Fork the `django_jinja_knockout` repo on GitHub.
+Fork the ``django_jinja_knockout`` repo on GitHub.
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
@@ -59,11 +59,11 @@ Fork the `django_jinja_knockout` repo on GitHub.
     $ source bin/activate
     # python setup.py develop
     $ cd django-jinja-knockout
-    $ pip3 install -U -r requirements.txt
+    $ python3 -m pip install -U -r requirements.txt
 
 See the following link, if you are using Ubuntu 14.04 https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
 
-Note that without `Django` installed, there is not much of usage in this pluggable app.
+Note that without ``Django`` installed, there is not much of usage in this pluggable app.
 
 4. Create a branch for local development::
 
@@ -81,7 +81,7 @@ tests, including testing other Python versions with tox::
 
 To get flake8 and tox::
 
-    pip3 install flake8 tox
+    python3 -m pip install flake8 tox
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -94,14 +94,14 @@ To get flake8 and tox::
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-`django_jinja_knockout` reusable app could always use more documentation, whether as part of the
+``django_jinja_knockout`` reusable app could always use more documentation, whether as part of the
 official docs, in docstrings (but please not very long bloated ones).
 
 Especially because I am not native English speaker, though I try my best to avoid mistakes.
 
 To check documentation changes install sphinx::
 
-    pip3 install sphinx
+    python3 -m pip install sphinx
 
 then run in your active virtual environment::
 

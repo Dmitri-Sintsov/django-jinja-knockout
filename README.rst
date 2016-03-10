@@ -14,15 +14,18 @@ The full documentation is at https://django-jinja-knockout.readthedocs.org.
 
 Quick notes:
 
+.. Next links are github relative links. Do not process these via sphinx as it does not follow them correctly.
 .. _Credits: AUTHORS.rst
 .. _contribute: CONTRIBUTING.rst
 .. _History: HISTORY.rst
-.. _Quick_start: QUICKSTART.rst
+.. _Installation: INSTALLATION.rst
+.. _Introduction: QUICKSTART.rst
 
 * Credits_
 * How to contribute_
 * History_
-* Quick_start_
+* Installation_
+* Introduction_
 
 Cookiecutter Tools Used in Making This Package
 ----------------------------------------------

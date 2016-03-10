@@ -11,8 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   readme
    installation
+   quickstart
    usage
    contributing
    authors
