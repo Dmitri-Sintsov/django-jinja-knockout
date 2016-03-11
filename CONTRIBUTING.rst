@@ -124,4 +124,4 @@ Tips
 
 To run a subset of tests (not available yet!)::
 
-    $ python -m unittest tests.test_django_jinja_knockout
+    $ python3 -m unittest tests.test_django_jinja_knockout
