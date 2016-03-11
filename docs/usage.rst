@@ -2,6 +2,9 @@
 Usage
 ========
 
-To use django-jinja-knockout in a project::
+Contents:
 
-    import django_jinja_knockout
+.. toctree::
+   :maxdepth: 2
+
+   viewmodels
