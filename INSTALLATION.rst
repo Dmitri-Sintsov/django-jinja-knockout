@@ -8,11 +8,11 @@ Inside virtualenv of your Django 1.8 project, install `django-jinja-knockout`::
 
 To install latest master from repository::
 
-    pip3 install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
 
 To install specific commit::
 
-    pip3 install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
 
 Add django_jinja_knockout to INSTALLED_APPS in ``settings.py``::
 
@@ -103,3 +103,33 @@ To import only required names (for example)::
         BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin,
         set_knockout_template, set_empty_template, FormWithInlineFormsets
     )
+
+
+If you want to use built-in App.get() / App.post() functionality, which dispatches AJAX requests to Django ``urls.py``
+url names, create ``context_processors.py`` in your main project application with the following code::
+
+    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
+
+
+    class TemplateContextProcessor(BaseContextProcessor):
+
+        CLIENT_ROUTES = (
+            ('my_url_name', False),
+        )
+
+
+    def template_context_processor(HttpRequest=None):
+        return TemplateContextProcessor(HttpRequest).get_context_data()
+
+and register your context processor in ``settings.py`` instead of default::
+
+    'django_jinja_knockout.context_processors.template_context_processor'
+
+Then you will be able to perform the following shortcuts in your Javascript code::
+
+    App.post('my_url_name', {'postvar1': 1, 'postvar2': 2});
+    App.get('my_url_name');
+
+where AJAX response will be treated as the list of ``viewmodels`` (see section for detailed explanation) and
+automatically routed by ``app.js``. No usual jQuery response callback is needed! Django exceptions and AJAX errors also
+are handled gracefully, displayed in ``BootstrapDialog`` window by default.
