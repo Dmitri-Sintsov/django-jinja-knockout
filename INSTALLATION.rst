@@ -11,6 +11,7 @@ To install latest master from repository::
     pip3 install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
 
 To install specific commit::
+
     pip3 install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
 
 Then use it in a project::

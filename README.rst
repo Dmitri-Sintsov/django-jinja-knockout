@@ -55,11 +55,11 @@ Quick notes:
 .. _Installation: INSTALLATION.rst
 .. _Introduction: QUICKSTART.rst
 
-* Credits_
-* How to contribute_
-* History_
 * Installation_
 * Introduction_
+* How to contribute_
+* History_
+* Credits_
 
 Cookiecutter Tools Used in Making This Package
 ----------------------------------------------
