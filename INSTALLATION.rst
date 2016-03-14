@@ -2,6 +2,9 @@
 Installation
 =============
 
+Virtual environment
+-------------------
+
 Inside virtualenv of your Django 1.8 project, install `django-jinja-knockout`::
 
     python3 -m pip install django-jinja-knockout
@@ -13,6 +16,9 @@ To install latest master from repository::
 To install specific commit::
 
     python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
+
+Pluggable applications
+----------------------
 
 Add django_jinja_knockout to INSTALLED_APPS in ``settings.py``::
 
@@ -40,6 +46,9 @@ If you want to use built-in allauth support, also add::
         'django_jinja_knockout',
         'django_jinja_knockout._allauth',
     )
+
+Context processors
+------------------
 
 Add django_jinja_knockout template context processor to ``settings.py``::
 
@@ -78,35 +87,14 @@ Add django_jinja_knockout template context processor to ``settings.py``::
         },
     ]
 
-Install ``django_jinja_knockout.middleware`` into ``settings.py``::
+or, if you want to use built-in server-side to client-side route mapping, create your own project
+``context_processors.py`` (see below).
 
-    MIDDLEWARE_CLASSES = (
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-        'django.middleware.security.SecurityMiddleware',
-        'django_jinja_knockout.middleware.ContextMiddleware',
-    )
+Define project context processor
+--------------------------------
 
-Then use it in a project::
-
-    import django_jinja_knockout
-
-
-To import only required names (for example)::
-
-    from django_jinja_knockout.forms import (
-        BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin,
-        set_knockout_template, set_empty_template, FormWithInlineFormsets
-    )
-
-
-If you want to use built-in App.get() / App.post() functionality, which dispatches AJAX requests to Django ``urls.py``
-url names, create ``context_processors.py`` in your main project application with the following code::
+If you want to use built-in App.get() / App.post() functionality, which dispatches AJAX requests according to Django
+``urls.py`` url names, create ``context_processors.py`` in your main project application with the following code::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
 
@@ -133,3 +121,63 @@ Then you will be able to perform the following shortcuts in your Javascript code
 where AJAX response will be treated as the list of ``viewmodels`` (see section for detailed explanation) and
 automatically routed by ``app.js``. No usual jQuery response callback is needed! Django exceptions and AJAX errors also
 are handled gracefully, displayed in ``BootstrapDialog`` window by default.
+
+Middleware
+----------
+
+Install ``django_jinja_knockout.middleware`` into ``settings.py``::
+
+    MIDDLEWARE_CLASSES = (
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        'django_jinja_knockout.middleware.ContextMiddleware',
+    )
+
+Then use it in a project::
+
+    import django_jinja_knockout
+
+
+To import only required names (for example)::
+
+    from django_jinja_knockout.forms import (
+        BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin,
+        set_knockout_template, set_empty_template, FormWithInlineFormsets
+    )
+
+Templates
+---------
+Inherit your base template from ``jinja2/base_min.htm`` template::
+
+    {% extends 'base_min.htm' %}
+
+    {% block top_styles %}
+    {# request.view_title is provided by urls.py and middleware.py #}
+    <title>{{ request.view_title }}</title>
+    {% endblock top_styles %}
+
+    {% block mainmenu %}
+        <li><a href=""</li>
+    {% if client_conf.userId != 0 %}
+        {# registered user allauth links #}
+        <li><a href="{{ url('account_email') }}">{{ _('Change E-mail') }}</a></li>
+        <li><a href="{{ url('account_logout') }}">{{ _('Sign Out') }}</a></li>
+    {% else %}
+        {# anonymous user allauth links #}
+        <li><a href="{{ url('account_login') }}">{{ _('Sign In') }}</a></li>
+        <li><a href="{{ url('account_signup') }}">{{ _('Sign Up') }}</a></li>
+    {% endif %}
+    {% endblock mainmenu %}
+
+    {% block main %}
+
+    {% endblock main %}
+
+or look for included scripts in ``base_min.htm`` to develop your own Jinja2 base template from scratch, if you need a
+completely different layout.

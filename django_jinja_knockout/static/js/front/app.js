@@ -275,7 +275,7 @@ App.execViewHandler = function(viewModel, bindContext) {
             JSON.stringify(App.viewHandlers[viewname])
         );
     }
-}
+};
 
 App.showView = function(viewModel, bindContext) {
     if (typeof viewModel.view === 'undefined') {
@@ -652,19 +652,21 @@ App.initClientApply = function(selector) {
     $selector.find('.init-client-end').remove();
 };
 
-App.get = function(route, data) {
+App.get = function(route, data, options) {
     if (typeof App.conf.url[route] === 'undefined') {
         throw "Undefined route: " + route;
     }
-    $.get(
+    return $.get(
         App.conf.url[route],
         typeof data === 'undefined' ? {} : data,
-        App.viewResponse,
+        function(response) {
+            App.viewResponse(response, options);
+        },
         'json'
     ).fail(App.showAjaxError);
 };
 
-App.post = function(route, data) {
+App.post = function(route, data, options) {
     if (typeof App.conf.url[route] === 'undefined') {
         throw "Undefined route: " + route;
     }
@@ -672,10 +674,12 @@ App.post = function(route, data) {
         data = {};
     }
     data.csrfmiddlewaretoken = App.conf.csrfToken
-    $.post(
+    return $.post(
         App.conf.url[route],
         typeof data === 'undefined'? {} : data,
-        App.viewResponse,
+        function(response) {
+            App.viewResponse(response, options);
+        },
         'json'
     ).fail(App.showAjaxError);
 };

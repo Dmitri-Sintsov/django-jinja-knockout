@@ -52,7 +52,7 @@ and as the special list (vm_list) of ordinary dicts in Python::
 When executed, viewmodels from ``viewmodels`` variable defined above, will perform ``jQuery.prepend()`` function on
 specified ``selector``, then it will show ``BootstrapDialog`` confirmation window with specified ``title`` and
 ``message``. In case ``Ok`` button of ``BootstrapDialog`` will be pressed by end-user, nested ``callback`` list of
-client-side viewmodels will be executed, which defines just one command: ``redirect_to`` specified ``url``. When user
+client-side viewmodels will be executed, which defines just one command: ``redirect_to`` specified ``url``. In case user
 cancels confirmation dialog, no extra viewmodels will be executed.
 
 Now, how to execute these viewmodels we defined actually? At Javascript side it's the most obvious::
@@ -62,7 +62,7 @@ Now, how to execute these viewmodels we defined actually? At Javascript side it'
 However, it does not provide much advantage over performing ``jQuery.prepend()`` and instantiating ``BootstrapDialog()``
 manually, while losing some of their flexibility. Then why all of that?
 
-Because you rarely are going to execute viewmodels from client-side directly. It's not the key point of their
+Because one rarely are going to execute viewmodels from client-side directly. It's not the key point of their
 introduction. They are most useful as foundation of interaction between server-side Django and client-side Javascript
 via AJAX request / response and in few other special cases.
 
@@ -70,8 +70,8 @@ Viewmodel data format
 ~~~~~~~~~~~~~~~~~~~~~
 
 Key ``'view'`` of each Javascript object / Python dict in the list stores value of ``viewmodel name``, that is tied to
-Javascript ``viewmodel handler``. Rest of keys are argument names of each current ``viewmodel`` with corresponding
-values. The following built-in viewmodel names currently are available (version 0.1.0)::
+Javascript ``viewmodel handler``. Rest of the keys are arguments of each current ``viewmodel`` with corresponding values,
+passed to their ``viewmodel handler``. The following built-in viewmodel names currently are available (version 0.1.0)::
 
     'redirect_to',
     'alert',
@@ -85,30 +85,60 @@ values. The following built-in viewmodel names currently are available (version 
     'html',
     'replaceWith'
 
-One can also add custom viewmodels easily in Javascript plugins. See ``tooltips.js`` for additional bundled viewmodels
-names and their viewmodel handlers::
+If your AJAX code just needs to display alert / confirm window, redirect to some url or to perform series of jQuery DOM
+manipulation, then you may just use list of viewmodels that map to these already pre-defined handlers.
+
+Defining custom viewmodel handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One can also add custom viewmodels in Javascript plugins to define new actions. See ``tooltips.js`` for additional
+bundled viewmodel names and their viewmodel handlers::
 
     'tooltip_error', 'popover_error', 'form_error'
 
-which are primarily used for displaying errors of AJAX submitted POSTs.
+which are primarily used to display errors in AJAX submitted forms.
 
-Note that while the following syntax of defining custom viewmodel handler works::
+The following method allows to attach multiple handlers to one viewmodel name::
+
+    App.addViewHandler('popover_error', function(viewModel) {
+        viewModel.instance = new App.fieldPopover(viewModel);
+    });
+
+The following syntax allows to reset previous handlers with that name (if any)::
 
     App.viewHandlers['popover_error'] = function(viewModel) {
         viewModel.instance = new App.fieldPopover(viewModel);
     };
 
-it's recommended to use special method of ``app.js`` to add viewmodel handlers::
+When handler is called, ``function(viewModel)`` argument receives actual instance of ``viewmodel``.
+
+Note that new properties might be added to viewmodel for further access, like ``.instance`` property which holds an
+instance of ``App.fieldPopover`` above. Every executed viewmodel is stored in ``App.executedViewModels`` Javascript
+array, which is possible to process later. Example of such processing is ``App.destroyTooltipErrors()`` method, which
+clears form input Bootstrap 3 tooltips previously set by ``'tooltip_error'`` viewmodel handler then removes these
+viewmodels from ``App.executedViewModels`` list::
+
+    App.executedViewModels = _.filter(
+        App.executedViewModels,
+        function(viewModel) {
+            if (viewModel.view === 'tooltip_error' &&
+                    typeof viewModel.instance !== 'undefined') {
+                viewModel.instance.destroy();
+                return false;
+            }
+            return true;
+        }
+    );
+
+It is possible to chain viewmodel handlers, creating a code-reuse and a pseudo-inheritance of viewmodels::
 
     App.addViewHandler('popover_error', function(viewModel) {
-        ...
-        App.viewHandlers['my_custom_viewmodel_name'](viewModel, App.MyCustomDialog);
+        viewModel.instance = new App.fieldPopover(viewModel);
+        App.viewHandlers['tooltip_error'](viewModel);
     });
 
-Note that the last example also shows chaining of viewmodel handlers, where newly defined handler executes already
-existing one. ``viewModel`` argument of viewmodel handler receives actual instance of ``vm_list()``, returned from
-Django view. Also custom Javascript ``bind context`` to object instance of ``App.MyCustomDialog`` is applied to
-``'my_custom_viewmodel_name'`` viewmodel handler.
+where newly defined handler ``popover_error`` executes already existing one ``tooltip_error``.
+
 
 AJAX response routing
 ---------------------
@@ -129,11 +159,11 @@ Javascript::
                 BootstrapDialog.confirm('After the registration our manager will contact <b>you</b> ' +
                         'to validate your personal data.',
                     function(result) {
-                        if(result) {
+                        if (result) {
                             window.location.href = '/another_url';
                         }
                     }
-                )
+                );
             },
             'json'
         )
@@ -141,8 +171,9 @@ Javascript::
 
 Such code have many disadvantages:
 
-1. Repeated boilerplate code with multiple $.post() arguments, including manual specification of CSRF token.
-2. Route urls are tied into client-side Javascript, instead of being supplied from Django.
+1. Repeated boilerplate code with ``$.post()`` numerous arguments, including manual specification of CSRF token.
+2. Route urls are tied into client-side Javascript, instead of being supplied from Django. If you change an url of
+   route in ``urls.py``, and will forget to update url path in Javascript, AJAX POST may break.
 3. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
    to open ``BootstrapDialog``, sometimes to redirect instead, sometimes to perform some custom action?
 
@@ -153,22 +184,33 @@ code is enough::
         Save your form template
     </button>
 
-``app.js`` will care itself of both AJAX request POSTing and executing viewmodels returned via AJAX response.
-If your Django view which maps to ``my_url_name`` returns standard client-side viewmodels only, you do not even have
-to modify a bit of your Javascript code!
+``app.js`` will care itself of setting Javascript event handler, performing AJAX request POST and AJAX response routing
+will execute viewmodels returned from Django view. If you want to ensure AJAX requests, just set your ``urls.py`` route
+kwargs key ``is_ajax`` to ``True`` (optional step)::
 
-Example of Django response::
+    url(r'^button-click/$', 'my_app.views.button_click', name='my_url_name', kwargs={'ajax': True}),
+
+register AJAX client-side route in ``context_processors.py``::
+
+    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
+
+
+    class TemplateContextProcessor(BaseContextProcessor):
+
+        CLIENT_ROUTES = (
+            ('my_url_name', False),
+        )
+
+
+    def template_context_processor(HttpRequest=None):
+        return TemplateContextProcessor(HttpRequest).get_context_data()
+
+and return the list of viewmodels in my_app/views.py::
 
     from django_jinja_knockout.viewmodels import vm_list
 
-    def my_url_view(request):
-        return vm_list(
-            {
-                'view': 'prepend',
-                'selector': '#infobar',
-                'html': '<div class="alert alert-info">Welcome to our site!</div>'
-            },
-            {
+    def button_click(request):
+        return vm_list({
                 'view': 'confirm',
                 'title': 'Please enter <i>your</i> personal data.',
                 'message': 'After the registration our manager will contact <b>you</b> to validate your personal data.',
@@ -176,7 +218,24 @@ Example of Django response::
                     'view': 'redirect_to',
                     'url': '/homepage'
                 })
-            }
-        )
+        })
 
-In case custom response is required, see the example above.
+that's all.
+
+If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, like just above, you
+do not even have to modify a single bit of your Javascript code!
+
+Also it is possible to set client-side bind context with the second argument of viewmodel handler::
+
+    App.addViewHandler('set_context_title', function(viewModel, bindContext) {
+        bindContext.setTitle(viewModel.title);
+    });
+
+but in last case to have instance of bind_context to be passed to viewmodel handler, one has to perform AJAX GET / POST
+manually via::
+
+    App.post('my_url_name', post_data, bind_context);
+
+and of course Django view mapped to ``'my_url_name'`` (see :doc:`installation`) should return ``vm_list()`` instance
+with one of it's elements having the key ``{'view': 'set_context_title'}`` to have the viewmodel handler above to be
+actually called.

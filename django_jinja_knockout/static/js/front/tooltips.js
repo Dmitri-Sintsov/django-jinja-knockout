@@ -1,4 +1,4 @@
-App.viewHandlers['tooltip_error'] = function(viewModel) {
+App.addViewHandler('tooltip_error', function(viewModel) {
     var fieldTooltip = new App.fieldTooltip(viewModel);
     // Save instance of tooltip to delete it later via applying _.filter() to
     // App.executedViewModels only when there was no previous instance created
@@ -6,14 +6,14 @@ App.viewHandlers['tooltip_error'] = function(viewModel) {
     if (!fieldTooltip.hasInstance) {
         viewModel.instance = fieldTooltip;
     }
-};
+});
 
 // Do not forget to escape viewModel.message from XSS.
-App.viewHandlers['popover_error'] = function(viewModel) {
+App.addViewHandler('popover_error', function(viewModel) {
     viewModel.instance = new App.fieldPopover(viewModel);
-};
+});
 
-App.viewHandlers['form_error'] = function(viewModel) {
+App.addViewHandler('form_error', function(viewModel) {
     var $field = $(document.getElementById(viewModel.id));
     if ($field.length == 0) {
         throw "Unknown field auto_id:" + viewModel.id;
@@ -25,7 +25,7 @@ App.viewHandlers['form_error'] = function(viewModel) {
             alert_class, v
         )));
     });
-};
+});
 
 /**
  * Information popover (useful to show ajax form errors and more).
