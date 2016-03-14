@@ -515,7 +515,7 @@ App.ladder.prototype.remove = function() {
 
 App.getDataUrl = function($element) {
     var route = $element.data('route');
-    if (route === 'undefined') {
+    if (route === undefined) {
         return $element.data('url');
     } else {
         return (typeof App.conf.url[route] === 'undefined') ? undefined : App.conf.url[route];
@@ -671,7 +671,7 @@ App.get = function(route, data, options) {
     }
     return $.get(
         App.conf.url[route],
-        typeof data === 'undefined' ? {} : data,
+        (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);
         },
@@ -689,7 +689,7 @@ App.post = function(route, data, options) {
     data.csrfmiddlewaretoken = App.conf.csrfToken;
     return $.post(
         App.conf.url[route],
-        typeof data === 'undefined'? {} : data,
+        (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);
         },
