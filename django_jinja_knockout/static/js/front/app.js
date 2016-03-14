@@ -673,7 +673,7 @@ App.post = function(route, data, options) {
     if (typeof data === 'undefined') {
         data = {};
     }
-    data.csrfmiddlewaretoken = App.conf.csrfToken
+    data.csrfmiddlewaretoken = App.conf.csrfToken;
     return $.post(
         App.conf.url[route],
         typeof data === 'undefined'? {} : data,
