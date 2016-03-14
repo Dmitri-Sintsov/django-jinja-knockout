@@ -15,7 +15,7 @@
     <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
     {% if action != '' %}
     {% if html.is_ajax %}
-        {% set atts = {'data-route': action, 'class': 'ajax-form'} %}
+        {% set atts = {'data-url': action, 'class': 'ajax-form'} %}
     {% else %}
         {% set atts = {'action': action} %}
     {% endif %}

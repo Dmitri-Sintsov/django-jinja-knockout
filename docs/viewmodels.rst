@@ -173,14 +173,14 @@ Such code have many disadvantages:
 
 1. Repeated boilerplate code with ``$.post()`` numerous arguments, including manual specification of CSRF token.
 2. Route urls are tied into client-side Javascript, instead of being supplied from Django. If you change an url of
-   route in ``urls.py``, and will forget to update url path in Javascript, AJAX POST may break.
+   route in ``urls.py``, and forget to update url path in Javascript code, AJAX POST may break.
 3. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
    to open ``BootstrapDialog``, sometimes to redirect instead, sometimes to perform some custom action?
 
 Now, with client-side viewmodels response routing, to execute AJAX post via button click, the following Jinja2 template
 code is enough::
 
-    <button class="button btn btn-default" data-route="{{ reverse('my_url_name') }}">
+    <button class="button btn btn-default" data-route="my_url_name">
         Save your form template
     </button>
 
@@ -222,7 +222,7 @@ and return the list of viewmodels in my_app/views.py::
 
 that's all.
 
-If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, like just above, you
+If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like above, you
 do not even have to modify a single bit of your Javascript code!
 
 Also it is possible to set client-side bind context with the second argument of viewmodel handler::
@@ -239,3 +239,10 @@ manually via::
 and of course Django view mapped to ``'my_url_name'`` (see :doc:`installation`) should return ``vm_list()`` instance
 with one of it's elements having the key ``{'view': 'set_context_title'}`` to have the viewmodel handler above to be
 actually called.
+
+In case your AJAX POST button route contains kwargs / query parameters, you may use ``data-url`` html5 attribute
+instead::
+
+    <button class="btn btn-sm btn-success" data-url="{{
+        reverseq('post_like', kwargs={'feed_id': feed.id}, query={'type': 'upvote'})
+    }}">

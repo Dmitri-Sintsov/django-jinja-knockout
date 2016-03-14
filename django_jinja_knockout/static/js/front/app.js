@@ -513,14 +513,28 @@ App.ladder.prototype.remove = function() {
     });
 };
 
+App.getDataUrl = function($element) {
+    var route = $element.data('route');
+    if (route === 'undefined') {
+        return $element.data('url');
+    } else {
+        return (typeof App.conf.url[route] === 'undefined') ? undefined : App.conf.url[route];
+    }
+};
+
 App.ajaxButton = function($selector) {
-    $selector.findSelf('a[data-route], button[data-route][type!="submit"]')
+    $selector.findSelf('a[data-route], a[data-url], ' +
+            'button[data-route][type!="submit"], button[data-url][type!="submit"]')
     .on('click', function(ev) {
-        var $target = $(ev.target).closest('[data-route]');
+        var $target = $(ev.target);
         App.disableInput($target);
         var l = Ladda.create($target.get(0));
         l.start();
-        $.post($target.data('route'), {csrfmiddlewaretoken: App.conf.csrfToken}, App.viewResponse, 'json')
+        var url = App.getDataUrl($target);
+        if (url === undefined) {
+            throw "Please define data-url or data-route attribute on the selected element.";
+        }
+        $.post(url, {csrfmiddlewaretoken: App.conf.csrfToken}, App.viewResponse, 'json')
         .always(function() {
             l.remove();
             App.enableInput($target);
@@ -560,13 +574,12 @@ App.ajaxForm = function($selector) {
         }
         */
         var $btn = $(ev.target);
-        var route;
-        route = $btn.data('route');
-        if (route === undefined) {
-            route = $form.data('route');
+        var url = App.getDataUrl($btn);
+        if (url === undefined) {
+            url = App.getDataUrl($form);
         }
-        if (route === undefined) {
-            throw "Please define data-route attribute on form or on form submit button.";
+        if (url === undefined) {
+            throw "Please define data-url or data-route attribute on form or on form submit button.";
         }
         var always = function() {
             App.enableInputs($form);
@@ -575,7 +588,7 @@ App.ajaxForm = function($selector) {
             }
         };
         var options = {
-            url: route,
+            'url': url,
             type: 'post',
             dataType: 'json',
             beforeSubmit: function() {
