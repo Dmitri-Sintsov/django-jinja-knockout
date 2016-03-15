@@ -429,5 +429,6 @@ handler, ``App.saveResponse()`` saves received viewmodels::
         App.loadResponse('popupModal');
     });
 
-Multiple save points might be set, restored and executed when calling ``App.saveResponse()`` with different first
-argument values.
+``App.loadResponse()`` executes previously saved viewmodels. Multiple save points might be set by calling
+``App.saveResponse()``, then restored and executed by calling ``App.loadResponse()`` with different ``name`` argument
+value.
