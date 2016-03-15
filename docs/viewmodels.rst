@@ -388,3 +388,46 @@ To inject client-side viewmodels on page DOM load persistently in user session::
 
     session_vm_list = to_vm_list(request.session)
     session_vm_list.append({...})
+
+Require viewmodels handlers
+---------------------------
+Sometimes there are many separate Javascript source files which define different viewmodel handlers. To assure that
+required external source viewmodel handlers are available, ``app.js`` provides ``App.requireViewHandlers()`` method::
+
+    App.requireViewHandlers(['field_error', 'carousel_images']);
+
+Nested / conditional execution of client-side viewmodels
+--------------------------------------------------------
+Nesting viewmodels as callbacks is available for automated conditional / event-based viewmodels execution. Example of
+such approach is implementation of ``'confirm'`` viewmodel in ``app.js`` ``App.Dialog.create()``::
+
+    var cbViewModel = this.dialogOptions.callback;
+    this.dialogOptions.callback = function(result) {
+        if (result) {
+            App.viewResponse(cbViewModel);
+        }
+    }
+
+Asynchronous execution of client-side viewmodels
+------------------------------------------------
+
+There is one drawback of the lists of viewmodels: these are not asynchronous and do not support promises by default.
+In some more complex arbitrary cases (for example one need to wait some DOM loaded first, then executing viewmodels),
+one may "save" viewmodels received from AJAX response, then "restore" (execute) these in required DOM event / promise
+handler, ``App.saveResponse()`` saves received viewmodels::
+
+    App.addViewHandler('popup_modal_error', function(viewModel) {
+        // Save received response to execute it in the 'shown.bs.modal' event handler (see just below).
+        App.saveResponse('popupModal', viewModel);
+        // Open modal popup to show actual errors (received as viewModel from server-side).
+        $popupModal.modal('show');
+    });
+
+    // Open modal popup.
+    $popupModal.on('shown.bs.modal', function (ev) {
+        // Execute viewmodels received in 'dialog_tooltip_error' viewmodel handler.
+        App.loadResponse('popupModal');
+    });
+
+Multiple save points might be set, restored and executed when calling ``App.saveResponse()`` with different first
+argument values.
