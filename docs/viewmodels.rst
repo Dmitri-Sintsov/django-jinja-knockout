@@ -198,7 +198,7 @@ register AJAX client-side route in ``context_processors.py``::
     class TemplateContextProcessor(BaseContextProcessor):
 
         CLIENT_ROUTES = (
-            ('my_url_name', False),
+            ('my_url_name', True),
         )
 
 
@@ -246,3 +246,48 @@ instead::
     <button class="btn btn-sm btn-success" data-url="{{
         reverseq('post_like', kwargs={'feed_id': feed.id}, query={'type': 'upvote'})
     }}">
+
+AJAX forms processing
+---------------------
+``django_jinja_knockout`` includes ``bs_form()`` and ``bs_inline_formsets()`` Jinja2 macros, which generate Bootstrap3
+styled Django ModelForms. Usual form generation syntax is::
+
+    {% extends 'base_min.htm' %}
+    {% from 'bs_form.htm' import bs_form with context %}
+
+    {% block main %}
+
+    {{ bs_form(form=form, action=url('my_url_name'), opts={
+        'class': 'form_css_class',
+        'title': request.view_title,
+        'submit_text': 'My button'
+    }) }}
+
+    {% endblock main %}
+
+If your class-based views extends one of the following view classes::
+
+    django_jinja_knockout.views.FormWithInlineFormsetsMixin
+    django_jinja_knockout.views.InlineCreateView
+    # Next view is suitable both for updating ModelForms with inline formsets
+    # as well for displaying read-only forms with forms.DisplayModelMetaclass.
+    django_jinja_knockout.views.InlineDetailView
+
+then, to have the form processed as AJAX form, you have only to add ``'is_ajax': True`` key to ``bs_form()`` /
+``bs_inline_formsets()`` Jinja2 macro call::
+
+    {{ bs_form(form=form, action=url('my_url_name'), opts={
+        'class': 'form_css_class',
+        'is_ajax': True,
+        'title': request.view_title,
+        'submit_text': 'My button'
+    }) }}
+
+AJAX response and success URL redirection will be automatically generated. Such form will behave very similarly to
+usual non-AJAX submitted form with three significant advantages:
+
+1. AJAX response saves HTTP traffic.
+2. Instead of just redirecting to ``success_url``, one may perform custom actions, including displaying BootstrapDialog
+   alerts and confirmations.
+3. app.js also includes Bootstrap 3 progress bar when form has file inputs. So when large files are uploaded, there
+   will be progress indicator updated, instead of just waiting when request completes.

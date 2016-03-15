@@ -13,6 +13,7 @@ from .tpl import add_css_classes, add_css_classes_to_dict, reverseq
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
+
 def raise_helper(msg):
     raise Exception(msg)
 
@@ -45,8 +46,8 @@ class TemplateContextProcessor():
             'csrfToken': get_token(self.HttpRequest),
             'staticPath': static(''),
             'userId': self.user_id,
+            'url': {}
         }
-        client_conf['url'] = {}
         for url, is_anon in self.__class__.CLIENT_ROUTES:
             if is_anon or self.user_id != 0:
                 client_conf['url'][url] = reverse(url)

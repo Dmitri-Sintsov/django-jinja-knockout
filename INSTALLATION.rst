@@ -102,7 +102,8 @@ If you want to use built-in App.get() / App.post() functionality, which dispatch
     class TemplateContextProcessor(BaseContextProcessor):
 
         CLIENT_ROUTES = (
-            ('my_url_name', False),
+            # Second element of each tuple defines whether client-side route should be available to anonymous users.
+            ('my_url_name', True),
         )
 
 
