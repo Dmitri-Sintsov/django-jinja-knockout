@@ -283,11 +283,108 @@ then, to have the form processed as AJAX form, you have only to add ``'is_ajax':
         'submit_text': 'My button'
     }) }}
 
-AJAX response and success URL redirection will be automatically generated. Such form will behave very similarly to
-usual non-AJAX submitted form with three significant advantages:
+AJAX response and success URL redirection will be automatically generated. Form errors will also be displayed in case
+there is any. Such form will behave very similarly to usual non-AJAX submitted form with three significant advantages:
 
 1. AJAX response saves HTTP traffic.
 2. Instead of just redirecting to ``success_url``, one may perform custom actions, including displaying BootstrapDialog
    alerts and confirmations.
 3. app.js also includes Bootstrap 3 progress bar when form has file inputs. So when large files are uploaded, there
    will be progress indicator updated, instead of just waiting when request completes.
+
+At client-side both successful submission of form and form errors are handled by lists of client-side viewmodels.
+At server-side (Django), the following code of ``FormWithInlineFormsetsMixin`` is used to process AJAX-submitted form
+errors::
+
+    def get_form_error_viewmodel(self, form):
+        for bound_field in form:
+            return {
+                'view': 'form_error',
+                'class': 'danger',
+                'id': bound_field.auto_id,
+                'messages': list((escape(message) for message in form.errors['__all__']))
+            }
+        return None
+
+    def get_field_error_viewmodel(self, bound_field):
+        return {
+            'view': 'form_error',
+            'id': bound_field.auto_id,
+            'messages': list((escape(message) for message in bound_field.errors))
+        }
+
+and the following code returns success viewmodels::
+
+    def get_success_viewmodels(self):
+        # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
+        # after successful submission. Use as callback for view: 'alert' or make your own view.
+        return vm_list({
+            'view': 'redirect_to',
+            'url': self.get_success_url()
+        })
+
+``self.forms_vms`` and ``self.fields_vms`` accumulate viewmodels during ModelForm / inline formsets validation.
+
+These can be overriden in child class, if needed.
+
+These examples shows how to generate dynamic lists of client-side viewmodels at server-side. ``viewmodels.py``
+defines methods to alter viewmodels in already existing ``vm_list()`` instances.
+
+Non-AJAX server-side invocation of client-side viewmodels.
+----------------------------------------------------------
+
+Besides direct client-side invocation of viewmodels via ``app.js`` ``App.viewResponse()`` method, and AJAX POST /
+AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with
+server-side invocation.
+
+Client-side viewmodels can be injected into generated HTML page and then executed when page DOM is loaded. It's
+useful to prepare page / form templates which may require automated Javascript code applying, or to display
+BootstrapDialog alerts / confirmations when page is just loaded. For example you can override class-based view ``get()``
+method like this::
+
+    def get(self, request, *args, **kwargs):
+        onload_vm_list = to_vm_list(request.client_data)
+        onload_vm_list.append({
+            'view': 'confirm',
+            'title': 'Please enter <i>your</i> personal data.',
+            'message': 'After the registration our manager will contact <b>you</b> to validate your personal data.',
+            'callback': [{
+                'view': 'redirect_to',
+                'url': '/homepage'
+            }]
+        })
+        return super().get(self, request, *args, **kwargs)
+
+The second way of server-side invocation is similar to just explained one, but it stores client-side viewmodels in
+current user session, making them persistent across requests. This allows to set initial page viewmodels during POST
+or during redirect to another page (for example after login redirect) then display required viewmodels::
+
+    def set_session_viewmodels(request):
+        last_message = Message.objects.last()
+        # Custom viewmodel, requires App.addViewHandler('initial_views', function(viewModel) { ... }): at client-side.
+        view_model = {
+            'view': 'initial_views'
+        }
+        if last_message is not None:
+            view_model['message'] = {
+                'title': last_message.title,
+                'text': last_message.text
+            }
+        session_vm_list = to_vm_list(request.session)
+        idx, old_view_model = session_vm_list.find_by_kw(view='initial_views')
+        if idx is not False:
+            # Remove already existing 'initial_views' viewmodel, otherwise they will accumulate.
+            # Normally it should not happen, but it's better to be careful.
+            session_vm_list.pop(idx)
+        if len(view_model.keys()) > 1:
+            session_vm_list.append(view_model)
+
+To inject client-side viewmodels on page DOM load just once::
+
+    onload_vm_list = to_vm_list(request.client_data)
+    onload_vm_list.append({...})
+
+To inject client-side viewmodels on page DOM load persistently in user session::
+
+    session_vm_list = to_vm_list(request.session)
+    session_vm_list.append({...})
