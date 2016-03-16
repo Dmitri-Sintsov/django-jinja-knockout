@@ -35,7 +35,7 @@ Note that to have Bootstrap3 attributes to be applied to form fields it's also a
 
     from django_jinja_knockout.forms import BootstrapModelForm
 
-    class ProfileDisplayForm(BootstrapModelForm):
+    class ProfileForm(BootstrapModelForm):
 
         class Meta:
             model = Profile
@@ -48,7 +48,7 @@ Inline formsets
 to many related inline formsets. It also supports two types of rendering layouts:
 
 #. ``<div>`` layout for real changable submittable forms.
-#. html ``<table>`` layout primarily used to display read-only "forms".
+#. html ``<table>`` layout primarily used to display read-only "forms" (see :doc:`forms`).
 
 Also it has support for inserting custom content between individual forms of formsets.
 
@@ -92,45 +92,6 @@ to alter default Bootstrap 3 inline form grid width, for example::
 Default value of Bootstrap inline grid layout classes, defined in ``bs_field()`` macro, is::
 
     {'label': 'col-md-2', 'field': 'col-md-6'}
-
-Displaying read-only "forms"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. highlight:: python
-
-If form instance was instantiated from ``ModelForm`` class with ``DisplayModelMetaclass`` metaclass::
-
-    from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass
-
-    class ProfileDisplayForm(BootstrapModelForm, metaclass=DisplayModelMetaclass):
-
-        class Meta:
-            model = Profile
-            exclude = ('age',)
-            fields = '__all__'
-
-.. highlight:: jinja
-
-one may use empty string as submit url value of ``action=''`` argument, to display ModelForm instance as read-only
-Bootstrap 3 table::
-
-    {% extends 'base_min.htm' %}
-    {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
-
-    {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action='', html={
-        'class': 'project',
-        'title': form.instance,
-        'submit_text': 'My submit button'
-    }) %}
-
-    {% endcall %}
-
-Such "forms" do not contain ``<input>`` elements and thus cannot be submitted, additionally you may use::
-
-    django_jinja_knockout.forms.UnchangableModelMixin
-
-to make sure bound model instances cannot be updated via custom script submission (Greasemonkey?).
 
 Inserting custom content
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,8 +148,8 @@ Resulting html will have two form submit buttons, one is automatically generated
 ``url('project_update', ...)``, another is manually inserted with submit ``url('project_postpone', ...)``. Different
 Django views may be called from the same form with inline formsets, depending on which html button is pressed.
 
-The following example will insert total project read-only "form" extra cost columns after the end of rendering related
-``projectmember_set`` inline formset::
+The following example will insert total project read-only "form" (see :doc:`forms`) extra cost columns after the end of
+rendering related ``projectmember_set`` inline formset::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
