@@ -106,8 +106,14 @@ middleware.py
   Anonymous views require explicit permission::
 
     url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'allow_anonymous': True})
-* View title is optionally defined as url kwargs ``'view_title'`` key value, to be used in generic templates
-  (one template per many views).
+* View title is optionally defined as url kwargs ``'view_title'`` key value::
+
+    url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'view_title': 'Sign me up', 'allow_anonymous': True})
+
+* to be used in generic templates (one template per many views)::
+
+    {{ request.view_title }}
+
 * View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms when needed.
 * Middleware is inheritable which allows greater flexibility to implement your own extended features via overloaded
   methods.
