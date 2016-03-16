@@ -155,6 +155,55 @@ In case related many to one inline formset ModelForms should be included into re
     )
     MemberDisplayFormSet.set_knockout_template = set_empty_template
 
+
+``DisplayText`` read-only field widget automatically supports lists as values of ``models.ManyToManyField`` fields,
+rendering these as Bootstrap 3 list-groups.
+
+Custom rendering of DisplayText form widgets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes read-only "form" fields contain complex values, such as dates, files and foreign keys. In such case default
+rendering of DisplayText form widgets, set up by ``DisplayModelMetaclass``, can be customized via manual ModelForm field
+definition with ``get_text_cb`` argument callback::
+
+    from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin
+    from django_jinja_knockout.widgets import DisplayText
+    from django.utils.html import format_html
+    from django.forms.utils import flatatt
+
+    class ProjectMemberDisplayForm(WidgetInstancesMixin, BootstrapModelForm, metaclass=DisplayModelMetaclass):
+
+        class Meta:
+
+            def get_profile(self, value):
+                return format_html(
+                    '<a {}>{}</a>',
+                    flatatt({'href': reverse('profile_detail', profile_id=self.instance.pk)}),
+                    self.instance.user
+                )
+
+            model = ProjectMember
+            fields = '__all__'
+            widgets = {
+                'profile': DisplayText(get_text_cb=get_profile)
+            }
+
+``WidgetInstancesMixin`` is used to make model ``self.instance`` available in ``DisplayText`` widget callbacks.
+
+Customizing string representation of scalar values is performed via ``scalar_display`` argument of ``DisplayText``
+widget::
+
+    class ProjectMemberDisplayForm(WidgetInstancesMixin, BootstrapModelForm, metaclass=DisplayModelMetaclass):
+
+        class Meta:
+            widgets = {
+                'state': DisplayText(
+                    scalar_display={True:'Allow', False:'Deny', None: 'Unknown', 1: 'One'}
+                ),
+            }
+
+``scalar_display`` and ``get_text_cb`` arguments of ``DisplayText`` widget can be used together.
+
 Dynamically adding new related formset forms
 --------------------------------------------
 
