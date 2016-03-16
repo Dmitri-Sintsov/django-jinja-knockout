@@ -183,12 +183,12 @@ specified::
 
     {% endcall %}
 
-Resulting html will have two form submit buttons, one is automatically generated with submit url('project_update', ...),
-another is manually inserted with submit url('project_postpone'). Different Django views will be called from the same
-form with inline formsets, depending on which html button is pressed.
+Resulting html will have two form submit buttons, one is automatically generated with submit
+``url('project_update', ...)``, another is manually inserted with submit ``url('project_postpone', ...)``. Different
+Django views may be called from the same form with inline formsets, depending on which html button is pressed.
 
 The following example will insert total project read-only "form" extra cost columns after the end of rendering related
-projectmember_set inline formset::
+``projectmember_set`` inline formset::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
