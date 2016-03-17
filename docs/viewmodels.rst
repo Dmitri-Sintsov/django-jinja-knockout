@@ -71,7 +71,7 @@ Viewmodel data format
 
 Key ``'view'`` of each Javascript object / Python dict in the list stores value of ``viewmodel name``, that is tied to
 Javascript ``viewmodel handler``. Rest of the keys are arguments of each current ``viewmodel`` with corresponding values,
-passed to their ``viewmodel handler``. The following built-in viewmodel names currently are available (version 0.1.0)::
+passed to their ``viewmodel handler``. The following built-in viewmodel names currently are available (version 0.1.2)::
 
     'redirect_to',
     'alert',

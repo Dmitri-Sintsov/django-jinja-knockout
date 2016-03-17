@@ -1,7 +1,10 @@
 include AUTHORS.rst
 include CONTRIBUTING.rst
 include HISTORY.rst
+include INSTALLATION.rst
 include LICENSE
+include QUICKSTART.rst
 include README.rst
+include requirements.txt
 recursive-include django_jinja_knockout *.htm *.js *.css *.py *.po *.mo *.gif *.eot *.svg *.ttf *.woff *.woff2
 
