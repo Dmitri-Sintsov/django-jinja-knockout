@@ -3,10 +3,9 @@ Quickstart
 ===========
 
 Key features overview
----------------------
 
 app.js / tooltips.js
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 * Implements client-side helper classes for Twitter Bootstrap 3.
 * Implements client-side response routing:
 
@@ -38,7 +37,7 @@ app.js / tooltips.js
   code.
 
 plugins.js
-~~~~~~~~~~
+----------
 Set of jQuery plugins.
 
 * ``$.inherit`` - Meta inheritance.
@@ -64,12 +63,12 @@ These jQuery plugins have their Knockout.js bindings in ``app.js``, simplifying 
     <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}">
 
 admin.py
-~~~~~~~~
+--------
 * ``ProtectMixin`` - allow only some model instances to be deleted in django.admin.
 * ``get_admin_url`` - make readonly foreignkey field to be rendered as link to target model change view.
 
 context_processors.py
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 Context processor adds many useful functions and classes into Jinja2 template context, allowing to write more powerful
 and more flexible Jinja2 templates.
 
@@ -115,7 +114,7 @@ and more flexible Jinja2 templates.
   overloading methods.
 
 forms.py / formsets.js
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
 * ``WidgetInstancesMixin`` - Provides model instances bound to ``ModelForm`` in field widgets. It helps to make custom
@@ -130,7 +129,7 @@ forms.py / formsets.js
   read-only, while making newly added ones editable.
 
 middleware.py
-~~~~~~~~~~~~~
+-------------
 
 .. highlight:: python
 
@@ -167,7 +166,7 @@ middleware.py
   methods.
 
 models.py
-~~~~~~~~~
+---------
 * ``ContentTypeLinker`` class to easily generate contenttypes framework links in Jinja2 templates.
 * ``get_verbose_name()`` allows to get verbose_name of Django model field, including related (foreign) and reverse-related
   fields::
@@ -175,7 +174,7 @@ models.py
     {{ get_verbose_name(profile, 'user__username') }}
 
 tpl.py
-~~~~~~
+------
 Various formatting functions, primarily to be used in ``django.admin`` ``admin.ModelAdmin`` classes ``readonly_fields``,
 Jinja2 templates and ``DisplayText`` widgets.
 
@@ -198,13 +197,12 @@ Jinja2 templates and ``DisplayText`` widgets.
 * ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
 
 viewmodels.py
-~~~~~~~~~~~~~
+-------------
 Server-side Python functions and classes to manipulate lists of client-side viewmodels. Mostly are used with AJAX JSON
 responses and in ``app.js`` client-side response routing.
 
 views.py
-~~~~~~~~
-
+--------
 .. highlight:: python
 
 * ``auth_redirect()`` - authorization required response with redirect to login. Supports next' url query argument.
@@ -250,9 +248,8 @@ views.py
 
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of CBV.
 
-
 widgets.py
-~~~~~~~~~~
+----------
 * ``OptionalWidget`` - A two-component ``MultiField``: a checkbox that indicates optional value and a field itself
   (``widget_class=Textarea`` by default) which is toggled via client-side ``plugins.js`` ``jQuery.optionalInput``
   plugin, when the checkbox is unchecked::
@@ -269,3 +266,34 @@ widgets.py
   Widget allows to specify custom formatting callback to display complex fields, including foreign relationships,
   pre-defined string mapping for scalar ``True`` / ``False`` / ``None`` and layout override for ``bs_form()`` /
   ``bs_inline_formsets()`` macros.
+
+utils/mail.py
+-------------
+
+``class SendmailQueue``, which instance is available globally as ``EmailQueue``, may be used to send multiple HTML
+emails with attachments. In case sendmail error is occured, error message might be transferred to form non-field
+errors (works both with AJAX and non-AJAX forms)::
+
+    from django_jinja_knockout.utils.mail import EmailQueue
+
+    EmailQueue.add(
+        subject='Thank you for registration at our site!',
+        html_body=body,
+        to=destination_emails,
+    ).flush(
+        form=self.form
+    )
+
+When there is no form or it 's undesirable to add form's non-field error, ``request`` kwarg may be supplied.
+It also works both with AJAX and non-AJAX views. AJAX views use client-side viewmodels, displaying error messages in
+BootstrapDialog window (AJAX views). Non-AJAX views use Django messaging framework to display sendmail errors::
+
+    from django_jinja_knockout.utils.mail import EmailQueue
+
+    EmailQueue.add(
+        subject='Thank you for registration at our site!',
+        html_body=body,
+        to=destination_emails,
+    ).flush(
+        request=self.request
+    )
