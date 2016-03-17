@@ -5,6 +5,8 @@ Installation
 Virtual environment
 -------------------
 
+.. highlight:: bash
+
 Inside virtualenv of your Django 1.8 project, install `django-jinja-knockout`::
 
     python3 -m pip install django-jinja-knockout
@@ -20,6 +22,8 @@ To install specific commit::
 Pluggable applications
 ----------------------
 
+.. highlight:: python
+
 Add django_jinja_knockout to INSTALLED_APPS in ``settings.py``::
 
     INSTALLED_APPS = (
@@ -30,14 +34,14 @@ Add django_jinja_knockout to INSTALLED_APPS in ``settings.py``::
         'django.contrib.sessions',
         'django.contrib.messages',
         'django.contrib.staticfiles',
-        ...
+        # ...
         'django_jinja_knockout',
     )
 
 If you want to use built-in allauth support, also add::
 
     INSTALLED_APPS = (
-        ...
+        # ...
         # The Django sites framework is required for 'allauth'
         'django.contrib.sites',
         'allauth',
@@ -114,6 +118,8 @@ and register your context processor in ``settings.py`` instead of default::
 
     'django_jinja_knockout.context_processors.template_context_processor'
 
+.. highlight:: javascript
+
 Then you will be able to perform the following shortcuts in your Javascript code::
 
     App.post('my_url_name', {'postvar1': 1, 'postvar2': 2});
@@ -125,6 +131,8 @@ are handled gracefully, displayed in ``BootstrapDialog`` window by default.
 
 Middleware
 ----------
+
+.. highlight:: python
 
 Install ``django_jinja_knockout.middleware`` into ``settings.py``::
 
@@ -154,6 +162,9 @@ To import only required names (for example)::
 
 Templates
 ---------
+
+.. highlight:: jinja
+
 Inherit your base template from ``jinja2/base_min.htm`` template::
 
     {% extends 'base_min.htm' %}

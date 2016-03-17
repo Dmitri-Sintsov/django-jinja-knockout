@@ -736,8 +736,7 @@ ko.bindingHandlers.autogrow = {
     }
 };
 
-// Usage: <textarea data-bind="autogrow: {rows: 4}"></textarea>
-// @note: Currently is unused in script#messaging_dialog, due to dialog / messages vertical overflow issues.
+// Usage: <div data-bind="html: text, linkPreview"></div>
 ko.bindingHandlers.linkPreview = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         $(element).linkPreview();
@@ -752,6 +751,7 @@ ko.bindingHandlers.element = {
     }
 };
 
+// Usage: <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}">
 ko.bindingHandlers.scroller = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.$scroller = $(element);

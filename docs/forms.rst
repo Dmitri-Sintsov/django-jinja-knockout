@@ -105,6 +105,8 @@ If form instance was instantiated from ``ModelForm`` class with ``DisplayModelMe
 
     from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass
 
+    from my_app.models import Profile
+
     class ProfileDisplayForm(BootstrapModelForm, metaclass=DisplayModelMetaclass):
 
         class Meta:
@@ -143,6 +145,8 @@ In case related many to one inline formset ModelForms should be included into re
 
     from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass, set_empty_template
 
+    from my_app.models import Profile
+
     class MemberDisplayForm(BootstrapModelForm, metaclass=DisplayModelMetaclass):
 
         class Meta:
@@ -163,13 +167,15 @@ Custom rendering of DisplayText form widgets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sometimes read-only "form" fields contain complex values, such as dates, files and foreign keys. In such case default
-rendering of DisplayText form widgets, set up by ``DisplayModelMetaclass``, can be customized via manual ModelForm field
-definition with ``get_text_cb`` argument callback::
+rendering of ``DisplayText`` form widgets, set up by ``DisplayModelMetaclass``, can be customized via manual ModelForm
+field definition with ``get_text_cb`` argument callback::
 
     from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin
     from django_jinja_knockout.widgets import DisplayText
     from django.utils.html import format_html
     from django.forms.utils import flatatt
+
+    from my_app.models import ProjectMember
 
     class ProjectMemberDisplayForm(WidgetInstancesMixin, BootstrapModelForm, metaclass=DisplayModelMetaclass):
 
@@ -189,6 +195,8 @@ definition with ``get_text_cb`` argument callback::
             }
 
 ``WidgetInstancesMixin`` is used to make model ``self.instance`` available in ``DisplayText`` widget callbacks.
+It is not required to be used in ``get_text_cb`` callback, but allows to access all fields of current model instance,
+in addition to ``value`` of current field.
 
 Customizing string representation of scalar values is performed via ``scalar_display`` argument of ``DisplayText``
 widget::
@@ -198,7 +206,7 @@ widget::
         class Meta:
             widgets = {
                 'state': DisplayText(
-                    scalar_display={True:'Allow', False:'Deny', None: 'Unknown', 1: 'One'}
+                    scalar_display={True: 'Allow', False: 'Deny', None: 'Unknown', 1: 'One'}
                 ),
             }
 
@@ -239,6 +247,8 @@ To be able to add / remove new empty forms use monkey patching of inline formset
     from django.forms.models import BaseInlineFormSet, inlineformset_factory
     from django_jinja_knockout.forms import BootstrapModelForm, set_knockout_template, FormWithInlineFormsets
 
+    from my_app.models import Project
+
     class ProjectForm(BootstrapModelForm):
 
         class Meta:
@@ -273,12 +283,17 @@ To be able to add / remove new empty forms use monkey patching of inline formset
 
 In your class-based views.py::
 
-    from django_jinja_knockout.views import InlineDetailView
+    from django_jinja_knockout.views import InlineCreateView, InlineDetailView
+
+    class ProjectCreate(InlineCreateView):
+
+        form_with_inline_formsets = ProjectFormWithInlineFormsets
+        template_name = 'project_form.htm'
 
     class ProjectUpdate(InlineDetailView):
 
         form_with_inline_formsets = ProjectFormWithInlineFormsets
-        template_name = 'project_update.htm'
+        template_name = 'project_form.htm'
 
 Why there is extra step of defining ``ProjectFormWithInlineFormsets``? Because that class also can be used in
 traditional functional style views as well::
@@ -286,13 +301,16 @@ traditional functional style views as well::
     ff = ProjectFormWithInlineFormsets(request, create=True)
     if request.method == 'POST':
         if ff.save() is None:
+            # Show form errors.
             return render(request, 'project_template.htm', {
                 'form': ff.form,
                 'formsets': ff.formsets
             })
         else:
+            # Form with inline formsets was saved successfully.
             return redirect('project_save_success')
     else:
+        # Display initial form for project instance (project update form).
         project = Project.objects.filter(user=user).first()
         ff.get(project)
         return render(request, 'project_template.htm', {
