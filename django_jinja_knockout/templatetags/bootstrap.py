@@ -1,4 +1,7 @@
-# https://github.com/samuelcolvin/django-jinja-bootstrap-form
+# Derived from https://github.com/samuelcolvin/django-jinja-bootstrap-form
+# Copyright (c) Samuel Colvin, Ming Hsien Tzang and individual contributors.
+# All rights reserved.
+
 from ..utils import sdv
 import bleach
 from django.utils.html import escape
