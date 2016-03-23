@@ -80,6 +80,10 @@ button.close {
 	border: 0px none;
 }
 
+.pointer {
+	cursor: pointer;
+}
+
 .halflings-before:before {
 	color: Green;
 	font-family: 'Glyphicons Halflings';
@@ -158,3 +162,14 @@ textarea.ko-template {
 	width: 20px;
 	height: 20px;
 }
+
+/* Fit textarea width to outer element width. */
+.fit-width {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+a[name="#"] {
+    cursor: pointer;
+}
+
