@@ -1,6 +1,7 @@
 from copy import copy
 import json
 import traceback
+from ensure import ensure_annotations
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html, escape
@@ -9,6 +10,7 @@ from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.views.generic.base import View
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -479,16 +481,32 @@ class ListSortingView(ListView):
         )
 
 
-# @todo: it should patch allowed REQUEST methods. Do not use as it may fail with POST.
-class PostListView(ListView):
+class ViewmodelView(View):
+
+    @ensure_annotations
+    def process_error_viewmodel(self, viewmodel:dict):
+        if 'view' not in viewmodel:
+            viewmodel['view'] = 'alert_error'
+
+    @ensure_annotations
+    def process_success_vm_list(self, vms:vm_list):
+        if len(vms) == 1 and 'view' not in vms[0]:
+            vms[0]['view'] = 'alert'
+
+    # todo: Optional error accumulation.
+    @ensure_annotations
+    def error(self, viewmodel:dict):
+        from .middleware import ImmediateJsonResponse
+        self.process_error_viewmodel(viewmodel)
+        raise ImmediateJsonResponse(viewmodel)
 
     def dispatch(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            return self.post(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        raise Exception('Not implemented')
+        result = super().dispatch(request, *args, **kwargs)
+        if type(result) is dict:
+            result = vm_list(result)
+        if type(result) is vm_list:
+            self.process_success_vm_list(result)
+        return result
 
 
 class ContextDataMixin(object):

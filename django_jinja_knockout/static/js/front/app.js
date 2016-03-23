@@ -75,9 +75,11 @@ App.Dialog = function(options) {
             // App viewmodel.
             var cbViewModel = this.dialogOptions.callback;
             this.dialogOptions.callback = function(result) {
+                // @note: Do not use alert view as callback, it will cause stack overflow.
                 if (result) {
-                    // @note: Do not use alert view as callback, it will cause stack overflow.
                     App.viewResponse(cbViewModel);
+                } else if (typeof self.dialogOptions.cb_cancel === 'object') {
+                    App.viewResponse(self.dialogOptions.cb_cancel);
                 }
             }
             break;
@@ -85,10 +87,12 @@ App.Dialog = function(options) {
             // Function callback.
             break;
         default:
-            // Params callback is neither object nor function (see alert() / confirm()).
+            // Default action.
             this.dialogOptions.callback = function(result) {
                 if (result) {
                     self.dialogAction();
+                } else {
+                    self.dialogCancel();
                 }
             }
         }
@@ -112,7 +116,7 @@ App.Dialog = function(options) {
             this.dialogOptions.callback(true);
             return;
         }
-        this.bdialog = BootstrapDialog.alert(this.dialogOptions);
+        this.bdialog = BootstrapDialog.alert(this.dialogOptions, this.dialogOptions.callback);
     };
 
     Dialog.alertError = function() {
@@ -162,6 +166,10 @@ App.Dialog = function(options) {
 
     Dialog.dialogAction = function() {
         // alert('Sample action');
+    };
+
+    Dialog.dialogCancel = function() {
+        // alert('Cancelled');
     };
 
     Dialog.remove = function() {

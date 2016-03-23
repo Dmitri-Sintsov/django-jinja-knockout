@@ -1,3 +1,4 @@
+from socket import gaierror
 from smtplib import SMTPDataError
 from bleach import linkify
 from django.utils.html import linebreaks
@@ -59,18 +60,26 @@ class SendmailQueue:
             result = self.connection.send_messages(self.messages)
             self.messages = []
             return result
-        except SMTPDataError as e:
-            msg = _('Error "%(code)s" "%(msg)s" while sending email.') % {
-                'code': e.smtp_code,
-                'msg': e.smtp_error,
-            }
+        except (SMTPDataError, gaierror) as e:
+            if isinstance(e, SMTPDataError):
+                title = e.smtp_code
+                msg = _('Error "%(code)s" "%(msg)s" while sending email.') % {
+                    'code': e.smtp_code,
+                    'msg': e.smtp_error,
+                }
+            else:
+                title = e.errno
+                msg = _('Error "%(code)s" "%(msg)s" while resolving inet address.') % {
+                    'code': e.errno,
+                    'msg': e.strerror,
+                }
             if form is not None:
                 form.add_error(None, msg)
             elif request is not None:
                 if request.is_ajax():
                     raise ImmediateJsonResponse({
                         'view': 'alert_error',
-                        'title': e.smtp_code,
+                        'title': title,
                         'message': msg
                     })
                 else:
