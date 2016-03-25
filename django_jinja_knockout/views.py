@@ -489,16 +489,30 @@ class ViewmodelView(View):
             viewmodel['view'] = 'alert_error'
 
     @ensure_annotations
-    def process_success_vm_list(self, vms:vm_list):
-        if len(vms) == 1 and 'view' not in vms[0]:
-            vms[0]['view'] = 'alert'
+    def process_error_vm_list(self, vms:vm_list):
+        for vm in vms:
+            self.process_error_viewmodel(vm)
 
-    # todo: Optional error accumulation.
     @ensure_annotations
-    def error(self, viewmodel:dict):
+    def process_success_viewmodel(self, viewmodel:dict):
+        if 'view' not in viewmodel:
+            viewmodel['view'] = 'alert'
+
+    @ensure_annotations
+    def process_success_vm_list(self, vms:vm_list):
+        for vm in vms:
+            self.process_success_viewmodel(vm)
+
+    # Can be called as self.error(*vm_list) or as self.error(**viewmodel_kwargs).
+    # todo: Optional error accumulation.
+    def error(self, *args, **kwargs):
         from .middleware import ImmediateJsonResponse
-        self.process_error_viewmodel(viewmodel)
-        raise ImmediateJsonResponse(viewmodel)
+        if len(kwargs) > 0:
+            vms = vm_list(dict(**kwargs))
+        else:
+            vms = vm_list(*args)
+        self.process_error_vm_list(vms)
+        raise ImmediateJsonResponse(vms)
 
     def dispatch(self, request, *args, **kwargs):
         result = super().dispatch(request, *args, **kwargs)

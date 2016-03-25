@@ -30,7 +30,7 @@ class ImmediateHttpResponse(Exception):
 class ImmediateJsonResponse(ImmediateHttpResponse):
 
     def __init__(self, response):
-        self._response = JsonResponse(response)
+        self._response = JsonResponse(response, encoder=DjangoJSONEncoder, safe=not isinstance(response, list))
 
 
 class ContextMiddleware(object):
