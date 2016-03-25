@@ -1,5 +1,6 @@
 from copy import copy
 import json
+from math import ceil
 import traceback
 from ensure import ensure_annotations
 from django.conf import settings
@@ -108,6 +109,16 @@ class BsTabsMixin(object):
         return context_data
 
 
+class ContextDataMixin(object):
+
+    extra_context_data = {}
+
+    def get_context_data(self, **kwargs):
+        context_data = self.__class__.extra_context_data.copy()
+        context_data.update(super().get_context_data(**kwargs))
+        return context_data
+
+
 # See also https://github.com/AndrewIngram/django-extra-views
 class FormWithInlineFormsetsMixin(object):
     # @note: Required to define ONLY when form_with_inline_formsets has FormClass is None
@@ -201,7 +212,7 @@ class FormWithInlineFormsetsMixin(object):
             )
 
     def get_object_from_url(self):
-        raise ValueError('Abstract')
+        raise ValueError('Abstract method')
 
     def get(self, request, *args, **kwargs):
         """
@@ -244,7 +255,8 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
         return self.get_object()
 
 
-class ListSortingView(ListView):
+# Model queryset filtering / ordering base.
+class BaseFilterView(View):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'
@@ -278,18 +290,21 @@ class ListSortingView(ListView):
             ct = ContentType.objects.filter(app_label=app_label, model=model).first()
             allowed_filter_fields[field].append((ct.pk, ct.name))
 
+    def request_get(self, key, default=None):
+        return self.request.GET.get(key, default)
+
     def dispatch(self, request, *args, **kwargs):
         if self.__class__.allowed_sort_orders is None:
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
         if self.__class__.allowed_filter_fields is None:
             self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
-        sort_order = self.request.GET.get(self.__class__.order_key)
+        sort_order = self.request_get(self.__class__.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
             self.is_iterable_order, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        list_filter = self.request.GET.get(self.__class__.filter_key)
+        list_filter = self.request_get(self.__class__.filter_key)
         if list_filter is not None:
             list_filter = json.loads(list_filter)
             if type(list_filter) is not dict:
@@ -312,6 +327,35 @@ class ListSortingView(ListView):
         if stripped_order not in self.__class__.allowed_sort_orders:
             raise ValueError('Non-allowed sorting order: {0}'.format(json.dumps(stripped_order)))
         return is_iterable, stripped_order
+
+    def order_queryset(self, queryset):
+        if self.current_sort_order is None:
+            return queryset
+        return queryset.order_by(*self.current_sort_order) \
+            if self.is_iterable_order \
+            else queryset.order_by(self.current_sort_order)
+
+    def filter_queryset(self, queryset):
+        if self.current_list_filter is None:
+            return queryset
+        else:
+            return queryset.filter(**self.current_list_filter)
+
+    # This method is required because child class custom queryset.filter will not work after self.order_queryset().
+    # Thus, filter ListView queryset by overriding this method, not get_queryset().
+    def get_base_queryset(self):
+        return super().get_queryset()
+
+    def get_queryset(self):
+        return self.filter_queryset(
+            self.order_queryset(
+                self.get_base_queryset()
+            )
+        )
+
+
+# Traditional server-side generated filtered / sorted ListView.
+class ListSortingView(BaseFilterView, ListView):
 
     def get_current_sort_order_querypart(self, query={}):
         if self.current_sort_order is None:
@@ -455,33 +499,8 @@ class ListSortingView(ListView):
             context_data['filter_display'][fieldname] = display
         return context_data
 
-    def order_queryset(self, queryset):
-        if self.current_sort_order is None:
-            return queryset
-        return queryset.order_by(*self.current_sort_order) \
-            if self.is_iterable_order \
-            else queryset.order_by(self.current_sort_order)
 
-    def filter_queryset(self, queryset):
-        if self.current_list_filter is None:
-            return queryset
-        else:
-            return queryset.filter(**self.current_list_filter)
-
-    # This method is required because child class custom queryset.filter will not work after self.order_queryset().
-    # Thus, filter ListView queryset by overriding this method, not get_queryset().
-    def get_base_queryset(self):
-        return super().get_queryset()
-
-    def get_queryset(self):
-        return self.filter_queryset(
-            self.order_queryset(
-                self.get_base_queryset()
-            )
-        )
-
-
-class ViewmodelView(View):
+class ViewmodelView(TemplateView):
 
     @ensure_annotations
     def process_error_viewmodel(self, viewmodel:dict):
@@ -523,11 +542,41 @@ class ViewmodelView(View):
         return result
 
 
-class ContextDataMixin(object):
+# Knockout.js ko-grid.js filtered / sorted ListView.
+class KoGridView(BaseFilterView, ViewmodelView):
 
-    extra_context_data = {}
+    view_name = 'grid_page'
+    # Return all fields by default.
+    grid_fields = []
+    current_page = 1
+    objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 
-    def get_context_data(self, **kwargs):
-        context_data = self.__class__.extra_context_data.copy()
-        context_data.update(super().get_context_data(**kwargs))
-        return context_data
+    def request_get(self, key, default=None):
+        return self.request.POST.get(key, default)
+
+    def get_rows(self):
+        page_num = self.request_get('page', 1)
+        try:
+            page_num = int(page_num)
+        except:
+            self.error(
+                title='Invalid page number',
+                message=format_html('Page number: {}', page_num)
+            )
+        first_elem = (page_num - 1) * self.__class__.objects_per_page
+        last_elem = first_elem + self.__class__.objects_per_page
+        qs = self.get_queryset()
+        self.total_rows = qs.count()
+        return qs[first_elem:last_elem].values(*self.__class__.grid_fields)
+
+    def get_viewmodel(self, rows):
+        return {
+            'view': self.__class__.view_name,
+            'entries': list(rows),
+            'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
+        }
+
+    def post(self, request, *args, **kwargs):
+        return self.get_viewmodel(
+            self.get_rows()
+        )

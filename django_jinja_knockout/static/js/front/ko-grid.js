@@ -4,31 +4,29 @@ App.ko.Grid = function(selector) {
 
 (function(Grid) {
 
-    Grid.initGetParams = function() {
+    Grid.initAjaxParams = function() {
         this.viewName = 'grid_page';
-        this.get = {
-            skip: 0,
-            take: 10,
-            direction: 'asc',
+        this.queryArgs = {
+            page: 1
         };
     };
 
     Grid.localize = function() {
         this.local = {
-            toBegin: '« First page',
-            toEnd: 'Last page »',
+            toBegin: App.trans('First page'),
+            toEnd: App.trans('Last page'),
         };
-    }
+    };
 
     Grid.init = function(selector) {
         var self = this;
         this.$selector = $(selector);
-        this.initGetParams();
+        this.initAjaxParams();
         this.localize();
         
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
-        this.getArgsStr = ko.observable();
+        this.argsStr = ko.observable();
         ko.applyBindings(this, this.$selector.get(0));
         
         this.$gridSearch = this.$selector.find('.grid-search');
@@ -78,7 +76,7 @@ App.ko.Grid = function(selector) {
         var self = this;
         var $rowLink;
         $rowLink = $(ev.target).closest('[data-order-by]');
-        self.get.orderby = $rowLink.data('orderBy');
+        self.queryArgs.orderby = $rowLink.data('orderBy');
         $.each(self.$rowLinks, function(k, v) {
             if (!$rowLink.is($(v))) {
                 $(v).removeClass('sort-desc sort-asc');
@@ -91,17 +89,17 @@ App.ko.Grid = function(selector) {
         } else {
             $rowLink.toggleClass('sort-asc sort-desc');
         }
-        self.get.direction = $rowLink.hasClass('sort-desc') ? 'desc' : 'asc';
-        self.getPage();
+        self.queryArgs.direction = $rowLink.hasClass('sort-desc') ? 'desc' : 'asc';
+        self.loadPage();
     };
     
     Grid.onPagination = function(ev) {
         var self = this;
-        self.get.skip = ( $(ev.target).attr('data-page-number') - 1 ) * self.get.take;
+        self.queryArgs.page = $(ev.target).attr('data-page-number');
         $(ev.target)
             .parents(self.$selector.get(0))
             .find('div.table-responsive').scrollTop(0);
-        self.getPage();
+        self.loadPage();
     };
     
     Grid.searchSubstring = function(s) {
@@ -109,8 +107,8 @@ App.ko.Grid = function(selector) {
         if (typeof s !== 'undefined') {
             self.$gridSearch.val(s);
         }
-        self.get.skip = 0;
-        self.getPage();
+        self.queryArgs.page = 1;
+        self.loadPage();
     };
 
     /**
@@ -160,16 +158,17 @@ App.ko.Grid = function(selector) {
     /**
      * Get viewmodels data for grid page and grid pagination via ajax-query.
      */
-    Grid.getPage = function() {
+    Grid.loadPage = function() {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
             self.setPage(viewModel);
         };
-        self.get.search = self.$gridSearch.val();
-        self.getArgsStr(JSON.stringify(self.get));
-        $.get(self.getPageUrl,
-            self.get,
+        self.queryArgs.search = self.$gridSearch.val();
+        self.argsStr(JSON.stringify(self.queryArgs));
+        self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        $.post(self.pageUrl,
+            self.queryArgs,
             function(response) {
                 App.viewResponse(response, options);
             },
@@ -191,7 +190,7 @@ App.ko.Grid = function(selector) {
             self.gridRows.push(self.createRow(v));
         });
         // Set grid pagination viewmodels.
-        self.setPaginationModel(data.totalPages, data.currPage);
+        self.setPaginationModel(data.totalPages, self.queryArgs.page);
     };
 
     Grid.onRowClick = function($row) {
