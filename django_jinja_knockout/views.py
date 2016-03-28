@@ -11,6 +11,7 @@ from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.db.models import Q
 from django.views.generic.base import View
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
@@ -260,8 +261,10 @@ class BaseFilterView(View):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'
+    search_key = 'list_search'
     allowed_sort_orders = None
     allowed_filter_fields = None
+    search_fields = None
 
     def __init__(self):
         super().__init__()
@@ -271,6 +274,7 @@ class BaseFilterView(View):
         self.current_sort_order = None
         self.current_stripped_sort_order = None
         self.is_iterable_order = False
+        self.current_search_str = ''
 
     def get_allowed_sort_orders(self):
         # Do not need to duplicate both accending and descending ('-' prefix) orders.
@@ -282,6 +286,10 @@ class BaseFilterView(View):
         # @todo: Support '__in' suffix automatically.
         # key is field name (may be one to many related field as well)
         # value is list of field choices, as specified in model.
+        return {}
+
+    def get_search_fields(self):
+        # {'field1': 'contains', 'field2': 'icontains', 'field3': ''}
         return {}
 
     def set_contenttype_filter(self, allowed_filter_fields, field, apps_models):
@@ -298,6 +306,9 @@ class BaseFilterView(View):
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
         if self.__class__.allowed_filter_fields is None:
             self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
+        if self.__class__.search_fields is None:
+            self.__class__.search_fields = self.get_search_fields()
+
         sort_order = self.request_get(self.__class__.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
@@ -315,6 +326,8 @@ class BaseFilterView(View):
                 if type(val) not in (type(None),str,int,float,bool):
                     raise ValueError('Non-aloowed type of filter field value: {0}'.format(json.dumps(val)))
                 self.current_list_filter = list_filter
+
+        self.current_search_str = self.request_get(self.search_key, '')
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -341,6 +354,24 @@ class BaseFilterView(View):
         else:
             return queryset.filter(**self.current_list_filter)
 
+    def search_queryset(self, queryset):
+        sf_len = len(self.__class__.search_fields)
+        if self.current_search_str == '' or sf_len == 0:
+            return queryset
+        else:
+            q = None
+            for field, operation in self.__class__.search_fields.items():
+                if operation != '':
+                    field += '__' + operation
+                q_kwargs = {
+                    field: self.current_search_str
+                }
+                if q is None:
+                    q = Q(**q_kwargs)
+                else:
+                    q |= Q(**q_kwargs)
+            return queryset.filter(q)
+
     # This method is required because child class custom queryset.filter will not work after self.order_queryset().
     # Thus, filter ListView queryset by overriding this method, not get_queryset().
     def get_base_queryset(self):
@@ -349,7 +380,9 @@ class BaseFilterView(View):
     def get_queryset(self):
         return self.filter_queryset(
             self.order_queryset(
-                self.get_base_queryset()
+                self.search_queryset(
+                    self.get_base_queryset()
+                )
             )
         )
 

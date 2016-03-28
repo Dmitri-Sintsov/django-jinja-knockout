@@ -46,6 +46,7 @@ App.ko.Grid = function(selector) {
         var self = this;
         this.filterKey = 'list_filter';
         this.orderKey = 'list_order_by';
+        this.searchKey = 'list_search';
         this.$selector = $(selector);
         this.initAjaxParams();
         this.localize();
@@ -123,6 +124,9 @@ App.ko.Grid = function(selector) {
     Grid.onPagination = function(ev) {
         var self = this;
         self.queryArgs.page = parseInt($(ev.target).attr('data-page-number'));
+        if (isNaN(self.queryArgs.page)) {
+            self.queryArgs.page = 1;
+        }
         $(ev.target)
             .parents(self.$selector.get(0))
             .find('div.table-responsive').scrollTop(0);
@@ -191,8 +195,7 @@ App.ko.Grid = function(selector) {
         options['after'][self.viewName] = function(viewModel) {
             self.setPage(viewModel);
         };
-        self.queryArgs.search = self.$gridSearch.val();
-        self.argsStr(JSON.stringify(self.queryArgs));
+        self.queryArgs[self.searchKey] = self.$gridSearch.val();
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.pageUrl,
             self.queryArgs,
