@@ -122,7 +122,7 @@ App.ko.Grid = function(selector) {
     
     Grid.onPagination = function(ev) {
         var self = this;
-        self.queryArgs.page = $(ev.target).attr('data-page-number');
+        self.queryArgs.page = parseInt($(ev.target).attr('data-page-number'));
         $(ev.target)
             .parents(self.$selector.get(0))
             .find('div.table-responsive').scrollTop(0);

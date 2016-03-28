@@ -49,3 +49,9 @@ msgstr "Обязательное"
 
 msgid "Delete when saved"
 msgstr "Удалить при сохранении"
+
+msgid "First page"
+msgstr "В начало"
+
+msgid "Last page"
+msgstr "В конец"
