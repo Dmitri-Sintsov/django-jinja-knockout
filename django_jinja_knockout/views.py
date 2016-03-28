@@ -301,6 +301,9 @@ class BaseFilterView(View):
     def request_get(self, key, default=None):
         return self.request.GET.get(key, default)
 
+    def report_error(self, message, *args, **kwargs):
+        raise ValueError(message.format(*args, **kwargs))
+
     def dispatch(self, request, *args, **kwargs):
         if self.__class__.allowed_sort_orders is None:
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
@@ -319,12 +322,10 @@ class BaseFilterView(View):
         if list_filter is not None:
             list_filter = json.loads(list_filter)
             if type(list_filter) is not dict:
-                raise ValueError('List of filters must be dictionary: {0}'.format(json.dumps(list_filter)))
+                self.report_error('List of filters must be dictionary: {0}', list_filter)
             for key, val in list_filter.items():
                 if key not in self.__class__.allowed_filter_fields:
-                    raise ValueError('Non-allowed filter field: {0}'.format(json.dumps(filter)))
-                if type(val) not in (type(None),str,int,float,bool):
-                    raise ValueError('Non-aloowed type of filter field value: {0}'.format(json.dumps(val)))
+                    self.report_error('Non-allowed filter field: {0}', key)
                 self.current_list_filter = list_filter
 
         self.current_search_str = self.request_get(self.search_key, '')
@@ -333,12 +334,12 @@ class BaseFilterView(View):
 
     def strip_sort_order(self, sort_order):
         if type(sort_order) not in [str, list]:
-            raise ValueError('Invalid type of sorting order')
+            self.report_error('Invalid type of sorting order')
         # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
         is_iterable = type(sort_order) is list
         stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
         if stripped_order not in self.__class__.allowed_sort_orders:
-            raise ValueError('Non-allowed sorting order: {0}'.format(json.dumps(stripped_order)))
+            self.report_error('Non-allowed sorting order: {0}', stripped_order)
         return is_iterable, stripped_order
 
     def order_queryset(self, queryset):
@@ -587,6 +588,12 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
     def request_get(self, key, default=None):
         return self.request.POST.get(key, default)
+
+    def report_error(self, message, *args, **kwargs):
+        self.error(
+            title='Error',
+            message=message.format(*args, **kwargs)
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
