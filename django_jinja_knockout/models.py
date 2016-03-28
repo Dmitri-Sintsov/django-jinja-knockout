@@ -1,7 +1,9 @@
 from django.apps import apps
 
 
-def get_verbose_name(obj, fieldname):
+def get_meta(obj, meta_attr, fieldname=None):
+    if fieldname is None:
+        return getattr(obj._meta, meta_attr)
     if type(obj) is str:
         obj = apps.get_model(*obj.split('.'))
     fieldpath = fieldname.split('__')
@@ -13,7 +15,11 @@ def get_verbose_name(obj, fieldname):
                 obj = curr_field.rel.to
             else:
                 obj = curr_field.related_model
-    return obj._meta.get_field_by_name(fieldname)[0].verbose_name
+    return getattr(obj._meta.get_field_by_name(fieldname)[0], meta_attr)
+
+
+def get_verbose_name(obj, fieldname=None):
+    return get_meta(obj, 'verbose_name', fieldname)
 
 
 class ContentTypeLinker(object):

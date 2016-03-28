@@ -9,6 +9,30 @@ App.ko.Grid = function(selector) {
         this.queryArgs = {
             page: 1
         };
+        this.setFilter();
+        this.setOrderBy();
+    };
+
+    Grid.setFilter = function(filter) {
+        if (typeof filter === 'undefined') {
+            delete this.queryArgs[this.filterKey];
+        } else {
+            this.queryArgs[this.filterKey] = JSON.stringify(filter);
+        }
+    };
+
+    Grid.setOrderBy = function(fieldName, direction) {
+        if (typeof fieldName == 'undefined') {
+            delete this.queryArgs[this.orderKey];
+        } else {
+            var orderBy = '';
+            // Django specific implementation.
+            if (direction === 'desc') {
+                orderBy += '-';
+            }
+            orderBy += fieldName;
+            this.queryArgs[this.orderKey] = JSON.stringify(orderBy);
+        }
     };
 
     Grid.localize = function() {
@@ -20,6 +44,8 @@ App.ko.Grid = function(selector) {
 
     Grid.init = function(selector) {
         var self = this;
+        this.filterKey = 'list_filter';
+        this.orderKey = 'list_order_by';
         this.$selector = $(selector);
         this.initAjaxParams();
         this.localize();
@@ -76,7 +102,7 @@ App.ko.Grid = function(selector) {
         var self = this;
         var $rowLink;
         $rowLink = $(ev.target).closest('[data-order-by]');
-        self.queryArgs.orderby = $rowLink.data('orderBy');
+        var orderBy = $rowLink.data('orderBy');
         $.each(self.$rowLinks, function(k, v) {
             if (!$rowLink.is($(v))) {
                 $(v).removeClass('sort-desc sort-asc');
@@ -89,7 +115,8 @@ App.ko.Grid = function(selector) {
         } else {
             $rowLink.toggleClass('sort-asc sort-desc');
         }
-        self.queryArgs.direction = $rowLink.hasClass('sort-desc') ? 'desc' : 'asc';
+        var direction = $rowLink.hasClass('sort-desc') ? 'desc' : 'asc';
+        self.setOrderBy(orderBy, direction);
         self.loadPage();
     };
     

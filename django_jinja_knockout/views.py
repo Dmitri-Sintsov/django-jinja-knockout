@@ -546,6 +546,7 @@ class ViewmodelView(TemplateView):
 class KoGridView(BaseFilterView, ViewmodelView):
 
     view_name = 'grid_page'
+    context_object_name = 'model'
     # Return all fields by default.
     grid_fields = []
     current_page = 1
@@ -553,6 +554,14 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
     def request_get(self, key, default=None):
         return self.request.POST.get(key, default)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.__class__.context_object_name is not None:
+            from .models import get_meta
+            context['get_meta'] = get_meta
+            context[self.__class__.context_object_name] = self.get_base_queryset().model
+        return context
 
     def get_rows(self):
         page_num = self.request_get('page', 1)
