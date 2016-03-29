@@ -580,7 +580,9 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
     view_name = 'grid_page'
     context_object_name = 'model'
-    # Return all fields by default.
+    # query all fields by default.
+    query_fields = []
+    # ko viewmodel columns for all fields by default.
     grid_fields = []
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -596,6 +598,9 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
     def dispatch(self, request, *args, **kwargs):
         self.model_class = self.get_base_queryset().model
+        if len(self.__class__.grid_fields) == 0:
+            for field in self.model_class._meta.fields:
+                self.grid_fields.append(field.name)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -605,6 +610,10 @@ class KoGridView(BaseFilterView, ViewmodelView):
             context['get_meta'] = get_meta
             context[self.__class__.context_object_name] = self.model_class
         return context
+
+    # One may add new related / calculated fields, for example.
+    def postprocess_row(self, row):
+        return row
 
     def get_rows(self):
         page_num = self.request_get('page', 1)
@@ -619,7 +628,9 @@ class KoGridView(BaseFilterView, ViewmodelView):
         last_elem = first_elem + self.__class__.objects_per_page
         qs = self.get_queryset()
         self.total_rows = qs.count()
-        return qs[first_elem:last_elem].values(*self.__class__.grid_fields)
+        return [
+            self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.__class__.query_fields)
+        ]
 
     def get_viewmodel(self, rows):
         vm = {
@@ -627,7 +638,15 @@ class KoGridView(BaseFilterView, ViewmodelView):
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
-        if self.request_get('get_filters', False):
+        if self.request_get('load_meta', False):
+            vm_grid_fields = []
+            for field in self.__class__.grid_fields:
+                vm_grid_fields.append({
+                    'field': field,
+                    'name': get_verbose_name(self.model_class, field)
+                })
+            vm['grid_fields'] = vm_grid_fields
+
             vm_filters = []
             for fieldname, choices in self.__class__.allowed_filter_fields.items():
                 vm_choices = []

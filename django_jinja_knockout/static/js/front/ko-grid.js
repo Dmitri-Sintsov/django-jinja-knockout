@@ -3,16 +3,6 @@ ko.bindingHandlers.grid_filter = {
         $(element).on('click', function(ev) {
             viewModel.load();
         });
-        /*
-        viewModel.$scroller = $(element);
-        viewModel.$scroller.scroller('init')
-        .on('scroll:top', function(ev) {
-            viewModel[valueAccessor()['top']]();
-        })
-        .on('scroll:bottom', function(ev) {
-            viewModel[valueAccessor()['bottom']]();
-        });
-        */
     }
 };
 
@@ -46,7 +36,7 @@ App.ko.Grid = function(selector) {
         this.viewName = 'grid_page';
         this.queryArgs = {
             page: 1,
-            get_filters: true
+            load_meta: true
         };
         this.setQueryFilter();
         this.setQueryOrderBy();
@@ -99,6 +89,7 @@ App.ko.Grid = function(selector) {
         this.initAjaxParams();
         this.localize();
         
+        this.gridColumns = ko.observableArray();
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
@@ -147,6 +138,9 @@ App.ko.Grid = function(selector) {
 
     };
 
+    /**
+     * You may optionally postprocess returned row before applying it to ko viewmodel.
+     */
     Grid.createRow = function(row) {
         return row;
     };
@@ -198,10 +192,36 @@ App.ko.Grid = function(selector) {
         self.loadPage();
     };
 
+    Grid.setKoFilter = function(filter) {
+        var filterModel = {
+            'name': filter.name,
+            'choices': []
+        };
+        var choices = filter.choices;
+        for (var i = 0; i < choices.length; i++) {
+            filterModel.choices.push(new App.ko.GridFilterChoice({
+                'owner': this,
+                'name': choices[i].name,
+                'value': choices[i].value,
+                'field': filter.field
+            }));
+        }
+        this.gridFilters.push(filterModel);
+    };
+
+    /**
+     * Setup filters viewmodels.
+     */
+    Grid.setKoFilters = function(filters) {
+        for (var i = 0; i < filters.length; i++) {
+            this.setKoFilter(filters[i]);
+        }
+    };
+
     /**
      * Setup pagination viewmodel.
      */
-    Grid.setPaginationModel = function(totalPages, currPage) {
+    Grid.setKoPagination = function(totalPages, currPage) {
         var self = this;
         self.gridPages([]);
         var maxVisiblePages = 5;
@@ -242,29 +262,6 @@ App.ko.Grid = function(selector) {
         });
     };
 
-    Grid.setFilterModel = function(filter) {
-        var filterModel = {
-            'name': filter.name,
-            'choices': []
-        };
-        var choices = filter.choices;
-        for (var i = 0; i < choices.length; i++) {
-            filterModel.choices.push(new App.ko.GridFilterChoice({
-                'owner': this,
-                'name': choices[i].name,
-                'value': choices[i].value,
-                'field': filter.field
-            }));
-        }
-        this.gridFilters.push(filterModel);
-    };
-
-    Grid.setGridFilters = function(filters) {
-        for (var i = 0; i < filters.length; i++) {
-            this.setFilterModel(filters[i]);
-        }
-    };
-
     /**
      * Get viewmodels data for grid page and grid pagination via ajax-query.
      */
@@ -272,7 +269,7 @@ App.ko.Grid = function(selector) {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
-            self.setPage(viewModel);
+            self.setKoPage(viewModel);
         };
         self.queryArgs[self.queryKeys.search] = self.$gridSearch.val();
         self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
@@ -280,8 +277,8 @@ App.ko.Grid = function(selector) {
         $.post(self.pageUrl,
             self.queryArgs,
             function(response) {
-                if (typeof self.queryArgs.get_filters !== 'undefined') {
-                    delete self.queryArgs.get_filters;
+                if (typeof self.queryArgs.load_meta !== 'undefined') {
+                    delete self.queryArgs.load_meta;
                 }
                 App.viewResponse(response, options);
             },
@@ -290,8 +287,11 @@ App.ko.Grid = function(selector) {
         .fail(App.showAjaxError);
     };
 
-    Grid.setPage = function(data) {
+    Grid.setKoPage = function(data) {
         var self = this;
+        if (typeof data.grid_fields !== 'undefined') {
+            self.gridColumns(data.grid_fields);
+        }
         // console.log(data);
         // Set grid rows viewmodels.
         self.gridRows([]);
@@ -299,9 +299,9 @@ App.ko.Grid = function(selector) {
             self.gridRows.push(self.createRow(v));
         });
         // Set grid pagination viewmodels.
-        self.setPaginationModel(data.totalPages, self.queryArgs.page);
+        self.setKoPagination(data.totalPages, self.queryArgs.page);
         if (typeof data.filters !== 'undefined') {
-            self.setGridFilters(data.filters);
+            self.setKoFilters(data.filters);
         }
     };
 
