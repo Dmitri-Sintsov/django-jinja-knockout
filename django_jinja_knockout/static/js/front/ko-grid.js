@@ -1,7 +1,7 @@
 ko.bindingHandlers.grid_filter = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         $(element).on('click', function(ev) {
-            viewModel.setCurrentFilter(valueAccessor().$parent.field, valueAccessor()['value']);
+            viewModel.load();
         });
         /*
         viewModel.$scroller = $(element);
@@ -16,19 +16,25 @@ ko.bindingHandlers.grid_filter = {
     }
 };
 
-App.ko.GridFilter = function(owner) {
-    this.init(owner);
+App.ko.GridFilterChoice = function(options) {
+    this.init(options);
 };
 
-(function (GridFilter) {
+(function (GridFilterChoice) {
 
-    GridFilter.init = function(owner) {
-        this.owner = owner;
-        this.name = name;
-        this.value = value;
+    GridFilterChoice.init = function(options) {
+        this.owner = options.owner;
+        this.field = options.field;
+        this.name = options.name;
+        this.value = options.value;
     };
 
-})(App.ko.GridFilter.prototype);
+    GridFilterChoice.load = function() {
+        this.owner.setQueryFilter(this.field, this.value);
+        this.owner.loadPage();
+    };
+
+})(App.ko.GridFilterChoice.prototype);
 
 App.ko.Grid = function(selector) {
     this.init(selector);
@@ -42,26 +48,28 @@ App.ko.Grid = function(selector) {
             page: 1,
             get_filters: true
         };
-        this.setCurrentFilter();
-        this.setOrderBy();
+        this.setQueryFilter();
+        this.setQueryOrderBy();
     };
 
-    // Supports multiple filters.
-    Grid.setCurrentFilter = function(filter, value) {
-        if (typeof filter === 'undefined') {
-            this.currentFilters = {}
+    // todo: Support multiple values of filters.
+    Grid.setQueryFilter = function(field, value) {
+        if (typeof field === 'undefined') {
+            this.queryFilters = {};
+            return;
         }
-        if (typeof value === 'undefined' && typeof this.currentFilters[filter] !== 'undefined') {
-            delete this.currentFilters[filter];
-        } else {
-            this.currentFilters[filter] = value;
+        if (typeof this.queryFilters[field] !== 'undefined') {
+            delete this.queryFilters[field];
+        }
+        if (typeof value !== 'undefined') {
+            this.queryFilters[field] = value;
         }
     };
 
-    // Supports one order_by (server-side supports multiple order_by).
-    Grid.setOrderBy = function(fieldName, direction) {
+    // todo: Support multiple order_by.
+    Grid.setQueryOrderBy = function(fieldName, direction) {
         if (typeof fieldName == 'undefined') {
-            delete this.queryArgs[this.orderKey];
+            delete this.queryArgs[this.queryKeys.order];
         } else {
             var orderBy = '';
             // Django specific implementation.
@@ -69,7 +77,7 @@ App.ko.Grid = function(selector) {
                 orderBy += '-';
             }
             orderBy += fieldName;
-            this.queryArgs[this.orderKey] = JSON.stringify(orderBy);
+            this.queryArgs[this.queryKeys.order] = JSON.stringify(orderBy);
         }
     };
 
@@ -82,17 +90,18 @@ App.ko.Grid = function(selector) {
 
     Grid.init = function(selector) {
         var self = this;
-        this.filterKey = 'list_filter';
-        this.orderKey = 'list_order_by';
-        this.searchKey = 'list_search';
+        this.queryKeys = {
+            filter: 'list_filter',
+            order:  'list_order_by',
+            search: 'list_search'
+        };
         this.$selector = $(selector);
         this.initAjaxParams();
         this.localize();
         
-        this.all_filters = ko.observableArray();
+        this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
-        this.argsStr = ko.observable();
         ko.applyBindings(this, this.$selector.get(0));
         
         this.$gridSearch = this.$selector.find('.grid-search');
@@ -160,7 +169,7 @@ App.ko.Grid = function(selector) {
             $rowLink.toggleClass('sort-asc sort-desc');
         }
         var direction = $rowLink.hasClass('sort-desc') ? 'desc' : 'asc';
-        self.setOrderBy(orderBy, direction);
+        self.setQueryOrderBy(orderBy, direction);
         self.loadPage();
     };
     
@@ -233,12 +242,26 @@ App.ko.Grid = function(selector) {
         });
     };
 
-    Grid.setFilterModel = function(filterModel) {
+    Grid.setFilterModel = function(filter) {
+        var filterModel = {
+            'name': filter.name,
+            'choices': []
+        };
+        var choices = filter.choices;
+        for (var i = 0; i < choices.length; i++) {
+            filterModel.choices.push(new App.ko.GridFilterChoice({
+                'owner': this,
+                'name': choices[i].name,
+                'value': choices[i].value,
+                'field': filter.field
+            }));
+        }
+        this.gridFilters.push(filterModel);
     };
 
-    Grid.setAllFilters = function(filters) {
+    Grid.setGridFilters = function(filters) {
         for (var i = 0; i < filters.length; i++) {
-            this.all_filters.push(filters[i]);
+            this.setFilterModel(filters[i]);
         }
     };
 
@@ -251,8 +274,8 @@ App.ko.Grid = function(selector) {
         options['after'][self.viewName] = function(viewModel) {
             self.setPage(viewModel);
         };
-        self.queryArgs[self.searchKey] = self.$gridSearch.val();
-        self.queryArgs[self.filterKey] = JSON.stringify(self.currentFilters);
+        self.queryArgs[self.queryKeys.search] = self.$gridSearch.val();
+        self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.pageUrl,
             self.queryArgs,
@@ -278,7 +301,7 @@ App.ko.Grid = function(selector) {
         // Set grid pagination viewmodels.
         self.setPaginationModel(data.totalPages, self.queryArgs.page);
         if (typeof data.filters !== 'undefined') {
-            self.setAllFilters(data.filters);
+            self.setGridFilters(data.filters);
         }
     };
 
