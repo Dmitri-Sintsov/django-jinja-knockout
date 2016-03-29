@@ -1,3 +1,35 @@
+ko.bindingHandlers.grid_filter = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        $(element).on('click', function(ev) {
+            viewModel.setCurrentFilter(valueAccessor().$parent.field, valueAccessor()['value']);
+        });
+        /*
+        viewModel.$scroller = $(element);
+        viewModel.$scroller.scroller('init')
+        .on('scroll:top', function(ev) {
+            viewModel[valueAccessor()['top']]();
+        })
+        .on('scroll:bottom', function(ev) {
+            viewModel[valueAccessor()['bottom']]();
+        });
+        */
+    }
+};
+
+App.ko.GridFilter = function(owner) {
+    this.init(owner);
+};
+
+(function (GridFilter) {
+
+    GridFilter.init = function(owner) {
+        this.owner = owner;
+        this.name = name;
+        this.value = value;
+    };
+
+})(App.ko.GridFilter.prototype);
+
 App.ko.Grid = function(selector) {
     this.init(selector);
 };
@@ -7,20 +39,26 @@ App.ko.Grid = function(selector) {
     Grid.initAjaxParams = function() {
         this.viewName = 'grid_page';
         this.queryArgs = {
-            page: 1
+            page: 1,
+            get_filters: true
         };
-        this.setFilter();
+        this.setCurrentFilter();
         this.setOrderBy();
     };
 
-    Grid.setFilter = function(filter) {
+    // Supports multiple filters.
+    Grid.setCurrentFilter = function(filter, value) {
         if (typeof filter === 'undefined') {
-            delete this.queryArgs[this.filterKey];
+            this.currentFilters = {}
+        }
+        if (typeof value === 'undefined' && typeof this.currentFilters[filter] !== 'undefined') {
+            delete this.currentFilters[filter];
         } else {
-            this.queryArgs[this.filterKey] = JSON.stringify(filter);
+            this.currentFilters[filter] = value;
         }
     };
 
+    // Supports one order_by (server-side supports multiple order_by).
     Grid.setOrderBy = function(fieldName, direction) {
         if (typeof fieldName == 'undefined') {
             delete this.queryArgs[this.orderKey];
@@ -51,6 +89,7 @@ App.ko.Grid = function(selector) {
         this.initAjaxParams();
         this.localize();
         
+        this.all_filters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
         this.argsStr = ko.observable();
@@ -99,6 +138,10 @@ App.ko.Grid = function(selector) {
 
     };
 
+    Grid.createRow = function(row) {
+        return row;
+    };
+
     Grid.onHeaderClick = function(ev) {
         var self = this;
         var $rowLink;
@@ -133,6 +176,10 @@ App.ko.Grid = function(selector) {
         self.loadPage();
     };
     
+    Grid.onRowClick = function($row) {
+        console.log('row: ' + $row);
+    };
+
     Grid.searchSubstring = function(s) {
         var self = this;
         if (typeof s !== 'undefined') {
@@ -186,6 +233,15 @@ App.ko.Grid = function(selector) {
         });
     };
 
+    Grid.setFilterModel = function(filterModel) {
+    };
+
+    Grid.setAllFilters = function(filters) {
+        for (var i = 0; i < filters.length; i++) {
+            this.all_filters.push(filters[i]);
+        }
+    };
+
     /**
      * Get viewmodels data for grid page and grid pagination via ajax-query.
      */
@@ -196,19 +252,19 @@ App.ko.Grid = function(selector) {
             self.setPage(viewModel);
         };
         self.queryArgs[self.searchKey] = self.$gridSearch.val();
+        self.queryArgs[self.filterKey] = JSON.stringify(self.currentFilters);
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.pageUrl,
             self.queryArgs,
             function(response) {
+                if (typeof self.queryArgs.get_filters !== 'undefined') {
+                    delete self.queryArgs.get_filters;
+                }
                 App.viewResponse(response, options);
             },
             'json'
         )
         .fail(App.showAjaxError);
-    };
-
-    Grid.createRow = function(row) {
-        return row;
     };
 
     Grid.setPage = function(data) {
@@ -221,10 +277,9 @@ App.ko.Grid = function(selector) {
         });
         // Set grid pagination viewmodels.
         self.setPaginationModel(data.totalPages, self.queryArgs.page);
+        if (typeof data.filters !== 'undefined') {
+            self.setAllFilters(data.filters);
+        }
     };
 
-    Grid.onRowClick = function($row) {
-        console.log('row: ' + $row);
-    };
-    
 })(App.ko.Grid.prototype);

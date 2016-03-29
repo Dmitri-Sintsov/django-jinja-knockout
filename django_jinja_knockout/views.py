@@ -356,8 +356,7 @@ class BaseFilterView(View):
             return queryset.filter(**self.current_list_filter)
 
     def search_queryset(self, queryset):
-        sf_len = len(self.__class__.search_fields)
-        if self.current_search_str == '' or sf_len == 0:
+        if self.current_search_str == '' or len(self.__class__.search_fields) == 0:
             return queryset
         else:
             q = None
@@ -595,12 +594,16 @@ class KoGridView(BaseFilterView, ViewmodelView):
             message=message.format(*args, **kwargs)
         )
 
+    def dispatch(self, request, *args, **kwargs):
+        self.model_class = self.get_base_queryset().model
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.__class__.context_object_name is not None:
             from .models import get_meta
             context['get_meta'] = get_meta
-            context[self.__class__.context_object_name] = self.get_base_queryset().model
+            context[self.__class__.context_object_name] = self.model_class
         return context
 
     def get_rows(self):
@@ -619,11 +622,27 @@ class KoGridView(BaseFilterView, ViewmodelView):
         return qs[first_elem:last_elem].values(*self.__class__.grid_fields)
 
     def get_viewmodel(self, rows):
-        return {
+        vm = {
             'view': self.__class__.view_name,
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
+        if self.request_get('get_filters', False):
+            vm_filters = []
+            for fieldname, choices in self.__class__.allowed_filter_fields.items():
+                vm_choices = []
+                for value, name in choices:
+                    vm_choices.append({
+                        'value': value,
+                        'name': name
+                    })
+                vm_filters.append({
+                    'field': fieldname,
+                    'name': get_verbose_name(self.model_class, fieldname),
+                    'choices': vm_choices
+                })
+            vm['filters'] = vm_filters
+        return vm
 
     def post(self, request, *args, **kwargs):
         return self.get_viewmodel(
