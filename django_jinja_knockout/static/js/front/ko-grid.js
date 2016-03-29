@@ -209,7 +209,7 @@ App.ko.Grid = function(selector) {
     };
 
     Grid.setKoGridColumns = function(grid_fields) {
-        for (var i = 0; i < grid_fields.length; i++) {
+        for (var i = grid_fields.length - 1; i >= 0; i--) {
             this.gridColumns.push(new App.ko.GridColumnOrder({
                 'field': grid_fields[i]['field'],
                 'name': grid_fields[i]['name'],
