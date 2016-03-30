@@ -1,6 +1,6 @@
 from .utils import sdv
 from django.conf import settings
-from django.utils.html import format_html, force_text, escape
+from django.utils.html import format_html, force_text, escape, mark_safe
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from django.forms.utils import flatatt
@@ -66,6 +66,7 @@ class TemplateContextProcessor():
             'force_text': force_text,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
+            'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
             'raise': raise_helper,

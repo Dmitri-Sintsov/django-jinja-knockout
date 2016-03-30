@@ -17,7 +17,7 @@ from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
-from .models import get_verbose_name
+from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
 from .viewmodels import vm_list
 
@@ -354,6 +354,7 @@ class BaseFilterView(View):
             return queryset
         else:
             kw_filter = {}
+            # Transparently convert array values into '__in' clause.
             for field, val in self.current_list_filter.items():
                 if type(val) is list:
                     kw_filter['{}__in'.format(field)] = val
@@ -609,14 +610,6 @@ class KoGridView(BaseFilterView, ViewmodelView):
                 self.grid_fields.append(field.name)
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.__class__.context_object_name is not None:
-            from .models import get_meta
-            context['get_meta'] = get_meta
-            context[self.__class__.context_object_name] = self.model_class
-        return context
-
     # One may add new related / calculated fields, for example.
     def postprocess_row(self, row):
         return row
@@ -645,6 +638,12 @@ class KoGridView(BaseFilterView, ViewmodelView):
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
         if self.request_get('load_meta', False):
+            vm.update({
+                'model' : {
+                    'verboseName': get_verbose_name(self.model_class),
+                    'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
+                }
+            })
             vm_grid_fields = []
             for field in self.__class__.grid_fields:
                 vm_grid_fields.append({

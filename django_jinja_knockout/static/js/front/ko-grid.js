@@ -78,6 +78,7 @@ App.ko.GridFilterChoice = function(options) {
         } else {
             this.owner.removeQueryFilters(this);
         }
+        this.owner.owner.queryArgs.page = 1;
         this.owner.owner.loadPage();
     };
 
@@ -186,6 +187,10 @@ App.ko.Grid = function(selector) {
         this.initAjaxParams();
         this.localize();
 
+        this.model = {
+            verboseName: ko.observable(''),
+            verboseNamePlural: ko.observable('')
+        };
         this.gridColumns = ko.observableArray();
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
@@ -451,6 +456,11 @@ App.ko.Grid = function(selector) {
 
     Grid.setKoPage = function(data) {
         var self = this;
+        if (typeof data.model !== 'undefined') {
+            $.each(data.model, function(k, v) {
+                self.model[k](v);
+            });
+        }
         if (typeof data.grid_fields !== 'undefined') {
             self.setKoGridColumns(data.grid_fields);
         }
