@@ -38,7 +38,7 @@ App.ko.GridColumnOrder = function(options) {
         this.$element.addClass('sort-inactive');
     };
 
-    GridColumnOrder.switchOrder = function(ev) {
+    GridColumnOrder.switchOrder = function() {
         this.owner.deactivateAllSorting(this);
         if (this.$element.hasClass('sort-inactive')) {
             this.$element.removeClass('sort-inactive');
@@ -68,14 +68,16 @@ App.ko.GridFilterChoice = function(options) {
         this.owner = options.owner;
         this.name = options.name;
         this.value = options.value;
-        this.is_active = ko.observable(false);
+        this.is_active = ko.observable(options.is_active);
     };
 
-    GridFilterChoice.loadFilter = function(ev) {
-        this.owner.deactivateAllFilters();
-        this.is_active(true);
-        this.owner.current_name(this.name);
-        this.owner.owner.setQueryFilter(this.owner.field, this.value);
+    GridFilterChoice.loadFilter = function() {
+        this.owner.switchKoFilters(this);
+        if (this.is_active()) {
+            this.owner.activateQueryFilters(this);
+        } else {
+            this.owner.removeQueryFilters(this);
+        }
         this.owner.owner.loadPage();
     };
 
@@ -95,10 +97,58 @@ App.ko.GridFilter = function(options) {
         this.current_name = ko.observable('');
     };
 
-    GridFilter.deactivateAllFilters = function() {
-        for (var i = 0; i < this.choices.length; i++) {
-            this.choices[i].is_active(false);
+    GridFilter.switchKoFilters = function(currentChoice) {
+        if (currentChoice.value === null) {
+            // Special 'all' value, deactivate all filters except current one.
+            for (var i = 0; i < this.choices.length; i++) {
+                this.choices[i].is_active(false);
+            }
+            currentChoice.is_active(true);
+        } else {
+            // Switch current filter.
+            currentChoice.is_active(!currentChoice.is_active());
+            // Check whether all filters are active except for reset all filter.
+            var totalActive = 0;
+            var resetFilter = null
+            for (var i = 0; i < this.choices.length; i++) {
+                if (this.choices[i].value === null) {
+                    resetFilter = this.choices[i];
+                } else if (this.choices[i].is_active()) {
+                    totalActive++;
+                }
+            }
+            if (resetFilter !== null) {
+                if (totalActive === this.choices.length - 1) {
+                    // All filters are active. Activate (highlight) reset all filter instead.
+                    for (var i = 0; i < this.choices.length; i++) {
+                        if (this.choices[i].value !== null) {
+                            this.choices[i].is_active(false);
+                        }
+                    }
+                    resetFilter.is_active(true);
+                } else if (totalActive === 0) {
+                    // No active filters means that reset filter must be highlighted (activated).
+                    resetFilter.is_active(true);
+                } else {
+                    // Only some of the filters are active. Deactivate reset all filter.
+                    resetFilter.is_active(false);
+                }
+            }
         }
+    };
+
+    GridFilter.activateQueryFilters = function(currentChoice) {
+        if (currentChoice.value === null) {
+            // Special reset all filters filter.
+            this.owner.removeQueryFilter(this.field);
+        } else {
+            // Add current value to query filter.
+            this.owner.addQueryFilter(this.field, currentChoice.value);
+        }
+    };
+
+    GridFilter.removeQueryFilters = function(currentChoice) {
+        this.owner.removeQueryFilter(this.field, currentChoice.value);
     };
 
 })(App.ko.GridFilter.prototype);
@@ -126,7 +176,7 @@ App.ko.Grid = function(selector) {
             page: 1,
             load_meta: true
         };
-        this.setQueryFilter();
+        this.removeQueryFilter();
         this.setQueryOrderBy();
     };
 
@@ -178,17 +228,37 @@ App.ko.Grid = function(selector) {
 
     };
 
-    // todo: Support multiple values of filters.
-    Grid.setQueryFilter = function(field, value) {
+    // Supports multiple values of filter.
+    Grid.addQueryFilter = function(field, value) {
+        if (typeof this.queryFilters[field] === 'undefined') {
+            // Single value.
+            this.queryFilters[field] = value;
+        } else if (this.queryFilters[field] !== value) {
+            if (!_.isArray(this.queryFilters[field])) {
+                // Convert single value into array of values.
+                this.queryFilters[field] = [this.queryFilters[field]];
+            }
+            if (_.find(this.queryFilters[field], function(val) { return val === value; }) === undefined) {
+                // Multiple values: 'field__in' at server-side.
+                this.queryFilters[field].push(value);
+            }
+        }
+    };
+
+    // Supports multiple values of filter.
+    Grid.removeQueryFilter = function(field, value) {
         if (typeof field === 'undefined') {
             this.queryFilters = {};
             return;
         }
         if (typeof this.queryFilters[field] !== 'undefined') {
-            delete this.queryFilters[field];
-        }
-        if (typeof value !== 'undefined') {
-            this.queryFilters[field] = value;
+            if (_.isArray(this.queryFilters[field]) && typeof value !== 'undefined') {
+                this.queryFilters[field] = _.filter(this.queryFilters[field], function(val) {
+                    return val !== value;
+                });
+            } else {
+                delete this.queryFilters[field];
+            }
         }
     };
 
@@ -275,6 +345,7 @@ App.ko.Grid = function(selector) {
             'owner': filterModel,
             'name': choice.name,
             'value': choice.value,
+            'is_active': (typeof choice.is_active) === 'undefined' ? false : choice.is_active
         });
     };
 
@@ -288,6 +359,9 @@ App.ko.Grid = function(selector) {
 
     Grid.setKoFilter = function(filter) {
         var filterModel = this.iocKoFilter(filter);
+        filterModel.choices.push(
+            this.iocKoFilterChoice(filterModel, {'name': App.trans('All'), 'value': null, 'is_active': true})
+        );
         var choices = filter.choices;
         for (var i = 0; i < choices.length; i++) {
             filterModel.choices.push(

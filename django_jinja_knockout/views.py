@@ -353,7 +353,13 @@ class BaseFilterView(View):
         if self.current_list_filter is None:
             return queryset
         else:
-            return queryset.filter(**self.current_list_filter)
+            kw_filter = {}
+            for field, val in self.current_list_filter.items():
+                if type(val) is list:
+                    kw_filter['{}__in'.format(field)] = val
+                else:
+                    kw_filter[field] = val
+            return queryset.filter(**kw_filter)
 
     def search_queryset(self, queryset):
         if self.current_search_str == '' or len(self.__class__.search_fields) == 0:
