@@ -66,17 +66,42 @@ App.ko.GridFilterChoice = function(options) {
     GridFilterChoice.init = function(options) {
         this.$element = null;
         this.owner = options.owner;
-        this.field = options.field;
         this.name = options.name;
         this.value = options.value;
+        this.is_active = ko.observable(false);
     };
 
     GridFilterChoice.loadFilter = function(ev) {
-        this.owner.setQueryFilter(this.field, this.value);
-        this.owner.loadPage();
+        this.owner.deactivateAllFilters();
+        this.is_active(true);
+        this.owner.current_name(this.name);
+        this.owner.owner.setQueryFilter(this.owner.field, this.value);
+        this.owner.owner.loadPage();
     };
 
 })(App.ko.GridFilterChoice.prototype);
+
+App.ko.GridFilter = function(options) {
+    this.init(options);
+};
+
+(function(GridFilter) {
+
+    GridFilter.init = function(options) {
+        this.owner =  options.owner;
+        this.field = options.field;
+        this.name = options.name;
+        this.choices = [];
+        this.current_name = ko.observable('');
+    };
+
+    GridFilter.deactivateAllFilters = function() {
+        for (var i = 0; i < this.choices.length; i++) {
+            this.choices[i].is_active(false);
+        }
+    };
+
+})(App.ko.GridFilter.prototype);
 
 /**
  * AJAX Grid powered by Knockout.js.
@@ -245,24 +270,28 @@ App.ko.Grid = function(selector) {
         }
     };
 
-    Grid.iocKoFilterChoice = function(field, choice) {
+    Grid.iocKoFilterChoice = function(filterModel, choice) {
         return new App.ko.GridFilterChoice({
-            'owner': this,
+            'owner': filterModel,
             'name': choice.name,
             'value': choice.value,
-            'field': field
+        });
+    };
+
+    Grid.iocKoFilter = function(filter) {
+        return new App.ko.GridFilter({
+            'owner': this,
+            'field': filter.field,
+            'name': filter.name,
         });
     };
 
     Grid.setKoFilter = function(filter) {
-        var filterModel = {
-            'name': filter.name,
-            'choices': []
-        };
+        var filterModel = this.iocKoFilter(filter);
         var choices = filter.choices;
         for (var i = 0; i < choices.length; i++) {
             filterModel.choices.push(
-                this.iocKoFilterChoice(filter.field, choices[i])
+                this.iocKoFilterChoice(filterModel, choices[i])
             );
         }
         this.gridFilters.push(filterModel);
