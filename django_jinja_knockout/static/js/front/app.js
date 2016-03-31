@@ -147,8 +147,13 @@ App.Dialog = function(options) {
         }
     };
 
-    Dialog.createDialogContent = function(ev) {
-        return $('sample content');
+    Dialog.createDialogContent = function() {
+        if (typeof this.dialogOptions.template !== 'undefined') {
+            var tpl = document.getElementById(this.dialogOptions.template);
+            return $($(tpl).html());
+        } else {
+            return $('sample content');
+        }
     };
 
     Dialog.recreateContent = function() {

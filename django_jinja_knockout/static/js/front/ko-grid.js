@@ -478,3 +478,34 @@ App.ko.Grid = function(selector) {
     };
 
 })(App.ko.Grid.prototype);
+
+/**
+ * BootstrapDialog that incorporates App.ko.Grid descendant instance bound to it's content (this.dialog.message).
+ */
+App.GridDialog = function(options) {
+    $.inherit(App.Dialog.prototype, this);
+    if (typeof options !== 'object') {
+        options = {};
+    }
+    if (typeof options.koGridClass === 'undefined') {
+        throw "App.GridDialog requires initial koGridClass option."
+    }
+    if (typeof options.template === 'undefined') {
+        options.template = 'ko_grid';
+    }
+    this.create(options);
+};
+
+(function(GridDialog) {
+
+    GridDialog.iocKoGrid = function(message) {
+        return new this.dialogOptions.koGridClass(message);
+    };
+
+    GridDialog.onShown = function() {
+        this.grid = this.iocKoGrid(this.dialogOptions.message);
+        this.grid.searchSubstring();
+    };
+
+})(App.GridDialog.prototype);
+
