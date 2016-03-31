@@ -292,7 +292,7 @@ App.ko.Grid = function(selector) {
     /**
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
-    Grid.createRow = function(row) {
+    Grid.iocRow = function(row) {
         return row;
     };
 
@@ -468,7 +468,7 @@ App.ko.Grid = function(selector) {
         // Set grid rows viewmodels.
         self.gridRows([]);
         $.each(data.entries, function(k, v) {
-            self.gridRows.push(self.createRow(v));
+            self.gridRows.push(self.iocRow(v));
         });
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);

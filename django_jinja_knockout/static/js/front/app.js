@@ -639,11 +639,28 @@ App.dialogButton = function($selector) {
     });
 };
 
+/**
+ * Does not use html5 <template> tag because IE lower than Edge do not support it.
+ * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
+ */
+App.loadTemplates = function($selector) {
+    var templates = {};
+    $.each($selector.findSelf('[data-use-template]'), function(k, v) {
+        var tplId = $(v).attr('data-use-template');
+        if (typeof templates[tplId] === 'undefined') {
+            var tpl = document.getElementById(tplId);
+            templates[tplId] = $(tpl).html();
+        }
+        $(v).html(templates[tplId]);
+    });
+};
+
 App.initClientHooks = [];
 
 // @note: Do not forget to call this method for newly loaded AJAX DOM.
 App.initClient = function(selector) {
     var $selector = App.getSelector(selector);
+    App.loadTemplates($selector);
     $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
     App.SelectMultipleAutoSize($selector);
     App.datetimewidget($selector);
