@@ -79,7 +79,7 @@ App.ko.GridFilterChoice = function(options) {
     };
 
     GridFilterChoice.loadFilter = function(ev) {
-        this.owner.switchKoFilters(this, ev);
+        this.owner.switchKoFilterChoices(this, ev);
         if (this.is_active()) {
             this.owner.activateQueryFilters(this);
         } else {
@@ -119,19 +119,19 @@ App.ko.GridFilter = function(options) {
         */
     };
 
-    GridFilter.switchKoFilters = function(currentChoice, ev) {
+    GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
         if (currentChoice.value === null) {
-            // Special 'all' value, deactivate all filters except current one.
+            // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
                 this.choices[i].is_active(false);
             }
             currentChoice.is_active(true);
         } else {
-            // Do not close dropdown for toggleable filters.
+            // Do not close dropdown for toggleable filter choices.
             ev.stopPropagation();
-            // Switch current filter.
+            // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
-            // Check whether all filters are active except for reset all filter.
+            // Check whether all filter choices are active except for 'reset all choice'.
             var totalActive = 0;
             var resetFilter = null
             for (var i = 0; i < this.choices.length; i++) {
@@ -143,7 +143,7 @@ App.ko.GridFilter = function(options) {
             }
             if (resetFilter !== null) {
                 if (totalActive === this.choices.length - 1) {
-                    // All filters are active. Activate (highlight) reset all filter instead.
+                    // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
                     for (var i = 0; i < this.choices.length; i++) {
                         if (this.choices[i].value !== null) {
                             this.choices[i].is_active(false);
@@ -151,10 +151,10 @@ App.ko.GridFilter = function(options) {
                     }
                     resetFilter.is_active(true);
                 } else if (totalActive === 0) {
-                    // No active filters means that reset filter must be highlighted (activated).
+                    // No active filter choices means that 'reset all choice' must be highlighted (activated).
                     resetFilter.is_active(true);
                 } else {
-                    // Only some of the filters are active. Deactivate reset all filter.
+                    // Only some of the filter choices are active. Deactivate 'reset all choice'.
                     resetFilter.is_active(false);
                 }
             }
