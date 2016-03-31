@@ -1,0 +1,61 @@
+<script type="text/template" id="ko_grid">
+	<div class="panel panel-primary">
+		<div class="panel-body">
+            <% if (typeof(show_title) !== "undefined") { %>
+            <div data-bind="text: model.verboseNamePlural" class="h3"></div>
+            <% } %>
+            <nav class="nav navbar navbar-default">
+                <div class="container-fluid grid-controls">
+                    <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
+                        <li class="dropdown">
+                            <a aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <span data-bind="text: name"></span> <b class="caret"></b>
+                                <div data-bind="visible: current_name() != '', text: current_name()"></div>
+                            </a>
+                            <ul data-bind="foreach: choices" class="dropdown-menu">
+                                <li data-bind="css: {active: is_active()}">
+                                    <a data-bind="text: name, grid_filter" href="#"></a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input class="form-control grid-search" type="search" placeholder="Поиск по ФИО">
+                        </div>
+                        <button class="btn btn-default grid-search-reset">Очистить</button>
+                    </form>
+                </div>
+            </nav>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover grid">
+                    <thead>
+                        <tr data-bind="foreach: gridColumns">
+                            <th>
+                                <a data-bind="text: name, grid_order_by" class="halflings-before sort-inactive" name="#"></a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: gridRows">
+                        <tr data-bind="foreach: $parent.gridColumns">
+                            <td data-bind="text: $parent[field], attr: {index: $index}, css: {success: ($index() & 1) == 0, info: ($index() & 1) == 1}"></td>
+                        </tr>
+                    </tbody>
+                    <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
+                        {{ _(
+                            'No %(verbose_name)s found matching the query',
+                            verbose_name=mark_safe('<span data-bind="text:model.verboseName"></span>'
+                            )) }}.
+                    </div>
+                </table>
+            </div>
+			<div class="pagination-wrapper default-padding">
+				<ul data-bind="foreach: gridPages" class="pagination">
+					<li data-bind="css:{active: isActive}">
+						<a data-bind="text:title, attr:{'data-page-number': pageNumber}" name="#"></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</script>

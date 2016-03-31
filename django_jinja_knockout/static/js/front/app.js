@@ -147,10 +147,15 @@ App.Dialog = function(options) {
         }
     };
 
+    Dialog.getTemplateArgs = function() {
+        return {};
+    };
+
     Dialog.createDialogContent = function() {
         if (typeof this.dialogOptions.template !== 'undefined') {
             var tpl = document.getElementById(this.dialogOptions.template);
-            return $($(tpl).html());
+            var compiled = _.template($(tpl).html());
+            return $(compiled(this.getTemplateArgs()));
         } else {
             return $('sample content');
         }
@@ -650,13 +655,19 @@ App.dialogButton = function($selector) {
  */
 App.loadTemplates = function($selector) {
     var templates = {};
-    $.each($selector.findSelf('[data-use-template]'), function(k, v) {
-        var tplId = $(v).attr('data-use-template');
+    $.each($selector.findSelf('[data-template-id]'), function(k, v) {
+        var tplId = $(v).attr('data-template-id');
         if (typeof templates[tplId] === 'undefined') {
             var tpl = document.getElementById(tplId);
-            templates[tplId] = $(tpl).html();
+            templates[tplId] = _.template(
+                $(tpl).html()
+            );
         }
-        $(v).html(templates[tplId]);
+        var tplArgs = $(v).data('templateArgs');
+        if (typeof tplArgs !== 'object') {
+            tplArgs = {};
+        }
+        $(v).html(templates[tplId](tplArgs));
     });
 };
 

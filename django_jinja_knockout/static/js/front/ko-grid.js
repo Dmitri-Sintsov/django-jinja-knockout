@@ -158,8 +158,8 @@ App.ko.GridFilter = function(options) {
  * AJAX Grid powered by Knockout.js.
  */
 
-App.ko.Grid = function(selector) {
-    this.init(selector);
+App.ko.Grid = function(options) {
+    this.init(options);
 };
 
 (function(Grid) {
@@ -181,9 +181,11 @@ App.ko.Grid = function(selector) {
         this.setQueryOrderBy();
     };
 
-    Grid.init = function(selector) {
+    Grid.init = function(options) {
         var self = this;
-        this.$selector = $(selector);
+        var fullOptions = $.extend({owner: null}, options);
+        this.owner = fullOptions.owner;
+        this.$selector = $(fullOptions.selector);
         this.initAjaxParams();
         this.localize();
 
@@ -454,12 +456,19 @@ App.ko.Grid = function(selector) {
         .fail(App.showAjaxError);
     };
 
+    /**
+     * Used in App.GridDialog to display title outside of message template.
+     */
+    Grid.ownerSetTitle = function(verboseNamePlural) {
+    };
+
     Grid.setKoPage = function(data) {
         var self = this;
         if (typeof data.model !== 'undefined') {
             $.each(data.model, function(k, v) {
                 self.model[k](v);
             });
+            this.ownerSetTitle(data.model.verboseNamePlural);
         }
         if (typeof data.grid_fields !== 'undefined') {
             self.setKoGridColumns(data.grid_fields);
@@ -499,7 +508,16 @@ App.GridDialog = function(options) {
 (function(GridDialog) {
 
     GridDialog.iocKoGrid = function(message) {
-        return new this.dialogOptions.koGridClass(message);
+        var grid = new this.dialogOptions.koGridClass({
+            selector: message, owner: this
+        });
+        grid.ownerSetTitle = _.bind(
+            function(verboseNamePlural) {
+                this.owner.setTitle(verboseNamePlural);
+            },
+            grid
+        );
+        return grid;
     };
 
     GridDialog.onShown = function() {
