@@ -55,3 +55,6 @@ msgstr "В начало"
 
 msgid "Last page"
 msgstr "В конец"
+
+msgid "All"
+msgstr "Все"

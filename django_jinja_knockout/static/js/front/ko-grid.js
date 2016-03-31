@@ -1,8 +1,15 @@
+// todo: http://knockoutjs.com/documentation/custom-bindings-disposal.html
 ko.bindingHandlers.grid_filter = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        viewModel.setDropdown($(element));
+    }
+};
+
+ko.bindingHandlers.grid_filter_choice = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.$element = $(element);
         $(element).on('click', function(ev) {
-            return viewModel.loadFilter();
+            return viewModel.loadFilter(ev);
         });
     }
 };
@@ -71,8 +78,8 @@ App.ko.GridFilterChoice = function(options) {
         this.is_active = ko.observable(options.is_active);
     };
 
-    GridFilterChoice.loadFilter = function() {
-        this.owner.switchKoFilters(this);
+    GridFilterChoice.loadFilter = function(ev) {
+        this.owner.switchKoFilters(this, ev);
         if (this.is_active()) {
             this.owner.activateQueryFilters(this);
         } else {
@@ -91,6 +98,7 @@ App.ko.GridFilter = function(options) {
 (function(GridFilter) {
 
     GridFilter.init = function(options) {
+        this.$dropdown = null;
         this.owner =  options.owner;
         this.field = options.field;
         this.name = options.name;
@@ -98,7 +106,20 @@ App.ko.GridFilter = function(options) {
         this.current_name = ko.observable('');
     };
 
-    GridFilter.switchKoFilters = function(currentChoice) {
+    GridFilter.setDropdown = function($element) {
+        var self = this;
+        this.$dropdown = $element;
+        /*
+        // Example of custom events.
+        this.$dropdown.on({
+            "hide.bs.dropdown": function(ev) {
+                return true;
+            }
+        });
+        */
+    };
+
+    GridFilter.switchKoFilters = function(currentChoice, ev) {
         if (currentChoice.value === null) {
             // Special 'all' value, deactivate all filters except current one.
             for (var i = 0; i < this.choices.length; i++) {
@@ -106,6 +127,8 @@ App.ko.GridFilter = function(options) {
             }
             currentChoice.is_active(true);
         } else {
+            // Do not close dropdown for toggleable filters.
+            ev.stopPropagation();
             // Switch current filter.
             currentChoice.is_active(!currentChoice.is_active());
             // Check whether all filters are active except for reset all filter.
