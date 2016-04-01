@@ -1,25 +1,26 @@
 // todo: http://knockoutjs.com/documentation/custom-bindings-disposal.html
+
+ko.bindingHandlers.grid_row = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        viewModel.setRowElement($(element));
+    }
+};
+
 ko.bindingHandlers.grid_filter = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.setDropdown($(element));
+        viewModel.setDropdownElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_filter_choice = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.$element = $(element);
-        $(element).on('click', function(ev) {
-            return viewModel.loadFilter(ev);
-        });
+        viewModel.setLinkElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_order_by = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.$element = $(element);
-        $(element).on('click', function(ev) {
-            return viewModel.switchOrder();
-        });
+        viewModel.setSwitchElement($(element));
     }
 };
 
@@ -34,26 +35,38 @@ App.ko.GridColumnOrder = function(options) {
 (function(GridColumnOrder) {
 
     GridColumnOrder.init = function(options) {
-        this.$element = null;
+        this.$switch = null;
         this.owner = options.owner;
         this.field = options.field;
         this.name = options.name;
     };
 
+    GridColumnOrder.setSwitchElement = function($element) {
+        var self = this;
+        this.$switch = $element;
+        this.$switch.on('click', function(ev) {
+            return self.switchOrder();
+        });
+    };
+
+    GridColumnOrder.is = function(anotherOrder) {
+        return this.$switch.is(anotherOrder.$switch);
+    };
+
     GridColumnOrder.deactivate = function() {
-        this.$element.removeClass('sort-desc sort-asc');
-        this.$element.addClass('sort-inactive');
+        this.$switch.removeClass('sort-desc sort-asc');
+        this.$switch.addClass('sort-inactive');
     };
 
     GridColumnOrder.switchOrder = function() {
         this.owner.deactivateAllSorting(this);
-        if (this.$element.hasClass('sort-inactive')) {
-            this.$element.removeClass('sort-inactive');
-            this.$element.addClass('sort-asc');
+        if (this.$switch.hasClass('sort-inactive')) {
+            this.$switch.removeClass('sort-inactive');
+            this.$switch.addClass('sort-asc');
         } else {
-            this.$element.toggleClass('sort-asc sort-desc');
+            this.$switch.toggleClass('sort-asc sort-desc');
         }
-        var direction = this.$element.hasClass('sort-desc') ? 'desc' : 'asc';
+        var direction = this.$switch.hasClass('sort-desc') ? 'desc' : 'asc';
         this.owner.setQueryOrderBy(this.field, direction);
         this.owner.loadPage();
     };
@@ -61,7 +74,7 @@ App.ko.GridColumnOrder = function(options) {
 })(App.ko.GridColumnOrder.prototype);
 
 /**
- * Grid filtering control.
+ * Grid filter choice control.
  */
 
 App.ko.GridFilterChoice = function(options) {
@@ -71,11 +84,19 @@ App.ko.GridFilterChoice = function(options) {
 (function (GridFilterChoice) {
 
     GridFilterChoice.init = function(options) {
-        this.$element = null;
+        this.$link = null;
         this.owner = options.owner;
         this.name = options.name;
         this.value = options.value;
         this.is_active = ko.observable(options.is_active);
+    };
+
+    GridFilterChoice.setLinkElement = function($element) {
+        var self = this;
+        this.$link = $element;
+        this.$link.on('click', function(ev) {
+            return self.loadFilter(ev);
+        });
     };
 
     GridFilterChoice.loadFilter = function(ev) {
@@ -90,6 +111,10 @@ App.ko.GridFilterChoice = function(options) {
     };
 
 })(App.ko.GridFilterChoice.prototype);
+
+/**
+ * Grid filter control. Contains multiple App.ko.GridFilterChoice instances or their descendants.
+ */
 
 App.ko.GridFilter = function(options) {
     this.init(options);
@@ -106,7 +131,7 @@ App.ko.GridFilter = function(options) {
         this.current_name = ko.observable('');
     };
 
-    GridFilter.setDropdown = function($element) {
+    GridFilter.setDropdownElement = function($element) {
         var self = this;
         this.$dropdown = $element;
         /*
@@ -178,6 +203,58 @@ App.ko.GridFilter = function(options) {
 })(App.ko.GridFilter.prototype);
 
 /**
+ * Single row of grid ko viewmodel.
+ */
+App.ko.GridRow = function(options) {
+    this.init(options);
+};
+
+(function(GridRow) {
+
+    GridRow.init = function(options) {
+        this.$row = null;
+        this.owner = options.owner;
+        // Descendant could make observable values.
+        this.values = options.values;
+    };
+
+    GridRow.onClick = function() {
+        this.owner.onRowClick(this);
+    };
+
+    GridRow.setRowElement = function($element) {
+        var self = this;
+        this.$row = $element;
+        this.$row.on('click', function(ev) {
+            self.onClick();
+        });
+    };
+
+})(App.ko.GridRow.prototype);
+
+/**
+ * Pagination link ko model.
+ */
+App.ko.GridPage = function(options) {
+    this.init(options);
+};
+
+(function(GridPage) {
+
+    GridPage.init = function(options) {
+        this.owner = options.owner;
+        this.isActive = options.isActive;
+        this.title = options.title,
+        this.pageNumber = options.pageNumber;
+    };
+
+    GridPage.onPagination = function() {
+        this.owner.onPagination(this.pageNumber);
+    };
+
+})(App.ko.GridPage.prototype);
+
+/**
  * AJAX Grid powered by Knockout.js.
  */
 
@@ -233,19 +310,6 @@ App.ko.Grid = function(options) {
         this.$selector.find('.grid-search-reset').on('click', function(ev) {
             ev.preventDefault();
             self.searchSubstring('');
-        });
-
-        // Click grid row event.
-        this.$selector.find('table.grid > tbody').on('click', '> tr', function(ev) {
-            ev.stopImmediatePropagation();
-            var $target = $(ev.target).closest('table.grid > tbody > tr');
-            self.onRowClick($target);
-        });
-
-        // Grid pagination (change page) event.
-        this.$selector.on('click', '.pagination a[data-page-number]', function(ev) {
-            ev.stopImmediatePropagation();
-            self.onPagination(ev);
         });
 
         /*
@@ -318,29 +382,35 @@ App.ko.Grid = function(options) {
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
     Grid.iocRow = function(row) {
-        return row;
+        return new App.ko.GridRow({
+            owner: this,
+            values: row
+        });
     };
 
-    Grid.onPagination = function(ev) {
+    Grid.onPagination = function(page) {
         var self = this;
-        self.queryArgs.page = parseInt($(ev.target).attr('data-page-number'));
+        self.queryArgs.page = parseInt(page);
         if (isNaN(self.queryArgs.page)) {
             self.queryArgs.page = 1;
         }
+        /*
         $(ev.target)
             .parents(self.$selector.get(0))
             .find('div.table-responsive').scrollTop(0);
+        */
         self.loadPage();
     };
     
-    Grid.onRowClick = function($row) {
-        console.log('row: ' + $row);
+    Grid.onRowClick = function(koRow) {
+        // console.log('koRow: ' + JSON.stringify(koRow));
+        console.log('values: ' + JSON.stringify(koRow.values));
     };
 
-    Grid.deactivateAllSorting = function(exceptColumn) {
-        $.each(this.gridColumns(), function(k, v) {
-            if (! v.$element.is(exceptColumn.$element)) {
-                v.deactivate();
+    Grid.deactivateAllSorting = function(exceptOrder) {
+        $.each(this.gridColumns(), function(k, order) {
+            if (!order.is(exceptOrder)) {
+                order.deactivate();
             }
         });
     };
@@ -410,6 +480,11 @@ App.ko.Grid = function(options) {
         }
     };
 
+    Grid.iocGridPage = function(options) {
+        options.owner = this;
+        return new App.ko.GridPage(options);
+    };
+
     /**
      * Setup pagination viewmodel.
      */
@@ -422,36 +497,44 @@ App.ko.Grid = function(options) {
         if (startingPage < 1) {
             startingPage = 1;
         }
-        self.gridPages.push({
-            'isActive': false /* (1 === currPage) */,
-            'title': self.local.toBegin,
-            'pageNumber': 1
-        });
+        self.gridPages.push(
+            this.iocGridPage({
+                'isActive': false /* (1 === currPage) */,
+                'title': self.local.toBegin,
+                'pageNumber': 1
+            })
+        );
         for (var i = startingPage; i <= totalPages; i++) {
             if (!hasFoldingPage &&
                     totalPages - startingPage - maxVisiblePages > 2 &&
                     (i === startingPage + maxVisiblePages + 1)
                 ) {
                 // folding page
-                self.gridPages.push({
-                    'isActive': (i === currPage),
-                    'title': '...',
-                    'pageNumber':  i
-                });
+                self.gridPages.push(
+                    this.iocGridPage({
+                        'isActive': (i === currPage),
+                        'title': '...',
+                        'pageNumber':  i
+                    })
+                );
                 hasFoldingPage = true;
                 i = totalPages;
             }
-            self.gridPages.push({
-                'isActive': (i === currPage),
-                'title': i,
-                'pageNumber':  i
-            });
+            self.gridPages.push(
+                this.iocGridPage({
+                    'isActive': (i === currPage),
+                    'title': i,
+                    'pageNumber':  i
+                })
+            );
         }
-        self.gridPages.push({
-            'isActive': false /* (totalPages === currPage) */,
-            'title': this.local.toEnd,
-            'pageNumber': totalPages
-        });
+        self.gridPages.push(
+            this.iocGridPage({
+                'isActive': false /* (totalPages === currPage) */,
+                'title': this.local.toEnd,
+                'pageNumber': totalPages
+            })
+        );
     };
 
     /**

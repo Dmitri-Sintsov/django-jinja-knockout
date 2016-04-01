@@ -37,8 +37,8 @@
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: gridRows">
-                        <tr data-bind="foreach: $parent.gridColumns">
-                            <td data-bind="text: $parent[field], attr: {index: $index}, css: {success: ($index() & 1) == 0, info: ($index() & 1) == 1}"></td>
+                        <tr class="pointer" data-bind="grid_row, foreach: $parent.gridColumns">
+                            <td data-bind="text: $parent.values[field], attr: {index: $index}, css: {success: ($index() & 1) == 0, info: ($index() & 1) == 1}"></td>
                         </tr>
                     </tbody>
                     <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
@@ -52,7 +52,7 @@
 			<div class="pagination-wrapper default-padding">
 				<ul data-bind="foreach: gridPages" class="pagination">
 					<li data-bind="css:{active: isActive}">
-						<a data-bind="text:title, attr:{'data-page-number': pageNumber}" name="#"></a>
+						<a data-bind="text:title, click: onPagination" name="#"></a>
 					</li>
 				</ul>
 			</div>
