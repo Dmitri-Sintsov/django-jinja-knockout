@@ -605,10 +605,17 @@ App.GridDialog = function(options) {
     if (typeof options.koGridClass === 'undefined') {
         throw "App.GridDialog requires initial koGridClass option."
     }
-    if (typeof options.template === 'undefined') {
-        options.template = 'ko_grid';
-    }
-    this.create(options);
+    var fullOptions = $.extend(
+        {
+            template: 'ko_grid',
+            buttons: [{
+                label: App.trans('All'),
+                action: function(dialogItself){
+                    dialogItself.close();
+                }
+            }]
+        }, options);
+    this.create(fullOptions);
 };
 
 (function(GridDialog) {
