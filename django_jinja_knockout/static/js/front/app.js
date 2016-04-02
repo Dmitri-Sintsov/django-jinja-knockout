@@ -153,8 +153,7 @@ App.Dialog = function(options) {
 
     Dialog.createDialogContent = function() {
         if (typeof this.dialogOptions.template !== 'undefined') {
-            var tpl = document.getElementById(this.dialogOptions.template);
-            var compiled = _.template($(tpl).html());
+            var compiled = App.compileTemplate(this.dialogOptions.template);
             return $(compiled(this.getTemplateArgs()));
         } else {
             return $('sample content');
@@ -649,25 +648,36 @@ App.dialogButton = function($selector) {
     });
 };
 
+// Cache for compiled templates.
+App.bag._templates = {};
+
+App.compileTemplate = function(tplId) {
+    if (typeof App.bag._templates[tplId] === 'undefined') {
+        var tpl = document.getElementById(tplId);
+        if (tpl === null) {
+            throw sprintf("Unknown underscore template id: %s", tplId);
+        }
+        App.bag._templates[tplId] = _.template(
+            $(tpl).html()
+        );
+    }
+    return App.bag._templates[tplId];
+};
+
 /**
  * Does not use html5 <template> tag because IE lower than Edge do not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
 App.loadTemplates = function($selector) {
-    var templates = {};
     $.each($selector.findSelf('[data-template-id]'), function(k, v) {
-        var tplId = $(v).attr('data-template-id');
-        if (typeof templates[tplId] === 'undefined') {
-            var tpl = document.getElementById(tplId);
-            templates[tplId] = _.template(
-                $(tpl).html()
-            );
-        }
+        var tpl = App.compileTemplate(
+            $(v).attr('data-template-id')
+        );
         var tplArgs = $(v).data('templateArgs');
         if (typeof tplArgs !== 'object') {
             tplArgs = {};
         }
-        $(v).html(templates[tplId](tplArgs));
+        $(v).html(tpl(tplArgs));
     });
 };
 

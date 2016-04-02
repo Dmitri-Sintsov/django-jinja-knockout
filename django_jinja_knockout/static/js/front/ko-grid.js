@@ -284,8 +284,11 @@ App.ko.Grid = function(options) {
     Grid.init = function(options) {
         var self = this;
         var fullOptions = $.extend({owner: null}, options);
+        if (typeof fullOptions.applyTo === 'undefined') {
+            throw 'App.ko.Grid constructor requires applyTo option.'
+        }
         this.owner = fullOptions.owner;
-        this.$selector = $(fullOptions.selector);
+        this.$selector = $(fullOptions.applyTo);
         this.initAjaxParams();
         this.localize();
 
@@ -607,7 +610,7 @@ App.GridDialog = function(options) {
     }
     var fullOptions = $.extend(
         {
-            template: 'ko_grid',
+            template: 'ko_grid_body',
             buttons: [{
                 label: App.trans('All'),
                 action: function(dialogItself){
@@ -622,7 +625,8 @@ App.GridDialog = function(options) {
 
     GridDialog.iocKoGrid = function(message) {
         var grid = new this.dialogOptions.koGridClass({
-            selector: message, owner: this
+            applyTo: message,
+            owner: this
         });
         grid.ownerSetTitle = _.bind(
             function(verboseNamePlural) {
