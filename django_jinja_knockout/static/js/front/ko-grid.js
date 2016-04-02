@@ -638,9 +638,13 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.onShown = function() {
-        this.grid = this.iocKoGrid(this.dialogOptions.message);
+        // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
+        var $footer = this.bdialog.getModalFooter();
+        var $gridPagination = $(App.compileTemplate('ko_grid_pagination')());
+        $footer.prepend($gridPagination);
+        // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
+        this.grid = this.iocKoGrid(this.bdialog.getModal());
         this.grid.searchSubstring();
     };
 
 })(App.GridDialog.prototype);
-
