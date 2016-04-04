@@ -37,7 +37,7 @@
                     </thead>
                     <tbody data-bind="foreach: gridRows">
                         <tr class="pointer" data-bind="grid_row, foreach: $parent.gridColumns">
-                            <td data-bind="text: $parent.values[field], attr: {index: $index}, css: {success: ($index() & 1) == 0, info: ($index() & 1) == 1}"></td>
+                            <td data-bind="html: $parent.displayValues[field], attr: {index: $index}, css: {success: ($index() & 1) == 0, info: ($index() & 1) == 1}"></td>
                         </tr>
                     </tbody>
                     <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">

@@ -616,7 +616,7 @@ class KoGridView(BaseFilterView, ViewmodelView):
                 self.grid_fields.append(field.name)
         return super().dispatch(request, *args, **kwargs)
 
-    # One may add new related / calculated fields, for example.
+    # One may add new related / calculated fields, or 'field_display' suffix extra html-formatted fields, for example.
     def postprocess_row(self, row):
         return row
 

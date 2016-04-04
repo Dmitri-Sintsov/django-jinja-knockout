@@ -242,11 +242,23 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
+    GridRow.initDisplayValues = function() {
+        var self = this;
+        // Descendant could make observable values or to do not escape values selectively,
+        // for html formatting, copying 'field' values from optional 'field_display' extra columns.
+        $.each(this.values, function(k ,v) {
+            self.displayValues[k] = $.htmlEncode(v);
+        });
+    };
+
     GridRow.init = function(options) {
         this.$row = null;
         this.ownerGrid = options.ownerGrid;
-        // Descendant could make observable values.
+        // Source data field values. May be used for AJAX DB queries, for example.
         this.values = options.values;
+        // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
+        this.displayValues = {};
+        this.initDisplayValues();
     };
 
     GridRow.onClick = function() {
