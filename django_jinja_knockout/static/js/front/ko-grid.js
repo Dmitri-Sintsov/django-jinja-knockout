@@ -272,6 +272,14 @@ App.ko.Grid = function(options) {
         search: 'list_search'
     };
 
+    Grid.localize = function() {
+        this.local = {
+            toBegin: App.trans('First page'),
+            toEnd: App.trans('Last page'),
+        };
+        this.gridSearchPlaceholder = ko.observable(App.trans('Search'));
+    };
+
     Grid.initAjaxParams = function() {
         this.queryArgs = {
             page: 1,
@@ -289,10 +297,8 @@ App.ko.Grid = function(options) {
         }
         this.owner = fullOptions.owner;
         this.$selector = $(fullOptions.applyTo);
-        this.initAjaxParams();
-        this.localize();
 
-        this.model = {
+        this.modelMeta = {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable('')
         };
@@ -300,20 +306,15 @@ App.ko.Grid = function(options) {
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
+        this.gridSearchStr = ko.observable('');
+        this.gridSearchStr.subscribe(function(newValue) {
+            self.searchSubstring(newValue);
+        });
+
+        this.initAjaxParams();
+        this.localize();
+
         ko.applyBindings(this, this.$selector.get(0));
-
-        this.$gridSearch = this.$selector.find('.grid-search');
-
-        // Grid text search event.
-        this.$gridSearch.on('input', function(ev) {
-            self.searchSubstring();
-        });
-
-        // Grid clear text search event.
-        this.$selector.find('.grid-search-reset').on('click', function(ev) {
-            ev.preventDefault();
-            self.searchSubstring('');
-        });
 
         /*
         this.$selector.on('show.bs.modal', function (ev) {
@@ -374,13 +375,6 @@ App.ko.Grid = function(options) {
         }
     };
 
-    Grid.localize = function() {
-        this.local = {
-            toBegin: App.trans('First page'),
-            toEnd: App.trans('Last page'),
-        };
-    };
-
     /**
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
@@ -421,7 +415,7 @@ App.ko.Grid = function(options) {
     Grid.searchSubstring = function(s) {
         var self = this;
         if (typeof s !== 'undefined') {
-            self.$gridSearch.val(s);
+            self.gridSearchStr(s);
         }
         self.queryArgs.page = 1;
         self.loadPage();
@@ -549,7 +543,7 @@ App.ko.Grid = function(options) {
         options['after'][self.viewName] = function(viewModel) {
             self.setKoPage(viewModel);
         };
-        self.queryArgs[self.queryKeys.search] = self.$gridSearch.val();
+        self.queryArgs[self.queryKeys.search] = self.gridSearchStr();
         self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.pageUrl,
@@ -575,7 +569,7 @@ App.ko.Grid = function(options) {
         var self = this;
         if (typeof data.model !== 'undefined') {
             $.each(data.model, function(k, v) {
-                self.model[k](v);
+                self.modelMeta[k](v);
             });
             this.ownerSetTitle(data.model.verboseNamePlural);
         }
