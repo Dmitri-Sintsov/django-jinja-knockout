@@ -138,6 +138,7 @@ App.ko.GridFilter = function(options) {
         this.ownerGrid =  options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
+        this.hasActiveChoices = ko.observable(false);
         this.choices = [];
         this.current_name = ko.observable('');
         // One of this.choices, special 'reset all choice'.
@@ -195,7 +196,6 @@ App.ko.GridFilter = function(options) {
     };
 
     GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
-        var totalActive;
         if (currentChoice.value === null) {
             // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
@@ -218,9 +218,9 @@ App.ko.GridFilter = function(options) {
             ev.stopPropagation();
             // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
-            totalActive = this.getTotalActive();
             this.resetFilterLogic();
         }
+        this.hasActiveChoices(!this.resetFilter.is_active());
     };
 
     GridFilter.addQueryFilter = function(currentChoice) {
