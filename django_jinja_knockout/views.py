@@ -379,19 +379,25 @@ class BaseFilterView(View):
                     q |= Q(**q_kwargs)
             return queryset.filter(q)
 
+    def distinct_queryset(self, queryset):
+        return queryset.distinct()
+
     # This method is required because child class custom queryset.filter will not work after self.order_queryset().
     # Thus, filter ListView queryset by overriding this method, not get_queryset().
     def get_base_queryset(self):
         return super().get_queryset()
 
     def get_queryset(self):
-        return self.filter_queryset(
-            self.order_queryset(
-                self.search_queryset(
-                    self.get_base_queryset()
+        return \
+            self.distinct_queryset(
+                self.filter_queryset(
+                    self.order_queryset(
+                        self.search_queryset(
+                            self.get_base_queryset()
+                        )
+                    )
                 )
             )
-        )
 
 
 # Traditional server-side generated filtered / sorted ListView.
@@ -623,8 +629,11 @@ class KoGridView(BaseFilterView, ViewmodelView):
                 title='Invalid page number',
                 message=format_html('Page number: {}', page_num)
             )
-        first_elem = (page_num - 1) * self.__class__.objects_per_page
-        last_elem = first_elem + self.__class__.objects_per_page
+        if page_num > 0:
+            first_elem = (page_num - 1) * self.__class__.objects_per_page
+            last_elem = first_elem + self.__class__.objects_per_page
+        else:
+            first_elem = last_elem = 0
         qs = self.get_queryset()
         self.total_rows = qs.count()
         return [

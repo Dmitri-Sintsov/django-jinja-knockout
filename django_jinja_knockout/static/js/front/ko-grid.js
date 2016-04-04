@@ -84,11 +84,23 @@ App.ko.GridFilterChoice = function(options) {
 (function (GridFilterChoice) {
 
     GridFilterChoice.init = function(options) {
+        var self = this;
         this.$link = null;
         this.ownerFilter = options.ownerFilter;
         this.name = options.name;
         this.value = options.value;
         this.is_active = ko.observable(options.is_active);
+        this.is_active.subscribe(function(newValue) {
+            self.is_active(newValue);
+            if (self.value === null) {
+                return;
+            }
+            if (newValue) {
+                self.ownerFilter.addQueryFilter(self);
+            } else {
+                self.ownerFilter.removeQueryFilter(self);
+            }
+        });
     };
 
     GridFilterChoice.setLinkElement = function($element) {
@@ -101,13 +113,12 @@ App.ko.GridFilterChoice = function(options) {
 
     GridFilterChoice.loadFilter = function(ev) {
         this.ownerFilter.switchKoFilterChoices(this, ev);
-        if (this.is_active()) {
-            this.ownerFilter.activateQueryFilters(this);
-        } else {
-            this.ownerFilter.removeQueryFilters(this);
-        }
         this.ownerFilter.ownerGrid.queryArgs.page = 1;
         this.ownerFilter.ownerGrid.loadPage();
+    };
+
+    GridFilterChoice.is = function(filterChoice) {
+        return this.$link.is(filterChoice.$link);
     };
 
 })(App.ko.GridFilterChoice.prototype);
@@ -129,6 +140,8 @@ App.ko.GridFilter = function(options) {
         this.name = options.name;
         this.choices = [];
         this.current_name = ko.observable('');
+        // One of this.choices, special 'reset all choice'.
+        this.resetFilter = null;
     };
 
     GridFilter.setDropdownElement = function($element) {
@@ -144,59 +157,77 @@ App.ko.GridFilter = function(options) {
         */
     };
 
+    // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
+    // Also initialized this.resetFilter.
+    GridFilter.getTotalActive = function() {
+        var totalActive = 0;
+        this.resetFilter = null;
+        for (var i = 0; i < this.choices.length; i++) {
+            if (this.choices[i].value === null) {
+                this.resetFilter = this.choices[i];
+            } else if (this.choices[i].is_active()) {
+                totalActive++;
+            }
+        }
+        return totalActive;
+    };
+
+    GridFilter.resetFilterLogic = function() {
+        var totalActive = this.getTotalActive();
+        if (this.resetFilter !== null) {
+            // Check whether all filter choices are active except for 'reset all choice'.
+            if (totalActive === this.choices.length - 1) {
+                // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
+                for (var i = 0; i < this.choices.length; i++) {
+                    if (this.choices[i].value !== null) {
+                        this.choices[i].is_active(false);
+                    }
+                }
+                this.resetFilter.is_active(true);
+            } else if (totalActive === 0) {
+                // No active filter choices means that 'reset all choice' must be highlighted (activated).
+                this.resetFilter.is_active(true);
+            } else {
+                // Only some of the filter choices are active. Deactivate 'reset all choice'.
+                this.resetFilter.is_active(false);
+            }
+        }
+    };
+
     GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
+        var totalActive;
         if (currentChoice.value === null) {
             // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
                 this.choices[i].is_active(false);
             }
             currentChoice.is_active(true);
+        } else if (this.choices.length <= 3) {
+            // Multiple filter choices are meaningless for only two choices and their reset choice.
+            // Switch current filter choice.
+            currentChoice.is_active(!currentChoice.is_active());
+            // Turn off all another filter choices.
+            for (var i = 0; i < this.choices.length; i++) {
+                if (!currentChoice.is(this.choices[i])) {
+                    this.choices[i].is_active(false);
+                }
+            }
+            this.resetFilterLogic();
         } else {
-            // Do not close dropdown for toggleable filter choices.
+            // Do not close dropdown for multiple filter choices.
             ev.stopPropagation();
             // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
-            // Check whether all filter choices are active except for 'reset all choice'.
-            var totalActive = 0;
-            var resetFilter = null
-            for (var i = 0; i < this.choices.length; i++) {
-                if (this.choices[i].value === null) {
-                    resetFilter = this.choices[i];
-                } else if (this.choices[i].is_active()) {
-                    totalActive++;
-                }
-            }
-            if (resetFilter !== null) {
-                if (totalActive === this.choices.length - 1) {
-                    // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
-                    for (var i = 0; i < this.choices.length; i++) {
-                        if (this.choices[i].value !== null) {
-                            this.choices[i].is_active(false);
-                        }
-                    }
-                    resetFilter.is_active(true);
-                } else if (totalActive === 0) {
-                    // No active filter choices means that 'reset all choice' must be highlighted (activated).
-                    resetFilter.is_active(true);
-                } else {
-                    // Only some of the filter choices are active. Deactivate 'reset all choice'.
-                    resetFilter.is_active(false);
-                }
-            }
+            totalActive = this.getTotalActive();
+            this.resetFilterLogic();
         }
     };
 
-    GridFilter.activateQueryFilters = function(currentChoice) {
-        if (currentChoice.value === null) {
-            // Special reset all filters filter.
-            this.ownerGrid.removeQueryFilter(this.field);
-        } else {
-            // Add current value to query filter.
-            this.ownerGrid.addQueryFilter(this.field, currentChoice.value);
-        }
+    GridFilter.addQueryFilter = function(currentChoice) {
+        this.ownerGrid.addQueryFilter(this.field, currentChoice.value);
     };
 
-    GridFilter.removeQueryFilters = function(currentChoice) {
+    GridFilter.removeQueryFilter = function(currentChoice) {
         this.ownerGrid.removeQueryFilter(this.field, currentChoice.value);
     };
 
@@ -285,7 +316,7 @@ App.ko.Grid = function(options) {
             page: 1,
             load_meta: true
         };
-        this.removeQueryFilter();
+        this.queryFilters = {};
         this.setQueryOrderBy();
     };
 
@@ -328,34 +359,50 @@ App.ko.Grid = function(options) {
 
     // Supports multiple values of filter.
     Grid.addQueryFilter = function(field, value) {
-        if (typeof this.queryFilters[field] === 'undefined') {
-            // Single value.
-            this.queryFilters[field] = value;
-        } else if (this.queryFilters[field] !== value) {
-            if (!_.isArray(this.queryFilters[field])) {
-                // Convert single value into array of values.
-                this.queryFilters[field] = [this.queryFilters[field]];
-            }
-            if (_.find(this.queryFilters[field], function(val) { return val === value; }) === undefined) {
-                // Multiple values: 'field__in' at server-side.
-                this.queryFilters[field].push(value);
+        if (value === null) {
+            delete this.queryFilters[field];
+        } else {
+            if (typeof this.queryFilters[field] === 'undefined') {
+                // Single value.
+                this.queryFilters[field] = value;
+            } else {
+                if (this.queryFilters[field] === value) {
+                    // Already added single value.
+                    return;
+                }
+                if (!_.isArray(this.queryFilters[field])) {
+                    // Convert single value into array of values.
+                    this.queryFilters[field] = [this.queryFilters[field]];
+                }
+                if (_.find(this.queryFilters[field], function(val) { return val === value; }) === undefined) {
+                    // Multiple values: 'field__in' at server-side.
+                    this.queryFilters[field].push(value);
+                }
             }
         }
     };
 
     // Supports multiple values of filter.
     Grid.removeQueryFilter = function(field, value) {
-        if (typeof field === 'undefined') {
-            this.queryFilters = {};
-            return;
-        }
         if (typeof this.queryFilters[field] !== 'undefined') {
-            if (_.isArray(this.queryFilters[field]) && typeof value !== 'undefined') {
+            if (value === null) {
+                delete this.queryFilters[field];
+                return;
+            }
+            if (!_.isArray(this.queryFilters[field])) {
+                if (this.queryFilters[field] === value) {
+                    delete this.queryFilters[field];
+                }
+            } else {
                 this.queryFilters[field] = _.filter(this.queryFilters[field], function(val) {
                     return val !== value;
                 });
-            } else {
-                delete this.queryFilters[field];
+                var len = this.queryFilters[field].length;
+                if (len === 1) {
+                    this.queryFilters[field] = this.queryFilters[field].pop();
+                } else if (len === 0) {
+                    delete this.queryFilters[field];
+                }
             }
         }
     };
@@ -549,6 +596,7 @@ App.ko.Grid = function(options) {
         };
         self.queryArgs[self.queryKeys.search] = self.gridSearchStr();
         self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
+        // console.log('AJAX query: ' + JSON.stringify(self.queryArgs));
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.pageUrl,
             self.queryArgs,
