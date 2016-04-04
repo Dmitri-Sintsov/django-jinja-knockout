@@ -1,7 +1,7 @@
 <script type="text/template" id="ko_grid_body">
     <div>
             <% if (typeof(show_title) !== "undefined") { %>
-            <div data-bind="text: model.verboseNamePlural" class="h3"></div>
+            <div data-bind="text: modelMeta.verboseNamePlural" class="h3"></div>
             <% } %>
             <nav class="nav navbar navbar-default">
                 <div class="container-fluid grid-controls">
@@ -20,9 +20,9 @@
                     </ul>
                     <form class="navbar-form navbar-left">
                         <div class="form-group">
-                            <input class="form-control grid-search" type="search" placeholder="Поиск по ФИО">
+                            <input data-bind="textInput: gridSearchStr, attr: {placeholder: gridSearchPlaceholder}" class="form-control" type="search">
                         </div>
-                        <button class="btn btn-default grid-search-reset">Очистить</button>
+                        <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
                     </form>
                 </div>
             </nav>
@@ -43,7 +43,7 @@
                     <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
                         {{ _(
                             'No %(verbose_name)s found matching the query',
-                            verbose_name=mark_safe('<span data-bind="text:model.verboseName"></span>'
+                            verbose_name=mark_safe('<span data-bind="text:modelMeta.verboseName"></span>'
                             )) }}.
                     </div>
                 </table>

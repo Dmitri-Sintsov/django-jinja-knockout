@@ -36,7 +36,7 @@ App.ko.GridColumnOrder = function(options) {
 
     GridColumnOrder.init = function(options) {
         this.$switch = null;
-        this.owner = options.owner;
+        this.ownerGrid = options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
     };
@@ -59,7 +59,7 @@ App.ko.GridColumnOrder = function(options) {
     };
 
     GridColumnOrder.switchOrder = function() {
-        this.owner.deactivateAllSorting(this);
+        this.ownerGrid.deactivateAllSorting(this);
         if (this.$switch.hasClass('sort-inactive')) {
             this.$switch.removeClass('sort-inactive');
             this.$switch.addClass('sort-asc');
@@ -67,14 +67,14 @@ App.ko.GridColumnOrder = function(options) {
             this.$switch.toggleClass('sort-asc sort-desc');
         }
         var direction = this.$switch.hasClass('sort-desc') ? 'desc' : 'asc';
-        this.owner.setQueryOrderBy(this.field, direction);
-        this.owner.loadPage();
+        this.ownerGrid.setQueryOrderBy(this.field, direction);
+        this.ownerGrid.loadPage();
     };
 
 })(App.ko.GridColumnOrder.prototype);
 
 /**
- * Grid filter choice control.
+ * Grid filter choice control. One dropdown filter has multiple filter choices.
  */
 
 App.ko.GridFilterChoice = function(options) {
@@ -85,7 +85,7 @@ App.ko.GridFilterChoice = function(options) {
 
     GridFilterChoice.init = function(options) {
         this.$link = null;
-        this.owner = options.owner;
+        this.ownerFilter = options.ownerFilter;
         this.name = options.name;
         this.value = options.value;
         this.is_active = ko.observable(options.is_active);
@@ -100,14 +100,14 @@ App.ko.GridFilterChoice = function(options) {
     };
 
     GridFilterChoice.loadFilter = function(ev) {
-        this.owner.switchKoFilterChoices(this, ev);
+        this.ownerFilter.switchKoFilterChoices(this, ev);
         if (this.is_active()) {
-            this.owner.activateQueryFilters(this);
+            this.ownerFilter.activateQueryFilters(this);
         } else {
-            this.owner.removeQueryFilters(this);
+            this.ownerFilter.removeQueryFilters(this);
         }
-        this.owner.owner.queryArgs.page = 1;
-        this.owner.owner.loadPage();
+        this.ownerFilter.ownerGrid.queryArgs.page = 1;
+        this.ownerFilter.ownerGrid.loadPage();
     };
 
 })(App.ko.GridFilterChoice.prototype);
@@ -124,7 +124,7 @@ App.ko.GridFilter = function(options) {
 
     GridFilter.init = function(options) {
         this.$dropdown = null;
-        this.owner =  options.owner;
+        this.ownerGrid =  options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
         this.choices = [];
@@ -189,21 +189,21 @@ App.ko.GridFilter = function(options) {
     GridFilter.activateQueryFilters = function(currentChoice) {
         if (currentChoice.value === null) {
             // Special reset all filters filter.
-            this.owner.removeQueryFilter(this.field);
+            this.ownerGrid.removeQueryFilter(this.field);
         } else {
             // Add current value to query filter.
-            this.owner.addQueryFilter(this.field, currentChoice.value);
+            this.ownerGrid.addQueryFilter(this.field, currentChoice.value);
         }
     };
 
     GridFilter.removeQueryFilters = function(currentChoice) {
-        this.owner.removeQueryFilter(this.field, currentChoice.value);
+        this.ownerGrid.removeQueryFilter(this.field, currentChoice.value);
     };
 
 })(App.ko.GridFilter.prototype);
 
 /**
- * Single row of grid ko viewmodel.
+ * Single row of grid (ko viewmodel).
  */
 App.ko.GridRow = function(options) {
     this.init(options);
@@ -213,13 +213,13 @@ App.ko.GridRow = function(options) {
 
     GridRow.init = function(options) {
         this.$row = null;
-        this.owner = options.owner;
+        this.ownerGrid = options.ownerGrid;
         // Descendant could make observable values.
         this.values = options.values;
     };
 
     GridRow.onClick = function() {
-        this.owner.onRowClick(this);
+        this.ownerGrid.onRowClick(this);
     };
 
     GridRow.setRowElement = function($element) {
@@ -242,14 +242,14 @@ App.ko.GridPage = function(options) {
 (function(GridPage) {
 
     GridPage.init = function(options) {
-        this.owner = options.owner;
+        this.ownerGrid = options.ownerGrid;
         this.isActive = options.isActive;
         this.title = options.title,
         this.pageNumber = options.pageNumber;
     };
 
     GridPage.onPagination = function() {
-        this.owner.onPagination(this.pageNumber);
+        this.ownerGrid.onPagination(this.pageNumber);
     };
 
 })(App.ko.GridPage.prototype);
@@ -291,11 +291,11 @@ App.ko.Grid = function(options) {
 
     Grid.init = function(options) {
         var self = this;
-        var fullOptions = $.extend({owner: null}, options);
+        var fullOptions = $.extend({ownerCtrl: null}, options);
         if (typeof fullOptions.applyTo === 'undefined') {
             throw 'App.ko.Grid constructor requires applyTo option.'
         }
-        this.owner = fullOptions.owner;
+        this.ownerCtrl = fullOptions.ownerCtrl;
         this.$selector = $(fullOptions.applyTo);
 
         this.modelMeta = {
@@ -380,9 +380,13 @@ App.ko.Grid = function(options) {
      */
     Grid.iocRow = function(row) {
         return new App.ko.GridRow({
-            owner: this,
+            ownerGrid: this,
             values: row
         });
+    };
+
+    Grid.onSearchReset = function() {
+        this.gridSearchStr('');
     };
 
     Grid.onPagination = function(page) {
@@ -423,9 +427,9 @@ App.ko.Grid = function(options) {
 
     Grid.iocKoGridColumn = function(grid_column) {
         return new App.ko.GridColumnOrder({
-            'field': grid_column['field'],
-            'name': grid_column['name'],
-            'owner': this
+            field: grid_column['field'],
+            name: grid_column['name'],
+            ownerGrid: this
         });
     };
 
@@ -439,18 +443,18 @@ App.ko.Grid = function(options) {
 
     Grid.iocKoFilterChoice = function(filterModel, choice) {
         return new App.ko.GridFilterChoice({
-            'owner': filterModel,
-            'name': choice.name,
-            'value': choice.value,
-            'is_active': (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+            ownerFilter: filterModel,
+            name: choice.name,
+            value: choice.value,
+            is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
         });
     };
 
     Grid.iocKoFilter = function(filter) {
         return new App.ko.GridFilter({
-            'owner': this,
-            'field': filter.field,
-            'name': filter.name,
+            ownerGrid: this,
+            field: filter.field,
+            name: filter.name,
         });
     };
 
@@ -478,7 +482,7 @@ App.ko.Grid = function(options) {
     };
 
     Grid.iocGridPage = function(options) {
-        options.owner = this;
+        options.ownerGrid = this;
         return new App.ko.GridPage(options);
     };
 
@@ -562,7 +566,7 @@ App.ko.Grid = function(options) {
     /**
      * Used in App.GridDialog to display title outside of message template.
      */
-    Grid.ownerSetTitle = function(verboseNamePlural) {
+    Grid.ownerCtrlSetTitle = function(verboseNamePlural) {
     };
 
     Grid.setKoPage = function(data) {
@@ -571,7 +575,7 @@ App.ko.Grid = function(options) {
             $.each(data.model, function(k, v) {
                 self.modelMeta[k](v);
             });
-            this.ownerSetTitle(data.model.verboseNamePlural);
+            this.ownerCtrlSetTitle(data.model.verboseNamePlural);
         }
         if (typeof data.grid_fields !== 'undefined') {
             self.setKoGridColumns(data.grid_fields);
@@ -620,11 +624,11 @@ App.GridDialog = function(options) {
     GridDialog.iocKoGrid = function(message) {
         var grid = new this.dialogOptions.koGridClass({
             applyTo: message,
-            owner: this
+            ownerCtrl: this
         });
-        grid.ownerSetTitle = _.bind(
+        grid.ownerCtrlSetTitle = _.bind(
             function(verboseNamePlural) {
-                this.owner.setTitle(verboseNamePlural);
+                this.ownerCtrl.setTitle(verboseNamePlural);
             },
             grid
         );
