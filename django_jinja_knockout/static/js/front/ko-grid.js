@@ -53,7 +53,7 @@ App.ko.GridColumnOrder = function(options) {
         this.$switch.addClass('sort-inactive');
     };
 
-    GridColumnOrder.switchOrder = function() {
+    GridColumnOrder.onSwitchOrder = function() {
         this.ownerGrid.deactivateAllSorting(this);
         if (this.$switch.hasClass('sort-inactive')) {
             this.$switch.removeClass('sort-inactive');
@@ -103,7 +103,7 @@ App.ko.GridFilterChoice = function(options) {
         this.$link = $element;
     };
 
-    GridFilterChoice.loadFilter = function(ev) {
+    GridFilterChoice.onLoadFilter = function(ev) {
         this.ownerFilter.switchKoFilterChoices(this, ev);
         this.ownerFilter.ownerGrid.queryArgs.page = 1;
         this.ownerFilter.ownerGrid.loadPage();
@@ -149,6 +149,10 @@ App.ko.GridFilter = function(options) {
             }
         });
         */
+    };
+
+    GridFilter.onDropdownClick = function(ev) {
+        // console.log('dropdown clicked');
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -254,8 +258,8 @@ App.ko.GridRow = function(options) {
         this.initDisplayValues();
     };
 
-    GridRow.rowClick = function() {
-        this.ownerGrid.onRowClick(this);
+    GridRow.onRowClick = function() {
+        this.ownerGrid.rowClick(this);
     };
 
     GridRow.setRowElement = function($element) {
@@ -452,7 +456,7 @@ App.ko.Grid = function(options) {
         self.loadPage();
     };
     
-    Grid.onRowClick = function(koRow) {
+    Grid.rowClick = function(koRow) {
         // console.log('koRow: ' + JSON.stringify(koRow));
         console.log('values: ' + JSON.stringify(koRow.values));
     };
@@ -483,7 +487,7 @@ App.ko.Grid = function(options) {
     };
 
     Grid.setKoGridColumns = function(grid_fields) {
-        for (var i = grid_fields.length - 1; i >= 0; i--) {
+        for (var i = 0; i < grid_fields.length; i++) {
             this.gridColumns.push(
                 this.iocKoGridColumn(grid_fields[i])
             );
@@ -500,23 +504,36 @@ App.ko.Grid = function(options) {
     };
 
     Grid.iocKoFilter = function(filter) {
-        return new App.ko.GridFilter({
-            ownerGrid: this,
-            field: filter.field,
-            name: filter.name,
-        });
+        if (filter.choices === null) {
+            return new App.ko.FkGridFilter({
+                ownerGrid: this,
+                field: filter.field,
+                name: filter.name,
+            });
+        } else {
+            return new App.ko.GridFilter({
+                ownerGrid: this,
+                field: filter.field,
+                name: filter.name,
+            });
+        }
     };
 
     Grid.setKoFilter = function(filter) {
         var filterModel = this.iocKoFilter(filter);
-        filterModel.choices.push(
-            this.iocKoFilterChoice(filterModel, {'name': App.trans('All'), 'value': null, 'is_active': true})
-        );
         var choices = filter.choices;
-        for (var i = 0; i < choices.length; i++) {
+        if (choices === null) {
+            // Will use App.ko.FkGridFilter to select filter choices.
+            filterModel.choices = null;
+        } else {
             filterModel.choices.push(
-                this.iocKoFilterChoice(filterModel, choices[i])
+                this.iocKoFilterChoice(filterModel, {'name': App.trans('All'), 'value': null, 'is_active': true})
             );
+            for (var i = 0; i < choices.length; i++) {
+                filterModel.choices.push(
+                    this.iocKoFilterChoice(filterModel, choices[i])
+                );
+            }
         }
         this.gridFilters.push(filterModel);
     };

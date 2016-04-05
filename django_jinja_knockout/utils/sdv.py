@@ -1,9 +1,21 @@
+from collections import OrderedDict
 import os
 import inspect
 from pprint import pprint
 from ensure import ensure_annotations
 
 LOGPATH = ['logs']
+
+
+def yield_ordered(iterable):
+    if isinstance(iterable, OrderedDict):
+        for key, val in iterable.items():
+            yield key, val
+    elif isinstance(iterable, list):
+        for key, val in iterable:
+            yield key, val
+    else:
+        raise ValueError('iterable is not ordered')
 
 
 # http://stackoverflow.com/questions/14692690/access-python-nested-dictionary-items-via-a-list-of-keys

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from copy import copy
 import json
 from math import ceil
@@ -20,6 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
 from .viewmodels import vm_list
+from .utils.sdv import yield_ordered
 
 
 def auth_redirect(request):
@@ -283,14 +285,14 @@ class BaseFilterView(View):
 
     def get_allowed_filter_fields(self):
         # Be careful about enabling filters.
-        # @todo: Support '__in' suffix automatically.
         # key is field name (may be one to many related field as well)
         # value is list of field choices, as specified in model.
         return {}
 
     def get_search_fields(self):
-        # {'field1': 'contains', 'field2': 'icontains', 'field3': ''}
-        return {}
+        # (('field1', 'contains'), ('field2', 'icontains'), ('field3', ''))
+        # Ordered dict is also supported with the same syntax.
+        return ()
 
     def set_contenttype_filter(self, allowed_filter_fields, field, apps_models):
         allowed_filter_fields[field] = []
@@ -307,8 +309,10 @@ class BaseFilterView(View):
     def dispatch(self, request, *args, **kwargs):
         if self.__class__.allowed_sort_orders is None:
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
+
         if self.__class__.allowed_filter_fields is None:
             self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
+
         if self.__class__.search_fields is None:
             self.__class__.search_fields = self.get_search_fields()
 
@@ -367,7 +371,7 @@ class BaseFilterView(View):
             return queryset
         else:
             q = None
-            for field, operation in self.__class__.search_fields.items():
+            for field, operation in yield_ordered(self.__class__.search_fields):
                 if operation != '':
                     field += '__' + operation
                 q_kwargs = {
@@ -654,7 +658,11 @@ class KoGridView(BaseFilterView, ViewmodelView):
                 }
             })
             vm_grid_fields = []
+            if not isinstance(self.__class__.grid_fields, list):
+                self.report_error('grid_fields must be list')
             for field in self.__class__.grid_fields:
+                if type(field) is not str:
+                    self.report_error('grid_fields list values must be str')
                 vm_grid_fields.append({
                     'field': field,
                     'name': get_verbose_name(self.model_class, field)
@@ -662,13 +670,22 @@ class KoGridView(BaseFilterView, ViewmodelView):
             vm['grid_fields'] = vm_grid_fields
 
             vm_filters = []
+
+            if not isinstance(self.__class__.allowed_filter_fields, OrderedDict):
+                raise self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
+
             for fieldname, choices in self.__class__.allowed_filter_fields.items():
-                vm_choices = []
-                for value, name in choices:
-                    vm_choices.append({
-                        'value': value,
-                        'name': name
-                    })
+                if choices is None:
+                    # Use App.ko.FkGridFilter to select filter choices.
+                    vm_choices = None
+                else:
+                    # Pre-built list of field values / menu names.
+                    vm_choices = []
+                    for value, name in choices:
+                        vm_choices.append({
+                            'value': value,
+                            'name': name
+                        })
                 vm_filters.append({
                     'field': fieldname,
                     'name': get_verbose_name(self.model_class, fieldname),

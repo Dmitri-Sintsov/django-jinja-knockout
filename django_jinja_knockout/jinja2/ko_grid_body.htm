@@ -7,15 +7,17 @@
                 <div class="container-fluid grid-controls">
                     <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
                         <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-                            <a aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <a data-bind="click: onDropdownClick.bind($data, event)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
                                 <span data-bind="text: name"></span> <b class="caret"></b>
                                 <div data-bind="visible: current_name() != '', text: current_name()"></div>
                             </a>
+                            <!-- ko if: choices !== null -->
                             <ul data-bind="foreach: choices" class="dropdown-menu">
                                 <li data-bind="css: {active: is_active()}">
-                                    <a data-bind="text: name, grid_filter_choice, click: loadFilter.bind($data, event)" name="#"></a>
+                                    <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data, event)" name="#"></a>
                                 </li>
                             </ul>
+                            <!-- /ko -->
                         </li>
                     </ul>
                     <form class="navbar-form navbar-left">
@@ -31,13 +33,13 @@
                     <thead>
                         <tr data-bind="foreach: gridColumns">
                             <th>
-                                <a data-bind="text: name, grid_order_by, click: switchOrder" class="halflings-before sort-inactive" name="#"></a>
+                                <a data-bind="text: name, grid_order_by, click: onSwitchOrder" class="halflings-before sort-inactive" name="#"></a>
                             </th>
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: gridRows">
                         <tr class="pointer" data-bind="grid_row, foreach: $parent.gridColumns">
-                            <td data-bind="click: $parent.rowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
+                            <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
                         </tr>
                     </tbody>
                     <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
