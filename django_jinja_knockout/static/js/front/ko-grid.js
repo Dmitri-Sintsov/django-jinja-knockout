@@ -314,7 +314,9 @@ App.ko.Grid = function(options) {
             toBegin: App.trans('First page'),
             toEnd: App.trans('Last page'),
         };
-        this.gridSearchPlaceholder = ko.observable(App.trans('Search'));
+        this.gridSearchPlaceholder = ko.observable(
+            (this.options.searchPlaceholder === null) ? App.trans('Search') : this.options.searchPlaceholder
+        );
     };
 
     Grid.initAjaxParams = function() {
@@ -323,17 +325,31 @@ App.ko.Grid = function(options) {
             load_meta: true
         };
         this.queryFilters = {};
-        this.setQueryOrderBy();
+        if (this.options.defaultOrderBy !== null)
+        this.setQueryOrderBy(this.options.defaultOrderBy);
+        if (this.options.pageRoute === null) {
+            this.pageUrl = this.options.pageUrl;
+        } else {
+            this.pageUrl = App.conf.url[this.options.pageRoute];
+        }
     };
 
     Grid.init = function(options) {
         var self = this;
-        var fullOptions = $.extend({ownerCtrl: null}, options);
-        if (typeof fullOptions.applyTo === 'undefined') {
+        this.options = $.extend({
+            ownerCtrl: null,
+            defaultOrderBy: null,
+            searchPlaceholder: null,
+            pageRoute: null,
+            // Assume current route by default
+            // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
+            pageUrl: '',
+        }, options);
+        if (typeof this.options.applyTo === 'undefined') {
             throw 'App.ko.Grid constructor requires applyTo option.'
         }
-        this.ownerCtrl = fullOptions.ownerCtrl;
-        this.$selector = $(fullOptions.applyTo);
+        this.ownerCtrl = this.options.ownerCtrl;
+        this.$selector = $(this.options.applyTo);
 
         this.modelMeta = {
             verboseName: ko.observable(''),
@@ -670,9 +686,6 @@ App.GridDialog = function(options) {
     if (typeof options !== 'object') {
         options = {};
     }
-    if (typeof options.koGridClass === 'undefined') {
-        throw "App.GridDialog requires initial koGridClass option."
-    }
     var fullOptions = $.extend(
         {
             template: 'ko_grid_body',
@@ -688,8 +701,17 @@ App.GridDialog = function(options) {
 
 (function(GridDialog) {
 
+    GridDialog.iocGrid = function(options) {
+        if (typeof this.dialogOptions.iocGrid !== 'function') {
+            throw "Either pass 'iocGrid' function as App.GridDialog constructor option, " +
+                    "or implement iocGrid method in descendant";
+        } else {
+            return this.dialogOptions.iocGrid(options);
+        }
+    };
+
     GridDialog.iocKoGrid = function(message) {
-        var grid = new this.dialogOptions.koGridClass({
+        var grid = this.iocGrid({
             applyTo: message,
             ownerCtrl: this
         });

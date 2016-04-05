@@ -672,7 +672,7 @@ class KoGridView(BaseFilterView, ViewmodelView):
             vm_filters = []
 
             if not isinstance(self.__class__.allowed_filter_fields, OrderedDict):
-                raise self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
+                self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
 
             for fieldname, choices in self.__class__.allowed_filter_fields.items():
                 if choices is None:
