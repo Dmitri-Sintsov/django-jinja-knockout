@@ -1,5 +1,3 @@
-// todo: http://knockoutjs.com/documentation/custom-bindings-disposal.html
-
 ko.bindingHandlers.grid_row = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.setRowElement($(element));
@@ -44,9 +42,6 @@ App.ko.GridColumnOrder = function(options) {
     GridColumnOrder.setSwitchElement = function($element) {
         var self = this;
         this.$switch = $element;
-        this.$switch.on('click', function(ev) {
-            return self.switchOrder();
-        });
     };
 
     GridColumnOrder.is = function(anotherOrder) {
@@ -106,9 +101,6 @@ App.ko.GridFilterChoice = function(options) {
     GridFilterChoice.setLinkElement = function($element) {
         var self = this;
         this.$link = $element;
-        this.$link.on('click', function(ev) {
-            return self.loadFilter(ev);
-        });
     };
 
     GridFilterChoice.loadFilter = function(ev) {
@@ -150,6 +142,7 @@ App.ko.GridFilter = function(options) {
         this.$dropdown = $element;
         /*
         // Example of custom events.
+        // http://knockoutjs.com/documentation/custom-bindings-disposal.html
         this.$dropdown.on({
             "hide.bs.dropdown": function(ev) {
                 return true;
@@ -261,16 +254,13 @@ App.ko.GridRow = function(options) {
         this.initDisplayValues();
     };
 
-    GridRow.onClick = function() {
+    GridRow.rowClick = function() {
         this.ownerGrid.onRowClick(this);
     };
 
     GridRow.setRowElement = function($element) {
         var self = this;
         this.$row = $element;
-        this.$row.on('click', function(ev) {
-            self.onClick();
-        });
     };
 
 })(App.ko.GridRow.prototype);
