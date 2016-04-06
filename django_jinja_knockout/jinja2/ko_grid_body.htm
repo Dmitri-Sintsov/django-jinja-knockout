@@ -31,15 +31,25 @@
             <div class="table-responsive">
                 <table class="table table-bordered table-hover grid">
                     <thead>
-                        <tr data-bind="foreach: gridColumns">
+                        <tr>
+                            <!-- ko if: options.selectMultipleRows -->
+                            <th style="width: 2em;"></th>
+                            <!-- /ko -->
+                            <!-- ko foreach: gridColumns -->
                             <th>
-                                <a data-bind="text: name, grid_order_by, click: onSwitchOrder" class="halflings-before sort-inactive" name="#"></a>
+                                <a data-bind="text: name, grid_order_by, click: onSwitchOrder, css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}" class="halflings-before" name="#"></a>
                             </th>
+                            <!-- /ko -->
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: gridRows">
-                        <tr class="pointer" data-bind="grid_row, foreach: $parent.gridColumns">
+                        <tr class="pointer">
+                            <!-- ko if: $parent.options.selectMultipleRows -->
+                            <td data-bind="click: onRowClick" style="width: 2em;"><input type="checkbox"></td>
+                            <!-- /ko -->
+                            <!-- ko grid_row, foreach: $parent.gridColumns -->
                             <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
+                            <!-- /ko -->
                         </tr>
                     </tbody>
                     <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">

@@ -1,8 +1,16 @@
 ko.bindingHandlers.grid_row = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.setRowElement($(element));
+        var realElement = ko.virtualElements.firstChild(element);
+        while (realElement !== null && realElement.nodeType !== 1) {
+            realElement = ko.virtualElements.nextSibling(realElement);
+        }
+        if (realElement !== null) {
+            viewModel.setRowElement($(realElement));
+        }
     }
 };
+
+ko.virtualElements.allowedBindings.grid_row = true;
 
 ko.bindingHandlers.grid_filter = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -37,36 +45,32 @@ App.ko.GridColumnOrder = function(options) {
         this.ownerGrid = options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
+        // true means 'asc', false means 'desc'.
+        this.order = ko.observable(null);
     };
 
     GridColumnOrder.setSwitchElement = function($element) {
-        var self = this;
         this.$switch = $element;
     };
 
     GridColumnOrder.is = function(anotherOrder) {
-        return this.$switch.is(anotherOrder.$switch);
-    };
-
-    GridColumnOrder.deactivate = function() {
-        this.$switch.removeClass('sort-desc sort-asc');
-        this.$switch.addClass('sort-inactive');
+        return this.field === anotherOrder.field;
     };
 
     GridColumnOrder.onSwitchOrder = function() {
         this.ownerGrid.deactivateAllSorting(this);
-        if (this.$switch.hasClass('sort-inactive')) {
-            this.$switch.removeClass('sort-inactive');
-            this.$switch.addClass('sort-asc');
+        if (this.order() === null) {
+            this.order(true);
         } else {
-            this.$switch.toggleClass('sort-asc sort-desc');
+            this.order(!this.order());
         }
-        var direction = this.$switch.hasClass('sort-desc') ? 'desc' : 'asc';
+        var direction = this.order() ? 'desc' : 'asc';
         this.ownerGrid.setQueryOrderBy(this.field, direction);
         this.ownerGrid.loadPage();
     };
 
 })(App.ko.GridColumnOrder.prototype);
+
 
 /**
  * Grid filter choice control. One dropdown filter has multiple filter choices.
@@ -340,6 +344,7 @@ App.ko.Grid = function(options) {
             ownerCtrl: null,
             defaultOrderBy: null,
             searchPlaceholder: null,
+            selectMultipleRows: true,
             pageRoute: null,
             // Assume current route by default
             // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
@@ -354,7 +359,7 @@ App.ko.Grid = function(options) {
         this.meta = {
             hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
-            verboseNamePlural: ko.observable('')
+            verboseNamePlural: ko.observable(''),
         };
         this.gridColumns = ko.observableArray();
         this.gridFilters = ko.observableArray();
@@ -479,9 +484,9 @@ App.ko.Grid = function(options) {
     };
 
     Grid.deactivateAllSorting = function(exceptOrder) {
-        $.each(this.gridColumns(), function(k, order) {
-            if (!order.is(exceptOrder)) {
-                order.deactivate();
+        $.each(this.gridColumns(), function(k, gridOrder) {
+            if (!gridOrder.is(exceptOrder)) {
+                gridOrder.order(null);
             }
         });
     };
