@@ -615,9 +615,11 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
     def dispatch(self, request, *args, **kwargs):
         self.model_class = self.get_base_queryset().model
+
         if len(self.__class__.grid_fields) == 0:
             for field in self.model_class._meta.fields:
-                self.grid_fields.append(field.name)
+                self.__class__.grid_fields.append(field.attname)
+
         return super().dispatch(request, *args, **kwargs)
 
     # One may add new related / calculated fields, or 'field_display' suffix extra html-formatted fields, for example.
@@ -651,9 +653,14 @@ class KoGridView(BaseFilterView, ViewmodelView):
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
         if self.request_get('load_meta', False):
+            pk_field = ''
+            for field in self.model_class._meta.fields:
+                if field.primary_key:
+                    pk_field = field.attname
             vm.update({
                 'meta' : {
                     'hasSearch': len(self.__class__.search_fields) > 0,
+                    'pkField': pk_field,
                     'verboseName': get_verbose_name(self.model_class),
                     'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
                 }

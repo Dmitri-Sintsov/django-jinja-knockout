@@ -1,9 +1,6 @@
 ko.bindingHandlers.grid_row = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var realElement = ko.virtualElements.firstChild(element);
-        while (realElement !== null && realElement.nodeType !== 1) {
-            realElement = ko.virtualElements.nextSibling(realElement);
-        }
+        var realElement = ko.from_virtual(element);
         if (realElement !== null) {
             viewModel.setRowElement($(realElement));
         }
@@ -90,7 +87,6 @@ App.ko.GridFilterChoice = function(options) {
         this.value = options.value;
         this.is_active = ko.observable(options.is_active);
         this.is_active.subscribe(function(newValue) {
-            self.is_active(newValue);
             if (self.value === null) {
                 return;
             }
@@ -253,6 +249,15 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.init = function(options) {
+        var self = this;
+        this.isSelectedRow = ko.observable(options.isSelectedRow);
+        this.isSelectedRow.subscribe(function(newValue) {
+            if (newValue) {
+                self.ownerGrid.selectRow(self);
+            } else {
+                self.ownerGrid.unselectRow(self);
+            }
+        });
         this.$row = null;
         this.ownerGrid = options.ownerGrid;
         // Source data field values. May be used for AJAX DB queries, for example.
@@ -262,8 +267,13 @@ App.ko.GridRow = function(options) {
         this.initDisplayValues();
     };
 
+    GridRow.getValue = function(field) {
+        return typeof this.values[field] === 'undefined' ? undefined : this.values[field];
+    };
+
     GridRow.onRowClick = function() {
         this.ownerGrid.rowClick(this);
+        this.isSelectedRow(!this.isSelectedRow());
     };
 
     GridRow.setRowElement = function($element) {
@@ -357,10 +367,12 @@ App.ko.Grid = function(options) {
         this.$selector = $(this.options.applyTo);
 
         this.meta = {
+            pkField: '',
             hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+        this.selectedRowsPks = [];
         this.gridColumns = ko.observableArray();
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
@@ -450,12 +462,52 @@ App.ko.Grid = function(options) {
         }
     };
 
+    Grid.hasSelectedRow = function(pkVal) {
+        if (pkVal === undefined) {
+            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+        }
+        for (var i = 0; i < this.selectedRowsPks.length; i++) {
+            if (this.selectedRowsPks[i] === pkVal) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    Grid.selectRow = function(koRow) {
+        if (!this.options.selectMultipleRows) {
+            return;
+        }
+        var pkVal = koRow.getValue(this.meta.pkField);
+        if (!this.hasSelectedRow(pkVal)) {
+            this.selectedRowsPks.push(pkVal);
+        }
+    };
+
+    Grid.unselectRow = function(koRow) {
+        if (!this.options.selectMultipleRows) {
+            return;
+        }
+        var pkVal = koRow.getValue(this.meta.pkField);
+        if (this.hasSelectedRow(pkVal)) {
+            this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
+                return val !== pkVal;
+            });
+        }
+    };
+
     /**
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
     Grid.iocRow = function(row) {
+        // Remember previously selected grid rows from this.hasSelectedRow().
+        if (typeof row[this.meta.pkField] === 'undefined') {
+            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+        }
+        var pkVal = row[this.meta.pkField];
         return new App.ko.GridRow({
             ownerGrid: this,
+            isSelectedRow: this.hasSelectedRow(pkVal),
             values: row
         });
     };
@@ -661,9 +713,7 @@ App.ko.Grid = function(options) {
     Grid.setKoPage = function(data) {
         var self = this;
         if (typeof data.meta !== 'undefined') {
-            $.each(data.meta, function(k, v) {
-                self.meta[k](v);
-            });
+            ko.set_props(data.meta, self.meta);
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
         if (typeof data.grid_fields !== 'undefined') {

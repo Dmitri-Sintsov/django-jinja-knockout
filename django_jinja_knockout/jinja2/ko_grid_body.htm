@@ -45,7 +45,9 @@
                     <tbody data-bind="foreach: gridRows">
                         <tr class="pointer">
                             <!-- ko if: $parent.options.selectMultipleRows -->
-                            <td data-bind="click: onRowClick" style="width: 2em;"><input type="checkbox"></td>
+                            <td data-bind="click: onRowClick" style="width: 2em;">
+                                <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
+                            </td>
                             <!-- /ko -->
                             <!-- ko grid_row, foreach: $parent.gridColumns -->
                             <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>

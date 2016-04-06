@@ -84,8 +84,8 @@ button.close {
 	cursor: pointer;
 }
 
-.halflings-before:before {
-	color: Green;
+.halflings, .halflings-before:before {
+	color: Gray;
 	font-family: 'Glyphicons Halflings';
 	font-size: 14px;
 }

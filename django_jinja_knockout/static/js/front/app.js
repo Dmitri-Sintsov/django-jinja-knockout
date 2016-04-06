@@ -769,6 +769,25 @@ $(document)
     App.initClient($row);
 });
 
+ko.set_props = function(src, dst) {
+    $.each(src, function(k, v) {
+        if (typeof dst[k] === 'function') {
+            dst[k](v);
+        } else {
+            dst[k] = v;
+        }
+    });
+};
+
+ko.from_virtual = function(element) {
+    var realElement = ko.virtualElements.firstChild(element);
+    while (realElement !== null && realElement.nodeType !== 1) {
+        realElement = ko.virtualElements.nextSibling(realElement);
+    }
+    return realElement;
+};
+
+
 // Use with care. Do not put custom bindings into App.documentReadyHooks,
 // there are ko.bindingHandlers for that.
 ko.bindingHandlers.initclient = {
