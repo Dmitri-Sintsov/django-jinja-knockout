@@ -652,7 +652,8 @@ class KoGridView(BaseFilterView, ViewmodelView):
         }
         if self.request_get('load_meta', False):
             vm.update({
-                'model' : {
+                'meta' : {
+                    'hasSearch': len(self.__class__.search_fields) > 0,
                     'verboseName': get_verbose_name(self.model_class),
                     'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
                 }

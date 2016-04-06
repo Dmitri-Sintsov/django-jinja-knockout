@@ -58,3 +58,7 @@ msgstr "В конец"
 
 msgid "All"
 msgstr "Все"
+
+msgid "Search"
+msgstr "Поиск"
+

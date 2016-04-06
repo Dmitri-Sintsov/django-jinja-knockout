@@ -314,7 +314,7 @@ App.ko.Grid = function(options) {
             toBegin: App.trans('First page'),
             toEnd: App.trans('Last page'),
         };
-        this.gridSearchPlaceholder = ko.observable(
+        this.meta.searchPlaceholder = ko.observable(
             (this.options.searchPlaceholder === null) ? App.trans('Search') : this.options.searchPlaceholder
         );
     };
@@ -351,7 +351,8 @@ App.ko.Grid = function(options) {
         this.ownerCtrl = this.options.ownerCtrl;
         this.$selector = $(this.options.applyTo);
 
-        this.modelMeta = {
+        this.meta = {
+            hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable('')
         };
@@ -654,11 +655,11 @@ App.ko.Grid = function(options) {
 
     Grid.setKoPage = function(data) {
         var self = this;
-        if (typeof data.model !== 'undefined') {
-            $.each(data.model, function(k, v) {
-                self.modelMeta[k](v);
+        if (typeof data.meta !== 'undefined') {
+            $.each(data.meta, function(k, v) {
+                self.meta[k](v);
             });
-            this.ownerCtrlSetTitle(data.model.verboseNamePlural);
+            this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
         if (typeof data.grid_fields !== 'undefined') {
             self.setKoGridColumns(data.grid_fields);
