@@ -116,16 +116,16 @@ App.ko.GridFilterChoice = function(options) {
 })(App.ko.GridFilterChoice.prototype);
 
 /**
- * Grid filter control. Contains multiple App.ko.GridFilterChoice instances or their descendants.
+ * Common ancestor of App.ko.GridFilter and App.ko.FkGridFilter.
  */
 
-App.ko.GridFilter = function(options) {
+App.ko.AbstractGridFilter = function(options) {
     this.init(options);
 };
 
-(function(GridFilter) {
+(function(AbstractGridFilter) {
 
-    GridFilter.init = function(options) {
+    AbstractGridFilter.init = function(options) {
         this.$dropdown = null;
         this.ownerGrid =  options.ownerGrid;
         this.field = options.field;
@@ -137,7 +137,7 @@ App.ko.GridFilter = function(options) {
         this.resetFilter = null;
     };
 
-    GridFilter.setDropdownElement = function($element) {
+    AbstractGridFilter.setDropdownElement = function($element) {
         var self = this;
         this.$dropdown = $element;
         /*
@@ -151,8 +151,25 @@ App.ko.GridFilter = function(options) {
         */
     };
 
-    GridFilter.onDropdownClick = function(ev) {
+    AbstractGridFilter.onDropdownClick = function(ev) {
         // console.log('dropdown clicked');
+    };
+
+})(App.ko.AbstractGridFilter.prototype);
+
+/**
+ * Grid filter control. Contains multiple App.ko.GridFilterChoice instances or their descendants.
+ */
+
+App.ko.GridFilter = function(options) {
+    $.inherit(App.ko.AbstractGridFilter.prototype, this);
+    this.init(options);
+};
+
+(function(GridFilter) {
+
+    GridFilter.init = function(options) {
+        this.super.init.call(this, options);
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -229,6 +246,30 @@ App.ko.GridFilter = function(options) {
     };
 
 })(App.ko.GridFilter.prototype);
+
+/**
+ * Foreign key grid filter control. Contains dialog with another grid that selects filter values.
+ */
+
+App.ko.FkGridFilter = function(options) {
+    $.inherit(App.ko.AbstractGridFilter.prototype, this);
+    this.init(options);
+};
+
+(function(FkGridFilter) {
+
+    FkGridFilter.init = function(options) {
+        this.gridDialog = new App.GridDialog({
+            gridOptions: options.fkGridOptions
+        });
+        this.super.init.call(this, options);
+    };
+
+    FkGridFilter.onDropdownClick = function(ev) {
+        this.gridDialog.show();
+    };
+
+})(App.ko.FkGridFilter.prototype);
 
 /**
  * Single row of grid (ko viewmodel).
@@ -348,13 +389,22 @@ App.ko.Grid = function(options) {
         }
     };
 
+    Grid.applyBindings = function() {
+        ko.applyBindings(this, this.$selector.get(0));
+    };
+
+    Grid.cleanBindings = function() {
+        ko.cleanNode(this.$selector.get(0));
+    };
+
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
             ownerCtrl: null,
             defaultOrderBy: null,
+            fkGridOptions: {},
             searchPlaceholder: null,
-            selectMultipleRows: true,
+            selectMultipleRows: false,
             pageRoute: null,
             // Assume current route by default
             // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
@@ -384,8 +434,6 @@ App.ko.Grid = function(options) {
 
         this.initAjaxParams();
         this.localize();
-
-        ko.applyBindings(this, this.$selector.get(0));
 
         /*
         this.$selector.on('show.bs.modal', function (ev) {
@@ -621,24 +669,36 @@ App.ko.Grid = function(options) {
         });
     };
 
-    Grid.iocKoFilter = function(filter) {
-        if (filter.choices === null) {
-            return new App.ko.FkGridFilter({
-                ownerGrid: this,
-                field: filter.field,
-                name: filter.name,
-            });
-        } else {
-            return new App.ko.GridFilter({
-                ownerGrid: this,
-                field: filter.field,
-                name: filter.name,
-            });
+    Grid.iocDropdownFilter = function(filter) {
+        return new App.ko.GridFilter({
+            ownerGrid: this,
+            field: filter.field,
+            name: filter.name,
+        });
+    }
+
+    Grid.getFkGridOptions = function(field) {
+        if (typeof this.options.fkGridOptions[field] === 'undefined') {
+            throw sprintf("Define fkGridOptions for field '%s'", field);
         }
+        var options = this.options.fkGridOptions[field];
+        if (typeof options !== 'object') {
+            options = {'pageRoute': options};
+        }
+        return options;
+    };
+
+    Grid.iocFkFilter = function(filter) {
+        return new App.ko.FkGridFilter({
+            ownerGrid: this,
+            field: filter.field,
+            name: filter.name,
+            fkGridOptions: this.getFkGridOptions(filter.field)
+        });
     };
 
     Grid.setKoFilter = function(filter) {
-        var filterModel = this.iocKoFilter(filter);
+        var filterModel = (filter.choices === null) ? this.iocFkFilter(filter) : this.iocDropdownFilter(filter);
         var choices = filter.choices;
         if (choices === null) {
             // Will use App.ko.FkGridFilter to select filter choices.
@@ -795,6 +855,7 @@ App.GridDialog = function(options) {
 
     GridDialog.create = function(options) {
         var self = this;
+        this.wasOpened = false;
         if (typeof options !== 'object') {
             options = {};
         }
@@ -827,15 +888,19 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.iocGrid = function(options) {
-        if (typeof this.dialogOptions.iocGrid !== 'function') {
-            throw "Either pass 'iocGrid' function as App.GridDialog constructor option, " +
-                    "or implement iocGrid method in descendant";
-        } else {
+        options = $.extend(
+            this.dialogOptions.gridOptions,
+            options,
+            {selectMultipleRows: true}
+        );
+        if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(options);
+        } else {
+            return new App.ko.Grid(options);
         }
     };
 
-    GridDialog.iocKoGrid = function(message) {
+    GridDialog.iocGridOwner = function(message) {
         var grid = this.iocGrid({
             applyTo: message,
             ownerCtrl: this
@@ -849,14 +914,22 @@ App.GridDialog = function(options) {
         return grid;
     };
 
-    GridDialog.onShown = function() {
+    GridDialog.show = function() {
+        this.super.show.call(this);
+        if (this.wasOpened) {
+            this.grid.cleanBindings();
+        }
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
         var $gridPagination = $(App.compileTemplate('ko_grid_pagination')());
         $footer.prepend($gridPagination);
-        // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
-        this.grid = this.iocKoGrid(this.bdialog.getModal());
+        if (!this.wasOpened) {
+            // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
+            this.grid = this.iocGridOwner(this.bdialog.getModal());
+        }
+        this.grid.applyBindings();
         this.grid.searchSubstring();
+        this.wasOpened = true;
     };
 
 })(App.GridDialog.prototype);
@@ -876,6 +949,7 @@ App.initClientHooks.push(function() {
         }
         options.applyTo = v;
         var grid = new App.ko.Grid(options);
+        grid.applyBindings();
         grid.searchSubstring();
     });
 });
