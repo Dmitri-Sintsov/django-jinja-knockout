@@ -62,3 +62,9 @@ msgstr "Все"
 msgid "Search"
 msgstr "Поиск"
 
+msgid "Remove selection"
+msgstr "Сбросить выделение"
+
+msgid "Apply"
+msgstr "Применить"
+

@@ -253,9 +253,9 @@ App.ko.GridRow = function(options) {
         this.isSelectedRow = ko.observable(options.isSelectedRow);
         this.isSelectedRow.subscribe(function(newValue) {
             if (newValue) {
-                self.ownerGrid.selectRow(self);
+                self.ownerGrid.onSelectRow(self);
             } else {
-                self.ownerGrid.unselectRow(self);
+                self.ownerGrid.onUnselectRow(self);
             }
         });
         this.$row = null;
@@ -272,8 +272,8 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.onRowClick = function() {
-        this.ownerGrid.rowClick(this);
         this.isSelectedRow(!this.isSelectedRow());
+        this.ownerGrid.rowClick(this);
     };
 
     GridRow.setRowElement = function($element) {
@@ -474,26 +474,75 @@ App.ko.Grid = function(options) {
         return false;
     };
 
-    Grid.selectRow = function(koRow) {
-        if (!this.options.selectMultipleRows) {
-            return;
+    Grid.filterOutRow = function(pkVal) {
+        if (pkVal === undefined) {
+            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
         }
+        this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
+            return val !== pkVal;
+        });
+    };
+
+    /**
+     * Called from child row when the row is selected.
+     */
+    Grid.onSelectRow = function(koRow) {
         var pkVal = koRow.getValue(this.meta.pkField);
-        if (!this.hasSelectedRow(pkVal)) {
-            this.selectedRowsPks.push(pkVal);
+        if (this.options.selectMultipleRows) {
+            if (!this.hasSelectedRow(pkVal)) {
+                this.selectedRowsPks.push(pkVal);
+            }
+        } else {
+            this.selectedRowsPks = [pkVal];
         }
     };
 
-    Grid.unselectRow = function(koRow) {
-        if (!this.options.selectMultipleRows) {
-            return;
-        }
+    /**
+     * Called from child row when the row is unselected.
+     */
+    Grid.onUnselectRow = function(koRow) {
         var pkVal = koRow.getValue(this.meta.pkField);
-        if (this.hasSelectedRow(pkVal)) {
-            this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
-                return val !== pkVal;
-            });
+        this.filterOutRow(pkVal);
+    };
+
+    /**
+     * Find App.ko.GridRow instance in this.gridRows by row pk value.
+     */
+    Grid.findKoRowByPkVal = function(pkVal) {
+        var self = this;
+        var koRow = null;
+        $.each(this.gridRows(), function(k, v) {
+            if (v.getValue(self.meta.pkField) === pkVal) {
+                koRow = v;
+                return false;
+            }
+        });
+        return koRow;
+    };
+
+    /**
+     * "Manually" unselect row by it's pk value.
+     */
+    Grid.unselectRow = function(pkVal) {
+        var koRow = this.findKoRowByPkVal(pkVal);
+        if (koRow !== null) {
+            koRow.isSelectedRow(false);
         }
+        // Next line is not required, because the action will be done by koRow.isSelectedRow.subscribe() function.
+        // this.filterOutRow(koRow.getValue(this.meta.pkField));
+    };
+
+    Grid.unselectAllRows = function() {
+        // Make a clone of this.selectedRowsPks, otherwise .isSelectedRow(false) subscription
+        // will alter loop array in progress.
+        var selectedRowsPks = this.selectedRowsPks.slice();
+        for (var i = 0; i < selectedRowsPks.length; i++) {
+            var koRow = this.findKoRowByPkVal(selectedRowsPks[i]);
+            if (koRow !== null) {
+                koRow.isSelectedRow(false);
+            }
+        }
+        this.selectedRowsPks = [];
     };
 
     /**
@@ -739,23 +788,33 @@ App.ko.Grid = function(options) {
  */
 App.GridDialog = function(options) {
     $.inherit(App.Dialog.prototype, this);
-    if (typeof options !== 'object') {
-        options = {};
-    }
-    var fullOptions = $.extend(
-        {
-            template: 'ko_grid_body',
-            buttons: [{
-                label: App.trans('All'),
-                action: function(dialogItself){
-                    dialogItself.close();
-                }
-            }]
-        }, options);
-    this.create(fullOptions);
+    this.create(options);
 };
 
 (function(GridDialog) {
+
+    GridDialog.create = function(options) {
+        var self = this;
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        var fullOptions = $.extend(
+            {
+                template: 'ko_grid_body',
+                buttons: [{
+                    label: App.trans('Remove selection'),
+                    action: function(dialogItself){
+                        self.grid.unselectAllRows();
+                    }
+                },{
+                    label: App.trans('Apply'),
+                    action: function(dialogItself){
+                        dialogItself.close();
+                    }
+                }]
+            }, options);
+        this.super.create.call(this, fullOptions);
+    };
 
     GridDialog.iocGrid = function(options) {
         if (typeof this.dialogOptions.iocGrid !== 'function') {
