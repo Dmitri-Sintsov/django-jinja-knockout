@@ -548,15 +548,10 @@ App.ko.Grid = function(options) {
     /**
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
-    Grid.iocRow = function(row) {
-        // Remember previously selected grid rows from this.hasSelectedRow().
-        if (typeof row[this.meta.pkField] === 'undefined') {
-            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
-        }
-        var pkVal = row[this.meta.pkField];
+    Grid.iocRow = function(row, isSelectedRow) {
         return new App.ko.GridRow({
             ownerGrid: this,
-            isSelectedRow: this.hasSelectedRow(pkVal),
+            isSelectedRow: isSelectedRow,
             values: row
         });
     };
@@ -771,8 +766,13 @@ App.ko.Grid = function(options) {
         // console.log(data);
         // Set grid rows viewmodels.
         self.gridRows([]);
-        $.each(data.entries, function(k, v) {
-            self.gridRows.push(self.iocRow(v));
+        $.each(data.entries, function(k, row) {
+            // Recall previously selected grid rows from this.hasSelectedRow().
+            if (typeof row[self.meta.pkField] === 'undefined') {
+                throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+            }
+            var pkVal = row[self.meta.pkField];
+            self.gridRows.push(self.iocRow(row, self.hasSelectedRow(pkVal)));
         });
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);
@@ -803,17 +803,27 @@ App.GridDialog = function(options) {
                 template: 'ko_grid_body',
                 buttons: [{
                     label: App.trans('Remove selection'),
-                    action: function(dialogItself){
-                        self.grid.unselectAllRows();
+                    action: function(dialogItself) {
+                        self.onRemoveSelection();
                     }
                 },{
                     label: App.trans('Apply'),
-                    action: function(dialogItself){
-                        dialogItself.close();
+                    action: function(dialogItself) {
+                        if (self.onApply()) {
+                            dialogItself.close();
+                        }
                     }
                 }]
             }, options);
         this.super.create.call(this, fullOptions);
+    };
+
+    GridDialog.onRemoveSelection = function() {
+        this.grid.unselectAllRows();
+    };
+
+    GridDialog.onApply = function() {
+        return true;
     };
 
     GridDialog.iocGrid = function(options) {
@@ -850,3 +860,22 @@ App.GridDialog = function(options) {
     };
 
 })(App.GridDialog.prototype);
+
+/**
+ * Automatic grid initialization by 'grid' css class and 'data-grid-options' html5 attribute.
+ *
+ * Note that for more advanced grids, such as displaying custom-formatted field values, one has to inherit
+ * from App.ko.Grid to override App.ko.Grid.iocRow() and
+ * from App.ko.GridRow to override App.ko.GridRow.initDisplayValues().
+ */
+App.initClientHooks.push(function() {
+    $.each($('.grid'), function(k, v) {
+        var options = $(v).data('gridOptions');
+        if (typeof options !== 'object') {
+            console.log('Skipping .grid with unset data-grid-options');
+        }
+        options.applyTo = v;
+        var grid = new App.ko.Grid(options);
+        grid.searchSubstring();
+    });
+});

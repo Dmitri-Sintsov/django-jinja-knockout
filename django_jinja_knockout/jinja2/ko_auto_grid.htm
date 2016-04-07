@@ -1,0 +1,8 @@
+{% macro ko_auto_grid(grid_options) -%}
+<div class="panel panel-primary grid" data-grid-options='{{ grid_options|escapejs(True) }}'>
+    <div class="panel-body">
+        <div data-template-id="ko_grid_body" data-template-args='{"show_title: true}'></div>
+        <div data-template-id="ko_grid_pagination"></div>
+    </div>
+</div>
+{%- endmacro %}

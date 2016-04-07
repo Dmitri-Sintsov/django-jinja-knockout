@@ -622,6 +622,9 @@ class KoGridView(BaseFilterView, ViewmodelView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_allowed_filter_fields(self):
+        return OrderedDict()
+
     # One may add new related / calculated fields, or 'field_display' suffix extra html-formatted fields, for example.
     def postprocess_row(self, row):
         return row
