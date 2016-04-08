@@ -39,7 +39,12 @@
                             <!-- /ko -->
                             <!-- ko foreach: gridColumns -->
                             <th>
+                                <!-- ko if: isSortedColumn() -->
                                 <a data-bind="text: name, grid_order_by, click: onSwitchOrder, css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}" class="halflings-before" name="#"></a>
+                                <!-- /ko -->
+                                <!-- ko if: !isSortedColumn() -->
+                                <span data-bind="text: name"></span>
+                                <!-- /ko -->
                             </th>
                             <!-- /ko -->
                         </tr>

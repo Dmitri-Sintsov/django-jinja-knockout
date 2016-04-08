@@ -44,6 +44,7 @@ App.ko.GridColumnOrder = function(options) {
         this.name = options.name;
         // true means 'asc', false means 'desc'.
         this.order = ko.observable(null);
+        this.isSortedColumn = ko.observable(options.isSorted);
     };
 
     GridColumnOrder.setSwitchElement = function($element) {
@@ -419,6 +420,7 @@ App.ko.Grid = function(options) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+        this.sortOrders = {};
         this.selectedRowsPks = [];
         this.gridColumns = ko.observableArray();
         this.gridFilters = ko.observableArray();
@@ -440,6 +442,10 @@ App.ko.Grid = function(options) {
         });
         */
 
+    };
+
+    Grid.isSortedField = function(field) {
+        return typeof this.sortOrders[field] !== 'undefined';
     };
 
     // Supports multiple values of filter.
@@ -593,12 +599,8 @@ App.ko.Grid = function(options) {
     /**
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
-    Grid.iocRow = function(row, isSelectedRow) {
-        return new App.ko.GridRow({
-            ownerGrid: this,
-            isSelectedRow: isSelectedRow,
-            values: row
-        });
+    Grid.iocRow = function(options) {
+        return new App.ko.GridRow(options);
     };
 
     Grid.onSearchReset = function() {
@@ -641,42 +643,36 @@ App.ko.Grid = function(options) {
         self.loadPage();
     };
 
-    Grid.iocKoGridColumn = function(grid_column) {
-        return new App.ko.GridColumnOrder({
-            field: grid_column['field'],
-            name: grid_column['name'],
-            ownerGrid: this
-        });
+    Grid.iocKoGridColumn = function(options) {
+        return new App.ko.GridColumnOrder(options);
     };
 
-    Grid.setKoGridColumns = function(grid_fields) {
-        for (var i = 0; i < grid_fields.length; i++) {
+    Grid.setKoGridColumns = function(gridFields) {
+        for (var i = 0; i < gridFields.length; i++) {
+            var gridColumn = gridFields[i];
+            var options = {
+                field: gridColumn.field,
+                name: gridColumn.name,
+                isSorted: this.isSortedField(gridColumn.field),
+                ownerGrid: this
+            };
             this.gridColumns.push(
-                this.iocKoGridColumn(grid_fields[i])
+                this.iocKoGridColumn(options)
             );
         }
     };
 
-    Grid.iocKoFilterChoice = function(filterModel, choice) {
-        return new App.ko.GridFilterChoice({
-            ownerFilter: filterModel,
-            name: choice.name,
-            value: choice.value,
-            is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
-        });
+    Grid.iocKoFilterChoice = function(options) {
+        return new App.ko.GridFilterChoice(options);
     };
 
-    Grid.iocDropdownFilter = function(filter) {
-        return new App.ko.GridFilter({
-            ownerGrid: this,
-            field: filter.field,
-            name: filter.name,
-        });
+    Grid.iocDropdownFilter = function(options) {
+        return new App.ko.GridFilter(options);
     }
 
     Grid.getFkGridOptions = function(field) {
         if (typeof this.options.fkGridOptions[field] === 'undefined') {
-            throw sprintf("Define fkGridOptions for field '%s'", field);
+            throw sprintf("Missing ['fkGridOptions'] constructor option argument for field '%s'", field);
         }
         var options = this.options.fkGridOptions[field];
         if (typeof options !== 'object') {
@@ -685,28 +681,47 @@ App.ko.Grid = function(options) {
         return options;
     };
 
-    Grid.iocFkFilter = function(filter) {
-        return new App.ko.FkGridFilter({
-            ownerGrid: this,
-            field: filter.field,
-            name: filter.name,
-            fkGridOptions: this.getFkGridOptions(filter.field)
-        });
+    Grid.iocFkFilter = function(options) {
+        return new App.ko.FkGridFilter(options);
     };
 
     Grid.setKoFilter = function(filter) {
-        var filterModel = (filter.choices === null) ? this.iocFkFilter(filter) : this.iocDropdownFilter(filter);
+        var filterModel;
+        var options = {
+            ownerGrid: this,
+            field: filter.field,
+            name: filter.name,
+        };
+        if (filter.choices === null) {
+            options.fkGridOptions = this.getFkGridOptions(filter.field);
+            filterModel = this.iocFkFilter(options);
+        } else {
+            filterModel = this.iocDropdownFilter(options);
+        }
         var choices = filter.choices;
         if (choices === null) {
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
+            var options = {
+                ownerFilter: filterModel,
+                name: App.trans('All'),
+                value: null,
+                is_active: true
+            }
             filterModel.choices.push(
-                this.iocKoFilterChoice(filterModel, {'name': App.trans('All'), 'value': null, 'is_active': true})
+                this.iocKoFilterChoice(options)
             );
             for (var i = 0; i < choices.length; i++) {
+                var choice = choices[i];
+                var options = {
+                    ownerFilter: filterModel,
+                    name: choice.name,
+                    value: choice.value,
+                    is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+                };
                 filterModel.choices.push(
-                    this.iocKoFilterChoice(filterModel, choices[i])
+                    this.iocKoFilterChoice(options)
                 );
             }
         }
@@ -811,14 +826,22 @@ App.ko.Grid = function(options) {
     Grid.ownerCtrlSetTitle = function(verboseNamePlural) {
     };
 
+    /**
+     * Populate viewmodel from AJAX response.
+     */
     Grid.setKoPage = function(data) {
         var self = this;
         if (typeof data.meta !== 'undefined') {
             ko.set_props(data.meta, self.meta);
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
-        if (typeof data.grid_fields !== 'undefined') {
-            self.setKoGridColumns(data.grid_fields);
+        if (typeof data.sortOrders !== 'undefined') {
+            for (var i = 0; i < data.sortOrders.length; i++) {
+                self.sortOrders[data.sortOrders[i]] = i;
+            }
+        }
+        if (typeof data.gridFields !== 'undefined') {
+            self.setKoGridColumns(data.gridFields);
         }
         // console.log(data);
         // Set grid rows viewmodels.
@@ -829,7 +852,14 @@ App.ko.Grid = function(options) {
                 throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
             }
             var pkVal = row[self.meta.pkField];
-            self.gridRows.push(self.iocRow(row, self.hasSelectedRow(pkVal)));
+            var options = {
+                ownerGrid: self,
+                isSelectedRow: self.hasSelectedRow(pkVal),
+                values: row
+            };
+            self.gridRows.push(
+                self.iocRow(options)
+            );
         });
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);

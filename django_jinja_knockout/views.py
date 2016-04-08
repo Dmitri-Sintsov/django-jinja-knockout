@@ -307,8 +307,12 @@ class BaseFilterView(View):
         raise ValueError(message.format(*args, **kwargs))
 
     def dispatch(self, request, *args, **kwargs):
+        self.model_class = self.get_base_queryset().model
+
         if self.__class__.allowed_sort_orders is None:
             self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
+        elif self.__class__.allowed_sort_orders == '__all__':
+            self.__class__.allowed_sort_orders = [field.attname for field in self.model_class._meta.fields]
 
         if self.__class__.allowed_filter_fields is None:
             self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
@@ -614,13 +618,12 @@ class KoGridView(BaseFilterView, ViewmodelView):
         )
 
     def dispatch(self, request, *args, **kwargs):
-        self.model_class = self.get_base_queryset().model
+        result = super().dispatch(request, *args, **kwargs)
 
         if len(self.__class__.grid_fields) == 0:
-            for field in self.model_class._meta.fields:
-                self.__class__.grid_fields.append(field.attname)
+            self.__class__.grid_fields = [field.attname for field in self.model_class._meta.fields]
 
-        return super().dispatch(request, *args, **kwargs)
+        return result
 
     def get_allowed_filter_fields(self):
         return OrderedDict()
@@ -678,7 +681,8 @@ class KoGridView(BaseFilterView, ViewmodelView):
                     'field': field,
                     'name': get_verbose_name(self.model_class, field)
                 })
-            vm['grid_fields'] = vm_grid_fields
+            vm['gridFields'] = vm_grid_fields
+            vm['sortOrders'] = self.__class__.allowed_sort_orders
 
             vm_filters = []
 
