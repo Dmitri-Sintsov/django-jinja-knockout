@@ -931,6 +931,13 @@ App.GridDialog = function(options) {
         this.wasOpened = true;
     };
 
+    GridDialog.remove = function() {
+        if (this.wasOpened) {
+            this.grid.cleanBindings();
+        }
+        this.super.remove.call(this);
+    };
+
 })(App.GridDialog.prototype);
 
 /**
