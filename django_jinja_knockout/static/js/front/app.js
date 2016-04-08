@@ -50,8 +50,21 @@ App.Dialog = function(options) {
             buttonLabel: App.trans('OK'),
             btnCancelLabel: App.trans('No'),
             btnOKLabel: App.trans('Yes'),
-            onshown: function(bootstrapDialog) {
+            onshow: function(bdialog) {
+                self.bdialog = bdialog;
+                self.onShow();
+            },
+            onshown: function(bdialog) {
+                self.bdialog = bdialog;
                 self.onShown();
+            },
+            onhide: function(bdialog) {
+                self.bdialog = bdialog;
+                self.onHide();
+            },
+            onhidden: function(bdialog) {
+                self.bdialog = bdialog;
+                self.onHidden();
             },
         };
         this.dialogOptions = $.extend(this.dialogOptions, this.getOptions(), options);
@@ -106,9 +119,21 @@ App.Dialog = function(options) {
         }
     };
 
+    Dialog.onShow = function() {
+        /* noop */
+    };
+
     Dialog.onShown = function() {
         /* noop */
-    }
+    };
+
+    Dialog.onHide = function() {
+        /* noop */
+    };
+
+    Dialog.onHidden = function() {
+        /* noop */
+    };
 
     Dialog.alert = function() {
         if (typeof BootstrapDialog === 'undefined') {

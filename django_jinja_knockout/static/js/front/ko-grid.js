@@ -389,7 +389,8 @@ App.ko.Grid = function(options) {
         }
     };
 
-    Grid.applyBindings = function() {
+    Grid.applyBindings = function(selector) {
+        this.$selector = $(selector);
         ko.applyBindings(this, this.$selector.get(0));
     };
 
@@ -410,11 +411,7 @@ App.ko.Grid = function(options) {
             // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
             pageUrl: '',
         }, options);
-        if (typeof this.options.applyTo === 'undefined') {
-            throw 'App.ko.Grid constructor requires applyTo option.'
-        }
         this.ownerCtrl = this.options.ownerCtrl;
-        this.$selector = $(this.options.applyTo);
 
         this.meta = {
             pkField: '',
@@ -914,20 +911,22 @@ App.GridDialog = function(options) {
         return grid;
     };
 
-    GridDialog.show = function() {
-        this.super.show.call(this);
-        if (this.wasOpened) {
-            this.grid.cleanBindings();
-        }
+    GridDialog.onHide = function() {
+        this.grid.cleanBindings();
+    };
+
+    GridDialog.onShow = function() {
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
         var $gridPagination = $(App.compileTemplate('ko_grid_pagination')());
         $footer.prepend($gridPagination);
-        if (!this.wasOpened) {
+        if (this.wasOpened) {
+            this.recreateContent();
+        } else {
             // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
-            this.grid = this.iocGridOwner(this.bdialog.getModal());
+            this.grid = this.iocGridOwner();
         }
-        this.grid.applyBindings();
+        this.grid.applyBindings(this.bdialog.getModal());
         this.grid.searchSubstring();
         this.wasOpened = true;
     };
@@ -947,9 +946,8 @@ App.initClientHooks.push(function() {
         if (typeof options !== 'object') {
             console.log('Skipping .grid with unset data-grid-options');
         }
-        options.applyTo = v;
         var grid = new App.ko.Grid(options);
-        grid.applyBindings();
+        grid.applyBindings(v);
         grid.searchSubstring();
     });
 });
