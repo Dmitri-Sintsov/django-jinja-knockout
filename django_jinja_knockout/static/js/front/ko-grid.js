@@ -650,14 +650,13 @@ App.ko.Grid = function(options) {
     Grid.setKoGridColumns = function(gridFields) {
         for (var i = 0; i < gridFields.length; i++) {
             var gridColumn = gridFields[i];
-            var options = {
-                field: gridColumn.field,
-                name: gridColumn.name,
-                isSorted: this.isSortedField(gridColumn.field),
-                ownerGrid: this
-            };
             this.gridColumns.push(
-                this.iocKoGridColumn(options)
+                this.iocKoGridColumn({
+                    field: gridColumn.field,
+                    name: gridColumn.name,
+                    isSorted: this.isSortedField(gridColumn.field),
+                    ownerGrid: this
+                })
             );
         }
     };
@@ -703,25 +702,23 @@ App.ko.Grid = function(options) {
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
-            var options = {
-                ownerFilter: filterModel,
-                name: App.trans('All'),
-                value: null,
-                is_active: true
-            }
             filterModel.choices.push(
-                this.iocKoFilterChoice(options)
+                this.iocKoFilterChoice({
+                    ownerFilter: filterModel,
+                    name: App.trans('All'),
+                    value: null,
+                    is_active: true
+                })
             );
             for (var i = 0; i < choices.length; i++) {
                 var choice = choices[i];
-                var options = {
-                    ownerFilter: filterModel,
-                    name: choice.name,
-                    value: choice.value,
-                    is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
-                };
                 filterModel.choices.push(
-                    this.iocKoFilterChoice(options)
+                    this.iocKoFilterChoice({
+                        ownerFilter: filterModel,
+                        name: choice.name,
+                        value: choice.value,
+                        is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+                    })
                 );
             }
         }
@@ -852,13 +849,12 @@ App.ko.Grid = function(options) {
                 throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
             }
             var pkVal = row[self.meta.pkField];
-            var options = {
-                ownerGrid: self,
-                isSelectedRow: self.hasSelectedRow(pkVal),
-                values: row
-            };
             self.gridRows.push(
-                self.iocRow(options)
+                self.iocRow({
+                    ownerGrid: self,
+                    isSelectedRow: self.hasSelectedRow(pkVal),
+                    values: row
+                })
             );
         });
         // Set grid pagination viewmodels.
