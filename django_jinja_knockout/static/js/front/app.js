@@ -741,12 +741,16 @@ App.initClientApply = function(selector) {
     $selector.find('.init-client-end').remove();
 };
 
-App.get = function(route, data, options) {
+App.routeUrl = function(route) {
     if (typeof App.conf.url[route] === 'undefined') {
-        throw "Undefined route: " + route;
+        throw sprintf("Undefined route: '%s'", route);
     }
+    return App.conf.url[route];
+};
+
+App.get = function(route, data, options) {
     return $.get(
-        App.conf.url[route],
+        App.routeUrl(route),
         (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);
@@ -756,15 +760,12 @@ App.get = function(route, data, options) {
 };
 
 App.post = function(route, data, options) {
-    if (typeof App.conf.url[route] === 'undefined') {
-        throw "Undefined route: " + route;
-    }
     if (typeof data === 'undefined') {
         data = {};
     }
     data.csrfmiddlewaretoken = App.conf.csrfToken;
     return $.post(
-        App.conf.url[route],
+        App.routeUrl(route),
         (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);

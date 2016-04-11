@@ -403,7 +403,7 @@ App.ko.Grid = function(options) {
         if (this.options.pageRoute === null) {
             this.pageUrl = this.options.pageUrl;
         } else {
-            this.pageUrl = App.conf.url[this.options.pageRoute];
+            this.pageUrl = App.routeUrl(this.options.pageRoute);
         }
     };
 
@@ -894,7 +894,22 @@ App.ko.Grid = function(options) {
 
 /**
  * BootstrapDialog that incorporates App.ko.Grid descendant instance bound to it's content (this.dialog.message).
- */
+ *
+ * Example of manual invocation:
+
+App.documentReadyHooks.push(function() {
+    var dialog = new App.GridDialog({
+        iocGrid: function(options) {
+            options.pageRoute = 'region_grid';
+            // options.selectMultipleRows = false;
+            return new App.ko.Grid(options);
+        }
+    });
+    dialog.show();
+});
+
+*/
+
 App.GridDialog = function(options) {
     $.inherit(App.Dialog.prototype, this);
     this.create(options);
