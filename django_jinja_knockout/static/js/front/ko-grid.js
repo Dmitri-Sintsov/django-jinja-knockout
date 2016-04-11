@@ -273,11 +273,13 @@ App.ko.FkGridFilter = function(options) {
 
     FkGridFilter.addQueryFilter = function(value) {
         this.super.addQueryFilter.call(this, value);
+        this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.loadPage();
     };
 
     FkGridFilter.removeQueryFilter = function(value) {
         this.super.removeQueryFilter.call(this, value);
+        this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.loadPage();
     };
 
@@ -360,6 +362,10 @@ App.ko.GridPage = function(options) {
 
 /**
  * AJAX Grid powered by Knockout.js.
+ *
+ * Note that for more advanced grids, such as displaying custom-formatted field values, one has to inherit
+ * from App.ko.Grid to override App.ko.Grid.iocRow() and
+ * from App.ko.GridRow to override App.ko.GridRow.initDisplayValues().
  */
 
 App.ko.Grid = function(options) {
@@ -399,6 +405,11 @@ App.ko.Grid = function(options) {
         } else {
             this.pageUrl = App.conf.url[this.options.pageRoute];
         }
+    };
+
+    Grid.run = function(selector) {
+        this.applyBindings(selector);
+        this.searchSubstring();
     };
 
     Grid.applyBindings = function(selector) {
@@ -1003,22 +1014,3 @@ App.GridDialog = function(options) {
     };
 
 })(App.GridDialog.prototype);
-
-/**
- * Automatic grid initialization by 'grid' css class and 'data-grid-options' html5 attribute.
- *
- * Note that for more advanced grids, such as displaying custom-formatted field values, one has to inherit
- * from App.ko.Grid to override App.ko.Grid.iocRow() and
- * from App.ko.GridRow to override App.ko.GridRow.initDisplayValues().
- */
-App.initClientHooks.push(function() {
-    $.each($('.grid'), function(k, v) {
-        var options = $(v).data('gridOptions');
-        if (typeof options !== 'object') {
-            console.log('Skipping .grid with unset data-grid-options');
-        }
-        var grid = new App.ko.Grid(options);
-        grid.applyBindings(v);
-        grid.searchSubstring();
-    });
-});

@@ -790,7 +790,7 @@ App.propCall = function() {
         }
         prop = prop[propChain[i]];
     }
-    if (typeof prop[propMethod] === 'function') {
+    if (prop !== null && typeof prop[propMethod] === 'function') {
         return prop[propMethod].apply(prop, args);
     } else {
         return null;
@@ -883,3 +883,27 @@ ko.bindingHandlers.scroller = {
         });
     }
 };
+
+/**
+ * Automatic App.ko class instantiation by 'component' css class and 'data-component-options' html5 attribute.
+ *
+ */
+App.initClientHooks.push(function() {
+    $.each($('.component'), function(k, v) {
+        var options = $(v).data('componentOptions');
+        if (typeof options !== 'object') {
+            console.log('Skipping .component with unset data-component-options');
+            return;
+        }
+        if (typeof options.class === 'undefined') {
+            throw 'Undefined data-component-options class.';
+        }
+        var componentClass = options.class;
+        delete options.class;
+        if (typeof App.ko[componentClass] !== 'function') {
+            throw sprintf('Skipping unknown component: App.ko.%s', componentClass);
+        }
+        var component = new App.ko[componentClass](options);
+        component.run(v);
+    });
+});

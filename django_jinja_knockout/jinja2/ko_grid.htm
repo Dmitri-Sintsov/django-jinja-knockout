@@ -1,10 +1,8 @@
 {% macro ko_grid(grid_options) -%}
-{% if grid_options.class %}
-{% set grid_class = grid_options.pop('class') %}
-{% else %}
-{% set grid_class = 'grid' %}
+{% if grid_options.class is not defined %}
+    {% do grid_options.update({'class': 'Grid'}) %}
 {% endif %}
-<div class="panel panel-primary {{ grid_class }}" {%if grid_options|length > 0 %} data-grid-options='{{ grid_options|escapejs(True) }}' {% endif %}>
+<div class="panel panel-primary component" data-component-options='{{ grid_options|escapejs(True) }}'>
     <div class="panel-body">
         <div data-template-id="ko_grid_body" data-template-args='{"show_title: true}'></div>
         <div data-template-id="ko_grid_pagination"></div>
