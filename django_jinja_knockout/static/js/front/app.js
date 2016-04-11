@@ -776,15 +776,22 @@ App.post = function(route, data, options) {
 /**
  * Usage:
  *   MyClass.prototype.propCall = App.propCall;
- *   this.propCall('prop.fn', arg1, .. argn);
+ *   ...
+ *   this.propCall('prop1.prop2.fn', arg1, .. argn);
  */
 App.propCall = function() {
     var args = Array.prototype.slice.call(arguments);
-    var owner = args.shift().split(/\./);
-    var ownerClass = owner[0];
-    var ownerMethod = owner[1];
-    if (this[ownerClass] !== null && typeof this[ownerClass][ownerMethod] === 'function') {
-        return this[ownerClass][ownerMethod].apply(this[ownerClass], args);
+    var propChain = args.shift().split(/\./);
+    var propMethod = propChain.pop();
+    var prop = this;
+    for (var i = 0; i < propChain.length; i++) {
+        if (typeof prop[propChain[i]] !== 'object') {
+            return null;
+        }
+        prop = prop[propChain[i]];
+    }
+    if (typeof prop[propMethod] === 'function') {
+        return prop[propMethod].apply(prop, args);
     } else {
         return null;
     }
