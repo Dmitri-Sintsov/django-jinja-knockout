@@ -773,6 +773,23 @@ App.post = function(route, data, options) {
     ).fail(App.showAjaxError);
 };
 
+/**
+ * Usage:
+ *   MyClass.prototype.propCall = App.propCall;
+ *   this.propCall('prop.fn', arg1, .. argn);
+ */
+App.propCall = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var owner = args.shift().split(/\./);
+    var ownerClass = owner[0];
+    var ownerMethod = owner[1];
+    if (this[ownerClass] !== null && typeof this[ownerClass][ownerMethod] === 'function') {
+        return this[ownerClass][ownerMethod].apply(this[ownerClass], args);
+    } else {
+        return null;
+    }
+};
+
 App.documentReadyHooks = [];
 
 $(document)

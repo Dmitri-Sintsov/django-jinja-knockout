@@ -261,6 +261,7 @@ App.ko.FkGridFilter = function(options) {
 
     FkGridFilter.init = function(options) {
         this.gridDialog = new App.GridDialog({
+            ownerComponent: this,
             gridOptions: options.fkGridOptions
         });
         this.super.init.call(this, options);
@@ -534,6 +535,8 @@ App.ko.Grid = function(options) {
         });
     };
 
+    Grid.propCall = App.propCall;
+
     /**
      * Called from child row when the row is selected.
      */
@@ -546,6 +549,7 @@ App.ko.Grid = function(options) {
         } else {
             this.selectedRowsPks = [pkVal];
         }
+        this.propCall('ownerCtrl.onChildGridSelectRow', pkVal);
     };
 
     /**
@@ -554,6 +558,7 @@ App.ko.Grid = function(options) {
     Grid.onUnselectRow = function(koRow) {
         var pkVal = koRow.getValue(this.meta.pkField);
         this.filterOutRow(pkVal);
+        this.propCall('ownerCtrl.onChildGridUnselectRow', pkVal);
     };
 
     /**
@@ -884,6 +889,7 @@ App.GridDialog = function(options) {
         }
         var fullOptions = $.extend(
             {
+                ownerComponent: null,
                 template: 'ko_grid_body',
                 buttons: [{
                     label: App.trans('Remove selection'),
@@ -899,20 +905,39 @@ App.GridDialog = function(options) {
                     }
                 }]
             }, options);
+        // Child grid constructor options.
+        this.gridOptions = fullOptions.gridOptions;
+        delete fullOptions.gridOptions;
+        // Reference to owner component (for example App.ko.FkGridFilter instance).
+        this.ownerComponent = fullOptions.ownerComponent;
+        delete fullOptions.ownerComponent;
         this.super.create.call(this, fullOptions);
     };
 
+    GridDialog.propCall = App.propCall;
+
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
+        this.propCall('ownerComponent.hasActiveChoices', false);
     };
 
     GridDialog.onApply = function() {
         return true;
     };
 
+    GridDialog.onChildGridSelectRow = function(pkVal) {
+        console.log('pkVal: ' + JSON.stringify(pkVal));
+        this.propCall('ownerComponent.hasActiveChoices', true);
+    };
+
+    GridDialog.onChildGridUnselectRow = function(pkVal) {
+        console.log('pkVal: ' + JSON.stringify(pkVal));
+        this.propCall('ownerComponent.hasActiveChoices', this.grid.selectedRowsPks.length > 0);
+    };
+
     GridDialog.iocGrid = function(options) {
         options = $.extend(
-            this.dialogOptions.gridOptions,
+            this.gridOptions,
             options,
             {selectMultipleRows: true}
         );
