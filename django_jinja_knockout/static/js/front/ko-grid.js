@@ -92,9 +92,9 @@ App.ko.GridFilterChoice = function(options) {
                 return;
             }
             if (newValue) {
-                self.ownerFilter.addQueryFilter(self);
+                self.ownerFilter.addQueryFilter(self.value);
             } else {
-                self.ownerFilter.removeQueryFilter(self);
+                self.ownerFilter.removeQueryFilter(self.value);
             }
         });
     };
@@ -154,6 +154,14 @@ App.ko.AbstractGridFilter = function(options) {
 
     AbstractGridFilter.onDropdownClick = function(ev) {
         // console.log('dropdown clicked');
+    };
+
+    AbstractGridFilter.addQueryFilter = function(value) {
+        this.ownerGrid.addQueryFilter(this.field, value);
+    };
+
+    AbstractGridFilter.removeQueryFilter = function(value) {
+        this.ownerGrid.removeQueryFilter(this.field, value);
     };
 
 })(App.ko.AbstractGridFilter.prototype);
@@ -238,14 +246,6 @@ App.ko.GridFilter = function(options) {
         this.hasActiveChoices(!this.resetFilter.is_active());
     };
 
-    GridFilter.addQueryFilter = function(currentChoice) {
-        this.ownerGrid.addQueryFilter(this.field, currentChoice.value);
-    };
-
-    GridFilter.removeQueryFilter = function(currentChoice) {
-        this.ownerGrid.removeQueryFilter(this.field, currentChoice.value);
-    };
-
 })(App.ko.GridFilter.prototype);
 
 /**
@@ -269,6 +269,16 @@ App.ko.FkGridFilter = function(options) {
 
     FkGridFilter.onDropdownClick = function(ev) {
         this.gridDialog.show();
+    };
+
+    FkGridFilter.addQueryFilter = function(value) {
+        this.super.addQueryFilter.call(this, value);
+        this.ownerGrid.loadPage();
+    };
+
+    FkGridFilter.removeQueryFilter = function(value) {
+        this.super.removeQueryFilter.call(this, value);
+        this.ownerGrid.loadPage();
     };
 
 })(App.ko.FkGridFilter.prototype);
@@ -918,6 +928,7 @@ App.GridDialog = function(options) {
 
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
+        this.propCall('ownerComponent.removeQueryFilter', null);
         this.propCall('ownerComponent.hasActiveChoices', false);
     };
 
@@ -927,11 +938,13 @@ App.GridDialog = function(options) {
 
     GridDialog.onChildGridSelectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
+        this.propCall('ownerComponent.addQueryFilter', pkVal);
         this.propCall('ownerComponent.hasActiveChoices', true);
     };
 
     GridDialog.onChildGridUnselectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
+        this.propCall('ownerComponent.removeQueryFilter', pkVal);
         this.propCall('ownerComponent.hasActiveChoices', this.grid.selectedRowsPks.length > 0);
     };
 
