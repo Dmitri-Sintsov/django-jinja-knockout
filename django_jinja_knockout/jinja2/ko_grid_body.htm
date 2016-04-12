@@ -1,73 +1,73 @@
 <script type="text/template" id="ko_grid_body">
     <div>
-            <% if (typeof(show_title) !== "undefined") { %>
-            <div data-bind="text: meta.verboseNamePlural" class="h3"></div>
-            <% } %>
-            <!-- ko if: meta.hasSearch || gridFilters().length > 0 -->
-            <nav class="nav navbar navbar-default">
-                <div class="container-fluid grid-controls">
-                    <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
-                        <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-                            <a data-bind="click: onDropdownClick.bind($data, event)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                <span data-bind="text: name"></span> <b class="caret"></b>
-                                <div data-bind="visible: current_name() != '', text: current_name()"></div>
-                            </a>
-                            <!-- ko if: choices !== null -->
-                            <ul data-bind="foreach: choices" class="dropdown-menu">
-                                <li data-bind="css: {active: is_active()}">
-                                    <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data, event)" name="#"></a>
-                                </li>
-                            </ul>
-                            <!-- /ko -->
-                        </li>
-                    </ul>
-                    <form data-bind="if: meta.hasSearch" class="navbar-form navbar-left">
-                        <div class="form-group">
-                            <input data-bind="textInput: gridSearchStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-                        </div>
-                        <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
-                    </form>
-                </div>
-            </nav>
-            <!-- /ko -->
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <!-- ko if: options.selectMultipleRows -->
-                            <th style="width: 2em;"></th>
-                            <!-- /ko -->
-                            <!-- ko foreach: gridColumns -->
-                            <th>
-                                <!-- ko if: isSortedColumn() -->
-                                <a data-bind="text: name, grid_order_by, click: onSwitchOrder, css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}" class="halflings-before" name="#"></a>
-                                <!-- /ko -->
-                                <!-- ko if: !isSortedColumn() -->
-                                <span data-bind="text: name"></span>
-                                <!-- /ko -->
-                            </th>
-                            <!-- /ko -->
-                        </tr>
-                    </thead>
-                    <tbody data-bind="foreach: gridRows">
-                        <tr class="pointer">
-                            <!-- ko if: $parent.options.selectMultipleRows -->
-                            <td data-bind="click: onRowClick" style="width: 2em;">
-                                <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
-                            </td>
-                            <!-- /ko -->
-                            <!-- ko grid_row, foreach: $parent.gridColumns -->
-                            <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
-                            <!-- /ko -->
-                        </tr>
-                    </tbody>
-                    <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
-                        {{ _(
-                            'No %(verbose_name)s found matching the query',
-                            verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
-                            )) }}.
+        <% if (typeof(show_title) !== "undefined") { %>
+        <div data-bind="text: meta.verboseNamePlural" class="h3"></div>
+        <% } %>
+        <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
+        <nav class="nav navbar navbar-default">
+            <div class="container-fluid grid-controls">
+                <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
+                    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+                        <a data-bind="click: onDropdownClick.bind($data, event)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <span data-bind="text: name"></span> <b class="caret"></b>
+                            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+                        </a>
+                        <!-- ko if: choices !== null -->
+                        <ul data-bind="foreach: choices" class="dropdown-menu">
+                            <li data-bind="css: {active: is_active()}">
+                                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data, event)" name="#"></a>
+                            </li>
+                        </ul>
+                        <!-- /ko -->
+                    </li>
+                </ul>
+                <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
+                    <div class="form-group">
+                        <input data-bind="textInput: gridSearchStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
                     </div>
-                </table>
+                    <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
+                </form>
             </div>
+        </nav>
+        <!-- /ko -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <!-- ko if: options.selectMultipleRows -->
+                        <th style="width: 2em;"></th>
+                        <!-- /ko -->
+                        <!-- ko foreach: gridColumns -->
+                        <th>
+                            <!-- ko if: isSortedColumn() -->
+                            <a data-bind="text: name, grid_order_by, click: onSwitchOrder, css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}" class="halflings-before" name="#"></a>
+                            <!-- /ko -->
+                            <!-- ko if: !isSortedColumn() -->
+                            <span data-bind="text: name"></span>
+                            <!-- /ko -->
+                        </th>
+                        <!-- /ko -->
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: gridRows">
+                    <tr class="pointer">
+                        <!-- ko if: $parent.options.selectMultipleRows -->
+                        <td data-bind="click: onRowClick" style="width: 2em;">
+                            <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
+                        </td>
+                        <!-- /ko -->
+                        <!-- ko grid_row, foreach: $parent.gridColumns -->
+                        <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
+                        <!-- /ko -->
+                    </tr>
+                </tbody>
+                <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
+                    {{ _(
+                        'No %(verbose_name)s found matching the query',
+                        verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
+                        )) }}.
+                </div>
+            </table>
+        </div>
     </div>
 </script>
