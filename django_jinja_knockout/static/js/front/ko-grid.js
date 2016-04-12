@@ -824,6 +824,7 @@ App.ko.Grid = function(options) {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
+            // console.log('viewModel response: ' + JSON.stringify(viewModel));
             self.setKoPage(viewModel);
         };
         self.queryArgs[self.queryKeys.search] = self.gridSearchStr();

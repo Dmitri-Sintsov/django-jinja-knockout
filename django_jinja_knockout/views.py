@@ -619,7 +619,10 @@ class KoGridView(BaseFilterView, ViewmodelView):
     context_object_name = 'model'
     # query all fields by default.
     query_fields = None
-    # ko viewmodel columns for all fields by default.
+    # Knockout.js grid viewmodel columns. Use '__all__' value to display all model fields as grid columns.
+    # or specify list of field names, each value is str.
+    # Tuple value ('field', 'Column name') may be used instead of str value to override field names displayed
+    # in grid column.
     grid_fields = None
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -639,9 +642,12 @@ class KoGridView(BaseFilterView, ViewmodelView):
     # Also, one may override self.get_base_queryset() to include .select_related() for performance optimization.
     def get_query_fields(self):
         query_fields = self.get_all_fields()
-        related_fields = list(set(self.grid_fields) - set(query_fields))
+        related_fields = list(set(self.get_grid_field_attnames()) - set(query_fields))
         query_fields.extend(related_fields)
         return query_fields
+
+    def get_grid_field_attnames(self):
+        return [field[0] if type(field) is tuple else field for field in self.grid_fields]
 
     def get_grid_fields(self):
         return []
@@ -711,13 +717,18 @@ class KoGridView(BaseFilterView, ViewmodelView):
             vm_grid_fields = []
             if not isinstance(self.grid_fields, list):
                 self.report_error('grid_fields must be list')
-            for field in self.grid_fields:
-                if type(field) is not str:
-                    self.report_error('grid_fields list values must be str')
+            for field_def in self.grid_fields:
+                if type(field_def) is tuple:
+                    field, name = field_def
+                elif type(field_def) is str:
+                    field = field_def
+                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+                    name = str(get_verbose_name(self.model_class, field))
+                else:
+                    self.report_error('grid_fields list values must be str or tuple')
                 vm_grid_fields.append({
                     'field': field,
-                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-                    'name': str(get_verbose_name(self.model_class, field))
+                    'name': name
                 })
             vm['gridFields'] = vm_grid_fields
             vm['sortOrders'] = self.allowed_sort_orders
