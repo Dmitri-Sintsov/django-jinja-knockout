@@ -278,6 +278,10 @@ class BaseFilterView(View):
         self.is_iterable_order = False
         self.current_search_str = ''
 
+        self.allowed_sort_orders = None
+        self.allowed_filter_fields = None
+        self.search_fields = None
+
     def get_allowed_sort_orders(self):
         # Do not need to duplicate both accending and descending ('-' prefix) orders.
         # Both are counted in.
@@ -286,7 +290,7 @@ class BaseFilterView(View):
     def get_allowed_filter_fields(self):
         # Be careful about enabling filters.
         # key is field name (may be one to many related field as well)
-        # value is list of field choices, as specified in model.
+        # value is the list of field choice tuples, as specified in model field 'choices' kwarg.
         return {}
 
     def get_search_fields(self):
@@ -306,38 +310,50 @@ class BaseFilterView(View):
     def report_error(self, message, *args, **kwargs):
         raise ValueError(message.format(*args, **kwargs))
 
-    def dispatch(self, request, *args, **kwargs):
+    def get_all_fields(self):
+        return [field.attname for field in self.model_class._meta.fields]
+
+    @classmethod
+    def init_class(cls, self):
         self.model_class = self.get_base_queryset().model
 
-        if self.__class__.allowed_sort_orders is None:
-            self.__class__.allowed_sort_orders = self.get_allowed_sort_orders()
-        elif self.__class__.allowed_sort_orders == '__all__':
-            self.__class__.allowed_sort_orders = [field.attname for field in self.model_class._meta.fields]
+        if cls.allowed_sort_orders is None:
+            self.allowed_sort_orders = self.get_allowed_sort_orders()
+        elif cls.allowed_sort_orders == '__all__':
+            self.allowed_sort_orders = self.get_all_fields()
+        else:
+            self.allowed_sort_orders = cls.allowed_sort_orders
 
-        if self.__class__.allowed_filter_fields is None:
-            self.__class__.allowed_filter_fields = self.get_allowed_filter_fields()
+        if cls.allowed_filter_fields is None:
+            self.allowed_filter_fields = self.get_allowed_filter_fields()
+        else:
+            self.allowed_filter_fields = cls.allowed_filter_fields
 
-        if self.__class__.search_fields is None:
-            self.__class__.search_fields = self.get_search_fields()
+        if cls.search_fields is None:
+            self.search_fields = self.get_search_fields()
+        else:
+            self.search_fields = cls.search_fields
 
-        sort_order = self.request_get(self.__class__.order_key)
+        sort_order = self.request_get(cls.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
             self.is_iterable_order, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        list_filter = self.request_get(self.__class__.filter_key)
+        list_filter = self.request_get(cls.filter_key)
         if list_filter is not None:
             list_filter = json.loads(list_filter)
             if type(list_filter) is not dict:
                 self.report_error('List of filters must be dictionary: {0}', list_filter)
             for key, val in list_filter.items():
-                if key not in self.__class__.allowed_filter_fields:
+                if key not in self.allowed_filter_fields:
                     self.report_error('Non-allowed filter field: {0}', key)
                 self.current_list_filter = list_filter
 
         self.current_search_str = self.request_get(self.search_key, '')
 
+    def dispatch(self, request, *args, **kwargs):
+        self.__class__.init_class(self)
         return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
@@ -346,7 +362,7 @@ class BaseFilterView(View):
         # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
         is_iterable = type(sort_order) is list
         stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
-        if stripped_order not in self.__class__.allowed_sort_orders:
+        if stripped_order not in self.allowed_sort_orders:
             self.report_error('Non-allowed sorting order: {0}', stripped_order)
         return is_iterable, stripped_order
 
@@ -371,11 +387,11 @@ class BaseFilterView(View):
             return queryset.filter(**kw_filter)
 
     def search_queryset(self, queryset):
-        if self.current_search_str == '' or len(self.__class__.search_fields) == 0:
+        if self.current_search_str == '' or len(self.search_fields) == 0:
             return queryset
         else:
             q = None
-            for field, operation in yield_ordered(self.__class__.search_fields):
+            for field, operation in yield_ordered(self.search_fields):
                 if operation != '':
                     field += '__' + operation
                 q_kwargs = {
@@ -486,7 +502,7 @@ class ListSortingView(BaseFilterView, ListView):
         })
         navs = [link]
         display = []
-        for filter_type, filter_type_display in self.__class__.allowed_filter_fields[filter_field]:
+        for filter_type, filter_type_display in self.allowed_filter_fields[filter_field]:
             reset_list_filter[filter_field] = filter_type
             link = {
                 'url': qtpl.reverseq(
@@ -546,7 +562,7 @@ class ListSortingView(BaseFilterView, ListView):
             'filter_navs': {},
             'filter_display': {}
         })
-        for fieldname in self.__class__.allowed_filter_fields:
+        for fieldname in self.allowed_filter_fields:
             context_data['filter_title'][fieldname] = get_verbose_name(self.__class__.model, fieldname)
             navs, display = self.get_filter_navs(fieldname)
             context_data['filter_navs'][fieldname] = navs
@@ -602,9 +618,9 @@ class KoGridView(BaseFilterView, ViewmodelView):
     view_name = 'grid_page'
     context_object_name = 'model'
     # query all fields by default.
-    query_fields = []
+    query_fields = None
     # ko viewmodel columns for all fields by default.
-    grid_fields = []
+    grid_fields = None
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 
@@ -617,16 +633,37 @@ class KoGridView(BaseFilterView, ViewmodelView):
             message=message.format(*args, **kwargs)
         )
 
-    def dispatch(self, request, *args, **kwargs):
-        result = super().dispatch(request, *args, **kwargs)
+    # It is possible to get related fields:
+    # https://code.djangoproject.com/ticket/5768
+    # https://github.com/django/django/commit/9b432cb67b
+    # Also, one may override self.get_base_queryset() to include .select_related() for performance optimization.
+    def get_query_fields(self):
+        query_fields = self.get_all_fields()
+        related_fields = list(set(self.grid_fields) - set(query_fields))
+        query_fields.extend(related_fields)
+        return query_fields
 
-        if len(self.__class__.grid_fields) == 0:
-            self.__class__.grid_fields = [field.attname for field in self.model_class._meta.fields]
-
-        return result
+    def get_grid_fields(self):
+        return []
 
     def get_allowed_filter_fields(self):
         return OrderedDict()
+
+    @classmethod
+    def init_class(cls, self):
+        super(KoGridView, cls).init_class(self)
+
+        if cls.grid_fields is None:
+            self.grid_fields = self.get_grid_fields()
+        elif cls.grid_fields == '__all__':
+            self.grid_fields = self.get_all_fields()
+        else:
+            self.grid_fields = cls.grid_fields
+
+        if cls.query_fields is None:
+            self.query_fields = self.get_query_fields()
+        else:
+            self.query_fields = cls.query_fields
 
     # One may add new related / calculated fields, or 'field_display' suffix extra html-formatted fields, for example.
     def postprocess_row(self, row):
@@ -649,7 +686,7 @@ class KoGridView(BaseFilterView, ViewmodelView):
         qs = self.get_queryset()
         self.total_rows = qs.count()
         return [
-            self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.__class__.query_fields)
+            self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.query_fields)
         ]
 
     def get_viewmodel(self, rows):
@@ -665,31 +702,32 @@ class KoGridView(BaseFilterView, ViewmodelView):
                     pk_field = field.attname
             vm.update({
                 'meta' : {
-                    'hasSearch': len(self.__class__.search_fields) > 0,
+                    'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
                     'verboseName': get_verbose_name(self.model_class),
                     'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
                 }
             })
             vm_grid_fields = []
-            if not isinstance(self.__class__.grid_fields, list):
+            if not isinstance(self.grid_fields, list):
                 self.report_error('grid_fields must be list')
-            for field in self.__class__.grid_fields:
+            for field in self.grid_fields:
                 if type(field) is not str:
                     self.report_error('grid_fields list values must be str')
                 vm_grid_fields.append({
                     'field': field,
-                    'name': get_verbose_name(self.model_class, field)
+                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+                    'name': str(get_verbose_name(self.model_class, field))
                 })
             vm['gridFields'] = vm_grid_fields
-            vm['sortOrders'] = self.__class__.allowed_sort_orders
+            vm['sortOrders'] = self.allowed_sort_orders
 
             vm_filters = []
 
-            if not isinstance(self.__class__.allowed_filter_fields, OrderedDict):
+            if not isinstance(self.allowed_filter_fields, OrderedDict):
                 self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
 
-            for fieldname, choices in self.__class__.allowed_filter_fields.items():
+            for fieldname, choices in self.allowed_filter_fields.items():
                 if choices is None:
                     # Use App.ko.FkGridFilter to select filter choices.
                     vm_choices = None
