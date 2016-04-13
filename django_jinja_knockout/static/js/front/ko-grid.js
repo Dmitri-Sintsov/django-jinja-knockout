@@ -294,23 +294,30 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
+    // Descendant could skip html encoding selected fields to preserve html formatting.
+    GridRow.htmlEncode = function(displayValue, field) {
+        return $.htmlEncode(displayValue);
+    };
+
     // Descendant could make Knockout.js observable values.
-    // To perform server-side html formatting), copy 'field' values from server-side populated optional
-    // 'field_display' extra columns.
-    GridRow.processValue = function(value, field) {
+    GridRow.toDisplayValue = function(value, field) {
         var displayValue;
-        if (typeof value === 'boolean') {
+        // Automatic server-side formatting.
+        // See views.KoGridView.postprocess_row() how and when this.values.__display are populated.
+        if (typeof this.values.__display[field] !== 'undefined') {
+            displayValue = this.values.__display[field];
+        } else if (typeof value === 'boolean') {
             displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
         } else if (value === null) {
             displayValue = App.trans('N/A');
         } else {
             displayValue = value;
         }
-        return $.htmlEncode(displayValue);
+        return this.htmlEncode(displayValue, field);
     };
 
     GridRow.initDisplayValues = function() {
-        this.displayValues = _.mapObject(this.values, this.processValue);
+        this.displayValues = _.mapObject(this.values, _.bind(this.toDisplayValue, this));
     };
 
     GridRow.init = function(options) {
@@ -327,6 +334,9 @@ App.ko.GridRow = function(options) {
         this.ownerGrid = options.ownerGrid;
         // Source data field values. May be used for AJAX DB queries, for example.
         this.values = options.values;
+        if (typeof this.values['__display'] === 'undefined') {
+            this.values.__display = {};
+        }
         // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
         this.displayValues = {};
         this.initDisplayValues();
@@ -834,7 +844,7 @@ App.ko.Grid = function(options) {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
-            // console.log('viewModel response: ' + JSON.stringify(viewModel));
+            console.log('viewModel response: ' + JSON.stringify(viewModel));
             self.setKoPage(viewModel);
         };
         self.queryArgs[self.queryKeys.search] = self.gridSearchStr();

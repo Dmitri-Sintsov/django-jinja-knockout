@@ -21,7 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
 from .viewmodels import vm_list
-from .utils.sdv import yield_ordered
+from .utils.sdv import yield_ordered, get_object_members
 
 
 def auth_redirect(request):
@@ -639,11 +639,16 @@ class KoGridView(BaseFilterView, ViewmodelView):
             message=message.format(*args, **kwargs)
         )
 
+    def get_related_fields(self, query_fields = None):
+        if query_fields is None:
+            query_fields = self.get_all_fields()
+        return list(set(self.get_grid_field_attnames()) - set(query_fields))
+
     # A superset of self.get_all_fields() which also returns foreign related fields, if any.
     # It is used to automatically include related query fields / sort orders.
     def get_all_related_fields(self):
         query_fields = self.get_all_fields()
-        related_fields = list(set(self.get_grid_field_attnames()) - set(query_fields))
+        related_fields = self.get_related_fields(query_fields)
         query_fields.extend(related_fields)
         return query_fields
 
@@ -671,6 +676,8 @@ class KoGridView(BaseFilterView, ViewmodelView):
     @classmethod
     def init_class(cls, self):
         super(KoGridView, cls).init_class(self)
+        model_class_members = get_object_members(self.model_class)
+        self.has_get_str_parts = callable(model_class_members.get('get_str_parts'))
 
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
@@ -684,8 +691,18 @@ class KoGridView(BaseFilterView, ViewmodelView):
         else:
             self.query_fields = cls.query_fields
 
-    # One may add new related / calculated fields, or 'field_display' suffix extra html-formatted fields, for example.
+    # Will add special '__display' row if model class has get_str_parts() method, which returns the dictionary where
+    # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row):
+        if self.has_get_str_parts:
+            row_related = {}
+            related_fields = self.get_related_fields()
+            for related_field in related_fields:
+                row_related[related_field] = row.pop(related_field)
+            object = self.model_class(**row)
+            row['__display'] = object.get_str_parts()
+            for field, value in row_related.items():
+                row[field] = value
         return row
 
     def get_rows(self):

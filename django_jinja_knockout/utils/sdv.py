@@ -51,3 +51,7 @@ def dbg(name, value=None):
     # http://stackoverflow.com/questions/192109/is-there-a-function-in-python-to-print-all-the-current-properties-and-values-of
     pprint(value, f)
     f.close()
+
+
+def get_object_members(object):
+    return OrderedDict(inspect.getmembers(object))
