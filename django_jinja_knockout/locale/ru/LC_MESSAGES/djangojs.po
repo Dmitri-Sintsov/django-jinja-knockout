@@ -68,3 +68,5 @@ msgstr "Сбросить выделение"
 msgid "Apply"
 msgstr "Применить"
 
+msgid "N/A"
+msgstr "…"

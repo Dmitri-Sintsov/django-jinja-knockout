@@ -294,13 +294,23 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
+    // Descendant could make Knockout.js observable values.
+    // To perform server-side html formatting), copy 'field' values from server-side populated optional
+    // 'field_display' extra columns.
+    GridRow.processValue = function(value, field) {
+        var displayValue;
+        if (typeof value === 'boolean') {
+            displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
+        } else if (value === null) {
+            displayValue = App.trans('N/A');
+        } else {
+            displayValue = value;
+        }
+        return $.htmlEncode(displayValue);
+    };
+
     GridRow.initDisplayValues = function() {
-        var self = this;
-        // Descendant could make observable values or to do not escape values selectively,
-        // for html formatting, copying 'field' values from optional 'field_display' extra columns.
-        $.each(this.values, function(k ,v) {
-            self.displayValues[k] = $.htmlEncode(v);
-        });
+        this.displayValues = _.mapObject(this.values, this.processValue);
     };
 
     GridRow.init = function(options) {
@@ -918,8 +928,24 @@ App.GridDialog = function(options) {
 
 (function(GridDialog) {
 
-    GridDialog.create = function(options) {
+    GridDialog.getButtons = function() {
         var self = this;
+        return [{
+            label: App.trans('Remove selection'),
+            action: function(dialogItself) {
+                self.onRemoveSelection();
+            }
+        },{
+            label: App.trans('Apply'),
+            action: function(dialogItself) {
+                if (self.onApply()) {
+                    dialogItself.close();
+                }
+            }
+        }];
+    };
+
+    GridDialog.create = function(options) {
         this.wasOpened = false;
         if (typeof options !== 'object') {
             options = {};
@@ -928,19 +954,7 @@ App.GridDialog = function(options) {
             {
                 ownerComponent: null,
                 template: 'ko_grid_body',
-                buttons: [{
-                    label: App.trans('Remove selection'),
-                    action: function(dialogItself) {
-                        self.onRemoveSelection();
-                    }
-                },{
-                    label: App.trans('Apply'),
-                    action: function(dialogItself) {
-                        if (self.onApply()) {
-                            dialogItself.close();
-                        }
-                    }
-                }]
+                buttons: this.getButtons()
             }, options);
         // Child grid constructor options.
         this.gridOptions = fullOptions.gridOptions;

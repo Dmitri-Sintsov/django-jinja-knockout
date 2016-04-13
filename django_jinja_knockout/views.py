@@ -313,6 +313,9 @@ class BaseFilterView(View):
     def get_all_fields(self):
         return [field.attname for field in self.model_class._meta.fields]
 
+    def get_all_allowed_sort_orders(self):
+        return self.get_all_fields()
+
     @classmethod
     def init_class(cls, self):
         self.model_class = self.get_base_queryset().model
@@ -320,7 +323,7 @@ class BaseFilterView(View):
         if cls.allowed_sort_orders is None:
             self.allowed_sort_orders = self.get_allowed_sort_orders()
         elif cls.allowed_sort_orders == '__all__':
-            self.allowed_sort_orders = self.get_all_fields()
+            self.allowed_sort_orders = self.get_all_allowed_sort_orders()
         else:
             self.allowed_sort_orders = cls.allowed_sort_orders
 
@@ -636,18 +639,28 @@ class KoGridView(BaseFilterView, ViewmodelView):
             message=message.format(*args, **kwargs)
         )
 
-    # It is possible to get related fields:
-    # https://code.djangoproject.com/ticket/5768
-    # https://github.com/django/django/commit/9b432cb67b
-    # Also, one may override self.get_base_queryset() to include .select_related() for performance optimization.
-    def get_query_fields(self):
+    # A superset of self.get_all_fields() which also returns foreign related fields, if any.
+    # It is used to automatically include related query fields / sort orders.
+    def get_all_related_fields(self):
         query_fields = self.get_all_fields()
         related_fields = list(set(self.get_grid_field_attnames()) - set(query_fields))
         query_fields.extend(related_fields)
         return query_fields
 
+    # It is possible to get related fields:
+    # https://code.djangoproject.com/ticket/5768
+    # https://github.com/django/django/commit/9b432cb67b
+    # Also, one may override self.get_base_queryset() to include .select_related() for performance optimization.
+    def get_query_fields(self):
+        return self.get_all_related_fields()
+
     def get_grid_field_attnames(self):
         return [field[0] if type(field) is tuple else field for field in self.grid_fields]
+
+    def get_all_allowed_sort_orders(self):
+        # If there are related grid fields explicitely defined in self.__class__.grid_fields attribute,
+        # these will be automatically added to allowed sort orders.
+        return self.get_all_fields() if self.__class__.grid_fields is None else self.get_all_related_fields()
 
     def get_grid_fields(self):
         return []
