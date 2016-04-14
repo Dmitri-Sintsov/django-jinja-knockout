@@ -57,7 +57,7 @@
                         </td>
                         <!-- /ko -->
                         <!-- ko grid_row, foreach: $parent.gridColumns -->
-                        <td data-bind="click: $parent.onRowClick.bind($parent), html: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
+                        <td data-bind="click: $parent.onRowClick.bind($parent), grid_row_value: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
                         <!-- /ko -->
                     </tr>
                 </tbody>

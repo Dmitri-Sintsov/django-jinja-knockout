@@ -27,6 +27,12 @@ ko.bindingHandlers.grid_order_by = {
     }
 };
 
+ko.bindingHandlers.grid_row_value = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        viewModel.renderRowValue(element, valueAccessor());
+    }
+};
+
 /**
  * Grid column ordering control.
  */
@@ -65,6 +71,24 @@ App.ko.GridColumnOrder = function(options) {
         var direction = this.order() ? 'desc' : 'asc';
         this.ownerGrid.setQueryOrderBy(this.field, direction);
         this.ownerGrid.loadPage();
+    };
+
+    // todo: This better should belong to App.ko.GridRow or even to separate class.
+    GridColumnOrder.renderRowValue = function(element, value) {
+        var $element = $(element);
+        if (typeof value === 'object') {
+            if (_.size(value) > 0) {
+                var $ul = $('<ul>').addClass('list-group');
+                $.each(value, function(k, v) {
+                    var $li = $('<li>').addClass('list-group-item preformatted').html(v);
+                    $ul.append($li);
+                });
+                $element.append($ul);
+            } else {
+            }
+        } else {
+            $element.html(value);
+        }
     };
 
 })(App.ko.GridColumnOrder.prototype);
@@ -294,9 +318,13 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
-    // Descendant could skip html encoding selected fields to preserve html formatting.
+   // Descendant could skip html encoding selected fields to preserve html formatting.
     GridRow.htmlEncode = function(displayValue, field) {
-        return $.htmlEncode(displayValue);
+        if (typeof displayValue === 'object') {
+            return _.mapObject(displayValue, $.htmlEncode);
+        } else {
+            return $.htmlEncode(displayValue);
+        }
     };
 
     // Descendant could make Knockout.js observable values.
@@ -318,7 +346,7 @@ App.ko.GridRow = function(options) {
         } else {
             displayValue = value;
         }
-        return this.htmlEncode(displayValue, field);
+        return this.htmlEncode(displayValue);
     };
 
     GridRow.initDisplayValues = function() {
@@ -853,7 +881,7 @@ App.ko.Grid = function(options) {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
-            console.log('viewModel response: ' + JSON.stringify(viewModel));
+            // console.log('viewModel response: ' + JSON.stringify(viewModel));
             self.setKoPage(viewModel);
         };
         self.queryArgs[self.queryKeys.search] = self.gridSearchStr();
