@@ -677,7 +677,7 @@ class KoGridView(BaseFilterView, ViewmodelView):
     def init_class(cls, self):
         super(KoGridView, cls).init_class(self)
         model_class_members = get_object_members(self.model_class)
-        self.has_get_str_parts = callable(model_class_members.get('get_str_parts'))
+        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
@@ -691,18 +691,30 @@ class KoGridView(BaseFilterView, ViewmodelView):
         else:
             self.query_fields = cls.query_fields
 
-    # Will add special '__display' row if model class has get_str_parts() method, which returns the dictionary where
+    def object_from_row(self, row):
+        row_related = {}
+        related_fields = self.get_related_fields()
+        for related_field in related_fields:
+            row_related[related_field] = row.pop(related_field)
+        object = self.model_class(**row)
+        for field, value in row_related.items():
+            row[field] = value
+        return object
+
+    # One may override this method to include server-side formatted fields to App.ko.GridRow instance.
+    def get_row_str_fields(self, row):
+        if self.has_get_str_fields:
+            object = self.object_from_row(row)
+            return object.get_str_fields()
+        else:
+            return OrderedDict({})
+
+    # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row):
-        if self.has_get_str_parts:
-            row_related = {}
-            related_fields = self.get_related_fields()
-            for related_field in related_fields:
-                row_related[related_field] = row.pop(related_field)
-            object = self.model_class(**row)
-            row['__display'] = object.get_str_parts()
-            for field, value in row_related.items():
-                row[field] = value
+        str_fields = self.get_row_str_fields(row)
+        if len(str_fields) > 0:
+            row['__str_fields'] = str_fields
         return row
 
     def get_rows(self):

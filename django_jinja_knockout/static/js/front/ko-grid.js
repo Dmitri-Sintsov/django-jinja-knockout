@@ -302,10 +302,15 @@ App.ko.GridRow = function(options) {
     // Descendant could make Knockout.js observable values.
     GridRow.toDisplayValue = function(value, field) {
         var displayValue;
+        var fieldRelated = field.match(/(.+)_id$/);
+        if (fieldRelated !== null) {
+            fieldRelated = fieldRelated[1];
+        }
         // Automatic server-side formatting.
-        // See views.KoGridView.postprocess_row() how and when this.values.__display are populated.
-        if (typeof this.values.__display[field] !== 'undefined') {
-            displayValue = this.values.__display[field];
+        if (typeof this.strFields[field] !== 'undefined') {
+            displayValue = this.strFields[field];
+        } else if (fieldRelated !== null && typeof this.strFields[fieldRelated] !== 'undefined') {
+            displayValue = this.strFields[fieldRelated];
         } else if (typeof value === 'boolean') {
             displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
         } else if (value === null) {
@@ -334,8 +339,12 @@ App.ko.GridRow = function(options) {
         this.ownerGrid = options.ownerGrid;
         // Source data field values. May be used for AJAX DB queries, for example.
         this.values = options.values;
-        if (typeof this.values['__display'] === 'undefined') {
-            this.values.__display = {};
+        // See views.KoGridView.postprocess_row() how and when this.values.__str_fields are populated.
+        if (typeof this.values['__str_fields'] === 'undefined') {
+            this.strFields = {};
+        } else {
+            this.strFields = this.values.__str_fields;
+            delete this.values.__str_fields;
         }
         // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
         this.displayValues = {};
