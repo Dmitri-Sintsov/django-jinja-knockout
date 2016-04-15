@@ -1,6 +1,6 @@
 <script type="text/template" id="ko_grid_body">
     <div>
-        <% if (typeof(show_title) !== "undefined") { %>
+        <% if (typeof(show_title) !== "undefined" && show_title) { %>
         <div data-bind="text: meta.verboseNamePlural" class="h3"></div>
         <% } %>
         <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
@@ -49,6 +49,12 @@
                         <!-- /ko -->
                     </tr>
                 </thead>
+                <% if (typeof(vscroll) !== "undefined" && vscroll) { %>
+            </table>
+        </div>
+        <div class="table-responsive vscroll">
+            <table class="table table-bordered table-hover">
+                <% } %>
                 <tbody data-bind="foreach: gridRows">
                     <tr class="pointer">
                         <!-- ko if: $parent.options.selectMultipleRows -->
