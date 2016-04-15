@@ -4,7 +4,7 @@
 {% endif %}
 <div class="panel panel-primary component" data-component-options='{{ grid_options|escapejs(True) }}'>
     <div class="panel-body">
-        <div data-template-id="ko_grid_body" data-template-args='{"show_title: true}'></div>
+        <div data-template-id="ko_grid_body" class="vscroll" data-template-args='{"show_title: true}'></div>
         <div data-template-id="ko_grid_pagination"></div>
     </div>
 </div>
