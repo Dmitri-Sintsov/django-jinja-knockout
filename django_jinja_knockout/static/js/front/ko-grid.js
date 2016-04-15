@@ -75,13 +75,18 @@ App.ko.GridColumnOrder = function(options) {
 
     // todo: This better should belong to App.ko.GridRow or even to separate class.
     GridColumnOrder.renderRowValue = function(element, value) {
+        var self = this;
         var $element = $(element);
         if (typeof value === 'object') {
             if (_.size(value) > 0) {
                 var $ul = $('<ul>').addClass('list-group');
                 $.each(value, function(k, v) {
-                    var $li = $('<li>').addClass('list-group-item preformatted').html(v);
-                    $ul.append($li);
+                    if (typeof v === 'object') {
+                        self.renderRowValue($ul, v);
+                    } else {
+                        var $li = $('<li>').addClass('list-group-item preformatted').html(v);
+                        $ul.append($li);
+                    }
                 });
                 $element.append($ul);
             }
@@ -320,7 +325,7 @@ App.ko.GridRow = function(options) {
    // Descendant could skip html encoding selected fields to preserve html formatting.
     GridRow.htmlEncode = function(displayValue, field) {
         if (typeof displayValue === 'object') {
-            return _.mapObject(displayValue, $.htmlEncode);
+            return _.mapObject(displayValue, _.bind(this.htmlEncode, this));
         } else {
             return $.htmlEncode(displayValue);
         }

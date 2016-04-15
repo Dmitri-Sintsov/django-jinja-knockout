@@ -55,3 +55,8 @@ def dbg(name, value=None):
 
 def get_object_members(object):
     return OrderedDict(inspect.getmembers(object))
+
+@ensure_annotations
+def join_dict_values(ch:str, d:dict, keys:list):
+    for key in keys:
+        d[key] = ch.join(d[key].values())
