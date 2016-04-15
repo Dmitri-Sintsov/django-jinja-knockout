@@ -84,7 +84,6 @@ App.ko.GridColumnOrder = function(options) {
                     $ul.append($li);
                 });
                 $element.append($ul);
-            } else {
             }
         } else {
             $element.html(value);
