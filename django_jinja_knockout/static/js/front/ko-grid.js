@@ -507,6 +507,16 @@ App.ko.Grid = function(options) {
 
         this.meta = {
             pkField: '',
+            rowActions: {
+                'edit': {
+                    localName: App.trans('Change'),
+                    enabled: false,
+                },
+                'delete': {
+                    localName: App.trans('Remove'),
+                    enabled: false
+                }
+            },
             hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
@@ -715,10 +725,16 @@ App.ko.Grid = function(options) {
         */
         self.loadPage();
     };
-    
+
+    Grid.hasAction = function(action) {
+        return typeof this.meta.rowActions[action] !== 'undefined' && this.meta.rowActions[action].enabled;
+    };
+
     Grid.rowClick = function(koRow) {
-        // console.log('koRow: ' + JSON.stringify(koRow));
-        console.log('values: ' + JSON.stringify(koRow.values));
+        console.log('row values: ' + JSON.stringify(koRow.values));
+        if (this.hasAction('edit')) {
+            this.execRowAction('edit', koRow);
+        }
     };
 
     Grid.deactivateAllSorting = function(exceptOrder) {
@@ -886,6 +902,31 @@ App.ko.Grid = function(options) {
         );
     };
 
+    Grid.getRowActionArgs = function(action, koRow) {
+        return {
+            'pk_val': koRow.values[this.meta.pkField]
+        };
+    };
+
+    Grid.execRowAction = function(action, koRow) {
+        var self = this;
+        var options = {'after': {}};
+        options['after'][self.viewName] = function(viewModel) {
+            // console.log('execRowAction response: ' + JSON.stringify(viewModel));
+            self.setRowAction(viewModel);
+        };
+        var queryArgs = this.getRowActionArgs(action, koRow);
+        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        $.post(self.getActionUrl(action),
+            queryArgs,
+            function(response) {
+                App.viewResponse(response, options);
+            },
+            'json'
+        )
+        .fail(App.showAjaxError);
+    };
+
     /**
      * Get viewmodels data for grid page and grid pagination via ajax-query.
      */
@@ -893,12 +934,12 @@ App.ko.Grid = function(options) {
         var self = this;
         var options = {'after': {}};
         options['after'][self.viewName] = function(viewModel) {
-            // console.log('viewModel response: ' + JSON.stringify(viewModel));
+            // console.log('loadPage response: ' + JSON.stringify(viewModel));
             self.setKoPage(viewModel);
         };
         self.queryArgs[self.queryKeys.search] = self.gridSearchStr();
         self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
-        // console.log('AJAX query: ' + JSON.stringify(self.queryArgs));
+        // console.log('loadPage query: ' + JSON.stringify(self.queryArgs));
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(self.getActionUrl(),
             self.queryArgs,

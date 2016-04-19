@@ -74,13 +74,13 @@ App.Dialog = function(options) {
         // Do not forget to escape from XSS.
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
+        } else if (!(this.dialogOptions.message instanceof jQuery)) {
+            this.dialogOptions.message = $(this.dialogOptions.message);
         }
         if (typeof this.dialogOptions.method !== 'undefined') {
             this.showMethod = this.dialogOptions.method;
             delete this.dialogOptions.method;
         }
-        // Shortcut.
-        this.$dialogContent = this.dialogOptions.message;
         // Remove unused properties possibly extended from options.
         delete this.dialogOptions.view;
         switch (typeof this.dialogOptions.callback) {

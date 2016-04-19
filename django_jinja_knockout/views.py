@@ -12,6 +12,7 @@ from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.template import loader as tpl_loader
 from django.db.models import Q
 from django.views.generic.base import View
 from django.views.generic import TemplateView, DetailView, ListView
@@ -626,6 +627,10 @@ class KoGridView(BaseFilterView, ViewmodelView):
     view_name = 'grid_page'
     action_kwarg = 'action'
     context_object_name = 'model'
+    model = None
+    form = None
+    formset = None
+    form_with_inline_formsets = None
     # query all fields by default.
     query_fields = None
     # Knockout.js grid viewmodel columns. Use '__all__' value to display all model fields as grid columns.
@@ -743,7 +748,31 @@ class KoGridView(BaseFilterView, ViewmodelView):
             self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.query_fields)
         ]
 
-    def get_viewmodel(self, rows):
+    def get_row_actions(self):
+        return {
+            'edit': {
+                'localName': _('Change'),
+                'enabled': any([
+                    self.__class__.form, self.__class__.formset, self.__class__.form_with_inline_formsets
+                ])
+            },
+            'delete': {
+                'localName': _('Remove'),
+                'enabled': False
+            }
+        }
+
+    def action_not_implemented(self):
+        return vm_list({
+            'view': 'alert_error',
+            'title': 'Invalid action',
+            'message': format_html(
+                'Action "{}" is not implemented', self.action
+            )
+        })
+
+    def action_list(self):
+        rows = self.get_rows()
         vm = {
             'view': self.__class__.view_name,
             'entries': list(rows),
@@ -757,9 +786,10 @@ class KoGridView(BaseFilterView, ViewmodelView):
             vm.update({
                 'action_kwarg': self.__class__.action_kwarg,
                 'sortOrders': self.allowed_sort_orders,
-                'meta' : {
+                'meta': {
                     'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
+                    'rowActions': self.row_actions,
                     'verboseName': get_verbose_name(self.model_class),
                     'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
                 }
@@ -807,8 +837,34 @@ class KoGridView(BaseFilterView, ViewmodelView):
             vm['filters'] = vm_filters
         return vm
 
+    # todo: Support formset and form_with_inline_formsets class attributes.
+    def action_edit(self):
+        object = self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
+        form = self.__class__.form(instance=object)
+        t = tpl_loader.get_template('bs_form.htm')
+        form_html = t.render(request=self.request, context={
+            '_render_form': True,
+            'form': form,
+            'action': '',
+            'opts': {
+            }
+        })
+        return vm_list({
+            'view': 'alert',
+            'title': '{}: {}'.format(self.row_actions['edit']['localName'], str(object)),
+            'message': form_html
+        })
+
     def post(self, request, *args, **kwargs):
-        action = kwargs.get(self.__class__.action_kwarg)
-        return self.get_viewmodel(
-            self.get_rows()
-        )
+        self.row_actions = self.get_row_actions()
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
+        self.action = kwargs.get(self.__class__.action_kwarg, '').strip('/')
+        if self.action == '':
+            self.action = 'list'
+        handler = getattr(self, 'action_{}'.format(self.action), self.action_not_implemented)
+        return handler()
+
+    def get_base_queryset(self):
+        return self.__class__.model.objects.all()

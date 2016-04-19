@@ -5,7 +5,9 @@
     {% do opts.update({'class': ''}) %}
 {% endif %}
 <div class="panel panel-default {{ opts.class }}">
+    {% if opts.title is defined %}
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    {% endif %}
     <div class="panel-body">
         {% if opts.is_ajax %}
             {% set atts = {'data-url': action, 'class': 'ajax-form'} %}
@@ -19,7 +21,9 @@
         }) %}
         <form{{ flatatt(atts) }}>
             {{ bs_form_body(form) }}
+            {% if opts.submit_text is defined %}
             <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
+            {% endif %}
             {% if caller %}
                 {{ caller() }}
             {% endif %}
@@ -27,3 +31,6 @@
     </div>
 </div>
 {%- endmacro %}
+{% if _render_form %}
+{{ bs_form(form, action, opts) }}
+{% endif %}
