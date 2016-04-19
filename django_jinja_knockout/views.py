@@ -616,9 +616,15 @@ class ViewmodelView(TemplateView):
 
 
 # Knockout.js ko-grid.js filtered / sorted ListView.
+#
+# In urls.py define
+#     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
+# To browse specified Django model.
+#
 class KoGridView(BaseFilterView, ViewmodelView):
 
     view_name = 'grid_page'
+    action_kwarg = 'action'
     context_object_name = 'model'
     # query all fields by default.
     query_fields = None
@@ -749,6 +755,8 @@ class KoGridView(BaseFilterView, ViewmodelView):
                 if field.primary_key:
                     pk_field = field.attname
             vm.update({
+                'action_kwarg': self.__class__.action_kwarg,
+                'sortOrders': self.allowed_sort_orders,
                 'meta' : {
                     'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
@@ -773,7 +781,6 @@ class KoGridView(BaseFilterView, ViewmodelView):
                     'name': name
                 })
             vm['gridFields'] = vm_grid_fields
-            vm['sortOrders'] = self.allowed_sort_orders
 
             vm_filters = []
 
@@ -801,6 +808,7 @@ class KoGridView(BaseFilterView, ViewmodelView):
         return vm
 
     def post(self, request, *args, **kwargs):
+        action = kwargs.get(self.__class__.action_kwarg)
         return self.get_viewmodel(
             self.get_rows()
         )

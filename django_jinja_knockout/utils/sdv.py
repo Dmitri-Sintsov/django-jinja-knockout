@@ -19,16 +19,16 @@ def yield_ordered(iterable):
 
 
 # http://stackoverflow.com/questions/14692690/access-python-nested-dictionary-items-via-a-list-of-keys
-@ensure_annotations
-def get_nested(nested_data: (list, dict), map_list:list, default_value=None):
-    # http://stackoverflow.com/questions/2184955/test-if-a-variable-is-a-list-or-tuple
-    if type(map_list) not in [list, tuple]:
+def get_nested(nested_data, map_list, default_value=None):
+    if not isinstance(map_list, (list, tuple)):
         map_list = [map_list]
 
     for key in map_list:
-        if (type(nested_data) is list and type(key) is int and key < len(nested_data) and key >= 0) or \
-                (type(nested_data) is dict and key in nested_data):
+        if (isinstance(nested_data, (list, tuple)) and type(key) is int and key < len(nested_data) and key >= 0) or \
+                (isinstance(nested_data, dict) and key in nested_data):
             nested_data = nested_data[key]
+        elif type(key) is str and hasattr(nested_data, key):
+            nested_data = getattr(nested_data, key)
         else:
             return default_value
     return nested_data

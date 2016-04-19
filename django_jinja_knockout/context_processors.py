@@ -1,7 +1,8 @@
+from inspect import trace
 from .utils import sdv
 from django.conf import settings
 from django.utils.html import format_html, force_text, escape, mark_safe
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
@@ -48,9 +49,20 @@ class TemplateContextProcessor():
             'userId': self.user_id,
             'url': {}
         }
+
         for url, is_anon in self.__class__.CLIENT_ROUTES:
             if is_anon or self.user_id != 0:
-                client_conf['url'][url] = reverse(url)
+                try:
+                    client_conf['url'][url] = reverse(url)
+                except NoReverseMatch as e:
+                    # Current pattern has named parameters. Translate these to Python str.format() / Javascript
+                    # sprintf() library format.
+                    # todo: Find a cleaner, faster way to find pattern result not using trace frames.
+                    caller = trace()[-1:]
+                    f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
+                    if type(f_locals) is dict and 'prefix_norm' in f_locals and 'result' in f_locals:
+                        client_conf['url'][url] = '{}{}'.format(f_locals['prefix_norm'], f_locals['result'])
+
         return {
             'add_css_classes': add_css_classes,
             'add_css_classes_to_dict': add_css_classes_to_dict,

@@ -461,11 +461,19 @@ App.ko.Grid = function(options) {
         this.queryFilters = {};
         if (this.options.defaultOrderBy !== null)
         this.setQueryOrderBy(this.options.defaultOrderBy);
-        if (this.options.pageRoute === null) {
-            this.pageUrl = this.options.pageUrl;
+        this.action_kwarg = 'action';
+        this.routeUrl = App.routeUrl(this.options.pageRoute);
+    };
+
+    Grid.getActionUrl =  function(action) {
+        if (typeof action === 'undefined') {
+            action = '';
         } else {
-            this.pageUrl = App.routeUrl(this.options.pageRoute);
+            action = '/' + action;
         }
+        var params = {};
+        params[this.action_kwarg] = action;
+        return sprintf(this.routeUrl, params);
     };
 
     Grid.run = function(selector) {
@@ -493,7 +501,7 @@ App.ko.Grid = function(options) {
             pageRoute: null,
             // Assume current route by default
             // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
-            pageUrl: '',
+            routeUrl: '',
         }, options);
         this.ownerCtrl = this.options.ownerCtrl;
 
@@ -892,7 +900,7 @@ App.ko.Grid = function(options) {
         self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
         // console.log('AJAX query: ' + JSON.stringify(self.queryArgs));
         self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        $.post(self.pageUrl,
+        $.post(self.getActionUrl(),
             self.queryArgs,
             function(response) {
                 if (typeof self.queryArgs.load_meta !== 'undefined') {
@@ -917,6 +925,7 @@ App.ko.Grid = function(options) {
     Grid.setKoPage = function(data) {
         var self = this;
         if (typeof data.meta !== 'undefined') {
+            this.action_kwarg = data.action_kwarg;
             ko.set_props(data.meta, self.meta);
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
