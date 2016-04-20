@@ -495,8 +495,8 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_edit = function(viewModel) {
-        var dialog = new App.Dialog(viewModel);
-        dialog.alert();
+        var dialog = new App.ModelDialog(viewModel);
+        dialog.show();
     };
 
     GridActions.queryargs_list = function(options) {
@@ -1185,3 +1185,52 @@ App.GridDialog = function(options) {
     };
 
 })(App.GridDialog.prototype);
+
+App.ModelDialog = function(options) {
+    $.inherit(App.Dialog.prototype, this);
+    this.create(options);
+};
+
+(function(ModelDialog) {
+
+    ModelDialog.getButtons = function() {
+        var self = this;
+        return [
+            {
+                icon: 'glyphicon glyphicon-cancel',
+                label: App.trans('Cancel'),
+                cssClass: 'btn-default',
+                action: function(bdialog) {
+                    bdialog.close();
+                }
+            },
+            {
+                icon: 'glyphicon glyphicon-save',
+                label: App.trans('Save'),
+                cssClass: 'btn-primary',
+                action: function(bdialog) {
+                    bdialog.close();
+                    var modalBody = bdialog.getModalBody();
+                }
+            }
+        ];
+    };
+
+    ModelDialog.create = function(options) {
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        delete options.view;
+        var fullOptions = $.extend({
+                type: BootstrapDialog.TYPE_PRIMARY,
+                buttons: this.getButtons(),
+            }, options
+        );
+        this.super.create.call(this, fullOptions);
+    };
+
+    ModelDialog.onShow = function() {
+        App.initClient(this.bdialog.getModalBody());
+    };
+
+})(App.ModelDialog.prototype);

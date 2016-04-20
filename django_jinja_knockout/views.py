@@ -661,9 +661,13 @@ class GridActionsMixin():
             'action': self.get_action_result_url(),
             'opts': self.get_bs_form_opts()
         })
+        if hasattr(object, 'get_str_fields'):
+            object_description = qtpl.print_bs_badges(object.get_str_fields().values())
+        else:
+            object_description = str(object)
         return vm_list({
             'view': self.__class__.view_name,
-            'title': '{}: {}'.format(self.actions['edit']['localName'], str(object)),
+            'title': '{}: {}'.format(self.actions['edit']['localName'], object_description),
             'message': form_html
         })
 

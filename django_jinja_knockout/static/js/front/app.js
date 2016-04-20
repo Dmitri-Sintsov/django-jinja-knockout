@@ -889,8 +889,8 @@ ko.bindingHandlers.scroller = {
  * Automatic App.ko class instantiation by 'component' css class and 'data-component-options' html5 attribute.
  *
  */
-App.initClientHooks.push(function() {
-    $.each($('.component'), function(k, v) {
+App.initClientHooks.push(function($selector) {
+    $.each($selector.findSelf('.component'), function(k, v) {
         var options = $(v).data('componentOptions');
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
