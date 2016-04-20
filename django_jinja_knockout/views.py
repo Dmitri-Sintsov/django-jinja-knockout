@@ -11,6 +11,7 @@ from django.forms.utils import flatatt
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.template import loader as tpl_loader
 from django.db.models import Q
@@ -616,13 +617,130 @@ class ViewmodelView(TemplateView):
         return result
 
 
+class GridActionsMixin():
+
+    def get_actions(self):
+        return {
+            'edit': {
+                'localName': _('Change'),
+                'enabled': any([
+                    self.__class__.form, self.__class__.formset, self.__class__.form_with_inline_formsets
+                ])
+            },
+            'delete': {
+                'localName': _('Remove'),
+                'enabled': False
+            }
+        }
+
+    def get_action_result_url(self):
+        return reverse(
+            self.request.url_name,
+            kwargs={
+                self.__class__.action_kwarg: '/{}_result'.format(self.current_action)
+            }
+        )
+
+    def action_not_implemented(self):
+        return vm_list({
+            'view': 'alert_error',
+            'title': 'Invalid action',
+            'message': format_html(
+                'Action "{}" is not implemented', self.current_action
+            )
+        })
+
+    # todo: Support formset and form_with_inline_formsets class attributes.
+    def action_edit(self):
+        object = self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
+        form = self.__class__.form(instance=object)
+        t = tpl_loader.get_template('bs_form.htm')
+        form_html = t.render(request=self.request, context={
+            '_render_form': True,
+            'form': form,
+            'action': self.get_action_result_url(),
+            'opts': self.get_bs_form_opts()
+        })
+        return vm_list({
+            'view': self.__class__.view_name,
+            'title': '{}: {}'.format(self.actions['edit']['localName'], str(object)),
+            'message': form_html
+        })
+
+    def action_list(self):
+        rows = self.get_rows()
+        vm = {
+            'view': self.__class__.view_name,
+            'entries': list(rows),
+            'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
+        }
+        if self.request_get('load_meta', False):
+            pk_field = ''
+            for field in self.model_class._meta.fields:
+                if field.primary_key:
+                    pk_field = field.attname
+            vm.update({
+                'action_kwarg': self.__class__.action_kwarg,
+                'sortOrders': self.allowed_sort_orders,
+                'meta': {
+                    'hasSearch': len(self.search_fields) > 0,
+                    'pkField': pk_field,
+                    'actions': self.actions,
+                    'verboseName': get_verbose_name(self.model_class),
+                    'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
+                }
+            })
+            vm_grid_fields = []
+            if not isinstance(self.grid_fields, list):
+                self.report_error('grid_fields must be list')
+            for field_def in self.grid_fields:
+                if type(field_def) is tuple:
+                    field, name = field_def
+                elif type(field_def) is str:
+                    field = field_def
+                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+                    name = str(get_verbose_name(self.model_class, field))
+                else:
+                    self.report_error('grid_fields list values must be str or tuple')
+                vm_grid_fields.append({
+                    'field': field,
+                    'name': name
+                })
+            vm['gridFields'] = vm_grid_fields
+
+            vm_filters = []
+
+            if not isinstance(self.allowed_filter_fields, OrderedDict):
+                self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
+
+            for fieldname, choices in self.allowed_filter_fields.items():
+                if choices is None:
+                    # Use App.ko.FkGridFilter to select filter choices.
+                    vm_choices = None
+                else:
+                    # Pre-built list of field values / menu names.
+                    vm_choices = []
+                    for value, name in choices:
+                        vm_choices.append({
+                            'value': value,
+                            'name': name
+                        })
+                vm_filters.append({
+                    'field': fieldname,
+                    'name': get_verbose_name(self.model_class, fieldname),
+                    'choices': vm_choices
+                })
+            vm['filters'] = vm_filters
+        return vm
+
+
 # Knockout.js ko-grid.js filtered / sorted ListView.
 #
 # In urls.py define
 #     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
 # To browse specified Django model.
 #
-class KoGridView(BaseFilterView, ViewmodelView):
+class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin):
 
     view_name = 'grid_page'
     action_kwarg = 'action'
@@ -748,122 +866,25 @@ class KoGridView(BaseFilterView, ViewmodelView):
             self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.query_fields)
         ]
 
-    def get_row_actions(self):
+    # Do not just remove bs_form() options.
+    # BootstrapDialog panel might render with overlapped layout without these options.
+    def get_bs_form_opts(self):
         return {
-            'edit': {
-                'localName': _('Change'),
-                'enabled': any([
-                    self.__class__.form, self.__class__.formset, self.__class__.form_with_inline_formsets
-                ])
-            },
-            'delete': {
-                'localName': _('Remove'),
-                'enabled': False
+            'layout_classes': {
+                'label': 'col-md-4',
+                'field': 'col-md-6'
             }
         }
-
-    def action_not_implemented(self):
-        return vm_list({
-            'view': 'alert_error',
-            'title': 'Invalid action',
-            'message': format_html(
-                'Action "{}" is not implemented', self.action
-            )
-        })
-
-    def action_list(self):
-        rows = self.get_rows()
-        vm = {
-            'view': self.__class__.view_name,
-            'entries': list(rows),
-            'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
-        }
-        if self.request_get('load_meta', False):
-            pk_field = ''
-            for field in self.model_class._meta.fields:
-                if field.primary_key:
-                    pk_field = field.attname
-            vm.update({
-                'action_kwarg': self.__class__.action_kwarg,
-                'sortOrders': self.allowed_sort_orders,
-                'meta': {
-                    'hasSearch': len(self.search_fields) > 0,
-                    'pkField': pk_field,
-                    'rowActions': self.row_actions,
-                    'verboseName': get_verbose_name(self.model_class),
-                    'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
-                }
-            })
-            vm_grid_fields = []
-            if not isinstance(self.grid_fields, list):
-                self.report_error('grid_fields must be list')
-            for field_def in self.grid_fields:
-                if type(field_def) is tuple:
-                    field, name = field_def
-                elif type(field_def) is str:
-                    field = field_def
-                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-                    name = str(get_verbose_name(self.model_class, field))
-                else:
-                    self.report_error('grid_fields list values must be str or tuple')
-                vm_grid_fields.append({
-                    'field': field,
-                    'name': name
-                })
-            vm['gridFields'] = vm_grid_fields
-
-            vm_filters = []
-
-            if not isinstance(self.allowed_filter_fields, OrderedDict):
-                self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
-
-            for fieldname, choices in self.allowed_filter_fields.items():
-                if choices is None:
-                    # Use App.ko.FkGridFilter to select filter choices.
-                    vm_choices = None
-                else:
-                    # Pre-built list of field values / menu names.
-                    vm_choices = []
-                    for value, name in choices:
-                        vm_choices.append({
-                            'value': value,
-                            'name': name
-                        })
-                vm_filters.append({
-                    'field': fieldname,
-                    'name': get_verbose_name(self.model_class, fieldname),
-                    'choices': vm_choices
-                })
-            vm['filters'] = vm_filters
-        return vm
-
-    # todo: Support formset and form_with_inline_formsets class attributes.
-    def action_edit(self):
-        object = self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
-        form = self.__class__.form(instance=object)
-        t = tpl_loader.get_template('bs_form.htm')
-        form_html = t.render(request=self.request, context={
-            '_render_form': True,
-            'form': form,
-            'action': '',
-            'opts': {
-            }
-        })
-        return vm_list({
-            'view': 'alert',
-            'title': '{}: {}'.format(self.row_actions['edit']['localName'], str(object)),
-            'message': form_html
-        })
 
     def post(self, request, *args, **kwargs):
-        self.row_actions = self.get_row_actions()
+        self.actions = self.get_actions()
         self.request = request
         self.args = args
         self.kwargs = kwargs
-        self.action = kwargs.get(self.__class__.action_kwarg, '').strip('/')
-        if self.action == '':
-            self.action = 'list'
-        handler = getattr(self, 'action_{}'.format(self.action), self.action_not_implemented)
+        self.current_action = kwargs.get(self.__class__.action_kwarg, '').strip('/')
+        if self.current_action == '':
+            self.current_action = 'list'
+        handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)
         return handler()
 
     def get_base_queryset(self):

@@ -4,6 +4,9 @@
 {% if not opts.class %}
     {% do opts.update({'class': ''}) %}
 {% endif %}
+{% if not opts.layout_classes %}
+    {% do opts.update({'layout_classes': {}}) %}
+{% endif %}
 <div class="panel panel-default {{ opts.class }}">
     {% if opts.title is defined %}
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
@@ -20,7 +23,7 @@
             'role': 'form'
         }) %}
         <form{{ flatatt(atts) }}>
-            {{ bs_form_body(form) }}
+            {{ bs_form_body(form, opts.layout_classes) }}
             {% if opts.submit_text is defined %}
             <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
             {% endif %}

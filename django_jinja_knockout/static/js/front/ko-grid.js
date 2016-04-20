@@ -70,7 +70,7 @@ App.ko.GridColumnOrder = function(options) {
         }
         var direction = this.order() ? 'desc' : 'asc';
         this.ownerGrid.setQueryOrderBy(this.field, direction);
-        this.ownerGrid.loadPage();
+        this.ownerGrid.listAction();
     };
 
     // todo: This better should belong to App.ko.GridRow or even to separate class.
@@ -135,7 +135,7 @@ App.ko.GridFilterChoice = function(options) {
     GridFilterChoice.onLoadFilter = function(ev) {
         this.ownerFilter.switchKoFilterChoices(this, ev);
         this.ownerFilter.ownerGrid.queryArgs.page = 1;
-        this.ownerFilter.ownerGrid.loadPage();
+        this.ownerFilter.ownerGrid.listAction();
     };
 
     GridFilterChoice.is = function(filterChoice) {
@@ -302,13 +302,13 @@ App.ko.FkGridFilter = function(options) {
     FkGridFilter.addQueryFilter = function(value) {
         this.super.addQueryFilter.call(this, value);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.loadPage();
+        this.ownerGrid.listAction();
     };
 
     FkGridFilter.removeQueryFilter = function(value) {
         this.super.removeQueryFilter.call(this, value);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.loadPage();
+        this.ownerGrid.listAction();
     };
 
 })(App.ko.FkGridFilter.prototype);
@@ -422,6 +422,100 @@ App.ko.GridPage = function(options) {
 })(App.ko.GridPage.prototype);
 
 /**
+ * Actions performed for particular grid instance. Mostly are row-click actions, although not limited to.
+ */
+App.GridActions = function(options) {
+    this.init(options);
+};
+
+(function(GridActions) {
+
+    GridActions.init = function(options) {
+        this.grid = options.grid;
+        this.action_kwarg = 'action';
+        this.viewName = 'grid_page';
+        this.currentAction = '';
+    };
+
+    GridActions.setActionKwarg = function(action_kwarg) {
+        this.action_kwarg = action_kwarg;
+    };
+
+    GridActions.has = function(action) {
+        return typeof this.grid.meta.actions[action] !== 'undefined' && this.grid.meta.actions[action].enabled;
+    };
+
+    GridActions.getUrl =  function(action) {
+        if (typeof action === 'undefined') {
+            action = '';
+        } else {
+            action = '/' + action;
+        }
+        var params = {};
+        params[this.action_kwarg] = action;
+        return sprintf(this.grid.routeUrl, params);
+    };
+
+    GridActions.getQueryArgs = function(options) {
+        var method = 'queryargs_' + this.currentAction;
+        if (typeof this[method] === 'function') {
+            return this[method](options);
+        }
+        throw sprintf('Unimplemented %s()', method);
+    };
+
+    GridActions.perform = function(currentAction, actionOptions) {
+        var self = this;
+        this.currentAction = currentAction;
+        var responseOptions = {'after': {}};
+        responseOptions['after'][this.viewName] = function(viewModel) {
+            console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
+            var method = 'callback_' + self.currentAction;
+            if (typeof self[method] === 'function') {
+                return self[method](viewModel);
+            }
+            throw sprinf('Unimplemented %s()', method);
+        };
+        var queryArgs = this.getQueryArgs(actionOptions);
+        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        $.post(this.getUrl(this.currentAction),
+            queryArgs,
+            function(response) {
+                App.viewResponse(response, responseOptions);
+            },
+            'json'
+        )
+        .fail(App.showAjaxError);
+    };
+
+    GridActions.queryargs_edit = function(options) {
+        return {
+            'pk_val': options.koRow.values[this.grid.meta.pkField]
+        };
+    };
+
+    GridActions.callback_edit = function(viewModel) {
+        var dialog = new App.Dialog(viewModel);
+        dialog.alert();
+    };
+
+    GridActions.queryargs_list = function(options) {
+        return this.grid.getListQueryArgs();
+    };
+
+    /**
+     * Populate viewmodel from AJAX response.
+     */
+    GridActions.callback_list = function(data) {
+        if (typeof data.action_kwarg !== 'undefined') {
+            this.setActionKwarg(data.action_kwarg);
+        }
+        this.grid.listCallback(data);
+    };
+
+})(App.GridActions.prototype);
+
+/**
  * AJAX Grid powered by Knockout.js.
  *
  * Note that for more advanced grids, such as displaying custom-formatted field values, one has to inherit
@@ -434,8 +528,6 @@ App.ko.Grid = function(options) {
 };
 
 (function(Grid) {
-
-    Grid.viewName = 'grid_page';
 
     Grid.queryKeys = {
         filter: 'list_filter',
@@ -461,19 +553,7 @@ App.ko.Grid = function(options) {
         this.queryFilters = {};
         if (this.options.defaultOrderBy !== null)
         this.setQueryOrderBy(this.options.defaultOrderBy);
-        this.action_kwarg = 'action';
         this.routeUrl = App.routeUrl(this.options.pageRoute);
-    };
-
-    Grid.getActionUrl =  function(action) {
-        if (typeof action === 'undefined') {
-            action = '';
-        } else {
-            action = '/' + action;
-        }
-        var params = {};
-        params[this.action_kwarg] = action;
-        return sprintf(this.routeUrl, params);
     };
 
     Grid.run = function(selector) {
@@ -490,6 +570,10 @@ App.ko.Grid = function(options) {
         ko.cleanNode(this.$selector.get(0));
     };
 
+    Grid.iocGridActions = function(options) {
+        return new App.GridActions(options);
+    };
+
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
@@ -504,10 +588,9 @@ App.ko.Grid = function(options) {
             routeUrl: '',
         }, options);
         this.ownerCtrl = this.options.ownerCtrl;
-
         this.meta = {
             pkField: '',
-            rowActions: {
+            actions: {
                 'edit': {
                     localName: App.trans('Change'),
                     enabled: false,
@@ -521,6 +604,10 @@ App.ko.Grid = function(options) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+
+        this.gridActions = this.iocGridActions({
+            'grid': this
+        });
         this.sortOrders = {};
         this.selectedRowsPks = [];
         this.gridColumns = ko.observableArray();
@@ -723,17 +810,13 @@ App.ko.Grid = function(options) {
             .parents(self.$selector.get(0))
             .find('div.table-responsive').scrollTop(0);
         */
-        self.loadPage();
-    };
-
-    Grid.hasAction = function(action) {
-        return typeof this.meta.rowActions[action] !== 'undefined' && this.meta.rowActions[action].enabled;
+        self.listAction();
     };
 
     Grid.rowClick = function(koRow) {
         console.log('row values: ' + JSON.stringify(koRow.values));
-        if (this.hasAction('edit')) {
-            this.execRowAction('edit', koRow);
+        if (this.gridActions.has('edit')) {
+            this.gridActions.perform('edit', {'koRow': koRow});
         }
     };
 
@@ -751,7 +834,7 @@ App.ko.Grid = function(options) {
             self.gridSearchStr(s);
         }
         self.queryArgs.page = 1;
-        self.loadPage();
+        self.listAction();
     };
 
     Grid.iocKoGridColumn = function(options) {
@@ -902,73 +985,30 @@ App.ko.Grid = function(options) {
         );
     };
 
-    Grid.getRowActionArgs = function(action, koRow) {
-        return {
-            'pk_val': koRow.values[this.meta.pkField]
-        };
-    };
-
-    Grid.execRowAction = function(action, koRow) {
-        var self = this;
-        var options = {'after': {}};
-        options['after'][self.viewName] = function(viewModel) {
-            // console.log('execRowAction response: ' + JSON.stringify(viewModel));
-            self.setRowAction(viewModel);
-        };
-        var queryArgs = this.getRowActionArgs(action, koRow);
-        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        $.post(self.getActionUrl(action),
-            queryArgs,
-            function(response) {
-                App.viewResponse(response, options);
-            },
-            'json'
-        )
-        .fail(App.showAjaxError);
-    };
-
-    /**
-     * Get viewmodels data for grid page and grid pagination via ajax-query.
-     */
-    Grid.loadPage = function() {
-        var self = this;
-        var options = {'after': {}};
-        options['after'][self.viewName] = function(viewModel) {
-            // console.log('loadPage response: ' + JSON.stringify(viewModel));
-            self.setKoPage(viewModel);
-        };
-        self.queryArgs[self.queryKeys.search] = self.gridSearchStr();
-        self.queryArgs[self.queryKeys.filter] = JSON.stringify(self.queryFilters);
-        // console.log('loadPage query: ' + JSON.stringify(self.queryArgs));
-        self.queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        $.post(self.getActionUrl(),
-            self.queryArgs,
-            function(response) {
-                if (typeof self.queryArgs.load_meta !== 'undefined') {
-                    delete self.queryArgs.load_meta;
-                }
-                App.viewResponse(response, options);
-            },
-            'json'
-        )
-        .fail(App.showAjaxError);
-    };
-
     /**
      * Used in App.GridDialog to display title outside of message template.
      */
     Grid.ownerCtrlSetTitle = function(verboseNamePlural) {
     };
 
-    /**
-     * Populate viewmodel from AJAX response.
-     */
-    Grid.setKoPage = function(data) {
-        var self = this;
+    Grid.getListQueryArgs = function() {
+        this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
+        this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
+        return this.queryArgs;
+    };
+
+    Grid.listAction = function() {
+        this.gridActions.perform('list');
+    };
+
+    Grid.listCallback = function(data) {
+        var self=this;
         if (typeof data.meta !== 'undefined') {
-            this.action_kwarg = data.action_kwarg;
             ko.set_props(data.meta, self.meta);
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
+        }
+        if (typeof self.queryArgs.load_meta !== 'undefined') {
+            delete self.queryArgs.load_meta;
         }
         if (typeof data.sortOrders !== 'undefined') {
             for (var i = 0; i < data.sortOrders.length; i++) {
