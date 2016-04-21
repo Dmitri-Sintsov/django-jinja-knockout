@@ -1,3 +1,5 @@
+"use strict";
+
 // Requires plugins.js to be loaded before.
 
 if (typeof console !== 'object') {
@@ -348,7 +350,7 @@ App.viewResponse = function(response, options) {
     if (typeof options !== 'object') {
         options = {};
     }
-    bindContext = (typeof options.bindContext ==='undefined') ? this : options.bindContext;
+    var bindContext = (typeof options.bindContext ==='undefined') ? this : options.bindContext;
     if (!_.isArray(response)) {
         response = [response];
     }
@@ -620,8 +622,18 @@ App.ajaxForm = function($selector) {
     });
 };
 
-App.ajaxForm.prototype.submit = function($form, $btn, callback) {
+App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
     var url = App.getDataUrl($btn);
+    if (typeof callbacks !== 'object') {
+        callbacks = {};
+    }
+    var _callbacks = $.extend({
+            always: function () {},
+            error: function () {},
+            success: function () {},
+        },
+        callbacks
+    );
     if (url === undefined) {
         url = App.getDataUrl($form);
     }
@@ -633,9 +645,7 @@ App.ajaxForm.prototype.submit = function($form, $btn, callback) {
         if (typeof options['uploadProgress'] !== 'undefined') {
             $progressBar.remove();
         }
-        if (typeof callback === 'function') {
-            callback();
-        }
+        _callbacks.always();
     };
     var options = {
         'url': url,
@@ -648,12 +658,14 @@ App.ajaxForm.prototype.submit = function($form, $btn, callback) {
         error: function(jqXHR, exception) {
             always();
             App.showAjaxError(jqXHR, exception);
+            _callbacks.error();
         },
         success: function(response) {
             always();
             // Add $form property for custom viewHandler.
             response.$form = $form;
             App.viewResponse(response);
+            _callbacks.success();
         },
         complete: function() {
             l.remove();

@@ -1,3 +1,5 @@
+"use strict";
+
 ko.bindingHandlers.grid_row = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         var realElement = ko.from_virtual(element);
@@ -460,8 +462,9 @@ App.GridActions = function(options) {
         var method = 'queryargs_' + this.currentAction;
         if (typeof this[method] === 'function') {
             return this[method](options);
+        } else {
+            return options;
         }
-        throw sprintf('Unimplemented %s()', method);
     };
 
     GridActions.perform = function(currentAction, actionOptions) {
@@ -469,12 +472,12 @@ App.GridActions = function(options) {
         this.currentAction = currentAction;
         var responseOptions = {'after': {}};
         responseOptions['after'][this.viewName] = function(viewModel) {
-            console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
+            // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
             var method = 'callback_' + self.currentAction;
             if (typeof self[method] === 'function') {
                 return self[method](viewModel);
             }
-            throw sprinf('Unimplemented %s()', method);
+            throw sprintf('Unimplemented %s()', method);
         };
         var queryArgs = this.getQueryArgs(actionOptions);
         queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
@@ -488,13 +491,7 @@ App.GridActions = function(options) {
         .fail(App.showAjaxError);
     };
 
-    GridActions.queryargs_edit = function(options) {
-        return {
-            'pk_val': options.koRow.values[this.grid.meta.pkField]
-        };
-    };
-
-    GridActions.callback_edit = function(viewModel) {
+    GridActions.callback_edit_form = function(viewModel) {
         var dialog = new App.ModelDialog(viewModel);
         dialog.show();
     };
@@ -814,9 +811,15 @@ App.ko.Grid = function(options) {
     };
 
     Grid.rowClick = function(koRow) {
-        console.log('row values: ' + JSON.stringify(koRow.values));
-        if (this.gridActions.has('edit')) {
-            this.gridActions.perform('edit', {'koRow': koRow});
+        console.log('Grid.rowClick() values: ' + JSON.stringify(koRow.values));
+        if (this.options.selectMultipleRows) {
+            if (this.gridActions.has('edit_formset')) {
+                this.gridActions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
+            }
+        } else {
+            if (this.gridActions.has('edit_form')) {
+                this.gridActions.perform('edit_form', {'pk_val': koRow.values[this.meta.pkField]});
+            }
         }
     };
 
@@ -1211,8 +1214,10 @@ App.ModelDialog = function(options) {
                 action: function(bdialog) {
                     var $form = bdialog.getModalBody().find('form');
                     var $button = bdialog.getModalFooter().find('button.submit');
-                    App.ajaxForm.prototype.submit($form, $button, function() {
-                        bdialog.close();
+                    App.ajaxForm.prototype.submit($form, $button, {
+                        'success': function() {
+                            // bdialog.close();
+                        }
                     });
                 }
             }

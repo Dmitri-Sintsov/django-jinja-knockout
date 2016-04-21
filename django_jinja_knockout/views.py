@@ -11,7 +11,6 @@ from django.forms.utils import flatatt
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
-from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.template import loader as tpl_loader
 from django.db.models import Q
@@ -124,8 +123,44 @@ class ContextDataMixin(object):
         return context_data
 
 
+# Forms and forms fields AJAX viewmodel responce.
+class FormViewmodelsMixin():
+
+    def get_form_error_viewmodel(self, form):
+        for bound_field in form:
+            return {
+                'view': 'form_error',
+                'class': 'danger',
+                'id': bound_field.auto_id,
+                'messages': list((escape(message) for message in form.errors['__all__']))
+            }
+        return None
+
+    def get_field_error_viewmodel(self, bound_field):
+        return {
+            'view': 'form_error',
+            'id': bound_field.auto_id,
+            'messages': list((escape(message) for message in bound_field.errors))
+        }
+        # Alternative version, different from 'bs_field.htm' macro rendering.
+        """
+        return {
+            'view': 'popover_error',
+            'id': bound_field.auto_id,
+            'message': qtpl.print_bs_labels(bound_field.errors)
+        }
+        """
+
+    def add_form_viewmodels(self, form, ff_vms):
+        if '__all__' in form.errors:
+            ff_vms.append(self.get_form_error_viewmodel(form))
+        for bound_field in form:
+            if len(bound_field.errors) > 0:
+                ff_vms.append(self.get_field_error_viewmodel(bound_field))
+
+
 # See also https://github.com/AndrewIngram/django-extra-views
-class FormWithInlineFormsetsMixin(object):
+class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     # @note: Required to define ONLY when form_with_inline_formsets has FormClass is None
     # ("edit many related formsets without master form" mode).
     form_with_inline_formsets = None
@@ -153,40 +188,6 @@ class FormWithInlineFormsetsMixin(object):
             'url': self.get_success_url()
         })
 
-    def get_form_error_viewmodel(self, form):
-        for bound_field in form:
-            return {
-                'view': 'form_error',
-                'class': 'danger',
-                'id': bound_field.auto_id,
-                'messages': list((escape(message) for message in form.errors['__all__']))
-            }
-        return None
-
-    def get_field_error_viewmodel(self, bound_field):
-        return {
-            'view': 'form_error',
-            'id': bound_field.auto_id,
-            'messages': list((escape(message) for message in bound_field.errors))
-        }
-        # Alternative version, different from 'bs_field.htm' macro rendering.
-        """
-        return {
-            'view': 'popover_error',
-            'id': bound_field.auto_id,
-            'message': qtpl.print_bs_labels(bound_field.errors)
-        }
-        """
-
-    def add_form_viewmodels(self, form):
-        if '__all__' in form.errors:
-            vm = self.get_form_error_viewmodel(form)
-            if vm is not None:
-                self.forms_vms.append(vm)
-        for bound_field in form:
-            if len(bound_field.errors) > 0:
-                self.fields_vms.append(self.get_field_error_viewmodel(bound_field))
-
     def form_valid(self, form, formsets):
         """
         Called if all forms are valid. Creates a model instance along with
@@ -203,14 +204,13 @@ class FormWithInlineFormsetsMixin(object):
         data-filled forms and errors.
         """
         if self.request.is_ajax():
-            self.fields_vms = vm_list()
-            self.forms_vms = vm_list()
+            ff_vms = vm_list()
             if form is not None:
-                self.add_form_viewmodels(form)
+                self.add_form_viewmodels(form, ff_vms)
             for formset in formsets:
                 for formset_form in formset:
-                    self.add_form_viewmodels(formset_form)
-            return self.forms_vms + self.fields_vms
+                    self.add_form_viewmodels(formset_form, ff_vms)
+            return ff_vms
         else:
             return self.render_to_response(
                 self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
@@ -269,6 +269,7 @@ class BaseFilterView(View):
     allowed_sort_orders = None
     allowed_filter_fields = None
     search_fields = None
+    model = None
 
     def __init__(self):
         super().__init__()
@@ -313,14 +314,13 @@ class BaseFilterView(View):
         raise ValueError(message.format(*args, **kwargs))
 
     def get_all_fields(self):
-        return [field.attname for field in self.model_class._meta.fields]
+        return [field.attname for field in self.__class__.model._meta.fields]
 
     def get_all_allowed_sort_orders(self):
         return self.get_all_fields()
 
     @classmethod
     def init_class(cls, self):
-        self.model_class = self.get_base_queryset().model
 
         if cls.allowed_sort_orders is None:
             self.allowed_sort_orders = self.get_allowed_sort_orders()
@@ -619,12 +619,22 @@ class ViewmodelView(TemplateView):
 
 class GridActionsMixin():
 
+    form = None
+    formset = None
+    form_with_inline_formsets = None
+
     def get_actions(self):
         return {
-            'edit': {
+            'edit_form': {
                 'localName': _('Change'),
                 'enabled': any([
-                    self.__class__.form, self.__class__.formset, self.__class__.form_with_inline_formsets
+                    self.__class__.form, self.__class__.form_with_inline_formsets
+                ])
+            },
+            'edit_formset': {
+                'localName': _('Change'),
+                'enabled': any([
+                    self.__class__.formset
                 ])
             },
             'delete': {
@@ -633,13 +643,17 @@ class GridActionsMixin():
             }
         }
 
-    def get_action_result_url(self):
-        return reverse(
+    def get_action_url(self, action, query={}):
+        return qtpl.reverseq(
             self.request.url_name,
             kwargs={
-                self.__class__.action_kwarg: '/{}_result'.format(self.current_action)
-            }
+                self.__class__.action_kwarg: '/{}'.format(action)
+            },
+            query=query
         )
+
+    def get_action_name(self, action):
+        return self.actions[action]['localName']
 
     def action_not_implemented(self):
         return vm_list({
@@ -650,15 +664,16 @@ class GridActionsMixin():
             )
         })
 
-    # todo: Support formset and form_with_inline_formsets class attributes.
-    def action_edit(self):
-        object = self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
+    # todo: Support form_with_inline_formsets class attributes.
+    def action_edit_form(self):
+        pk_val = self.request_get('pk_val')
+        object = self.__class__.model.objects.filter(pk=pk_val).first()
         form = self.__class__.form(instance=object)
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_form': True,
             'form': form,
-            'action': self.get_action_result_url(),
+            'action': self.get_action_url('save_form', query={'pk_val': pk_val}),
             'opts': self.get_bs_form_opts()
         })
         if hasattr(object, 'get_str_fields'):
@@ -667,9 +682,28 @@ class GridActionsMixin():
             object_description = str(object)
         return vm_list({
             'view': self.__class__.view_name,
-            'title': '{}: {}'.format(self.actions['edit']['localName'], object_description),
+            'title': '{}: {}'.format(self.get_action_name(self.current_action), object_description),
             'message': form_html
         })
+
+    # todo: Implement.
+    def action_edit_formset(self):
+        pass
+
+    def action_save_form(self):
+        object = self.__class__.model.objects.filter(pk=self.request.GET.get('pk_val')).first()
+        form = self.__class__.form(self.request.POST, instance=object)
+        if form.is_valid():
+            object = form.save()
+            return vm_list({
+                'view': 'alert',
+                'title': 'Saved',
+                'message': 'Saved, probably successfully.'
+            })
+        else:
+            ff_vms = vm_list()
+            self.add_form_viewmodels(form, ff_vms)
+            return ff_vms
 
     def action_list(self):
         rows = self.get_rows()
@@ -680,7 +714,7 @@ class GridActionsMixin():
         }
         if self.request_get('load_meta', False):
             pk_field = ''
-            for field in self.model_class._meta.fields:
+            for field in self.__class__.model._meta.fields:
                 if field.primary_key:
                     pk_field = field.attname
             vm.update({
@@ -690,8 +724,8 @@ class GridActionsMixin():
                     'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
                     'actions': self.actions,
-                    'verboseName': get_verbose_name(self.model_class),
-                    'verboseNamePlural': get_meta(self.model_class, 'verbose_name_plural')
+                    'verboseName': get_verbose_name(self.__class__.model),
+                    'verboseNamePlural': get_meta(self.__class__.model, 'verbose_name_plural')
                 }
             })
             vm_grid_fields = []
@@ -703,7 +737,7 @@ class GridActionsMixin():
                 elif type(field_def) is str:
                     field = field_def
                     # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-                    name = str(get_verbose_name(self.model_class, field))
+                    name = str(get_verbose_name(self.__class__.model, field))
                 else:
                     self.report_error('grid_fields list values must be str or tuple')
                 vm_grid_fields.append({
@@ -731,7 +765,7 @@ class GridActionsMixin():
                         })
                 vm_filters.append({
                     'field': fieldname,
-                    'name': get_verbose_name(self.model_class, fieldname),
+                    'name': get_verbose_name(self.__class__.model, fieldname),
                     'choices': vm_choices
                 })
             vm['filters'] = vm_filters
@@ -744,15 +778,12 @@ class GridActionsMixin():
 #     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
 # To browse specified Django model.
 #
-class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin):
+class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodelsMixin):
 
     view_name = 'grid_page'
     action_kwarg = 'action'
     context_object_name = 'model'
     model = None
-    form = None
-    formset = None
-    form_with_inline_formsets = None
     # query all fields by default.
     query_fields = None
     # Knockout.js grid viewmodel columns. Use '__all__' value to display all model fields as grid columns.
@@ -809,7 +840,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin):
     @classmethod
     def init_class(cls, self):
         super(KoGridView, cls).init_class(self)
-        model_class_members = get_object_members(self.model_class)
+        model_class_members = get_object_members(self.__class__.model)
         self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
         if cls.grid_fields is None:
@@ -829,7 +860,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin):
         related_fields = self.get_related_fields()
         for related_field in related_fields:
             row_related[related_field] = row.pop(related_field)
-        object = self.model_class(**row)
+        object = self.__class__.model(**row)
         for field, value in row_related.items():
             row[field] = value
         return object
