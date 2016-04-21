@@ -1197,7 +1197,7 @@ App.ModelDialog = function(options) {
         var self = this;
         return [
             {
-                icon: 'glyphicon glyphicon-cancel',
+                icon: 'glyphicon glyphicon-ban-circle',
                 label: App.trans('Cancel'),
                 cssClass: 'btn-default',
                 action: function(bdialog) {
@@ -1207,10 +1207,13 @@ App.ModelDialog = function(options) {
             {
                 icon: 'glyphicon glyphicon-save',
                 label: App.trans('Save'),
-                cssClass: 'btn-primary',
+                cssClass: 'btn-primary submit',
                 action: function(bdialog) {
-                    bdialog.close();
-                    var modalBody = bdialog.getModalBody();
+                    var $form = bdialog.getModalBody().find('form');
+                    var $button = bdialog.getModalFooter().find('button.submit');
+                    App.ajaxForm.prototype.submit($form, $button, function() {
+                        bdialog.close();
+                    });
                 }
             }
         ];

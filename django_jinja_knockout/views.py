@@ -874,6 +874,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin):
     # BootstrapDialog panel might render with overlapped layout without these options.
     def get_bs_form_opts(self):
         return {
+            'is_ajax': True,
             'layout_classes': {
                 'label': 'col-md-4',
                 'field': 'col-md-6'

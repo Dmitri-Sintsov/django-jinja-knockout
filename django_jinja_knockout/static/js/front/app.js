@@ -75,7 +75,7 @@ App.Dialog = function(options) {
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
         } else if (!(this.dialogOptions.message instanceof jQuery)) {
-            this.dialogOptions.message = $(this.dialogOptions.message);
+            this.dialogOptions.message = $('<span>').html(this.dialogOptions.message).contents();
         }
         if (typeof this.dialogOptions.method !== 'undefined') {
             this.showMethod = this.dialogOptions.method;
@@ -616,52 +616,59 @@ App.ajaxForm = function($selector) {
         }
         */
         var $btn = $(ev.target);
-        var url = App.getDataUrl($btn);
-        if (url === undefined) {
-            url = App.getDataUrl($form);
-        }
-        if (url === undefined) {
-            throw "Please define data-url or data-route attribute on form or on form submit button.";
-        }
-        var always = function() {
-            App.enableInputs($form);
-            if (typeof options['uploadProgress'] !== 'undefined') {
-                $progressBar.remove();
-            }
-        };
-        var options = {
-            'url': url,
-            type: 'post',
-            dataType: 'json',
-            beforeSubmit: function() {
-                App.destroyTooltipErrors($form);
-                App.disableInputs($form);
-            },
-            error: function(jqXHR, exception) {
-                always();
-                App.showAjaxError(jqXHR, exception);
-            },
-            success: function(response) {
-                always();
-                // Add $form property for custom viewHandler.
-                response.$form = $form;
-                App.viewResponse(response);
-            },
-            complete: function() {
-                l.remove();
-            }
-        };
-        if ($form.find('input[type="file"]').length > 0) {
-            var $progressBar = $('<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>');
-            $progressBar.insertAfter($btn);
-            options['uploadProgress'] = function(event, position, total, percentComplete) {
-                $progressBar.find('.progress-bar').css('width', percentComplete + '%');
-            };
-        }
-        var l = new App.ladder($btn);
-        $form.ajaxSubmit(options);
-        return false;
+        return App.ajaxForm.prototype.submit($form, $btn);
     });
+};
+
+App.ajaxForm.prototype.submit = function($form, $btn, callback) {
+    var url = App.getDataUrl($btn);
+    if (url === undefined) {
+        url = App.getDataUrl($form);
+    }
+    if (url === undefined) {
+        throw "Please define data-url or data-route attribute on form or on form submit button.";
+    }
+    var always = function() {
+        App.enableInputs($form);
+        if (typeof options['uploadProgress'] !== 'undefined') {
+            $progressBar.remove();
+        }
+        if (typeof callback === 'function') {
+            callback();
+        }
+    };
+    var options = {
+        'url': url,
+        type: 'post',
+        dataType: 'json',
+        beforeSubmit: function() {
+            App.destroyTooltipErrors($form);
+            App.disableInputs($form);
+        },
+        error: function(jqXHR, exception) {
+            always();
+            App.showAjaxError(jqXHR, exception);
+        },
+        success: function(response) {
+            always();
+            // Add $form property for custom viewHandler.
+            response.$form = $form;
+            App.viewResponse(response);
+        },
+        complete: function() {
+            l.remove();
+        }
+    };
+    if ($form.find('input[type="file"]').length > 0) {
+        var $progressBar = $('<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>');
+        $progressBar.insertAfter($btn);
+        options['uploadProgress'] = function(event, position, total, percentComplete) {
+            $progressBar.find('.progress-bar').css('width', percentComplete + '%');
+        };
+    }
+    var l = new App.ladder($btn);
+    $form.ajaxSubmit(options);
+    return false;
 };
 
 App.dialogButton = function($selector) {

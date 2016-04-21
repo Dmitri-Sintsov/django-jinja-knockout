@@ -70,3 +70,10 @@ msgstr "Применить"
 
 msgid "N/A"
 msgstr "…"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Cancel"
+msgstr "Отмена"
+
