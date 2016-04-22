@@ -344,6 +344,29 @@ App.showView = function(viewModel, bindContext) {
     return hasView;
 };
 
+App.filterViewModels = function(response, props) {
+    if (typeof props !== 'object') {
+        throw "App.filterViewModels props arg must be an instanceof object.";
+    }
+    var foundVms = [];
+    for (var i = 0; typeof response[i] !== 'undefined'; i++) {
+        var vm = response[i];
+        var found = true;
+        for (var k in props) {
+            if (props.hasOwnProperty(k)) {
+                if (typeof vm[k] === 'undefined' || vm[k] !== props[k]) {
+                    found = false;
+                    break;
+                }
+            }
+        }
+        if (found) {
+            foundVms.push(vm);
+        }
+    }
+    return foundVms;
+};
+
 App.executedViewModels = [];
 
 App.viewResponse = function(response, options) {
@@ -629,8 +652,8 @@ App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
     }
     var _callbacks = $.extend({
             always: function () {},
-            error: function () {},
-            success: function () {},
+            error: function (jqXHR, exception) {},
+            success: function (response) {},
         },
         callbacks
     );
@@ -658,14 +681,14 @@ App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
         error: function(jqXHR, exception) {
             always();
             App.showAjaxError(jqXHR, exception);
-            _callbacks.error();
+            _callbacks.error(jqXHR, exception);
         },
         success: function(response) {
             always();
             // Add $form property for custom viewHandler.
             response.$form = $form;
             App.viewResponse(response);
-            _callbacks.success();
+            _callbacks.success(response);
         },
         complete: function() {
             l.remove();

@@ -619,6 +619,8 @@ class ViewmodelView(TemplateView):
 
 class GridActionsMixin():
 
+    viewmodel_name = 'grid_page'
+    action_kwarg = 'action'
     form = None
     formset = None
     form_with_inline_formsets = None
@@ -642,6 +644,9 @@ class GridActionsMixin():
                 'enabled': False
             }
         }
+
+    def get_current_action(self):
+        return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
 
     def get_action_url(self, action, query={}):
         return qtpl.reverseq(
@@ -681,7 +686,7 @@ class GridActionsMixin():
         else:
             object_description = str(object)
         return vm_list({
-            'view': self.__class__.view_name,
+            'view': self.__class__.viewmodel_name,
             'title': '{}: {}'.format(self.get_action_name(self.current_action), object_description),
             'message': form_html
         })
@@ -696,7 +701,7 @@ class GridActionsMixin():
         if form.is_valid():
             object = form.save()
             return vm_list({
-                'view': 'alert',
+                'view': self.__class__.viewmodel_name,
                 'title': 'Saved',
                 'message': 'Saved, probably successfully.'
             })
@@ -708,7 +713,7 @@ class GridActionsMixin():
     def action_list(self):
         rows = self.get_rows()
         vm = {
-            'view': self.__class__.view_name,
+            'view': self.__class__.viewmodel_name,
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
@@ -780,8 +785,6 @@ class GridActionsMixin():
 #
 class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodelsMixin):
 
-    view_name = 'grid_page'
-    action_kwarg = 'action'
     context_object_name = 'model'
     model = None
     # query all fields by default.
@@ -917,7 +920,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         self.request = request
         self.args = args
         self.kwargs = kwargs
-        self.current_action = kwargs.get(self.__class__.action_kwarg, '').strip('/')
+        self.current_action = self.get_current_action()
         if self.current_action == '':
             self.current_action = 'list'
         handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)

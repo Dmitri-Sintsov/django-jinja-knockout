@@ -435,7 +435,7 @@ App.GridActions = function(options) {
     GridActions.init = function(options) {
         this.grid = options.grid;
         this.action_kwarg = 'action';
-        this.viewName = 'grid_page';
+        this.viewModelName = 'grid_page';
         this.currentAction = '';
     };
 
@@ -471,7 +471,7 @@ App.GridActions = function(options) {
         var self = this;
         this.currentAction = currentAction;
         var responseOptions = {'after': {}};
-        responseOptions['after'][this.viewName] = function(viewModel) {
+        responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
             var method = 'callback_' + self.currentAction;
             if (typeof self[method] === 'function') {
@@ -492,6 +492,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_edit_form = function(viewModel) {
+        viewModel.gridActions = this;
         var dialog = new App.ModelDialog(viewModel);
         dialog.show();
     };
@@ -1215,8 +1216,15 @@ App.ModelDialog = function(options) {
                     var $form = bdialog.getModalBody().find('form');
                     var $button = bdialog.getModalFooter().find('button.submit');
                     App.ajaxForm.prototype.submit($form, $button, {
-                        'success': function() {
-                            // bdialog.close();
+                        success: function(response) {
+                            // If response has no our grid viewmodel (self.gridActions.viewModelName), then
+                            // it's a form viewmodel errors response.
+                            var hasGridAction = App.filterViewModels(response, {
+                                view: self.gridActions.viewModelName
+                            });
+                            if (hasGridAction.length > 0) {
+                                bdialog.close();
+                            }
                         }
                     });
                 }
@@ -1229,6 +1237,8 @@ App.ModelDialog = function(options) {
             options = {};
         }
         delete options.view;
+        this.gridActions = options.gridActions;
+        delete options.gridActions;
         var fullOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
                 buttons: this.getButtons(),
