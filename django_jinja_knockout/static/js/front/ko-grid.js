@@ -436,7 +436,6 @@ App.GridActions = function(options) {
         this.grid = options.grid;
         this.action_kwarg = 'action';
         this.viewModelName = 'grid_page';
-        this.currentAction = '';
     };
 
     GridActions.setActionKwarg = function(action_kwarg) {
@@ -458,8 +457,8 @@ App.GridActions = function(options) {
         return sprintf(this.grid.routeUrl, params);
     };
 
-    GridActions.getQueryArgs = function(options) {
-        var method = 'queryargs_' + this.currentAction;
+    GridActions.getQueryArgs = function(action, options) {
+        var method = 'queryargs_' + action;
         if (typeof this[method] === 'function') {
             return this[method](options);
         } else {
@@ -467,34 +466,46 @@ App.GridActions = function(options) {
         }
     };
 
-    GridActions.perform = function(currentAction, actionOptions) {
+    GridActions.ajax = function(action, queryArgs) {
         var self = this;
-        this.currentAction = currentAction;
-        var responseOptions = {'after': {}};
-        responseOptions['after'][this.viewModelName] = function(viewModel) {
-            // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
-            var method = 'callback_' + self.currentAction;
-            if (typeof self[method] === 'function') {
-                return self[method](viewModel);
-            }
-            throw sprintf('Unimplemented %s()', method);
-        };
-        var queryArgs = this.getQueryArgs(actionOptions);
-        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        $.post(this.getUrl(this.currentAction),
+        $.post(this.getUrl(action),
             queryArgs,
             function(response) {
-                App.viewResponse(response, responseOptions);
+                self.respond(action, response);
             },
             'json'
         )
         .fail(App.showAjaxError);
     };
 
+    GridActions.respond = function(action, response) {
+        var self = this;
+        var responseOptions = {'after': {}};
+        responseOptions['after'][this.viewModelName] = function(viewModel) {
+            // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
+            var method = 'callback_' + action;
+            if (typeof self[method] === 'function') {
+                return self[method](viewModel);
+            }
+            throw sprintf('Unimplemented %s()', method);
+        };
+        App.viewResponse(response, responseOptions);
+    };
+
+    GridActions.perform = function(action, actionOptions) {
+        var queryArgs = this.getQueryArgs(action, actionOptions);
+        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        this.ajax(action, queryArgs);
+    };
+
     GridActions.callback_edit_form = function(viewModel) {
         viewModel.gridActions = this;
         var dialog = new App.ModelDialog(viewModel);
         dialog.show();
+    };
+
+    GridActions.callback_model_saved = function(viewModel) {
+        this.perform('list');
     };
 
     GridActions.queryargs_list = function(options) {
@@ -1217,14 +1228,19 @@ App.ModelDialog = function(options) {
                     var $button = bdialog.getModalFooter().find('button.submit');
                     App.ajaxForm.prototype.submit($form, $button, {
                         success: function(response) {
-                            // If response has no our grid viewmodel (self.gridActions.viewModelName), then
-                            // it's a form viewmodel errors response.
                             var hasGridAction = App.filterViewModels(response, {
                                 view: self.gridActions.viewModelName
                             });
-                            if (hasGridAction.length > 0) {
-                                bdialog.close();
+                            if (hasGridAction.length === 0) {
+                                // If response has no our grid viewmodel (self.gridActions.viewModelName), then
+                                // it's a form viewmodel errors response which is processed then by
+                                // App.ajaxForm.prototype.submit().
+                                return true;
                             }
+                            bdialog.close();
+                            self.gridActions.respond('model_saved', response);
+                            // Do not process viewmodel response, because we already processed it here.
+                            return false;
                         }
                     });
                 }

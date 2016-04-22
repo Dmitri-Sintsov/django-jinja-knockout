@@ -653,7 +653,7 @@ App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
     var _callbacks = $.extend({
             always: function () {},
             error: function (jqXHR, exception) {},
-            success: function (response) {},
+            success: function (response) { return true; },
         },
         callbacks
     );
@@ -687,8 +687,9 @@ App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
             always();
             // Add $form property for custom viewHandler.
             response.$form = $form;
-            App.viewResponse(response);
-            _callbacks.success(response);
+            if (_callbacks.success(response)) {
+                App.viewResponse(response);
+            }
         },
         complete: function() {
             l.remove();
