@@ -21,6 +21,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
+from .models import model_values
 from .viewmodels import vm_list
 from .utils.sdv import yield_ordered, get_object_members
 
@@ -698,12 +699,14 @@ class GridActionsMixin():
     def action_save_form(self):
         object = self.__class__.model.objects.filter(pk=self.request.GET.get('pk_val')).first()
         form = self.__class__.form(self.request.POST, instance=object)
+        row = self.postprocess_row(
+            model_values(form.instance, self.query_fields)
+        )
         if form.is_valid():
             object = form.save()
             return vm_list({
                 'view': self.__class__.viewmodel_name,
-                'title': 'Saved',
-                'message': 'Saved, probably successfully.'
+                'row': row
             })
         else:
             ff_vms = vm_list()
