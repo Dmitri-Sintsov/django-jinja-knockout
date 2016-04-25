@@ -32,20 +32,28 @@ def get_verbose_name(obj, fieldname=None):
     return get_meta(obj, 'verbose_name', fieldname)
 
 
-# Return dict of model fields key / val like queryset values() but for one model supplied.
-def model_values(obj, fields = None):
-    row = {}
+# obj can be model class or an instance of model class.
+# To iterate only some selected fields, specify fields list.
+def yield_model_fieldnames(obj, fields=None):
     if fields is None:
-        fields = (field for field in obj)
-    for field in fields:
+        for field in obj._meta.fields:
+            yield field.attname
+    else:
+        for fieldname in fields:
+            yield fieldname
+
+# Return dict of model fields key / val like queryset values() but for one model supplied.
+def model_values(obj, fields=None):
+    row = {}
+    for fieldname in yield_model_fieldnames(obj, fields):
         try:
-            val = getattr(obj, field)
+            val = getattr(obj, fieldname)
             if isinstance(val, models.Model):
-                row[field] = val.pk
+                row[fieldname] = val.pk
             else:
-                row[field] = val
+                row[fieldname] = val
         except AttributeError:
-            row[field] = get_related_field_val(obj, field)
+            row[fieldname] = get_related_field_val(obj, fieldname)
     return row
 
 class ContentTypeLinker(object):

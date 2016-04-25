@@ -21,7 +21,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
-from .models import model_values
+from .models import yield_model_fieldnames, model_values
 from .viewmodels import vm_list
 from .utils.sdv import yield_ordered, get_object_members
 
@@ -314,11 +314,11 @@ class BaseFilterView(View):
     def report_error(self, message, *args, **kwargs):
         raise ValueError(message.format(*args, **kwargs))
 
-    def get_all_fields(self):
-        return [field.attname for field in self.__class__.model._meta.fields]
+    def get_all_fieldnames(self):
+        return list(yield_model_fieldnames(self.__class__.model))
 
     def get_all_allowed_sort_orders(self):
-        return self.get_all_fields()
+        return self.get_all_fieldnames()
 
     @classmethod
     def init_class(cls, self):
@@ -699,11 +699,12 @@ class GridActionsMixin():
     def action_save_form(self):
         object = self.__class__.model.objects.filter(pk=self.request.GET.get('pk_val')).first()
         form = self.__class__.form(self.request.POST, instance=object)
-        row = self.postprocess_row(
-            model_values(form.instance, self.query_fields)
-        )
         if form.is_valid():
             object = form.save()
+            row = self.postprocess_row(
+                model_values(object, self.query_fields),
+                object
+            )
             return vm_list({
                 'view': self.__class__.viewmodel_name,
                 'row': row
@@ -811,13 +812,13 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
 
     def get_related_fields(self, query_fields = None):
         if query_fields is None:
-            query_fields = self.get_all_fields()
+            query_fields = self.get_all_fieldnames()
         return list(set(self.get_grid_field_attnames()) - set(query_fields))
 
-    # A superset of self.get_all_fields() which also returns foreign related fields, if any.
+    # A superset of self.get_all_fieldnames() which also returns foreign related fields, if any.
     # It is used to automatically include related query fields / sort orders.
     def get_all_related_fields(self):
-        query_fields = self.get_all_fields()
+        query_fields = self.get_all_fieldnames()
         related_fields = self.get_related_fields(query_fields)
         query_fields.extend(related_fields)
         return query_fields
@@ -835,7 +836,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitely defined in self.__class__.grid_fields attribute,
         # these will be automatically added to allowed sort orders.
-        return self.get_all_fields() if self.__class__.grid_fields is None else self.get_all_related_fields()
+        return self.get_all_fieldnames() if self.__class__.grid_fields is None else self.get_all_related_fields()
 
     def get_grid_fields(self):
         return []
@@ -852,7 +853,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
         elif cls.grid_fields == '__all__':
-            self.grid_fields = self.get_all_fields()
+            self.grid_fields = self.get_all_fieldnames()
         else:
             self.grid_fields = cls.grid_fields
 
@@ -871,20 +872,13 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
             row[field] = value
         return object
 
-    # One may override this method to include server-side formatted fields to App.ko.GridRow instance.
-    def get_row_str_fields(self, row):
-        if self.has_get_str_fields:
-            object = self.object_from_row(row)
-            return object.get_str_fields()
-        else:
-            return OrderedDict({})
-
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
-    def postprocess_row(self, row):
-        str_fields = self.get_row_str_fields(row)
-        if len(str_fields) > 0:
-            row['__str_fields'] = str_fields
+    def postprocess_row(self, row, object=None):
+        if self.has_get_str_fields:
+            if object is None:
+                object = self.object_from_row(row)
+            row['__str_fields'] = object.get_str_fields()
         return row
 
     def get_rows(self):

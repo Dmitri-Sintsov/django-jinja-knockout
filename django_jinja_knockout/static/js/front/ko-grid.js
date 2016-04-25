@@ -30,8 +30,11 @@ ko.bindingHandlers.grid_order_by = {
 };
 
 ko.bindingHandlers.grid_row_value = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.renderRowValue(element, valueAccessor());
+    update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        viewModel.renderRowValue(element, ko.utils.unwrapObservable(
+                valueAccessor()
+            )
+        );
     }
 };
 
@@ -352,7 +355,7 @@ App.ko.GridRow = function(options) {
         } else {
             displayValue = value;
         }
-        return this.htmlEncode(displayValue);
+        return ko.observable(this.htmlEncode(displayValue));
     };
 
     GridRow.initDisplayValues = function() {
@@ -397,6 +400,18 @@ App.ko.GridRow = function(options) {
     GridRow.setRowElement = function($element) {
         var self = this;
         this.$row = $element;
+    };
+
+    /**
+     * Update this instance from savedRow instance.
+     */
+    GridRow.update = function(savedRow) {
+        var self = this;
+        this.values = savedRow.values;
+        _.each(savedRow.displayValues, function(value, field) {
+            self.displayValues[field](ko.utils.unwrapObservable(value));
+            // self.displayValues[field].valueHasMutated();
+        });
     };
 
 })(App.ko.GridRow.prototype);
@@ -505,7 +520,8 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_model_saved = function(viewModel) {
-        this.perform('list');
+        // this.perform('list');
+        this.grid.updateKoRow(viewModel.row);
     };
 
     GridActions.queryargs_list = function(options) {
@@ -795,6 +811,20 @@ App.ko.Grid = function(options) {
             }
         }
         this.selectedRowsPks = [];
+    };
+
+    /**
+     * Updates existing grid row with raw viewmodel row supplied.
+     */
+    Grid.updateKoRow = function(savedRow) {
+        var pkVal = savedRow[this.meta.pkField];
+        var savedGridRow = this.iocRow({
+            ownerGrid: this,
+            isSelectedRow: this.hasSelectedRow(pkVal),
+            values: savedRow
+        });
+        var rowToUpdate = this.findKoRowByPkVal(pkVal);
+        rowToUpdate.update(savedGridRow);
     };
 
     /**

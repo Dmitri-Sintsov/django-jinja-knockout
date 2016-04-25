@@ -1,5 +1,6 @@
 import lxml.html
 from lxml import etree
+from ensure import ensure_annotations
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import reverse
@@ -9,10 +10,16 @@ from urllib.parse import urlencode
 def limitstr(value, maxlen=50, suffix='...'):
     return '{0}{1}'.format(value[:maxlen - len(suffix)], suffix) if len(value) > maxlen else value
 
-
-def repeat_insert(s, separator=' ', each=3):
+# Insert separator to s between each specified left to right.
+@ensure_annotations
+def repeat_insert(s:str, separator:str=' ', each:int=3):
     return ' '.join(s[i:i+each] for i in range(0, len(s), each))
 
+# Insert separator to s between each specified right to left.
+@ensure_annotations
+def repeat_insert_rtl(s:str, separator:str=' ', each:int=3):
+    reversed_insert = repeat_insert(s[::-1], separator, each)
+    return reversed_insert[::-1]
 
 # Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
