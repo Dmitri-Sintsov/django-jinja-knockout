@@ -516,15 +516,34 @@ App.GridActions = function(options) {
         this.ajax(action, queryArgs);
     };
 
-    GridActions.callback_edit_form = function(viewModel) {
+    GridActions.callback_create_form = function(viewModel) {
         viewModel.gridActions = this;
         var dialog = new App.ModelDialog(viewModel);
         dialog.show();
     };
 
+    /**
+     * The same client-side AJAX form is used both to add new objects and to update existing ones.
+     */
+    GridActions.callback_edit_form = function(viewModel) {
+        this.callback_create_form(viewModel);
+    };
+
+    /**
+     * The same server-side AJAX response is used both to add new objects and to update existing ones.
+     */
     GridActions.callback_model_saved = function(viewModel) {
         // this.perform('list');
-        this.grid.updateKoRow(viewModel.row);
+        switch (viewModel.action) {
+        case 'add_row':
+            this.grid.addKoRow(viewModel.row);
+            break;
+        case 'update_row':
+            this.grid.updateKoRow(viewModel.row);
+            break;
+        default:
+            throw sprintf('Unknown callback_model_saved action: "%s"', viewModel.action);
+        }
     };
 
     GridActions.queryargs_list = function(options) {
@@ -818,6 +837,17 @@ App.ko.Grid = function(options) {
             }
         }
         this.selectedRowsPks = [];
+    };
+
+    /**
+     * Adds new grid row from raw viewmodel row supplied.
+     */
+    Grid.addKoRow = function(newRow) {
+        this.gridRows.push(this.iocRow({
+            ownerGrid: this,
+            isSelectedRow: false,
+            values: newRow
+        }));
     };
 
     /**

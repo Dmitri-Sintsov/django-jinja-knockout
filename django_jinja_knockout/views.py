@@ -661,14 +661,29 @@ class GridActionsMixin():
                 'type': 'button',
                 'class': 'btn-primary',
                 'enabled': any([
-                    self.get_create_form(), self.get_create_form_with_inline_formsets()
+                    self.get_create_form()
+                ])
+            }),
+            ('create_inline', {
+                'localName': _('Add'),
+                'type': 'button',
+                'class': 'btn-primary',
+                'enabled': any([
+                    self.get_create_form_with_inline_formsets()
                 ])
             }),
             ('edit_form', {
                 'localName': _('Change'),
                 'type': 'click',
                 'enabled': any([
-                    self.get_edit_form(), self.get_edit_form_with_inline_formsets()
+                    self.get_edit_form()
+                ])
+            }),
+            ('edit_inline', {
+                'localName': _('Change'),
+                'type': 'click',
+                'enabled': any([
+                    self.get_edit_form_with_inline_formsets()
                 ])
             }),
             ('edit_formset', {
@@ -718,6 +733,24 @@ class GridActionsMixin():
             )
         )
 
+    def action_create_form(self):
+        form = self.get_create_form()()
+        t = tpl_loader.get_template('bs_form.htm')
+        form_html = t.render(request=self.request, context={
+            '_render_form': True,
+            'form': form,
+            'action': self.get_action_url('save_form'),
+            'opts': self.get_bs_form_opts()
+        })
+        return vm_list({
+            'view': self.__class__.viewmodel_name,
+            'title': '{}: {}'.format(
+                self.get_action_name(self.current_action),
+                get_meta(self.__class__.model, 'verbose_name')
+            ),
+            'message': form_html
+        })
+
     # todo: Support form_with_inline_formsets class attributes.
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
@@ -745,7 +778,8 @@ class GridActionsMixin():
         pass
 
     def action_save_form(self):
-        object = self.__class__.model.objects.filter(pk=self.request.GET.get('pk_val')).first()
+        pk_val = self.request.GET.get('pk_val')
+        object = self.__class__.model.objects.filter(pk=pk_val).first()
         form = self.get_edit_form()(self.request.POST, instance=object)
         if form.is_valid():
             object = form.save()
@@ -755,6 +789,7 @@ class GridActionsMixin():
             )
             return vm_list({
                 'view': self.__class__.viewmodel_name,
+                'action': 'add_row' if pk_val is None else 'update_row',
                 'row': row
             })
         else:
