@@ -744,7 +744,7 @@ class GridActionsMixin():
         })
         return vm_list({
             'view': self.__class__.viewmodel_name,
-            'title': '{}: {}'.format(
+            'title': format_html('{}: {}',
                 self.get_action_name(self.current_action),
                 get_meta(self.__class__.model, 'verbose_name')
             ),
@@ -769,13 +769,23 @@ class GridActionsMixin():
             object_description = str(object)
         return vm_list({
             'view': self.__class__.viewmodel_name,
-            'title': '{}: {}'.format(self.get_action_name(self.current_action), object_description),
+            'title': format_html('{}: {}',
+                 self.get_action_name(self.current_action),
+                 object_description
+            ),
             'message': form_html
         })
 
-    # todo: Implement.
-    def action_edit_formset(self):
-        pass
+    def action_delete(self):
+        pks = self.request.POST.getlist('pks[]')
+        objects = self.__class__.model.objects.filter(pk__in=pks)
+        return vm_list({
+            'view': 'confirm',
+            'title': format_html('{}',
+                 self.get_action_name(self.current_action)
+            )
+        })
+
 
     def action_save_form(self):
         pk_val = self.request.GET.get('pk_val')

@@ -165,11 +165,15 @@ textarea.ko-template {
 
 /* Fit textarea width to outer element width. */
 .fit-width {
-    width: 100%;
-    box-sizing: border-box;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 a[name="#"] {
-    cursor: pointer;
+	cursor: pointer;
+}
+
+.grid-glyph-cell {
+	width: 2em;
 }
 

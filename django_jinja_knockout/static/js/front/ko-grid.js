@@ -546,6 +546,10 @@ App.GridActions = function(options) {
         }
     };
 
+    GridActions.queryargs_delete = function(options) {
+        return this.grid.getDeleteQueryArgs();
+    };
+
     GridActions.queryargs_list = function(options) {
         return this.grid.getListQueryArgs();
     };
@@ -1077,6 +1081,10 @@ App.ko.Grid = function(options) {
         this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
         this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
         return this.queryArgs;
+    };
+
+    Grid.getDeleteQueryArgs = function() {
+        return {'pks': this.selectedRowsPks};
     };
 
     Grid.listAction = function() {

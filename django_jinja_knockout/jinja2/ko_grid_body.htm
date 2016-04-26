@@ -40,10 +40,10 @@
                 <thead>
                     <tr>
                         <!-- ko if: options.selectMultipleRows -->
-                        <th style="width: 2em;"></th>
+                        <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: actionTypes['glyphicon'] -->
-                        <th style="width: 2em;"></th>
+                        <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: gridColumns -->
                         <th>
@@ -66,12 +66,12 @@
                 <tbody data-bind="foreach: gridRows">
                     <tr class="pointer">
                         <!-- ko if: $parent.options.selectMultipleRows -->
-                        <td data-bind="click: onRowClick" style="width: 2em;">
+                        <td data-bind="click: onRowClick" class="grid-glyph-cell">
                             <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
                         <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
-                        <td style="width: 2em;" data-bind="click: doIt">
+                        <td class="grid-glyph-cell" data-bind="click: doIt">
                             <span data-bind="css: getKoCss(), attr: {title: $data.localName}" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
