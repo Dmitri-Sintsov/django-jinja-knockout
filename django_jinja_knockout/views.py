@@ -626,22 +626,55 @@ class GridActionsMixin():
     formset = None
     form_with_inline_formsets = None
 
+    # Create one model object.
+    def get_create_form(self):
+        return self.__class__.form
+
+    # Edit one model object.
+    def get_edit_form(self):
+        return self.__class__.form
+
+    # Edit multiple selected model objects.
+    def get_edit_formset(self):
+        return self.__class__.formset
+
+    # Create one model object with related objects.
+    def get_create_form_with_inline_formsets(self):
+        return self.__class__.form_with_inline_formsets
+
+    # Edit one model object with related objects.
+    def get_edit_form_with_inline_formsets(self):
+        return self.__class__.form_with_inline_formsets
+
     def get_actions(self):
         return {
+            'create_form': {
+                'localName': _('Add'),
+                'type': 'button',
+                'class': 'btn-primary',
+                'enabled': any([
+                    self.get_create_form(), self.get_create_form_with_inline_formsets()
+                ])
+            },
             'edit_form': {
                 'localName': _('Change'),
+                'type': 'click',
                 'enabled': any([
-                    self.__class__.form, self.__class__.form_with_inline_formsets
+                    self.get_edit_form(), self.get_edit_form_with_inline_formsets()
                 ])
             },
             'edit_formset': {
                 'localName': _('Change'),
+                'type': 'click',
                 'enabled': any([
-                    self.__class__.formset
+                    self.get_edit_formset()
                 ])
             },
+            # Delete one model object.
             'delete': {
                 'localName': _('Remove'),
+                'type': 'glyphicon',
+                'class': 'glyphicon-remove',
                 'enabled': False
             }
         }
@@ -674,7 +707,7 @@ class GridActionsMixin():
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
         object = self.__class__.model.objects.filter(pk=pk_val).first()
-        form = self.__class__.form(instance=object)
+        form = self.get_edit_form()(instance=object)
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_form': True,
@@ -698,7 +731,7 @@ class GridActionsMixin():
 
     def action_save_form(self):
         object = self.__class__.model.objects.filter(pk=self.request.GET.get('pk_val')).first()
-        form = self.__class__.form(self.request.POST, instance=object)
+        form = self.get_edit_form()(self.request.POST, instance=object)
         if form.is_valid():
             object = form.save()
             row = self.postprocess_row(

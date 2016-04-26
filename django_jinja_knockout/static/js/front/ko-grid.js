@@ -473,6 +473,9 @@ App.GridActions = function(options) {
     };
 
     GridActions.getQueryArgs = function(action, options) {
+        if (typeof options === 'undefined') {
+            options = {};
+        }
         var method = 'queryargs_' + action;
         if (typeof this[method] === 'function') {
             return this[method](options);
@@ -616,20 +619,23 @@ App.ko.Grid = function(options) {
         this.meta = {
             pkField: '',
             actions: {
-                'edit': {
-                    localName: App.trans('Change'),
-                    enabled: false,
-                },
+                // Sample action. Actual actions are configured at server-side and populated via AJAX response.
                 'delete': {
-                    localName: App.trans('Remove'),
-                    enabled: false
+                    'localName': App.trans('Remove'),
+                    'type': 'glyphicon',
+                    'glyph': 'remove',
+                    'enabled': false
                 }
             },
             hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
-
+        this.actionTypes = {
+            'button': ko.observableArray(),
+            'click': ko.observableArray(),
+            'glyphicon': ko.observableArray()
+        };
         this.gridActions = this.iocGridActions({
             'grid': this
         });
@@ -1050,6 +1056,7 @@ App.ko.Grid = function(options) {
         var self=this;
         if (typeof data.meta !== 'undefined') {
             ko.set_props(data.meta, self.meta);
+            this.setKoActions();
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
         if (typeof self.queryArgs.load_meta !== 'undefined') {
@@ -1087,7 +1094,53 @@ App.ko.Grid = function(options) {
         }
     };
 
+    Grid.iocKoAction = function(options) {
+        return new App.ko.Action(options);
+    };
+
+    Grid.setKoActions = function() {
+        var self = this;
+        _.each(this.meta.actions, function(actDef, actionName) {
+            if (actDef.enabled) {
+                var actDef = $.extend({
+                    action: actionName
+                }, actDef);
+                self.actionTypes[actDef.type].push(Grid.iocKoAction({
+                    grid: self,
+                    actDef: actDef
+                }));
+            }
+        });
+    };
+
 })(App.ko.Grid.prototype);
+
+/**
+ * Visual representation of grid action. Should be used to display / trigger button / glyphicon actions.
+ */
+App.ko.Action = function(options) {
+    this.init(options);
+};
+
+(function(Action) {
+
+    Action.init = function(options) {
+        this.grid = options.grid;
+        this.actDef = options.actDef;
+        this.localName = this.actDef.localName;
+    };
+
+    Action.getKoCss = function() {
+        var koCss = {};
+        koCss[this.actDef.class] = true;
+        return koCss;
+    };
+
+    Action.doIt = function() {
+        this.grid.gridActions.perform(this.actDef.action);
+    };
+
+})(App.ko.Action.prototype);
 
 /**
  * BootstrapDialog that incorporates App.ko.Grid descendant instance bound to it's content (this.dialog.message).
