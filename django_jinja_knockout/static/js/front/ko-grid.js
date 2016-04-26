@@ -631,6 +631,7 @@ App.ko.Grid = function(options) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+        // Do not forget to include all possible types of actions into this list.
         this.actionTypes = {
             'button': ko.observableArray(),
             'click': ko.observableArray(),
@@ -1101,7 +1102,7 @@ App.ko.Grid = function(options) {
     Grid.setKoActions = function() {
         var self = this;
         _.each(this.meta.actions, function(actDef, actionName) {
-            if (actDef.enabled) {
+            if (actDef.enabled && typeof actDef.type !== 'undefined') {
                 var actDef = $.extend({
                     action: actionName
                 }, actDef);

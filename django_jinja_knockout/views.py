@@ -23,7 +23,7 @@ from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
 from .models import yield_model_fieldnames, model_values
 from .viewmodels import vm_list
-from .utils.sdv import yield_ordered, get_object_members
+from .utils.sdv import yield_ordered, get_object_members, get_nested
 
 
 def auth_redirect(request):
@@ -647,37 +647,45 @@ class GridActionsMixin():
         return self.__class__.form_with_inline_formsets
 
     def get_actions(self):
-        return {
-            'create_form': {
+        return OrderedDict([
+            # Built-in actions (has no 'type' key).
+            ('list', {
+                'enabled': True
+            }),
+            ('save_form', {
+                'enabled': True
+            }),
+            # Extendable UI actions (has 'type' key).
+            ('create_form', {
                 'localName': _('Add'),
                 'type': 'button',
                 'class': 'btn-primary',
                 'enabled': any([
                     self.get_create_form(), self.get_create_form_with_inline_formsets()
                 ])
-            },
-            'edit_form': {
+            }),
+            ('edit_form', {
                 'localName': _('Change'),
                 'type': 'click',
                 'enabled': any([
                     self.get_edit_form(), self.get_edit_form_with_inline_formsets()
                 ])
-            },
-            'edit_formset': {
+            }),
+            ('edit_formset', {
                 'localName': _('Change'),
                 'type': 'click',
                 'enabled': any([
                     self.get_edit_formset()
                 ])
-            },
+            }),
             # Delete one model object.
-            'delete': {
+            ('delete', {
                 'localName': _('Remove'),
                 'type': 'glyphicon',
                 'class': 'glyphicon-remove',
                 'enabled': False
-            }
-        }
+            }),
+        ])
 
     def get_current_action(self):
         return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
@@ -694,14 +702,21 @@ class GridActionsMixin():
     def get_action_name(self, action):
         return self.actions[action]['localName']
 
-    def action_not_implemented(self):
-        return vm_list({
-            'view': 'alert_error',
-            'title': 'Invalid action',
-            'message': format_html(
-                'Action "{}" is not implemented', self.current_action
+    def action_is_denied(self):
+        self.error(
+            title=_('Action is denied'),
+            message=format_html(
+                _('Action "{}" is denied'), self.current_action
             )
-        })
+        )
+
+    def action_not_implemented(self):
+        self.error(
+            title=_('Unknown action'),
+            message=format_html(
+                _('Action "{}" is not implemented'), self.current_action
+            )
+        )
 
     # todo: Support form_with_inline_formsets class attributes.
     def action_edit_form(self):
@@ -953,7 +968,10 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         self.current_action = self.get_current_action()
         if self.current_action == '':
             self.current_action = 'list'
-        handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)
+        if get_nested(self.actions, [self.current_action, 'enabled']) is True:
+            handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)
+        else:
+            handler = self.action_is_denied
         return handler()
 
     def get_base_queryset(self):
