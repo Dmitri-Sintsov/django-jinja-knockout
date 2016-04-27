@@ -469,7 +469,7 @@ App.GridActions = function(options) {
         }
         var params = {};
         params[this.action_kwarg] = action;
-        return sprintf(this.grid.routeUrl, params);
+        return App.routeUrl(this.grid.options.pageRoute, params);
     };
 
     GridActions.getQueryArgs = function(action, options) {
@@ -604,7 +604,6 @@ App.ko.Grid = function(options) {
         this.queryFilters = {};
         if (this.options.defaultOrderBy !== null)
         this.setQueryOrderBy(this.options.defaultOrderBy);
-        this.routeUrl = App.routeUrl(this.options.pageRoute);
     };
 
     Grid.run = function(selector) {
@@ -634,9 +633,6 @@ App.ko.Grid = function(options) {
             searchPlaceholder: null,
             selectMultipleRows: false,
             pageRoute: null,
-            // Assume current route by default
-            // (non-AJAX GET is handled by KoGridView ancestor, AJAX POST is handled by App.ko.Grid).
-            routeUrl: '',
         }, options);
         this.ownerCtrl = this.options.ownerCtrl;
         this.meta = {
@@ -1175,7 +1171,12 @@ App.ko.Action = function(options) {
         return koCss;
     };
 
-    Action.doIt = function() {
+    Action.doIt = function(gridRow) {
+        // Check whether that is 'glyphicon' action, which has gridRow instance passed to doIt().
+        if (gridRow !== null) {
+            // Clicking current row implies that it is also has to be used for current action.
+            gridRow.isSelectedRow(true);
+        }
         this.grid.gridActions.perform(this.actDef.action);
     };
 

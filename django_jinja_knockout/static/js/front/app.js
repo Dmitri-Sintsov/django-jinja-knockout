@@ -244,6 +244,9 @@ App.viewHandlers = {
         }
         window.location.href = href;
     },
+    'post': function(viewModel) {
+        App.post(viewModel.route, viewModel.data, viewModel.options);
+    },
     'alert' : function(viewModel) {
         new App.Dialog(viewModel).alert();
     },
@@ -784,16 +787,22 @@ App.initClientApply = function(selector) {
     $selector.find('.init-client-end').remove();
 };
 
-App.routeUrl = function(route) {
+App.routeUrl = function(route, kwargs) {
     if (typeof App.conf.url[route] === 'undefined') {
         throw sprintf("Undefined route: '%s'", route);
     }
-    return App.conf.url[route];
+    if (typeof kwargs === 'undefined') {
+        return App.conf.url[route];
+    } else {
+        return sprintf(App.conf.url[route], kwargs);
+    }
 };
 
 App.get = function(route, data, options) {
+    var url = App.routeUrl(route, options.kwargs);
+    delete options.kwargs;
     return $.get(
-        App.routeUrl(route),
+        url,
         (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);
@@ -806,9 +815,11 @@ App.post = function(route, data, options) {
     if (typeof data === 'undefined') {
         data = {};
     }
+    var url = App.routeUrl(route, options.kwargs);
+    delete options.kwargs;
     data.csrfmiddlewaretoken = App.conf.csrfToken;
     return $.post(
-        App.routeUrl(route),
+        url,
         (typeof data === 'undefined') ? {} : data,
         function(response) {
             App.viewResponse(response, options);

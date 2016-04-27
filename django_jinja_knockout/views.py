@@ -21,7 +21,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
-from .models import yield_model_fieldnames, model_values
+from .models import yield_model_fieldnames, model_values, get_object_description
 from .viewmodels import vm_list
 from .utils.sdv import yield_ordered, get_object_members, get_nested
 
@@ -655,6 +655,9 @@ class GridActionsMixin():
             ('save_form', {
                 'enabled': True
             }),
+            ('delete_confirm', {
+                'enabled': False
+            }),
             # Extendable UI actions (has 'type' key).
             ('create_form', {
                 'localName': _('Add'),
@@ -763,15 +766,11 @@ class GridActionsMixin():
             'action': self.get_action_url('save_form', query={'pk_val': pk_val}),
             'opts': self.get_bs_form_opts()
         })
-        if hasattr(object, 'get_str_fields'):
-            object_description = qtpl.print_bs_badges(object.get_str_fields().values())
-        else:
-            object_description = str(object)
         return vm_list({
             'view': self.__class__.viewmodel_name,
             'title': format_html('{}: {}',
                  self.get_action_name(self.current_action),
-                 object_description
+                 qtpl.print_bs_badges(get_object_description(object))
             ),
             'message': form_html
         })
@@ -779,13 +778,30 @@ class GridActionsMixin():
     def action_delete(self):
         pks = self.request.POST.getlist('pks[]')
         objects = self.__class__.model.objects.filter(pk__in=pks)
+        descriptions = [qtpl.print_bs_labels(get_object_description(object)) for object in objects]
         return vm_list({
             'view': 'confirm',
             'title': format_html('{}',
                  self.get_action_name(self.current_action)
-            )
+            ),
+            'message': qtpl.print_list_group(descriptions, cb=None),
+            'callback': {
+                'view': 'post',
+                'route': self.request.url_name,
+                'data': {
+                    'pks': pks
+                },
+                'options': {
+                    'kwargs': {
+                        self.__class__.action_kwarg: '/delete_confirm'
+                    }
+                }
+            }
         })
 
+    def action_delete_confirm(self):
+        pks = self.request.POST.getlist('pks[]')
+        objects = self.__class__.model.objects.filter(pk__in=pks)
 
     def action_save_form(self):
         pk_val = self.request.GET.get('pk_val')

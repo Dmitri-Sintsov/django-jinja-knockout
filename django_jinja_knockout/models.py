@@ -42,6 +42,7 @@ def yield_model_fieldnames(obj, fields=None):
         for fieldname in fields:
             yield fieldname
 
+
 # Return dict of model fields key / val like queryset values() but for one model supplied.
 def model_values(obj, fields=None):
     row = {}
@@ -55,6 +56,14 @@ def model_values(obj, fields=None):
         except AttributeError:
             row[fieldname] = get_related_field_val(obj, fieldname)
     return row
+
+
+def get_object_description(object):
+    if hasattr(object, 'get_str_fields'):
+        return list(object.get_str_fields().values())
+    else:
+        return [str(object)]
+
 
 class ContentTypeLinker(object):
 

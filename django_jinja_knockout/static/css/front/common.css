@@ -7,6 +7,10 @@
 		url('/static/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 
+.label {
+	margin: 0 0.1em;
+}
+
 .hidden {
 	display: none;
 }

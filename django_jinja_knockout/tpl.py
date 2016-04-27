@@ -38,15 +38,41 @@ def print_table(rows, top_tpl='<table>{0}</table>\n', row_tpl='<tr>{0}</tr>\n', 
     return top_tpl.format(rows_str)
 
 
-def print_bs_labels(row, bs_type='info'):
+def print_bs_labels(row, bs_type='info', cb=escape):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
-    return mark_safe(print_list(row, elem_tpl='<span class="label label-' + bs_type + ' preformatted">{0}</span><span class="conditional-display"></span>', top_tpl='{0}'))
+    return mark_safe(
+        print_list(
+            row,
+            elem_tpl='<span class="label label-' + bs_type + ' preformatted">{0}</span><span class="conditional-display"></span>',
+            top_tpl='{0}',
+            cb=cb
+        )
+    )
 
-def print_bs_badges(row):
+
+def print_bs_badges(row, cb=escape):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
-    return mark_safe(print_list(row, elem_tpl='<span class="badge preformatted">{0}</span><span class="conditional-display"></span>', top_tpl='{0}'))
+    return mark_safe(
+        print_list(
+            row,
+            elem_tpl='<span class="badge preformatted">{0}</span><span class="conditional-display"></span>',
+            top_tpl='{0}',
+            cb=cb
+        )
+    )
+
+
+def print_list_group(row, cb=escape):
+    return mark_safe(
+        print_list(
+            row,
+            elem_tpl='<li class="list-group-item">{0}</li>\n',
+            top_tpl='<ul class="list-group">{0}</ul>\n',
+            cb=cb
+        )
+    )
 
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
