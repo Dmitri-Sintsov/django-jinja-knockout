@@ -1,7 +1,7 @@
 "use strict";
 
 ko.bindingHandlers.grid_row = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         var realElement = ko.from_virtual(element);
         if (realElement !== null) {
             viewModel.setRowElement($(realElement));
@@ -12,19 +12,19 @@ ko.bindingHandlers.grid_row = {
 ko.virtualElements.allowedBindings.grid_row = true;
 
 ko.bindingHandlers.grid_filter = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.setDropdownElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_filter_choice = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.setLinkElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_order_by = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.setSwitchElement($(element));
     }
 };
@@ -133,7 +133,6 @@ App.ko.GridFilterChoice = function(options) {
     };
 
     GridFilterChoice.setLinkElement = function($element) {
-        var self = this;
         this.$link = $element;
     };
 
@@ -172,7 +171,6 @@ App.ko.AbstractGridFilter = function(options) {
     };
 
     AbstractGridFilter.setDropdownElement = function($element) {
-        var self = this;
         this.$dropdown = $element;
         /*
         // Example of custom events.
@@ -398,7 +396,6 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.setRowElement = function($element) {
-        var self = this;
         this.$row = $element;
     };
 
@@ -520,6 +517,23 @@ App.GridActions = function(options) {
         viewModel.gridActions = this;
         var dialog = new App.ModelDialog(viewModel);
         dialog.show();
+    };
+
+    GridActions.callback_delete = function(viewModel) {
+        var self = this;
+        var pks = viewModel.pks;
+        delete viewModel.pks;
+        viewModel.callback = function(result) {
+            if (result) {
+                self.perform('delete_confirmed', {'pks': pks});
+            }
+        };
+        var dialog = new App.Dialog(viewModel);
+        dialog.confirm();
+    };
+
+    GridActions.callback_delete_confirmed = function(viewModel) {
+        this.grid.deleteAction({'pks': viewModel.deleted_pks});
     };
 
     /**
@@ -824,6 +838,7 @@ App.ko.Grid = function(options) {
         }
         // Next line is not required, because the action will be done by koRow.isSelectedRow.subscribe() function.
         // this.filterOutRow(koRow.getValue(this.meta.pkField));
+        return koRow;
     };
 
     Grid.unselectAllRows = function() {
@@ -1126,6 +1141,17 @@ App.ko.Grid = function(options) {
         self.setKoPagination(data.totalPages, self.queryArgs.page);
         if (typeof data.filters !== 'undefined') {
             self.setKoFilters(data.filters);
+        }
+    };
+
+    Grid.deleteAction = function(options) {
+        for (var i = 0; i < options.pks.length; i++) {
+            var pkVal = App.intVal(options.pks[i]);
+            this.filterOutRow(pkVal);
+            var koRow = this.unselectRow(pkVal);
+            if (koRow !== null) {
+                this.gridRows.remove(koRow);
+            }
         }
     };
 

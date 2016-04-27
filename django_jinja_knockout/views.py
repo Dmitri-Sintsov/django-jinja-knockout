@@ -655,7 +655,7 @@ class GridActionsMixin():
             ('save_form', {
                 'enabled': True
             }),
-            ('delete_confirm', {
+            ('delete_confirmed', {
                 'enabled': False
             }),
             # Extendable UI actions (has 'type' key).
@@ -780,28 +780,21 @@ class GridActionsMixin():
         objects = self.__class__.model.objects.filter(pk__in=pks)
         descriptions = [qtpl.print_bs_labels(get_object_description(object)) for object in objects]
         return vm_list({
-            'view': 'confirm',
+            'view': self.__class__.viewmodel_name,
             'title': format_html('{}',
                  self.get_action_name(self.current_action)
             ),
             'message': qtpl.print_list_group(descriptions, cb=None),
-            'callback': {
-                'view': 'post',
-                'route': self.request.url_name,
-                'data': {
-                    'pks': pks
-                },
-                'options': {
-                    'kwargs': {
-                        self.__class__.action_kwarg: '/delete_confirm'
-                    }
-                }
-            }
+            'pks': pks
         })
 
-    def action_delete_confirm(self):
+    def action_delete_confirmed(self):
         pks = self.request.POST.getlist('pks[]')
-        objects = self.__class__.model.objects.filter(pk__in=pks)
+        self.__class__.model.objects.filter(pk__in=pks).delete()
+        return vm_list({
+            'view': self.__class__.viewmodel_name,
+            'deleted_pks': pks
+        })
 
     def action_save_form(self):
         pk_val = self.request.GET.get('pk_val')

@@ -30,6 +30,11 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
+App.intVal = function(s) {
+    var i = parseInt(s);
+    return isNaN(i) ? s : i;
+};
+
 /**
  * BootstrapDialog wrapper.
  */
