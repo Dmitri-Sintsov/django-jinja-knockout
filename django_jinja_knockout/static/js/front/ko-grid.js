@@ -78,26 +78,23 @@ App.ko.GridColumnOrder = function(options) {
         this.ownerGrid.listAction();
     };
 
-    // todo: This better should belong to App.ko.GridRow or even to separate class.
+    GridColumnOrder.blockTags = [
+        {
+            enclosureTag: '<ul>',
+            enclosureClasses: 'list-group',
+            itemTag: '<li>',
+            itemClasses: 'condensed list-group-item preformatted'
+        },
+        {
+            enclosureTag: '<ul>',
+            enclosureClasses: 'list-group',
+            itemTag: '<li>',
+            itemClasses: 'condensed list-group-item list-group-item-warning preformatted'
+        },
+    ];
+
     GridColumnOrder.renderRowValue = function(element, value) {
-        var self = this;
-        var $element = $(element);
-        if (typeof value === 'object') {
-            if (_.size(value) > 0) {
-                var $ul = $('<ul>').addClass('list-group');
-                $.each(value, function(k, v) {
-                    if (typeof v === 'object') {
-                        self.renderRowValue($ul, v);
-                    } else {
-                        var $li = $('<li>').addClass('list-group-item preformatted').html(v);
-                        $ul.append($li);
-                    }
-                });
-                $element.append($ul);
-            }
-        } else {
-            $element.html(value);
-        }
+        App.renderNestedList(element, value, this.blockTags);
     };
 
 })(App.ko.GridColumnOrder.prototype);

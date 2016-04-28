@@ -27,6 +27,10 @@
 	font-weight: 800;
 }
 
+.condensed {
+	padding: 0.2em;
+}
+
 .href-target:target {
 	border: 2px solid Aquamarine;
 	background-color: Aquamarine;

@@ -36,6 +36,47 @@ App.intVal = function(s) {
 };
 
 /**
+ * Render scalar element as plain html or as nested list of specified block tags.
+ */
+App.renderNestedList = function(element, value, blockTags, level) {
+    var $element = $(element);
+    if (typeof value !== 'object') {
+        $element.html(value);
+        return;
+    }
+    if (typeof blockTags === 'undefined') {
+        blockTags = [
+            {
+                enclosureTag: '<ul>',
+                enclosureClasses: 'list-group',
+                itemTag: '<li>',
+                itemClasses: 'list-group-item preformatted'
+            }
+        ];
+    }
+    if (typeof level === 'undefined') {
+        level = 0;
+    }
+    if (_.size(value) > 0) {
+        var $ul = $(blockTags[level].enclosureTag)
+            .addClass(blockTags[level].enclosureClasses);
+        $.each(value, function(k, v) {
+            if (typeof v === 'object') {
+                var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
+                App.renderNestedList($ul, v, blockTags, nextLevel);
+            } else {
+                var $li = $(blockTags[level].itemTag)
+                    .addClass(blockTags[level].itemClasses)
+                    .html(v);
+                $ul.append($li);
+            }
+        });
+        $element.append($ul);
+    }
+};
+
+
+/**
  * BootstrapDialog wrapper.
  */
 App.Dialog = function(options) {
