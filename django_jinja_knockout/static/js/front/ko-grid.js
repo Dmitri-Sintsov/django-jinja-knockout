@@ -617,8 +617,8 @@ App.ko.Grid = function(options) {
         this.setQueryOrderBy(this.options.defaultOrderBy);
     };
 
-    Grid.run = function(selector) {
-        this.applyBindings(selector);
+    Grid.run = function(element) {
+        this.applyBindings(element);
         this.searchSubstring();
     };
 
@@ -1414,3 +1414,19 @@ App.ModelDialog = function(options) {
     };
 
 })(App.ModelDialog.prototype);
+
+App.FkGridWidget = function(options) {
+    this.init(options);
+};
+
+(function(FkGridWidget) {
+
+    FkGridWidget.init = function(options) {
+        this.options = options;
+    };
+
+    FkGridWidget.run = function(element) {
+        console.log(element.tagName);
+    };
+
+})(App.FkGridWidget.prototype);

@@ -996,15 +996,23 @@ App.initClientHooks.push(function($selector) {
             console.log('Skipping .component with unset data-component-options');
             return;
         }
-        if (typeof options.class === 'undefined') {
-            throw 'Undefined data-component-options class.';
+        if (typeof options.classPath === 'undefined') {
+            throw 'Undefined data-component-options classPath.';
         }
-        var componentClass = options.class;
-        delete options.class;
-        if (typeof App.ko[componentClass] !== 'function') {
-            throw sprintf('Skipping unknown component: App.ko.%s', componentClass);
+        var classPath = options.classPath.split(/\./g);
+        var cls = window;
+        for (var i = 0; i < classPath.length - 1; i++) {
+            if (typeof cls[classPath[i]] !== 'object') {
+                throw sprintf('Skipping unknown component: %s', options.classPath);
+            }
+            cls = cls[classPath[i]];
         }
-        var component = new App.ko[componentClass](options);
+        if (typeof cls[classPath[i]] !== 'function') {
+            throw sprintf('Skipping unknown component: %s', options.classPath);
+        }
+        cls = cls[classPath[i]];
+        delete options.classPath;
+        var component = new cls(options);
         component.run(v);
     });
 });

@@ -1,7 +1,7 @@
 {% macro ko_grid(grid_options, template_options={}) -%}
 {% set _template_options = {'show_title': True, 'show_action_buttons': True, 'vscroll': False} %}
 {% do _template_options.update(template_options) %}
-{% set _grid_options = {'class': 'Grid'} %}
+{% set _grid_options = {'classPath': 'App.ko.Grid'} %}
 {% do _grid_options.update(grid_options) %}
 <div class="panel panel-primary component" data-component-options='{{ _grid_options|escapejs(True) }}'>
     <div class="panel-body">
