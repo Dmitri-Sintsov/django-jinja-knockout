@@ -1197,11 +1197,11 @@ App.ko.Action = function(options) {
         return koCss;
     };
 
-    Action.doIt = function(gridRow) {
-        // Check whether that is 'glyphicon' action, which has gridRow instance passed to doIt().
-        if (gridRow !== null) {
+    Action.doAction = function(options) {
+        // Check whether that is 'glyphicon' action, which has gridRow instance passed to doAction().
+        if (typeof options.gridRow !== 'undefined') {
             // Clicking current row implies that it is also has to be used for current action.
-            gridRow.isSelectedRow(true);
+            options.gridRow.isSelectedRow(true);
         }
         this.grid.gridActions.perform(this.actDef.action);
     };

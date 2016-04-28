@@ -28,7 +28,7 @@
                     <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
                     <% if (typeof(show_action_buttons) !== "undefined" && show_action_buttons) { %>
                     <!-- ko foreach: actionTypes['button'] -->
-                        <button class="btn" data-bind="css: getKoCss(), click: function() { doIt(null); }, text: $data.localName"></button>
+                        <button class="btn" data-bind="css: getKoCss(), click: function() { doAction({}); }, text: $data.localName"></button>
                     <!-- /ko -->
                     <% } %>
                 </form>
@@ -71,7 +71,7 @@
                         </td>
                         <!-- /ko -->
                         <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
-                        <td class="grid-glyph-cell" data-bind="click: function() { doIt($parent); }">
+                        <td class="grid-glyph-cell" data-bind="click: function() { doAction({gridRow: $parent}); }">
                             <span data-bind="css: getKoCss(), attr: {title: $data.localName}" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
