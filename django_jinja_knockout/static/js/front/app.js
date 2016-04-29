@@ -845,7 +845,12 @@ App.routeUrl = function(route, kwargs) {
 };
 
 App.get = function(route, data, options) {
-    var url = App.routeUrl(route, options.kwargs);
+    if (typeof options === 'undefined') {
+        options = {};
+    }
+    var url = (typeof options.kwargs === 'undefined') ?
+        App.routeUrl(route) :
+        App.routeUrl(route, options.kwargs);
     delete options.kwargs;
     return $.get(
         url,
@@ -861,7 +866,12 @@ App.post = function(route, data, options) {
     if (typeof data === 'undefined') {
         data = {};
     }
-    var url = App.routeUrl(route, options.kwargs);
+    if (typeof options === 'undefined') {
+        options = {};
+    }
+    var url = (typeof options.kwargs === 'undefined') ?
+        App.routeUrl(route) :
+        App.routeUrl(route, options.kwargs);
     delete options.kwargs;
     data.csrfmiddlewaretoken = App.conf.csrfToken;
     return $.post(
@@ -879,6 +889,8 @@ App.post = function(route, data, options) {
  *   MyClass.prototype.propCall = App.propCall;
  *   ...
  *   this.propCall('prop1.prop2.fn', arg1, .. argn);
+ *
+ *   or use _.bind() or .bindTo() to change this.
  */
 App.propCall = function() {
     var args = Array.prototype.slice.call(arguments);
