@@ -1457,4 +1457,9 @@ App.FkGridWidget = function(options) {
         });
     };
 
+    FkGridWidget.onGridDialogSelectRow = function(options) {
+        // options.childGrid.findKoRowByPkVal(options.pkVal).displayValues
+        this.$element.find('.fk-value').val(options.pkVal);
+    };
+
 })(App.FkGridWidget.prototype);
