@@ -1,3 +1,4 @@
+from copy import copy
 import types
 from django.utils.translation import gettext as _
 from django.utils.encoding import force_text
@@ -51,21 +52,34 @@ class DisplayText(Widget):
     def add_scalar_attrs(self, final_attrs):
         add_css_classes_to_dict(final_attrs, 'preformatted')
 
-    def render_list(self, final_attrs, values):
+    def render_list(self, final_attrs, values, display_values):
         return print_list(
             # @note: when changing to elem_tpl, one has to set flatatt() name index.
             top_tpl='<ul{0}>{1}</ul>\n'.format(flatatt(final_attrs), '{0}'),
             elem_tpl='<li class="list-group-item preformatted">{0}</li>\n',
-            row=values,
+            row=display_values,
             cb=lambda value: self.get_text(value)
         )
 
-    def render_scalar(self, final_attrs, value):
+    def render_scalar(self, final_attrs, value, display_value):
         return format_html(
             '<div{}>{}</div>',
             flatatt(final_attrs),
-            self.get_text(value)
+            self.get_text(display_value)
         )
+
+    def get_display_values(self, values):
+        display_values = copy(values)
+        for value_key, display_value in enumerate(display_values):
+            if hasattr(self, 'choices'):
+                for choice_val, choice_display in self.choices:
+                    if choice_val == display_value:
+                        display_value = choice_display
+                        break
+            if display_value in self.scalar_display:
+                display_value = self.scalar_display[display_value]
+            display_values[value_key] = display_value
+        return display_values
 
     def render(self, name, values, attrs=None):
         """
@@ -77,33 +91,18 @@ class DisplayText(Widget):
         """
         # Save self.name so it may be used in get_text_cb callback.
         self.name = name
-        is_list = type(values) is list
-        if not is_list:
-            values = [values]
-        if hasattr(self, 'choices'):
-            for value_key, value in enumerate(values):
-                for choice_val, choice_display in self.choices:
-                    if choice_val == value:
-                        value = choice_display
-                        break
-                if value in self.scalar_display:
-                    value = self.scalar_display[value]
-                values[value_key] = value
-        else:
-            for value_key, value in enumerate(values):
-                if value in self.scalar_display:
-                    value = self.scalar_display[value]
-                values[value_key] = value
+        is_list = isinstance(values, list)
+        display_values = self.get_display_values(values) if is_list else self.get_display_values([values])
         final_attrs = self.build_attrs(attrs, name=name)
         remove_css_classes_from_dict(final_attrs, 'form-control')
         if callable(self.get_text_cb):
             self.get_text = types.MethodType(self.get_text_cb, self)
         if is_list:
             self.add_list_attrs(final_attrs)
-            return self.render_list(final_attrs, values)
+            return self.render_list(final_attrs, values, display_values)
         else:
             self.add_scalar_attrs(final_attrs)
-            return self.render_scalar(final_attrs, values[0])
+            return self.render_scalar(final_attrs, values, display_values[0])
 
 
 class ForeignKeyGridWidget(DisplayText):
@@ -117,18 +116,19 @@ class ForeignKeyGridWidget(DisplayText):
     def add_list_attrs(self, final_attrs):
         raise ValueError('ForeignKeyGridWidget cannot have multiple values')
 
-    def render_list(self, final_attrs, values):
+    def render_list(self, final_attrs, values, display_values):
         raise ValueError('ForeignKeyGridWidget cannot have multiple values')
 
     def add_scalar_attrs(self, final_attrs):
         pass
 
-    def render_scalar(self, final_attrs, value):
+    def render_scalar(self, final_attrs, value, display_value):
         final_attrs['type'] = 'hidden'
+        final_attrs['value'] = value
         return format_html(
             '<div {wrapper_attrs}>'
                 '<input {final_attrs}/>'
-                '<div class="render badge preformatted">{value}</div>'
+                '<div class="display-value badge preformatted">{display_value}</div>'
                 '<button class="btn btn-info default-margin">{change}</button>'
             '</div>',
             wrapper_attrs=flatatt({
@@ -136,6 +136,6 @@ class ForeignKeyGridWidget(DisplayText):
                 'data-component-options': to_json(self.grid_options),
             }),
             change=_('Change'),
-            value=self.get_text(value),
+            display_value=self.get_text(display_value),
             final_attrs=flatatt(final_attrs)
         )
