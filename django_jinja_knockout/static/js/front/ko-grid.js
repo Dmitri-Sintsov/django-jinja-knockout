@@ -401,6 +401,10 @@ App.ko.GridRow = function(options) {
             this.strFields = this.values.__str_fields;
             delete this.values.__str_fields;
         }
+        if (typeof this.values['__str'] !== 'undefined') {
+            this.str = this.values.__str;
+            delete this.values.__str;
+        }
         // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
         this.displayValues = {};
         this.initDisplayValues();
@@ -631,10 +635,13 @@ App.ko.Grid = function(options) {
     };
 
     Grid.initAjaxParams = function() {
-        this.queryArgs = {
-            page: 1,
-            load_meta: true
-        };
+        this.queryArgs = $.extend({
+                page: 1,
+                row_model_str: false,
+                load_meta: true
+            },
+            this.options.ajaxParams
+        );
         this.queryFilters = {};
         if (this.options.defaultOrderBy !== null)
         this.setQueryOrderBy(this.options.defaultOrderBy);
@@ -661,6 +668,7 @@ App.ko.Grid = function(options) {
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
+            ajaxParams: {},
             ownerCtrl: null,
             defaultOrderBy: null,
             fkGridOptions: {},
@@ -1454,7 +1462,10 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.init = function(options) {
         var gridOptions = $.extend(options, {
-            selectMultipleRows: false
+            ajaxParams: {
+                row_model_str: true
+            },
+            selectMultipleRows: false,
         });
         this.gridDialog = new App.GridDialog({
             ownerComponent: this,
@@ -1471,8 +1482,14 @@ App.FkGridWidget = function(options) {
     };
 
     FkGridWidget.onGridDialogSelectRow = function(options) {
-        // options.childGrid.findKoRowByPkVal(options.pkVal).displayValues
-        this.$element.find('.fk-value').val(options.pkVal);
+        var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
+        if (typeof koRow.str === 'undefined') {
+            throw "Set childGrid.options.ajaxParams.row_model_str = true";
+        }
+        this.$element.find('.fk-display')
+            .text(koRow.str);
+        this.$element.find('.fk-value')
+            .val(options.pkVal);
     };
 
 })(App.FkGridWidget.prototype);

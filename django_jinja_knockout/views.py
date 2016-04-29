@@ -817,13 +817,14 @@ class GridActionsMixin():
             return ff_vms
 
     def action_list(self):
+        self.row_model_str = self.request_get('row_model_str', '') == 'true'
         rows = self.get_rows()
         vm = {
             'view': self.__class__.viewmodel_name,
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
-        if self.request_get('load_meta', False):
+        if self.request_get('load_meta', '').lower() == 'true':
             pk_field = ''
             for field in self.__class__.model._meta.fields:
                 if field.primary_key:
@@ -977,10 +978,13 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row, object=None):
-        if self.has_get_str_fields:
+        if self.has_get_str_fields or self.row_model_str:
             if object is None:
                 object = self.object_from_row(row)
-            row['__str_fields'] = object.get_str_fields()
+            if self.has_get_str_fields:
+                row['__str_fields'] = object.get_str_fields()
+            if self.row_model_str:
+                row['__str'] = str(object)
         return row
 
     def get_rows(self):
