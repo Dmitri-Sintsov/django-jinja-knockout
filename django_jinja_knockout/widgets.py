@@ -120,7 +120,7 @@ class ForeignKeyGridWidget(DisplayText):
         raise ValueError('ForeignKeyGridWidget cannot have multiple values')
 
     def add_scalar_attrs(self, final_attrs):
-        pass
+        add_css_classes_to_dict(final_attrs, 'fk-value')
 
     def render_scalar(self, final_attrs, value, display_value):
         final_attrs['type'] = 'hidden'
@@ -128,8 +128,8 @@ class ForeignKeyGridWidget(DisplayText):
         return format_html(
             '<div {wrapper_attrs}>'
                 '<input {final_attrs}/>'
-                '<div class="display-value badge preformatted">{display_value}</div>'
-                '<button class="btn btn-info default-margin">{change}</button>'
+                '<div class="fk-display badge preformatted">{display_value}</div>'
+                '<button class="fk-choose btn btn-info default-margin">{change}</button>'
             '</div>',
             wrapper_attrs=flatatt({
                 'class': 'component',

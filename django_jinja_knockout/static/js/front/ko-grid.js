@@ -311,6 +311,21 @@ App.ko.FkGridFilter = function(options) {
         this.ownerGrid.listAction();
     };
 
+    FkGridFilter.onGridDialogSelectRow = function(options) {
+        this.addQueryFilter(options.pkVal);
+        this.hasActiveChoices(true);
+    };
+
+    FkGridFilter.onGridDialogUnselectRow = function(options) {
+        this.removeQueryFilter(options.pkVal);
+        this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
+    };
+
+    FkGridFilter.onGridDialogUnselectAllRows = function(options) {
+        this.removeQueryFilter(null);
+        this.hasActiveChoices(false);
+    };
+
 })(App.ko.FkGridFilter.prototype);
 
 /**
@@ -1271,8 +1286,9 @@ App.GridDialog = function(options) {
 
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
-        this.propCall('ownerComponent.removeQueryFilter', null);
-        this.propCall('ownerComponent.hasActiveChoices', false);
+        this.propCall('ownerComponent.onGridDialogUnselectAllRows', {
+            'childGrid': this.grid
+        });
     };
 
     GridDialog.onApply = function() {
@@ -1281,14 +1297,18 @@ App.GridDialog = function(options) {
 
     GridDialog.onChildGridSelectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('ownerComponent.addQueryFilter', pkVal);
-        this.propCall('ownerComponent.hasActiveChoices', true);
+        this.propCall('ownerComponent.onGridDialogSelectRow', {
+            'pkVal': pkVal,
+            'childGrid': this.grid
+        });
     };
 
     GridDialog.onChildGridUnselectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('ownerComponent.removeQueryFilter', pkVal);
-        this.propCall('ownerComponent.hasActiveChoices', this.grid.selectedRowsPks.length > 0);
+        this.propCall('ownerComponent.onGridDialogUnselectRow', {
+            'pkVal': pkVal,
+            'childGrid': this.grid
+        });
     };
 
     GridDialog.iocGrid = function(options) {
@@ -1423,10 +1443,18 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.init = function(options) {
         this.options = options;
+        this.gridDialog = new App.GridDialog({
+            ownerComponent: this,
+            gridOptions: options
+        });
     };
 
     FkGridWidget.run = function(element) {
-        console.log(element.tagName);
+        var self = this;
+        this.$element = $(element);
+        this.$element.find('.fk-choose').on('click', function(ev) {
+            self.gridDialog.show();
+        });
     };
 
 })(App.FkGridWidget.prototype);
