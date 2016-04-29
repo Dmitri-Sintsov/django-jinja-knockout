@@ -353,6 +353,7 @@ App.ko.GridRow = function(options) {
         if (fieldRelated !== null) {
             fieldRelated = fieldRelated[1];
         }
+        var markSafe = false;
         // Automatic server-side formatting.
         if (typeof this.strFields[field] !== 'undefined') {
             displayValue = this.strFields[field];
@@ -362,10 +363,17 @@ App.ko.GridRow = function(options) {
             displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
         } else if (value === null) {
             displayValue = App.trans('N/A');
+        } else if (value === '') {
+            // Mark safe. Without converting to &nbsp; rows may have smaller height sometimes.
+            displayValue = '&nbsp;';
+            markSafe = true;
         } else {
             displayValue = value;
         }
-        return ko.observable(this.htmlEncode(displayValue));
+        if (!markSafe) {
+            displayValue = this.htmlEncode(displayValue);
+        }
+        return ko.observable(displayValue);
     };
 
     GridRow.initDisplayValues = function() {
@@ -1274,7 +1282,11 @@ App.GridDialog = function(options) {
                 buttons: this.getButtons()
             }, options);
         // Child grid constructor options.
-        this.gridOptions = fullOptions.gridOptions;
+        this.gridOptions = $.extend({
+                selectMultipleRows: true
+            },
+            fullOptions.gridOptions
+        );
         delete fullOptions.gridOptions;
         // Reference to owner component (for example App.ko.FkGridFilter instance).
         this.ownerComponent = fullOptions.ownerComponent;
@@ -1314,8 +1326,7 @@ App.GridDialog = function(options) {
     GridDialog.iocGrid = function(options) {
         options = $.extend(
             this.gridOptions,
-            options,
-            {selectMultipleRows: true}
+            options
         );
         if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(options);
@@ -1442,7 +1453,9 @@ App.FkGridWidget = function(options) {
 (function(FkGridWidget) {
 
     FkGridWidget.init = function(options) {
-        this.options = options;
+        var gridOptions = $.extend(options, {
+            selectMultipleRows: false
+        });
         this.gridDialog = new App.GridDialog({
             ownerComponent: this,
             gridOptions: options
