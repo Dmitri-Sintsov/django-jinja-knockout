@@ -124,7 +124,8 @@ class ForeignKeyGridWidget(DisplayText):
 
     def render_scalar(self, final_attrs, value, display_value):
         final_attrs['type'] = 'hidden'
-        final_attrs['value'] = value
+        if value is not None:
+            final_attrs['value'] = value
         return format_html(
             '<div {wrapper_attrs}>'
                 '<input {final_attrs}/>'

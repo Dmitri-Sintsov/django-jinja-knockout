@@ -39,7 +39,7 @@
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <!-- ko if: options.selectMultipleRows -->
+                        <!-- ko if: options.showSelection -->
                         <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: actionTypes['glyphicon'] -->
@@ -65,7 +65,7 @@
                 <% } %>
                 <tbody data-bind="foreach: gridRows">
                     <tr class="pointer">
-                        <!-- ko if: $parent.options.selectMultipleRows -->
+                        <!-- ko if: $parent.options.showSelection -->
                         <td data-bind="click: onRowClick" class="grid-glyph-cell">
                             <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
                         </td>

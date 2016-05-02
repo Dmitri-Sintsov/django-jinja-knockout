@@ -414,8 +414,11 @@ App.ko.GridRow = function(options) {
         return typeof this.values[field] === 'undefined' ? undefined : this.values[field];
     };
 
-    GridRow.onRowClick = function() {
+    GridRow.inverseSelection = function() {
         this.isSelectedRow(!this.isSelectedRow());
+    };
+
+    GridRow.onRowClick = function() {
         this.ownerGrid.rowClick(this);
     };
 
@@ -674,8 +677,12 @@ App.ko.Grid = function(options) {
             fkGridOptions: {},
             searchPlaceholder: null,
             selectMultipleRows: false,
+            showSelection: false,
             pageRoute: null,
         }, options);
+        if (this.options.selectMultipleRows) {
+            this.options.showSelection = true;
+        }
         this.ownerCtrl = this.options.ownerCtrl;
         this.meta = {
             pkField: '',
@@ -932,15 +939,27 @@ App.ko.Grid = function(options) {
         self.listAction();
     };
 
-    Grid.rowClick = function(koRow) {
-        console.log('Grid.rowClick() values: ' + JSON.stringify(koRow.values));
+    Grid.rowClick = function(currKoRow) {
+        var self = this;
+        var currPkVal = currKoRow.getValue(this.meta.pkField);
+        console.log('Grid.rowClick() values: ' + JSON.stringify(currKoRow.values));
         if (this.options.selectMultipleRows) {
+            currKoRow.inverseSelection();
             if (this.gridActions.has('edit_formset')) {
                 this.gridActions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
             }
         } else {
+            // Unselect all rows except current one.
+            _.each(this.gridRows(), function(koRow) {
+                if (koRow.getValue(self.meta.pkField) !== currPkVal) {
+                    koRow.isSelectedRow(false);
+                }
+            });
+            // Current row must be inversed _after_ all unselected ones.
+            // Otherwise App.FkGridWidget will fail to set proper input value.
+            currKoRow.inverseSelection();
             if (this.gridActions.has('edit_form')) {
-                this.gridActions.perform('edit_form', {'pk_val': koRow.values[this.meta.pkField]});
+                this.gridActions.perform('edit_form', {'pk_val': currPkVal});
             }
         }
     };
@@ -1466,6 +1485,7 @@ App.FkGridWidget = function(options) {
                 row_model_str: true
             },
             selectMultipleRows: false,
+            showSelection: true
         });
         this.gridDialog = new App.GridDialog({
             ownerComponent: this,
@@ -1481,15 +1501,34 @@ App.FkGridWidget = function(options) {
         });
     };
 
+    FkGridWidget.setValue = function(value) {
+        this.$element.find('.fk-value')
+            .val(value);
+        return this;
+    };
+
+    FkGridWidget.setDisplayValue = function(displayValue) {
+        this.$element.find('.fk-display')
+            .text(displayValue);
+        return this;
+    };
+
     FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
         if (typeof koRow.str === 'undefined') {
             throw "Set childGrid.options.ajaxParams.row_model_str = true";
         }
-        this.$element.find('.fk-display')
-            .text(koRow.str);
-        this.$element.find('.fk-value')
-            .val(options.pkVal);
+        this.setValue(options.pkVal)
+            .setDisplayValue(koRow.str);
+    };
+
+    FkGridWidget.onGridDialogUnselectAllRows = function(options) {
+        this.setValue('')
+            .setDisplayValue('');
+    };
+
+    FkGridWidget.onGridDialogUnselectRow = function(options) {
+        this.onGridDialogUnselectAllRows();
     };
 
 })(App.FkGridWidget.prototype);

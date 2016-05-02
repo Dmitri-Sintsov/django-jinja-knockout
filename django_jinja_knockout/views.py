@@ -817,7 +817,6 @@ class GridActionsMixin():
             return ff_vms
 
     def action_list(self):
-        self.row_model_str = self.request_get('row_model_str', '') == 'true'
         rows = self.get_rows()
         vm = {
             'view': self.__class__.viewmodel_name,
@@ -1024,6 +1023,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         self.args = args
         self.kwargs = kwargs
         self.current_action = self.get_current_action()
+        self.row_model_str = self.request_get('row_model_str', '') == 'true'
         if self.current_action == '':
             self.current_action = 'list'
         if get_nested(self.actions, [self.current_action, 'enabled']) is True:
