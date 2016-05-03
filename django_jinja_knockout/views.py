@@ -754,7 +754,7 @@ class GridActionsMixin():
             'message': form_html
         })
 
-    # todo: Support form_with_inline_formsets class attributes.
+    # todo: Support form_with_inline_formsets.
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
         object = self.__class__.model.objects.filter(pk=pk_val).first()
@@ -775,31 +775,62 @@ class GridActionsMixin():
             'message': form_html
         })
 
+    def get_object_desc(self, object):
+        return qtpl.print_bs_labels(get_object_description(object))
+
+    def get_objects_descriptions(self, objects):
+        descriptions = [self.get_object_desc(object) for object in objects]
+        return qtpl.print_list_group(descriptions, cb=None)
+
+    def get_title_action_not_allowed(self):
+        return _('Action "%(action)s" is not allowed') % {'action': self.get_action_name(self.current_action)}
+
+    def action_delete_is_allowed(self, objects):
+        return True
+
     def action_delete(self):
         pks = self.request.POST.getlist('pks[]')
         objects = self.__class__.model.objects.filter(pk__in=pks)
-        descriptions = [qtpl.print_bs_labels(get_object_description(object)) for object in objects]
-        return vm_list({
-            'view': self.__class__.viewmodel_name,
-            'title': format_html('{}',
-                 self.get_action_name(self.current_action)
-            ),
-            'message': qtpl.print_list_group(descriptions, cb=None),
-            'pks': pks
-        })
+        viewmodel = {
+            'message': self.get_objects_descriptions(objects),
+        }
+        if self.action_delete_is_allowed(objects):
+            viewmodel.update({
+                'view': self.__class__.viewmodel_name,
+                'title': format_html('{}',
+                     self.get_action_name(self.current_action)
+                ),
+                'pks': pks
+            })
+        else:
+            viewmodel.update({
+                'view': 'alert_error',
+                'title': self.get_title_action_not_allowed()
+            })
+        return vm_list(viewmodel)
 
     def action_delete_confirmed(self):
         pks = self.request.POST.getlist('pks[]')
-        self.__class__.model.objects.filter(pk__in=pks).delete()
-        return vm_list({
-            'view': self.__class__.viewmodel_name,
-            'deleted_pks': pks
-        })
+        objects = self.__class__.model.objects.filter(pk__in=pks)
+        if self.action_delete_is_allowed(objects):
+            objects.delete()
+            return vm_list({
+                'view': self.__class__.viewmodel_name,
+                'deleted_pks': pks
+            })
+        else:
+            return vm_list({
+                'view': 'alert_error',
+                'title': self.get_title_action_not_allowed(),
+                'message': self.get_objects_descriptions(objects)
+            })
 
+    # Supports both 'create_form' and 'edit_form' actions.
     def action_save_form(self):
         pk_val = self.request.GET.get('pk_val')
+        form_class = self.get_create_form() if pk_val is None else self.get_edit_form()
         object = self.__class__.model.objects.filter(pk=pk_val).first()
-        form = self.get_edit_form()(self.request.POST, instance=object)
+        form = form_class(self.request.POST, instance=object)
         if form.is_valid():
             object = form.save()
             row = self.postprocess_row(

@@ -15,6 +15,7 @@ from .viewmodels import to_json
 
 # Form with field classes stylized for bootstrap3. #
 class BootstrapModelForm(forms.ModelForm):
+
     def __init__(self, *args, **kwargs):
         """
         for field in Meta.fields:
@@ -25,7 +26,11 @@ class BootstrapModelForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         for fieldname, field in self.fields.items():
-            if self.Meta.fields == '__all__' or fieldname in self.Meta.fields:
+            if hasattr(self.Meta, 'fields'):
+                if self.Meta.fields == '__all__' or fieldname in self.Meta.fields:
+                    add_input_classes_to_field(field)
+            else:
+                # Support for ModelForm which has Meta.exclude but no Meta.fields.
                 add_input_classes_to_field(field)
             # sdv.dbg('label',self.fields[field].label)
 
@@ -46,6 +51,7 @@ class UnchangableModelMixin():
 
 # Metaclass used to create read-only forms (display models). #
 class DisplayModelMetaclass(ModelFormMetaclass):
+
     def __new__(mcs, name, bases, attrs):
         if attrs is None:
             attrs = {}
