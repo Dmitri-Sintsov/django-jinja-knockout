@@ -498,7 +498,7 @@ App.GridActions = function(options) {
         } else {
             action = '/' + action;
         }
-        var params = {};
+        var params = $.extend({}, this.grid.options.pageRouteKwargs);
         params[this.action_kwarg] = action;
         return App.routeUrl(this.grid.options.pageRoute, params);
     };
@@ -689,6 +689,7 @@ App.ko.Grid = function(options) {
             selectMultipleRows: false,
             showSelection: false,
             pageRoute: null,
+            pageRouteKwargs: {}
         }, options);
         if (this.options.selectMultipleRows) {
             this.options.showSelection = true;
