@@ -708,12 +708,16 @@ class GridActionsMixin():
     def get_current_action(self):
         return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
 
+    # Add extra kwargs here if these are defined in urls.py.
+    def get_view_kwargs(self):
+        return copy(self.kwargs)
+
     def get_action_url(self, action, query={}):
+        kwargs = self.get_view_kwargs()
+        kwargs[self.__class__.action_kwarg] = '/{}'.format(action)
         return qtpl.reverseq(
             self.request.url_name,
-            kwargs={
-                self.__class__.action_kwarg: '/{}'.format(action)
-            },
+            kwargs=kwargs,
             query=query
         )
 
