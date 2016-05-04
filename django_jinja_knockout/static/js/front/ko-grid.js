@@ -545,7 +545,7 @@ App.GridActions = function(options) {
 
     GridActions.callback_create_form = function(viewModel) {
         viewModel.gridActions = this;
-        var dialog = new App.ModelDialog(viewModel);
+        var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
 
@@ -1434,14 +1434,17 @@ App.GridDialog = function(options) {
 
 })(App.GridDialog.prototype);
 
-App.ModelDialog = function(options) {
+/**
+ * BootstrapDialog that is used to create / edit row model object instance.
+ */
+App.ModelFormDialog = function(options) {
     $.inherit(App.Dialog.prototype, this);
     this.create(options);
 };
 
-(function(ModelDialog) {
+(function(ModelFormDialog) {
 
-    ModelDialog.getButtons = function() {
+    ModelFormDialog.getButtons = function() {
         var self = this;
         return [
             {
@@ -1481,7 +1484,7 @@ App.ModelDialog = function(options) {
         ];
     };
 
-    ModelDialog.create = function(options) {
+    ModelFormDialog.create = function(options) {
         if (typeof options !== 'object') {
             options = {};
         }
@@ -1496,12 +1499,16 @@ App.ModelDialog = function(options) {
         this.super.create.call(this, fullOptions);
     };
 
-    ModelDialog.onShow = function() {
+    ModelFormDialog.onShow = function() {
         App.initClient(this.bdialog.getModalBody());
     };
 
-})(App.ModelDialog.prototype);
+})(App.ModelFormDialog.prototype);
 
+/**
+ * Client-side part of widgets.ForeignKeyGridWidget to select foreign key via App.GridDialog.
+ * Much similar to django.admin ForeignKeyRawIdWidget but is Knockout.js driven.
+ */
 App.FkGridWidget = function(options) {
     this.init(options);
 };
