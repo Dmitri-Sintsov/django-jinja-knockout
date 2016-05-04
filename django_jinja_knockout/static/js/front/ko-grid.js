@@ -508,12 +508,15 @@ App.GridActions = function(options) {
         }
     };
 
-    GridActions.ajax = function(action, queryArgs) {
+    GridActions.ajax = function(action, queryArgs, callback) {
         var self = this;
         $.post(this.getUrl(action),
             queryArgs,
             function(response) {
                 self.respond(action, response);
+                if (typeof callback === 'function') {
+                    callback(response);
+                }
             },
             'json'
         )
@@ -534,10 +537,10 @@ App.GridActions = function(options) {
         App.viewResponse(response, responseOptions);
     };
 
-    GridActions.perform = function(action, actionOptions) {
+    GridActions.perform = function(action, actionOptions, ajaxCallback) {
         var queryArgs = this.getQueryArgs(action, actionOptions);
         queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        this.ajax(action, queryArgs);
+        this.ajax(action, queryArgs, ajaxCallback);
     };
 
     GridActions.callback_create_form = function(viewModel) {
@@ -801,7 +804,7 @@ App.ko.Grid = function(options) {
         }
     };
 
-    Grid.hasSelectedRow = function(pkVal) {
+    Grid.hasSelectedPkVal = function(pkVal) {
         if (pkVal === undefined) {
             throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
         }
@@ -813,7 +816,17 @@ App.ko.Grid = function(options) {
         return false;
     };
 
-    Grid.filterOutRow = function(pkVal) {
+    Grid.addSelectedPkVal = function(pkVal) {
+        if (this.options.selectMultipleRows) {
+            if (!this.hasSelectedPkVal(pkVal)) {
+                this.selectedRowsPks.push(pkVal);
+            }
+        } else {
+            this.selectedRowsPks = [pkVal];
+        }
+    };
+
+    Grid.removeSelectedPkVal = function(pkVal) {
         if (pkVal === undefined) {
             throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
         }
@@ -829,13 +842,7 @@ App.ko.Grid = function(options) {
      */
     Grid.onSelectRow = function(koRow) {
         var pkVal = koRow.getValue(this.meta.pkField);
-        if (this.options.selectMultipleRows) {
-            if (!this.hasSelectedRow(pkVal)) {
-                this.selectedRowsPks.push(pkVal);
-            }
-        } else {
-            this.selectedRowsPks = [pkVal];
-        }
+        this.addSelectedPkVal(pkVal);
         this.propCall('ownerCtrl.onChildGridSelectRow', pkVal);
     };
 
@@ -844,7 +851,7 @@ App.ko.Grid = function(options) {
      */
     Grid.onUnselectRow = function(koRow) {
         var pkVal = koRow.getValue(this.meta.pkField);
-        this.filterOutRow(pkVal);
+        this.removeSelectedPkVal(pkVal);
         this.propCall('ownerCtrl.onChildGridUnselectRow', pkVal);
     };
 
@@ -872,7 +879,7 @@ App.ko.Grid = function(options) {
             koRow.isSelectedRow(false);
         }
         // Next line is not required, because the action will be done by koRow.isSelectedRow.subscribe() function.
-        // this.filterOutRow(koRow.getValue(this.meta.pkField));
+        // this.removeSelectedPkVal(koRow.getValue(this.meta.pkField));
         return koRow;
     };
 
@@ -907,7 +914,7 @@ App.ko.Grid = function(options) {
         var pkVal = savedRow[this.meta.pkField];
         var savedGridRow = this.iocRow({
             ownerGrid: this,
-            isSelectedRow: this.hasSelectedRow(pkVal),
+            isSelectedRow: this.hasSelectedPkVal(pkVal),
             values: savedRow
         });
         var rowToUpdate = this.findKoRowByPkVal(pkVal);
@@ -939,9 +946,22 @@ App.ko.Grid = function(options) {
         self.listAction();
     };
 
-    Grid.rowClick = function(currKoRow) {
+    Grid.selectOnlyKoRow = function(currKoRow) {
         var self = this;
         var currPkVal = currKoRow.getValue(this.meta.pkField);
+        // Unselect all rows except current one.
+        _.each(this.gridRows(), function(koRow) {
+            if (koRow.getValue(self.meta.pkField) !== currPkVal) {
+                koRow.isSelectedRow(false);
+            }
+        });
+        // Current row must be inversed _after_ all unselected ones.
+        // Otherwise App.FkGridWidget will fail to set proper input value.
+        currKoRow.inverseSelection();
+        return currPkVal;
+    };
+
+    Grid.rowClick = function(currKoRow) {
         console.log('Grid.rowClick() values: ' + JSON.stringify(currKoRow.values));
         if (this.options.selectMultipleRows) {
             currKoRow.inverseSelection();
@@ -949,15 +969,7 @@ App.ko.Grid = function(options) {
                 this.gridActions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
             }
         } else {
-            // Unselect all rows except current one.
-            _.each(this.gridRows(), function(koRow) {
-                if (koRow.getValue(self.meta.pkField) !== currPkVal) {
-                    koRow.isSelectedRow(false);
-                }
-            });
-            // Current row must be inversed _after_ all unselected ones.
-            // Otherwise App.FkGridWidget will fail to set proper input value.
-            currKoRow.inverseSelection();
+            var currPkVal = this.selectOnlyKoRow(currKoRow);
             if (this.gridActions.has('edit_form')) {
                 this.gridActions.perform('edit_form', {'pk_val': currPkVal});
             }
@@ -978,7 +990,9 @@ App.ko.Grid = function(options) {
             self.gridSearchStr(s);
         }
         self.queryArgs.page = 1;
-        self.listAction();
+        self.listAction(function(response) {
+            self.propCall('ownerCtrl.onChildGridFirstLoad');
+        });
     };
 
     Grid.iocKoGridColumn = function(options) {
@@ -1145,8 +1159,12 @@ App.ko.Grid = function(options) {
         return {'pks': this.selectedRowsPks};
     };
 
-    Grid.listAction = function() {
-        this.gridActions.perform('list');
+    Grid.listAction = function(callback) {
+        if (typeof callback === 'function') {
+            this.gridActions.perform('list', {}, callback);
+        } else {
+            this.gridActions.perform('list', {});
+        }
     };
 
     Grid.listCallback = function(data) {
@@ -1171,7 +1189,7 @@ App.ko.Grid = function(options) {
         // Set grid rows viewmodels.
         self.gridRows([]);
         $.each(data.entries, function(k, row) {
-            // Recall previously selected grid rows from this.hasSelectedRow().
+            // Recall previously selected grid rows from this.hasSelectedPkVal().
             if (typeof row[self.meta.pkField] === 'undefined') {
                 throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
             }
@@ -1179,7 +1197,7 @@ App.ko.Grid = function(options) {
             self.gridRows.push(
                 self.iocRow({
                     ownerGrid: self,
-                    isSelectedRow: self.hasSelectedRow(pkVal),
+                    isSelectedRow: self.hasSelectedPkVal(pkVal),
                     values: row
                 })
             );
@@ -1194,7 +1212,7 @@ App.ko.Grid = function(options) {
     Grid.deleteAction = function(options) {
         for (var i = 0; i < options.pks.length; i++) {
             var pkVal = App.intVal(options.pks[i]);
-            this.filterOutRow(pkVal);
+            this.removeSelectedPkVal(pkVal);
             var koRow = this.unselectRow(pkVal);
             if (koRow !== null) {
                 this.gridRows.remove(koRow);
@@ -1334,6 +1352,12 @@ App.GridDialog = function(options) {
         return true;
     };
 
+    GridDialog.onChildGridFirstLoad = function() {
+        this.propCall('ownerComponent.onGridDialogFirstLoad', {
+            'childGrid': this.grid
+        });
+    };
+
     GridDialog.onChildGridSelectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
         this.propCall('ownerComponent.onGridDialogSelectRow', {
@@ -1378,6 +1402,7 @@ App.GridDialog = function(options) {
 
     GridDialog.onHide = function() {
         this.grid.cleanBindings();
+        this.propCall('ownerComponent.onGridDialogHide');
     };
 
     GridDialog.onShow = function() {
@@ -1394,6 +1419,9 @@ App.GridDialog = function(options) {
         this.grid.applyBindings(this.bdialog.getModal());
         this.grid.searchSubstring();
         this.wasOpened = true;
+        this.propCall('ownerComponent.onGridDialogShow', {
+            'childGrid': this.grid
+        });
     };
 
     GridDialog.remove = function() {
@@ -1401,6 +1429,7 @@ App.GridDialog = function(options) {
             this.grid.cleanBindings();
         }
         this.super.remove.call(this);
+        this.propCall('ownerComponent.onGridDialogRemove');
     };
 
 })(App.GridDialog.prototype);
@@ -1501,6 +1530,10 @@ App.FkGridWidget = function(options) {
         });
     };
 
+    FkGridWidget.getValue = function() {
+        return App.intVal(this.$element.find('.fk-value').val());
+    };
+
     FkGridWidget.setValue = function(value) {
         this.$element.find('.fk-value')
             .val(value);
@@ -1511,6 +1544,15 @@ App.FkGridWidget = function(options) {
         this.$element.find('.fk-display')
             .text(displayValue);
         return this;
+    };
+
+    FkGridWidget.onGridDialogFirstLoad = function(options) {
+        var pkVal = this.getValue();
+        options.childGrid.addSelectedPkVal(pkVal);
+        var koRow = options.childGrid.findKoRowByPkVal(pkVal);
+        if (koRow !== null) {
+            options.childGrid.selectOnlyKoRow(koRow);
+        }
     };
 
     FkGridWidget.onGridDialogSelectRow = function(options) {
