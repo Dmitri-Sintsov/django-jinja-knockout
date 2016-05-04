@@ -346,7 +346,7 @@ App.ko.GridRow = function(options) {
         }
     };
 
-    // Descendant could make Knockout.js observable values.
+    // Descendant could format it's own displayValue, including html content.
     GridRow.toDisplayValue = function(value, field) {
         var displayValue;
         var fieldRelated = field.match(/(.+)_id$/);
@@ -373,11 +373,18 @@ App.ko.GridRow = function(options) {
         if (!markSafe) {
             displayValue = this.htmlEncode(displayValue);
         }
-        return ko.observable(displayValue);
+        return displayValue;
+    };
+
+    // Descendant may skip Knockout.js observable wrapping selectively.
+    GridRow.observeDisplayValue  = function(value, field) {
+        return ko.observable(
+            this.toDisplayValue(value, field)
+        );
     };
 
     GridRow.initDisplayValues = function() {
-        this.displayValues = _.mapObject(this.values, _.bind(this.toDisplayValue, this));
+        this.displayValues = _.mapObject(this.values, _.bind(this.observeDisplayValue, this));
     };
 
     GridRow.init = function(options) {
