@@ -699,6 +699,14 @@ App.ko.Grid = function(options) {
         return new App.GridActions(options);
     };
 
+    Grid.onGridSearchStr = function(newValue) {
+        this.searchSubstring(newValue);
+    };
+
+    Grid.onGridSearchDisplayStr = function(newValue) {
+        this.gridSearchStr(newValue);
+    };
+
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
@@ -747,10 +755,9 @@ App.ko.Grid = function(options) {
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
         this.gridSearchStr = ko.observable('');
-        this.gridSearchStr.subscribe(function(newValue) {
-            self.searchSubstring(newValue);
-        });
-
+        this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
+        this.gridSearchDisplayStr = ko.observable('');
+        this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
         this.initAjaxParams();
         this.localize();
 
@@ -958,7 +965,7 @@ App.ko.Grid = function(options) {
     };
 
     Grid.onSearchReset = function() {
-        this.gridSearchStr('');
+        this.gridSearchDisplayStr('');
     };
 
     Grid.onPagination = function(page) {

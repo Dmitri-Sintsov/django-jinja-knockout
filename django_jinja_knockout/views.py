@@ -1010,18 +1010,18 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         return object
 
     def get_row_str_fields(self, object):
-        return object.get_str_fields()
+        return object.get_str_fields() if self.has_get_str_fields else None
 
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row, object=None):
-        if self.has_get_str_fields or self.row_model_str:
-            if object is None:
-                object = self.object_from_row(row)
-            if self.has_get_str_fields:
-                row['__str_fields'] = self.get_row_str_fields(object)
-            if self.row_model_str:
-                row['__str'] = str(object)
+        if object is None:
+            object = self.object_from_row(row)
+        str_fields = self.get_row_str_fields(object)
+        if str_fields is not None:
+            row['__str_fields'] = str_fields
+        if self.row_model_str:
+            row['__str'] = str(object)
         return row
 
     def get_rows(self):
