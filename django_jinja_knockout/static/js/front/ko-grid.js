@@ -288,10 +288,31 @@ App.ko.FkGridFilter = function(options) {
 (function(FkGridFilter) {
 
     FkGridFilter.init = function(options) {
-        this.gridDialog = new App.GridDialog({
+        var gridDialogOptions = {};
+        /**
+         * Allows to specifiy BootstrapDialog size in Jinja2 macro, for example:
+            ko_grid(
+                grid_options={
+                    'pageRoute': 'management_grid',
+                    'fkGridOptions': {
+                        'member__project': {
+                            'dialogOptions': {'size': 'size-wide'},
+                            'pageRoute': 'project_grid',
+                            'searchPlaceholder': 'Search object name'
+                        }
+                    }
+                }
+            )
+         */
+        if (typeof options.fkGridOptions.dialogOptions !== 'undefined') {
+            gridDialogOptions = options.fkGridOptions.dialogOptions;
+            delete options.fkGridOptions.dialogOptions;
+        }
+        var gridDialogOptions = $.extend({
             ownerComponent: this,
             gridOptions: options.fkGridOptions
-        });
+        }, gridDialogOptions);
+        this.gridDialog = new App.GridDialog(gridDialogOptions);
         this.super.init.call(this, options);
     };
 

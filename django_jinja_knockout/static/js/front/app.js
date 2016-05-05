@@ -91,13 +91,22 @@ App.Dialog = function(options) {
             options = {};
         }
         this.dialogOptions = {
-            // type: BootstrapDialog.TYPE_PRIMARY,
+            // BootstrapDialog.TYPE_DEFAULT
+            // BootstrapDialog.TYPE_INFO
+            // BootstrapDialog.TYPE_PRIMARY
+            // BootstrapDialog.TYPE_SUCCESS
+            // BootstrapDialog.TYPE_WARNING
+            // BootstrapDialog.TYPE_DANGER
             type: BootstrapDialog.TYPE_WARNING,
             closable: false,
             draggable: true,
             buttonLabel: App.trans('OK'),
             btnCancelLabel: App.trans('No'),
             btnOKLabel: App.trans('Yes'),
+            // BootstrapDialog.SIZE_SMALL
+            // BootstrapDialog.SIZE_WIDE
+            // BootstrapDialog.SIZE_LARGE
+            size: BootstrapDialog.SIZE_NORMAL,
             onshow: function(bdialog) {
                 self.bdialog = bdialog;
                 self.onShow();
@@ -168,7 +177,7 @@ App.Dialog = function(options) {
     };
 
     Dialog.onShow = function() {
-        /* noop */
+        this.bdialog.setSize(this.dialogOptions.size);
     };
 
     Dialog.onShown = function() {
