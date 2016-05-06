@@ -848,7 +848,7 @@ class GridActionsMixin():
         if form.is_valid():
             object = form.save()
             row = self.postprocess_row(
-                model_values(object, self.query_fields),
+                self.get_model_row(object),
                 object
             )
             return vm_list({
@@ -1021,6 +1021,9 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
 
     def get_row_str_fields(self, object):
         return object.get_str_fields() if self.has_get_str_fields else None
+
+    def get_model_row(self, object):
+        return model_values(object, self.query_fields)
 
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
