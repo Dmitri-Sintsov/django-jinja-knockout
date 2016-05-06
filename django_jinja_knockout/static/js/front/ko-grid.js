@@ -501,8 +501,25 @@ App.GridActions = function(options) {
 
     GridActions.init = function(options) {
         this.grid = options.grid;
+        this.actions = {
+            /**
+             * Sample action. Actual actions are configured at server-side and populated via AJAX response
+             * in App.ko.Grid.listCallback() when data.meta was received from remote host, during first execution
+             * of 'list' command.
+             */
+            'delete': {
+                'localName': App.trans('Remove'),
+                'type': 'glyphicon',
+                'glyph': 'remove',
+                'enabled': false
+            }
+        };
         this.action_kwarg = 'action';
         this.viewModelName = 'grid_page';
+    };
+
+    GridActions.setActions = function(actions) {
+        this.actions = actions;
     };
 
     GridActions.setActionKwarg = function(action_kwarg) {
@@ -510,7 +527,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.has = function(action) {
-        return typeof this.grid.meta.actions[action] !== 'undefined' && this.grid.meta.actions[action].enabled;
+        return typeof this.actions[action] !== 'undefined' && this.actions[action].enabled;
     };
 
     GridActions.getUrl =  function(action) {
@@ -726,15 +743,6 @@ App.ko.Grid = function(options) {
         this.ownerCtrl = this.options.ownerCtrl;
         this.meta = {
             pkField: '',
-            actions: {
-                // Sample action. Actual actions are configured at server-side and populated via AJAX response.
-                'delete': {
-                    'localName': App.trans('Remove'),
-                    'type': 'glyphicon',
-                    'glyph': 'remove',
-                    'enabled': false
-                }
-            },
             hasSearch: ko.observable(false),
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
@@ -746,7 +754,7 @@ App.ko.Grid = function(options) {
             'glyphicon': ko.observableArray()
         };
         this.gridActions = this.iocGridActions({
-            'grid': this
+            grid: this
         });
         this.sortOrders = {};
         this.selectedRowsPks = [];
@@ -1206,8 +1214,10 @@ App.ko.Grid = function(options) {
     Grid.listCallback = function(data) {
         var self=this;
         if (typeof data.meta !== 'undefined') {
+            this.gridActions.setActions(data.meta.actions);
+            delete data.meta.actions;
             ko.set_props(data.meta, self.meta);
-            this.setKoActions();
+            this.setKoActionTypes();
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
         if (typeof self.queryArgs.load_meta !== 'undefined') {
@@ -1260,13 +1270,17 @@ App.ko.Grid = function(options) {
         return new App.ko.Action(options);
     };
 
-    Grid.setKoActions = function() {
+    Grid.setKoActionTypes = function() {
         var self = this;
-        _.each(this.meta.actions, function(actDef, actionName) {
-            if (actDef.enabled && typeof actDef.type !== 'undefined') {
+        _.each(this.gridActions.actions, function(actDef, actionName) {
+            // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
+            if (actDef.enabled && actDef.type !== 'built_in') {
                 var actDef = $.extend({
                     action: actionName
                 }, actDef);
+                if (typeof self.actionTypes[actDef.type] === 'undefined') {
+                    throw sprintf('Unknown action type: "%s"', actDef.type);
+                }
                 self.actionTypes[actDef.type].push(Grid.iocKoAction({
                     grid: self,
                     actDef: actDef

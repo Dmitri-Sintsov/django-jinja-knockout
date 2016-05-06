@@ -646,64 +646,74 @@ class GridActionsMixin():
     def get_edit_form_with_inline_formsets(self):
         return self.__class__.form_with_inline_formsets
 
+    def to_flat_actions(self, typed_actions):
+        flat_actions = {}
+        for type, actions in typed_actions.items():
+            for action_name, action in actions.items():
+                action_with_type = copy(action)
+                action_with_type['type'] = type
+                flat_actions[action_name] = action_with_type
+        return flat_actions
+
     def get_actions(self):
-        return OrderedDict([
-            # Built-in actions (has no 'type' key).
-            ('list', {
-                'enabled': True
-            }),
-            ('save_form', {
-                'enabled': True
-            }),
-            ('delete_confirmed', {
-                'enabled': False
-            }),
-            # Extendable UI actions (has 'type' key).
-            ('create_form', {
-                'localName': _('Add'),
-                'type': 'button',
-                'class': 'btn-primary',
-                'enabled': any([
-                    self.get_create_form()
-                ])
-            }),
-            ('create_inline', {
-                'localName': _('Add'),
-                'type': 'button',
-                'class': 'btn-primary',
-                'enabled': any([
-                    self.get_create_form_with_inline_formsets()
-                ])
-            }),
-            ('edit_form', {
-                'localName': _('Change'),
-                'type': 'click',
-                'enabled': any([
-                    self.get_edit_form()
-                ])
-            }),
-            ('edit_inline', {
-                'localName': _('Change'),
-                'type': 'click',
-                'enabled': any([
-                    self.get_edit_form_with_inline_formsets()
-                ])
-            }),
-            ('edit_formset', {
-                'localName': _('Change'),
-                'type': 'click',
-                'enabled': any([
-                    self.get_edit_formset()
-                ])
-            }),
-            # Delete one model object.
-            ('delete', {
-                'localName': _('Remove'),
-                'type': 'glyphicon',
-                'class': 'glyphicon-remove',
-                'enabled': False
-            }),
-        ])
+        return {
+            'built_in': OrderedDict([
+                ('list', {
+                    'enabled': True
+                }),
+                ('save_form', {
+                    'enabled': True
+                }),
+                ('delete_confirmed', {
+                    'enabled': False
+                })
+            ]),
+            'button': OrderedDict([
+                # Extendable UI actions (has 'type' key).
+                ('create_form', {
+                    'localName': _('Add'),
+                    'class': 'btn-primary',
+                    'enabled': any([
+                        self.get_create_form()
+                    ])
+                }),
+                ('create_inline', {
+                    'localName': _('Add'),
+                    'class': 'btn-primary',
+                    'enabled': any([
+                        self.get_create_form_with_inline_formsets()
+                    ])
+                })
+            ]),
+            'click': OrderedDict([
+                ('edit_form', {
+                    'localName': _('Change'),
+                    'enabled': any([
+                        self.get_edit_form()
+                    ])
+                }),
+                ('edit_inline', {
+                    'localName': _('Change'),
+                    'enabled': any([
+                        self.get_edit_form_with_inline_formsets()
+                    ])
+                }),
+                ('edit_formset', {
+                    'localName': _('Change'),
+                    'enabled': any([
+                        self.get_edit_formset()
+                    ])
+                })
+            ]),
+            'glyphicon': OrderedDict([
+                # Delete one or many model object.
+                ('delete', {
+                    'localName': _('Remove'),
+                    'class': 'glyphicon-remove',
+                    'enabled': False
+                })
+            ])
+        }
 
     def get_current_action(self):
         return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
@@ -722,7 +732,7 @@ class GridActionsMixin():
         )
 
     def get_action_name(self, action):
-        return self.actions[action]['localName']
+        return self.flat_actions[action]['localName']
 
     def action_is_denied(self):
         self.error(
@@ -869,7 +879,7 @@ class GridActionsMixin():
                 'meta': {
                     'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
-                    'actions': self.actions,
+                    'actions': self.flat_actions,
                     'verboseName': get_verbose_name(self.__class__.model),
                     'verboseNamePlural': get_meta(self.__class__.model, 'verbose_name_plural')
                 }
@@ -1057,6 +1067,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()
+        self.flat_actions = self.to_flat_actions(self.actions)
         self.request = request
         self.args = args
         self.kwargs = kwargs
@@ -1064,7 +1075,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         self.row_model_str = self.request_get('row_model_str', '') == 'true'
         if self.current_action == '':
             self.current_action = 'list'
-        if get_nested(self.actions, [self.current_action, 'enabled']) is True:
+        if get_nested(self.flat_actions, [self.current_action, 'enabled']) is True:
             handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)
         else:
             handler = self.action_is_denied
