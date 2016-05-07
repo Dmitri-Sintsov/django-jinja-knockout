@@ -405,6 +405,13 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.initDisplayValues = function() {
+        var self = this;
+        // When there are virtual display values, assume empty values, otherwise _.mapObject() will miss these.
+        _.each(this.strFields, function(displayValue, field) {
+            if (typeof self.values[field] === 'undefined') {
+                self.values[field] = '';
+            }
+        });
         this.displayValues = _.mapObject(this.values, _.bind(this.observeDisplayValue, this));
     };
 

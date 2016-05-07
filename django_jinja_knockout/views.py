@@ -962,7 +962,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
             message=message.format(*args, **kwargs)
         )
 
-    def get_related_fields(self, query_fields = None):
+    def get_related_fields(self, query_fields=None):
         if query_fields is None:
             query_fields = self.get_all_fieldnames()
         return list(set(self.get_grid_field_attnames()) - set(query_fields))
