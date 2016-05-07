@@ -808,7 +808,9 @@ class GridActionsMixin():
         return True
 
     def action_delete(self):
-        pks = self.request.POST.getlist('pks[]')
+        pks = self.request.POST.getlist('pk_vals[]')
+        if len(pks) == 0:
+            pks = [self.request.POST.get('pk_val')]
         objects = self.__class__.model.objects.filter(pk__in=pks)
         viewmodel = {
             'message': self.get_objects_descriptions(objects),
@@ -819,7 +821,7 @@ class GridActionsMixin():
                 'title': format_html('{}',
                      self.get_action_name(self.current_action)
                 ),
-                'pks': pks
+                'pkVals': pks
             })
         else:
             viewmodel.update({
@@ -829,7 +831,7 @@ class GridActionsMixin():
         return vm_list(viewmodel)
 
     def action_delete_confirmed(self):
-        pks = self.request.POST.getlist('pks[]')
+        pks = self.request.POST.getlist('pk_vals[]')
         objects = self.__class__.model.objects.filter(pk__in=pks)
         if self.action_delete_is_allowed(objects):
             objects.delete()

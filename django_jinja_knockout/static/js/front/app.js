@@ -263,8 +263,8 @@ App.Dialog = function(options) {
         // alert('Cancelled');
     };
 
-    Dialog.remove = function() {
-        $(this.bdialog).remove();
+    Dialog.close = function() {
+        this.bdialog.close();
     };
 
 })(App.Dialog.prototype);

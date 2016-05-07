@@ -603,13 +603,14 @@ App.GridActions = function(options) {
 
     GridActions.callback_delete = function(viewModel) {
         var self = this;
-        var pks = viewModel.pks;
-        delete viewModel.pks;
+        var pkVals = viewModel.pkVals;
+        delete viewModel.pkVals;
         viewModel.callback = function(result) {
             if (result) {
-                self.perform('delete_confirmed', {'pks': pks});
+                self.perform('delete_confirmed', {'pk_vals': pkVals});
             }
         };
+        viewModel.type = BootstrapDialog.TYPE_DANGER;
         var dialog = new App.Dialog(viewModel);
         dialog.confirm();
     };
@@ -640,10 +641,6 @@ App.GridActions = function(options) {
         default:
             throw sprintf('Unknown callback_model_saved action: "%s"', viewModel.action);
         }
-    };
-
-    GridActions.queryargs_delete = function(options) {
-        return this.grid.getDeleteQueryArgs();
     };
 
     GridActions.queryargs_list = function(options) {
@@ -715,8 +712,11 @@ App.ko.Grid = function(options) {
         ko.applyBindings(this, this.$selector.get(0));
     };
 
-    Grid.cleanBindings = function() {
-        ko.cleanNode(this.$selector.get(0));
+    Grid.cleanBindings = function($selector) {
+        if (typeof $selector === 'undefined') {
+            $selector = this.$selector;
+        }
+        ko.cleanNode($selector.get(0));
     };
 
     Grid.iocGridActions = function(options) {
@@ -1013,18 +1013,30 @@ App.ko.Grid = function(options) {
     };
 
     Grid.rowClick = function(currKoRow) {
+        this.lastClickedKoRow = currKoRow;
         console.log('Grid.rowClick() values: ' + JSON.stringify(currKoRow.values));
         if (this.options.selectMultipleRows) {
             currKoRow.inverseSelection();
+        } else {
+            var currPkVal = this.selectOnlyKoRow(currKoRow);
+        }
+        if (this.actionTypes.click().length > 1) {
+            // Multiple click actions are available. Open row click actions menu.
+            this.actionsMenuDialog = new App.ActionsMenuDialog({
+                grid: this
+            });
+            this.actionsMenuDialog.show();
+        } else if (this.actionTypes.click().length > 0) {
+            this.actionTypes.click()[0].doAction({gridRow: currKoRow});
+        }
+        /*
             if (this.gridActions.has('edit_formset')) {
                 this.gridActions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
             }
-        } else {
-            var currPkVal = this.selectOnlyKoRow(currKoRow);
             if (this.gridActions.has('edit_form')) {
                 this.gridActions.perform('edit_form', {'pk_val': currPkVal});
             }
-        }
+        */
     };
 
     Grid.deactivateAllSorting = function(exceptOrder) {
@@ -1206,10 +1218,6 @@ App.ko.Grid = function(options) {
         return this.queryArgs;
     };
 
-    Grid.getDeleteQueryArgs = function() {
-        return {'pks': this.selectedRowsPks};
-    };
-
     Grid.listAction = function(callback) {
         if (typeof callback === 'function') {
             this.gridActions.perform('list', {}, callback);
@@ -1320,12 +1328,27 @@ App.ko.Action = function(options) {
     };
 
     Action.doAction = function(options) {
+        var actionOptions = {};
         // Check whether that is 'glyphicon' action, which has gridRow instance passed to doAction().
         if (typeof options.gridRow !== 'undefined') {
             // Clicking current row implies that it is also has to be used for current action.
             options.gridRow.isSelectedRow(true);
+            // Clicked row pk value.
+            actionOptions['pk_val'] = options.gridRow.getValue(this.grid.meta.pkField);
         }
-        this.grid.gridActions.perform(this.actDef.action);
+        if (this.grid.selectedRowsPks.length > 1) {
+            // Multiple rows selected. Add all selected rows pk values.
+            actionOptions['pk_vals'] =  this.grid.selectedRowsPks;
+        }
+        this.grid.gridActions.perform(this.actDef.action, actionOptions);
+    };
+
+    Action.doLastClickedRowAction = function() {
+        if (typeof this.grid.actionsMenuDialog !== 'undefined') {
+            this.grid.actionsMenuDialog.close();
+            delete this.grid.actionsMenuDialog;
+        }
+        this.doAction({gridRow: this.grid.lastClickedKoRow});
     };
 
 })(App.ko.Action.prototype);
@@ -1481,12 +1504,9 @@ App.GridDialog = function(options) {
         });
     };
 
-    GridDialog.remove = function() {
-        if (this.wasOpened) {
-            this.grid.cleanBindings();
-        }
-        this.super.remove.call(this);
-        this.propCall('ownerComponent.onGridDialogRemove');
+    GridDialog.close = function() {
+        this.super.close.call(this);
+        this.propCall('ownerComponent.onGridDialogClose');
     };
 
 })(App.GridDialog.prototype);
@@ -1638,3 +1658,48 @@ App.FkGridWidget = function(options) {
     };
 
 })(App.FkGridWidget.prototype);
+
+/**
+ * BootstrapDialog displayed when grid row is clicked and multiple 'click' actions are defined.
+ */
+App.ActionsMenuDialog = function(options) {
+    $.inherit(App.Dialog.prototype, this);
+    this.create(options);
+};
+
+(function(ActionsMenuDialog) {
+
+    ActionsMenuDialog.getButtons = function() {
+        var self = this;
+        return [{
+            label: App.trans('Cancel'),
+            action: function(dialogItself) {
+                dialogItself.close();
+            }
+        }];
+    };
+
+    ActionsMenuDialog.create = function(options) {
+        this.wasOpened = false;
+        this.grid = options.grid;
+        delete options.grid;
+        var dialogOptions = $.extend(
+            {
+                template: 'ko_grid_row_click_menu',
+                buttons: this.getButtons()
+            }, options
+        );
+        this.super.create.call(this, dialogOptions);
+    };
+
+    ActionsMenuDialog.onHide = function() {
+        // Clean only grid bindings of this dialog, not invoker bindings.
+        this.grid.cleanBindings(this.bdialog.getModal());
+    };
+
+    ActionsMenuDialog.onShow = function() {
+        this.grid.applyBindings(this.bdialog.getModal());
+        this.wasOpened = true;
+    };
+
+})(App.ActionsMenuDialog.prototype);
