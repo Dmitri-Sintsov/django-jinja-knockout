@@ -276,10 +276,9 @@ class BaseFilterView(View):
         super().__init__()
         # queryset.filter(**self.current_list_filter)
         self.current_list_filter = None
-        # queryset.order_by(*self.current_sort_order) or queryset.order_by(self.current_sort_order)
+        # queryset.order_by(*self.current_sort_order)
         self.current_sort_order = None
         self.current_stripped_sort_order = None
-        self.is_iterable_order = False
         self.current_search_str = ''
 
         self.allowed_sort_orders = None
@@ -343,7 +342,9 @@ class BaseFilterView(View):
         sort_order = self.request_get(cls.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
-            self.is_iterable_order, self.current_stripped_sort_order = self.strip_sort_order(sort_order)
+            if not isinstance(sort_order, list):
+                sort_order = [sort_order]
+            self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
         list_filter = self.request_get(cls.filter_key)
@@ -363,21 +364,19 @@ class BaseFilterView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
-        if type(sort_order) not in [str, list]:
+        if type(sort_order) is not list:
             self.report_error('Invalid type of sorting order')
         # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
-        is_iterable = type(sort_order) is list
-        stripped_order = [order.lstrip('-') for order in sort_order] if is_iterable else sort_order.lstrip('-')
-        if stripped_order not in self.allowed_sort_orders:
+        stripped_order = [order.lstrip('-') for order in sort_order]
+        if (stripped_order not in self.allowed_sort_orders) and \
+                (len(stripped_order) == 1 and stripped_order[0] not in self.allowed_sort_orders):
             self.report_error('Non-allowed sorting order: {0}', stripped_order)
-        return is_iterable, stripped_order
+        return stripped_order
 
     def order_queryset(self, queryset):
         if self.current_sort_order is None:
             return queryset
-        return queryset.order_by(*self.current_sort_order) \
-            if self.is_iterable_order \
-            else queryset.order_by(self.current_sort_order)
+        return queryset.order_by(*self.current_sort_order)
 
     def filter_queryset(self, queryset):
         if self.current_list_filter is None:
@@ -420,8 +419,8 @@ class BaseFilterView(View):
     def get_queryset(self):
         return \
             self.distinct_queryset(
-                self.filter_queryset(
-                    self.order_queryset(
+                self.order_queryset(
+                    self.filter_queryset(
                         self.search_queryset(
                             self.get_base_queryset()
                         )
@@ -433,11 +432,18 @@ class BaseFilterView(View):
 # Traditional server-side generated filtered / sorted ListView.
 class ListSortingView(BaseFilterView, ListView):
 
+    def get_json_order_result(self, sort_order):
+        return {
+            self.__class__.order_key: json.dumps(
+                sort_order[0] if len(sort_order) == 1 else sort_order
+            )
+        }
+
     def get_current_sort_order_querypart(self, query={}):
         if self.current_sort_order is None:
             return query
         else:
-            result = {self.__class__.order_key: json.dumps(self.current_sort_order)}
+            result = self.get_json_order_result(self.current_sort_order)
             result.update(query)
             return result
 
@@ -445,19 +451,16 @@ class ListSortingView(BaseFilterView, ListView):
         return order_key.lstrip('-') if order_key[0] == '-' else '-{0}'.format(order_key)
 
     def is_negate_sort_order(self, sort_order):
-        return sort_order[0][0] == '-' if type(sort_order) is list else sort_order[0] == '-'
+        return sort_order[0][0] == '-'
 
     def get_negate_sort_order_querypart(self, sort_order, query={}):
         if sort_order is None:
             return query
-        is_iterable, stripped_sort_order = self.strip_sort_order(sort_order)
+        stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
-            if is_iterable:
                 sort_order = [self.negate_sort_order_key(order_key) for order_key in sort_order]
-            else:
-                sort_order = self.negate_sort_order_key(sort_order)
-        result = {self.__class__.order_key: json.dumps(sort_order)}
+        result = self.get_json_order_result(sort_order)
         result.update(query)
         return result
 
@@ -530,13 +533,15 @@ class ListSortingView(BaseFilterView, ListView):
         return navs, display
 
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
+        if type(sort_order) is str:
+            sort_order = [sort_order]
         if kwargs is None:
             kwargs = self.kwargs
         if viewname is None:
             viewname = self.request.url_name
         if text is None:
             obj = self.__class__.model()
-            text = get_verbose_name(obj, sort_order if type(sort_order) is str else sort_order[0])
+            text = get_verbose_name(obj, sort_order[0])
         link_attrs = {
             'class': 'halflings-before',
             'href': qtpl.reverseq(
