@@ -59,3 +59,9 @@ msgstr "Ошибка \"%(code)s\" \"%(msg)s\" при отправке почты
 msgid "Move"
 msgstr "Переместить"
 
+msgid "Unknown action"
+msgstr "Неопределенное действие"
+
+msgid "Action \"{}\" is not implemented"
+msgstr "Действие \"{}\" не реализовано"
+

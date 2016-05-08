@@ -73,6 +73,7 @@ App.renderNestedList = function(element, value, blockTags, level) {
         });
         $element.append($ul);
     }
+    return $element;
 };
 
 

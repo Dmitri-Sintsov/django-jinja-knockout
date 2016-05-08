@@ -473,6 +473,15 @@ App.ko.GridRow = function(options) {
         });
     };
 
+    GridRow.getDescParts = function() {
+        if (_.size(this.strFields) > 0) {
+            return this.strFields;
+        } else if (typeof this.str !== 'undefined'){
+            return [this.str];
+        }
+        return [];
+    };
+
 })(App.ko.GridRow.prototype);
 
 /**
@@ -1323,7 +1332,9 @@ App.ko.Action = function(options) {
 
     Action.getKoCss = function() {
         var koCss = {};
-        koCss[this.actDef.class] = true;
+        if (typeof this.actDef.class !== 'undefined') {
+            koCss[this.actDef.class] = true;
+        }
         return koCss;
     };
 
@@ -1677,6 +1688,23 @@ App.ActionsMenuDialog = function(options) {
                 dialogItself.close();
             }
         }];
+    };
+
+    ActionsMenuDialog.getDialogTitle = function() {
+        var descParts = this.grid.lastClickedKoRow.getDescParts();
+        if (_.size(descParts) === 0) {
+            return '';
+        }
+        var $title = $('<span>');
+        var blockTags = [
+            {
+                enclosureTag: '<span>',
+                enclosureClasses: '',
+                itemTag: '<span>',
+                    itemClasses: 'label label-info default-magrin'
+            }
+        ];
+        return App.renderNestedList($title, descParts, blockTags);
     };
 
     ActionsMenuDialog.create = function(options) {

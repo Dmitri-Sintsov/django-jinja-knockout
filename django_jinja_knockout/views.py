@@ -693,18 +693,21 @@ class GridActionsMixin():
             'click': OrderedDict([
                 ('edit_form', {
                     'localName': _('Change'),
+                    'class': 'btn-primary',
                     'enabled': any([
                         self.get_edit_form()
                     ])
                 }),
                 ('edit_inline', {
                     'localName': _('Change'),
+                    'class': 'btn-primary',
                     'enabled': any([
                         self.get_edit_form_with_inline_formsets()
                     ])
                 }),
                 ('edit_formset', {
                     'localName': _('Change'),
+                    'class': 'btn-primary',
                     'enabled': any([
                         self.get_edit_formset()
                     ])
@@ -751,7 +754,7 @@ class GridActionsMixin():
         self.error(
             title=_('Unknown action'),
             message=format_html(
-                _('Action "{}" is not implemented'), self.current_action
+                _('Action "{}" is not implemented'), self.get_action_name(self.current_action)
             )
         )
 
