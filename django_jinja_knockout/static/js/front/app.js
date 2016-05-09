@@ -86,6 +86,10 @@ App.Dialog = function(options) {
 
 (function(Dialog) {
 
+    Dialog.type = BootstrapDialog.TYPE_WARNING;
+    Dialog.size = BootstrapDialog.SIZE_NORMAL;
+    Dialog.isClosable = false;
+
     Dialog.create = function(options) {
         var self = this;
         if (typeof options !== 'object') {
@@ -98,8 +102,8 @@ App.Dialog = function(options) {
             // BootstrapDialog.TYPE_SUCCESS
             // BootstrapDialog.TYPE_WARNING
             // BootstrapDialog.TYPE_DANGER
-            type: BootstrapDialog.TYPE_WARNING,
-            closable: false,
+            type: this.type,
+            closable: this.isClosable,
             draggable: true,
             buttonLabel: App.trans('OK'),
             btnCancelLabel: App.trans('No'),
@@ -107,7 +111,7 @@ App.Dialog = function(options) {
             // BootstrapDialog.SIZE_SMALL
             // BootstrapDialog.SIZE_WIDE
             // BootstrapDialog.SIZE_LARGE
-            size: BootstrapDialog.SIZE_NORMAL,
+            size: this.size,
             onshow: function(bdialog) {
                 self.bdialog = bdialog;
                 self.onShow();

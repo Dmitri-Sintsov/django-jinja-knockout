@@ -571,6 +571,7 @@ App.GridActions = function(options) {
 
     GridActions.ajax = function(action, queryArgs, callback) {
         var self = this;
+        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
         $.post(this.getUrl(action),
             queryArgs,
             function(response) {
@@ -600,8 +601,14 @@ App.GridActions = function(options) {
 
     GridActions.perform = function(action, actionOptions, ajaxCallback) {
         var queryArgs = this.getQueryArgs(action, actionOptions);
-        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        this.ajax(action, queryArgs, ajaxCallback);
+        var method = 'perform_' + action;
+        if (typeof this[method] === 'function') {
+            // Override default AJAX action. This can be used to create client-side actions.
+            this[method](queryArgs, ajaxCallback);
+        } else {
+            // Call server-side KoGridView handler by default, which should return viewmodel response.
+            this.ajax(action, queryArgs, ajaxCallback);
+        }
     };
 
     GridActions.callback_create_form = function(viewModel) {
@@ -1047,6 +1054,10 @@ App.ko.Grid = function(options) {
         return currPkVal;
     };
 
+    Grid.iocActionsMenuDialog = function(options) {
+        return new App.ActionsMenuDialog(options);
+    };
+
     Grid.rowClick = function(currKoRow) {
         this.lastClickedKoRow = currKoRow;
         console.log('Grid.rowClick() values: ' + JSON.stringify(currKoRow.values));
@@ -1057,7 +1068,7 @@ App.ko.Grid = function(options) {
         }
         if (this.actionTypes.click().length > 1) {
             // Multiple click actions are available. Open row click actions menu.
-            this.actionsMenuDialog = new App.ActionsMenuDialog({
+            this.actionsMenuDialog = this.iocActionsMenuDialog({
                 grid: this
             });
             this.actionsMenuDialog.show();
@@ -1705,22 +1716,25 @@ App.ActionsMenuDialog = function(options) {
         }];
     };
 
+    ActionsMenuDialog.blockTags = [
+        {
+            enclosureTag: '<span>',
+            enclosureClasses: '',
+            itemTag: '<span>',
+                itemClasses: 'label label-default default-magrin'
+        }
+    ];
+
     ActionsMenuDialog.getDialogTitle = function() {
         var descParts = this.grid.lastClickedKoRow.getDescParts();
         if (_.size(descParts) === 0) {
             return '';
         }
         var $title = $('<span>');
-        var blockTags = [
-            {
-                enclosureTag: '<span>',
-                enclosureClasses: '',
-                itemTag: '<span>',
-                    itemClasses: 'label label-default default-magrin'
-            }
-        ];
-        return App.renderNestedList($title, descParts, blockTags);
+        return App.renderNestedList($title, descParts, this.blockTags);
     };
+
+    ActionsMenuDialog.templateName = 'ko_grid_row_click_menu';
 
     ActionsMenuDialog.create = function(options) {
         this.wasOpened = false;
@@ -1728,7 +1742,7 @@ App.ActionsMenuDialog = function(options) {
         delete options.grid;
         var dialogOptions = $.extend(
             {
-                template: 'ko_grid_row_click_menu',
+                template: this.templateName,
                 buttons: this.getButtons()
             }, options
         );
