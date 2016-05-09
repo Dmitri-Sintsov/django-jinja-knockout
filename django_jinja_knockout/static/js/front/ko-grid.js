@@ -612,7 +612,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_create_form = function(viewModel) {
-        viewModel.gridActions = this;
+        viewModel.grid = this.grid;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -1558,6 +1558,12 @@ App.ModelFormDialog = function(options) {
 
 (function(ModelFormDialog) {
 
+    ModelFormDialog.actionCssClass = 'glyphicon-save';
+
+    ModelFormDialog.getActionLabel = function() {
+        return App.trans('Save');
+    };
+
     ModelFormDialog.getButtons = function() {
         var self = this;
         return [
@@ -1570,8 +1576,8 @@ App.ModelFormDialog = function(options) {
                 }
             },
             {
-                icon: 'glyphicon glyphicon-save',
-                label: App.trans('Save'),
+                icon: 'glyphicon ' + this.actionCssClass,
+                label: this.getActionLabel(),
                 cssClass: 'btn-primary submit',
                 action: function(bdialog) {
                     var $form = bdialog.getModalBody().find('form');
@@ -1579,7 +1585,7 @@ App.ModelFormDialog = function(options) {
                     App.ajaxForm.prototype.submit($form, $button, {
                         success: function(response) {
                             var hasGridAction = App.filterViewModels(response, {
-                                view: self.gridActions.viewModelName
+                                view: self.grid.gridActions.viewModelName
                             });
                             if (hasGridAction.length === 0) {
                                 // If response has no our grid viewmodel (self.gridActions.viewModelName), then
@@ -1588,7 +1594,7 @@ App.ModelFormDialog = function(options) {
                                 return true;
                             }
                             bdialog.close();
-                            self.gridActions.respond('model_saved', response);
+                            self.grid.gridActions.respond('model_saved', response);
                             // Do not process viewmodel response, because we already processed it here.
                             return false;
                         }
@@ -1603,8 +1609,8 @@ App.ModelFormDialog = function(options) {
             options = {};
         }
         delete options.view;
-        this.gridActions = options.gridActions;
-        delete options.gridActions;
+        this.grid = options.grid;
+        delete options.grid;
         var fullOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
                 buttons: this.getButtons(),
@@ -1734,7 +1740,7 @@ App.ActionsMenuDialog = function(options) {
         return App.renderNestedList($title, descParts, this.blockTags);
     };
 
-    ActionsMenuDialog.templateName = 'ko_grid_row_click_menu';
+    ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';
 
     ActionsMenuDialog.create = function(options) {
         this.wasOpened = false;
@@ -1742,7 +1748,7 @@ App.ActionsMenuDialog = function(options) {
         delete options.grid;
         var dialogOptions = $.extend(
             {
-                template: this.templateName,
+                template: this.templateId,
                 buttons: this.getButtons()
             }, options
         );
