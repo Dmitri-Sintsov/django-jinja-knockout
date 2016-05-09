@@ -221,12 +221,14 @@ App.Dialog = function(options) {
 
     Dialog.recreateTitle = function() {
         this.dialogOptions.title.replaceWith(this.getDialogTitle());
-    }
+    };
 
     Dialog.setTitle = function(title) {
-        this.dialogOptions.title = title;
+        if (typeof title !== 'undefined') {
+            this.dialogOptions.title = title;
+        }
         if (typeof this.bdialog !== 'undefined') {
-            this.bdialog.setTitle(title);
+            this.bdialog.setTitle(this.dialogOptions.title);
         }
     };
 

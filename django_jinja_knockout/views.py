@@ -861,11 +861,12 @@ class GridActionsMixin():
                 self.get_model_row(object),
                 object
             )
-            return vm_list({
-                'view': self.__class__.viewmodel_name,
-                'action': 'add_row' if pk_val is None else 'update_row',
-                'row': row
-            })
+            vm = {'view': self.__class__.viewmodel_name}
+            if pk_val is None:
+                vm['add_rows'] = [row]
+            else:
+                vm['update_rows'] = [row]
+            return vm_list(vm)
         else:
             ff_vms = vm_list()
             self.add_form_viewmodels(form, ff_vms)

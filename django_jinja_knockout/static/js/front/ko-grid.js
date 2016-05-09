@@ -625,7 +625,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_delete_confirmed = function(viewModel) {
-        this.grid.deleteAction({'pks': viewModel.deleted_pks});
+        this.grid.updatePage(viewModel);
     };
 
     /**
@@ -639,17 +639,9 @@ App.GridActions = function(options) {
      * The same server-side AJAX response is used both to add new objects and to update existing ones.
      */
     GridActions.callback_model_saved = function(viewModel) {
+        this.grid.updatePage(viewModel);
+        // Brute-force approach:
         // this.perform('list');
-        switch (viewModel.action) {
-        case 'add_row':
-            this.grid.addKoRow(viewModel.row);
-            break;
-        case 'update_row':
-            this.grid.updateKoRow(viewModel.row);
-            break;
-        default:
-            throw sprintf('Unknown callback_model_saved action: "%s"', viewModel.action);
-        }
     };
 
     GridActions.queryargs_list = function(options) {
@@ -957,28 +949,62 @@ App.ko.Grid = function(options) {
     };
 
     /**
-     * Adds new grid row from raw viewmodel row supplied.
+     * Adds new grid rows from raw viewmodel rows supplied.
      */
-    Grid.addKoRow = function(newRow) {
-        this.gridRows.push(this.iocRow({
-            ownerGrid: this,
-            isSelectedRow: false,
-            values: newRow
-        }));
+    Grid.addKoRows = function(newRows) {
+        for (var i = 0; i < newRows.length; i++) {
+            this.gridRows.push(this.iocRow({
+                ownerGrid: this,
+                isSelectedRow: false,
+                values: newRows[i]
+            }));
+        }
     };
 
     /**
-     * Updates existing grid row with raw viewmodel row supplied.
+     * Updates existing grid rows with raw viewmodel rows supplied.
      */
-    Grid.updateKoRow = function(savedRow) {
-        var pkVal = savedRow[this.meta.pkField];
-        var savedGridRow = this.iocRow({
-            ownerGrid: this,
-            isSelectedRow: this.hasSelectedPkVal(pkVal),
-            values: savedRow
-        });
-        var rowToUpdate = this.findKoRowByPkVal(pkVal);
-        rowToUpdate.update(savedGridRow);
+    Grid.updateKoRows = function(savedRows) {
+        var lastClickedKoRowPkVal = this.propCall('lastClickedKoRow.getValue', this.meta.pkField);
+        for (var i = 0; i < savedRows.length; i++) {
+            var pkVal = savedRows[i][this.meta.pkField];
+            var savedGridRow = this.iocRow({
+                ownerGrid: this,
+                isSelectedRow: this.hasSelectedPkVal(pkVal),
+                values: savedRows[i]
+            });
+            var rowToUpdate = this.findKoRowByPkVal(pkVal);
+            rowToUpdate.update(savedGridRow);
+            if (lastClickedKoRowPkVal === pkVal) {
+                this.lastClickedKoRow.update(savedGridRow);
+            }
+        }
+    };
+
+    Grid.deleteKoRows = function(pks) {
+        for (var i = 0; i < pks.length; i++) {
+            var pkVal = App.intVal(pks[i]);
+            this.removeSelectedPkVal(pkVal);
+            var koRow = this.unselectRow(pkVal);
+            if (koRow !== null) {
+                this.gridRows.remove(koRow);
+            }
+        }
+    };
+
+    /**
+     * Supports updating, adding and deleting multiple rows at once.
+     */
+    Grid.updatePage = function(viewModel) {
+        if (typeof viewModel.add_rows !== 'undefined') {
+            this.addKoRows(viewModel.add_rows);
+        }
+        if (typeof viewModel.update_rows !== 'undefined') {
+            this.updateKoRows(viewModel.update_rows);
+        }
+        if (typeof viewModel.deleted_pks !== 'undefined') {
+            this.deleteKoRows(viewModel.deleted_pks);
+        }
     };
 
     /**
@@ -1276,17 +1302,6 @@ App.ko.Grid = function(options) {
         self.setKoPagination(data.totalPages, self.queryArgs.page);
         if (typeof data.filters !== 'undefined') {
             self.setKoFilters(data.filters);
-        }
-    };
-
-    Grid.deleteAction = function(options) {
-        for (var i = 0; i < options.pks.length; i++) {
-            var pkVal = App.intVal(options.pks[i]);
-            this.removeSelectedPkVal(pkVal);
-            var koRow = this.unselectRow(pkVal);
-            if (koRow !== null) {
-                this.gridRows.remove(koRow);
-            }
         }
     };
 
@@ -1701,7 +1716,7 @@ App.ActionsMenuDialog = function(options) {
                 enclosureTag: '<span>',
                 enclosureClasses: '',
                 itemTag: '<span>',
-                    itemClasses: 'label label-info default-magrin'
+                    itemClasses: 'label label-default default-magrin'
             }
         ];
         return App.renderNestedList($title, descParts, blockTags);
@@ -1726,6 +1741,8 @@ App.ActionsMenuDialog = function(options) {
     };
 
     ActionsMenuDialog.onShow = function() {
+        this.recreateTitle();
+        this.setTitle();
         this.grid.applyBindings(this.bdialog.getModal());
         this.wasOpened = true;
     };
