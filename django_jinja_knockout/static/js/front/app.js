@@ -30,6 +30,14 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
+App.capitalize = function(s) {
+    if (s.length === 0) {
+        return s;
+    } else {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+};
+
 App.intVal = function(s) {
     var i = parseInt(s);
     return isNaN(i) ? s : i;
@@ -965,6 +973,30 @@ ko.from_virtual = function(element) {
     return realElement;
 };
 
+ko.switchSubscription = function(self, propName, turnOn, method) {
+    if (typeof self.koSubscriptions === 'undefined') {
+        self.koSubscriptions = {};
+    }
+    if (typeof method === 'undefined') {
+        method = 'on' + App.capitalize(propName);
+    }
+    if (typeof self[propName] !== 'function') {
+        throw sprintf("%s is not observable", propName);
+    }
+    if (typeof self[method] !== 'function') {
+        throw sprintf("%s is not callable", method);
+    }
+    if (turnOn) {
+        self.koSubscriptions[propName] = self[propName].subscribe(_.bind(self[method], self));
+    } else {
+        if (typeof self.koSubscriptions[propName] !== 'undefined') {
+            self.koSubscriptions[propName].dispose();
+            delete self.koSubscriptions[propName];
+        } else {
+            console.log(sprintf('warning: %s is already disposed', propName));
+        }
+    }
+};
 
 // Use with care. Do not put custom bindings into App.documentReadyHooks,
 // there are ko.bindingHandlers for that.
@@ -996,20 +1028,6 @@ ko.bindingHandlers.linkPreview = {
 ko.bindingHandlers.element = {
     init: function(element, valueAccessor) {
         valueAccessor()(element);
-    }
-};
-
-// Temporarily used for debugging instead of textInput binding.
-ko.bindingHandlers.inputValue = {
-    init: function (element, valueAccessor) {
-        var $element = $(element);
-        $element.on('keyup input cut paste drag dragdrop', function() {
-            valueAccessor($element.val());
-        });
-    },
-    update: function(element, valueAccessor) {
-        var value = ko.utils.unwrapObservable(valueAccessor());
-        $(element).val(value);
     }
 };
 
