@@ -999,6 +999,20 @@ ko.bindingHandlers.element = {
     }
 };
 
+// Temporarily used for debugging instead of textInput binding.
+ko.bindingHandlers.inputValue = {
+    init: function (element, valueAccessor) {
+        var $element = $(element);
+        $element.on('keyup input cut paste drag dragdrop', function() {
+            valueAccessor($element.val());
+        });
+    },
+    update: function(element, valueAccessor) {
+        var value = ko.utils.unwrapObservable(valueAccessor());
+        $(element).val(value);
+    }
+};
+
 // Usage: <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}">
 ko.bindingHandlers.scroller = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {

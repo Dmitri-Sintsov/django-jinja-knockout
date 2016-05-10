@@ -716,14 +716,12 @@ App.ko.Grid = function(options) {
     };
 
     Grid.applyBindings = function(selector) {
-        this.$selector = $(selector);
-        ko.applyBindings(this, this.$selector.get(0));
+        var $selector = $(selector);
+        ko.applyBindings(this, $selector.get(0));
     };
 
-    Grid.cleanBindings = function($selector) {
-        if (typeof $selector === 'undefined') {
-            $selector = this.$selector;
-        }
+    Grid.cleanBindings = function(selector) {
+        var $selector = $(selector);
         ko.cleanNode($selector.get(0));
     };
 
@@ -785,7 +783,7 @@ App.ko.Grid = function(options) {
         this.localize();
 
         /*
-        this.$selector.on('show.bs.modal', function (ev) {
+        $modal.on('show.bs.modal', function (ev) {
             // http://stackoverflow.com/questions/11570333/how-to-get-twitter-bootstrap-modals-invoker-element
             var $invoker = $(ev.relatedTarget);
             var $endPointHolder = $invoker.parents('[data-end-point-prefix]');
@@ -1031,11 +1029,6 @@ App.ko.Grid = function(options) {
         if (isNaN(self.queryArgs.page)) {
             self.queryArgs.page = 1;
         }
-        /*
-        $(ev.target)
-            .parents(self.$selector.get(0))
-            .find('div.table-responsive').scrollTop(0);
-        */
         self.listAction();
     };
 
@@ -1518,7 +1511,7 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.onHide = function() {
-        this.grid.cleanBindings();
+        this.grid.cleanBindings(this.bdialog.getModal());
         this.propCall('ownerComponent.onGridDialogHide');
     };
 
