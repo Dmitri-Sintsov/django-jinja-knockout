@@ -965,6 +965,13 @@ ko.set_props = function(src, dst) {
     });
 };
 
+/**
+ * Use in knockout.js binding handlers that support virtual elements to get real bound DOM element.
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        var realElement = ko.from_virtual(element);
+        ...
+    }
+ */
 ko.from_virtual = function(element) {
     var realElement = ko.virtualElements.firstChild(element);
     while (realElement !== null && realElement.nodeType !== 1) {
@@ -973,6 +980,10 @@ ko.from_virtual = function(element) {
     return realElement;
 };
 
+/**
+ * Subscribe / unsubscribe observables for Knockout.js easily.
+ * Binds subscriptions to instanse method with prefix 'on*' by default.
+ */
 ko.switchSubscription = function(self, propName, turnOn, method) {
     if (typeof self.koSubscriptions === 'undefined') {
         self.koSubscriptions = {};
@@ -986,8 +997,12 @@ ko.switchSubscription = function(self, propName, turnOn, method) {
     if (typeof self[method] !== 'function') {
         throw sprintf("%s is not callable", method);
     }
-    if (turnOn) {
-        self.koSubscriptions[propName] = self[propName].subscribe(_.bind(self[method], self));
+    if (typeof turnOn === 'undefined' || turnOn) {
+        if (typeof self.koSubscriptions[propName] === 'undefined') {
+            self.koSubscriptions[propName] = self[propName].subscribe(_.bind(self[method], self));
+        } else {
+            console.log(sprintf('warning: %s is already subscribed', propName));
+        }
     } else {
         if (typeof self.koSubscriptions[propName] !== 'undefined') {
             self.koSubscriptions[propName].dispose();
