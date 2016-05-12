@@ -968,6 +968,11 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
             message=message.format(*args, **kwargs)
         )
 
+    # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
+    @classmethod
+    def get_default_grid_options(cls):
+        return {}
+
     def get_related_fields(self, query_fields=None):
         if query_fields is None:
             query_fields = self.get_all_fieldnames()

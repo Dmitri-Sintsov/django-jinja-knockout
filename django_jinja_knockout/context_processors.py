@@ -9,7 +9,7 @@ from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
-from .tpl import add_css_classes, add_css_classes_to_dict, reverseq
+from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
@@ -82,6 +82,7 @@ class TemplateContextProcessor():
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
             'raise': raise_helper,
+            'resolve_cbv': resolve_cbv,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
             'sdv_dbg': sdv.dbg,

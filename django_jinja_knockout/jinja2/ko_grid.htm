@@ -1,7 +1,13 @@
 {% macro ko_grid(grid_options, template_options={}) -%}
 {% set _template_options = {'show_title': True, 'show_action_buttons': True, 'vscroll': False} %}
 {% do _template_options.update(template_options) %}
+{% set view_kwargs = {'action': ''} %}
+{% if grid_options.pageRouteKwargs %}
+    {% do view_kwargs.update(grid_options.pageRouteKwargs) %}
+{% endif %}
+{% set view = resolve_cbv(grid_options.pageRoute, view_kwargs) %}
 {% set _grid_options = {'classPath': 'App.ko.Grid'} %}
+{% do _grid_options.update(view.get_default_grid_options()) %}
 {% do _grid_options.update(grid_options) %}
 <div class="panel panel-primary component" data-component-options='{{ _grid_options|escapejs(True) }}'>
     <div class="panel-body">

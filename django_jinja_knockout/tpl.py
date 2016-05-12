@@ -3,8 +3,9 @@ from lxml import etree
 from ensure import ensure_annotations
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import resolve, reverse
 from urllib.parse import urlencode
+from .utils.sdv import get_class_that_defined_method
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -75,13 +76,6 @@ def print_list_group(row, cb=escape):
     )
 
 
-# http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
-def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None):
-    # https://docs.djangoproject.com/en/1.8/ref/urlresolvers/#reverse
-    url = reverse(viewname, urlconf, args, kwargs, current_app)
-    return url if query is None else url + '?' + urlencode(query)
-
-
 def add_css_classes(existing_classes=None, new_classes=''):
     existing_list = [] if existing_classes is None else existing_classes.split(' ')
     new_list = new_classes.split(' ')
@@ -134,3 +128,18 @@ def html_to_text(html):
 
 def format_local_date(value, *args, **kwargs):
     return formats.date_format(timezone.localtime(value), *args, **kwargs)
+
+
+# http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
+def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None):
+    # https://docs.djangoproject.com/en/1.8/ref/urlresolvers/#reverse
+    url = reverse(viewname, urlconf, args, kwargs, current_app)
+    return url if query is None else url + '?' + urlencode(query)
+
+
+def resolve_cbv(url_name, kwargs):
+    url = reverse(url_name, kwargs=kwargs)
+    view = resolve(url)[0]
+    if not hasattr(view, '__wrapped__'):
+        return view
+    return get_class_that_defined_method(view)
