@@ -310,6 +310,7 @@ class BaseFilterView(View):
     def request_get(self, key, default=None):
         return self.request.GET.get(key, default)
 
+    # Respond with exception (non-AJAX mode).
     def report_error(self, message, *args, **kwargs):
         raise ValueError(message.format(*args, **kwargs))
 
@@ -614,6 +615,17 @@ class ViewmodelView(TemplateView):
         self.process_error_vm_list(vms)
         raise ImmediateJsonResponse(vms)
 
+    # Respond with AJAX viewmodel (general non-form field error).
+    def report_error(self, message, *args, **kwargs):
+        title = kwargs.pop('title') if 'title' in kwargs else _('Error')
+        self.error(
+            # Do not remove view='alert_error' as child class may overload process_error_viewmodel() then supply wrong
+            # viewmodel name.
+            view='alert_error',
+            title=title,
+            message=message.format(*args, **kwargs)
+        )
+
     def dispatch(self, request, *args, **kwargs):
         result = super().dispatch(request, *args, **kwargs)
         if type(result) is dict:
@@ -743,7 +755,7 @@ class GridActionsMixin():
         return self.flat_actions[action]['localName']
 
     def action_is_denied(self):
-        self.error(
+        self.report_error(
             title=_('Action is denied'),
             message=format_html(
                 _('Action "{}" is denied'), self.current_action
@@ -751,7 +763,7 @@ class GridActionsMixin():
         )
 
     def action_not_implemented(self):
-        self.error(
+        self.report_error(
             title=_('Unknown action'),
             message=format_html(
                 _('Action "{}" is not implemented'), self.get_action_name(self.current_action)
@@ -945,7 +957,7 @@ class GridActionsMixin():
 #     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
 # To browse specified Django model.
 #
-class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodelsMixin):
+class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
 
     context_object_name = 'model'
     model = None
@@ -961,12 +973,6 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
 
     def request_get(self, key, default=None):
         return self.request.POST.get(key, default)
-
-    def report_error(self, message, *args, **kwargs):
-        self.error(
-            title='Error',
-            message=message.format(*args, **kwargs)
-        )
 
     # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
@@ -1058,7 +1064,7 @@ class KoGridView(BaseFilterView, ViewmodelView, GridActionsMixin, FormViewmodels
         try:
             page_num = int(page_num)
         except:
-            self.error(
+            self.report_error(
                 title='Invalid page number',
                 message=format_html('Page number: {}', page_num)
             )
