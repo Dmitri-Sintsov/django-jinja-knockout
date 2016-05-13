@@ -1518,7 +1518,7 @@ App.GridDialog = function(options) {
     GridDialog.onShow = function() {
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
-        var $gridPagination = $(App.compileTemplate('ko_grid_pagination')());
+        var $gridPagination = App.domTemplate('ko_grid_pagination');
         $footer.prepend($gridPagination);
         if (this.wasOpened) {
             this.recreateContent();

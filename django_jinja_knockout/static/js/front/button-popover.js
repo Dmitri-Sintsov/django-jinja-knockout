@@ -28,7 +28,7 @@ App.ClosablePopover = function(target, popoverOptions) {
 
         var $content = $('<div/>');
         this.$popoverContent = this.createPopoverContent();
-        var $closeButton = $('<button class="close" type="button">×</button>');
+        var $closeButton = $.contents('<button class="close" type="button">×</button>');
         $closeButton.on('click', function(ev) {
             ev.preventDefault();
             return self.closeButtonEvent(ev);
@@ -87,7 +87,7 @@ App.ClosablePopover = function(target, popoverOptions) {
     };
 
     ClosablePopover.createPopoverContent = function() {
-        return $('<div class="alert alert-warning preformatted">' + this.getMessage() + '</div>');
+        return $.contents('<div class="alert alert-warning preformatted">' + this.getMessage() + '</div>');
     };
 
     ClosablePopover.mouseEnterTarget = function(ev) {
@@ -159,7 +159,7 @@ App.ButtonPopover = function(popoverOptions) {
     };
 
     ButtonPopover.createPopoverContent = function() {
-        return $('<button class="button btn btn-default btn-sm">' + this.getMessage() + '</button>');
+        return $.contents('<button class="button btn btn-default btn-sm">' + this.getMessage() + '</button>');
     };
 
     ButtonPopover.clickPopoverButton = function(ev) {

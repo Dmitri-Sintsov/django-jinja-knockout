@@ -5,11 +5,17 @@ $.randomHash = function() {
 };
 
 $.htmlEncode = function(value) {
-	return $('<div/>').text(value).html();
+	return $('<div>').text(value).html();
 };
 
 $.htmlDecode = function(value) {
-	return $('<div/>').html(value).text();
+	return $('<div>').html(value).text();
+};
+
+// Create jQuery DOM nodes from arbitrary text contents.
+// Do not use $(contents) as $() is supposed to accept only top-level tags or jQuery selectors, not arbitrary text.
+$.contents = function(contents) {
+    return $('<span>').html(contents).contents()
 };
 
 /**

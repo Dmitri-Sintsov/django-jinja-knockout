@@ -20,10 +20,12 @@ App.addViewHandler('form_error', function(viewModel) {
     }
     var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
     $.each(viewModel.messages, function(k, v) {
-        $field.before($(sprintf(
-            '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
-            alert_class, v
-        )));
+        $field.before($.contents(
+            sprintf(
+                '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
+                alert_class, v
+            )
+        ));
     });
 });
 

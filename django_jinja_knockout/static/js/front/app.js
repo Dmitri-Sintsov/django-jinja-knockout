@@ -145,7 +145,7 @@ App.Dialog = function(options) {
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
         } else if (!(this.dialogOptions.message instanceof jQuery)) {
-            this.dialogOptions.message = $('<span>').html(this.dialogOptions.message).contents();
+            this.dialogOptions.message = $.contents(this.dialogOptions.message);
         }
         if (typeof this.dialogOptions.method !== 'undefined') {
             this.showMethod = this.dialogOptions.method;
@@ -228,7 +228,7 @@ App.Dialog = function(options) {
     };
 
     Dialog.getDialogTitle = function() {
-        return (typeof this.dialogOptions.title === 'undefined') ? $('') : this.dialogOptions.title;
+        return (typeof this.dialogOptions.title === 'undefined') ? $.contents(' ') : this.dialogOptions.title;
     };
 
     Dialog.recreateTitle = function() {
@@ -250,10 +250,9 @@ App.Dialog = function(options) {
 
     Dialog.createDialogContent = function() {
         if (typeof this.dialogOptions.template !== 'undefined') {
-            var compiled = App.compileTemplate(this.dialogOptions.template);
-            return $(compiled(this.getTemplateArgs()));
+            return App.domTemplate(this.dialogOptions.template, this.getTemplateArgs());
         } else {
-            return $('sample content');
+            return $.contents('sample content');
         }
     };
 
@@ -769,7 +768,9 @@ App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
         }
     };
     if ($form.find('input[type="file"]').length > 0) {
-        var $progressBar = $('<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>');
+        var $progressBar = $.contents(
+            '<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>'
+        );
         $progressBar.insertAfter($btn);
         options['uploadProgress'] = function(event, position, total, percentComplete) {
             $progressBar.find('.progress-bar').css('width', percentComplete + '%');
@@ -806,6 +807,20 @@ App.compileTemplate = function(tplId) {
 };
 
 /**
+ * Manually loads one template (by it's DOM id) and expands it with specified tplArgs into jQuery DOM nodes.
+ */
+App.domTemplate = function(tplId, tplArgs) {
+    if (typeof tplArgs !== 'object') {
+        tplArgs = {};
+    }
+    var compiled = App.compileTemplate(tplId);
+    // Using fake or real 'this'.
+    var contents = compiled(tplArgs);
+    return $.contents(contents);
+};
+
+/**
+ * Template autoloading.
  * Does not use html5 <template> tag because IE lower than Edge do not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
