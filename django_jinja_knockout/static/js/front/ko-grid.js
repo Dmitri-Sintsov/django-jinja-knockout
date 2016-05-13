@@ -507,7 +507,8 @@ App.ko.GridPage = function(options) {
 })(App.ko.GridPage.prototype);
 
 /**
- * Actions performed for particular grid instance. Mostly are row-click actions, although not limited to.
+ * Actions performed for particular grid (row) instance.
+ * Mostly are row-click AJAX actions, although not limited to.
  */
 App.GridActions = function(options) {
     this.init(options);
@@ -609,6 +610,20 @@ App.GridActions = function(options) {
             // Call server-side KoGridView handler by default, which should return viewmodel response.
             this.ajax(action, queryArgs, ajaxCallback);
         }
+    };
+
+    /**
+     * koAction: instance of App.ko.Action.
+     * actionOptions: this.perform() actionOptions.
+     */
+    GridActions.performKo = function(koAction, actionOptions) {
+        this.lastKoAction = koAction;
+        this.lastKoActionOptions = actionOptions;
+        this.perform(koAction.actDef.action, actionOptions);
+    };
+
+    GridActions.getLastActionUrl = function() {
+        return this.getUrl(this.lastKoAction.actDef.action);
     };
 
     GridActions.callback_create_form = function(viewModel) {
@@ -735,6 +750,11 @@ App.ko.Grid = function(options) {
 
     Grid.onGridSearchDisplayStr = function(newValue) {
         this.gridSearchStr(newValue);
+    };
+
+    // this.meta is the list of visual ko bindings which are formatting flags or messages, not model values.
+    Grid.updateMeta = function(data) {
+        ko.set_props(data, this.meta);
     };
 
     Grid.init = function(options) {
@@ -1270,7 +1290,7 @@ App.ko.Grid = function(options) {
         if (typeof data.meta !== 'undefined') {
             this.gridActions.setActions(data.meta.actions);
             delete data.meta.actions;
-            ko.set_props(data.meta, self.meta);
+            this.updateMeta(data.meta);
             this.setKoActionTypes();
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
@@ -1332,6 +1352,11 @@ App.ko.Grid = function(options) {
         });
     };
 
+    // Pass fired visual action from ko ui to actual action implementation.
+    Grid.performKoAction = function(koAction, actionOptions) {
+        this.gridActions.performKo(koAction, actionOptions);
+    };
+
 })(App.ko.Grid.prototype);
 
 /**
@@ -1370,7 +1395,7 @@ App.ko.Action = function(options) {
             // Multiple rows selected. Add all selected rows pk values.
             actionOptions['pk_vals'] =  this.grid.selectedRowsPks;
         }
-        this.grid.gridActions.perform(this.actDef.action, actionOptions);
+        this.grid.performKoAction(this, actionOptions);
     };
 
     Action.doLastClickedRowAction = function() {
