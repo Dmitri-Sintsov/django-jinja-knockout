@@ -97,6 +97,7 @@ App.Dialog = function(options) {
     Dialog.type = BootstrapDialog.TYPE_WARNING;
     Dialog.size = BootstrapDialog.SIZE_NORMAL;
     Dialog.isClosable = false;
+    Dialog.autoEmpty = true;
 
     Dialog.create = function(options) {
         var self = this;
@@ -198,7 +199,9 @@ App.Dialog = function(options) {
     };
 
     Dialog.onHide = function() {
-        /* noop */
+        if (this.autoEmpty) {
+            this.bdialog.getModal().empty();
+        }
     };
 
     Dialog.onHidden = function() {
@@ -258,7 +261,7 @@ App.Dialog = function(options) {
 
     Dialog.recreateContent = function() {
         this.dialogOptions.message.replaceWith(this.createDialogContent());
-    }
+    };
 
     Dialog.getOptions = function() {
         return {};

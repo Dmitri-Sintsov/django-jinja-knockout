@@ -1655,14 +1655,8 @@ App.ModelFormDialog = function(options) {
     };
 
     ModelFormDialog.onShow = function() {
-        if (this.bdialog.getModalBody().length === 0) {
-            this.recreateContent();
-        }
+        this.super.onShow.call(this);
         App.initClient(this.bdialog.getModalBody());
-    };
-
-    ModelFormDialog.onHide = function() {
-        this.bdialog.getModalBody().empty();
     };
 
 })(App.ModelFormDialog.prototype);
@@ -1797,16 +1791,18 @@ App.ActionsMenuDialog = function(options) {
         this.super.create.call(this, dialogOptions);
     };
 
-    ActionsMenuDialog.onHide = function() {
-        // Clean only grid bindings of this dialog, not invoker bindings.
-        this.grid.cleanBindings(this.bdialog.getModal());
-    };
-
     ActionsMenuDialog.onShow = function() {
+        this.super.onShow.call(this);
         this.recreateTitle();
         this.setTitle();
         this.grid.applyBindings(this.bdialog.getModal());
         this.wasOpened = true;
+    };
+
+    ActionsMenuDialog.onHide = function() {
+        // Clean only grid bindings of this dialog, not invoker bindings.
+        this.grid.cleanBindings(this.bdialog.getModal());
+        this.super.onHide.call(this);
     };
 
 })(App.ActionsMenuDialog.prototype);
