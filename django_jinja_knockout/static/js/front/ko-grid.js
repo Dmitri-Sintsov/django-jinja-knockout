@@ -592,6 +592,16 @@ App.GridActions = function(options) {
         responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
             var method = 'callback_' + action;
+            // Override last action, when suggested by AJAX view response.
+            // Use with care, due to asynchronous execution.
+            if (typeof viewModel.last_action !== 'undefined') {
+                self.lastActionName = viewModel.last_action;
+                if (typeof viewModel.last_action_options !== 'undefined') {
+                    self.lastActionOptions = viewModel.last_action_options;
+                } else {
+                    self.lastActionOptions = {};
+                }
+            }
             if (typeof self[method] === 'function') {
                 return self[method](viewModel);
             }
@@ -612,18 +622,21 @@ App.GridActions = function(options) {
         }
     };
 
-    /**
-     * koAction: instance of App.ko.Action.
-     * actionOptions: this.perform() actionOptions.
-     */
-    GridActions.performKo = function(koAction, actionOptions) {
+    // Set last action name from the visual action instance supplied.
+    // koAction: instance of App.ko.Action - visual representation of action in knockout template.
+    GridActions.setLastKoAction = function(koAction) {
         this.lastKoAction = koAction;
-        this.lastKoActionOptions = actionOptions;
-        this.perform(koAction.actDef.action, actionOptions);
+        this.lastActionName = koAction.actDef.action;
+    };
+
+    // Perform last action.
+    GridActions.performLastAction = function(actionOptions) {
+        this.lastActionOptions = actionOptions;
+        this.perform(this.lastActionName, actionOptions);
     };
 
     GridActions.getLastActionUrl = function() {
-        return this.getUrl(this.lastKoAction.actDef.action);
+        return this.getUrl(this.lastActionName);
     };
 
     GridActions.callback_create_form = function(viewModel) {
@@ -657,10 +670,7 @@ App.GridActions = function(options) {
         this.callback_create_form(viewModel);
     };
 
-    /**
-     * The same server-side AJAX response is used both to add new objects and to update existing ones.
-     */
-    GridActions.callback_model_saved = function(viewModel) {
+    GridActions.callback_save_form = function(viewModel) {
         this.grid.updatePage(viewModel);
         // Brute-force approach:
         // this.perform('list');
@@ -998,10 +1008,13 @@ App.ko.Grid = function(options) {
                 isSelectedRow: this.hasSelectedPkVal(pkVal),
                 values: savedRows[i]
             });
-            var rowToUpdate = this.findKoRowByPkVal(pkVal);
-            rowToUpdate.update(savedGridRow);
             if (lastClickedKoRowPkVal === pkVal) {
                 this.lastClickedKoRow.update(savedGridRow);
+            }
+            var rowToUpdate = this.findKoRowByPkVal(pkVal);
+            // When rowToUpdate is null, that means updated row is not among currently displayed ones.
+            if (rowToUpdate !== null) {
+                rowToUpdate.update(savedGridRow);
             }
         }
     };
@@ -1354,7 +1367,8 @@ App.ko.Grid = function(options) {
 
     // Pass fired visual action from ko ui to actual action implementation.
     Grid.performKoAction = function(koAction, actionOptions) {
-        this.gridActions.performKo(koAction, actionOptions);
+        this.gridActions.setLastKoAction(koAction);
+        this.gridActions.performLastAction(actionOptions);
     };
 
 })(App.ko.Grid.prototype);
@@ -1602,17 +1616,20 @@ App.ModelFormDialog = function(options) {
                     var $button = bdialog.getModalFooter().find('button.submit');
                     App.ajaxForm.prototype.submit($form, $button, {
                         success: function(response) {
-                            var hasGridAction = App.filterViewModels(response, {
+                            var gridVms = App.filterViewModels(response, {
                                 view: self.grid.gridActions.viewModelName
                             });
-                            if (hasGridAction.length === 0) {
+                            if (gridVms.length === 0) {
                                 // If response has no our grid viewmodel (self.gridActions.viewModelName), then
                                 // it's a form viewmodel errors response which is processed then by
                                 // App.ajaxForm.prototype.submit().
                                 return true;
                             }
                             bdialog.close();
-                            self.grid.gridActions.respond('model_saved', response);
+                            self.grid.gridActions.respond(
+                                self.grid.gridActions.lastActionName,
+                                response
+                            );
                             // Do not process viewmodel response, because we already processed it here.
                             return false;
                         }
@@ -1638,7 +1655,14 @@ App.ModelFormDialog = function(options) {
     };
 
     ModelFormDialog.onShow = function() {
+        if (this.bdialog.getModalBody().length === 0) {
+            this.recreateContent();
+        }
         App.initClient(this.bdialog.getModalBody());
+    };
+
+    ModelFormDialog.onHide = function() {
+        this.bdialog.getModalBody().empty();
     };
 
 })(App.ModelFormDialog.prototype);

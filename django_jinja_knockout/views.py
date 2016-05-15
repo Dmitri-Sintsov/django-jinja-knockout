@@ -781,6 +781,7 @@ class GridActionsMixin():
         })
         return vm_list({
             'view': self.__class__.viewmodel_name,
+            'last_action': 'save_form',
             'title': format_html('{}: {}',
                 self.get_action_name(self.current_action),
                 get_meta(self.__class__.model, 'verbose_name')
@@ -802,6 +803,7 @@ class GridActionsMixin():
         })
         return vm_list({
             'view': self.__class__.viewmodel_name,
+            'last_action': 'save_form',
             'title': format_html('{}: {}',
                  self.get_action_name(self.current_action),
                  qtpl.print_bs_badges(get_object_description(object))
