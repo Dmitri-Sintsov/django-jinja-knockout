@@ -720,6 +720,7 @@ App.ajaxForm = function($selector) {
     });
 };
 
+// todo: Convert to class instance with App.component.
 App.ajaxForm.prototype.submit = function($form, $btn, callbacks) {
     var url = App.getDataUrl($btn);
     if (typeof callbacks !== 'object') {
@@ -1078,13 +1079,35 @@ ko.bindingHandlers.scroller = {
     }
 };
 
-/**
- * Automatic App.ko class instantiation by 'component' css class and 'data-component-options' html5 attribute.
- *
- */
-App.initClientHooks.push(function($selector) {
-    $.each($selector.findSelf('.component'), function(k, v) {
-        var options = $(v).data('componentOptions');
+App.Components = function() {
+    this.init();
+};
+
+(function(Components) {
+
+    Components.init = function() {
+        this.list = [];
+    };
+
+    Components.getClassFromPath = function(classPath) {
+        var classPathArr = classPath.split(/\./g);
+        var cls = window;
+        for (var i = 0; i < classPathArr.length - 1; i++) {
+            if (typeof cls[classPathArr[i]] !== 'object') {
+                throw sprintf('Skipping unknown component: %s', classPath);
+            }
+            cls = cls[classPathArr[i]];
+        }
+        if (typeof cls[classPathArr[i]] !== 'function') {
+            throw sprintf('Skipping unknown component: %s', classPath);
+        }
+        cls = cls[classPathArr[i]];
+        return cls;
+    };
+
+    Components.add = function(elem) {
+        var $elem = $(elem);
+        var options = $elem.data('componentOptions');
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
             return;
@@ -1092,20 +1115,33 @@ App.initClientHooks.push(function($selector) {
         if (typeof options.classPath === 'undefined') {
             throw 'Undefined data-component-options classPath.';
         }
-        var classPath = options.classPath.split(/\./g);
-        var cls = window;
-        for (var i = 0; i < classPath.length - 1; i++) {
-            if (typeof cls[classPath[i]] !== 'object') {
-                throw sprintf('Skipping unknown component: %s', options.classPath);
-            }
-            cls = cls[classPath[i]];
-        }
-        if (typeof cls[classPath[i]] !== 'function') {
-            throw sprintf('Skipping unknown component: %s', options.classPath);
-        }
-        cls = cls[classPath[i]];
+        var cls = this.getClassFromPath(options.classPath);
         delete options.classPath;
         var component = new cls(options);
-        component.run(v);
+        $elem.data('componentIdx', this.list.length);
+        this.list.push(component);
+        component.run(elem);
+    };
+
+    Components.get = function(elem) {
+        var $elem = $(elem);
+        var componentIdx = $elem.data('componentIdx');
+        if (componentIdx === undefined) {
+            throw 'Supplied element has no bound component.';
+        }
+        return this.list[componentIdx];
+    };
+
+})(App.Components.prototype);
+
+App.components = new App.Components();
+
+/**
+ * Automatic App.ko class instantiation by 'component' css class and 'data-component-options' html5 attribute.
+ *
+ */
+App.initClientHooks.push(function($selector) {
+    _.each($selector.findSelf('.component'), function(v) {
+        App.components.add(v);
     });
 });

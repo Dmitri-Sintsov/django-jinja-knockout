@@ -1764,7 +1764,7 @@ App.ActionsMenuDialog = function(options) {
             enclosureTag: '<span>',
             enclosureClasses: '',
             itemTag: '<span>',
-                itemClasses: 'label label-default default-magrin'
+                itemClasses: 'label label-default'
         }
     ];
 

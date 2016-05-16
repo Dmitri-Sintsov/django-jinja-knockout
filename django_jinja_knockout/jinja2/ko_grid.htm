@@ -1,4 +1,4 @@
-{% macro ko_grid(grid_options, template_options={}) -%}
+{% macro ko_grid(grid_options, template_options={}, dom_attrs={}) -%}
 {% set _template_options = {'show_title': True, 'show_action_buttons': True, 'vscroll': False} %}
 {% do _template_options.update(template_options) %}
 {% set view_kwargs = {'action': ''} %}
@@ -9,7 +9,8 @@
 {% set _grid_options = {'classPath': 'App.ko.Grid'} %}
 {% do _grid_options.update(view.get_default_grid_options()) %}
 {% do _grid_options.update(grid_options) %}
-<div class="panel panel-primary component" data-component-options='{{ _grid_options|escapejs(True) }}'>
+{% do add_css_classes_to_dict(dom_attrs, 'panel panel-primary component') %}
+<div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
     <div class="panel-body">
         <div data-template-id="ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'></div>
         <div data-template-id="ko_grid_pagination"></div>
