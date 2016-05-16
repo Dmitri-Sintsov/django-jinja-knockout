@@ -320,6 +320,10 @@ class BaseFilterView(View):
     def get_all_allowed_sort_orders(self):
         return self.get_all_fieldnames()
 
+    def get_field_verbose_name(self, field_name):
+        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+        return str(get_verbose_name(self.__class__.model, field_name))
+
     @classmethod
     def init_class(cls, self):
 
@@ -541,8 +545,7 @@ class ListSortingView(BaseFilterView, ListView):
         if viewname is None:
             viewname = self.request.url_name
         if text is None:
-            obj = self.__class__.model()
-            text = get_verbose_name(obj, sort_order[0])
+            text = self.get_field_verbose_name(sort_order[0])
         link_attrs = {
             'class': 'halflings-before',
             'href': qtpl.reverseq(
@@ -575,7 +578,7 @@ class ListSortingView(BaseFilterView, ListView):
             'filter_display': {}
         })
         for fieldname in self.allowed_filter_fields:
-            context_data['filter_title'][fieldname] = get_verbose_name(self.__class__.model, fieldname)
+            context_data['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
             navs, display = self.get_filter_navs(fieldname)
             context_data['filter_navs'][fieldname] = navs
             context_data['filter_display'][fieldname] = display
@@ -792,8 +795,8 @@ class GridActionsMixin():
     # todo: Support form_with_inline_formsets.
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
-        object = self.__class__.model.objects.filter(pk=pk_val).first()
-        form = self.get_edit_form()(instance=object)
+        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        form = self.get_edit_form()(instance=obj)
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_form': True,
@@ -806,16 +809,16 @@ class GridActionsMixin():
             'last_action': 'save_form',
             'title': format_html('{}: {}',
                  self.get_action_name(self.current_action),
-                 qtpl.print_bs_badges(get_object_description(object))
+                 qtpl.print_bs_badges(get_object_description(obj))
             ),
             'message': form_html
         })
 
-    def get_object_desc(self, object):
-        return qtpl.print_bs_labels(get_object_description(object))
+    def get_object_desc(self, obj):
+        return qtpl.print_bs_labels(get_object_description(obj))
 
     def get_objects_descriptions(self, objects):
-        descriptions = [self.get_object_desc(object) for object in objects]
+        descriptions = [self.get_object_desc(obj) for obj in objects]
         return qtpl.print_list_group(descriptions, cb=None)
 
     def get_title_action_not_allowed(self):
@@ -867,13 +870,13 @@ class GridActionsMixin():
     def action_save_form(self):
         pk_val = self.request.GET.get('pk_val')
         form_class = self.get_create_form() if pk_val is None else self.get_edit_form()
-        object = self.__class__.model.objects.filter(pk=pk_val).first()
-        form = form_class(self.request.POST, instance=object)
+        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        form = form_class(self.request.POST, instance=obj)
         if form.is_valid():
-            object = form.save()
+            obj = form.save()
             row = self.postprocess_row(
-                self.get_model_row(object),
-                object
+                self.get_model_row(obj),
+                obj
             )
             vm = {'view': self.__class__.viewmodel_name}
             if pk_val is None:
@@ -917,8 +920,7 @@ class GridActionsMixin():
                     field, name = field_def
                 elif type(field_def) is str:
                     field = field_def
-                    # Avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-                    name = str(get_verbose_name(self.__class__.model, field))
+                    name = self.get_field_verbose_name(field)
                 else:
                     self.report_error('grid_fields list values must be str or tuple')
                 vm_grid_fields.append({
@@ -946,7 +948,7 @@ class GridActionsMixin():
                         })
                 vm_filters.append({
                     'field': fieldname,
-                    'name': get_verbose_name(self.__class__.model, fieldname),
+                    'name': self.get_field_verbose_name(fieldname),
                     'choices': vm_choices
                 })
             vm['filters'] = vm_filters
@@ -1038,27 +1040,26 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         related_fields = self.get_related_fields()
         for related_field in related_fields:
             row_related[related_field] = row.pop(related_field)
-        object = self.__class__.model(**row)
+        obj = self.__class__.model(**row)
         for field, value in row_related.items():
             row[field] = value
-        return object
+        return obj
 
-    def get_row_str_fields(self, object):
-        return object.get_str_fields() if self.has_get_str_fields else None
+    # row may be used in overloaded method when virtual fields were added to row by overloaded get_model_row().
+    def get_row_str_fields(self, obj, row):
+        return obj.get_str_fields() if self.has_get_str_fields else None
 
-    def get_model_row(self, object):
-        return model_values(object, self.query_fields)
+    def get_model_row(self, obj):
+        return model_values(obj, self.query_fields)
 
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
-    def postprocess_row(self, row, object=None):
-        if object is None:
-            object = self.object_from_row(row)
-        str_fields = self.get_row_str_fields(object)
+    def postprocess_row(self, row, obj):
+        str_fields = self.get_row_str_fields(obj, row)
         if str_fields is not None:
             row['__str_fields'] = str_fields
         if self.row_model_str:
-            row['__str'] = str(object)
+            row['__str'] = str(obj)
         return row
 
     def get_rows(self):
@@ -1078,7 +1079,8 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         qs = self.get_queryset()
         self.total_rows = qs.count()
         return [
-            self.postprocess_row(row) for row in qs[first_elem:last_elem].values(*self.query_fields)
+            self.postprocess_row(row, self.object_from_row(row))
+            for row in qs[first_elem:last_elem].values(*self.query_fields)
         ]
 
     # Do not just remove bs_form() options.
