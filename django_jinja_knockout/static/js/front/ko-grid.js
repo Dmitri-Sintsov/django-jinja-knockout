@@ -1794,8 +1794,6 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.onShow = function() {
         this.super.onShow.call(this);
-        this.recreateTitle();
-        this.setTitle();
         this.grid.applyBindings(this.bdialog.getModal());
         this.wasOpened = true;
     };
