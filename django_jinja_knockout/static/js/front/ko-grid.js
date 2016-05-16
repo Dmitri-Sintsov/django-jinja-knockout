@@ -1400,6 +1400,7 @@ App.ko.Action = function(options) {
         var actionOptions = {};
         // Check whether that is 'glyphicon' action, which has gridRow instance passed to doAction().
         if (typeof options.gridRow !== 'undefined') {
+            this.grid.lastClickedKoRow = options.gridRow;
             // Clicking current row implies that it is also has to be used for current action.
             options.gridRow.isSelectedRow(true);
             // Clicked row pk value.
