@@ -1387,6 +1387,11 @@ App.ko.Grid = function(options) {
         this.gridActions.performLastAction(actionOptions);
     };
 
+    // To be used in client-side action form ko templates (descendants of App.ActionTemplateDialog class).
+    Grid.getCsrfToken = function() {
+        return App.conf.csrfToken;
+    };
+
 })(App.ko.Grid.prototype);
 
 /**
@@ -1865,6 +1870,7 @@ App.ActionTemplateDialog = function(options) {
     };
 
     ActionTemplateDialog.create = function(options) {
+        options.title = options.grid.gridActions.lastKoAction.localName;
         this.parent.create.call(this, options);
     };
 
