@@ -56,7 +56,7 @@ def dbg(name, value=None):
 @ensure_annotations
 def join_dict_values(ch:str, d:dict, keys:list):
     for key in keys:
-        d[key] = ch.join(d[key].values())
+        d[key] = ch.join([str(val) for val in d[key].values()])
 
 
 def get_object_members(object):

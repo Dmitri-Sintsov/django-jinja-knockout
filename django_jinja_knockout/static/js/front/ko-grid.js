@@ -404,8 +404,10 @@ App.ko.GridRow = function(options) {
         );
     };
 
+    // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
     GridRow.initDisplayValues = function() {
         var self = this;
+        this.displayValues = {};
         // When there are virtual display values, assume empty values, otherwise _.mapObject() will miss these.
         _.each(this.strFields, function(displayValue, field) {
             if (typeof self.values[field] === 'undefined') {
@@ -439,9 +441,9 @@ App.ko.GridRow = function(options) {
         if (typeof this.values['__str'] !== 'undefined') {
             this.str = this.values.__str;
             delete this.values.__str;
+        } else {
+            this.str = '';
         }
-        // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
-        this.displayValues = {};
         this.initDisplayValues();
     };
 
@@ -466,7 +468,13 @@ App.ko.GridRow = function(options) {
      */
     GridRow.update = function(savedRow) {
         var self = this;
-        this.values = savedRow.values;
+        this.str = savedRow.str;
+        _.each(savedRow.values, function(value, field) {
+            self.values[field] = value;
+        });
+        _.each(savedRow.strFields, function(value, field) {
+            self.strFields[field] = value;
+        });
         _.each(savedRow.displayValues, function(value, field) {
             self.displayValues[field](ko.utils.unwrapObservable(value));
             // self.displayValues[field].valueHasMutated();
