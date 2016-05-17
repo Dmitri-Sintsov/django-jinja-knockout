@@ -344,7 +344,8 @@ class BaseFilterView(View):
         else:
             self.search_fields = cls.search_fields
 
-        sort_order = self.request_get(cls.order_key)
+    def get_current_query(self):
+        sort_order = self.request_get(self.__class__.order_key)
         if sort_order is not None:
             sort_order = json.loads(sort_order)
             if not isinstance(sort_order, list):
@@ -352,7 +353,7 @@ class BaseFilterView(View):
             self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        list_filter = self.request_get(cls.filter_key)
+        list_filter = self.request_get(self.__class__.filter_key)
         if list_filter is not None:
             list_filter = json.loads(list_filter)
             if type(list_filter) is not dict:
@@ -366,6 +367,7 @@ class BaseFilterView(View):
 
     def dispatch(self, request, *args, **kwargs):
         self.__class__.init_class(self)
+        self.get_current_query()
         return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
@@ -880,7 +882,7 @@ class GridActionsMixin():
             )
             vm = {'view': self.__class__.viewmodel_name}
             if pk_val is None:
-                vm['add_rows'] = [row]
+                vm['prepend_rows'] = [row]
             else:
                 vm['update_rows'] = [row]
             return vm_list(vm)
@@ -1058,7 +1060,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         str_fields = self.get_row_str_fields(obj, row)
         if str_fields is not None:
             row['__str_fields'] = str_fields
-        if self.row_model_str:
+        if getattr(self ,'row_model_str', True):
             row['__str'] = str(obj)
         return row
 
@@ -1081,6 +1083,11 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         return [
             self.postprocess_row(row, self.object_from_row(row))
             for row in qs[first_elem:last_elem].values(*self.query_fields)
+        ]
+
+    def postprocess_qs(self, qs):
+        return [
+            self.postprocess_row(self.get_model_row(obj), obj) for obj in qs
         ]
 
     # Do not just remove bs_form() options.

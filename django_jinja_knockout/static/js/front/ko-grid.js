@@ -985,10 +985,15 @@ App.ko.Grid = function(options) {
 
     /**
      * Adds new grid rows from raw viewmodel rows supplied.
+     *  newRows - list of raw rows supplied from server-side.
+     *  opcode - operation to perform on this.gridRows, usually 'push' or 'unshift'.
      */
-    Grid.addKoRows = function(newRows) {
+    Grid.addKoRows = function(newRows, opcode) {
+        if (typeof opcode === 'undefined') {
+            opcode = 'push';
+        }
         for (var i = 0; i < newRows.length; i++) {
-            this.gridRows.push(this.iocRow({
+            this.gridRows[opcode](this.iocRow({
                 ownerGrid: this,
                 isSelectedRow: false,
                 values: newRows[i]
@@ -1034,8 +1039,11 @@ App.ko.Grid = function(options) {
      * Supports updating, adding and deleting multiple rows at once.
      */
     Grid.updatePage = function(viewModel) {
-        if (typeof viewModel.add_rows !== 'undefined') {
-            this.addKoRows(viewModel.add_rows);
+        if (typeof viewModel.append_rows !== 'undefined') {
+            this.addKoRows(viewModel.append_rows);
+        }
+        if (typeof viewModel.prepend_rows !== 'undefined') {
+            this.addKoRows(viewModel.prepend_rows, 'unshift');
         }
         if (typeof viewModel.update_rows !== 'undefined') {
             this.updateKoRows(viewModel.update_rows);
