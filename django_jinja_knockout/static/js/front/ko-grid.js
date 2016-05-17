@@ -1823,3 +1823,54 @@ App.ActionsMenuDialog = function(options) {
     };
 
 })(App.ActionsMenuDialog.prototype);
+
+/**
+ * May be inherited to create BootstrapDialog with client-side template form for implemented action.
+ * Usage:
+
+    App.ChildActionDialog = function(options) {
+        $.inherit(App.ActionTemplateDialog.prototype, this, 'atd');
+        this.inherit();
+        this.create(options);
+    };
+
+    ChildActionDialog.create = function(options) {
+        this.atd.create.call(this, options);
+        ...
+    };
+ */
+App.ActionTemplateDialog = function(options) {
+    this.inherit();
+    this.create(options);
+};
+
+(function(ActionTemplateDialog) {
+
+    ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
+    ActionTemplateDialog.templateId = 'ko_template_name';
+
+    ActionTemplateDialog.getActionLabel = function() {
+        return this.grid.gridActions.lastKoAction.localName;
+    };
+
+    ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
+
+    ActionTemplateDialog.inherit = function() {
+        // First, import methods of direct ancestor.
+        $.inherit(App.ActionsMenuDialog.prototype, this, 'parent');
+        // Second, import methods of base class that are missing in direct ancestor.
+        $.inherit(App.Dialog.prototype, this);
+        // Third, import just one method from ModelFormDialog (simple mixin).
+        this.getButtons = App.ModelFormDialog.prototype.getButtons;
+    };
+
+    ActionTemplateDialog.create = function(options) {
+        this.parent.create.call(this, options);
+    };
+
+    ActionTemplateDialog.onShow = function() {
+        this.parent.onShow.call(this);
+    };
+
+})(App.ActionTemplateDialog.prototype);
+
