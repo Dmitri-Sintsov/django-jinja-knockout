@@ -77,3 +77,6 @@ msgstr "Сохранить"
 msgid "Cancel"
 msgstr "Отмена"
 
+msgid "Choose action"
+msgstr "Выберите действие"
+

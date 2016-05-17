@@ -1777,14 +1777,14 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.blockTags = [
         {
-            enclosureTag: '<span>',
-            enclosureClasses: '',
+            enclosureTag: '<div>',
+            enclosureClasses: 'well well-sm',
             itemTag: '<span>',
-                itemClasses: 'label label-default'
+                itemClasses: 'badge'
         }
     ];
 
-    ActionsMenuDialog.getDialogTitle = function() {
+    ActionsMenuDialog.renderRow = function() {
         var descParts = this.grid.lastClickedKoRow.getDescParts();
         if (_.size(descParts) === 0) {
             return '';
@@ -1802,6 +1802,7 @@ App.ActionsMenuDialog = function(options) {
         var dialogOptions = $.extend(
             {
                 template: this.templateId,
+                title: App.trans('Choose action'),
                 buttons: this.getButtons()
             }, options
         );
@@ -1811,6 +1812,7 @@ App.ActionsMenuDialog = function(options) {
     ActionsMenuDialog.onShow = function() {
         this.super.onShow.call(this);
         this.grid.applyBindings(this.bdialog.getModal());
+        this.bdialog.getModalBody().prepend(this.renderRow());
         this.wasOpened = true;
     };
 

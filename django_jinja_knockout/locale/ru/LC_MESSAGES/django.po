@@ -65,3 +65,6 @@ msgstr "Неопределенное действие"
 msgid "Action \"{}\" is not implemented"
 msgstr "Действие \"{}\" не реализовано"
 
+msgid "Action \"%(action)s\" is not allowed"
+msgstr "Действие \"%(action)s\" не разрешено"
+
