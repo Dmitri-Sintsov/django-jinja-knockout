@@ -1166,7 +1166,7 @@ $.fn.components = function() {
 
 // Get object with first component instance matching supplied jQuery selector.
 $.fn.component = function() {
-    var component;
+    var component = null;
     this.each(function() {
         component = App.components.get(this);
         return false;
