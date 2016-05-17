@@ -1079,6 +1079,11 @@ ko.bindingHandlers.scroller = {
     }
 };
 
+/**
+ * Auto-instantiated Javascript classes bound to selected DOM elements.
+ * Primarily used with Knockout.js bindings, although is not limited to.
+ * 'data-component-options' html5 attribute is used as an argument of class constructor.
+ */
 App.Components = function() {
     this.init();
 };
@@ -1107,6 +1112,9 @@ App.Components = function() {
 
     Components.add = function(elem) {
         var $elem = $(elem);
+        if ($elem.data('componentIdx') !== undefined) {
+            throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
+        }
         var options = $elem.data('componentOptions');
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
@@ -1120,6 +1128,9 @@ App.Components = function() {
         var component = new cls(options);
         $elem.data('componentIdx', this.list.length);
         this.list.push(component);
+        if (typeof component.setElement === 'function') {
+            component.setElement(elem);
+        }
         component.run(elem);
     };
 
@@ -1132,12 +1143,39 @@ App.Components = function() {
         return this.list[componentIdx];
     };
 
+    Components.getById = function(id) {
+        var elem = document.getElementById(id);
+        if (elem === null) {
+            throw sprintf('Unknown id of component element: "%s"', id);
+        }
+        return this.get(elem);
+    };
+
 })(App.Components.prototype);
 
 App.components = new App.Components();
 
+// Get array with all component instances by jQuery selector.
+$.fn.components = function() {
+    var components = [];
+    this.each(function() {
+        components.push(App.components.get(this));
+    });
+    return components;
+};
+
+// Get object with first component instance matching supplied jQuery selector.
+$.fn.component = function() {
+    var component;
+    this.each(function() {
+        component = App.components.get(this);
+        return false;
+    });
+    return component;
+};
+
 /**
- * Automatic App.ko class instantiation by 'component' css class and 'data-component-options' html5 attribute.
+ * Automatic App.ko class instantiation by 'component' css class.
  *
  */
 App.initClientHooks.push(function($selector) {
