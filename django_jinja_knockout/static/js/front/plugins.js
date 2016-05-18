@@ -85,6 +85,9 @@ $.SuperChain = function(childInstance, parentPrototype) {
         return context.proto[name];
     };
 
+    /**
+     * Usage: this.super._call('methodName', arg1, .. argN);
+     */
     SuperChain._call = function() {
         var context = this.find(arguments[0]);
         var method = context.proto[arguments[0]];
@@ -99,6 +102,9 @@ $.SuperChain = function(childInstance, parentPrototype) {
         return result;
     };
 
+    /**
+     * Usage: this.super._apply('methodName', argsArray);
+     */
     SuperChain._apply = function(method, args) {
         var context = this.find(arguments[0]);
         var method = context.proto[arguments[0]];

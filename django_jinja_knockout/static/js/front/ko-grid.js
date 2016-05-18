@@ -1602,7 +1602,7 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.close = function() {
-        this.super.close.call(this);
+        this.super._call('close');
         this.propCall('ownerComponent.onGridDialogClose');
     };
 
@@ -1840,13 +1840,13 @@ App.ActionsMenuDialog = function(options) {
  * Usage:
 
     App.ChildActionDialog = function(options) {
-        $.inherit(App.ActionTemplateDialog.prototype, this, 'atd');
+        $.inherit(App.ActionTemplateDialog.prototype, this);
         this.inherit();
         this.create(options);
     };
 
     ChildActionDialog.create = function(options) {
-        this.atd.create.call(this, options);
+        this.super._call('create', options);
         ...
     };
  */
