@@ -1387,10 +1387,16 @@ App.ko.Grid = function(options) {
         this.gridActions.performLastAction(actionOptions);
     };
 
-    // To be used in client-side action form ko templates (descendants of App.ActionTemplateDialog class).
+    // Used in ActionTemplateDialog 'ko_action_form' template.
     Grid.getCsrfToken = function() {
         return App.conf.csrfToken;
     };
+
+    // Used in ActionTemplateDialog 'ko_action_form' template.
+    Grid.getLastPkVal = function() {
+        return this.lastClickedKoRow.getValue(this.meta.pkField);
+    };
+
 
 })(App.ko.Grid.prototype);
 
@@ -1852,7 +1858,7 @@ App.ActionTemplateDialog = function(options) {
 (function(ActionTemplateDialog) {
 
     ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
-    ActionTemplateDialog.templateId = 'ko_template_name';
+    ActionTemplateDialog.templateId = 'ko_action_form';
 
     ActionTemplateDialog.getActionLabel = function() {
         return this.grid.gridActions.lastKoAction.localName;
@@ -1872,10 +1878,20 @@ App.ActionTemplateDialog = function(options) {
     ActionTemplateDialog.create = function(options) {
         options.title = options.grid.gridActions.lastKoAction.localName;
         this.parent.create.call(this, options);
+        /**
+         * Update meta (display text) for bound ko template (this.templateId).
+         * This may be used to invoke the same dialog with different messages
+         * for similar yet different actions.
+         */
+        if (typeof options.meta !== 'undefined') {
+            this.grid.updateMeta(options.meta);
+            delete options.meta;
+        }
     };
 
     ActionTemplateDialog.onShow = function() {
         this.parent.onShow.call(this);
+        App.initClient(this.bdialog.getModalBody());
     };
 
 })(App.ActionTemplateDialog.prototype);

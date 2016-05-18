@@ -4,6 +4,16 @@
         </button>
     </div>
 </script>
+<script type="text/template" id="ko_action_form">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
+                <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
+                <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
+            </form>
+        </div>
+    </div>
+</script>
 <script type="text/template" id="ko_grid_body">
     <div>
         <% if (typeof(show_title) !== "undefined" && show_title) { %>
