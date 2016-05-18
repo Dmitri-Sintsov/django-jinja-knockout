@@ -18,8 +18,25 @@ $.contents = function(contents) {
     return $('<span>').html(contents).contents()
 };
 
-// Chain of multi-level inheritance.
+/**
+ * Chain of multi-level inheritance.
+ * An instance of $.SuperChain represents parent class context which may be nested.
+ * Each context has following properties:
+ *  .instance
+ *     childInstance reference
+ *  .proto
+ *     prototype of ancestor class (parentPrototype)
+ *  .super
+ *     null, when there is no more parent, instance of $.SuperChain when there are base parents.
+ *     Deepest nested level of .super.super is the top class (base class).
+ */
 $.SuperChain = function(childInstance, parentPrototype) {
+    /**
+     * childInstance.super represents current parent call context, which originally matches
+     * immediate parent but may be changed to deeper parents when calling nested super.
+     *
+     * this.instance.superTop represents immediate parent call top context (immediate ancestor).
+     */
     this.super = null;
     if (typeof childInstance.superTop !== 'undefined') {
         var lastSuper = childInstance.superTop;
@@ -33,6 +50,10 @@ $.SuperChain = function(childInstance, parentPrototype) {
     }
     this.instance = childInstance;
     this.proto = parentPrototype;
+    /**
+     * Meta inheritance.
+     * Copies parent object prototype methods into the instance of pseudo-child.
+     */
     for (var k in parentPrototype) {
         if (parentPrototype.hasOwnProperty(k) && typeof childInstance[k] === 'undefined') {
             childInstance[k] = parentPrototype[k];
@@ -40,14 +61,20 @@ $.SuperChain = function(childInstance, parentPrototype) {
     }
 };
 
+/**
+ * Implements nested chains of prototypes (multi-level inheritance).
+ */
 (function(SuperChain) {
 
+    /**
+     * Find method / property among inherited prototypes from top (immediate ancestor) to bottom (base class).
+     */
     SuperChain.find = function(name) {
         // Chain of multi-level inheritance.
         if (typeof this.proto[name] !== 'undefined') {
             return this;
         } else if (this.super !== null) {
-            return this.super.prop(name);
+            return this.super.find(name);
         } else {
             throw 'No such property: ' + name;
         }
@@ -65,6 +92,7 @@ $.SuperChain = function(childInstance, parentPrototype) {
             throw 'No such method: ' + methodName;
         }
         var callerSuper = this.instance.super;
+        // Switch instance super to context parent to allow nested super._call() / super._apply().
         this.instance.super = context.super;
         result = method.apply(this.instance, Array.prototype.slice.call(arguments, 1));
         this.instance.super = callerSuper;
@@ -78,6 +106,7 @@ $.SuperChain = function(childInstance, parentPrototype) {
             throw 'No such method: ' + methodName;
         }
         var callerSuper = this.instance.super;
+        // Switch instance super to context parent to allow nested super._call() / super._apply().
         this.instance.super = context.super;
         return method.apply(this.instance, args);
         this.instance.super = callerSuper;
@@ -87,8 +116,7 @@ $.SuperChain = function(childInstance, parentPrototype) {
 })($.SuperChain.prototype);
 
 /**
- * Meta inheritance.
- * Copies parent object prototype methods into instance of pseudo-child.
+ * Multi-level inheritance should be specified in descendant to ancestor order.
  *
  */
 $.inherit = function(parentPrototype, childInstance) {
