@@ -18,32 +18,81 @@ $.contents = function(contents) {
     return $('<span>').html(contents).contents()
 };
 
+// Chain of multi-level inheritance.
+$.SuperChain = function(childInstance, parentPrototype) {
+    this.super = null;
+    if (typeof childInstance.superTop !== 'undefined') {
+        var lastSuper = childInstance.superTop;
+        while (lastSuper.super !== null) {
+            lastSuper = lastSuper.super;
+        }
+        lastSuper.super = this;
+    } else {
+        childInstance.superTop = this;
+        childInstance.super = this;
+    }
+    this.instance = childInstance;
+    this.proto = parentPrototype;
+    for (var k in parentPrototype) {
+        if (parentPrototype.hasOwnProperty(k) && typeof childInstance[k] === 'undefined') {
+            childInstance[k] = parentPrototype[k];
+        }
+    }
+};
+
+(function(SuperChain) {
+
+    SuperChain.find = function(name) {
+        // Chain of multi-level inheritance.
+        if (typeof this.proto[name] !== 'undefined') {
+            return this;
+        } else if (this.super !== null) {
+            return this.super.prop(name);
+        } else {
+            throw 'No such property: ' + name;
+        }
+    };
+
+    SuperChain.prop = function(name) {
+        var context = this.find(name);
+        return context.proto[name];
+    };
+
+    SuperChain._call = function() {
+        var context = this.find(arguments[0]);
+        var method = context.proto[arguments[0]];
+        if (typeof method !== 'function') {
+            throw 'No such method: ' + methodName;
+        }
+        var callerSuper = this.instance.super;
+        this.instance.super = context.super;
+        result = method.apply(this.instance, Array.prototype.slice.call(arguments, 1));
+        this.instance.super = callerSuper;
+        return result;
+    };
+
+    SuperChain._apply = function(method, args) {
+        var context = this.find(arguments[0]);
+        var method = context.proto[arguments[0]];
+        if (typeof method !== 'function') {
+            throw 'No such method: ' + methodName;
+        }
+        var callerSuper = this.instance.super;
+        this.instance.super = context.super;
+        return method.apply(this.instance, args);
+        this.instance.super = callerSuper;
+        return result;
+    };
+
+})($.SuperChain.prototype);
+
 /**
  * Meta inheritance.
- * Copies parent object _prototype_ methods into _instance_ of pseudo-child.
+ * Copies parent object prototype methods into instance of pseudo-child.
  *
- * Multi-inheritance is possible via calling $.inherit multiple times with
- * different superName value.
  */
-$.inherit = function(parentPrototype, childInstance, superName) {
-    if (typeof superName === 'undefined') {
-        superName = 'super';
-    }
-    if (superName !== null) {
-        /**
-         * @note: Call parent method via:
-         * childInstance.super.parentMethod.call(childInstance, arg1, .. argN);
-         */
-        if (typeof childInstance[superName] !== 'undefined') {
-            throw 'childInstance ' + childInstance + ' already has ' + superName + ' property';
-        }
-        childInstance[superName] = parentPrototype;
-    }
-    $.each(parentPrototype, function(k,v) {
-        if (typeof childInstance[k] === 'undefined') {
-            childInstance[k] = v;
-        }
-    });
+$.inherit = function(parentPrototype, childInstance) {
+    new $.SuperChain(childInstance, parentPrototype);
 };
 
 $.fn.findSelf = function(selector) {

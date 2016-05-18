@@ -206,7 +206,7 @@ App.ko.GridFilter = function(options) {
 (function(GridFilter) {
 
     GridFilter.init = function(options) {
-        this.super.init.call(this, options);
+        this.super._call('init', options);
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -313,7 +313,7 @@ App.ko.FkGridFilter = function(options) {
             gridOptions: options.fkGridOptions
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
-        this.super.init.call(this, options);
+        this.super._call('init', options);
     };
 
     FkGridFilter.onDropdownClick = function(ev) {
@@ -321,13 +321,13 @@ App.ko.FkGridFilter = function(options) {
     };
 
     FkGridFilter.addQueryFilter = function(value) {
-        this.super.addQueryFilter.call(this, value);
+        this.super._call('addQueryFilter', value);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
     };
 
     FkGridFilter.removeQueryFilter = function(value) {
-        this.super.removeQueryFilter.call(this, value);
+        this.super._call('removeQueryFilter', value);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
     };
@@ -1513,7 +1513,7 @@ App.GridDialog = function(options) {
         // Reference to owner component (for example App.ko.FkGridFilter instance).
         this.ownerComponent = fullOptions.ownerComponent;
         delete fullOptions.ownerComponent;
-        this.super.create.call(this, fullOptions);
+        this.super._call('create', fullOptions);
     };
 
     GridDialog.propCall = App.propCall;
@@ -1679,11 +1679,11 @@ App.ModelFormDialog = function(options) {
                 buttons: this.getButtons(),
             }, options
         );
-        this.super.create.call(this, fullOptions);
+        this.super._call('create', fullOptions);
     };
 
     ModelFormDialog.onShow = function() {
-        this.super.onShow.call(this);
+        this.super._call('onShow');
         App.initClient(this.bdialog.getModalBody());
     };
 
@@ -1817,11 +1817,11 @@ App.ActionsMenuDialog = function(options) {
                 buttons: this.getButtons()
             }, options
         );
-        this.super.create.call(this, dialogOptions);
+        this.super._call('create', dialogOptions);
     };
 
     ActionsMenuDialog.onShow = function() {
-        this.super.onShow.call(this);
+        this.super._call('onShow');
         this.grid.applyBindings(this.bdialog.getModal());
         this.bdialog.getModalBody().prepend(this.renderRow());
         this.wasOpened = true;
@@ -1830,7 +1830,7 @@ App.ActionsMenuDialog = function(options) {
     ActionsMenuDialog.onHide = function() {
         // Clean only grid bindings of this dialog, not invoker bindings.
         this.grid.cleanBindings(this.bdialog.getModal());
-        this.super.onHide.call(this);
+        this.super._call('onHide');
     };
 
 })(App.ActionsMenuDialog.prototype);
@@ -1868,7 +1868,7 @@ App.ActionTemplateDialog = function(options) {
 
     ActionTemplateDialog.inherit = function() {
         // First, import methods of direct ancestor.
-        $.inherit(App.ActionsMenuDialog.prototype, this, 'parent');
+        $.inherit(App.ActionsMenuDialog.prototype, this);
         // Second, import methods of base class that are missing in direct ancestor.
         $.inherit(App.Dialog.prototype, this);
         // Third, import just one method from ModelFormDialog (simple mixin).
@@ -1877,7 +1877,7 @@ App.ActionTemplateDialog = function(options) {
 
     ActionTemplateDialog.create = function(options) {
         options.title = options.grid.gridActions.lastKoAction.localName;
-        this.parent.create.call(this, options);
+        this.super._call('create', options);
         /**
          * Update meta (display text) for bound ko template (this.templateId).
          * This may be used to invoke the same dialog with different messages
@@ -1890,7 +1890,7 @@ App.ActionTemplateDialog = function(options) {
     };
 
     ActionTemplateDialog.onShow = function() {
-        this.parent.onShow.call(this);
+        this.super._call('onShow');
         App.initClient(this.bdialog.getModalBody());
     };
 

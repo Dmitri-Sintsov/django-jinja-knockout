@@ -151,7 +151,7 @@ App.ButtonPopover = function(popoverOptions) {
 
     ButtonPopover.create = function(target, popoverOptions) {
         var self = this;
-        this.super.create.call(this, target, popoverOptions);
+        this.super._call('create', target, popoverOptions);
         this.$popoverContent.on('click', function(ev) {
             ev.preventDefault();
             return self.clickPopoverButton(ev);
