@@ -24,14 +24,14 @@
             <div class="container-fluid grid-controls">
                 <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
                     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-                        <a data-bind="click: onDropdownClick.bind($data, event)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <span data-bind="text: name"></span> <b class="caret"></b>
                             <div data-bind="visible: current_name() != '', text: current_name()"></div>
                         </a>
                         <!-- ko if: choices !== null -->
                         <ul data-bind="foreach: choices" class="dropdown-menu">
                             <li data-bind="css: {active: is_active()}">
-                                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data, event)" name="#"></a>
+                                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
                             </li>
                         </ul>
                         <!-- /ko -->

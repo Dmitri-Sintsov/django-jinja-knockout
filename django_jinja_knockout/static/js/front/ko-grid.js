@@ -133,7 +133,7 @@ App.ko.GridFilterChoice = function(options) {
         this.$link = $element;
     };
 
-    GridFilterChoice.onLoadFilter = function(ev) {
+    GridFilterChoice.onLoadFilter = function(data, ev) {
         this.ownerFilter.switchKoFilterChoices(this, ev);
         this.ownerFilter.ownerGrid.queryArgs.page = 1;
         this.ownerFilter.ownerGrid.listAction();
@@ -180,7 +180,7 @@ App.ko.AbstractGridFilter = function(options) {
         */
     };
 
-    AbstractGridFilter.onDropdownClick = function(ev) {
+    AbstractGridFilter.onDropdownClick = function(data, ev) {
         // console.log('dropdown clicked');
     };
 
