@@ -52,7 +52,7 @@
         </nav>
         <!-- /ko -->
         <div class="table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table-hover table-collapse">
                 <thead>
                     <tr>
                         <!-- ko if: options.showSelection -->
@@ -77,7 +77,7 @@
             </table>
         </div>
         <div class="table-responsive vscroll">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table-hover table-collapse">
                 <% } %>
                 <tbody data-bind="foreach: gridRows">
                     <tr class="pointer">
@@ -92,7 +92,12 @@
                         </td>
                         <!-- /ko -->
                         <!-- ko grid_row, foreach: $parent.gridColumns -->
-                        <td data-bind="click: $parent.onRowClick.bind($parent), grid_row_value: $parent.displayValues[field], attr: {index: $index}, css: {success: !($index() & 1), info: $index() & 1}"></td>
+                        <td data-bind="
+                            click: $parent.onRowClick.bind($parent),
+                            grid_row_value: $parent.displayValues[field],
+                            attr: {index: $index, 'data-caption': name},
+                            css: {success: !($index() & 1), info: $index() & 1}
+                        "></td>
                         <!-- /ko -->
                     </tr>
                 </tbody>

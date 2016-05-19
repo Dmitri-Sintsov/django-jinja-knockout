@@ -14,21 +14,25 @@ https://github.com/alcaeus/bootstrap-table-responsive/blob/master/dist/css/boots
     display: block;
   }
   .table-collapse thead,
+  .table-collapse tbody,
   .table-collapse tfoot {
-    display: none;
-  }
-  .table-collapse tbody {
     display: block;
   }
-  .table-collapse tbody > tr {
+  .table-collapse thead > tr,
+  .table-collapse tbody > tr,
+  .table-collapse tfoot > tr {
     display: block;
-    border-top: 1px solid #dddddd;
+    border-top: 8px dotted #dddddd;
   }
   .table-collapse tbody > tr:first-child {
     border-top: none;
   }
+  .table-collapse thead > tr > th,
+  .table-collapse thead > tr > td,
+  .table-collapse tbody > tr > th,
   .table-collapse tbody > tr > td,
-  .table-collapse tbody > tr > th {
+  .table-collapse tfoot > tr > th,
+  .table-collapse tfoot > tr > td {
     display: block;
     border: none;
   }
