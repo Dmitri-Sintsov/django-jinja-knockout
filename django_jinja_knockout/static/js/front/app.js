@@ -660,7 +660,7 @@ App.getDataUrl = function($element) {
     if (route === undefined) {
         return $element.data('url');
     } else {
-        return (typeof App.conf.url[route] === 'undefined') ? undefined : App.conf.url[route];
+        return App.routeUrl(route, $element.data('routeKwargs'));
     }
 };
 
@@ -695,15 +695,16 @@ App.ajaxForm = function($selector) {
         console.log('@note: jQuery AJAX form plugin is disabled.');
         return;
     }
-    var $form = $selector.findSelf('form.ajax-form');
-    $form.find('.btn-cancel-compose').on('click', function(ev) {
+    var $forms = $selector.findSelf('form.ajax-form');
+    $forms.find('.btn-cancel-compose').on('click', function(ev) {
         var $form = $(ev.target).closest('form');
         App.clearInputs($form);
     });
     // Do not use ajaxForm plugin submit event, otherwise form will be double-POSTed.
-    $form.ajaxForm()
+    $forms.ajaxForm()
     .find(submitSelector)
     .on('click', function(ev) {
+        var $form = $(ev.target).closest('form');
         ev.preventDefault();
         // Supposely clicked button. Each submit button may optionally have it's own route.
         // @note: forms may not have active button when submitted via keyboard or programmatically.

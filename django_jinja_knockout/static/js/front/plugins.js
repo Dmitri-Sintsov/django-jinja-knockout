@@ -89,32 +89,22 @@ $.SuperChain = function(childInstance, parentPrototype) {
      * Usage: this.super._call('methodName', arg1, .. argN);
      */
     SuperChain._call = function() {
-        var context = this.find(arguments[0]);
-        var method = context.proto[arguments[0]];
-        if (typeof method !== 'function') {
-            throw 'No such method: ' + methodName;
-        }
-        var callerSuper = this.instance.super;
-        // Switch instance super to context parent to allow nested super._call() / super._apply().
-        this.instance.super = context.super;
-        result = method.apply(this.instance, Array.prototype.slice.call(arguments, 1));
-        this.instance.super = callerSuper;
-        return result;
+        return this._apply(arguments[0], Array.prototype.slice.call(arguments, 1));
     };
 
     /**
      * Usage: this.super._apply('methodName', argsArray);
      */
-    SuperChain._apply = function(method, args) {
-        var context = this.find(arguments[0]);
-        var method = context.proto[arguments[0]];
+    SuperChain._apply = function(methodName, args) {
+        var context = this.find(methodName);
+        var method = context.proto[methodName];
         if (typeof method !== 'function') {
             throw 'No such method: ' + methodName;
         }
         var callerSuper = this.instance.super;
         // Switch instance super to context parent to allow nested super._call() / super._apply().
         this.instance.super = context.super;
-        return method.apply(this.instance, args);
+        var result = method.apply(this.instance, args);
         this.instance.super = callerSuper;
         return result;
     };
@@ -124,6 +114,14 @@ $.SuperChain = function(childInstance, parentPrototype) {
 /**
  * Multi-level inheritance should be specified in descendant to ancestor order.
  *
+ * For example to inherit from base class App.ClosablePopover, then from immediate ancestor class App.ButtonPopover,
+ * use the following code:
+ *
+ *  App.CustomPopover = function(options) {
+ *      $.inherit(ButtonPopover.prototype, this);
+ *      $.inherit(ClosablePopover.prototype, this);
+ *      // this.init();
+ *  };
  */
 $.inherit = function(parentPrototype, childInstance) {
     new $.SuperChain(childInstance, parentPrototype);

@@ -1895,4 +1895,3 @@ App.ActionTemplateDialog = function(options) {
     };
 
 })(App.ActionTemplateDialog.prototype);
-
