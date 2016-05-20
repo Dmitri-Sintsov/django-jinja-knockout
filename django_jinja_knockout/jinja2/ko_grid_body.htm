@@ -80,7 +80,7 @@
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
                 <tbody data-bind="foreach: gridRows">
-                    <tr class="pointer">
+                    <tr data-bind="css: {'grid-new-row': isUpdated()}" class="pointer">
                         <!-- ko if: $parent.options.showSelection -->
                         <td data-bind="click: onRowClick" class="grid-glyph-cell">
                             <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>

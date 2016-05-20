@@ -420,6 +420,9 @@ App.ko.GridRow = function(options) {
     GridRow.init = function(options) {
         var self = this;
         this.isSelectedRow = ko.observable(options.isSelectedRow);
+        this.isUpdated = ko.observable(
+            (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
+        );
         this.isSelectedRow.subscribe(function(newValue) {
             if (newValue) {
                 self.ownerGrid.onSelectRow(self);
@@ -469,6 +472,7 @@ App.ko.GridRow = function(options) {
     GridRow.update = function(savedRow) {
         var self = this;
         this.str = savedRow.str;
+        this.isUpdated(savedRow.isUpdated);
         _.each(savedRow.values, function(value, field) {
             self.values[field] = value;
         });
@@ -991,6 +995,14 @@ App.ko.Grid = function(options) {
         this.selectedRowsPks = [];
     };
 
+    Grid.markUpdated = function(isUpdated) {
+        var self = this;
+        var koRow = null;
+        _.each(this.gridRows(), function(koRow) {
+            koRow.isUpdated(isUpdated);
+        });
+    };
+
     /**
      * Adds new grid rows from raw viewmodel rows supplied.
      *  newRows - list of raw rows supplied from server-side.
@@ -1004,6 +1016,7 @@ App.ko.Grid = function(options) {
             this.gridRows[opcode](this.iocRow({
                 ownerGrid: this,
                 isSelectedRow: false,
+                isUpdated: true,
                 values: newRows[i]
             }));
         }
@@ -1019,6 +1032,7 @@ App.ko.Grid = function(options) {
             var savedGridRow = this.iocRow({
                 ownerGrid: this,
                 isSelectedRow: this.hasSelectedPkVal(pkVal),
+                isUpdated: true,
                 values: savedRows[i]
             });
             if (lastClickedKoRowPkVal === pkVal) {
@@ -1047,6 +1061,7 @@ App.ko.Grid = function(options) {
      * Supports updating, adding and deleting multiple rows at once.
      */
     Grid.updatePage = function(viewModel) {
+        this.markUpdated(false);
         if (typeof viewModel.append_rows !== 'undefined') {
             this.addKoRows(viewModel.append_rows);
         }
