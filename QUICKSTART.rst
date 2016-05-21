@@ -19,7 +19,7 @@ app.js / tooltips.js
    DOM.
  * ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
  * ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
-   By default requires just an ``is_ajax=True`` argument of ``bs_form()`` / ``bs_inline_formsets()`` Jinja2 macros.
+   By default requires no more than ``is_ajax=True`` argument of ``bs_form()`` / ``bs_inline_formsets()`` Jinja2 macros.
    The whole process of server-side to client-side validation errors mapping is performed by
    ``FormWithInlineFormsetsMixin.form_valid()`` / ``form_invalid()`` methods, defined in ``django_jinja_knockout.views``.
    Also supports class-based view ``get_success_url()`` automatic client-side redirect on success.
