@@ -7,43 +7,67 @@ Key features overview
 app.js / tooltips.js
 --------------------
 * Implements client-side helper classes for Twitter Bootstrap 3.
-* Implements client-side response routing:
 
- * Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
-   attributes without defining DOM event handler and implicit callback.
- * Allows to write more modular Javascript code.
- * Client-side view models can also be executed from Javascript code directly.
- * Possibility to optionally inject client-side view models into html pages, executing these onload.
- * Possibility to execute client-side viewmodels from current user session (persistent onload).
- * ``App.viewHandlers`` - predefined standard response routing viewmodels to display BootstrapDialogs and to manipulate
-   DOM.
- * ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
- * ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
-   By default requires no more than ``is_ajax=True`` argument of ``bs_form()`` / ``bs_inline_formsets()`` Jinja2 macros.
-   The whole process of server-side to client-side validation errors mapping is performed by
-   ``FormWithInlineFormsetsMixin.form_valid()`` / ``form_invalid()`` methods, defined in ``django_jinja_knockout.views``.
-   Also supports class-based view ``get_success_url()`` automatic client-side redirect on success.
-   Supports multiple Django POST routes for the same AJAX form via multiple ``input[type="submit"]`` buttons in the
-   generated form html body.
+Viewmodels (client-side response routing)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
+  attributes without defining DOM event handler and implicit callback.
+* Allows to write more modular Javascript code.
+* Client-side view models can also be executed from Javascript code directly.
+* Possibility to optionally inject client-side view models into html pages, executing these onload.
+* Possibility to execute client-side viewmodels from current user session (persistent onload).
+* ``App.viewHandlers`` - predefined built-in AJAX response routing viewmodels to perform standard client-side actions,
+  such as displaying BootstrapDialogs, manipulate DOM content, graceful AJAX errors handling and more.
+
+Simplifying AJAX calls
+~~~~~~~~~~~~~~~~~~~~~~
+
+* ``App.routeUrl`` - mapping of Django server-side route urls to client-side Javascript.
+* ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
+* ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
+  By default requires only an ``is_ajax=True`` argument of ``bs_form()`` / ``bs_inline_formsets()`` Jinja2 macros.
+  The whole process of server-side to client-side validation errors mapping is performed by
+  ``FormWithInlineFormsetsMixin.form_valid()`` / ``form_invalid()`` methods, defined in ``django_jinja_knockout.views``.
+  Also supports class-based view ``get_success_url()`` automatic client-side redirect on success.
+  Supports multiple Django POST routes for the same AJAX form via multiple ``input[type="submit"]`` buttons in the
+  generated form html body.
 
 * ``App.Dialog`` BootstrapDialog wrapper.
 * ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django and allow to export named Django
   urls like ``url(name='my_url_name')`` to be used in client-side code directly.
-* Client initialization is separated from ``$(document).ready()`` initialization, because client initialization also
-  might be performed for dynamically added HTML DOM content (from AJAX response or via Knockout.js templates).
+
+* Client initialization performed separately from ``$(document).ready()`` initialization, because client initialization
+  also may be used for dynamically added HTML DOM content (from AJAX response or via Knockout.js templates).
   For example, custom ``'formset:added'`` jQuery event automatically supports client initialization (field classes /
   field event handlers) when new form is added to inline formset dynamically.
-  ``$(document).ready()`` event handler uses it's own hook system for plugins, to do not interfere with external scripts
+* ``$(document).ready()`` event handler uses it's own hook system for plugins, to do not interfere with external scripts
   code.
+
+Underscore.js templates
+~~~~~~~~~~~~~~~~~~~~~~~
+Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they may be used in conjunction
+with Knockout.js templates to generate components.
+
+* ``App.compileTemplate`` provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
+  specified DOM id ``tplId``.
+* ``App.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
+* ``App.loadTemplates`` automatically loads existing underscore.js templates by their DOM id into DOM nodes with html5
+  ``data-template-id`` attributes for specified ``$selector``.
+
+Components
+~~~~~~~~~~
+``App.Components`` class allows to automatically instantiate Javascript classes by their string path specified in
+element's ``data-component-options`` html5 attribute and bind these to that element. Primarily used to provide
+Knockout.js ``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to Knockout.js.
 
 plugins.js
 ----------
 Set of jQuery plugins.
 
 * ``$.inherit`` - Meta inheritance.
-  Copies parent object ``prototype`` methods into ``instance`` of pseudo-child.
-  Multi-inheritance is possible via calling ``$.inherit`` multiple times with
-  different ``superName`` value.
+  Copies parent object ``prototype`` methods into ``instance`` of pseudo-child. Supports nested multi-level inheritance
+  with chains of ``super`` calls in Javascript via ``$.SuperChain`` class.
 * ``$.autogrow`` plugin to automatically expand text lines of textarea elements;
 * ``$.linkPreview`` plugin to preview outer links in secured html5 iframes;
 * ``$.scroller`` plugin - AJAX driven infinite vertical scroller;
