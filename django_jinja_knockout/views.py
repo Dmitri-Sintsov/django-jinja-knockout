@@ -875,16 +875,17 @@ class GridActionsMixin():
         obj = self.__class__.model.objects.filter(pk=pk_val).first()
         form = form_class(self.request.POST, instance=obj)
         if form.is_valid():
-            obj = form.save()
-            row = self.postprocess_row(
-                self.get_model_row(obj),
-                obj
-            )
             vm = {'view': self.__class__.viewmodel_name}
-            if pk_val is None:
-                vm['prepend_rows'] = [row]
-            else:
-                vm['update_rows'] = [row]
+            if form.has_changed():
+                obj = form.save()
+                row = self.postprocess_row(
+                    self.get_model_row(obj),
+                    obj
+                )
+                if pk_val is None:
+                    vm['prepend_rows'] = [row]
+                else:
+                    vm['update_rows'] = [row]
             return vm_list(vm)
         else:
             ff_vms = vm_list()
