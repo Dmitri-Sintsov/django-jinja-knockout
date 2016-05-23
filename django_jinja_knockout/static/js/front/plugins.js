@@ -118,9 +118,9 @@ $.SuperChain = function(childInstance, parentPrototype) {
  * use the following code:
  *
  *  App.CustomPopover = function(options) {
- *      $.inherit(ButtonPopover.prototype, this);
- *      $.inherit(ClosablePopover.prototype, this);
- *      // this.init();
+ *      $.inherit(App.ButtonPopover.prototype, this);
+ *      $.inherit(App.ClosablePopover.prototype, this);
+ *      // this.init(options);
  *  };
  */
 $.inherit = function(parentPrototype, childInstance) {

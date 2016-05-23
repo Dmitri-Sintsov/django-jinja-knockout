@@ -65,16 +65,61 @@ plugins.js
 ----------
 Set of jQuery plugins.
 
-* ``$.inherit`` - Meta inheritance.
+Multiple level Javascript class inheritance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* ``$.inherit`` - implementation of meta inheritance.
   Copies parent object ``prototype`` methods into ``instance`` of pseudo-child. Supports nested multi-level inheritance
   with chains of ``super`` calls in Javascript via ``$.SuperChain`` class.
+
+Multi-level inheritance should be specified in descendant to ancestor order.
+
+.. highlight:: javascript
+
+For example to inherit from base class App.ClosablePopover, then from immediate ancestor class App.ButtonPopover,
+use the following Javascript code::
+
+    App.CustomPopover = function(options) {
+        // Immediate ancestor.
+        $.inherit(App.ButtonPopover.prototype, this);
+        // Base ancestor.
+        $.inherit(App.ClosablePopover.prototype, this);
+        this.init(options);
+    };
+
+    (function(CustomPopover) {
+
+        CustomPopover.init = function(options) {
+            // Will call App.ButtonPopover.init(), with current 'this' context when such method is defined, or
+            // will call App.ClosablePopower.init(), with current 'this' context, otherwise.
+            // App.ButtonPopover.init() also will be able to call it's this.super._call('init', options);
+            // as inheritance chain.
+            this.super._call('init', options);
+        };
+
+    })(App.CustomPopover.prototype);
+
+Real examples of inheritance are available in ``button-popover.js`` ``App.ButtonPopover`` class implementation and in
+``ko-grid.js``, including multi-level one::
+
+    ActionTemplateDialog.inherit = function() {
+        // First, import methods of direct ancestor.
+        $.inherit(App.ActionsMenuDialog.prototype, this);
+        // Second, import methods of base class that are missing in direct ancestor.
+        $.inherit(App.Dialog.prototype, this);
+        // Third, import just one method from ModelFormDialog (simple mixin).
+        this.getButtons = App.ModelFormDialog.prototype.getButtons;
+    };
+
+jQuery plugins
+~~~~~~~~~~~~~~
 * ``$.autogrow`` plugin to automatically expand text lines of textarea elements;
 * ``$.linkPreview`` plugin to preview outer links in secured html5 iframes;
 * ``$.scroller`` plugin - AJAX driven infinite vertical scroller;
 
 .. highlight:: html
 
-These jQuery plugins have their Knockout.js bindings in ``app.js``, simplifying their usage in client-side scripts:
+These jQuery plugins have corresponding Knockout.js bindings in ``app.js``, simplifying their usage in client-side
+scripts:
 
 * ``ko.bindingHandlers.autogrow``::
 
