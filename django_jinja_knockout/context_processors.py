@@ -21,6 +21,12 @@ def raise_helper(msg):
 
 class TemplateContextProcessor():
 
+    """
+        CLIENT_ROUTES = (
+            ('logout', False),
+            ('users_list', True),
+        )
+    """
     CLIENT_ROUTES = ()
 
     def __init__(self, HttpRequest=None):

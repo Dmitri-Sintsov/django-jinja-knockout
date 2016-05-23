@@ -141,7 +141,15 @@ context_processors.py
 Context processor adds many useful functions and classes into Jinja2 template context, allowing to write more powerful
 and more flexible Jinja2 templates.
 
-* Functions to manipulate css classes in Jinja2 templates: ``add_css_classes()`` / ``add_css_classes_to_dict()``.
+Functions to manipulate css classes in Jinja2 templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``add_css_classes()`` - similar to jQuery ``$.addClass()`` function;
+* ``add_css_classes_to_dict()`` - similar to previous one but automatically uses 'class' key value of supplied dict
+  by default, which is handy to use processed dictionary as argument of Django ``flat_att()`` call.
+
+Injection of server-side data into loaded page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * ``client_data`` dict to be injected as JSON to HTML page, which is accessible then at client-side as
   ``App.clientData`` Javascript object, including optional JSON client-side viewmodels, executed when html page is
   loaded::
@@ -152,14 +160,19 @@ and more flexible Jinja2 templates.
     </script>
 
 * ``cilent_conf`` dict passed to be accessible at client-side (``App.conf`` Javascript object) with the following keys:
-
  * ``'csrfToken'`` - current CSRF token to be used with AJAX POST from Javascript;
  * ``'staticPath'`` - root static url path to be used with AJAX requests from Javascript;
  * ``'userId'`` - current user id, 0 for anonymous; used both in Jinja2 templates to detect authorized users and from
    Javascript mostly with AJAX requests;
- * ``'url'`` - Python dict mapped to Javascript object with the selected list of url routes to be used with AJAX
-   requests from Javascript (to do not have hard-coded app urls in Javascript code);
 
+Injection of Django url routes into loaded page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* ``App.conf.url`` - Python tuple from ``context_processors.TemplateContextProcessor.CLIENT_ROUTES`` defines selected
+  list of Django url routes mapped to Javascript object to be used with AJAX requests from Javascript (to do not have
+  hard-coded app urls in Javascript code). Since version 0.2.0, also supports url names with kwargs.
+
+Contenttypes framework helpers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * ``ContentTypeLinker`` class to easily generate contenttypes framework links in Jinja2 templates::
 
     {% set ctl = ContentTypeLinker(object, 'content_type', 'object_id') %}
@@ -171,13 +184,29 @@ and more flexible Jinja2 templates.
         </a>
     {% endif %}
 
-* ``get_verbose_name()`` allows to get verbose_name of Django model field, including related (foreign) and reverse-related
-  fields.
+Meta and formatting
+~~~~~~~~~~~~~~~~~~~
+.. highlight:: python
+
+* ``get_verbose_name()`` allows to get verbose_name of Django model field, including related (foreign) and reverse
+  related fields.
 * Django functions to format html content: ``flat_att()`` / ``format_html()`` / ``force_text()``.
 * Possibility to raise exceptions in Jinja2 templates via ``{{ raise('Error message') }}``
+
+Advanced url resolution, both forward and reverse
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``resolve_cbv()`` takes url_name and kwargs and returns a function view or a class-based view for these arguments,
+  when available::
+
+    resolve_cbv(url_name, view_kwargs)
+
 * ``reverseq()`` allows to build reverse urls with optional query string specified as Python dict::
 
     reverseq('my_url_name', kwargs={'project_id': project.pk}, query={'type': 'approved'})
+
+Miscelaneous
+~~~~~~~~~~~~
 * ``sdv_dbg()`` for optional template variable dump (debug).
 * Context processor is inheritable which allows greater flexibility to implement your own custom features by
   overloading methods.
@@ -199,8 +228,6 @@ forms.py / formsets.js
 
 middleware.py
 -------------
-
-.. highlight:: python
 
 * Access current request instance anywhere in form / formset / field widget code - but please do not abuse this feature
   by using request in models code which might be executed without HTTP request (eg. in the management commands)::
