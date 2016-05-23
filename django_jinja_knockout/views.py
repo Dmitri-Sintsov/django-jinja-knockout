@@ -989,7 +989,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     def get_related_fields(self, query_fields=None):
         if query_fields is None:
             query_fields = self.get_all_fieldnames()
-        return list(set(self.get_grid_field_attnames()) - set(query_fields))
+        return list(set(self.get_grid_fields_attnames()) - set(query_fields))
 
     # A superset of self.get_all_fieldnames() which also returns foreign related fields, if any.
     # It is used to automatically include related query fields / sort orders.
@@ -1006,13 +1006,13 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     def get_query_fields(self):
         return self.get_all_related_fields()
 
-    def get_grid_field_attnames(self):
+    def get_grid_fields_attnames(self):
         return [field[0] if type(field) is tuple else field for field in self.grid_fields]
 
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitely defined in self.__class__.grid_fields attribute,
         # these will be automatically added to allowed sort orders.
-        return self.get_all_fieldnames() if self.__class__.grid_fields is None else self.get_all_related_fields()
+        return self.get_all_fieldnames() if self.grid_fields is None else self.get_all_related_fields()
 
     def get_grid_fields(self):
         return []
@@ -1022,10 +1022,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     @classmethod
     def init_class(cls, self):
-        super(KoGridView, cls).init_class(self)
-        model_class_members = get_object_members(self.__class__.model)
-        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
-
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
         elif cls.grid_fields == '__all__':
@@ -1037,6 +1033,11 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             self.query_fields = self.get_query_fields()
         else:
             self.query_fields = cls.query_fields
+
+        super(KoGridView, cls).init_class(self)
+        model_class_members = get_object_members(self.__class__.model)
+        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
+
 
     def object_from_row(self, row):
         row_related = {}
