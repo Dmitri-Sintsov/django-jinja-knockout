@@ -15,10 +15,10 @@
     </div>
 </script>
 <script type="text/template" id="ko_grid_body">
-    <% if (typeof(show_title) !== "undefined" && show_title) { %>
+    <% if (self.get(self, 'show_title')) { %>
     <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
-    <% } %>
     <div class="panel-body">
+    <% } %>
         <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
         <nav class="nav navbar navbar-default">
             <div class="container-fluid grid-controls">
@@ -42,7 +42,7 @@
                         <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
                     </div>
                     <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
-                    <% if (typeof(show_action_buttons) !== "undefined" && show_action_buttons) { %>
+                    <% if (self.get(self, 'show_action_buttons')) { %>
                     <!-- ko foreach: actionTypes['button'] -->
                         <button class="btn" data-bind="css: getKoCss(), click: function() { doAction({}); }, text: $data.localName"></button>
                     <!-- /ko -->
@@ -51,8 +51,8 @@
             </div>
         </nav>
         <!-- /ko -->
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover table-collapse">
+        <div class="table-responsive" <% if (self.get(self, 'vscroll')) { %> style="overflow-y: scroll;" <% } %> >
+            <table class="table table-bordered table-hover table-collapse" <% if (self.get(self, 'vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
                     <tr>
                         <!-- ko if: options.showSelection -->
@@ -73,7 +73,7 @@
                         <!-- /ko -->
                     </tr>
                 </thead>
-                <% if (typeof(vscroll) !== "undefined" && vscroll) { %>
+                <% if (self.get(self, 'vscroll')) { %>
             </table>
         </div>
         <div class="table-responsive vscroll">
@@ -109,5 +109,7 @@
                 </div>
             </table>
         </div>
+    <% if (self.get(self, 'show_title')) { %>
     </div>
+    <% } %>
 </script>

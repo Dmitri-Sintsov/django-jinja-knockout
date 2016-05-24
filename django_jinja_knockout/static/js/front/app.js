@@ -804,11 +804,39 @@ App.compileTemplate = function(tplId) {
         if (tpl === null) {
             throw sprintf("Unknown underscore template id: %s", tplId);
         }
+        // Local context variables will be passed to 'self' object variable in template text,
+        // to speed-up template expansion and to inject helper functions.
+        // http://underscorejs.org/#template
         App.bag._templates[tplId] = _.template(
-            $(tpl).html()
+            $(tpl).html(), {variable: 'self'}
         );
     }
     return App.bag._templates[tplId];
+};
+
+/**
+ * Expand underscore.js template to string.
+ */
+App.expandTemplate = function(tplId, tplArgs) {
+    var compiled = App.compileTemplate(tplId);
+    if (typeof tplArgs === 'undefined') {
+        tplArgs = {};
+    }
+    if (typeof tplArgs.get !== 'undefined') {
+        throw 'tplArgs conflicting key: get';
+    }
+    // todo: Add self.flatatt() to easily manipulate DOM attrs in templates.
+    // Add self.get() function to helper context.
+    tplArgs.get = function(self, varName, defaultValue) {
+        if (typeof varName !== 'string') {
+            throw 'varName must be string';
+        }
+        if (typeof defaultValue === 'undefined') {
+            defaultValue = false;
+        }
+        return (typeof self[varName] === 'undefined') ? defaultValue : self[varName];
+    };
+    return compiled(tplArgs);
 };
 
 /**
@@ -819,9 +847,7 @@ App.domTemplate = function(tplId, tplArgs) {
     if (typeof tplArgs !== 'object') {
         tplArgs = {};
     }
-    var compiled = App.compileTemplate(tplId);
-    // Using fake or real 'this'.
-    var contents = compiled(tplArgs);
+    var contents = App.expandTemplate(tplId, tplArgs);
     var $result = $.contents(contents);
     // Load recursive nested templates, if any.
     $.each($result, function(k, v) {
@@ -848,14 +874,13 @@ App.loadTemplates = function($selector) {
     // Expand innermost templates first, outermost last.
     for (var i = $ancestors.length - 1; i >= 0; i--) {
         var $target = $targets.eq($ancestors[i]._targetKey);
-        var tpl = App.compileTemplate(
-            $target.attr('data-template-id')
-        );
         var tplArgs = $target.data('templateArgs');
-        if (typeof tplArgs !== 'object') {
-            tplArgs = {};
-        }
-        var $result = $.contents(tpl(tplArgs));
+        var $result = $.contents(
+            App.expandTemplate(
+                $target.attr('data-template-id'),
+                tplArgs
+            )
+        );
         $target.prepend($result);
     };
     $.each($targets, function(k, currentTarget) {
