@@ -15,10 +15,10 @@
     </div>
 </script>
 <script type="text/template" id="ko_grid_body">
-    <div>
-        <% if (typeof(show_title) !== "undefined" && show_title) { %>
-        <div data-bind="text: meta.verboseNamePlural" class="h3"></div>
-        <% } %>
+    <% if (typeof(show_title) !== "undefined" && show_title) { %>
+    <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+    <% } %>
+    <div class="panel-body">
         <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
         <nav class="nav navbar navbar-default">
             <div class="container-fluid grid-controls">

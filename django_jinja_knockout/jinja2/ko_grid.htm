@@ -11,8 +11,7 @@
 {% do _grid_options.update(grid_options) %}
 {% do add_css_classes_to_dict(dom_attrs, 'panel panel-primary component') %}
 <div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
-    <div class="panel-body">
-        <div data-template-id="ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'></div>
+    <div data-template-id="ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'>
         <div data-template-id="ko_grid_pagination"></div>
     </div>
 </div>

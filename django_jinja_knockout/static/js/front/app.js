@@ -821,24 +821,39 @@ App.domTemplate = function(tplId, tplArgs) {
     var compiled = App.compileTemplate(tplId);
     // Using fake or real 'this'.
     var contents = compiled(tplArgs);
-    return $.contents(contents);
+    var $result = $.contents(contents);
+    // App.loadTemplates($result);
+    return $result;
 };
 
 /**
- * Template autoloading.
+ * Recursive underscore.js template autoloading.
  * Does not use html5 <template> tag because IE lower than Edge do not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
 App.loadTemplates = function($selector) {
-    $.each($selector.findSelf('[data-template-id]'), function(k, v) {
+    var $targets = $selector.findSelf('[data-template-id]');
+    var $ancestors = [];
+    $.each($targets, function(k, currentTarget) {
+        $ancestors[k] = $(currentTarget).parents('[data-template-id]');
+        $ancestors[k]._targetKey = k;
+    });
+    $ancestors = _.sortBy($ancestors, 'length');
+    for (var i = $ancestors.length - 1; i >= 0; i--) {
+        var $target = $targets.eq($ancestors[i]._targetKey);
         var tpl = App.compileTemplate(
-            $(v).attr('data-template-id')
+            $target.attr('data-template-id')
         );
-        var tplArgs = $(v).data('templateArgs');
+        var tplArgs = $target.data('templateArgs');
         if (typeof tplArgs !== 'object') {
             tplArgs = {};
         }
-        $(v).html(tpl(tplArgs));
+        var $result = $.contents(tpl(tplArgs));
+        $target.prepend($result);
+    };
+    $.each($targets, function(k, currentTarget) {
+        var contents = $(currentTarget).contents();
+        $(currentTarget).replaceWith(contents);
     });
 };
 

@@ -648,6 +648,9 @@ class GridActionsMixin():
     formset = None
     form_with_inline_formsets = None
 
+    def get_model_meta(self, key):
+        return get_meta(self.__class__.model, key)
+
     # Create one model object.
     def get_create_form(self):
         return self.__class__.form
@@ -789,7 +792,7 @@ class GridActionsMixin():
             'last_action': 'save_form',
             'title': format_html('{}: {}',
                 self.get_action_name(self.current_action),
-                get_meta(self.__class__.model, 'verbose_name')
+                self.get_model_meta('verbose_name')
             ),
             'message': form_html
         })
@@ -911,8 +914,8 @@ class GridActionsMixin():
                     'hasSearch': len(self.search_fields) > 0,
                     'pkField': pk_field,
                     'actions': self.flat_actions,
-                    'verboseName': get_verbose_name(self.__class__.model),
-                    'verboseNamePlural': get_meta(self.__class__.model, 'verbose_name_plural')
+                    'verboseName': self.get_model_meta('verbose_name'),
+                    'verboseNamePlural': self.get_model_meta('verbose_name_plural')
                 }
             })
             vm_grid_fields = []
