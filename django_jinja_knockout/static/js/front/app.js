@@ -813,6 +813,7 @@ App.compileTemplate = function(tplId) {
 
 /**
  * Manually loads one template (by it's DOM id) and expands it with specified tplArgs into jQuery DOM nodes.
+ * Template will be processed recursively.
  */
 App.domTemplate = function(tplId, tplArgs) {
     if (typeof tplArgs !== 'object') {
@@ -822,7 +823,10 @@ App.domTemplate = function(tplId, tplArgs) {
     // Using fake or real 'this'.
     var contents = compiled(tplArgs);
     var $result = $.contents(contents);
-    // App.loadTemplates($result);
+    // Load recursive nested templates, if any.
+    $.each($result, function(k, v) {
+        App.loadTemplates($(v));
+    });
     return $result;
 };
 
@@ -833,12 +837,15 @@ App.domTemplate = function(tplId, tplArgs) {
  */
 App.loadTemplates = function($selector) {
     var $targets = $selector.findSelf('[data-template-id]');
+    // Build the list of parent templates for each template available.
     var $ancestors = [];
     $.each($targets, function(k, currentTarget) {
         $ancestors[k] = $(currentTarget).parents('[data-template-id]');
         $ancestors[k]._targetKey = k;
     });
+    // Sort the list of parent templates from outer to inner nodes of the tree.
     $ancestors = _.sortBy($ancestors, 'length');
+    // Expand innermost templates first, outermost last.
     for (var i = $ancestors.length - 1; i >= 0; i--) {
         var $target = $targets.eq($ancestors[i]._targetKey);
         var tpl = App.compileTemplate(
