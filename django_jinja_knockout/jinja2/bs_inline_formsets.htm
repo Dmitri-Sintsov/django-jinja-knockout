@@ -25,7 +25,7 @@
         'role': 'form'
     }) %}
     <form{{ flatatt(atts) }}>
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% endif %}
         {% if related_form %}
         <div class="panel-body default-padding">

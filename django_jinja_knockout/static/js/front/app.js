@@ -600,44 +600,75 @@ App.SelectMultipleAutoSize = function($selector) {
     });
 };
 
-App.datetimewidget = function($parent) {
-    if (typeof $.fn.datetimepicker === 'undefined') {
-        console.log("@note: bootstrap.datetimepicker is disabled.");
-        return;
-    }
-    // Field wrapper with icon.
-    var $dateControls = $parent.find('.date-control, .datetime-control')
-    if ($dateControls.length === 0) {
-        // There is no date / datetime fields in $parent.
-        return;
-    }
-    $dateControls.wrap('<div class="input-group date datetimepicker"></div>')
-    $dateControls.after('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
-    // Date field widget.
-    $parent.find('.date-control').datetimepicker({
-        pickTime: false,
-        language: 'ru',
-        icons: {
-            date: 'calendar'
+App.DatetimeWidget = function($parent) {
+    this.create($parent);
+};
+
+(function(DatetimeWidget) {
+
+    DatetimeWidget.create = function($parent) {
+        this.$parent = $parent;
+    };
+
+    DatetimeWidget.has = function() {
+        if (typeof $.fn.datetimepicker === 'undefined') {
+            console.log("@note: bootstrap.datetimepicker is disabled.");
+            return false;
         }
-    });
-    // Datetime field widget.
-    $parent.find('.datetime-control').datetimepicker({
-        language: 'ru',
-        icons: {
-            date: 'calendar'
-        }
-    });
-    // Picker window button help.
-    $parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
-    // Icon clicking.
-    $dateControls.next('.input-group-addon').on('click', function(ev) {
+        // Field wrapper with icon.
+        this.$dateControls = this.$parent.find('.date-control, .datetime-control')
+        return this.$dateControls.length > 0;
+    };
+
+    // @static method
+    DatetimeWidget.open = function(ev) {
         var $target = $(ev.target);
         $target.closest('.input-group-addon')
         .prev('.date-control, .datetime-control')
         .trigger('click');
-    });
-};
+    };
+
+    DatetimeWidget.init = function() {
+        if (!this.has()) {
+            return;
+        }
+        this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
+        this.$dateControls.after('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
+        // Date field widget.
+        this.$parent.find('.date-control').datetimepicker({
+            pickTime: false,
+            language: 'ru',
+            icons: {
+                date: 'calendar'
+            }
+        });
+        // Datetime field widget.
+        this.$parent.find('.datetime-control').datetimepicker({
+            language: 'ru',
+            icons: {
+                date: 'calendar'
+            }
+        });
+        // Picker window button help.
+        this.$parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
+        // Icon clicking.
+        this.$dateControls.next('.input-group-addon').on('click', DatetimeWidget.open);
+    };
+
+    // Does not restore DOM into original state, just prevents memory leaks.
+    DatetimeWidget.destroy = function() {
+        if (!this.has()) {
+            return;
+        }
+        this.$dateControls.next('.input-group-addon').off('click', DatetimeWidget.open);
+        // https://github.com/Eonasdan/bootstrap-datetimepicker/issues/573
+        _.each(this.$parent.find('.datetime-control, .date-control'), function(v) {
+            var widget = $(v).data("DateTimePicker").widget;
+            widget.remove();
+        });
+    };
+
+})(App.DatetimeWidget.prototype);
 
 App.ladder = function($selector) {
     var self = this;
@@ -891,22 +922,26 @@ App.loadTemplates = function($selector) {
 
 App.initClientHooks = [];
 
-// @note: Do not forget to call this method for newly loaded AJAX DOM.
-App.initClient = function(selector) {
+/**
+ * @note: Do not forget to call method=='init' for newly loaded AJAX DOM.
+ * Dispose is not supposed to restore DOM to original state, rather it is supposed to remove event handlers
+ * and bootstrap widgets, to minimize memory leaks, before DOM nodes are emptied.
+ */
+App.initClient = function(selector, method) {
+    if (typeof method === 'undefined') {
+        method = 'init';
+    }
     var $selector = App.getSelector(selector);
-    App.loadTemplates($selector);
-    $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
-    App.SelectMultipleAutoSize($selector);
-    App.datetimewidget($selector);
-    App.ajaxForm($selector);
-    App.ajaxButton($selector);
-    App.dialogButton($selector);
-    $selector.autogrow('init');
-    $selector.optionalInput('init');
-    $selector.collapsibleSubmit('init');
-    $selector.findSelf('.link-preview').linkPreview();
     for (var i = 0; i < App.initClientHooks.length; i++) {
-        App.initClientHooks[i]($selector);
+        var hook = App.initClientHooks[i];
+        if (typeof hook === 'function') {
+            // Non-disposable init.
+            hook($selector);
+        } else if (typeof hook === 'object' && typeof hook[method] === 'function') {
+            hook[method]($selector);
+        } else {
+            throw sprintf("App.initClient hook must be function or object with key '%s'", method);
+        }
     }
 };
 
@@ -914,14 +949,23 @@ App.initClientMark = function(html) {
     return '<span class="init-client-begin"></span>' + html + '<span class="init-client-end"></span>';
 };
 
-App.initClientApply = function(selector) {
+App.initClientApply = function(selector, method) {
     var $selector = App.getSelector(selector);
-    $.each($selector.findSelf('.init-client-begin'), function(k, v) {
-        // @todo: Check out whether removal of span is needed.
-        App.initClient($(v).nextUntil('.init-client-end'));
+    if (typeof method === 'undefined') {
+        method = 'init';
+    }
+    var markerBegin = method + '-client-begin';
+    var markerEnd = method + '-client-end';
+    $.each($selector.findSelf('.' + markerBegin), function(k, v) {
+        App.initClient($(v).nextUntil('.' + markerEnd));
     });
-    $selector.findSelf('.init-client-begin').remove();
-    $selector.find('.init-client-end').remove();
+    if (method === 'init') {
+        $selector.findSelf('.' + markerBegin).removeClass(markerBegin).addClass('dispose-client-begin');
+        $selector.find('.' + markerEnd).removeClass(markerEnd).addClass('dispose-client-end');
+    } else if (method === 'dispose') {
+        $selector.findSelf('.' + markerBegin).remove();
+        $selector.find('.' + markerEnd).remove();
+    }
 };
 
 App.routeUrl = function(route, kwargs) {
@@ -1221,6 +1265,26 @@ $.fn.component = function() {
     });
     return component;
 };
+
+App.initClientHooks.push({
+    init: function($selector) {
+        App.loadTemplates($selector);
+        $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
+        App.SelectMultipleAutoSize($selector);
+        new App.DatetimeWidget($selector).init();
+        App.ajaxForm($selector);
+        App.ajaxButton($selector);
+        App.dialogButton($selector);
+        $selector.autogrow('init');
+        $selector.optionalInput('init');
+        $selector.collapsibleSubmit('init');
+        $selector.findSelf('.link-preview').linkPreview();
+    },
+    dispose: function($selector) {
+        $selector.findSelf('[data-toggle="popover"]').popover('destroy');
+        new App.DatetimeWidget($selector).destroy();
+    }
+});
 
 /**
  * Automatic App.ko class instantiation by 'component' css class.
