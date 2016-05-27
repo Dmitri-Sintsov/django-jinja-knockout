@@ -902,6 +902,7 @@ App.DialogButton = function($selector) {
     DialogButton.destroy = function() {
         $.each(this.$dialogButtons, function(k, v) {
             var dialog = $(v).data('DialogButton').instance;
+            // Assumes BootstrapDialog.autodestroy == true;
             dialog.close();
             $(v).off('click', DialogButton.onClick);
             $(v).removeData('DialogButton');
@@ -1220,8 +1221,9 @@ ko.switchSubscription = function(self, propName, turnOn, method) {
 ko.bindingHandlers.initclient = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         App.initClient(element);
-    },
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+            App.initClient(element, 'dispose');
+        });
     },
 };
 
@@ -1230,13 +1232,19 @@ ko.bindingHandlers.initclient = {
 ko.bindingHandlers.autogrow = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         $(element).addClass('autogrow').prop('rows', valueAccessor().rows).autogrow('init');
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+            $(element).removeClass('autogrow').autogrow('destroy');
+        });
     }
 };
 
 // Usage: <div data-bind="html: text, linkPreview"></div>
 ko.bindingHandlers.linkPreview = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        $(element).linkPreview();
+        $(element).linkPreview('init');
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+            $(element).linkPreview('destroy');
+        });
     }
 };
 
@@ -1369,9 +1377,13 @@ App.initClientHooks.push({
         $selector.autogrow('init');
         $selector.optionalInput('init');
         $selector.collapsibleSubmit('init');
-        $selector.findSelf('.link-preview').linkPreview();
+        $selector.findSelf('.link-preview').linkPreview('init');
     },
     dispose: function($selector) {
+        $selector.findSelf('.link-preview').linkPreview('destroy');
+        $selector.collapsibleSubmit('destroy');
+        $selector.optionalInput('destroy');
+        $selector.autogrow('destroy');
         new App.DialogButton($selector).destroy();
         new App.AjaxButton($selector).destroy();
         new App.AjaxForm($selector).destroy();

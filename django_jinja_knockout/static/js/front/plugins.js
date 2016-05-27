@@ -134,14 +134,22 @@ $.fn.findSelf = function(selector) {
 };
 
 $.fn.autogrow = function(method) {
+
+    function updateAutogrow(ev) {
+        $(ev.target).autogrow('update');
+    };
+
     return {
         'init' : function() {
             this.findSelf('textarea.autogrow')
             .data('autogrowInit', true)
             .autogrow('update')
-            .on('click keyup input paste', function(ev) {
-                $(ev.target).autogrow('update');
-            });
+            .on('click keyup input paste', updateAutogrow);
+        },
+        'destroy' : function() {
+            this.findSelf('textarea.autogrow')
+            .removeData('autogrowInit')
+            .off('click keyup input paste', updateAutogrow);
         },
         'update' : function() {
             return this.each(function() {
@@ -175,6 +183,11 @@ $.fn.autogrow = function(method) {
 };
 
 $.fn.optionalInput = function(method) {
+
+    function updateInput(ev) {
+        $(ev.target).optionalInput('update');
+    };
+
     return {
         'init' : function() {
             this.find('.optional-input[type="checkbox"]')
@@ -182,9 +195,14 @@ $.fn.optionalInput = function(method) {
             .prop('class', 'optional-input')
             .data('optionalInputInit', true)
             .optionalInput('update')
-            .on('change', function(ev) {
-                $(ev.target).optionalInput('update');
-            });
+            .on('change', updateInput);
+        },
+        'destroy' : function() {
+            this.find('.optional-input[type="checkbox"]')
+            // Next line is required because Django 1.8 MultiWidget does not allow to set css classes of child widgets separately.
+            .removeProp('class')
+            .removeData('optionalInputInit')
+            .off('change', updateInput);
         },
         'update' : function() {
             return this.each(function() {
@@ -218,17 +236,29 @@ $.fn.optionalInput = function(method) {
  * Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
  */
 $.fn.collapsibleSubmit = function(method) {
+
+    function updateCollapsible(ev) {
+        var $input = $(this).closest('.activates-submit-group')
+        .data('collapsibleSubmitInit', true)
+        .collapsibleSubmit('update');
+    };
+
     return {
         // Applied to outer container.
         'init' : function() {
             this.find('.activates-submit-group')
             .data('collapsibleSubmitInit', true)
             .collapsibleSubmit('update')
-            .on('keyup input paste', function(ev) {
-                var $input = $(this).closest('.activates-submit-group')
-                .data('collapsibleSubmitInit', true)
-                .collapsibleSubmit('update');
-            });
+            .on('keyup input paste', updateCollapsible);
+        },
+        // Applied to outer container.
+        'destroy' : function() {
+            this.find('.activates-submit-group')
+            // off() does not work in jQuery 1.11.3 / Chrome 51.0.2704.63 (64-bit) for Linux,
+            // thus using less reilable unbind() instead.
+            // .off('keyup input paste', updateCollapsible)
+            .unbind('keyup input paste')
+            .removeData('collapsibleSubmitInit');
         },
         // Applied to input element that receives the events.
         'update': function() {
@@ -246,114 +276,152 @@ $.fn.collapsibleSubmit = function(method) {
     }[method].call(this);
 };
 
-$.fn.linkPreview = function() {
+$.fn.linkPreview = function(method) {
 
     var scaledPreview = function($anchor) {
-        var self = this;
-        this.$anchor = $anchor;
-        this.isObject = false;
-        this.scale = 1;
-        this.id = 'iframe_' + $.randomHash();
-        var content = this.getPopoverContent();
-        this.popover = $anchor.popover({
-            // non-default container is required for block elements which has overflow.
-            container: 'body',
-            html: true,
-            trigger: 'hover',
-            placement: 'auto',
-            content: this.getPopoverContent(),
-        });
-        this.popover.on('shown.bs.popover', function(ev) {
-            return self.show(ev);
-        });
+        this.create($anchor);
     };
 
-    scaledPreview.prototype.getPopoverContent = function() {
-        var result;
-        if (this.isObject) {
-            result =
-                '<object id="' + this.id + '" style="overflow:hidden; margin:0; padding:0;" data="' +
-                this.$anchor.prop('href') + '"></object'
-        } else {
-            result =
-                '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
-                '"frameborder="0" scrolling="no" src="' +
-                $.htmlEncode(this.$anchor.prop('href')) +
-                '" class="transform-origin-0"></iframe>' +
-                '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>';
-        }
-        return result;
-    };
+    (function(scaledPreview) {
 
-    scaledPreview.prototype.show = function(ev) {
-        // console.log('shown.bs.popover');
-        var iframe = document.getElementById(this.id);
-        var doc;
-        try {
-            doc = iframe.contentWindow.document;
-        } catch (e) {
-            // Usually means 'X-Frame-Options' is set to 'DENY' or to 'SAMEORIGIN'.
-            return;
-        }
-        var $iframe = $(iframe);
-        $iframe.parent().find('.link-preview-spinner').remove();
-        var body = doc.body;
-        // console.log('doc.location: ' + doc.location);
-        // console.log('doc.location.hostname: ' + doc.location.hostname);
-        if (doc.body === null) {
-            if (doc.location.hostname == '') {
-                // Embedded object loading random failure in Chrome 47.
-                // Refresh the popover content to try load it again.
-                $iframe.parent().html(this.getPopoverContent());
+        scaledPreview.create = function($anchor) {
+            var self = this;
+            this.$anchor = $anchor;
+            this.$anchor.data('scaledPreview', {instance: this});
+            this.isObject = false;
+            this.scale = 1;
+            this.id = 'iframe_' + $.randomHash();
+            var content = this.getPopoverContent();
+            this.popover = $anchor.popover({
+                // non-default container is required for block elements which has overflow.
+                container: 'body',
+                html: true,
+                trigger: 'hover',
+                placement: 'auto',
+                content: this.getPopoverContent(),
+            });
+            this.popover.on('shown.bs.popover', function(ev) {
+                return self.show(ev);
+            });
+        };
+
+        scaledPreview.destroy = function() {
+            this.popover.unbind('shown.bs.popover');
+            // https://github.com/twbs/bootstrap/issues/475
+            this.$anchor.popover('disable').popover('hide');
+            var iframe = document.getElementById(this.id);
+            if (iframe !== null) {
+                $(iframe).remove();
+            }
+        };
+
+        scaledPreview.getPopoverContent = function() {
+            var result;
+            if (this.isObject) {
+                result =
+                    '<object id="' + this.id + '" style="overflow:hidden; margin:0; padding:0;" data="' +
+                    this.$anchor.prop('href') + '"></object'
+            } else {
+                result =
+                    '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
+                    '"frameborder="0" scrolling="no" src="' +
+                    $.htmlEncode(this.$anchor.prop('href')) +
+                    '" class="transform-origin-0"></iframe>' +
+                    '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>';
+            }
+            return result;
+        };
+
+        scaledPreview.show = function(ev) {
+            // console.log('shown.bs.popover');
+            var iframe = document.getElementById(this.id);
+            var doc;
+            try {
+                doc = iframe.contentWindow.document;
+            } catch (e) {
+                // Usually means 'X-Frame-Options' is set to 'DENY' or to 'SAMEORIGIN'.
                 return;
             }
-            // console.log('doc.body is null');
-            // Embedded object (not html / image); for example pdf
-            // Fix works in Chrome 47. In Firefox 43 / IE 11 it is seem to very hard to fix.
-            this.isObject = true;
-            $iframe.parent()
-            .css({
-                'overflow': 'hidden',
-                'margin': 0,
-                'padding': 0,
-            })
-            .html(this.getPopoverContent());
-            // Imitate document body without real iframe as popover-content parent.
-            return;
-        } else {
-            // console.log('doc.body is not null');
-        }
-        // Rescale iframe document body to fit into popover-content.
-        var width = $(body).width();
-        var scrollWidth = body.scrollWidth;
-        console.log('scrolWidth: ' + scrollWidth);
-        console.log('width: ' + width);
-        var containerHeight = $iframe.parent().height();
-        if (scrollWidth > width) {
-            var scale = width / scrollWidth;
-            $iframe.css({
-                'width': 100 / scale + '%',
-                'height':  containerHeight / scale,
-                '-webkit-transform' : 'scale(' + scale + ')',
-                '-moz-transform'    : 'scale(' + scale + ')',
-                '-ms-transform'     : 'scale(' + scale + ')',
-                '-o-transform'      : 'scale(' + scale + ')',
-                'transform'         : 'scale(' + scale + ')'
-            });
-        }
-        $iframe.parent().height(containerHeight);
-    };
+            var $iframe = $(iframe);
+            $iframe.parent().find('.link-preview-spinner').remove();
+            var body = doc.body;
+            // console.log('doc.location: ' + doc.location);
+            // console.log('doc.location.hostname: ' + doc.location.hostname);
+            if (doc.body === null) {
+                if (doc.location.hostname == '') {
+                    // Embedded object loading random failure in Chrome 47.
+                    // Refresh the popover content to try load it again.
+                    $iframe.parent().html(this.getPopoverContent());
+                    return;
+                }
+                // console.log('doc.body is null');
+                // Embedded object (not html / image); for example pdf
+                // Fix works in Chrome 47. In Firefox 43 / IE 11 it is seem to very hard to fix.
+                this.isObject = true;
+                $iframe.parent()
+                .css({
+                    'overflow': 'hidden',
+                    'margin': 0,
+                    'padding': 0,
+                })
+                .html(this.getPopoverContent());
+                // Imitate document body without real iframe as popover-content parent.
+                return;
+            } else {
+                // console.log('doc.body is not null');
+            }
+            // Rescale iframe document body to fit into popover-content.
+            var width = $(body).width();
+            var scrollWidth = body.scrollWidth;
+            console.log('scrolWidth: ' + scrollWidth);
+            console.log('width: ' + width);
+            var containerHeight = $iframe.parent().height();
+            if (scrollWidth > width) {
+                var scale = width / scrollWidth;
+                $iframe.css({
+                    'width': 100 / scale + '%',
+                    'height':  containerHeight / scale,
+                    '-webkit-transform' : 'scale(' + scale + ')',
+                    '-moz-transform'    : 'scale(' + scale + ')',
+                    '-ms-transform'     : 'scale(' + scale + ')',
+                    '-o-transform'      : 'scale(' + scale + ')',
+                    'transform'         : 'scale(' + scale + ')'
+                });
+            }
+            $iframe.parent().height(containerHeight);
+        };
 
-    return this.each(function() {
-        var $elem = $(this);
-        if ($elem.prop('href') !== undefined) {
-            new scaledPreview($elem);
-        } else {
-            $.each($elem.find('a'), function(k, anchor) {
-                new scaledPreview($(anchor));
+    })(scaledPreview.prototype);
+
+    return {
+        init: function() {
+            return this.each(function() {
+                var $elem = $(this);
+                if ($elem.prop('href') !== undefined) {
+                    new scaledPreview($elem);
+                } else {
+                    $.each($elem.find('a'), function(k, anchor) {
+                        new scaledPreview($(anchor));
+                    });
+                }
+            });
+        },
+        destroy: function() {
+            return this.each(function() {
+                var $elem = $(this);
+                if ($elem.prop('href') !== undefined) {
+                    var scaledPreview = $elem.data('scaledPreview').instance;
+                    scaledPreview.destroy();
+                } else {
+                    $.each($elem.find('a'), function(k, anchor) {
+                        var scaledPreview = $(anchor).data('scaledPreview').instance;
+                        scaledPreview.destroy();
+                    });
+                }
             });
         }
-    });
+    }[method].call(this);
+
 };
 
 /**
