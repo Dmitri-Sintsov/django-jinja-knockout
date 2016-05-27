@@ -935,12 +935,17 @@ App.initClient = function(selector, method) {
     for (var i = 0; i < App.initClientHooks.length; i++) {
         var hook = App.initClientHooks[i];
         if (typeof hook === 'function') {
-            // Non-disposable init.
-            hook($selector);
-        } else if (typeof hook === 'object' && typeof hook[method] === 'function') {
-            hook[method]($selector);
-        } else {
-            throw sprintf("App.initClient hook must be function or object with key '%s'", method);
+            if (method === 'init') {
+                // Non-disposable 'init'.
+                hook($selector);
+            }
+        } else if (typeof hook === 'object') {
+            if (typeof hook[method] === 'function') {
+                // 'dispose' or custom action.
+                hook[method]($selector);
+            } else {
+                throw sprintf("App.initClient hook must be a function or object with key '%s'", method);
+            }
         }
     }
 };
@@ -957,7 +962,8 @@ App.initClientApply = function(selector, method) {
     var markerBegin = method + '-client-begin';
     var markerEnd = method + '-client-end';
     $.each($selector.findSelf('.' + markerBegin), function(k, v) {
-        App.initClient($(v).nextUntil('.' + markerEnd));
+        // todo: check unbalanced trees.
+        App.initClient($(v).nextUntil('.' + markerEnd), method);
     });
     if (method === 'init') {
         $selector.findSelf('.' + markerBegin).removeClass(markerBegin).addClass('dispose-client-begin');
