@@ -696,10 +696,20 @@ App.getDataUrl = function($element) {
     }
 };
 
-App.ajaxButton = function($selector) {
-    $selector.findSelf('a[data-route], a[data-url], ' +
-            'button[data-route][type!="submit"], button[data-url][type!="submit"]')
-    .on('click', function(ev) {
+
+App.AjaxButton = function($selector) {
+    this.create($selector);
+};
+
+(function(AjaxButton) {
+
+    AjaxButton.create = function($selector) {
+        this.$ajaxButtons = $selector.findSelf('a[data-route], a[data-url], ' +
+            'button[data-route][type!="submit"], button[data-url][type!="submit"]');
+    };
+
+    // @call static
+    AjaxButton.onClick = function(ev) {
         var $target = $(ev.target);
         App.disableInput($target);
         var l = Ladda.create($target.get(0));
@@ -715,8 +725,17 @@ App.ajaxButton = function($selector) {
         })
         .fail(App.showAjaxError);
         return false;
-    });
-};
+    };
+
+    AjaxButton.init = function() {
+        this.$ajaxButtons.on('click', AjaxButton.onClick);
+    };
+
+    AjaxButton.destroy = function() {
+        this.$ajaxButtons.off('click', AjaxButton.onClick);
+    };
+
+})(App.AjaxButton.prototype);
 
 /**
  * Please use form[data-route] attribute.
@@ -855,14 +874,42 @@ App.AjaxForm = function($selector) {
 
 })(App.AjaxForm.prototype);
 
-App.dialogButton = function($selector) {
-    $.each($selector.findSelf('.dialog-button'), function(k, v) {
-        var dialog = new App.Dialog($(v).data('options'));
-        $(v).on('click', function(ev) {
-            dialog.show();
-        });
-    });
+App.DialogButton = function($selector) {
+    this.create($selector);
 };
+
+(function(DialogButton) {
+
+    DialogButton.create = function($selector) {
+        this.$dialogButtons = $selector.findSelf('.dialog-button');
+    };
+
+    DialogButton.onClick = function(ev) {
+        var $target = $(ev.target);
+        var dialog = $target.data('DialogButton').instance;
+        dialog.show();
+    };
+
+    DialogButton.init = function() {
+        $.each(this.$dialogButtons, function(k, v) {
+            var dialog = new App.Dialog($(v).data('options'));
+            $(v).data('DialogButton', {instance: dialog});
+            $(v).on('click', DialogButton.onClick);
+        });
+        return this;
+    };
+
+    DialogButton.destroy = function() {
+        $.each(this.$dialogButtons, function(k, v) {
+            var dialog = $(v).data('DialogButton').instance;
+            dialog.close();
+            $(v).off('click', DialogButton.onClick);
+            $(v).removeData('DialogButton');
+        });
+        return this;
+    };
+
+})(App.DialogButton.prototype);
 
 // Cache for compiled templates.
 App.bag._templates = {};
@@ -1317,14 +1364,16 @@ App.initClientHooks.push({
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
         new App.AjaxForm($selector).init();
-        App.ajaxButton($selector);
-        App.dialogButton($selector);
+        new App.AjaxButton($selector).init();
+        new App.DialogButton($selector).init();
         $selector.autogrow('init');
         $selector.optionalInput('init');
         $selector.collapsibleSubmit('init');
         $selector.findSelf('.link-preview').linkPreview();
     },
     dispose: function($selector) {
+        new App.DialogButton($selector).destroy();
+        new App.AjaxButton($selector).destroy();
         new App.AjaxForm($selector).destroy();
         new App.DatetimeWidget($selector).destroy();
         $selector.findSelf('[data-toggle="popover"]').popover('destroy');
