@@ -1657,7 +1657,7 @@ App.ModelFormDialog = function(options) {
                 action: function(bdialog) {
                     var $form = bdialog.getModalBody().find('form');
                     var $button = bdialog.getModalFooter().find('button.submit');
-                    App.ajaxForm.prototype.submit($form, $button, {
+                    App.AjaxForm.prototype.submit($form, $button, {
                         success: function(response) {
                             var gridVms = App.filterViewModels(response, {
                                 view: self.grid.gridActions.viewModelName
@@ -1665,7 +1665,7 @@ App.ModelFormDialog = function(options) {
                             if (gridVms.length === 0) {
                                 // If response has no our grid viewmodel (self.gridActions.viewModelName), then
                                 // it's a form viewmodel errors response which is processed then by
-                                // App.ajaxForm.prototype.submit().
+                                // App.AjaxForm.prototype.submit().
                                 return true;
                             }
                             bdialog.close();
@@ -1700,6 +1700,11 @@ App.ModelFormDialog = function(options) {
     ModelFormDialog.onShow = function() {
         this.super._call('onShow');
         App.initClient(this.bdialog.getModalBody());
+    };
+
+    ModelFormDialog.onHide = function() {
+        App.initClient(this.bdialog.getModalBody(), 'dispose');
+        this.super._call('onHide');
     };
 
 })(App.ModelFormDialog.prototype);
