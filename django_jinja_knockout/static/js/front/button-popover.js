@@ -4,9 +4,12 @@ App.ClosablePopover = function(target, popoverOptions) {
 
 (function(ClosablePopover) {
 
+    ClosablePopover.dataKey = 'ClosablePopover';
+
     ClosablePopover.create = function(popoverOptions) {
         var self = this;
         self.$target = $(popoverOptions.target);
+        self.$target.data(this.dataKey, {instance: self});
         delete popoverOptions.target;
 
         $.each(this.getThisOverrides(), function(k, v) {
@@ -35,14 +38,23 @@ App.ClosablePopover = function(target, popoverOptions) {
         });
         $content.append(this.$popoverContent, $closeButton);
         popoverOptions.content = $content;
+        self.onMouseEnter = function(ev) {
+            self.mouseEnterTarget(ev);
+        };
+        self.onClick = function(ev) {
+            self.mouseClickTarget(ev);
+        };
         self.$target.popover(popoverOptions);
         self.$target
-        .on('mouseenter', function(ev) {
-            self.mouseEnterTarget(ev);
-        })
-        .on('click', function(ev) {
-            self.mouseClickTarget(ev);
-        });
+        .on('mouseenter', self.onMouseEnter)
+        .on('click', self.onClick);
+    };
+
+    ClosablePopover.destroy = function() {
+        this.$target
+        .off('mouseenter', this.onMouseEnter)
+        .off('click', this.onClick);
+        this.$target.popover('destroy');
     };
 
     ClosablePopover.getThisOverrides = function() {
@@ -149,13 +161,21 @@ App.ButtonPopover = function(popoverOptions) {
 
 (function(ButtonPopover) {
 
+    ButtonPopover.dataKey = 'ButtonPopover';
+
     ButtonPopover.create = function(target, popoverOptions) {
         var self = this;
         this.super._call('create', target, popoverOptions);
-        this.$popoverContent.on('click', function(ev) {
+        this.onClickPopoverButton = function(ev) {
             ev.preventDefault();
             return self.clickPopoverButton(ev);
-        });
+        };
+        this.$popoverContent.on('click', this.onClickPopoverButton);
+    };
+
+    ButtonPopover.destroy = function() {
+        this.$popoverContent.off('click', this.onClickPopoverButton);
+        this.super._call('destroy');
     };
 
     ButtonPopover.createPopoverContent = function() {
