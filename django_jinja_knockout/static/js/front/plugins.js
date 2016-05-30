@@ -42,7 +42,7 @@ $.fn.getInstance = function(key, pop) {
     var $this = $(this[0]);
     var data = $this.data('Instance');
     if (data === undefined || data[key] === 'undefined') {
-        return null;
+        return undefined;
     }
     var result = data[key];
     if (pop) {

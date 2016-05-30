@@ -2,10 +2,8 @@
 
 ko.bindingHandlers.grid_row = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var realElement = ko.from_virtual(element);
-        if (realElement !== null) {
-            viewModel.setRowElement($(realElement));
-        }
+        // var realElement = ko.from_virtual(element);
+        viewModel.setRowElement($(element));
     }
 };
 
@@ -358,7 +356,19 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
-   // Descendant could skip html encoding selected fields to preserve html formatting.
+    // Turned off by default for performance reasons (not required for some grids).
+    GridRow.useInitClient = false;
+
+    GridRow.afterRender = function() {
+        if (this.useInitClient) {
+            App.initClient(this.$row);
+            ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
+                App.initClient(this.$row, 'dispose');
+            });
+        }
+    };
+
+    // Descendant could skip html encoding selected fields to preserve html formatting.
     GridRow.htmlEncode = function(displayValue, field) {
         if (typeof displayValue === 'object') {
             return _.mapObject(displayValue, _.bind(this.htmlEncode, this));
@@ -1081,6 +1091,10 @@ App.ko.Grid = function(options) {
      */
     Grid.iocRow = function(options) {
         return new App.ko.GridRow(options);
+    };
+
+    Grid.afterRowRender = function(elements, koRow) {
+        koRow.afterRender();
     };
 
     Grid.onSearchReset = function() {

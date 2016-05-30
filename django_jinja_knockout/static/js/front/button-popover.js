@@ -70,7 +70,12 @@ App.ClosablePopover = function(target, popoverOptions) {
     };
 
     ClosablePopover.isVisible = function() {
-        return this.$target.data()['bs.popover'].tip().hasClass('in');
+        var data = this.$target.data();
+        if (typeof data['bs.popover'] !== 'object' ||
+                typeof data['bs.popover'].tip !== 'function') {
+            return false;
+        }
+        return data['bs.popover'].tip().hasClass('in');
     };
 
     ClosablePopover.hide = function(skippedPopover) {
