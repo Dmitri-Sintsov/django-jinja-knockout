@@ -18,6 +18,46 @@ $.contents = function(contents) {
     return $('<span>').html(contents).contents()
 };
 
+// Bind instance of Javascript object to DOM element.
+$.fn.addInstance = function(key, instance) {
+    return this.each(function() {
+        var $this = $(this);
+        var data = $this.data('Instance');
+        if (data === undefined) {
+            data = {};
+        }
+        if (typeof data[key] !== 'undefined') {
+            throw 'Element already has instance with key "' + key + '"';
+        }
+        data[key] = instance;
+        $this.data('Instance', data);
+    });
+};
+
+// Get instance of Javascript object previously bound to DOM element.
+$.fn.getInstance = function(key, pop) {
+    if (typeof pop === 'undefined') {
+        pop = false;
+    }
+    var $this = $(this[0]);
+    var data = $this.data('Instance');
+    if (data === undefined || data[key] === 'undefined') {
+        return null;
+    }
+    var result = data[key];
+    if (pop) {
+        delete data[key];
+        $this.data('Instance', data);
+    }
+    return result;
+};
+
+// Get instance of Javascript object previously bound to DOM element.
+$.fn.popInstance = function(key) {
+    var $this = $(this[0]);
+    return $this.getInstance(key, true);
+};
+
 /**
  * Chain of multi-level inheritance.
  * An instance of $.SuperChain represents parent class context which may be nested.
@@ -287,7 +327,7 @@ $.fn.linkPreview = function(method) {
         scaledPreview.create = function($anchor) {
             var self = this;
             this.$anchor = $anchor;
-            this.$anchor.data('scaledPreview', {instance: this});
+            this.$anchor.addInstance('scaledPreview', this);
             this.isObject = false;
             this.scale = 1;
             this.id = 'iframe_' + $.randomHash();
@@ -410,11 +450,11 @@ $.fn.linkPreview = function(method) {
             return this.each(function() {
                 var $elem = $(this);
                 if ($elem.prop('href') !== undefined) {
-                    var scaledPreview = $elem.data('scaledPreview').instance;
+                    var scaledPreview = $elem.popInstance('scaledPreview');
                     scaledPreview.destroy();
                 } else {
                     $.each($elem.find('a'), function(k, anchor) {
-                        var scaledPreview = $(anchor).data('scaledPreview').instance;
+                        var scaledPreview = $(anchor).popInstance('scaledPreview');
                         scaledPreview.destroy();
                     });
                 }
@@ -601,6 +641,12 @@ $.fn.scroller = function(method) {
                 $this.on('scroll wheel touchstart', function(ev) {
                     scroller.getPos().trigger(ev.type);
                 });
+            });
+        },
+        'destroy': function() {
+            return this.each(function() {
+                var $this = $(this);
+                $this.unbind('scroll wheel touchstart');
             });
         },
         'update': function() {

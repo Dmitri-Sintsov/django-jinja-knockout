@@ -9,7 +9,7 @@ App.ClosablePopover = function(target, popoverOptions) {
     ClosablePopover.create = function(popoverOptions) {
         var self = this;
         self.$target = $(popoverOptions.target);
-        self.$target.data(this.dataKey, {instance: self});
+        self.$target.addInstance(this.dataKey, self);
         delete popoverOptions.target;
 
         $.each(this.getThisOverrides(), function(k, v) {
