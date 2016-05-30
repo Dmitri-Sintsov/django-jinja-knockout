@@ -1014,10 +1014,13 @@ App.initClientHooks = [];
  * and bootstrap widgets, to minimize memory leaks, before DOM nodes are emptied.
  */
 App.initClient = function(selector, method) {
+    if (typeof selector === 'undefined') {
+        throw 'App.initClient requires valid selector as safety precaution.';
+    }
     if (typeof method === 'undefined') {
         method = 'init';
     }
-    var $selector = App.getSelector(selector);
+    var $selector = $(selector);
     for (var i = 0; i < App.initClientHooks.length; i++) {
         var hook = App.initClientHooks[i];
         if (typeof hook === 'function') {
@@ -1143,7 +1146,7 @@ $(document)
 .ready(function() {
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
-    App.initClient();
+    App.initClient(document);
     if (typeof App.clientData === 'undefined') {
         console.log('@note: client_data middleware is disabled at server side.')
     } else if (typeof App.clientData.onloadViewModels !== 'undefined') {

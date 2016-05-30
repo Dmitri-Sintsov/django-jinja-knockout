@@ -360,10 +360,11 @@ App.ko.GridRow = function(options) {
     GridRow.useInitClient = false;
 
     GridRow.afterRender = function() {
+        var self = this;
         if (this.useInitClient) {
             App.initClient(this.$row);
             ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
-                App.initClient(this.$row, 'dispose');
+                App.initClient(self.$row, 'dispose');
             });
         }
     };
