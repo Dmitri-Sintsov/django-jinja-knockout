@@ -1,6 +1,7 @@
 import lxml.html
 from lxml import etree
 from ensure import ensure_annotations
+from datetime import date, datetime
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import resolve, reverse
@@ -126,8 +127,18 @@ def html_to_text(html):
     return doc.text_content()
 
 
-def format_local_date(value, *args, **kwargs):
-    return formats.date_format(timezone.localtime(value), *args, **kwargs)
+def format_local_date(value, format=None, use_l10n=None):
+    if isinstance(value, datetime):
+        combined = value
+        if format is None:
+            format = 'SHORT_DATETIME_FORMAT'
+    elif isinstance(value, date):
+        combined = datetime.combine(value, datetime.min.time())
+        if format is None:
+            format = 'SHORT_DATE_FORMAT'
+    else:
+        raise ValueError('Value must be instance of date or datetime')
+    return formats.date_format(combined, format, use_l10n)
 
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with

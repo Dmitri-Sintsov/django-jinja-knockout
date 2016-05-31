@@ -1194,6 +1194,17 @@ App.ko.Grid = function(options) {
         return new App.ko.GridColumnOrder(options);
     };
 
+    Grid.getKoGridColumn = function(fieldName) {
+        var result = null;
+        _.each(this.gridColumns(), function(gridColumn) {
+            if (gridColumn.field === fieldName) {
+                result = gridColumn;
+                return false;
+            }
+        });
+        return result;
+    };
+
     Grid.setKoGridColumns = function(gridFields) {
         for (var i = 0; i < gridFields.length; i++) {
             var gridColumn = gridFields[i];

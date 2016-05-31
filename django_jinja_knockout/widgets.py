@@ -1,12 +1,13 @@
 from copy import copy
 import types
+from datetime import date, datetime
 from django.utils.translation import gettext as _
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
 from .utils import sdv
-from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict
+from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict, format_local_date
 from .viewmodels import to_json
 
 
@@ -44,7 +45,10 @@ class DisplayText(Widget):
         super().__init__(attrs)
 
     def get_text(self, value):
-        return force_text(value)
+        if isinstance(value, (date, datetime)):
+            return format_local_date(value)
+        else:
+            return force_text(value)
 
     def add_list_attrs(self, final_attrs):
         add_css_classes_to_dict(final_attrs, 'list-group')
