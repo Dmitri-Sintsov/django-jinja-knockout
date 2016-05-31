@@ -358,6 +358,7 @@ App.ko.GridRow = function(options) {
 
     // Turned off by default for performance reasons (not required for some grids).
     GridRow.useInitClient = false;
+    GridRow.observeDisplayValue = true;
 
     GridRow.afterRender = function() {
         var self = this;
@@ -408,11 +409,14 @@ App.ko.GridRow = function(options) {
         return displayValue;
     };
 
-    // Descendant may skip Knockout.js observable wrapping selectively.
-    GridRow.observeDisplayValue  = function(value, field) {
-        return ko.observable(
-            this.toDisplayValue(value, field)
-        );
+    // Support jQuery objects as display values.
+    // Wraps display value into ko.observable(), when needed.
+    GridRow.wrapDisplayValue  = function(value, field) {
+        var displayValue = this.toDisplayValue(value, field);
+        if (displayValue instanceof jQuery) {
+            displayValue = displayValue.prop('outerHTML');
+        }
+        return this.observeDisplayValue ? ko.observable(displayValue) : displayValue;
     };
 
     // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
@@ -425,7 +429,7 @@ App.ko.GridRow = function(options) {
                 self.values[field] = '';
             }
         });
-        this.displayValues = _.mapObject(this.values, _.bind(this.observeDisplayValue, this));
+        this.displayValues = _.mapObject(this.values, _.bind(this.wrapDisplayValue, this));
     };
 
     GridRow.init = function(options) {
@@ -469,8 +473,17 @@ App.ko.GridRow = function(options) {
         this.isSelectedRow(!this.isSelectedRow());
     };
 
-    GridRow.onRowClick = function() {
+    GridRow.ignoreRowClickTagNames = [
+        'A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'
+    ];
+
+    GridRow.onRowClick = function(data, ev) {
+        var tagName = $(ev.target).prop('tagName');
+        if (this.ignoreRowClickTagNames.indexOf(tagName) >= 0) {
+            return true;
+        }
         this.ownerGrid.rowClick(this);
+        return false;
     };
 
     GridRow.setRowElement = function($element) {

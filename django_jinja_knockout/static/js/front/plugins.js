@@ -1,3 +1,5 @@
+'use strict';
+
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
 $.randomHash = function() {
