@@ -358,6 +358,7 @@ App.ko.GridRow = function(options) {
 
     // Turned off by default for performance reasons (not required for some grids).
     GridRow.useInitClient = false;
+    // todo: turn off by default and update saved row at whole.
     GridRow.observeDisplayValue = true;
 
     GridRow.afterRender = function() {
