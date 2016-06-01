@@ -108,23 +108,25 @@ App.ko.GridFilterChoice = function(options) {
 
 (function (GridFilterChoice) {
 
+    GridFilterChoice.updateQueryFilter = function(newValue) {
+        if (this.value === null) {
+            return;
+        }
+        if (newValue) {
+            this.ownerFilter.addQueryFilter(this.value);
+        } else {
+            this.ownerFilter.removeQueryFilter(this.value);
+        }
+    };
+
     GridFilterChoice.init = function(options) {
-        var self = this;
         this.$link = null;
         this.ownerFilter = options.ownerFilter;
         this.name = options.name;
         this.value = options.value;
-        this.is_active = ko.observable(options.is_active);
-        this.is_active.subscribe(function(newValue) {
-            if (self.value === null) {
-                return;
-            }
-            if (newValue) {
-                self.ownerFilter.addQueryFilter(self.value);
-            } else {
-                self.ownerFilter.removeQueryFilter(self.value);
-            }
-        });
+        this.is_active = ko.observable();
+        this.is_active.subscribe(_.bind(this.updateQueryFilter, this));
+        this.is_active(options.is_active);
     };
 
     GridFilterChoice.setLinkElement = function($element) {
@@ -797,9 +799,20 @@ App.ko.Grid = function(options) {
 
     Grid.firstLoad = function() {
         var self = this;
-        this.gridActions.perform('meta_list', {}, function(response) {
-            self.propCall('ownerCtrl.onChildGridFirstLoad');
-        });
+        if (this.options.separateMeta) {
+            // this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depend
+            // on result of 'meta' action.
+            this.gridActions.perform('meta', {}, function(response) {
+                self.gridActions.perform('list', {}, function(response) {
+                    self.propCall('ownerCtrl.onChildGridFirstLoad');
+                });
+            });
+        } else {
+            // Save a bit of HTTP traffic by default.
+            this.gridActions.perform('meta_list', {}, function(response) {
+                self.propCall('ownerCtrl.onChildGridFirstLoad');
+            });
+        }
     };
 
     Grid.run = function(element) {
@@ -845,7 +858,7 @@ App.ko.Grid = function(options) {
             fkGridOptions: {},
             searchPlaceholder: null,
             selectMultipleRows: false,
-            addResetFilter: true,
+            separateMeta: false,
             showSelection: false,
             pageRoute: null,
             pageRouteKwargs: {}
@@ -1288,39 +1301,22 @@ App.ko.Grid = function(options) {
             filterModel = this.iocDropdownFilter(options);
         }
         var choices = filter.choices;
-        var firstChoice = null;
         if (choices === null) {
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
-            if (this.options.addResetFilter) {
-                filterModel.choices.push(
-                    this.iocKoFilterChoice({
-                        ownerFilter: filterModel,
-                        name: App.trans('All'),
-                        value: null,
-                        is_active: true
-                    })
-                );
-            }
             for (var i = 0; i < choices.length; i++) {
                 var choice = choices[i];
                 var koFilterChoice = this.iocKoFilterChoice({
                     ownerFilter: filterModel,
                     name: choice.name,
                     value: choice.value,
-                    is_active: false
+                    is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
                 })
-                if (!this.options.addResetFilter && i == 0) {
-                    firstChoice = koFilterChoice;
-                }
                 filterModel.choices.push(koFilterChoice);
             }
         }
         this.gridFilters.push(filterModel);
-        if (firstChoice !== null) {
-            filterModel.switchKoFilterChoices(firstChoice);
-        }
     };
 
     /**

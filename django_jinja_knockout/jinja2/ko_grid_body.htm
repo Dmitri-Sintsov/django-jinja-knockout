@@ -76,7 +76,7 @@
                 <% if (self.get(self, 'vscroll')) { %>
             </table>
         </div>
-        <div class="table-responsive vscroll">
+        <div class="table-responsive vscroll" style="overflow-y: scroll;">
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
                 <tbody data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">

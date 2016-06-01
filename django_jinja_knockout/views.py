@@ -518,7 +518,9 @@ class ListSortingView(BaseFilterView, ListView):
         })
         navs = [link]
         display = []
-        for filter_type, filter_type_display in self.allowed_filter_fields[filter_field]:
+        filter_def = self.allowed_filter_fields[filter_field]
+        choices = filter_def['choices'] if isinstance(filter_def, dict) else filter_def
+        for filter_type, filter_type_display in choices:
             reset_list_filter[filter_field] = filter_type
             link = {
                 'url': qtpl.reverseq(
@@ -940,18 +942,33 @@ class GridActionsMixin():
         if not isinstance(self.allowed_filter_fields, OrderedDict):
             self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
 
-        for fieldname, choices in self.allowed_filter_fields.items():
-            if choices is None:
+        for fieldname, filter_def in self.allowed_filter_fields.items():
+            if filter_def is None:
                 # Use App.ko.FkGridFilter to select filter choices.
                 vm_choices = None
             else:
+                if not isinstance(filter_def, dict):
+                    filter_def = {
+                        'choices': filter_def,
+                        'add_reset_choice': True,
+                        'active_choices': []
+                    }
                 # Pre-built list of field values / menu names.
                 vm_choices = []
-                for value, name in choices:
+                if filter_def['add_reset_choice']:
                     vm_choices.append({
-                        'value': value,
-                        'name': name
+                        'value': None,
+                        'name': _('All'),
+                        'is_active': len(filter_def['active_choices']) == 0
                     })
+                for value, name in filter_def['choices']:
+                    choice = {
+                        'value': value,
+                        'name': name,
+                    }
+                    if value in filter_def['active_choices']:
+                        choice['is_active'] = True
+                    vm_choices.append(choice)
             vm_filters.append({
                 'field': fieldname,
                 'name': self.get_field_verbose_name(fieldname),
