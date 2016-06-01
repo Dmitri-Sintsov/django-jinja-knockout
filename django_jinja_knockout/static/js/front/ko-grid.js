@@ -800,8 +800,11 @@ App.ko.Grid = function(options) {
     Grid.firstLoad = function() {
         var self = this;
         if (this.options.separateMeta) {
-            // this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depend
-            // on result of 'meta' action.
+            /**
+             * this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depends
+             * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
+             * values of dict type: see views.GridActionxMixin.vm_get_filters().
+             */
             this.gridActions.perform('meta', {}, function(response) {
                 self.gridActions.perform('list', {}, function(response) {
                     self.propCall('ownerCtrl.onChildGridFirstLoad');

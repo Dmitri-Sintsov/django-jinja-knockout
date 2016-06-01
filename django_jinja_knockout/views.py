@@ -903,23 +903,7 @@ class GridActionsMixin():
             self.add_form_viewmodels(form, ff_vms)
             return ff_vms
 
-    def action_meta(self):
-        pk_field = ''
-        for field in self.__class__.model._meta.fields:
-            if field.primary_key:
-                pk_field = field.attname
-        vm = {
-            'view': self.__class__.viewmodel_name,
-            'action_kwarg': self.__class__.action_kwarg,
-            'sortOrders': self.allowed_sort_orders,
-            'meta': {
-                'hasSearch': len(self.search_fields) > 0,
-                'pkField': pk_field,
-                'actions': self.flat_actions,
-                'verboseName': self.get_model_meta('verbose_name'),
-                'verboseNamePlural': self.get_model_meta('verbose_name_plural')
-            }
-        }
+    def vm_get_grid_fields(self):
         vm_grid_fields = []
         if not isinstance(self.grid_fields, list):
             self.report_error('grid_fields must be list')
@@ -935,8 +919,9 @@ class GridActionsMixin():
                 'field': field,
                 'name': name
             })
-        vm['gridFields'] = vm_grid_fields
+        return vm_grid_fields
 
+    def vm_get_filters(self):
         vm_filters = []
 
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -974,7 +959,27 @@ class GridActionsMixin():
                 'name': self.get_field_verbose_name(fieldname),
                 'choices': vm_choices
             })
-        vm['filters'] = vm_filters
+        return vm_filters
+
+    def action_meta(self):
+        pk_field = ''
+        for field in self.__class__.model._meta.fields:
+            if field.primary_key:
+                pk_field = field.attname
+        vm = {
+            'view': self.__class__.viewmodel_name,
+            'action_kwarg': self.__class__.action_kwarg,
+            'sortOrders': self.allowed_sort_orders,
+            'meta': {
+                'hasSearch': len(self.search_fields) > 0,
+                'pkField': pk_field,
+                'actions': self.flat_actions,
+                'verboseName': self.get_model_meta('verbose_name'),
+                'verboseNamePlural': self.get_model_meta('verbose_name_plural')
+            }
+        }
+        vm['gridFields'] = self.vm_get_grid_fields()
+        vm['filters'] = self.vm_get_filters()
         return vm
 
     def action_list(self):
