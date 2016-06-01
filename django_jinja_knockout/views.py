@@ -932,11 +932,21 @@ class GridActionsMixin():
                 # Use App.ko.FkGridFilter to select filter choices.
                 vm_choices = None
             else:
-                if not isinstance(filter_def, dict):
+                # Multiple filter choices are meaningless for only two choices and their reset choice.
+                if isinstance(filter_def, dict):
+                    def_filter = {
+                        'add_reset_choice': True,
+                        'active_choices': [],
+                        'multiple_choices': len(filter_def['choices']) > 2
+                    }
+                    def_filter.update(filter_def)
+                    filter_def = def_filter
+                else:
                     filter_def = {
                         'choices': filter_def,
                         'add_reset_choice': True,
-                        'active_choices': []
+                        'active_choices': [],
+                        'multiple_choices': len(filter_def) > 2
                     }
                 # Pre-built list of field values / menu names.
                 vm_choices = []
@@ -956,6 +966,7 @@ class GridActionsMixin():
                     vm_choices.append(choice)
             vm_filters.append({
                 'field': fieldname,
+                'multiple_choices': False if filter_def is None else filter_def['multiple_choices'],
                 'name': self.get_field_verbose_name(fieldname),
                 'choices': vm_choices
             })

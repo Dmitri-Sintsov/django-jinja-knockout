@@ -207,6 +207,7 @@ App.ko.GridFilter = function(options) {
 
     GridFilter.init = function(options) {
         this.super._call('init', options);
+        this.allowMultipleChoices = options.allowMultipleChoices;
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -253,8 +254,7 @@ App.ko.GridFilter = function(options) {
                 this.choices[i].is_active(false);
             }
             currentChoice.is_active(true);
-        } else if (this.choices.length <= 3) {
-            // Multiple filter choices are meaningless for only two choices and their reset choice.
+        } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
             // Turn off all another filter choices.
@@ -294,7 +294,7 @@ App.ko.FkGridFilter = function(options) {
     FkGridFilter.init = function(options) {
         var gridDialogOptions = {};
         /**
-         * Allows to specifiy BootstrapDialog size in Jinja2 macro, for example:
+         * Allows to specifiy BootstrapDialog size in Jinja2 macro / .get_default_grid_options() for example:
             ko_grid(
                 grid_options={
                     'pageRoute': 'management_grid',
@@ -1290,7 +1290,7 @@ App.ko.Grid = function(options) {
         return new App.ko.FkGridFilter(options);
     };
 
-    Grid.setKoFilter = function(filter) {
+    Grid.createKoFilter = function(filter) {
         var filterModel;
         var options = {
             ownerGrid: this,
@@ -1300,14 +1300,13 @@ App.ko.Grid = function(options) {
         if (filter.choices === null) {
             options.fkGridOptions = this.getFkGridOptions(filter.field);
             filterModel = this.iocFkFilter(options);
-        } else {
-            filterModel = this.iocDropdownFilter(options);
-        }
-        var choices = filter.choices;
-        if (choices === null) {
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
+            // todo: support .allowMultipleChoices in .iocFkFilter().
+            options.allowMultipleChoices = filter.multiple_choices;
+            filterModel = this.iocDropdownFilter(options);
+            var choices = filter.choices;
             for (var i = 0; i < choices.length; i++) {
                 var choice = choices[i];
                 var koFilterChoice = this.iocKoFilterChoice({
@@ -1319,17 +1318,20 @@ App.ko.Grid = function(options) {
                 filterModel.choices.push(koFilterChoice);
             }
         }
-        this.gridFilters.push(filterModel);
+        return filterModel;
     };
 
     /**
      * Setup filters viewmodels.
      */
     Grid.setKoFilters = function(filters) {
-        this.gridFilters([]);
+        var gridFilters = [];
         for (var i = 0; i < filters.length; i++) {
-            this.setKoFilter(filters[i]);
+            gridFilters.push(
+                this.createKoFilter(filters[i])
+            );
         }
+        this.gridFilters(gridFilters);
     };
 
     Grid.iocGridPage = function(options) {
