@@ -235,7 +235,7 @@ App.Dialog = function(options) {
     };
 
     Dialog.recreateTitle = function() {
-        this.dialogOptions.title.replaceWith(this.getDialogTitle());
+        this.bdialog.getModalHeader().empty().append(this.getDialogTitle());
     };
 
     Dialog.setTitle = function(title) {
@@ -260,7 +260,7 @@ App.Dialog = function(options) {
     };
 
     Dialog.recreateContent = function() {
-        this.dialogOptions.message.replaceWith(this.createDialogContent());
+        this.bdialog.getModalBody().empty().append(this.createDialogContent());
     };
 
     Dialog.getOptions = function() {

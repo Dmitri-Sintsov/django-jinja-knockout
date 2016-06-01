@@ -683,7 +683,13 @@ class GridActionsMixin():
     def get_actions(self):
         return {
             'built_in': OrderedDict([
+                ('meta', {
+                    'enabled': True
+                }),
                 ('list', {
+                    'enabled': True
+                }),
+                ('meta_list', {
                     'enabled': True
                 }),
                 ('save_form', {
@@ -760,7 +766,7 @@ class GridActionsMixin():
         )
 
     def get_action_name(self, action):
-        return self.flat_actions[action]['localName']
+        return self.flat_actions[action]['localName'] if 'localName' in self.flat_actions[action] else action
 
     def action_is_denied(self):
         self.report_error(
@@ -895,6 +901,65 @@ class GridActionsMixin():
             self.add_form_viewmodels(form, ff_vms)
             return ff_vms
 
+    def action_meta(self):
+        pk_field = ''
+        for field in self.__class__.model._meta.fields:
+            if field.primary_key:
+                pk_field = field.attname
+        vm = {
+            'view': self.__class__.viewmodel_name,
+            'action_kwarg': self.__class__.action_kwarg,
+            'sortOrders': self.allowed_sort_orders,
+            'meta': {
+                'hasSearch': len(self.search_fields) > 0,
+                'pkField': pk_field,
+                'actions': self.flat_actions,
+                'verboseName': self.get_model_meta('verbose_name'),
+                'verboseNamePlural': self.get_model_meta('verbose_name_plural')
+            }
+        }
+        vm_grid_fields = []
+        if not isinstance(self.grid_fields, list):
+            self.report_error('grid_fields must be list')
+        for field_def in self.grid_fields:
+            if type(field_def) is tuple:
+                field, name = field_def
+            elif type(field_def) is str:
+                field = field_def
+                name = self.get_field_verbose_name(field)
+            else:
+                self.report_error('grid_fields list values must be str or tuple')
+            vm_grid_fields.append({
+                'field': field,
+                'name': name
+            })
+        vm['gridFields'] = vm_grid_fields
+
+        vm_filters = []
+
+        if not isinstance(self.allowed_filter_fields, OrderedDict):
+            self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
+
+        for fieldname, choices in self.allowed_filter_fields.items():
+            if choices is None:
+                # Use App.ko.FkGridFilter to select filter choices.
+                vm_choices = None
+            else:
+                # Pre-built list of field values / menu names.
+                vm_choices = []
+                for value, name in choices:
+                    vm_choices.append({
+                        'value': value,
+                        'name': name
+                    })
+            vm_filters.append({
+                'field': fieldname,
+                'name': self.get_field_verbose_name(fieldname),
+                'choices': vm_choices
+            })
+        vm['filters'] = vm_filters
+        return vm
+
     def action_list(self):
         rows = self.get_rows()
         vm = {
@@ -902,62 +967,11 @@ class GridActionsMixin():
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
-        if self.request_get('load_meta', '').lower() == 'true':
-            pk_field = ''
-            for field in self.__class__.model._meta.fields:
-                if field.primary_key:
-                    pk_field = field.attname
-            vm.update({
-                'action_kwarg': self.__class__.action_kwarg,
-                'sortOrders': self.allowed_sort_orders,
-                'meta': {
-                    'hasSearch': len(self.search_fields) > 0,
-                    'pkField': pk_field,
-                    'actions': self.flat_actions,
-                    'verboseName': self.get_model_meta('verbose_name'),
-                    'verboseNamePlural': self.get_model_meta('verbose_name_plural')
-                }
-            })
-            vm_grid_fields = []
-            if not isinstance(self.grid_fields, list):
-                self.report_error('grid_fields must be list')
-            for field_def in self.grid_fields:
-                if type(field_def) is tuple:
-                    field, name = field_def
-                elif type(field_def) is str:
-                    field = field_def
-                    name = self.get_field_verbose_name(field)
-                else:
-                    self.report_error('grid_fields list values must be str or tuple')
-                vm_grid_fields.append({
-                    'field': field,
-                    'name': name
-                })
-            vm['gridFields'] = vm_grid_fields
+        return vm
 
-            vm_filters = []
-
-            if not isinstance(self.allowed_filter_fields, OrderedDict):
-                self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
-
-            for fieldname, choices in self.allowed_filter_fields.items():
-                if choices is None:
-                    # Use App.ko.FkGridFilter to select filter choices.
-                    vm_choices = None
-                else:
-                    # Pre-built list of field values / menu names.
-                    vm_choices = []
-                    for value, name in choices:
-                        vm_choices.append({
-                            'value': value,
-                            'name': name
-                        })
-                vm_filters.append({
-                    'field': fieldname,
-                    'name': self.get_field_verbose_name(fieldname),
-                    'choices': vm_choices
-                })
-            vm['filters'] = vm_filters
+    def action_meta_list(self):
+        vm = self.action_meta()
+        vm.update(self.action_list())
         return vm
 
 

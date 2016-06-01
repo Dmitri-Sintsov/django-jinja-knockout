@@ -264,12 +264,16 @@ App.ko.GridFilter = function(options) {
             this.resetFilterLogic();
         } else {
             // Do not close dropdown for multiple filter choices.
-            ev.stopPropagation();
+            if (typeof ev !== 'undefined') {
+                ev.stopPropagation();
+            }
             // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
             this.resetFilterLogic();
         }
-        this.hasActiveChoices(!this.resetFilter.is_active());
+        var resetFilterIsActive = (this.resetFilter !== null) ?
+            this.resetFilter.is_active() : false;
+        this.hasActiveChoices(!resetFilterIsActive);
     };
 
 })(App.ko.GridFilter.prototype);
@@ -713,6 +717,17 @@ App.GridActions = function(options) {
         // this.perform('list');
     };
 
+    /**
+     * Load metadata from AJAX response.
+     * Can be used separately to update columns descriptions / sort orders / filters on the fly.
+     */
+    GridActions.callback_meta = function(data) {
+        if (typeof data.action_kwarg !== 'undefined') {
+            this.setActionKwarg(data.action_kwarg);
+        }
+        this.grid.loadMetaCallback(data);
+    };
+
     GridActions.queryargs_list = function(options) {
         return this.grid.getListQueryArgs();
     };
@@ -721,10 +736,15 @@ App.GridActions = function(options) {
      * Populate viewmodel from AJAX response.
      */
     GridActions.callback_list = function(data) {
-        if (typeof data.action_kwarg !== 'undefined') {
-            this.setActionKwarg(data.action_kwarg);
-        }
         this.grid.listCallback(data);
+    };
+
+    /**
+     * Combined 'meta' / 'list' action to reduce HTTP traffic.
+     */
+    GridActions.callback_meta_list = function(data) {
+        this.callback_meta(data);
+        this.callback_list(data);
     };
 
 })(App.GridActions.prototype);
@@ -762,8 +782,7 @@ App.ko.Grid = function(options) {
     Grid.initAjaxParams = function() {
         this.queryArgs = $.extend({
                 page: 1,
-                row_model_str: false,
-                load_meta: true
+                row_model_str: false
             },
             this.options.ajaxParams
         );
@@ -772,9 +791,16 @@ App.ko.Grid = function(options) {
         this.setQueryOrderBy(this.options.defaultOrderBy);
     };
 
+    Grid.firstLoad = function() {
+        var self = this;
+        this.gridActions.perform('meta_list', {}, function(response) {
+            self.propCall('ownerCtrl.onChildGridFirstLoad');
+        });
+    };
+
     Grid.run = function(element) {
         this.applyBindings(element);
-        this.searchSubstring();
+        this.firstLoad();
     };
 
     Grid.applyBindings = function(selector) {
@@ -804,6 +830,8 @@ App.ko.Grid = function(options) {
         ko.set_props(data, this.meta);
     };
 
+    Grid.uiActionTypes = ['button', 'click', 'glyphicon'];
+
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
@@ -813,6 +841,7 @@ App.ko.Grid = function(options) {
             fkGridOptions: {},
             searchPlaceholder: null,
             selectMultipleRows: false,
+            addResetFilter: true,
             showSelection: false,
             pageRoute: null,
             pageRouteKwargs: {}
@@ -827,12 +856,10 @@ App.ko.Grid = function(options) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
-        // Do not forget to include all possible types of actions into this list.
-        this.actionTypes = {
-            'button': ko.observableArray(),
-            'click': ko.observableArray(),
-            'glyphicon': ko.observableArray()
-        };
+        this.actionTypes = {};
+        _.each(this.uiActionTypes, function(type) {
+            self.actionTypes[type] = ko.observableArray();
+        })
         this.gridActions = this.iocGridActions({
             grid: this
         });
@@ -1185,15 +1212,14 @@ App.ko.Grid = function(options) {
             self.gridSearchStr(s);
         }
         self.queryArgs.page = 1;
-        self.listAction(function(response) {
-            self.propCall('ownerCtrl.onChildGridFirstLoad');
-        });
+        self.listAction();
     };
 
     Grid.iocKoGridColumn = function(options) {
         return new App.ko.GridColumnOrder(options);
     };
 
+    // May be used in descendant of App.ko.GridRow() to get metadata of current field.
     Grid.getKoGridColumn = function(fieldName) {
         var result = null;
         _.each(this.gridColumns(), function(gridColumn) {
@@ -1206,9 +1232,10 @@ App.ko.Grid = function(options) {
     };
 
     Grid.setKoGridColumns = function(gridFields) {
+        var koGridColumns = [];
         for (var i = 0; i < gridFields.length; i++) {
             var gridColumn = gridFields[i];
-            this.gridColumns.push(
+            koGridColumns.push(
                 this.iocKoGridColumn({
                     field: gridColumn.field,
                     name: gridColumn.name,
@@ -1217,6 +1244,7 @@ App.ko.Grid = function(options) {
                 })
             );
         }
+        this.gridColumns(koGridColumns);
     };
 
     Grid.iocKoFilterChoice = function(options) {
@@ -1225,7 +1253,7 @@ App.ko.Grid = function(options) {
 
     Grid.iocDropdownFilter = function(options) {
         return new App.ko.GridFilter(options);
-    }
+    };
 
     Grid.getFkGridOptions = function(field) {
         if (typeof this.options.fkGridOptions[field] === 'undefined') {
@@ -1256,37 +1284,46 @@ App.ko.Grid = function(options) {
             filterModel = this.iocDropdownFilter(options);
         }
         var choices = filter.choices;
+        var firstChoice = null;
         if (choices === null) {
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
-            filterModel.choices.push(
-                this.iocKoFilterChoice({
-                    ownerFilter: filterModel,
-                    name: App.trans('All'),
-                    value: null,
-                    is_active: true
-                })
-            );
-            for (var i = 0; i < choices.length; i++) {
-                var choice = choices[i];
+            if (this.options.addResetFilter) {
                 filterModel.choices.push(
                     this.iocKoFilterChoice({
                         ownerFilter: filterModel,
-                        name: choice.name,
-                        value: choice.value,
-                        is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+                        name: App.trans('All'),
+                        value: null,
+                        is_active: true
                     })
                 );
             }
+            for (var i = 0; i < choices.length; i++) {
+                var choice = choices[i];
+                var koFilterChoice = this.iocKoFilterChoice({
+                    ownerFilter: filterModel,
+                    name: choice.name,
+                    value: choice.value,
+                    is_active: false
+                })
+                if (!this.options.addResetFilter && i == 0) {
+                    firstChoice = koFilterChoice;
+                }
+                filterModel.choices.push(koFilterChoice);
+            }
         }
         this.gridFilters.push(filterModel);
+        if (firstChoice !== null) {
+            filterModel.switchKoFilterChoices(firstChoice);
+        }
     };
 
     /**
      * Setup filters viewmodels.
      */
     Grid.setKoFilters = function(filters) {
+        this.gridFilters([]);
         for (var i = 0; i < filters.length; i++) {
             this.setKoFilter(filters[i]);
         }
@@ -1369,7 +1406,7 @@ App.ko.Grid = function(options) {
         }
     };
 
-    Grid.listCallback = function(data) {
+    Grid.loadMetaCallback = function(data) {
         var self=this;
         if (typeof data.meta !== 'undefined') {
             this.gridActions.setActions(data.meta.actions);
@@ -1378,9 +1415,7 @@ App.ko.Grid = function(options) {
             this.setKoActionTypes();
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
-        if (typeof self.queryArgs.load_meta !== 'undefined') {
-            delete self.queryArgs.load_meta;
-        }
+        this.sortOrders = {};
         if (typeof data.sortOrders !== 'undefined') {
             for (var i = 0; i < data.sortOrders.length; i++) {
                 self.sortOrders[data.sortOrders[i]] = i;
@@ -1389,16 +1424,23 @@ App.ko.Grid = function(options) {
         if (typeof data.gridFields !== 'undefined') {
             self.setKoGridColumns(data.gridFields);
         }
+        if (typeof data.filters !== 'undefined') {
+            self.setKoFilters(data.filters);
+        }
+    };
+
+    Grid.listCallback = function(data) {
+        var self=this;
         // console.log(data);
         // Set grid rows viewmodels.
-        self.gridRows([]);
+        var gridRows = [];
         $.each(data.entries, function(k, row) {
             // Recall previously selected grid rows from this.hasSelectedPkVal().
             if (typeof row[self.meta.pkField] === 'undefined') {
-                throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+                throw sprintf("Supplied row has no '%s' key", self.meta.pkField);
             }
             var pkVal = row[self.meta.pkField];
-            self.gridRows.push(
+            gridRows.push(
                 self.iocRow({
                     ownerGrid: self,
                     isSelectedRow: self.hasSelectedPkVal(pkVal),
@@ -1406,11 +1448,9 @@ App.ko.Grid = function(options) {
                 })
             );
         });
+        self.gridRows(gridRows);
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);
-        if (typeof data.filters !== 'undefined') {
-            self.setKoFilters(data.filters);
-        }
     };
 
     Grid.iocKoAction = function(options) {
@@ -1419,6 +1459,10 @@ App.ko.Grid = function(options) {
 
     Grid.setKoActionTypes = function() {
         var self = this;
+        _.each(this.uiActionTypes, function(type) {
+            self.actionTypes[type]([]);
+        })
+        // Do not forget to include all possible types of actions into this list.
         _.each(this.gridActions.actions, function(actDef, actionName) {
             // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
             if (actDef.enabled && actDef.type !== 'built_in') {
@@ -1451,7 +1495,6 @@ App.ko.Grid = function(options) {
     Grid.getLastPkVal = function() {
         return this.lastClickedKoRow.getValue(this.meta.pkField);
     };
-
 
 })(App.ko.Grid.prototype);
 
@@ -1618,9 +1661,8 @@ App.GridDialog = function(options) {
         }
     };
 
-    GridDialog.iocGridOwner = function(message) {
+    GridDialog.iocGridOwner = function() {
         var grid = this.iocGrid({
-            applyTo: message,
             ownerCtrl: this
         });
         grid.ownerCtrlSetTitle = _.bind(
@@ -1647,9 +1689,9 @@ App.GridDialog = function(options) {
         } else {
             // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
             this.grid = this.iocGridOwner();
+            this.grid.firstLoad();
         }
         this.grid.applyBindings(this.bdialog.getModal());
-        this.grid.searchSubstring();
         this.wasOpened = true;
         this.propCall('ownerComponent.onGridDialogShow', {
             'childGrid': this.grid
