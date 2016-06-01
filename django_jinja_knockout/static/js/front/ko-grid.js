@@ -465,7 +465,7 @@ App.ko.GridRow = function(options) {
             this.str = this.values.__str;
             delete this.values.__str;
         } else {
-            this.str = '';
+            this.str = null;
         }
         this.initDisplayValues();
     };
@@ -517,7 +517,7 @@ App.ko.GridRow = function(options) {
     GridRow.getDescParts = function() {
         if (_.size(this.strFields) > 0) {
             return this.strFields;
-        } else if (typeof this.str !== 'undefined'){
+        } else if (this.str !== null) {
             return [this.str];
         }
         return [];
@@ -742,6 +742,10 @@ App.GridActions = function(options) {
     /**
      * Combined 'meta' / 'list' action to reduce HTTP traffic.
      */
+    GridActions.queryargs_meta_list = function(options) {
+        return this.grid.getListQueryArgs();
+    };
+
     GridActions.callback_meta_list = function(data) {
         this.callback_meta(data);
         this.callback_list(data);
@@ -1850,7 +1854,7 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
-        if (typeof koRow.str === 'undefined') {
+        if (koRow.str === null) {
             throw "Set childGrid.options.ajaxParams.row_model_str = true";
         }
         this.setValue(options.pkVal)
