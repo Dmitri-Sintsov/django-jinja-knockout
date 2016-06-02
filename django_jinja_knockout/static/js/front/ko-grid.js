@@ -92,6 +92,7 @@ App.ko.GridColumnOrder = function(options) {
     ];
 
     GridColumnOrder.renderRowValue = function(element, value) {
+        $(element).empty();
         App.renderNestedList(element, value, this.blockTags);
     };
 
