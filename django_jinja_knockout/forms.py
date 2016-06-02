@@ -208,6 +208,15 @@ class FormWithInlineFormsets(object):
     def save_success(self):
         pass
 
+    def has_changed(self):
+        if self.form is not None and self.form.has_changed():
+            return True
+        for formset in self.formsets:
+            for form in formset:
+                if form.has_changed():
+                    return True
+        return False
+
     @transaction.atomic()
     def save(self, instance=None):
         self.model = instance

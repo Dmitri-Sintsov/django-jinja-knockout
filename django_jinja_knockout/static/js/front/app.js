@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // Requires plugins.js to be loaded before.
 

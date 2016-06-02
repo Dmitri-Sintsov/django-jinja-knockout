@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 ko.bindingHandlers.grid_row = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -690,6 +690,10 @@ App.GridActions = function(options) {
         dialog.show();
     };
 
+    GridActions.callback_create_inline = function(viewModel) {
+        this.callback_create_form(viewModel);
+    };
+
     GridActions.callback_delete = function(viewModel) {
         var self = this;
         var pkVals = viewModel.pkVals;
@@ -715,10 +719,18 @@ App.GridActions = function(options) {
         this.callback_create_form(viewModel);
     };
 
+    GridActions.callback_edit_inline = function(viewModel) {
+        this.callback_create_form(viewModel);
+    };
+
     GridActions.callback_save_form = function(viewModel) {
         this.grid.updatePage(viewModel);
         // Brute-force approach:
         // this.perform('list');
+    };
+
+    GridActions.callback_save_inline = function(viewModel) {
+        this.grid.updatePage(viewModel);
     };
 
     /**

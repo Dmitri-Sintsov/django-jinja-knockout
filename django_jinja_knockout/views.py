@@ -159,6 +159,15 @@ class FormViewmodelsMixin():
             if len(bound_field.errors) > 0:
                 ff_vms.append(self.get_field_error_viewmodel(bound_field))
 
+    def ajax_form_invalid(self, form, formsets):
+        ff_vms = vm_list()
+        if form is not None:
+            self.add_form_viewmodels(form, ff_vms)
+        for formset in formsets:
+            for formset_form in formset:
+                self.add_form_viewmodels(formset_form, ff_vms)
+        return ff_vms
+
 
 # See also https://github.com/AndrewIngram/django-extra-views
 class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
@@ -205,13 +214,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         data-filled forms and errors.
         """
         if self.request.is_ajax():
-            ff_vms = vm_list()
-            if form is not None:
-                self.add_form_viewmodels(form, ff_vms)
-            for formset in formsets:
-                for formset_form in formset:
-                    self.add_form_viewmodels(formset_form, ff_vms)
-            return ff_vms
+            return self.ajax_form_invalid(form, formsets)
         else:
             return self.render_to_response(
                 self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
@@ -697,6 +700,9 @@ class GridActionsMixin():
                 ('save_form', {
                     'enabled': True
                 }),
+                ('save_inline', {
+                    'enabled': True
+                }),
                 ('delete_confirmed', {
                     'enabled': False
                 })
@@ -790,7 +796,7 @@ class GridActionsMixin():
         form = self.get_create_form()()
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
-            '_render_form': True,
+            '_render_': True,
             'form': form,
             'action': self.get_action_url('save_form'),
             'opts': self.get_bs_form_opts()
@@ -805,14 +811,13 @@ class GridActionsMixin():
             'message': form_html
         })
 
-    # todo: Support form_with_inline_formsets.
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
         obj = self.__class__.model.objects.filter(pk=pk_val).first()
         form = self.get_edit_form()(instance=obj)
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
-            '_render_form': True,
+            '_render_': True,
             'form': form,
             'action': self.get_action_url('save_form', query={'pk_val': pk_val}),
             'opts': self.get_bs_form_opts()
@@ -825,6 +830,50 @@ class GridActionsMixin():
                  qtpl.print_bs_badges(get_object_description(obj))
             ),
             'message': form_html
+        })
+
+    def action_create_inline(self):
+        ff = self.get_create_form_with_inline_formsets()(self.request)
+        ff.get()
+        t = tpl_loader.get_template('bs_inline_formsets.htm')
+        ff_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': ff.form,
+            'formsets': ff.formsets,
+            'action': self.get_action_url('save_inline'),
+            'html': self.get_bs_form_opts()
+        })
+        return vm_list({
+            'view': self.__class__.viewmodel_name,
+            'last_action': 'save_inline',
+            'title': format_html('{}: {}',
+                self.get_action_name(self.current_action),
+                self.get_model_meta('verbose_name')
+            ),
+            'message': ff_html
+        })
+
+    def action_edit_inline(self):
+        pk_val = self.request_get('pk_val')
+        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        ff = self.get_edit_form_with_inline_formsets()(self.request)
+        ff.get(instance=obj)
+        t = tpl_loader.get_template('bs_inline_formsets.htm')
+        ff_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': ff.form,
+            'formsets': ff.formsets,
+            'action': self.get_action_url('save_inline', query={'pk_val': pk_val}),
+            'html': self.get_bs_form_opts()
+        })
+        return vm_list({
+            'view': self.__class__.viewmodel_name,
+            'last_action': 'save_inline',
+            'title': format_html('{}: {}',
+                 self.get_action_name(self.current_action),
+                 qtpl.print_bs_badges(get_object_description(obj))
+            ),
+            'message': ff_html
         })
 
     def get_object_desc(self, obj):
@@ -902,6 +951,31 @@ class GridActionsMixin():
             ff_vms = vm_list()
             self.add_form_viewmodels(form, ff_vms)
             return ff_vms
+
+    # Supports both 'create_inline' and 'edit_inline' actions.
+    def action_save_inline(self):
+        pk_val = self.request.GET.get('pk_val')
+        if pk_val is None:
+            ff_class = self.get_create_form_with_inline_formsets()
+        else:
+            ff_class = self.get_edit_form_with_inline_formsets()
+        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        ff = ff_class(self.request, create=pk_val is None)
+        obj = ff.save(instance=obj)
+        if obj is not None:
+            vm = {'view': self.__class__.viewmodel_name}
+            if ff.has_changed():
+                row = self.postprocess_row(
+                    self.get_model_row(obj),
+                    obj
+                )
+                if pk_val is None:
+                    vm['prepend_rows'] = [row]
+                else:
+                    vm['update_rows'] = [row]
+            return vm_list(vm)
+        else:
+            return self.ajax_form_invalid(ff.form, ff.formsets)
 
     def vm_get_grid_fields(self):
         vm_grid_fields = []

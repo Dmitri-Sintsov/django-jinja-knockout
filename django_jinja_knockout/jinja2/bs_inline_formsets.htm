@@ -12,7 +12,9 @@
 {% endif %}
 {% set table_classes = 'table table-bordered table-responsive' %}
 <div class="formsets panel panel-default default-padding {{ html.class }}">
+    {% if html.title is defined %}
     <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
+    {% endif %}
     {% if action != '' %}
     {% if html.is_ajax %}
         {% set atts = {'data-url': action, 'class': 'ajax-form'} %}
@@ -89,7 +91,7 @@
             </div>
             {{ caller({'formset_end': formset, 'html': html}) }}
         {% endfor %}
-        {% if html.submit_text != '' %}
+        {% if html.submit_text is defined %}
         <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>
         {% endif %}
         {% if caller %}
@@ -108,3 +110,7 @@
 {{ raise('Formset should be list of formsets') }}
 {% endif %}
 {%- endmacro %}
+{% if _render_ %}
+{% call(kwargs) bs_inline_formsets(form, formsets, action, html) %}
+{% endcall %}
+{% endif %}
