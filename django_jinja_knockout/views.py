@@ -937,7 +937,7 @@ class GridActionsMixin():
                     def_filter = {
                         'add_reset_choice': True,
                         'active_choices': [],
-                        'multiple_choices': len(filter_def['choices']) > 2
+                        'multiple_choices': True if filter_def['choices'] is None else len(filter_def['choices']) > 2
                     }
                     def_filter.update(filter_def)
                     filter_def = def_filter
@@ -948,25 +948,29 @@ class GridActionsMixin():
                         'active_choices': [],
                         'multiple_choices': len(filter_def) > 2
                     }
-                # Pre-built list of field values / menu names.
-                vm_choices = []
-                if filter_def['add_reset_choice']:
-                    vm_choices.append({
-                        'value': None,
-                        'name': _('All'),
-                        'is_active': len(filter_def['active_choices']) == 0
-                    })
-                for value, name in filter_def['choices']:
-                    choice = {
-                        'value': value,
-                        'name': name,
-                    }
-                    if value in filter_def['active_choices']:
-                        choice['is_active'] = True
-                    vm_choices.append(choice)
+                if filter_def['choices'] is None:
+                    # Use App.ko.FkGridFilter to select filter choices.
+                    vm_choices = None
+                else:
+                    # Pre-built list of field values / menu names.
+                    vm_choices = []
+                    if filter_def['add_reset_choice']:
+                        vm_choices.append({
+                            'value': None,
+                            'name': _('All'),
+                            'is_active': len(filter_def['active_choices']) == 0
+                        })
+                    for value, name in filter_def['choices']:
+                        choice = {
+                            'value': value,
+                            'name': name,
+                        }
+                        if value in filter_def['active_choices']:
+                            choice['is_active'] = True
+                        vm_choices.append(choice)
             vm_filters.append({
                 'field': fieldname,
-                'multiple_choices': False if filter_def is None else filter_def['multiple_choices'],
+                'multiple_choices': True if filter_def is None else filter_def['multiple_choices'],
                 'name': self.get_field_verbose_name(fieldname),
                 'choices': vm_choices
             })

@@ -165,6 +165,7 @@ App.ko.AbstractGridFilter = function(options) {
         this.current_name = ko.observable('');
         // One of this.choices, special 'reset all choice'.
         this.resetFilter = null;
+        this.allowMultipleChoices = options.allowMultipleChoices;
     };
 
     AbstractGridFilter.setDropdownElement = function($element) {
@@ -207,7 +208,6 @@ App.ko.GridFilter = function(options) {
 
     GridFilter.init = function(options) {
         this.super._call('init', options);
-        this.allowMultipleChoices = options.allowMultipleChoices;
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -256,7 +256,10 @@ App.ko.GridFilter = function(options) {
             currentChoice.is_active(true);
         } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
-            currentChoice.is_active(!currentChoice.is_active());
+            // Allow to select none choices (reset) only if there is reset choice in menu.
+            if (this.resetFilter !== null || !currentChoice.is_active()) {
+                currentChoice.is_active(!currentChoice.is_active());
+            }
             // Turn off all another filter choices.
             for (var i = 0; i < this.choices.length; i++) {
                 if (!currentChoice.is(this.choices[i])) {
@@ -324,31 +327,30 @@ App.ko.FkGridFilter = function(options) {
         this.gridDialog.show();
     };
 
-    FkGridFilter.addQueryFilter = function(value) {
-        this.super._call('addQueryFilter', value);
-        this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction();
-    };
-
-    FkGridFilter.removeQueryFilter = function(value) {
-        this.super._call('removeQueryFilter', value);
-        this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction();
-    };
-
     FkGridFilter.onGridDialogSelectRow = function(options) {
+        if (!this.allowMultipleChoices) {
+            this.addQueryFilter(null);
+        }
         this.addQueryFilter(options.pkVal);
         this.hasActiveChoices(true);
+        this.ownerGrid.queryArgs.page = 1;
+        this.ownerGrid.listAction();
     };
 
     FkGridFilter.onGridDialogUnselectRow = function(options) {
-        this.removeQueryFilter(options.pkVal);
-        this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
+        if (this.allowMultipleChoices) {
+            this.removeQueryFilter(options.pkVal);
+            this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
+            this.ownerGrid.queryArgs.page = 1;
+            this.ownerGrid.listAction();
+        }
     };
 
     FkGridFilter.onGridDialogUnselectAllRows = function(options) {
-        this.removeQueryFilter(null);
+        this.addQueryFilter(null);
         this.hasActiveChoices(false);
+        this.ownerGrid.queryArgs.page = 1;
+        this.ownerGrid.listAction();
     };
 
 })(App.ko.FkGridFilter.prototype);
@@ -1296,15 +1298,20 @@ App.ko.Grid = function(options) {
             ownerGrid: this,
             field: filter.field,
             name: filter.name,
+            allowMultipleChoices: filter.multiple_choices,
         };
         if (filter.choices === null) {
-            options.fkGridOptions = this.getFkGridOptions(filter.field);
+            options.fkGridOptions = $.extend(
+                this.getFkGridOptions(filter.field),
+                {
+                    selectMultipleRows: filter.multiple_choices,
+                    showSelection: true
+                }
+            );
             filterModel = this.iocFkFilter(options);
             // Will use App.ko.FkGridFilter to select filter choices.
             filterModel.choices = null;
         } else {
-            // todo: support .allowMultipleChoices in .iocFkFilter().
-            options.allowMultipleChoices = filter.multiple_choices;
             filterModel = this.iocDropdownFilter(options);
             var choices = filter.choices;
             for (var i = 0; i < choices.length; i++) {
@@ -1315,6 +1322,9 @@ App.ko.Grid = function(options) {
                     value: choice.value,
                     is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
                 })
+                if (koFilterChoice.value === null) {
+                    filterModel.resetFilter = koFilterChoice;
+                }
                 filterModel.choices.push(koFilterChoice);
             }
         }
