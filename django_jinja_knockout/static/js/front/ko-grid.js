@@ -1541,10 +1541,16 @@ App.ko.Action = function(options) {
         this.localName = this.actDef.localName;
     };
 
-    Action.getKoCss = function() {
+    Action.getKoCss = function(type) {
         var koCss = {};
-        if (typeof this.actDef.class !== 'undefined') {
+        switch (typeof this.actDef.class) {
+        case 'string':
             koCss[this.actDef.class] = true;
+            break;
+        case 'object':
+            if (typeof this.actDef.class[type] !== 'undefined') {
+                koCss[this.actDef.class[type]] = true;
+            }
         }
         return koCss;
     };

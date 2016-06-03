@@ -44,7 +44,10 @@
                     <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
                     <% if (self.get(self, 'show_action_buttons')) { %>
                     <!-- ko foreach: actionTypes['button'] -->
-                        <button class="btn" data-bind="css: getKoCss(), click: function() { doAction({}); }, text: $data.localName"></button>
+                        <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
+                            <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
+                            <span data-bind="text: $data.localName"></span>
+                        </button>
                     <!-- /ko -->
                     <% } %>
                 </form>

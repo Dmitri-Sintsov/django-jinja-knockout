@@ -711,14 +711,20 @@ class GridActionsMixin():
                 # Extendable UI actions (has 'type' key).
                 ('create_form', {
                     'localName': _('Add'),
-                    'class': 'btn-primary',
+                    'class': {
+                        'button': 'btn-primary',
+                        'glyphicon': 'glyphicon-plus'
+                    },
                     'enabled': any([
                         self.get_create_form()
                     ])
                 }),
                 ('create_inline', {
                     'localName': _('Add'),
-                    'class': 'btn-primary',
+                    'class': {
+                        'button': 'btn-primary',
+                        'glyphicon': 'glyphicon-plus'
+                    },
                     'enabled': any([
                         self.get_create_form_with_inline_formsets()
                     ])
