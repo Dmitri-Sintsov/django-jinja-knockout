@@ -1,5 +1,5 @@
 <script type="text/template" id="ko_grid_pagination">
-			<div class="pagination-wrapper default-padding">
+			<div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
 				<ul data-bind="foreach: gridPages" class="pagination">
 					<li data-bind="css:{active: isActive}">
 						<a data-bind="text:title, click: onPagination" name="#"></a>

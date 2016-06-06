@@ -27,6 +27,7 @@ ko.bindingHandlers.grid_order_by = {
     }
 };
 
+// Supports jQuery elements / nested arrays / objects / simple strings as cell value.
 ko.bindingHandlers.grid_row_value = {
     update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.renderRowValue(element, ko.utils.unwrapObservable(
@@ -91,9 +92,18 @@ App.ko.GridColumnOrder = function(options) {
         },
     ];
 
+    // Supports jQuery elements / nested arrays / objects / simple strings as cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
         $(element).empty();
-        App.renderNestedList(element, value, this.blockTags);
+        if (value instanceof jQuery) {
+            $(element).append(value);
+        } else if (typeof value === 'object') {
+            App.renderNestedList(element, value, this.blockTags);
+        } else {
+            // Warning: make sure string is escaped!
+            // Primarily use is to display server-side formatted strings (Djano local date / currency format).
+            $(element).html(value);
+        }
     };
 
 })(App.ko.GridColumnOrder.prototype);
@@ -423,9 +433,6 @@ App.ko.GridRow = function(options) {
     // Wraps display value into ko.observable(), when needed.
     GridRow.wrapDisplayValue  = function(value, field) {
         var displayValue = this.toDisplayValue(value, field);
-        if (displayValue instanceof jQuery) {
-            displayValue = displayValue.prop('outerHTML');
-        }
         return this.observeDisplayValue ? ko.observable(displayValue) : displayValue;
     };
 
@@ -870,6 +877,7 @@ App.ko.Grid = function(options) {
     Grid.init = function(options) {
         var self = this;
         this.options = $.extend({
+            alwaysShowPagination: true,
             ajaxParams: {},
             ownerCtrl: null,
             defaultOrderBy: null,
@@ -879,7 +887,7 @@ App.ko.Grid = function(options) {
             separateMeta: false,
             showSelection: false,
             pageRoute: null,
-            pageRouteKwargs: {}
+            pageRouteKwargs: {},
         }, options);
         if (this.options.selectMultipleRows) {
             this.options.showSelection = true;
@@ -904,6 +912,7 @@ App.ko.Grid = function(options) {
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
+        this.gridTotalPages = ko.observable(0);
         this.gridSearchStr = ko.observable('');
         this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
         this.gridSearchDisplayStr = ko.observable('');
@@ -1368,6 +1377,7 @@ App.ko.Grid = function(options) {
     Grid.setKoPagination = function(totalPages, currPage) {
         var self = this;
         self.gridPages([]);
+        this.gridTotalPages(totalPages);
         var maxVisiblePages = 5;
         var hasFoldingPage = false;
         var startingPage = currPage - maxVisiblePages;
