@@ -27,7 +27,7 @@ ko.bindingHandlers.grid_order_by = {
     }
 };
 
-// Supports jQuery elements / nested arrays / objects / simple strings as cell value.
+// Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
 ko.bindingHandlers.grid_row_value = {
     update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         viewModel.renderRowValue(element, ko.utils.unwrapObservable(
@@ -92,12 +92,12 @@ App.ko.GridColumnOrder = function(options) {
         },
     ];
 
-    // Supports jQuery elements / nested arrays / objects / simple strings as cell value.
+    // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
-        $(element).empty();
         if (value instanceof jQuery) {
-            $(element).append(value);
+            $(element).empty().append(value);
         } else if (typeof value === 'object') {
+            $(element).empty();
             App.renderNestedList(element, value, this.blockTags);
         } else {
             // Warning: make sure string is escaped!
@@ -491,7 +491,7 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.ignoreRowClickTagNames = [
-        'A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'
+        'A', 'BUTTON', 'INPUT', 'OPTION', 'SELECT', 'TEXTAREA'
     ];
 
     GridRow.onRowClick = function(data, ev) {
