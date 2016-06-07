@@ -113,7 +113,8 @@ $.SuperChain = function(childInstance, parentPrototype) {
      */
     SuperChain.find = function(name) {
         // Chain of multi-level inheritance.
-        if (typeof this.proto[name] !== 'undefined') {
+        if (typeof this.proto[name] !== 'undefined' &&
+                this.proto[name] !== this.instance[name]) {
             return this;
         } else if (this.super !== null) {
             return this.super.find(name);
