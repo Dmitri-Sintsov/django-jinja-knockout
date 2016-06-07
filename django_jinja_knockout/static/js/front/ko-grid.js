@@ -1458,25 +1458,25 @@ App.ko.Grid = function(options) {
     };
 
     Grid.loadMetaCallback = function(data) {
-        var self=this;
+        if (typeof data.actions !== 'undefined') {
+            this.gridActions.setActions(data.actions);
+            this.setKoActionTypes(data.actions);
+        }
         if (typeof data.meta !== 'undefined') {
-            this.gridActions.setActions(data.meta.actions);
-            this.setKoActionTypes(data.meta.actions);
-            delete data.meta.actions;
             this.updateMeta(data.meta);
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
-        this.sortOrders = {};
         if (typeof data.sortOrders !== 'undefined') {
+            this.sortOrders = {};
             for (var i = 0; i < data.sortOrders.length; i++) {
-                self.sortOrders[data.sortOrders[i]] = i;
+                this.sortOrders[data.sortOrders[i]] = i;
             }
         }
         if (typeof data.gridFields !== 'undefined') {
-            self.setKoGridColumns(data.gridFields);
+            this.setKoGridColumns(data.gridFields);
         }
         if (typeof data.filters !== 'undefined') {
-            self.setKoFilters(data.filters);
+            this.setKoFilters(data.filters);
         }
     };
 

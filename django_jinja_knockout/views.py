@@ -1081,13 +1081,13 @@ class GridActionsMixin():
             'meta': {
                 'hasSearch': len(self.search_fields) > 0,
                 'pkField': pk_field,
-                'actions': self.vm_get_actions(),
                 'verboseName': self.get_model_meta('verbose_name'),
                 'verboseNamePlural': self.get_model_meta('verbose_name_plural')
-            }
+            },
+            'actions': self.vm_get_actions(),
+            'gridFields': self.vm_get_grid_fields(),
+            'filters': self.vm_get_filters()
         }
-        vm['gridFields'] = self.vm_get_grid_fields()
-        vm['filters'] = self.vm_get_filters()
         return vm
 
     def action_list(self):
