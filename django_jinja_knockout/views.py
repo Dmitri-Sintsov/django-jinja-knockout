@@ -676,15 +676,6 @@ class GridActionsMixin():
     def get_edit_form_with_inline_formsets(self):
         return self.__class__.form_with_inline_formsets
 
-    def to_flat_actions(self, typed_actions):
-        flat_actions = {}
-        for type, actions in typed_actions.items():
-            for action_name, action in actions.items():
-                action_with_type = copy(action)
-                action_with_type['type'] = type
-                flat_actions[action_name] = action_with_type
-        return flat_actions
-
     def get_actions(self):
         return {
             'built_in': OrderedDict([
@@ -763,7 +754,7 @@ class GridActionsMixin():
             ])
         }
 
-    def get_current_action(self):
+    def get_current_action_name(self):
         return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
 
     # Add extra kwargs here if these are defined in urls.py.
@@ -779,14 +770,23 @@ class GridActionsMixin():
             query=query
         )
 
-    def get_action_name(self, action):
-        return self.flat_actions[action]['localName'] if 'localName' in self.flat_actions[action] else action
+    def get_action(self, action_name):
+        for type, actions_list in self.actions.items():
+            if action_name in actions_list:
+                return actions_list[action_name]
+        return None
+
+    def get_action_local_name(self, action_name=None):
+        if action_name is None:
+            action_name = self.current_action_name
+        action = self.get_action(action_name)
+        return action['localName'] if 'localName' in action else action_name
 
     def action_is_denied(self):
         self.report_error(
             title=_('Action is denied'),
             message=format_html(
-                _('Action "{}" is denied'), self.current_action
+                _('Action "{}" is denied'), self.current_action_name
             )
         )
 
@@ -794,7 +794,7 @@ class GridActionsMixin():
         self.report_error(
             title=_('Unknown action'),
             message=format_html(
-                _('Action "{}" is not implemented'), self.get_action_name(self.current_action)
+                _('Action "{}" is not implemented'), self.get_action_local_name()
             )
         )
 
@@ -811,7 +811,7 @@ class GridActionsMixin():
             'view': self.__class__.viewmodel_name,
             'last_action': 'save_form',
             'title': format_html('{}: {}',
-                self.get_action_name(self.current_action),
+                self.get_action_local_name(),
                 self.get_model_meta('verbose_name')
             ),
             'message': form_html
@@ -832,7 +832,7 @@ class GridActionsMixin():
             'view': self.__class__.viewmodel_name,
             'last_action': 'save_form',
             'title': format_html('{}: {}',
-                 self.get_action_name(self.current_action),
+                 self.get_action_local_name(),
                  qtpl.print_bs_badges(get_object_description(obj))
             ),
             'message': form_html
@@ -853,7 +853,7 @@ class GridActionsMixin():
             'view': self.__class__.viewmodel_name,
             'last_action': 'save_inline',
             'title': format_html('{}: {}',
-                self.get_action_name(self.current_action),
+                self.get_action_local_name(),
                 self.get_model_meta('verbose_name')
             ),
             'message': ff_html
@@ -876,7 +876,7 @@ class GridActionsMixin():
             'view': self.__class__.viewmodel_name,
             'last_action': 'save_inline',
             'title': format_html('{}: {}',
-                 self.get_action_name(self.current_action),
+                 self.get_action_local_name(),
                  qtpl.print_bs_badges(get_object_description(obj))
             ),
             'message': ff_html
@@ -890,7 +890,8 @@ class GridActionsMixin():
         return qtpl.print_list_group(descriptions, cb=None)
 
     def get_title_action_not_allowed(self):
-        return _('Action "%(action)s" is not allowed') % {'action': self.get_action_name(self.current_action)}
+        return _('Action "%(action)s" is not allowed') % \
+               {'action': self.get_action_local_name()}
 
     def action_delete_is_allowed(self, objects):
         return True
@@ -907,7 +908,7 @@ class GridActionsMixin():
             viewmodel.update({
                 'view': self.__class__.viewmodel_name,
                 'title': format_html('{}',
-                     self.get_action_name(self.current_action)
+                     self.get_action_local_name()
                 ),
                 'pkVals': pks
             })
@@ -1056,6 +1057,18 @@ class GridActionsMixin():
             })
         return vm_filters
 
+    # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
+    # ordering, to preserve visual ordering of actions.
+    def vm_get_actions(self):
+        vm_actions = {}
+        for action_type, actions_list in self.actions.items():
+            if action_type not in vm_actions:
+                vm_actions[action_type] = []
+            for action_name, action in actions_list.items():
+                action['name'] = action_name
+                vm_actions[action_type].append(action)
+        return vm_actions
+
     def action_meta(self):
         pk_field = ''
         for field in self.__class__.model._meta.fields:
@@ -1068,7 +1081,7 @@ class GridActionsMixin():
             'meta': {
                 'hasSearch': len(self.search_fields) > 0,
                 'pkField': pk_field,
-                'actions': self.flat_actions,
+                'actions': self.vm_get_actions(),
                 'verboseName': self.get_model_meta('verbose_name'),
                 'verboseNamePlural': self.get_model_meta('verbose_name_plural')
             }
@@ -1239,16 +1252,16 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()
-        self.flat_actions = self.to_flat_actions(self.actions)
         self.request = request
         self.args = args
         self.kwargs = kwargs
-        self.current_action = self.get_current_action()
+        self.current_action_name = self.get_current_action_name()
         self.row_model_str = self.request_get('row_model_str', '') == 'true'
-        if self.current_action == '':
-            self.current_action = 'list'
-        if get_nested(self.flat_actions, [self.current_action, 'enabled']) is True:
-            handler = getattr(self, 'action_{}'.format(self.current_action), self.action_not_implemented)
+        if self.current_action_name == '':
+            self.current_action_name = 'list'
+        current_action = self.get_action(self.current_action_name)
+        if current_action is not None and current_action['enabled']:
+            handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
         else:
             handler = self.action_is_denied
         return handler()

@@ -595,7 +595,13 @@ App.GridActions = function(options) {
     };
 
     GridActions.setActions = function(actions) {
-        this.actions = actions;
+        var self = this;
+        _.each(actions, function(actions, actionType) {
+            for (var i = 0; i < actions.length; i++) {
+                actions[i].type = actionType;
+                self.actions[actions[i].name] = actions[i];
+            }
+        });
     };
 
     GridActions.setActionKwarg = function(action_kwarg) {
@@ -685,7 +691,8 @@ App.GridActions = function(options) {
     // koAction: instance of App.ko.Action - visual representation of action in knockout template.
     GridActions.setLastKoAction = function(koAction) {
         this.lastKoAction = koAction;
-        this.lastActionName = koAction.actDef.action;
+        // Do not remove this property, because it may be overriden separately via AJAX call result in this.respond().
+        this.lastActionName = koAction.name;
     };
 
     // Perform last action.
@@ -1454,9 +1461,9 @@ App.ko.Grid = function(options) {
         var self=this;
         if (typeof data.meta !== 'undefined') {
             this.gridActions.setActions(data.meta.actions);
+            this.setKoActionTypes(data.meta.actions);
             delete data.meta.actions;
             this.updateMeta(data.meta);
-            this.setKoActionTypes();
             this.ownerCtrlSetTitle(data.meta.verboseNamePlural);
         }
         this.sortOrders = {};
@@ -1501,25 +1508,27 @@ App.ko.Grid = function(options) {
         return new App.ko.Action(options);
     };
 
-    Grid.setKoActionTypes = function() {
+    Grid.setKoActionTypes = function(metaActions) {
         var self = this;
         _.each(this.uiActionTypes, function(type) {
             self.actionTypes[type]([]);
         })
         // Do not forget to include all possible types of actions into this list.
-        _.each(this.gridActions.actions, function(actDef, actionName) {
+        _.each(metaActions, function(actions, actionType) {
             // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
-            if (actDef.enabled && actDef.type !== 'built_in') {
-                var actDef = $.extend({
-                    action: actionName
-                }, actDef);
-                if (typeof self.actionTypes[actDef.type] === 'undefined') {
-                    throw sprintf('Unknown action type: "%s"', actDef.type);
+            if (actionType !== 'built_in') {
+                if (typeof self.actionTypes[actionType] === 'undefined') {
+                    throw sprintf('Unknown action type: "%s"', actionType);
                 }
-                self.actionTypes[actDef.type].push(Grid.iocKoAction({
-                    grid: self,
-                    actDef: actDef
-                }));
+                for (var i = 0; i < actions.length; i++) {
+                    var actDef = actions[i];
+                    if (actDef.enabled) {
+                        self.actionTypes[actionType].push(Grid.iocKoAction({
+                            grid: self,
+                            actDef: actDef
+                        }));
+                    }
+                }
             }
         });
     };
@@ -1554,6 +1563,7 @@ App.ko.Action = function(options) {
     Action.init = function(options) {
         this.grid = options.grid;
         this.actDef = options.actDef;
+        this.name = this.actDef.name;
         this.localName = this.actDef.localName;
     };
 
