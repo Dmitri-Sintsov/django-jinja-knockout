@@ -1,5 +1,5 @@
 <script type="text/template" id="ko_grid_row_click_menu">
-    <div data-bind="foreach: actionTypes['click']">
+    <div data-bind="foreach: lastClickedKoRow.getClickActions()">
         <button class="btn btn-block" data-bind="css: getKoCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
     </div>

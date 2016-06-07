@@ -535,6 +535,12 @@ App.ko.GridRow = function(options) {
         return [];
     };
 
+    // Override in child class to selectively enable only some of 'click' type actions for the particular grid row,
+    // depending on this.values.
+    GridRow.getClickActions = function() {
+        return this.ownerGrid.actionTypes['click'];
+    };
+
 })(App.ko.GridRow.prototype);
 
 /**
