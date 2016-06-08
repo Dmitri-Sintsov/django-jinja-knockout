@@ -1201,7 +1201,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         return obj.get_str_fields() if self.has_get_str_fields else None
 
     def get_model_row(self, obj):
-        return model_values(obj, self.query_fields)
+        return model_values(obj, self.query_fields, strict_related=False)
 
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).

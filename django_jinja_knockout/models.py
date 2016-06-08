@@ -2,10 +2,12 @@ from django.apps import apps
 from django.db import models
 
 
-def get_related_field_val(obj, fieldname):
+def get_related_field_val(obj, fieldname, strict_related=True):
     curr_rel = obj
     fieldpath = fieldname.split('__')
     for _fieldname in fieldpath:
+        if curr_rel is None and not strict_related:
+            return None
         curr_rel = getattr(curr_rel, _fieldname)
     return curr_rel
 
@@ -44,11 +46,14 @@ def yield_model_fieldnames(obj, fields=None):
 
 
 # Return dict of model fields key / val like queryset values() but for one model supplied.
-def model_values(obj, fields=None):
+def model_values(obj, fields=None, strict_related=True):
     row = {}
     for fieldname in yield_model_fieldnames(obj, fields):
         try:
-            val = getattr(obj, fieldname)
+            if '__' in fieldname:
+                val = get_related_field_val(obj, fieldname, strict_related)
+            else:
+                val = getattr(obj, fieldname)
             if isinstance(val, models.Model):
                 row[fieldname] = val.pk
             else:
