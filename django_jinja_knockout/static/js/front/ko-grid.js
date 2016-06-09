@@ -204,6 +204,11 @@ App.ko.AbstractGridFilter = function(options) {
         this.ownerGrid.removeQueryFilter(this.field, value);
     };
 
+    // Used to programmatically set choice values for selected filter.
+    AbstractGridFilter.setChoices = function(values) {
+        throw 'Abstract method';
+    };
+
 })(App.ko.AbstractGridFilter.prototype);
 
 /**
@@ -292,6 +297,23 @@ App.ko.GridFilter = function(options) {
         this.hasActiveChoices(!resetFilterIsActive);
     };
 
+    GridFilter.getKoFilterChoice = function(value) {
+        for (var i = 0; i < this.choices.length; i++) {
+            var filterChoice = this.choices[i];
+            if (filterChoice.value === value) {
+                return filterChoice;
+            }
+        };
+        return null;
+    };
+
+    GridFilter.setChoices = function(values) {
+        this.resetFilterLogic();
+        for (var i = 0; i < values.length; i++) {
+            this.switchKoFilterChoices(this.getKoFilterChoice(values[i]));
+        }
+    };
+
 })(App.ko.GridFilter.prototype);
 
 /**
@@ -362,6 +384,15 @@ App.ko.FkGridFilter = function(options) {
         this.hasActiveChoices(false);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
+    };
+
+    // todo: update child grid.
+    FkGridFilter.setChoices = function(values) {
+        this.addQueryFilter(null);
+        for (var i = 0; i < values.length; i++) {
+            this.addQueryFilter(values[i]);
+        }
+        this.hasActiveChoices(values.length > 0);
     };
 
 })(App.ko.FkGridFilter.prototype);
@@ -842,15 +873,19 @@ App.ko.Grid = function(options) {
              */
             this.gridActions.perform('meta', {}, function(response) {
                 self.gridActions.perform('list', {}, function(response) {
-                    self.propCall('ownerCtrl.onChildGridFirstLoad');
+                    self.onFirstLoad();
                 });
             });
         } else {
             // Save a bit of HTTP traffic by default.
             this.gridActions.perform('meta_list', {}, function(response) {
-                self.propCall('ownerCtrl.onChildGridFirstLoad');
+                self.onFirstLoad();
             });
         }
+    };
+
+    Grid.onFirstLoad = function() {
+        this.propCall('ownerCtrl.onChildGridFirstLoad');
     };
 
     Grid.run = function(element) {
@@ -1364,6 +1399,18 @@ App.ko.Grid = function(options) {
             }
         }
         return filterModel;
+    };
+
+    // Get filter model by field name.
+    Grid.getKoFilter = function(fieldName) {
+        var result = null;
+        _.each(this.gridFilters(), function(gridFilter) {
+            if (gridFilter.field === fieldName) {
+                result = gridFilter;
+                return false;
+            }
+        });
+        return result;
     };
 
     /**
