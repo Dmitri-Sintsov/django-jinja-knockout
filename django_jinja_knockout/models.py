@@ -1,5 +1,21 @@
 from django.apps import apps
 from django.db import models
+from django.db.models import Q
+from django.contrib.auth.models import User, Group, Permission
+from django.contrib.contenttypes.models import ContentType
+
+
+def get_permission_object(permission_str):
+    app_label, codename = permission_str.split('.')
+    return Permission.objects.filter(content_type__app_label=app_label, codename=codename).first()
+
+
+def get_users_with_permission(permission_str, include_su=True):
+    permission_obj = get_permission_object(permission_str)
+    q = Q(groups__permissions=permission_obj) | Q(user_permissions=permission_obj)
+    if include_su:
+        q |= Q(is_superuser=True)
+    return User.objects.filter(q).distinct()
 
 
 def get_related_field_val(obj, fieldname, strict_related=True):
@@ -10,6 +26,7 @@ def get_related_field_val(obj, fieldname, strict_related=True):
             return None
         curr_rel = getattr(curr_rel, _fieldname)
     return curr_rel
+
 
 def get_meta(obj, meta_attr, fieldname=None):
     if fieldname is None:
