@@ -1559,7 +1559,7 @@ App.ko.Grid = function(options) {
         var self = this;
         _.each(this.uiActionTypes, function(type) {
             self.actionTypes[type]([]);
-        })
+        });
         // Do not forget to include all possible types of actions into this list.
         _.each(metaActions, function(actions, actionType) {
             // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
@@ -1578,6 +1578,25 @@ App.ko.Grid = function(options) {
                 }
             }
         });
+    };
+
+    /**
+     * Get ui ko action by it's name, optionally restricted to specific action type.
+     * Can be used to perform specific action programmatically via .doAction() method.
+     */
+    Grid.getKoAction = function(actionName, actionType) {
+        var action = null;
+        _.each(this.actionTypes, function(actions, actType) {
+            if (typeof actionType === 'undefined' || actType === actionType) {
+                for (var i = 0; i < actions().length; i++) {
+                    if (actions()[i].name === actionName) {
+                        action = actions()[i];
+                        return false;
+                    }
+                }
+            }
+        });
+        return action;
     };
 
     // Pass fired visual action from ko ui to actual action implementation.
@@ -1628,8 +1647,10 @@ App.ko.Action = function(options) {
         return koCss;
     };
 
-    Action.doAction = function(options) {
-        var actionOptions = {};
+    Action.doAction = function(options, actionOptions) {
+        if (typeof actionOptions === 'undefined') {
+            actionOptions = {};
+        }
         // Check whether that is 'glyphicon' action, which has gridRow instance passed to doAction().
         if (typeof options.gridRow !== 'undefined') {
             this.grid.lastClickedKoRow = options.gridRow;

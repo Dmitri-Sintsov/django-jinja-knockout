@@ -1116,6 +1116,43 @@ App.post = function(route, data, options) {
 
 /**
  * Usage:
+ *   App.propGet(this, 'propName');
+ *   ...
+ *   App.propGet(someInstance, ['propName1', 'propName2', 'propNameN'], 'defaultValue');
+ */
+App.propGet = function(self, propChain, defVal, get_context) {
+    var propName;
+    var prop = self;
+    if (_.isArray(propChain)) {
+        propName = propChain.pop();
+        for (var i = 0; i < propChain.length; i++) {
+            if (typeof prop[propChain[i]] !== 'object') {
+                return defVal;
+            }
+            prop = prop[propChain[i]];
+        }
+    } else {
+        propName = propChain;
+    }
+    if (prop !== null) {
+        var propType = typeof prop[propName];
+        if (propType !== 'undefined') {
+            if (propType === 'function' && typeof get_context !== 'undefined') {
+                /**
+                 * Javascript cannot .apply() to bound function without implicitely specifying context,
+                 * thus next code is commented out:
+                 */
+                // return _.bind(prop[propName], prop);
+                return function() { return {'context': prop, 'fn': prop[propName]} };
+            }
+            return prop[propName];
+        }
+    }
+    return (typeof defVal === 'undefined') ? null : defVal;
+};
+
+/**
+ * Usage:
  *   MyClass.prototype.propCall = App.propCall;
  *   ...
  *   this.propCall('prop1.prop2.fn', arg1, .. argn);
@@ -1125,18 +1162,12 @@ App.post = function(route, data, options) {
 App.propCall = function() {
     var args = Array.prototype.slice.call(arguments);
     var propChain = args.shift().split(/\./);
-    var propMethod = propChain.pop();
-    var prop = this;
-    for (var i = 0; i < propChain.length; i++) {
-        if (typeof prop[propChain[i]] !== 'object') {
-            return null;
-        }
-        prop = prop[propChain[i]];
-    }
-    if (prop !== null && typeof prop[propMethod] === 'function') {
-        return prop[propMethod].apply(prop, args);
+    var propVal = App.propGet(this, propChain, null, true);
+    if (typeof propVal === 'function') {
+        var prop = propVal();
+        return prop.fn.apply(prop.context, args);
     } else {
-        return null;
+        return propVal;
     }
 };
 
