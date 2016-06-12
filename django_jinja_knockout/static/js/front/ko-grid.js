@@ -204,7 +204,9 @@ App.ko.AbstractGridFilter = function(options) {
         this.ownerGrid.removeQueryFilter(this.field, value);
     };
 
-    // Used to programmatically set choice values for selected filter.
+    /**
+     * Programmatically set specified values list of filter choices for current filter.
+     */
     AbstractGridFilter.setChoices = function(values) {
         throw 'Abstract method';
     };
@@ -307,10 +309,16 @@ App.ko.GridFilter = function(options) {
         return null;
     };
 
+    /**
+     * Programmatically set specified values list of filter choices for current filter.
+     */
     GridFilter.setChoices = function(values) {
         this.resetFilterLogic();
         for (var i = 0; i < values.length; i++) {
-            this.switchKoFilterChoices(this.getKoFilterChoice(values[i]));
+            var koFilterChoice = this.getKoFilterChoice(values[i]);
+            if (koFilterChoice !== null) {
+                this.switchKoFilterChoices(koFilterChoice);
+            }
         }
     };
 
