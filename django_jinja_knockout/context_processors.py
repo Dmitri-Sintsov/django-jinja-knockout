@@ -50,10 +50,12 @@ class TemplateContextProcessor():
             else 0
 
     def yield_client_routes(self):
+        # Per-view client routes.
         for url in self.HttpRequest.client_routes:
             # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
             # according to current permissions. So they are 'is_anon' because they exist.
             yield url, True
+        # Always available client routes.
         for route in self.CLIENT_ROUTES:
             yield route
 
