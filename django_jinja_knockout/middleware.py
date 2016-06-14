@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import get_backends, logout as auth_logout
+from .utils.sdv import get_class_that_defined_method
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, to_vm_list, has_vm_list
 
@@ -65,6 +66,13 @@ class ContextMiddleware(object):
         self.__class__._threadmap[threading.get_ident()] = request
         # Optional server-side injected JSON.
         request.client_data = {}
+        """
+            request.client_routes = [
+                'logout',
+                'users_list',
+            ]
+        """
+        request.client_routes = []
         vm_list = to_vm_list(request.client_data)
         if has_vm_list(request.session):
             vm_session = to_vm_list(request.session)
@@ -146,6 +154,10 @@ class ContextMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         if not self.is_our_module(view_func.__module__):
             return
+        if hasattr(view_func, '__wrapped__'):
+            view_class = get_class_that_defined_method(view_func)
+            if hasattr(view_class, 'client_routes'):
+                request.client_routes = view_class.client_routes
         self.request = request
         self.view_func = view_func
         self.view_args = view_args

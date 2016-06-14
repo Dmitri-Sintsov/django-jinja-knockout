@@ -21,14 +21,6 @@ def raise_helper(msg):
 
 class TemplateContextProcessor():
 
-    """
-        CLIENT_ROUTES = (
-            ('logout', False),
-            ('users_list', True),
-        )
-    """
-    CLIENT_ROUTES = ()
-
     def __init__(self, HttpRequest=None):
         self.user_id = 0
         self.HttpRequest = HttpRequest
@@ -38,7 +30,8 @@ class TemplateContextProcessor():
         Will be called for application response() views.
         Currently is used only with jinja2 templates to do not interfere with django.admin.
         """
-        return self.HttpRequest is None or not hasattr(self.HttpRequest, 'client_data')
+        return self.HttpRequest is None or \
+               not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
 
     def get_user_id(self):
         return self.HttpRequest.user.pk \
@@ -48,6 +41,7 @@ class TemplateContextProcessor():
     def get_context_data(self):
         if self.skip_request():
             return {}
+
         self.user_id = self.get_user_id()
         client_conf = {
             'csrfToken': get_token(self.HttpRequest),
@@ -56,18 +50,17 @@ class TemplateContextProcessor():
             'url': {}
         }
 
-        for url, is_anon in self.__class__.CLIENT_ROUTES:
-            if is_anon or self.user_id != 0:
-                try:
-                    client_conf['url'][url] = reverse(url)
-                except NoReverseMatch as e:
-                    # Current pattern has named parameters. Translate these to Python str.format() / Javascript
-                    # sprintf() library format.
-                    # todo: Find a cleaner, faster way to find pattern result not using trace frames.
-                    caller = trace()[-1:]
-                    f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
-                    if type(f_locals) is dict and 'prefix_norm' in f_locals and 'result' in f_locals:
-                        client_conf['url'][url] = '{}{}'.format(f_locals['prefix_norm'], f_locals['result'])
+        for url in self.HttpRequest.client_routes:
+            try:
+                client_conf['url'][url] = reverse(url)
+            except NoReverseMatch as e:
+                # Current pattern has named parameters. Translate these to Python str.format() / Javascript
+                # sprintf() library format.
+                # todo: Find a cleaner, faster way to find pattern result not using trace frames.
+                caller = trace()[-1:]
+                f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
+                if type(f_locals) is dict and 'prefix_norm' in f_locals and 'result' in f_locals:
+                    client_conf['url'][url] = '{}{}'.format(f_locals['prefix_norm'], f_locals['result'])
 
         return {
             'add_css_classes': add_css_classes,
