@@ -76,3 +76,7 @@ def get_class_that_defined_method(meth):
         if isinstance(cls, type):
             return cls
     return None # not required since None would have been implicitly returned
+
+
+def get_cbv_from_dispatch_wrapper(meth):
+    return getattr(inspect.getmodule(meth), meth.__qualname__)

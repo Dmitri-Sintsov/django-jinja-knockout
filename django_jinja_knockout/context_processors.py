@@ -20,6 +20,17 @@ def raise_helper(msg):
 
 
 class TemplateContextProcessor():
+    # List of global client routes that will be injected into every view.
+    # One also may inject specific routes into client side per view via request.client_routes.extend(['route1', 'route2'])
+    """
+        CLIENT_ROUTES = (
+            # Available to both anonymous and registered users.
+            ('logout', False),
+            # Available to registered users only.
+            ('users_list', True),
+        )
+    """
+    CLIENT_ROUTES = ()
 
     def __init__(self, HttpRequest=None):
         self.user_id = 0
@@ -38,6 +49,14 @@ class TemplateContextProcessor():
             if self.HttpRequest.user.is_authenticated() and self.HttpRequest.user.is_active \
             else 0
 
+    def yield_client_routes(self):
+        for url in self.HttpRequest.client_routes:
+            # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
+            # according to current permissions. So they are 'is_anon' because they exist.
+            yield url, True
+        for route in self.CLIENT_ROUTES:
+            yield route
+
     def get_context_data(self):
         if self.skip_request():
             return {}
@@ -50,17 +69,18 @@ class TemplateContextProcessor():
             'url': {}
         }
 
-        for url in self.HttpRequest.client_routes:
-            try:
-                client_conf['url'][url] = reverse(url)
-            except NoReverseMatch as e:
-                # Current pattern has named parameters. Translate these to Python str.format() / Javascript
-                # sprintf() library format.
-                # todo: Find a cleaner, faster way to find pattern result not using trace frames.
-                caller = trace()[-1:]
-                f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
-                if type(f_locals) is dict and 'prefix_norm' in f_locals and 'result' in f_locals:
-                    client_conf['url'][url] = '{}{}'.format(f_locals['prefix_norm'], f_locals['result'])
+        for url, is_anon in self.yield_client_routes():
+            if (is_anon or self.user_id != 0) and url not in client_conf['url']:
+                try:
+                    client_conf['url'][url] = reverse(url)
+                except NoReverseMatch as e:
+                    # Current pattern has named parameters. Translate these to Python str.format() / Javascript
+                    # sprintf() library format.
+                    # todo: Find a cleaner, faster way to find pattern result not using trace frames.
+                    caller = trace()[-1:]
+                    f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
+                    if type(f_locals) is dict and 'prefix_norm' in f_locals and 'result' in f_locals:
+                        client_conf['url'][url] = '{}{}'.format(f_locals['prefix_norm'], f_locals['result'])
 
         return {
             'add_css_classes': add_css_classes,

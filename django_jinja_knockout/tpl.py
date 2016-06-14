@@ -6,7 +6,7 @@ from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import resolve, reverse
 from urllib.parse import urlencode
-from .utils.sdv import get_class_that_defined_method
+from .utils.sdv import get_cbv_from_dispatch_wrapper
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -150,7 +150,7 @@ def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, q
 
 def resolve_cbv(url_name, kwargs):
     url = reverse(url_name, kwargs=kwargs)
-    view = resolve(url)[0]
-    if not hasattr(view, '__wrapped__'):
-        return view
-    return get_class_that_defined_method(view)
+    view_fn = resolve(url)[0]
+    if not hasattr(view_fn, '__wrapped__'):
+        return view_fn
+    return get_cbv_from_dispatch_wrapper(view_fn)

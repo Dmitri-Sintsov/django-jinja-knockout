@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import get_backends, logout as auth_logout
-from .utils.sdv import get_class_that_defined_method
+from .utils.sdv import get_cbv_from_dispatch_wrapper
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, to_vm_list, has_vm_list
 
@@ -155,7 +155,7 @@ class ContextMiddleware(object):
         if not self.is_our_module(view_func.__module__):
             return
         if hasattr(view_func, '__wrapped__'):
-            view_class = get_class_that_defined_method(view_func)
+            view_class = get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
                 request.client_routes = view_class.client_routes
         self.request = request
