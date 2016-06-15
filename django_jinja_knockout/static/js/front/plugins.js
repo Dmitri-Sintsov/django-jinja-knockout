@@ -111,16 +111,28 @@ $.SuperChain = function(childInstance, parentPrototype) {
     /**
      * Find method / property among inherited prototypes from top (immediate ancestor) to bottom (base class).
      */
-    SuperChain.find = function(name) {
+    SuperChain._find = function(name, hasOwnProto) {
         // Chain of multi-level inheritance.
-        if (typeof this.proto[name] !== 'undefined' &&
-                this.proto[name] !== this.instance[name]) {
+        var hasProp = typeof this.proto[name] !== 'undefined';
+        var noOwnProp = this === this.instance.superTop && !hasOwnProto;
+        // Will return immediate super property only when method is defined in instance own prototype.
+        if (hasProp && !noOwnProp) {
             return this;
-        } else if (this.super !== null) {
-            return this.super.find(name);
-        } else {
-            throw 'No such property: ' + name;
         }
+        if (this.super !== null) {
+            return this.super._find(name, hasOwnProto);
+        } else {
+            if (hasProp && noOwnProp) {
+                // Fallback for super methods which are not defined in instance own prototype.
+                return this;
+            } else {
+                throw 'No such property: ' + name;
+            }
+        }
+    };
+
+    SuperChain.find = function(name) {
+        return this._find(name, typeof this.instance.__proto__[name] !== 'undefined');
     };
 
     SuperChain.prop = function(name) {

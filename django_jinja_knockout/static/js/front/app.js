@@ -1013,16 +1013,9 @@ App.initClientHooks = [];
  * Dispose is not supposed to restore DOM to original state, rather it is supposed to remove event handlers
  * and bootstrap widgets, to minimize memory leaks, before DOM nodes are emptied.
  */
-App.initClient = function(selector, method) {
-    if (typeof selector === 'undefined') {
-        throw 'App.initClient requires valid selector as safety precaution.';
-    }
-    if (typeof method === 'undefined') {
-        method = 'init';
-    }
-    var $selector = $(selector);
-    for (var i = 0; i < App.initClientHooks.length; i++) {
-        var hook = App.initClientHooks[i];
+App.initClient = function(selector, method, reverse) {
+
+    var execHook = function($selector, hook, method) {
         if (typeof hook === 'function') {
             if (method === 'init') {
                 // Non-disposable 'init'.
@@ -1035,6 +1028,32 @@ App.initClient = function(selector, method) {
             } else {
                 throw sprintf("App.initClient hook must be a function or object with key '%s'", method);
             }
+        }
+    };
+
+    if (typeof selector === 'undefined') {
+        throw 'App.initClient requires valid selector as safety precaution.';
+    }
+    if (typeof method === 'undefined') {
+        method = 'init';
+    }
+    if (method === 'init') {
+        reverse = false;
+    } else if (method === 'dispose') {
+        reverse = true;
+    }
+    if (typeof reverse === 'undefined') {
+        reverse = false;
+    }
+
+    var $selector = $(selector);
+    if (reverse) {
+        for (var i = App.initClientHooks.length - 1; i >= 0; i--) {
+            execHook($selector, App.initClientHooks[i], method);
+        }
+    } else {
+        for (var i = 0; i < App.initClientHooks.length; i++) {
+            execHook($selector, App.initClientHooks[i], method);
         }
     }
 };
