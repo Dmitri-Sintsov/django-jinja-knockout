@@ -1,3 +1,5 @@
+'use strict';
+
 App.ClosablePopover = function(target, popoverOptions) {
     this.create(target, popoverOptions);
 };

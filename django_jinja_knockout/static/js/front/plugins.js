@@ -114,15 +114,15 @@ $.SuperChain = function(childInstance, parentPrototype) {
     SuperChain._find = function(name, hasOwnProto) {
         // Chain of multi-level inheritance.
         var hasProp = typeof this.proto[name] !== 'undefined';
-        var noOwnProp = this === this.instance.superTop && !hasOwnProto;
+        var atTopAndOwnProto = this === this.instance.superTop && !hasOwnProto;
         // Will return immediate super property only when method is defined in instance own prototype.
-        if (hasProp && !noOwnProp) {
+        if (hasProp && !atTopAndOwnProto) {
             return this;
         }
         if (this.super !== null) {
             return this.super._find(name, hasOwnProto);
         } else {
-            if (hasProp && noOwnProp) {
+            if (hasProp && atTopAndOwnProto) {
                 // Fallback for super methods which are not defined in instance own prototype.
                 return this;
             } else {

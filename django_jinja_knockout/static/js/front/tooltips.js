@@ -1,3 +1,5 @@
+'use strict';
+
 App.addViewHandler('tooltip_error', function(viewModel) {
     var fieldTooltip = new App.fieldTooltip(viewModel);
     // Save instance of tooltip to delete it later via applying _.filter() to
