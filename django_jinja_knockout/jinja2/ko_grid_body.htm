@@ -4,6 +4,7 @@
         </button>
     </div>
 </script>
+<!-- 'ko_action_form' template is not actual template but a sceleton of action template for ancestor of App.ActionTemplateDialog. -->
 <script type="text/template" id="ko_action_form">
     <div class="panel panel-default">
         <div class="panel-body">
@@ -14,46 +15,49 @@
         </div>
     </div>
 </script>
-<script type="text/template" id="ko_grid_body">
-    <% if (self.get(self, 'show_title')) { %>
-    <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
-    <div class="panel-body">
-    <% } %>
-        <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
-        <nav class="nav navbar navbar-default">
-            <div class="container-fluid grid-controls">
-                <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
-                    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-                        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <span data-bind="text: name"></span> <b class="caret"></b>
-                            <div data-bind="visible: current_name() != '', text: current_name()"></div>
-                        </a>
-                        <!-- ko if: choices !== null -->
-                        <ul data-bind="foreach: choices" class="dropdown-menu">
-                            <li data-bind="css: {active: is_active()}">
-                                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
-                            </li>
-                        </ul>
-                        <!-- /ko -->
-                    </li>
-                </ul>
-                <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
-                    <div class="form-group">
-                        <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-                    </div>
-                    <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
-                    <% if (self.get(self, 'show_action_buttons')) { %>
-                    <!-- ko foreach: actionTypes['button'] -->
-                        <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
-                            <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
-                            <span data-bind="text: $data.localName"></span>
-                        </button>
-                    <!-- /ko -->
-                    <% } %>
-                </form>
-            </div>
-        </nav>
+<script type="text/template" id="ko_grid_filter_choices">
+    <ul data-bind="foreach: choices" class="dropdown-menu">
+        <li data-bind="css: {active: is_active()}">
+            <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+        </li>
+    </ul>
+</script>
+<script type="text/template" id="ko_grid_search">
+    <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
+        <div class="form-group">
+            <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
+        </div>
+        <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
+        <% if (self.get(self, 'show_action_buttons')) { %>
+        <!-- ko foreach: actionTypes['button'] -->
+            <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
+                <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
+                <span data-bind="text: $data.localName"></span>
+            </button>
         <!-- /ko -->
+        <% } %>
+    </form>
+</script>
+<script type="text/template" id="ko_grid_nav">
+    <nav class="nav navbar navbar-default">
+        <div class="container-fluid grid-controls">
+            <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
+                <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+                    <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <span data-bind="text: name"></span> <b class="caret"></b>
+                        <div data-bind="visible: current_name() != '', text: current_name()"></div>
+                    </a>
+                    <!-- ko if: choices !== null -->
+                    <div data-template-id="ko_grid_filter_choices"></div>
+                    <!-- /ko -->
+                </li>
+            </ul>
+            <div data-template-id="ko_grid_search"></div>
+        </div>
+    </nav>
+</script>
+<script type="text/template" id="ko_grid_table">
+    <div data-top="true">
         <div class="table-responsive" <% if (self.get(self, 'vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse" <% if (self.get(self, 'vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
@@ -67,7 +71,12 @@
                         <!-- ko foreach: gridColumns -->
                         <th>
                             <!-- ko if: isSortedColumn() -->
-                            <a data-bind="text: name, grid_order_by, click: onSwitchOrder, css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}" class="halflings-before" name="#"></a>
+                            <a data-bind="
+                                text: name,
+                                grid_order_by,
+                                click: onSwitchOrder,
+                                css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}
+                            " class="halflings-before" name="#"></a>
                             <!-- /ko -->
                             <!-- ko if: !isSortedColumn() -->
                             <span data-bind="text: name"></span>
@@ -112,7 +121,20 @@
                 </div>
             </table>
         </div>
-    <% if (self.get(self, 'show_title')) { %>
     </div>
-    <% } %>
+</script>
+<script type="text/template" id="ko_grid_body">
+    <div <% if (self.get(self, 'show_title')) { %> class="panel panel-primary" <% } %>>
+        <% if (self.get(self, 'show_title')) { %>
+        <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+        <div class="panel-body">
+        <% } %>
+            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
+            <div data-template-id="ko_grid_nav"></div>
+            <!-- /ko -->
+            <div data-template-id="ko_grid_table"></div>
+        <% if (self.get(self, 'show_title')) { %>
+        </div>
+        <% } %>
+    </div>
 </script>

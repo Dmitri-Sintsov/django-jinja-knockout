@@ -942,18 +942,22 @@ App.expandTemplate = function(tplId, tplArgs) {
     if (typeof tplArgs.get !== 'undefined') {
         throw 'tplArgs conflicting key: get';
     }
+    var expandArgs = $.extend(
+        {
+            get: function(self, varName, defaultValue) {
+                if (typeof varName !== 'string') {
+                    throw 'varName must be string';
+                }
+                if (typeof defaultValue === 'undefined') {
+                    defaultValue = false;
+                }
+                return (typeof self[varName] === 'undefined') ? defaultValue : self[varName];
+            }
+        }, tplArgs
+    );
     // todo: Add self.flatatt() to easily manipulate DOM attrs in templates.
     // Add self.get() function to helper context.
-    tplArgs.get = function(self, varName, defaultValue) {
-        if (typeof varName !== 'string') {
-            throw 'varName must be string';
-        }
-        if (typeof defaultValue === 'undefined') {
-            defaultValue = false;
-        }
-        return (typeof self[varName] === 'undefined') ? defaultValue : self[varName];
-    };
-    return compiled(tplArgs);
+    return compiled(expandArgs);
 };
 
 /**
@@ -968,7 +972,10 @@ App.domTemplate = function(tplId, tplArgs) {
     var $result = $.contents(contents);
     // Load recursive nested templates, if any.
     $.each($result, function(k, v) {
-        App.loadTemplates($(v));
+        var $node = $(v);
+        if ($node.prop('nodeType') === 1) {
+            App.loadTemplates($node, tplArgs);
+        }
     });
     return $result;
 };
@@ -978,7 +985,10 @@ App.domTemplate = function(tplId, tplArgs) {
  * Does not use html5 <template> tag because IE lower than Edge do not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
-App.loadTemplates = function($selector) {
+App.loadTemplates = function($selector, contextArgs) {
+    if (typeof contextArgs === 'undefined') {
+        contextArgs = {};
+    }
     var $targets = $selector.findSelf('[data-template-id]');
     // Build the list of parent templates for each template available.
     var $ancestors = [];
@@ -989,20 +999,40 @@ App.loadTemplates = function($selector) {
     // Sort the list of parent templates from outer to inner nodes of the tree.
     $ancestors = _.sortBy($ancestors, 'length');
     // Expand innermost templates first, outermost last.
-    for (var i = $ancestors.length - 1; i >= 0; i--) {
-        var $target = $targets.eq($ancestors[i]._targetKey);
-        var tplArgs = $target.data('templateArgs');
-        var $result = $.contents(
-            App.expandTemplate(
-                $target.attr('data-template-id'),
-                tplArgs
-            )
-        );
+    for (var k = $ancestors.length - 1; k >= 0; k--) {
+        var $target = $targets.eq($ancestors[k]._targetKey);
+        var tplName = $target.attr('data-template-id');
+        var tplArgs = $.extend({}, contextArgs);
+        if ($target.data('templateArgsNesting') !== false) {
+            // Search for template args in parent templates.
+            // Accumulate all ancestors template args from up to bottom.
+            for (var i = $ancestors[k].length - 1; i >= 0; i--) {
+                var $ancestor = $ancestors[k].eq(i);
+                var ancestorTplArgs = $ancestor.data('templateArgs');
+                if (ancestorTplArgs !== undefined &&
+                        $ancestor.data('templateArgsNesting') !== false) {
+                    tplArgs = $.extend(tplArgs, ancestorTplArgs);
+                }
+            }
+        }
+        var ownTplArgs = $target.data('templateArgs');
+        if (ownTplArgs !== undefined) {
+            tplArgs = $.extend(tplArgs, ownTplArgs);
+        }
+        var $result = App.domTemplate(tplName, tplArgs);
+        var topNodeCount = 0;
+        // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
+        $.each($result, function(k, v) {
+            if ($(v).prop('nodeType') === 1) {
+                if (++topNodeCount > 1) {
+                    throw "Template '" + tplName + "' expanded contents should have only one top DOM tag.";
+                }
+            }
+        });
         $target.prepend($result);
     };
     $.each($targets, function(k, currentTarget) {
-        var contents = $(currentTarget).contents();
-        $(currentTarget).replaceWith(contents);
+        $(currentTarget).contents().unwrap();
     });
 };
 
