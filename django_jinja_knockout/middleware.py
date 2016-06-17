@@ -92,8 +92,9 @@ class ContextMiddleware(object):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['ajax']
         if requires_ajax is True:
+            # todo: Check request.META['HTTP_USER_AGENT'] for IE9.
             if not request.is_ajax():
-                return error_response('AJAX request is required')
+                return error_response(request, 'AJAX request is required')
         elif requires_ajax is False:
             if request.is_ajax():
                 return error_response(request, 'AJAX request is not required')
@@ -180,7 +181,7 @@ class ContextMiddleware(object):
                 return result
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
-                return e.response if request.is_ajax() else error_response('AJAX request is required')
+                return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
             else:
                 return exception_response(request, e)
 

@@ -2,6 +2,10 @@
 
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
+$.ajaxSetup({
+    headers: {"X-Requested-With": "XMLHttpRequest"}
+});
+
 $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
@@ -132,7 +136,10 @@ $.SuperChain = function(childInstance, parentPrototype) {
     };
 
     SuperChain.find = function(name) {
-        return this._find(name, typeof this.instance.__proto__[name] !== 'undefined');
+        // IE9..10 do not have __proto__.
+        // var instanceProto = this.instance.__proto__.
+        var instanceProto = Object.getPrototypeOf(this.instance);
+        return this._find(name, typeof instanceProto[name] !== 'undefined');
     };
 
     SuperChain.prop = function(name) {

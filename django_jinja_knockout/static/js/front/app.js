@@ -836,8 +836,15 @@ App.AjaxForm = function($selector) {
         var options = {
             'url': url,
             type: 'post',
+            // IE9 poor fake workaround.
+            data: {
+                "X_REQUESTED_WITH": "XMLHttpRequest"
+            },
             dataType: 'json',
-            beforeSubmit: function() {
+            beforeSubmit: function(jqXHR) {
+                // IE9 misses this header, causing django request.is_ajax() to fail.
+                // jqXHR.setRequestHeader("X_REQUESTED_WITH", "XMLHttpRequest");
+                // jqXHR.push({name: "X_REQUESTED_WITH", required: undefined, type: 'hidden', value: "XMLHttpRequest"});
                 App.destroyTooltipErrors($form);
                 App.disableInputs($form);
             },
