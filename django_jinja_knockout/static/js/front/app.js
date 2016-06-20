@@ -838,13 +838,10 @@ App.AjaxForm = function($selector) {
             type: 'post',
             // IE9 poor fake workaround.
             data: {
-                "X_REQUESTED_WITH": "XMLHttpRequest"
+                "HTTP_X_REQUESTED_WITH": "XMLHttpRequest"
             },
             dataType: 'json',
-            beforeSubmit: function(jqXHR) {
-                // IE9 misses this header, causing django request.is_ajax() to fail.
-                // jqXHR.setRequestHeader("X_REQUESTED_WITH", "XMLHttpRequest");
-                // jqXHR.push({name: "X_REQUESTED_WITH", required: undefined, type: 'hidden', value: "XMLHttpRequest"});
+            beforeSubmit: function() {
                 App.destroyTooltipErrors($form);
                 App.disableInputs($form);
             },
@@ -876,6 +873,13 @@ App.AjaxForm = function($selector) {
         }
         var l = new App.ladder($btn);
         $form.ajaxSubmit(options);
+        /**
+         * Commented out because IE9 does not support .setRequestHeader() (due to iframe emulation?).
+         * Patched in context middleware process_request() / process_view() at server-side instead.
+         */
+        // IE9 misses this header, causing django request.is_ajax() to fail.
+        // var jqXHR = $form.data('jqxhr');
+        // jqXHR.setRequestHeader("X_REQUESTED_WITH", "XMLHttpRequest");
         return false;
     };
 

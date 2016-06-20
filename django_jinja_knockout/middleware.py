@@ -1,3 +1,4 @@
+import json
 import pytz
 import re
 import threading
@@ -6,11 +7,22 @@ from .utils.modules import get_fqn
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.conf import settings
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
 from .utils.sdv import get_cbv_from_dispatch_wrapper
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, to_vm_list, has_vm_list
+
+
+class JsonResponse(HttpResponse):
+
+    def __init__(self, data, encoder=DjangoJSONEncoder, safe=True, content_type='application/json', **kwargs):
+        if safe and not isinstance(data, dict):
+            raise TypeError('In order to allow non-dict objects to be '
+                'serialized set the safe parameter to False')
+        kwargs.setdefault('content_type', content_type)
+        data = json.dumps(data, ensure_ascii=False, cls=encoder)
+        super(JsonResponse, self).__init__(content=data, **kwargs)
 
 
 class ImmediateHttpResponse(Exception):
@@ -30,8 +42,10 @@ class ImmediateHttpResponse(Exception):
 
 class ImmediateJsonResponse(ImmediateHttpResponse):
 
-    def __init__(self, response):
-        self._response = JsonResponse(response, encoder=DjangoJSONEncoder, safe=not isinstance(response, list))
+    def __init__(self, response, content_type='application/json'):
+        self._response = JsonResponse(
+            response, encoder=DjangoJSONEncoder, safe=not isinstance(response, list), content_type=content_type
+        )
 
 
 class ContextMiddleware(object):
@@ -50,6 +64,16 @@ class ContextMiddleware(object):
         return cls._threadmap[threading.get_ident()]
 
     def process_request(self, request):
+
+        # Todo: remove when IE9 support will expire.
+        request.ie_ajax_iframe = request.method == 'POST' and \
+                 'HTTP_X_REQUESTED_WITH' not in request.META and \
+                'HTTP_X_REQUESTED_WITH' in request.POST
+        if request.ie_ajax_iframe:
+            # Fix IE9 not being able to post $.ajaxForm() with proper HTTP headers due to iframe emulation.
+            request.META['HTTP_X_REQUESTED_WITH'] = request.POST['HTTP_X_REQUESTED_WITH']
+
+        # Get local timezone from browser and activate it.
         if getattr(settings, 'USE_JS_TIMEZONE', False) and 'local_tz' in request.COOKIES:
             try:
                 local_tz = int(request.COOKIES['local_tz'])
@@ -63,7 +87,9 @@ class ContextMiddleware(object):
                     timezone.activate(pytz.timezone(tz_name))
             except ValueError:
                 pass
+
         self.__class__._threadmap[threading.get_ident()] = request
+
         # Optional server-side injected JSON.
         request.client_data = {}
         """
@@ -175,8 +201,13 @@ class ContextMiddleware(object):
         try:
             result = view_func(request, *view_args, **view_kwargs)
             if request.is_ajax():
+                # Todo: remove when IE9 support will expire.
+                # http://stackoverflow.com/questions/17701992/ie-iframe-doesnt-handle-application-json-response-properly
+                content_type = 'text/plain; charset = utf-8' if request.ie_ajax_iframe else 'application/json'
                 # @note: safe parameter enables json serializing for lists.
-                return JsonResponse(result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list))
+                return JsonResponse(
+                    result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list), content_type=content_type
+                )
             else:
                 return result
         except Exception as e:

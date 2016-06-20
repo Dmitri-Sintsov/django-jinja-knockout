@@ -2,10 +2,6 @@
 
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
-$.ajaxSetup({
-    headers: {"X-Requested-With": "XMLHttpRequest"}
-});
-
 $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
