@@ -1,17 +1,15 @@
-{% if _template_ids is not defined %}
-    {% set _template_ids = {} %}
-{% endif %}
+{% macro ko_grid_body(_template_ids={}) -%}
 
-{% block ko_grid_row_click_menu %}
+{% if 'ko_grid_row_click_menu' not in _template_ids %}
 <script type="text/template" id="ko_grid_row_click_menu">
     <div data-bind="foreach: lastClickedKoRow.getClickActions()">
         <button class="btn btn-block" data-bind="css: getKoCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
     </div>
 </script>
-{% endblock ko_grid_row_click_menu %}
+{% endif %}
 
-{% block ko_action_form %}
+{% if 'ko_action_form' not in _template_ids %}
 <!-- 'ko_action_form' template is not actual template but a sceleton of action template for ancestor of App.ActionTemplateDialog. -->
 <script type="text/template" id="ko_action_form">
     <div class="panel panel-default">
@@ -19,16 +17,15 @@
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
                 <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                 <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
+                <!-- Add your fields here. -->
             </form>
         </div>
     </div>
 </script>
-{% endblock ko_action_form %}
+{% endif %}
 
 {% if 'ko_grid_filter_choices' not in _template_ids %}
-    {% do _template_ids.update({'ko_grid_filter_choices': 'ko_grid_filter_choices'}) %}
-{% endif %}
-{% block ko_grid_filter_choices %}
+{% do _template_ids.update({'ko_grid_filter_choices': 'ko_grid_filter_choices'}) %}
 <script type="text/template" id="ko_grid_filter_choices">
     <ul data-bind="foreach: choices" class="dropdown-menu">
         <li data-bind="css: {active: is_active()}">
@@ -36,12 +33,10 @@
         </li>
     </ul>
 </script>
-{% endblock ko_grid_filter_choices %}
+{% endif %}
 
 {% if 'ko_grid_search' not in _template_ids %}
-    {% do _template_ids.update({'ko_grid_search': 'ko_grid_search'}) %}
-{% endif %}
-{% block ko_grid_search %}
+{% do _template_ids.update({'ko_grid_search': 'ko_grid_search'}) %}
 <script type="text/template" id="ko_grid_search">
     <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
         <div class="form-group">
@@ -58,12 +53,10 @@
         <% } %>
     </form>
 </script>
-{% endblock ko_grid_search %}
+{% endif %}
 
 {% if 'ko_grid_nav' not in _template_ids %}
-    {% do _template_ids.update({'ko_grid_nav': 'ko_grid_nav'}) %}
-{% endif %}
-{% block ko_grid_nav %}
+{% do _template_ids.update({'ko_grid_nav': 'ko_grid_nav'}) %}
 <script type="text/template" id="ko_grid_nav">
     <nav class="nav navbar navbar-default">
         <div class="container-fluid grid-controls">
@@ -82,13 +75,10 @@
         </div>
     </nav>
 </script>
-{% endblock ko_grid_nav %}
-
+{% endif %}
 
 {% if 'ko_grid_table' not in _template_ids %}
-    {% do _template_ids.update({'ko_grid_table': 'ko_grid_table'}) %}
-{% endif %}
-{% block ko_grid_table %}
+{% do _template_ids.update({'ko_grid_table': 'ko_grid_table'}) %}
 <script type="text/template" id="ko_grid_table">
     <div data-top="true">
         <div class="table-responsive" <% if (self.get(self, 'vscroll')) { %> style="overflow-y: scroll;" <% } %> >
@@ -156,8 +146,10 @@
         </div>
     </div>
 </script>
-{% endblock ko_grid_table %}
+{% endif %}
 
+{% if 'ko_grid_body' not in _template_ids %}
+{% do _template_ids.update({'ko_grid_body': 'ko_grid_body'}) %}
 <script type="text/template" id="ko_grid_body">
     <div <% if (self.get(self, 'show_title')) { %> class="panel panel-primary" <% } %>>
         <% if (self.get(self, 'show_title')) { %>
@@ -173,3 +165,19 @@
         <% } %>
     </div>
 </script>
+{% endif %}
+
+{% if 'ko_grid_pagination' not in _template_ids %}
+{% do _template_ids.update({'ko_grid_pagination': 'ko_grid_pagination'}) %}
+<script type="text/template" id="ko_grid_pagination">
+			<div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
+				<ul data-bind="foreach: gridPages" class="pagination">
+					<li data-bind="css:{active: isActive}">
+						<a data-bind="text:title, click: onPagination" name="#"></a>
+					</li>
+				</ul>
+			</div>
+</script>
+{% endif %}
+
+{%- endmacro %}
