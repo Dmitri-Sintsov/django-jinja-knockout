@@ -66,6 +66,7 @@ class TemplateContextProcessor():
         self.user_id = self.get_user_id()
         client_conf = {
             'csrfToken': get_token(self.HttpRequest),
+            'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
             'staticPath': static(''),
             'userId': self.user_id,
             'url': {}

@@ -637,14 +637,14 @@ App.DatetimeWidget = function($parent) {
         // Date field widget.
         this.$parent.find('.date-control').datetimepicker({
             pickTime: false,
-            language: 'ru',
+            language: App.conf.languageCode,
             icons: {
                 date: 'calendar'
             }
         });
         // Datetime field widget.
         this.$parent.find('.datetime-control').datetimepicker({
-            language: 'ru',
+            language: App.conf.languageCode,
             icons: {
                 date: 'calendar'
             }
@@ -664,8 +664,18 @@ App.DatetimeWidget = function($parent) {
         this.$dateControls.next('.input-group-addon').off('click', DatetimeWidget.open);
         // https://github.com/Eonasdan/bootstrap-datetimepicker/issues/573
         _.each(this.$parent.find('.datetime-control, .date-control'), function(v) {
-            var widget = $(v).data("DateTimePicker").widget;
-            widget.remove();
+            var dtp = $(v).data("DateTimePicker");
+            // If $.datetimepicker() was added dynamically as empty_form of inline formset,
+            // there is no related instance stored in html5 data.
+            if (dtp !== undefined) {
+                dtp.widget.remove();
+            } else {
+                /*
+                $(v).datetimepicker({language: App.conf.languageCode});
+                var dtp = $(v).data("DateTimePicker");
+                dtp.widget.remove();
+                */
+            }
         });
     };
 
