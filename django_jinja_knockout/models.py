@@ -28,9 +28,7 @@ def get_related_field_val(obj, fieldname, strict_related=True):
     return curr_rel
 
 
-def get_meta(obj, meta_attr, fieldname=None):
-    if fieldname is None:
-        return getattr(obj._meta, meta_attr)
+def get_related_field(obj, fieldname):
     if type(obj) is str:
         related_obj = apps.get_model(*obj.split('.'))
     else:
@@ -44,7 +42,13 @@ def get_meta(obj, meta_attr, fieldname=None):
                 related_obj = curr_field.rel.to
             else:
                 related_obj = curr_field.related_model
-    return getattr(related_obj._meta.get_field_by_name(fieldname)[0], meta_attr)
+    return related_obj._meta.get_field_by_name(fieldname)[0]
+
+
+def get_meta(obj, meta_attr, fieldname=None):
+    if fieldname is None:
+        return getattr(obj._meta, meta_attr)
+    return getattr(get_related_field(obj, fieldname), meta_attr)
 
 
 def get_verbose_name(obj, fieldname=None):

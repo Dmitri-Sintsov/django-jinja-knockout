@@ -13,15 +13,16 @@ from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.template import loader as tpl_loader
-from django.db.models import Q
+from django.db import models
 from django.views.generic.base import View
 from django.views.generic import TemplateView, DetailView, ListView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
-from .models import get_meta, get_verbose_name
 from . import tpl as qtpl
-from .models import yield_model_fieldnames, model_values, get_object_description
+from .models import (
+    get_meta, get_verbose_name, get_related_field, yield_model_fieldnames, model_values, get_object_description
+)
 from .viewmodels import vm_list
 from .utils.sdv import yield_ordered, get_object_members, get_nested
 
@@ -413,9 +414,9 @@ class BaseFilterView(View):
                     field: self.current_search_str
                 }
                 if q is None:
-                    q = Q(**q_kwargs)
+                    q = models.Q(**q_kwargs)
                 else:
-                    q |= Q(**q_kwargs)
+                    q |= models.Q(**q_kwargs)
             return queryset.filter(q)
 
     def distinct_queryset(self, queryset):
@@ -1002,59 +1003,83 @@ class GridActionsMixin():
             })
         return vm_grid_fields
 
+    # Detect type of filter.
+    # Override in child class to add new type of custom filters.
+    # Implement App.ko.Grid.iocKoFilter_custom_type filter at client-side.
+    def vm_get_field_filter(self, fieldname):
+        field = get_related_field(self.model, fieldname)
+        if isinstance(field, models.DateTimeField):
+            return {
+                'type': 'datetime'
+            }
+        elif isinstance(field, models.DateField):
+            return {
+                'type': 'date'
+            }
+        elif isinstance(field, models.ForeignKey):
+            # Use App.ko.FkGridFilter to select filter choices.
+            return {
+                'type': 'fk',
+                'multiple_choices': True
+            }
+        else:
+            self.report_error('Cannot determine filter type of field "{}"'.format(fieldname))
+
     def vm_get_filters(self):
+        if not isinstance(self.allowed_filter_fields, OrderedDict):
+            self.report_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
+
         vm_filters = []
 
-        if not isinstance(self.allowed_filter_fields, OrderedDict):
-            self.report_error('KoGridView.allowed_filter_fields dict must be ordered')
-
         for fieldname, filter_def in self.allowed_filter_fields.items():
+            vm_filter = {
+                'field': fieldname,
+                'name': self.get_field_verbose_name(fieldname),
+            }
             if filter_def is None:
-                # Use App.ko.FkGridFilter to select filter choices.
-                vm_choices = None
+                # Autodetect widget.
+                vm_filter.update(self.vm_get_field_filter(fieldname))
             else:
-                # Multiple filter choices are meaningless for only two choices and their reset choice.
+                _filter_def = {
+                    'choices': filter_def if isinstance(filter_def, (list, tuple)) else [],
+                    'add_reset_choice': True,
+                    'active_choices': [],
+                }
                 if isinstance(filter_def, dict):
-                    def_filter = {
-                        'add_reset_choice': True,
-                        'active_choices': [],
-                        'multiple_choices': True if filter_def['choices'] is None else len(filter_def['choices']) > 2
-                    }
-                    def_filter.update(filter_def)
-                    filter_def = def_filter
+                    _filter_def.update(filter_def)
+                if _filter_def.get('type') is None:
+                    if isinstance(_filter_def['choices'], (list, tuple)):
+                        vm_filter['type'] = 'choices'
+                    else:
+                        # Use App.ko.FkGridFilter to select filter choices.
+                        # Autodetect widget.
+                        vm_filter.update(self.vm_get_field_filter(fieldname))
                 else:
-                    filter_def = {
-                        'choices': filter_def,
-                        'add_reset_choice': True,
-                        'active_choices': [],
-                        'multiple_choices': len(filter_def) > 2
-                    }
-                if filter_def['choices'] is None:
-                    # Use App.ko.FkGridFilter to select filter choices.
-                    vm_choices = None
-                else:
+                    vm_filter['type'] = _filter_def['type']
+                if vm_filter['type'] == 'choices':
+                    if 'multiple_choices' not in _filter_def:
+                        # Autodetect 'multiple_choices' option.
+                        _filter_def['multiple_choices'] = \
+                            True if _filter_def.get('choices') is None else len(_filter_def['choices']) > 2
                     # Pre-built list of field values / menu names.
                     vm_choices = []
-                    if filter_def['add_reset_choice']:
+                    if _filter_def['add_reset_choice']:
                         vm_choices.append({
                             'value': None,
                             'name': _('All'),
-                            'is_active': len(filter_def['active_choices']) == 0
+                            'is_active': len(_filter_def['active_choices']) == 0
                         })
-                    for value, name in filter_def['choices']:
+                    for value, name in _filter_def['choices']:
                         choice = {
                             'value': value,
                             'name': name,
                         }
-                        if value in filter_def['active_choices']:
+                        if value in _filter_def['active_choices']:
                             choice['is_active'] = True
                         vm_choices.append(choice)
-            vm_filters.append({
-                'field': fieldname,
-                'multiple_choices': True if filter_def is None else filter_def['multiple_choices'],
-                'name': self.get_field_verbose_name(fieldname),
-                'choices': vm_choices
-            })
+                    vm_filter['choices'] = vm_choices
+                    vm_filter['multiple_choices'] = _filter_def['multiple_choices']
+            vm_filters.append(vm_filter)
         return vm_filters
 
     # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict

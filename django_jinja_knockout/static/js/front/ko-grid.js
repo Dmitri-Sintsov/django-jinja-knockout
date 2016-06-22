@@ -362,6 +362,7 @@ App.ko.FkGridFilter = function(options) {
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
         this.super._call('init', options);
+        this.choices = null;
     };
 
     FkGridFilter.onDropdownClick = function(ev) {
@@ -404,6 +405,24 @@ App.ko.FkGridFilter = function(options) {
     };
 
 })(App.ko.FkGridFilter.prototype);
+
+/**
+ * DateTime grid filter control. Contains dialog with two datetime fields to select datetime interval of field value.
+ */
+
+App.ko.DateTimeFilter = function(options) {
+    $.inherit(App.ko.AbstractGridFilter.prototype, this);
+    this.init(options);
+};
+
+(function(DateTimeFilter) {
+
+    DateTimeFilter.init = function(options) {
+        this.super._call('init', options);
+        this.choices = null;
+    };
+
+})(App.ko.DateTimeFilter.prototype);
 
 /**
  * Single row of grid (ko viewmodel).
@@ -1351,10 +1370,6 @@ App.ko.Grid = function(options) {
         return new App.ko.GridFilterChoice(options);
     };
 
-    Grid.iocDropdownFilter = function(options) {
-        return new App.ko.GridFilter(options);
-    };
-
     Grid.getFkGridOptions = function(field) {
         if (typeof this.options.fkGridOptions[field] === 'undefined') {
             throw sprintf("Missing ['fkGridOptions'] constructor option argument for field '%s'", field);
@@ -1366,47 +1381,54 @@ App.ko.Grid = function(options) {
         return options;
     };
 
-    Grid.iocFkFilter = function(options) {
-        return new App.ko.FkGridFilter(options);
+    Grid.iocKoFilter_fk = function(filter, options) {
+        options.fkGridOptions = $.extend(
+            this.getFkGridOptions(filter.field),
+            {
+                selectMultipleRows: filter.multiple_choices,
+                showSelection: true
+            }
+        );
+        var filterModel = new App.ko.FkGridFilter(options);
+        // Will use App.ko.FkGridFilter to select filter choices.
+        return filterModel;
+    };
+
+    Grid.iocKoFilter_datetime = function(filter, options) {
+        return new App.ko.DateTimeFilter(options);
+    };
+
+    Grid.iocKoFilter_choices = function(filter, options) {
+        var filterModel = new App.ko.GridFilter(options);
+        var choices = filter.choices;
+        for (var i = 0; i < choices.length; i++) {
+            var choice = choices[i];
+            var koFilterChoice = this.iocKoFilterChoice({
+                ownerFilter: filterModel,
+                name: choice.name,
+                value: choice.value,
+                is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+            })
+            if (koFilterChoice.value === null) {
+                filterModel.resetFilter = koFilterChoice;
+            }
+            filterModel.choices.push(koFilterChoice);
+        }
+        return filterModel;
     };
 
     Grid.createKoFilter = function(filter) {
-        var filterModel;
         var options = {
             ownerGrid: this,
             field: filter.field,
             name: filter.name,
             allowMultipleChoices: filter.multiple_choices,
         };
-        if (filter.choices === null) {
-            options.fkGridOptions = $.extend(
-                this.getFkGridOptions(filter.field),
-                {
-                    selectMultipleRows: filter.multiple_choices,
-                    showSelection: true
-                }
-            );
-            filterModel = this.iocFkFilter(options);
-            // Will use App.ko.FkGridFilter to select filter choices.
-            filterModel.choices = null;
-        } else {
-            filterModel = this.iocDropdownFilter(options);
-            var choices = filter.choices;
-            for (var i = 0; i < choices.length; i++) {
-                var choice = choices[i];
-                var koFilterChoice = this.iocKoFilterChoice({
-                    ownerFilter: filterModel,
-                    name: choice.name,
-                    value: choice.value,
-                    is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
-                })
-                if (koFilterChoice.value === null) {
-                    filterModel.resetFilter = koFilterChoice;
-                }
-                filterModel.choices.push(koFilterChoice);
-            }
+        var iocMethod = 'iocKoFilter_' + filter.type;
+        if (typeof this[iocMethod] !== 'function') {
+            throw sprintf("Undefined method %s for filter type %s", iocMethod, filter.type);
         }
-        return filterModel;
+        return this[iocMethod](filter, options);
     };
 
     // Get filter model by field name.
