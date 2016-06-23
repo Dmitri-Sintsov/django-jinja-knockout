@@ -352,17 +352,17 @@ App.ko.FkGridFilter = function(options) {
                 }
             )
          */
+        this.choices = null;
         if (typeof options.fkGridOptions.dialogOptions !== 'undefined') {
             gridDialogOptions = options.fkGridOptions.dialogOptions;
             delete options.fkGridOptions.dialogOptions;
         }
         var gridDialogOptions = $.extend({
             ownerComponent: this,
-            gridOptions: options.fkGridOptions
+            filterOptions: options.fkGridOptions
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
         this.super._call('init', options);
-        this.choices = null;
     };
 
     FkGridFilter.onDropdownClick = function(ev) {
@@ -418,8 +418,25 @@ App.ko.DateTimeFilter = function(options) {
 (function(DateTimeFilter) {
 
     DateTimeFilter.init = function(options) {
-        this.super._call('init', options);
+        this.type = options.type;
         this.choices = null;
+        this.meta = {
+            datetimeFrom: App.trans('From'),
+            datetimeTo: App.trans('To'),
+        };
+        this.datetimeFrom = ko.observable();
+        this.datetimeTo = ko.observable();
+        this.dateTimeCss = {};
+        this.dateTimeCss[this.type + '-control'] = true;
+        this.filterDialog = new App.FilterDialog({
+            ownerComponent: this,
+            template: 'ko_datetime_filter'
+        });
+        this.super._call('init', options);
+    };
+
+    DateTimeFilter.onDropdownClick = function(ev) {
+        this.filterDialog.show();
     };
 
 })(App.ko.DateTimeFilter.prototype);
@@ -1395,6 +1412,12 @@ App.ko.Grid = function(options) {
     };
 
     Grid.iocKoFilter_datetime = function(filter, options) {
+        options.type = 'datetime';
+        return new App.ko.DateTimeFilter(options);
+    };
+
+    Grid.iocKoFilter_date = function(filter, options) {
+        options.type = 'date';
         return new App.ko.DateTimeFilter(options);
     };
 
@@ -1707,6 +1730,80 @@ App.ko.Action = function(options) {
 })(App.ko.Action.prototype);
 
 /**
+ * Base class for dialog-based grid filters.
+ */
+App.FilterDialog = function(options) {
+    $.inherit(App.Dialog.prototype, this);
+    this.create(options);
+};
+
+(function(FilterDialog) {
+
+    FilterDialog.propCall = App.propCall;
+
+    FilterDialog.getButtons = function() {
+        var self = this;
+        return [{
+            label: App.trans('Remove selection'),
+            action: function(dialogItself) {
+                self.onRemoveSelection();
+            }
+        },{
+            label: App.trans('Apply'),
+            action: function(dialogItself) {
+                if (self.onApply()) {
+                    dialogItself.close();
+                }
+            }
+        }];
+    };
+
+    FilterDialog.create = function(options) {
+        this.wasOpened = false;
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        var dialogOptions = $.extend(
+            {
+                ownerComponent: null,
+                buttons: this.getButtons()
+            }, options);
+        // Filter options.
+        this.filterOptions = $.extend({
+                selectMultipleRows: true
+            },
+            dialogOptions.filterOptions
+        );
+        delete dialogOptions.filterOptions;
+        // Reference to owner component (for example App.ko.FkGridFilter instance).
+        this.ownerComponent = dialogOptions.ownerComponent;
+        delete dialogOptions.ownerComponent;
+        this.super._call('create', dialogOptions);
+    };
+
+    FilterDialog.onApply = function() {
+        return true;
+    };
+
+    FilterDialog.onRemoveSelection = function() {
+        this.propCall('ownerComponent.onGridDialogUnselectAllRows', {});
+    };
+
+    FilterDialog.onShow = function() {
+        this.super._call('onShow');
+        ko.applyBindings(this.ownerComponent, this.bdialog.getModal().get(0));
+        App.initClient(this.bdialog.getModal());
+    };
+
+    FilterDialog.onHide = function() {
+        ko.cleanNode(this.bdialog.getModal().get(0));
+        App.initClient(this.bdialog.getModal(), 'dispose');
+        this.super._call('onHide');
+    };
+
+})(App.FilterDialog.prototype);
+
+/**
  * BootstrapDialog that incorporates App.ko.Grid descendant instance bound to it's content (this.dialog.message).
  *
  * Example of manual invocation:
@@ -1725,64 +1822,20 @@ App.documentReadyHooks.push(function() {
 */
 
 App.GridDialog = function(options) {
+    $.inherit(App.FilterDialog.prototype, this);
     $.inherit(App.Dialog.prototype, this);
     this.create(options);
 };
 
 (function(GridDialog) {
 
-    GridDialog.getButtons = function() {
-        var self = this;
-        return [{
-            label: App.trans('Remove selection'),
-            action: function(dialogItself) {
-                self.onRemoveSelection();
-            }
-        },{
-            label: App.trans('Apply'),
-            action: function(dialogItself) {
-                if (self.onApply()) {
-                    dialogItself.close();
-                }
-            }
-        }];
-    };
-
-    GridDialog.create = function(options) {
-        this.wasOpened = false;
-        if (typeof options !== 'object') {
-            options = {};
-        }
-        var fullOptions = $.extend(
-            {
-                ownerComponent: null,
-                template: 'ko_grid_body',
-                buttons: this.getButtons()
-            }, options);
-        // Child grid constructor options.
-        this.gridOptions = $.extend({
-                selectMultipleRows: true
-            },
-            fullOptions.gridOptions
-        );
-        delete fullOptions.gridOptions;
-        // Reference to owner component (for example App.ko.FkGridFilter instance).
-        this.ownerComponent = fullOptions.ownerComponent;
-        delete fullOptions.ownerComponent;
-        this.super._call('create', fullOptions);
-    };
-
-    GridDialog.propCall = App.propCall;
+    GridDialog.template = 'ko_grid_body';
 
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
         this.propCall('ownerComponent.onGridDialogUnselectAllRows', {
             'childGrid': this.grid
         });
-    };
-
-    GridDialog.onApply = function() {
-        return true;
     };
 
     GridDialog.onChildGridFirstLoad = function() {
@@ -1809,7 +1862,7 @@ App.GridDialog = function(options) {
 
     GridDialog.iocGrid = function(options) {
         options = $.extend(
-            this.gridOptions,
+            this.filterOptions,
             options
         );
         if (typeof this.dialogOptions.iocGrid === 'function') {
@@ -1873,6 +1926,7 @@ App.ModelFormDialog = function(options) {
 
 (function(ModelFormDialog) {
 
+    ModelFormDialog.initClient = true;
     ModelFormDialog.actionCssClass = 'glyphicon-save';
 
     ModelFormDialog.getActionLabel = function() {
@@ -1929,22 +1983,12 @@ App.ModelFormDialog = function(options) {
         delete options.view;
         this.grid = options.grid;
         delete options.grid;
-        var fullOptions = $.extend({
+        var dialogOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
                 buttons: this.getButtons(),
             }, options
         );
-        this.super._call('create', fullOptions);
-    };
-
-    ModelFormDialog.onShow = function() {
-        this.super._call('onShow');
-        App.initClient(this.bdialog.getModalBody());
-    };
-
-    ModelFormDialog.onHide = function() {
-        App.initClient(this.bdialog.getModalBody(), 'dispose');
-        this.super._call('onHide');
+        this.super._call('create', dialogOptions);
     };
 
 })(App.ModelFormDialog.prototype);
@@ -1969,7 +2013,7 @@ App.FkGridWidget = function(options) {
         });
         this.gridDialog = new App.GridDialog({
             ownerComponent: this,
-            gridOptions: options
+            filterOptions: gridOptions
         });
     };
 
@@ -2117,6 +2161,7 @@ App.ActionTemplateDialog = function(options) {
 
 (function(ActionTemplateDialog) {
 
+    ActionTemplateDialog.initClient = true;
     ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
     ActionTemplateDialog.templateId = 'ko_action_form';
 
@@ -2149,9 +2194,9 @@ App.ActionTemplateDialog = function(options) {
         }
     };
 
+    // Do not remove, otherwise it will cause double binding error in App.ActionsMenuDialog.onShow.
     ActionTemplateDialog.onShow = function() {
         this.super._call('onShow');
-        App.initClient(this.bdialog.getModalBody());
     };
 
 })(App.ActionTemplateDialog.prototype);

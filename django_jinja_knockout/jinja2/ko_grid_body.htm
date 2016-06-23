@@ -1,5 +1,24 @@
 {% macro ko_grid_body(_template_ids={}) -%}
 
+{% if 'ko_datetime_filter' not in _template_ids %}
+<script type="text/template" id="ko_datetime_filter">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row form-group">
+                <label data-bind="text: meta.datetimeFrom" class="control-label col-md-4" for="id_datetime_from"></label>
+                <div class="field col-md-6">
+                    <input data-bind="textInput: datetimeFrom, css: dateTimeCss" id="id_datetime_from" class="form-control" name="datetime_from" type="text">
+                </div>
+                <label data-bind="text: meta.datetimeTo" class="control-label col-md-4" for="id_datetime_to"></label>
+                <div class="field col-md-6">
+                    <input data-bind="textInput: datetimeTo, css: dateTimeCss" id="id_datetime_to" class="form-control" name="datetime_to" type="text">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+{% endif %}
+
 {% if 'ko_grid_row_click_menu' not in _template_ids %}
 <script type="text/template" id="ko_grid_row_click_menu">
     <div data-bind="foreach: lastClickedKoRow.getClickActions()">

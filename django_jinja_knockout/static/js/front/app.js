@@ -96,8 +96,10 @@ App.Dialog = function(options) {
 
     Dialog.type = BootstrapDialog.TYPE_WARNING;
     Dialog.size = BootstrapDialog.SIZE_NORMAL;
+    Dialog.template = undefined;
     Dialog.isClosable = false;
     Dialog.autoEmpty = true;
+    Dialog.initClient = false;
 
     Dialog.create = function(options) {
         var self = this;
@@ -192,6 +194,9 @@ App.Dialog = function(options) {
 
     Dialog.onShow = function() {
         this.bdialog.setSize(this.dialogOptions.size);
+        if (this.initClient) {
+            App.initClient(this.bdialog.getModalBody());
+        }
     };
 
     Dialog.onShown = function() {
@@ -199,6 +204,9 @@ App.Dialog = function(options) {
     };
 
     Dialog.onHide = function() {
+        if (this.initClient) {
+            App.initClient(this.bdialog.getModalBody(), 'dispose');
+        }
         if (this.autoEmpty) {
             this.bdialog.getModal().empty();
         }
@@ -252,8 +260,12 @@ App.Dialog = function(options) {
     };
 
     Dialog.createDialogContent = function() {
-        if (typeof this.dialogOptions.template !== 'undefined') {
-            return App.domTemplate(this.dialogOptions.template, this.getTemplateArgs());
+        var template = App.propGet(this.dialogOptions, 'template');
+        if (template === undefined) {
+            template = App.propGet(this, 'template');
+        }
+        if (template !== undefined) {
+            return App.domTemplate(template, this.getTemplateArgs());
         } else {
             return $.contents('sample content');
         }
@@ -1218,7 +1230,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
             return prop[propName];
         }
     }
-    return (typeof defVal === 'undefined') ? null : defVal;
+    return defVal;
 };
 
 /**

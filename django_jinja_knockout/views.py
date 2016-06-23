@@ -1006,8 +1006,7 @@ class GridActionsMixin():
     # Detect type of filter.
     # Override in child class to add new type of custom filters.
     # Implement App.ko.Grid.iocKoFilter_custom_type filter at client-side.
-    def vm_get_field_filter(self, fieldname):
-        field = get_related_field(self.model, fieldname)
+    def vm_detect_field_filter(self, field, filter_def):
         if isinstance(field, models.DateTimeField):
             return {
                 'type': 'datetime'
@@ -1022,8 +1021,54 @@ class GridActionsMixin():
                 'type': 'fk',
                 'multiple_choices': True
             }
+        elif hasattr(field, 'choices'):
+            filter_def['choices'] = field.choices
+            return {
+                'type': 'choices',
+            }
         else:
-            self.report_error('Cannot determine filter type of field "{}"'.format(fieldname))
+            self.report_error('Cannot determine filter type of field "{}"'.format(get_verbose_name(field)))
+
+    def vm_get_field_filter(self, fieldname, filter_def):
+        vm_filter = {
+            'field': fieldname,
+            'name': self.get_field_verbose_name(fieldname),
+        }
+        if filter_def.get('type') is not None:
+            vm_filter['type'] = filter_def['type']
+        else:
+            if isinstance(filter_def.get('choices'), (list, tuple)):
+                vm_filter['type'] = 'choices'
+            else:
+                # Use App.ko.FkGridFilter to select filter choices.
+                # Autodetect widget.
+                field = get_related_field(self.model, fieldname)
+                vm_filter.update(self.vm_detect_field_filter(field, filter_def))
+        return vm_filter
+
+    def vm_process_field_filter_choices(self, vm_filter, filter_def):
+        if 'multiple_choices' not in filter_def:
+            # Autodetect 'multiple_choices' option.
+            filter_def['multiple_choices'] = \
+                True if filter_def.get('choices') is None else len(filter_def['choices']) > 2
+        # Pre-built list of field values / menu names.
+        vm_choices = []
+        if filter_def['add_reset_choice']:
+            vm_choices.append({
+                'value': None,
+                'name': _('All'),
+                'is_active': len(filter_def['active_choices']) == 0
+            })
+        # Convert filter_def choices from Django view to viewmodel choices for client-side AJAX response handler.
+        for value, name in filter_def['choices']:
+            choice = {
+                'value': value,
+                'name': name,
+            }
+            if value in filter_def['active_choices']:
+                choice['is_active'] = True
+            vm_choices.append(choice)
+        vm_filter['choices'] = vm_choices
 
     def vm_get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -1032,53 +1077,22 @@ class GridActionsMixin():
         vm_filters = []
 
         for fieldname, filter_def in self.allowed_filter_fields.items():
-            vm_filter = {
-                'field': fieldname,
-                'name': self.get_field_verbose_name(fieldname),
+            # Make "canonical" canon_filter_def from filter_def.
+            canon_filter_def = {
+                'add_reset_choice': True,
+                'active_choices': [],
             }
-            if filter_def is None:
-                # Autodetect widget.
-                vm_filter.update(self.vm_get_field_filter(fieldname))
-            else:
-                _filter_def = {
-                    'choices': filter_def if isinstance(filter_def, (list, tuple)) else [],
-                    'add_reset_choice': True,
-                    'active_choices': [],
-                }
-                if isinstance(filter_def, dict):
-                    _filter_def.update(filter_def)
-                if _filter_def.get('type') is None:
-                    if isinstance(_filter_def['choices'], (list, tuple)):
-                        vm_filter['type'] = 'choices'
-                    else:
-                        # Use App.ko.FkGridFilter to select filter choices.
-                        # Autodetect widget.
-                        vm_filter.update(self.vm_get_field_filter(fieldname))
-                else:
-                    vm_filter['type'] = _filter_def['type']
-                if vm_filter['type'] == 'choices':
-                    if 'multiple_choices' not in _filter_def:
-                        # Autodetect 'multiple_choices' option.
-                        _filter_def['multiple_choices'] = \
-                            True if _filter_def.get('choices') is None else len(_filter_def['choices']) > 2
-                    # Pre-built list of field values / menu names.
-                    vm_choices = []
-                    if _filter_def['add_reset_choice']:
-                        vm_choices.append({
-                            'value': None,
-                            'name': _('All'),
-                            'is_active': len(_filter_def['active_choices']) == 0
-                        })
-                    for value, name in _filter_def['choices']:
-                        choice = {
-                            'value': value,
-                            'name': name,
-                        }
-                        if value in _filter_def['active_choices']:
-                            choice['is_active'] = True
-                        vm_choices.append(choice)
-                    vm_filter['choices'] = vm_choices
-                    vm_filter['multiple_choices'] = _filter_def['multiple_choices']
+            if isinstance(filter_def, (list, tuple)):
+                canon_filter_def['choices'] = filter_def
+            if isinstance(filter_def, dict):
+                canon_filter_def.update(filter_def)
+            # Autodetect widget.
+            vm_filter = self.vm_get_field_filter(fieldname, canon_filter_def)
+            process_method = getattr(self, 'vm_process_field_filter_{}'.format(vm_filter['type']), None)
+            if callable(process_method):
+                process_method(vm_filter, canon_filter_def)
+            if 'multiple_choices' in canon_filter_def:
+                vm_filter['multiple_choices'] = canon_filter_def['multiple_choices']
             vm_filters.append(vm_filter)
         return vm_filters
 
