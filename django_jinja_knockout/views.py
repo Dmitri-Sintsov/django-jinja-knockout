@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html, escape
 from django.forms.utils import flatatt
+from django import forms
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
@@ -366,9 +367,14 @@ class BaseFilterView(View):
                 fieldname = '__'.join(key.split('__')[:-1])
                 if fieldname not in self.allowed_filter_fields:
                     self.report_error('Non-allowed filter field: {0}', key)
-                field = get_related_field(self.model, fieldname)
-                if isinstance(field, (models.DateField, models.DateTimeField)):
-                    val = field.clean(model_instance=None, value=val)
+                model_field = get_related_field(self.model, fieldname)
+                form_field = None
+                if isinstance(model_field, models.DateTimeField):
+                    form_field = forms.DateTimeField(localize=True)
+                elif isinstance(model_field, models.DateField):
+                    form_field = forms.DateField(localize=True)
+                if form_field is not None:
+                    list_filter[key] = form_field.clean(val)
                 self.current_list_filter = list_filter
 
         self.current_search_str = self.request_get(self.search_key, '')
