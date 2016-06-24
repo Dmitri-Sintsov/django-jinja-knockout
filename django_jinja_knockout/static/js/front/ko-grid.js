@@ -418,7 +418,7 @@ App.ko.DateTimeFilter = function(options) {
 (function(DateTimeFilter) {
 
     DateTimeFilter.init = function(options) {
-        this.type = options.type;
+        this.options = options;
         this.choices = null;
         this.meta = {
             datetimeFrom: App.trans('From'),
@@ -427,7 +427,7 @@ App.ko.DateTimeFilter = function(options) {
         this.datetimeFrom = ko.observable();
         this.datetimeTo = ko.observable();
         this.dateTimeCss = {};
-        this.dateTimeCss[this.type + '-control'] = true;
+        this.dateTimeCss[this.options.type + '-control'] = true;
         this.filterDialog = new App.FilterDialog({
             ownerComponent: this,
             template: 'ko_datetime_filter'
@@ -1445,8 +1445,10 @@ App.ko.Grid = function(options) {
             ownerGrid: this,
             field: filter.field,
             name: filter.name,
-            allowMultipleChoices: filter.multiple_choices,
         };
+        if (typeof filter.allowMultipleChoices !== 'undefined') {
+            options.allowMultipleChoices = filter.multiple_choices;
+        }
         var iocMethod = 'iocKoFilter_' + filter.type;
         if (typeof this[iocMethod] !== 'function') {
             throw sprintf("Undefined method %s for filter type %s", iocMethod, filter.type);
@@ -1763,11 +1765,13 @@ App.FilterDialog = function(options) {
         if (typeof options !== 'object') {
             options = {};
         }
-        var dialogOptions = $.extend(
-            {
-                ownerComponent: null,
+        // Reference to owner component (for example App.ko.FkGridFilter instance).
+        this.ownerComponent = options.ownerComponent;
+        var dialogOptions = $.extend({
                 buttons: this.getButtons()
-            }, options);
+            }, options
+        );
+        delete dialogOptions.ownerComponent;
         // Filter options.
         this.filterOptions = $.extend({
                 selectMultipleRows: true
@@ -1775,9 +1779,6 @@ App.FilterDialog = function(options) {
             dialogOptions.filterOptions
         );
         delete dialogOptions.filterOptions;
-        // Reference to owner component (for example App.ko.FkGridFilter instance).
-        this.ownerComponent = dialogOptions.ownerComponent;
-        delete dialogOptions.ownerComponent;
         this.super._call('create', dialogOptions);
     };
 
@@ -1791,8 +1792,12 @@ App.FilterDialog = function(options) {
 
     FilterDialog.onShow = function() {
         this.super._call('onShow');
+        if (this.wasOpened) {
+            this.recreateContent();
+        }
         ko.applyBindings(this.ownerComponent, this.bdialog.getModal().get(0));
         App.initClient(this.bdialog.getModal());
+        this.wasOpened = true;
     };
 
     FilterDialog.onHide = function() {
@@ -2126,6 +2131,9 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.onShow = function() {
         this.super._call('onShow');
+        if (this.wasOpened) {
+            this.recreateContent();
+        }
         this.grid.applyBindings(this.bdialog.getModal());
         this.bdialog.getModalBody().prepend(this.renderRow());
         this.wasOpened = true;

@@ -208,7 +208,7 @@ App.Dialog = function(options) {
             App.initClient(this.bdialog.getModalBody(), 'dispose');
         }
         if (this.autoEmpty) {
-            this.bdialog.getModal().empty();
+            this.bdialog.getModal().remove();
         }
     };
 
