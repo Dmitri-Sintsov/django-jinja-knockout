@@ -176,7 +176,7 @@ App.ko.AbstractGridFilter = function(options) {
         this.current_name = ko.observable('');
         // One of this.choices, special 'reset all choice'.
         this.resetFilter = null;
-        this.allowMultipleChoices = options.allowMultipleChoices;
+        this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
     };
 
     AbstractGridFilter.setDropdownElement = function($element) {
@@ -418,7 +418,8 @@ App.ko.DateTimeFilter = function(options) {
 (function(DateTimeFilter) {
 
     DateTimeFilter.init = function(options) {
-        this.options = options;
+        this.type = options.type;
+        this.super._call('init', options);
         this.choices = null;
         this.meta = {
             datetimeFrom: App.trans('From'),
@@ -426,10 +427,13 @@ App.ko.DateTimeFilter = function(options) {
         };
         this.datetimeFrom = ko.observable();
         this.datetimeTo = ko.observable();
+        ko.switchSubscription(this, 'datetimeFrom');
+        ko.switchSubscription(this, 'datetimeTo');
         this.dateTimeCss = {};
-        this.dateTimeCss[this.options.type + '-control'] = true;
+        this.dateTimeCss[this.type + '-control'] = true;
         this.filterDialog = new App.FilterDialog({
             ownerComponent: this,
+            title: this.name,
             template: 'ko_datetime_filter'
         });
         this.super._call('init', options);
@@ -437,6 +441,17 @@ App.ko.DateTimeFilter = function(options) {
 
     DateTimeFilter.onDropdownClick = function(ev) {
         this.filterDialog.show();
+    };
+
+    DateTimeFilter.onDatetimeFrom = function(datetimeFrom) {
+        console.log('here')
+        this.ownerGrid.addQueryFilter(this.field + '__gte', datetimeFrom);
+        this.hasActiveChoices(true);
+        this.ownerGrid.queryArgs.page = 1;
+        this.ownerGrid.listAction();
+    };
+
+    DateTimeFilter.onDatetimeTo = function(datetimeTo) {
     };
 
 })(App.ko.DateTimeFilter.prototype);

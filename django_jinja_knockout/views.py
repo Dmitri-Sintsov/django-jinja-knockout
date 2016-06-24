@@ -363,8 +363,12 @@ class BaseFilterView(View):
             if type(list_filter) is not dict:
                 self.report_error('List of filters must be dictionary: {0}', list_filter)
             for key, val in list_filter.items():
-                if key not in self.allowed_filter_fields:
+                canonical_key = key.split('__')[0]
+                if canonical_key not in self.allowed_filter_fields:
                     self.report_error('Non-allowed filter field: {0}', key)
+                field = getattr(self.model(), canonical_key)
+                if isinstance(field, (models.DateField, models.DateTimeField)):
+                    field.clean(val)
                 self.current_list_filter = list_filter
 
         self.current_search_str = self.request_get(self.search_key, '')
