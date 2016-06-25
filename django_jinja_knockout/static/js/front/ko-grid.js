@@ -124,9 +124,15 @@ App.ko.GridFilterChoice = function(options) {
             return;
         }
         if (newValue) {
-            this.ownerFilter.addQueryFilter(this.value);
+            this.ownerFilter.addQueryFilter({
+                value: this.value,
+                lookup: 'in'
+            });
         } else {
-            this.ownerFilter.removeQueryFilter(this.value);
+            this.ownerFilter.removeQueryFilter({
+                value: this.value,
+                lookup: 'in'
+            });
         }
     };
 
@@ -196,12 +202,21 @@ App.ko.AbstractGridFilter = function(options) {
         // console.log('dropdown clicked');
     };
 
-    AbstractGridFilter.addQueryFilter = function(value) {
-        this.ownerGrid.addQueryFilter(this.field, value);
+    AbstractGridFilter.addQueryFilter = function(options) {
+        var filterOptions = $.extend({
+            field: this.field
+        }, options);
+        this.ownerGrid.addQueryFilter(filterOptions);
     };
 
-    AbstractGridFilter.removeQueryFilter = function(value) {
-        this.ownerGrid.removeQueryFilter(this.field, value);
+    AbstractGridFilter.removeQueryFilter = function(options) {
+        if (typeof options === 'undefined') {
+            options = {};
+        }
+        var filterOptions = $.extend({
+            field: this.field
+        }, options);
+        this.ownerGrid.removeQueryFilter(filterOptions);
     };
 
     /**
@@ -371,9 +386,14 @@ App.ko.FkGridFilter = function(options) {
 
     FkGridFilter.onGridDialogSelectRow = function(options) {
         if (!this.allowMultipleChoices) {
-            this.addQueryFilter(null);
+            this.removeQueryFilter({
+                lookup: 'in'
+            });
         }
-        this.addQueryFilter(options.pkVal);
+        this.addQueryFilter({
+            value: options.pkVal,
+            lookup: 'in'
+        });
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
@@ -381,7 +401,10 @@ App.ko.FkGridFilter = function(options) {
 
     FkGridFilter.onGridDialogUnselectRow = function(options) {
         if (this.allowMultipleChoices) {
-            this.removeQueryFilter(options.pkVal);
+            this.removeQueryFilter({
+                value: options.pkVal,
+                lookup: 'in'
+            });
             this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
             this.ownerGrid.queryArgs.page = 1;
             this.ownerGrid.listAction();
@@ -389,7 +412,9 @@ App.ko.FkGridFilter = function(options) {
     };
 
     FkGridFilter.onGridDialogUnselectAllRows = function(options) {
-        this.addQueryFilter(null);
+        this.removeQueryFilter({
+            lookup: 'in'
+        });
         this.hasActiveChoices(false);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
@@ -397,9 +422,14 @@ App.ko.FkGridFilter = function(options) {
 
     // todo: update child grid.
     FkGridFilter.setChoices = function(values) {
-        this.addQueryFilter(null);
+        this.removeQueryFilter({
+            lookup: 'in'
+        });
         for (var i = 0; i < values.length; i++) {
-            this.addQueryFilter(values[i]);
+            this.addQueryFilter({
+                value: values[i],
+                lookup: 'in'
+            });
         }
         this.hasActiveChoices(values.length > 0);
     };
@@ -443,15 +473,23 @@ App.ko.DateTimeFilter = function(options) {
         this.filterDialog.show();
     };
 
-    DateTimeFilter.onDatetimeFrom = function(datetimeFrom) {
-        console.log('here')
-        this.ownerGrid.addQueryFilter(this.field + '__gte', datetimeFrom);
+    DateTimeFilter.doLookup = function(datetime, lookup) {
+        console.log('lookup: ' + lookup);
+        this.addQueryFilter({
+            'value': datetime,
+            'lookup': lookup
+        });
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction();
     };
 
+    DateTimeFilter.onDatetimeFrom = function(datetimeFrom) {
+        this.doLookup(datetimeFrom, 'gte');
+    };
+
     DateTimeFilter.onDatetimeTo = function(datetimeTo) {
+        this.doLookup(datetimeTo, 'lte');
     };
 
 })(App.ko.DateTimeFilter.prototype);
@@ -1041,50 +1079,101 @@ App.ko.Grid = function(options) {
         return typeof this.sortOrders[field] !== 'undefined';
     };
 
-    // Supports multiple values of filter.
-    Grid.addQueryFilter = function(field, value) {
-        if (value === null) {
-            delete this.queryFilters[field];
-        } else {
-            if (typeof this.queryFilters[field] === 'undefined') {
-                // Single value.
+    /**
+     * Supports multiple values of the field.
+     * Supports multiple ORM lookups (gt / lt / etc.) of the field.
+     */
+    Grid.addQueryFilter = function(options) {
+        var field = options.field;
+        var value = options.value;
+        var lookup = (typeof options.lookup === 'undefined') ? 'in' : options.lookup;
+        if (typeof this.queryFilters[field] === 'undefined') {
+            // New single value.
+            if (lookup === 'in') {
                 this.queryFilters[field] = value;
             } else {
+                this.queryFilters[field] = {};
+                this.queryFilters[field][lookup] = value;
+            }
+        } else {
+            // Already has one or more values.
+            if (lookup === 'in') {
+                // Special case of 'in' lookup that may have multiple filter values.
                 if (this.queryFilters[field] === value) {
-                    // Already added single value.
+                    // Already added single 'in' value.
                     return;
                 }
-                if (!_.isArray(this.queryFilters[field])) {
-                    // Convert single value into array of values.
-                    this.queryFilters[field] = [this.queryFilters[field]];
+                if (typeof this.queryFilters[field] !== 'object') {
+                    // Convert single value into array of values with 'in' lookup.
+                    this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
-                if (_.find(this.queryFilters[field], function(val) { return val === value; }) === undefined) {
+                if (_.find(this.queryFilters[field]['in'], function(val) { return val === value; }) === undefined) {
                     // Multiple values: 'field__in' at server-side.
-                    this.queryFilters[field].push(value);
+                    this.queryFilters[field]['in'].push(value);
                 }
+            } else {
+                if (typeof this.queryFilters[field] !== 'object') {
+                    // Convert single value into array of values with 'in' lookup.
+                    this.queryFilters[field] = {'in': [this.queryFilters[field]]};
+                }
+                this.queryFilters[field][lookup] = value;
             }
         }
     };
 
-    // Supports multiple values of filter.
-    Grid.removeQueryFilter = function(field, value) {
-        if (typeof this.queryFilters[field] !== 'undefined') {
-            if (value === null) {
-                delete this.queryFilters[field];
-                return;
+    /**
+     * Supports multiple values of the field.
+     * Supports multiple ORM lookups (gt / lt / etc.) of the field.
+     */
+    Grid.removeQueryFilter = function(options) {
+        var field = options.field;
+        var hasValue = typeof options.value !== 'undefined';
+        var hasLookup = typeof options.lookup !== 'undefined';
+        if (typeof this.queryFilters[field] === 'undefined') {
+            return;
+        }
+        if (!hasLookup) {
+            if (hasValue) {
+                throw "Set options.lookup to delete specific query filter options.value";
             }
-            if (!_.isArray(this.queryFilters[field])) {
-                if (this.queryFilters[field] === value) {
+            delete this.queryFilters[field];
+            return;
+        }
+        if (options.lookup === 'in') {
+            // Special case of 'in' lookup that may have multiple filter values.
+            if (typeof this.queryFilters[field] !== 'object') {
+                if (hasValue) {
+                    if (this.queryFilters[field] === options.value) {
+                        delete this.queryFilters[field];
+                    }
+                } else {
                     delete this.queryFilters[field];
                 }
-            } else {
-                this.queryFilters[field] = _.filter(this.queryFilters[field], function(val) {
-                    return val !== value;
+            } else if (typeof this.queryFilters[field]['in'] !== 'undefined') {
+                this.queryFilters[field]['in'] = _.filter(this.queryFilters[field]['in'], function(val) {
+                    return val !== options.value;
                 });
-                var len = this.queryFilters[field].length;
+                var len = this.queryFilters[field]['in'].length;
                 if (len === 1) {
-                    this.queryFilters[field] = this.queryFilters[field].pop();
+                    this.queryFilters[field] = this.queryFilters[field]['in'].pop();
                 } else if (len === 0) {
+                    delete this.queryFilters[field]['in'];
+                    if (_.size(this.queryFilters[field]) === 0) {
+                        delete this.queryFilters[field];
+                    }
+                }
+            }
+        } else {
+            if (typeof this.queryFilters[field] === 'object' &&
+                    typeof this.queryFilters[field][options.lookup] !== 'undefined') {
+                if (hasValue) {
+                    if (this.queryFilters[field][options.lookup] === options.value) {
+                        delete this.queryFilters[field][options.lookup];
+                    }
+                } else {
+                    delete this.queryFilters[field][options.lookup];
+                }
+                if (_.size(this.queryFilters[field]) === 0) {
                     delete this.queryFilters[field];
                 }
             }

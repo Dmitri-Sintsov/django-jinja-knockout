@@ -363,20 +363,38 @@ class BaseFilterView(View):
             list_filter = json.loads(list_filter)
             if type(list_filter) is not dict:
                 self.report_error('List of filters must be dictionary: {0}', list_filter)
-            for key, val in list_filter.items():
-                fieldname = '__'.join(key.split('__')[:-1])
+            self.current_list_filter = {}
+            for fieldname, values in list_filter.items():
                 if fieldname not in self.allowed_filter_fields:
-                    self.report_error('Non-allowed filter field: {0}', key)
+                    self.report_error('Non-allowed filter field: {0}', fieldname)
                 model_field = get_related_field(self.model, fieldname)
                 form_field = None
+                # Order is important, because DateTimeField is ancestor of DateField.
                 if isinstance(model_field, models.DateTimeField):
                     form_field = forms.DateTimeField(localize=True)
                 elif isinstance(model_field, models.DateField):
                     form_field = forms.DateField(localize=True)
-                if form_field is not None:
-                    list_filter[key] = form_field.clean(val)
-                self.current_list_filter = list_filter
-
+                if not isinstance(values, dict):
+                    # Single value.
+                    self.current_list_filter[fieldname] = values if form_field is None else form_field.clean(values)
+                else:
+                    # Multiple lookups and / or multiple values.
+                    for lookup, value in values.items():
+                        field_lookup = fieldname + '__' + lookup
+                        if isinstance(value, list):
+                            lookup_filter = [v if form_field is None else form_field.clean(v) for v in value]
+                        else:
+                            lookup_filter = value if form_field is None else form_field.clean(value)
+                        if lookup == 'in':
+                            if isinstance(lookup_filter, list):
+                                if len(lookup_filter) == 1:
+                                    self.current_list_filter[fieldname] = lookup_filter[0]
+                                else:
+                                    self.current_list_filter[field_lookup] = lookup_filter
+                            else:
+                                self.current_list_filter[fieldname] = lookup_filter
+                        else:
+                            self.current_list_filter[field_lookup] = lookup_filter
         self.current_search_str = self.request_get(self.search_key, '')
 
     def dispatch(self, request, *args, **kwargs):
