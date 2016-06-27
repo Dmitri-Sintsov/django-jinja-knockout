@@ -4,6 +4,7 @@ import json
 from math import ceil
 import traceback
 from ensure import ensure_annotations
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html, escape
@@ -266,12 +267,52 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
         return self.get_object()
 
 
+# Used to validate values of AJAX submitted filter fields.
+class FieldValidator():
+
+    def __init__(self, view, fieldname):
+        self.view = view
+        model_field = get_related_field(view.model, fieldname)
+        self.form_field = None
+        # Order is important, because DateTimeField is ancestor of DateField.
+        if isinstance(model_field, models.DateTimeField):
+            self.form_field = forms.DateTimeField(localize=True, required=False)
+        elif isinstance(model_field, models.DateField):
+            self.form_field = forms.DateField(localize=True, required=False)
+
+    def set_auto_id(self, lookup):
+        if self.form_field is None:
+            return
+        self.form_field.auto_id = None
+        if isinstance(self.form_field, (forms.DateTimeField, forms.DateField)):
+            if lookup == 'gte':
+                self.form_field.auto_id = 'id_datetime_from'
+            elif lookup == 'lte':
+                self.form_field.auto_id = 'id_datetime_to'
+
+    def clean(self, value):
+        try:
+            if self.form_field is None:
+                return value, False
+            else:
+                cleaned_value = self.form_field.clean(value)
+                is_blank = cleaned_value is None and self.form_field.required is not True
+                return cleaned_value, is_blank
+        except ValidationError as e:
+            if self.form_field.auto_id is None:
+                self.view.report_error(str(e))
+            else:
+                self.form_field.errors = e.messages
+                self.view.error(self.view.get_field_error_viewmodel(self.form_field))
+
+
 # Model queryset filtering / ordering base.
 class BaseFilterView(View):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'
     search_key = 'list_search'
+    field_validator = FieldValidator
     allowed_sort_orders = None
     allowed_filter_fields = None
     search_fields = None
@@ -289,6 +330,9 @@ class BaseFilterView(View):
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
+
+    def get_field_validator(self, fieldname):
+        return self.__class__.field_validator(self, fieldname)
 
     def get_allowed_sort_orders(self):
         # Do not need to duplicate both accending and descending ('-' prefix) orders.
@@ -367,24 +411,31 @@ class BaseFilterView(View):
             for fieldname, values in list_filter.items():
                 if fieldname not in self.allowed_filter_fields:
                     self.report_error('Non-allowed filter field: {0}', fieldname)
-                model_field = get_related_field(self.model, fieldname)
-                form_field = None
-                # Order is important, because DateTimeField is ancestor of DateField.
-                if isinstance(model_field, models.DateTimeField):
-                    form_field = forms.DateTimeField(localize=True)
-                elif isinstance(model_field, models.DateField):
-                    form_field = forms.DateField(localize=True)
+                field_validator = self.get_field_validator(fieldname)
                 if not isinstance(values, dict):
                     # Single value.
-                    self.current_list_filter[fieldname] = values if form_field is None else form_field.clean(values)
+                    field_validator.set_auto_id(None)
+                    cleaned_value, is_blank = field_validator.clean(values)
+                    if is_blank:
+                        continue
+                    self.current_list_filter[fieldname] = cleaned_value
                 else:
                     # Multiple lookups and / or multiple values.
                     for lookup, value in values.items():
+                        field_validator.set_auto_id(lookup)
                         field_lookup = fieldname + '__' + lookup
                         if isinstance(value, list):
-                            lookup_filter = [v if form_field is None else form_field.clean(v) for v in value]
+                            lookup_filter = []
+                            for v in value:
+                                cleaned_value, is_blank = field_validator.clean(v)
+                                if not is_blank:
+                                    lookup_filter.append(cleaned_value)
+                            if len(lookup_filter) == 0:
+                                continue
                         else:
-                            lookup_filter = value if form_field is None else form_field.clean(value)
+                            lookup_filter, is_blank = field_validator.clean(value)
+                            if is_blank:
+                                continue
                         if lookup == 'in':
                             if isinstance(lookup_filter, list):
                                 if len(lookup_filter) == 1:
@@ -395,6 +446,7 @@ class BaseFilterView(View):
                                 self.current_list_filter[fieldname] = lookup_filter
                         else:
                             self.current_list_filter[field_lookup] = lookup_filter
+
         self.current_search_str = self.request_get(self.search_key, '')
 
     def dispatch(self, request, *args, **kwargs):
