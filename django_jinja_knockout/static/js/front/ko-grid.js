@@ -490,12 +490,12 @@ App.ko.DateTimeFilter = function(options) {
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction(function(viewModel) {
             var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
-            var noErrors = App.propGet(viewModel, 'has_errors') !== true;
-            self.hasActiveChoices(noErrors);
-            if (noErrors) {
-                applyButton.enable();
-            } else {
+            if (App.propGet(viewModel, 'has_errors') === true) {
                 applyButton.disable();
+                self.hasActiveChoices(false);
+            } else {
+                applyButton.enable();
+                self.hasActiveChoices(self.datetimeFrom() !== '' || self.datetimeTo() !== '');
             }
         });
     };

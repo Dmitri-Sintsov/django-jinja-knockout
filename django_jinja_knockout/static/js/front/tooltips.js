@@ -21,14 +21,17 @@ App.addViewHandler('form_error', function(viewModel) {
         throw "Unknown field auto_id:" + viewModel.id;
     }
     var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
-    $.each(viewModel.messages, function(k, v) {
-        $field.before($.contents(
+    $field.prev('.form-errors').remove();
+    var $contents = $('<div>').addClass('form-errors');
+    _.each(viewModel.messages, function(v) {
+        $contents.append($.contents(
             sprintf(
                 '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
                 alert_class, v
             )
         ));
     });
+    $field.before($contents);
 });
 
 /**
