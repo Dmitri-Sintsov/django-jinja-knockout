@@ -1550,7 +1550,7 @@ App.ko.Grid = function(options) {
             field: filter.field,
             name: filter.name,
         };
-        if (typeof filter.allowMultipleChoices !== 'undefined') {
+        if (typeof filter.multiple_choices !== 'undefined') {
             options.allowMultipleChoices = filter.multiple_choices;
         }
         var iocMethod = 'iocKoFilter_' + filter.type;

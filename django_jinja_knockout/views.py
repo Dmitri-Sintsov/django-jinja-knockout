@@ -393,6 +393,49 @@ class BaseFilterView(View):
         else:
             self.search_fields = cls.search_fields
 
+    def get_current_list_filter(self, list_filter):
+        if type(list_filter) is not dict:
+            self.report_error('List of filters must be dictionary: {0}', list_filter)
+        self.current_list_filter = {}
+        for fieldname, values in list_filter.items():
+            if fieldname not in self.allowed_filter_fields:
+                self.report_error('Non-allowed filter field: {0}', fieldname)
+            field_validator = self.get_field_validator(fieldname)
+            if not isinstance(values, dict):
+                # Single value.
+                field_validator.set_auto_id(None)
+                cleaned_value, is_blank = field_validator.clean(values)
+                if is_blank:
+                    continue
+                self.current_list_filter[fieldname] = cleaned_value
+            else:
+                # Multiple lookups and / or multiple values.
+                for lookup, value in values.items():
+                    field_validator.set_auto_id(lookup)
+                    field_lookup = fieldname + '__' + lookup
+                    if isinstance(value, list):
+                        lookup_filter = []
+                        for v in value:
+                            cleaned_value, is_blank = field_validator.clean(v)
+                            if not is_blank:
+                                lookup_filter.append(cleaned_value)
+                        if len(lookup_filter) == 0:
+                            continue
+                    else:
+                        lookup_filter, is_blank = field_validator.clean(value)
+                        if is_blank:
+                            continue
+                    if lookup == 'in':
+                        if isinstance(lookup_filter, list):
+                            if len(lookup_filter) == 1:
+                                self.current_list_filter[fieldname] = lookup_filter[0]
+                            else:
+                                self.current_list_filter[field_lookup] = lookup_filter
+                        else:
+                            self.current_list_filter[fieldname] = lookup_filter
+                    else:
+                        self.current_list_filter[field_lookup] = lookup_filter
+
     def get_current_query(self):
         sort_order = self.request_get(self.__class__.order_key)
         if sort_order is not None:
@@ -404,48 +447,7 @@ class BaseFilterView(View):
 
         list_filter = self.request_get(self.__class__.filter_key)
         if list_filter is not None:
-            list_filter = json.loads(list_filter)
-            if type(list_filter) is not dict:
-                self.report_error('List of filters must be dictionary: {0}', list_filter)
-            self.current_list_filter = {}
-            for fieldname, values in list_filter.items():
-                if fieldname not in self.allowed_filter_fields:
-                    self.report_error('Non-allowed filter field: {0}', fieldname)
-                field_validator = self.get_field_validator(fieldname)
-                if not isinstance(values, dict):
-                    # Single value.
-                    field_validator.set_auto_id(None)
-                    cleaned_value, is_blank = field_validator.clean(values)
-                    if is_blank:
-                        continue
-                    self.current_list_filter[fieldname] = cleaned_value
-                else:
-                    # Multiple lookups and / or multiple values.
-                    for lookup, value in values.items():
-                        field_validator.set_auto_id(lookup)
-                        field_lookup = fieldname + '__' + lookup
-                        if isinstance(value, list):
-                            lookup_filter = []
-                            for v in value:
-                                cleaned_value, is_blank = field_validator.clean(v)
-                                if not is_blank:
-                                    lookup_filter.append(cleaned_value)
-                            if len(lookup_filter) == 0:
-                                continue
-                        else:
-                            lookup_filter, is_blank = field_validator.clean(value)
-                            if is_blank:
-                                continue
-                        if lookup == 'in':
-                            if isinstance(lookup_filter, list):
-                                if len(lookup_filter) == 1:
-                                    self.current_list_filter[fieldname] = lookup_filter[0]
-                                else:
-                                    self.current_list_filter[field_lookup] = lookup_filter
-                            else:
-                                self.current_list_filter[fieldname] = lookup_filter
-                        else:
-                            self.current_list_filter[field_lookup] = lookup_filter
+            self.get_current_list_filter(json.loads(list_filter))
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -470,17 +472,7 @@ class BaseFilterView(View):
         return queryset.order_by(*self.current_sort_order)
 
     def filter_queryset(self, queryset):
-        if self.current_list_filter is None:
-            return queryset
-        else:
-            kw_filter = {}
-            # Transparently convert array values into '__in' clause.
-            for field, val in self.current_list_filter.items():
-                if type(val) is list:
-                    kw_filter['{}__in'.format(field)] = val
-                else:
-                    kw_filter[field] = val
-            return queryset.filter(**kw_filter)
+        return queryset if self.current_list_filter is None else queryset.filter(**self.current_list_filter)
 
     def search_queryset(self, queryset):
         if self.current_search_str == '' or len(self.search_fields) == 0:
