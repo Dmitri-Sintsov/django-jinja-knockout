@@ -303,7 +303,12 @@ class FieldValidator():
                 self.view.report_error(str(e))
             else:
                 self.form_field.errors = e.messages
-                self.view.error(self.view.get_field_error_viewmodel(self.form_field))
+                self.view.error({
+                        'view': self.view.__class__.viewmodel_name,
+                        'has_errors': True,
+                    },
+                    self.view.get_field_error_viewmodel(self.form_field)
+                )
 
 
 # Model queryset filtering / ordering base.

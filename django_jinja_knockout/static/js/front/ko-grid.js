@@ -455,8 +455,8 @@ App.ko.DateTimeFilter = function(options) {
             datetimeFrom: App.trans('From'),
             datetimeTo: App.trans('To'),
         };
-        this.datetimeFrom = ko.observable();
-        this.datetimeTo = ko.observable();
+        this.datetimeFrom = ko.observable('');
+        this.datetimeTo = ko.observable('');
         ko.switchSubscription(this, 'datetimeFrom');
         ko.switchSubscription(this, 'datetimeTo');
         this.dateTimeCss = {};
@@ -473,7 +473,14 @@ App.ko.DateTimeFilter = function(options) {
         this.filterDialog.show();
     };
 
+    DateTimeFilter.onFilterDialogRemoveSelection = function() {
+        this.datetimeFrom('');
+        this.datetimeTo('');
+        this.hasActiveChoices(false);
+    };
+
     DateTimeFilter.doLookup = function(datetime, lookup) {
+        var self = this;
         console.log('lookup: ' + lookup);
         this.addQueryFilter({
             'value': datetime,
@@ -481,7 +488,16 @@ App.ko.DateTimeFilter = function(options) {
         });
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction();
+        this.ownerGrid.listAction(function(viewModel) {
+            var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
+            var noErrors = App.propGet(viewModel, 'has_errors') !== true;
+            self.hasActiveChoices(noErrors);
+            if (noErrors) {
+                applyButton.enable();
+            } else {
+                applyButton.disable();
+            }
+        });
     };
 
     DateTimeFilter.onDatetimeFrom = function(datetimeFrom) {
@@ -763,6 +779,17 @@ App.GridActions = function(options) {
         }
     };
 
+    GridActions.getOurViewmodel = function(response) {
+        var vms = App.filterViewModels(response, {
+            view: this.viewModelName
+        });
+        // Assuming there is only one viewmodel with view: this.viewModelName, which is currently true.
+        if (vms.length > 1) {
+            throw "Bug check in App.GridActions.getOurViewmodel(), vms.length: " + vms.length;
+        }
+        return (vms.length === 0) ? null : vms[0];
+    };
+
     GridActions.ajax = function(action, queryArgs, callback) {
         var self = this;
         queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
@@ -771,7 +798,10 @@ App.GridActions = function(options) {
             function(response) {
                 self.respond(action, response);
                 if (typeof callback === 'function') {
-                    callback(response);
+                    var vm = self.getOurViewmodel(response);
+                    if (vm !== null) {
+                        callback(vm);
+                    }
                 }
             },
             'json'
@@ -968,14 +998,14 @@ App.ko.Grid = function(options) {
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
              * values of dict type: see views.GridActionxMixin.vm_get_filters().
              */
-            this.gridActions.perform('meta', {}, function(response) {
-                self.gridActions.perform('list', {}, function(response) {
+            this.gridActions.perform('meta', {}, function(viewmodel) {
+                self.gridActions.perform('list', {}, function(viewmodel) {
                     self.onFirstLoad();
                 });
             });
         } else {
             // Save a bit of HTTP traffic by default.
-            this.gridActions.perform('meta_list', {}, function(response) {
+            this.gridActions.perform('meta_list', {}, function(viewmodel) {
                 self.onFirstLoad();
             });
         }
@@ -1688,6 +1718,10 @@ App.ko.Grid = function(options) {
 
     Grid.listCallback = function(data) {
         var self=this;
+        if (App.propGet(data, 'has_errors') === true) {
+            // There is nothing to list. Additional error viewmodel might be processed instead.
+            return;
+        }
         // console.log(data);
         // Set grid rows viewmodels.
         var gridRows = [];
@@ -1850,11 +1884,13 @@ App.FilterDialog = function(options) {
     FilterDialog.getButtons = function() {
         var self = this;
         return [{
+            id: 'filter_remove_selection',
             label: App.trans('Remove selection'),
             action: function(dialogItself) {
                 self.onRemoveSelection();
             }
         },{
+            id: 'filter_apply',
             label: App.trans('Apply'),
             action: function(dialogItself) {
                 if (self.onApply()) {
@@ -1887,11 +1923,12 @@ App.FilterDialog = function(options) {
     };
 
     FilterDialog.onApply = function() {
+        this.propCall('ownerComponent.onFilterDialogApply', {});
         return true;
     };
 
     FilterDialog.onRemoveSelection = function() {
-        this.propCall('ownerComponent.onGridDialogUnselectAllRows', {});
+        this.propCall('ownerComponent.onFilterDialogRemoveSelection', {});
     };
 
     FilterDialog.onShow = function() {
@@ -2062,10 +2099,8 @@ App.ModelFormDialog = function(options) {
                     var $button = bdialog.getModalFooter().find('button.submit');
                     App.AjaxForm.prototype.submit($form, $button, {
                         success: function(response) {
-                            var gridVms = App.filterViewModels(response, {
-                                view: self.grid.gridActions.viewModelName
-                            });
-                            if (gridVms.length === 0) {
+                            var vm = self.grid.gridActions.getOurViewmodel(response);
+                            if (vm === null) {
                                 // If response has no our grid viewmodel (self.gridActions.viewModelName), then
                                 // it's a form viewmodel errors response which is processed then by
                                 // App.AjaxForm.prototype.submit().
