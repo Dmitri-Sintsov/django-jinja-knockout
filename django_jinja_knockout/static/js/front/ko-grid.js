@@ -508,6 +508,15 @@ App.ko.DateTimeFilter = function(options) {
         this.doLookup(datetimeTo, 'lte');
     };
 
+    DateTimeFilter.setChoices = function(values) {
+        if (typeof values.gte !== 'undefined') {
+            this.datetimeFrom(values.gte);
+        }
+        if (typeof values.lte !== 'undefined') {
+            this.datetimeTo(values.lte);
+        }
+    };
+
 })(App.ko.DateTimeFilter.prototype);
 
 /**

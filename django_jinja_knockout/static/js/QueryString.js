@@ -110,7 +110,23 @@ QueryString.prototype.values= function (key)
 QueryString.prototype.keys= function ()
 {
     var a= [];
-    for (var key in this.dict)
-	a.push(key);
+    for (var key in this.dict) {
+        if (this.dict.hasOwnProperty(key)) {
+            a.push(key);
+        }
+    }
     return a;
 };
+
+QueryString.prototype.any= function (keys, prefix) {
+    var result= {};
+    for (var i= 0; i< keys.length; i++) {
+        var key = (prefix === undefined) ? keys[i] : prefix + keys[i];
+        var value = this.value(key);
+        if (value !== undefined) {
+            result[keys[i]]= value;
+        }
+    }
+    return result;
+}
+
