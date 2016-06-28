@@ -477,7 +477,10 @@ class BaseFilterView(View):
         return queryset.order_by(*self.current_sort_order)
 
     def filter_queryset(self, queryset):
-        return queryset if self.current_list_filter is None else queryset.filter(**self.current_list_filter)
+        if self.current_list_filter is None or len(self.current_list_filter) == 0:
+            return queryset
+        else:
+            return queryset.filter(**self.current_list_filter)
 
     def search_queryset(self, queryset):
         if self.current_search_str == '' or len(self.search_fields) == 0:
