@@ -107,6 +107,15 @@ QueryString.prototype.values= function (key)
     return a ? a : [];
 };
 
+QueryString.prototype.fromJSON= function (key, defval)
+{
+    try {
+        return JSON.parse(this.value(key));
+    } catch(e) {
+        return defval;
+    }
+}
+
 QueryString.prototype.keys= function ()
 {
     var a= [];
@@ -118,10 +127,16 @@ QueryString.prototype.keys= function ()
     return a;
 };
 
-QueryString.prototype.any= function (keys, prefix) {
+QueryString.prototype.any= function (keys, prefix, suffix) {
     var result= {};
+    if (prefix === undefined) {
+        prefix = '';
+    }
+    if (suffix === undefined) {
+        suffix = '';
+    }
     for (var i= 0; i< keys.length; i++) {
-        var key = (prefix === undefined) ? keys[i] : prefix + keys[i];
+        var key = prefix + keys[i] + suffix;
         var value = this.value(key);
         if (value !== undefined) {
             result[keys[i]]= value;

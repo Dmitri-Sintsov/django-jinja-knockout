@@ -26,6 +26,12 @@ msgstr "Нет"
 msgid "Yes"
 msgstr "Да"
 
+msgid "From"
+msgstr "От"
+
+msgid "To"
+msgstr "До"
+
 msgid "AJAX request error"
 msgstr "Ошибка ajax запроса"
 
