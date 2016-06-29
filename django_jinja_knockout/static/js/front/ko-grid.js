@@ -202,6 +202,10 @@ App.ko.AbstractGridFilter = function(options) {
         // console.log('dropdown clicked');
     };
 
+    AbstractGridFilter.getQueryFilter = function() {
+        return this.ownerGrid.getQueryFilter(this.field);
+    };
+
     AbstractGridFilter.addQueryFilter = function(options) {
         var filterOptions = $.extend({
             field: this.field
@@ -420,7 +424,6 @@ App.ko.FkGridFilter = function(options) {
         this.ownerGrid.listAction();
     };
 
-    // todo: update child grid.
     FkGridFilter.setChoices = function(values) {
         this.removeQueryFilter({
             lookup: 'in'
@@ -489,13 +492,15 @@ App.ko.DateTimeFilter = function(options) {
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
         this.ownerGrid.listAction(function(viewModel) {
-            var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
-            if (App.propGet(viewModel, 'has_errors') === true) {
-                applyButton.disable();
-                self.hasActiveChoices(false);
-            } else {
-                applyButton.enable();
-                self.hasActiveChoices(self.datetimeFrom() !== '' || self.datetimeTo() !== '');
+            if (typeof self.filterDialog.bdialog !== 'undefined') {
+                var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
+                if (App.propGet(viewModel, 'has_errors') === true) {
+                    applyButton.disable();
+                    self.hasActiveChoices(false);
+                } else {
+                    applyButton.enable();
+                    self.hasActiveChoices(self.datetimeFrom() !== '' || self.datetimeTo() !== '');
+                }
             }
         });
     };
@@ -999,7 +1004,7 @@ App.ko.Grid = function(options) {
         this.setQueryOrderBy(this.options.defaultOrderBy);
     };
 
-    Grid.firstLoad = function() {
+    Grid.firstLoad = function(callback) {
         var self = this;
         if (this.options.separateMeta) {
             /**
@@ -1010,12 +1015,18 @@ App.ko.Grid = function(options) {
             this.gridActions.perform('meta', {}, function(viewmodel) {
                 self.gridActions.perform('list', {}, function(viewmodel) {
                     self.onFirstLoad();
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
                 });
             });
         } else {
             // Save a bit of HTTP traffic by default.
             this.gridActions.perform('meta_list', {}, function(viewmodel) {
                 self.onFirstLoad();
+                if (typeof callback === 'function') {
+                    callback();
+                }
             });
         }
     };
@@ -1116,6 +1127,12 @@ App.ko.Grid = function(options) {
 
     Grid.isSortedField = function(field) {
         return typeof this.sortOrders[field] !== 'undefined';
+    };
+
+    Grid.getQueryFilter = function(field) {
+        if (typeof this.queryFilters[field] !== 'undefined') {
+            return this.queryFilters[field];
+        }
     };
 
     /**
@@ -1290,14 +1307,42 @@ App.ko.Grid = function(options) {
      */
     Grid.findKoRowByPkVal = function(pkVal) {
         var self = this;
+        var intPkVal = App.intVal(pkVal);
         var koRow = null;
-        $.each(this.gridRows(), function(k, v) {
-            if (v.getValue(self.meta.pkField) === pkVal) {
+        _.each(this.gridRows(), function(v) {
+            var val = v.getValue(self.meta.pkField);
+            if (val === pkVal || val === intPkVal) {
                 koRow = v;
                 return false;
             }
         });
         return koRow;
+    };
+
+    /**
+     * Select grid rows which have pk field values equal to pkVals supplied.
+     *
+     * @param pkVals scalar / array
+     *     Values of grid rows pk fields to select.
+     *     Grid rows not matching the criteria will be unselected.
+     */
+    Grid.selectKoRowsByPkVals = function(pkVals) {
+        var self = this;
+        if (!_.isArray(pkVals)) {
+            pkVals = [pkVals];
+        }
+        var intPkVals = [];
+        for (var i = 0; i < pkVals.length; i++) {
+            intPkVals.push(pkVals[i]);
+            var intPkVal = App.intVal(pkVals[i]);
+            if (intPkVal !== pkVals[i]) {
+                intPkVals.push(intPkVal);
+            }
+        }
+        _.each(this.gridRows(), function(v) {
+            var val = v.getValue(self.meta.pkField);
+            v.isSelectedRow(_.indexOf(intPkVals, val) !== -1);
+        });
     };
 
     /**
@@ -2046,6 +2091,7 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.onShow = function() {
+        var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
         var $gridPagination = App.domTemplate('ko_grid_pagination');
@@ -2055,7 +2101,11 @@ App.GridDialog = function(options) {
         } else {
             // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
             this.grid = this.iocGridOwner();
-            this.grid.firstLoad();
+            this.grid.firstLoad(function() {
+                // Select grid rows when there are filter choices set already.
+                var filterChoices = self.ownerComponent.getQueryFilter();
+                self.grid.selectKoRowsByPkVals(filterChoices);
+            });
         }
         this.grid.applyBindings(this.bdialog.getModal());
         this.wasOpened = true;
