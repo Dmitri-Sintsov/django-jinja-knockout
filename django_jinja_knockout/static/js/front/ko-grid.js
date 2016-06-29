@@ -371,7 +371,6 @@ App.ko.FkGridFilter = function(options) {
                 }
             )
          */
-        this.choices = null;
         if (typeof options.fkGridOptions.dialogOptions !== 'undefined') {
             gridDialogOptions = options.fkGridOptions.dialogOptions;
             delete options.fkGridOptions.dialogOptions;
@@ -382,6 +381,7 @@ App.ko.FkGridFilter = function(options) {
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
         this.super._call('init', options);
+        this.choices = null;
     };
 
     FkGridFilter.onDropdownClick = function(ev) {
@@ -469,7 +469,6 @@ App.ko.DateTimeFilter = function(options) {
             title: this.name,
             template: 'ko_datetime_filter'
         });
-        this.super._call('init', options);
     };
 
     DateTimeFilter.onDropdownClick = function(ev) {
