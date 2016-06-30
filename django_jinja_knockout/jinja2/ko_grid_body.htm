@@ -21,7 +21,7 @@
 
 {% if 'ko_grid_row_click_menu' not in _template_ids %}
 <script type="text/template" id="ko_grid_row_click_menu">
-    <div data-bind="foreach: lastClickedKoRow.getClickActions()">
+    <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
         <button class="btn btn-block" data-bind="css: getKoCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
     </div>
@@ -142,7 +142,9 @@
                         <!-- /ko -->
                         <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
                         <td class="grid-glyph-cell" data-bind="click: function() { doAction({gridRow: $parent}); }">
+                            <!-- ko if: $parent.hasEnabledAction($data) -->
                             <span data-bind="css: getKoCss(), attr: {title: $data.localName}" class="halflings glyphicon"></span>
+                            <!-- /ko -->
                         </td>
                         <!-- /ko -->
                         <!-- ko foreach: $parent.gridColumns -->

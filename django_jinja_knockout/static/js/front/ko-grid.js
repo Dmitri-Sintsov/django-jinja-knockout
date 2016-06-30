@@ -483,7 +483,7 @@ App.ko.DateTimeFilter = function(options) {
 
     DateTimeFilter.doLookup = function(datetime, lookup) {
         var self = this;
-        console.log('lookup: ' + lookup);
+        // console.log('lookup: ' + lookup);
         this.addQueryFilter({
             'value': datetime,
             'lookup': lookup
@@ -692,10 +692,12 @@ App.ko.GridRow = function(options) {
         return [];
     };
 
-    // Override in child class to selectively enable only some of 'click' type actions for the particular grid row,
-    // depending on this.values.
-    GridRow.getClickActions = function() {
-        return this.ownerGrid.actionTypes['click'];
+    /**
+     * Override in child class to selectively enable only some of actions for the particular grid row,
+     * depending on this.values.
+     */
+    GridRow.hasEnabledAction = function(action) {
+        return true;
     };
 
 })(App.ko.GridRow.prototype);
@@ -1851,6 +1853,18 @@ App.ko.Grid = function(options) {
         this.gridActions.performLastAction(actionOptions);
     };
 
+    // Returns only enabled actions for particular App.ko.GridRow instance of the specified actionType.
+    Grid.getEnabledActions = function(koRow, actionType) {
+        var enabledActions = [];
+        var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
+        for (var i = 0; i < actions.length; i++) {
+            if (koRow.hasEnabledAction(actions[i])) {
+                enabledActions.push(actions[i]);
+            }
+        }
+        return enabledActions;
+    };
+
     // Used in ActionTemplateDialog 'ko_action_form' template.
     Grid.getCsrfToken = function() {
         return App.conf.csrfToken;
@@ -1897,8 +1911,13 @@ App.ko.Action = function(options) {
         if (typeof actionOptions === 'undefined') {
             actionOptions = {};
         }
-        // Check whether that is 'glyphicon' action, which has gridRow instance passed to doAction().
+        // Check whether this is row action (usually it has 'click' or 'glyphicon' action type),
+        // which has gridRow instance passed to options.
         if (typeof options.gridRow !== 'undefined') {
+            if (!options.gridRow.hasEnabledAction(this)) {
+                // Current action is disabled for gridRow instance specified.
+                return;
+            }
             this.grid.lastClickedKoRow = options.gridRow;
             // Clicking current row implies that it is also has to be used for current action.
             options.gridRow.isSelectedRow(true);
