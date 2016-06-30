@@ -608,6 +608,7 @@ App.ko.GridRow = function(options) {
 
     GridRow.init = function(options) {
         var self = this;
+        this.index = options.index;
         this.isSelectedRow = ko.observable(options.isSelectedRow);
         this.isUpdated = ko.observable(
             (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
@@ -1462,6 +1463,14 @@ App.ko.Grid = function(options) {
 
     Grid.afterRowRender = function(elements, koRow) {
         koRow.afterRender();
+        if (this.totalRowsCount > 0 && koRow.index === this.totalRowsCount - 1) {
+            // Detect end of foreach loop in Knockout.js.
+            this.afterRowsRendered();
+        }
+    };
+
+    Grid.afterRowsRendered = function() {
+        /* noop */
     };
 
     Grid.onSearchReset = function() {
@@ -1780,7 +1789,8 @@ App.ko.Grid = function(options) {
         // console.log(data);
         // Set grid rows viewmodels.
         var gridRows = [];
-        $.each(data.entries, function(k, row) {
+        this.totalRowsCount = data.entries.length;
+        _.each(data.entries, function(row, k) {
             // Recall previously selected grid rows from this.hasSelectedPkVal().
             if (typeof row[self.meta.pkField] === 'undefined') {
                 throw sprintf("Supplied row has no '%s' key", self.meta.pkField);
@@ -1790,7 +1800,8 @@ App.ko.Grid = function(options) {
                 self.iocRow({
                     ownerGrid: self,
                     isSelectedRow: self.hasSelectedPkVal(pkVal),
-                    values: row
+                    values: row,
+                    index: k
                 })
             );
         });

@@ -1,5 +1,10 @@
 {% macro ko_grid(grid_options, template_options={}, dom_attrs={}, override_template=False) -%}
-{% set _template_options = {'show_title': True, 'show_action_buttons': True, 'vscroll': False} %}
+{% set _template_options = {
+    'show_title': True,
+    'show_pagination': True,
+    'show_action_buttons': True,
+    'vscroll': False
+} %}
 {% do _template_options.update(template_options) %}
 {% set view_kwargs = {'action': ''} %}
 {% if grid_options.pageRouteKwargs %}
@@ -10,10 +15,21 @@
 {% do _grid_options.update(view.get_default_grid_options()) %}
 {% do _grid_options.update(grid_options) %}
 {% do add_css_classes_to_dict(dom_attrs, 'component') %}
+{% if 'name' in dom_attrs %}
+    {% set fragment_name = dom_attrs['name'] %}
+    {% do dom_attrs.pop('name') %}
+{% elif 'id' in dom_attrs %}
+    {% set fragment_name = dom_attrs['id'] %}
+{% endif %}
 {% if override_template %}
-{{ caller({'dom_attrs': dom_attrs, '_grid_options': _grid_options}) }}
+{{ caller({
+    'dom_attrs': dom_attrs,
+    '_grid_options': _grid_options,
+    'fragment_name': fragment_name
+}) }}
 {% else %}
 <div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
+<a name="{{ fragment_name }}"></a>
     <div data-template-id="ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'>
     </div>
 </div>
