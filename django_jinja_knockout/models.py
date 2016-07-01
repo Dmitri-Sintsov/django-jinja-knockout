@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from .utils.sdv import nested_values
 
 
 def get_permission_object(permission_str):
@@ -86,7 +87,7 @@ def model_values(obj, fields=None, strict_related=True):
 
 def get_object_description(object):
     if hasattr(object, 'get_str_fields'):
-        return list(object.get_str_fields().values())
+        return nested_values(object.get_str_fields())
     else:
         return [str(object)]
 

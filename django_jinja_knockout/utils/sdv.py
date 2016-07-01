@@ -34,6 +34,16 @@ def get_nested(nested_data, map_list, default_value=None):
     return nested_data
 
 
+def nested_values(d):
+    result = []
+    for v in d.values():
+        if isinstance(v, dict):
+            result.extend(nested_values(v))
+        else:
+            result.append(v)
+    return result
+
+
 def dbg(name, value=None):
     logdir = os.path.join(*LOGPATH)
     try:
