@@ -914,7 +914,7 @@ class GridActionsMixin():
             'last_action': 'save_form',
             'title': format_html('{}: {}',
                  self.get_action_local_name(),
-                 qtpl.print_bs_badges(get_object_description(obj))
+                 self.get_object_desc(obj)
             ),
             'message': form_html
         })
@@ -958,17 +958,16 @@ class GridActionsMixin():
             'last_action': 'save_inline',
             'title': format_html('{}: {}',
                  self.get_action_local_name(),
-                 qtpl.print_bs_badges(get_object_description(obj))
+                 self.get_object_desc(obj)
             ),
             'message': ff_html
         })
 
     def get_object_desc(self, obj):
-        return qtpl.print_bs_labels(get_object_description(obj))
+        return qtpl.print_bs_badges(get_object_description(obj))
 
     def get_objects_descriptions(self, objects):
-        descriptions = [self.get_object_desc(obj) for obj in objects]
-        return qtpl.print_list_group(descriptions, cb=None)
+        return [get_object_description(obj) for obj in objects]
 
     def get_title_action_not_allowed(self):
         return _('Action "%(action)s" is not allowed') % \
@@ -983,11 +982,11 @@ class GridActionsMixin():
             pks = [self.request.POST.get('pk_val')]
         objects = self.__class__.model.objects.filter(pk__in=pks)
         viewmodel = {
-            'message': self.get_objects_descriptions(objects),
+            'view': self.__class__.viewmodel_name,
+            'description': self.get_objects_descriptions(objects),
         }
         if self.action_delete_is_allowed(objects):
             viewmodel.update({
-                'view': self.__class__.viewmodel_name,
                 'title': format_html('{}',
                      self.get_action_local_name()
                 ),
@@ -995,7 +994,7 @@ class GridActionsMixin():
             })
         else:
             viewmodel.update({
-                'view': 'alert_error',
+                'has_errors': True,
                 'title': self.get_title_action_not_allowed()
             })
         return vm_list(viewmodel)
@@ -1011,9 +1010,10 @@ class GridActionsMixin():
             })
         else:
             return vm_list({
-                'view': 'alert_error',
+                'view': self.__class__.viewmodel_name,
+                'has_errors': True,
                 'title': self.get_title_action_not_allowed(),
-                'message': self.get_objects_descriptions(objects)
+                'description': self.get_objects_descriptions(objects)
             })
 
     # Supports both 'create_form' and 'edit_form' actions.

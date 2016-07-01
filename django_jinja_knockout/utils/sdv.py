@@ -35,13 +35,7 @@ def get_nested(nested_data, map_list, default_value=None):
 
 
 def nested_values(d):
-    result = []
-    for v in d.values():
-        if isinstance(v, dict):
-            result.extend(nested_values(v))
-        else:
-            result.append(v)
-    return result
+    return [nested_values(v) if isinstance(v, dict) else v for v in d.values()]
 
 
 def dbg(name, value=None):

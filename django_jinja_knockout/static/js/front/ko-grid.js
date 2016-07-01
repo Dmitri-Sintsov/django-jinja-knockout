@@ -889,8 +889,29 @@ App.GridActions = function(options) {
         this.callback_create_form(viewModel);
     };
 
+    GridActions.blockTags = [
+        {
+            enclosureTag: '<div>',
+            enclosureClasses: 'well well-sm',
+            itemTag: '<span>',
+                itemClasses: 'badge'
+        }
+    ];
+
+    GridActions.renderDescription = function(viewModel) {
+        viewModel.message = $('<div>');
+        App.renderNestedList(viewModel.message, viewModel.description, this.blockTags);
+        viewModel.type = BootstrapDialog.TYPE_DANGER;
+        delete viewModel.description;
+    };
+
     GridActions.callback_delete = function(viewModel) {
         var self = this;
+        if (typeof viewModel.has_errors !== 'undefined') {
+            this.renderDescription(viewModel);
+            new App.Dialog(viewModel).alert();
+            return;
+        }
         var pkVals = viewModel.pkVals;
         delete viewModel.pkVals;
         viewModel.callback = function(result) {
@@ -898,13 +919,18 @@ App.GridActions = function(options) {
                 self.perform('delete_confirmed', {'pk_vals': pkVals});
             }
         };
-        viewModel.type = BootstrapDialog.TYPE_DANGER;
+        this.renderDescription(viewModel);
         var dialog = new App.Dialog(viewModel);
         dialog.confirm();
     };
 
     GridActions.callback_delete_confirmed = function(viewModel) {
-        this.grid.updatePage(viewModel);
+        if (typeof viewModel.has_errors !== 'undefined') {
+            this.renderDescription(viewModel);
+            new App.Dialog(viewModel).alert();
+        } else {
+            this.grid.updatePage(viewModel);
+        }
     };
 
     /**
