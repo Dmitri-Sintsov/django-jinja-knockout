@@ -638,6 +638,8 @@ App.ko.GridRow = function(options) {
             this.str = null;
         }
         this.initDisplayValues();
+        this.actionsACL = {};
+        this.ownerGrid.setACL(this);
     };
 
     GridRow.getValue = function(field) {
@@ -699,6 +701,20 @@ App.ko.GridRow = function(options) {
      */
     GridRow.hasEnabledAction = function(action) {
         return true;
+    };
+
+    // Observable factory of this.hasEnabledAction(action) result for current row.
+    GridRow.observeEnabledAction = function(action) {
+        var isEnabled = this.hasEnabledAction(action);
+        var actType = action.actDef.type;
+        if (typeof this.actionsACL[actType] !== 'object') {
+            this.actionsACL[actType] = {};
+        }
+        if (typeof this.actionsACL[actType][action.name] !== 'function') {
+            this.actionsACL[actType][action.name] = ko.observable(false);
+        }
+        this.actionsACL[actType][action.name](isEnabled);
+        return this.actionsACL[actType][action.name];
     };
 
 })(App.ko.GridRow.prototype);
@@ -1446,6 +1462,8 @@ App.ko.Grid = function(options) {
             // When rowToUpdate is null, that means updated row is not among currently displayed ones.
             if (rowToUpdate !== null) {
                 rowToUpdate.update(savedGridRow);
+                // Update ui lists of action buttons / menus per row.
+                this.setACL(rowToUpdate);
             }
         }
     };
@@ -1895,11 +1913,18 @@ App.ko.Grid = function(options) {
         var enabledActions = [];
         var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
         for (var i = 0; i < actions.length; i++) {
-            if (koRow.hasEnabledAction(actions[i])) {
+            if (koRow.observeEnabledAction(actions[i])()) {
                 enabledActions.push(actions[i]);
             }
         }
         return enabledActions;
+    };
+
+    // Update ui lists of action buttons / menus per row.
+    Grid.setACL = function(koRow) {
+        for (var i = 0; i < this.uiActionTypes.length; i++) {
+            this.getEnabledActions(koRow, this.uiActionTypes[i]);
+        }
     };
 
     // Used in ActionTemplateDialog 'ko_action_form' template.
@@ -1951,7 +1976,7 @@ App.ko.Action = function(options) {
         // Check whether this is row action (usually it has 'click' or 'glyphicon' action type),
         // which has gridRow instance passed to options.
         if (typeof options.gridRow !== 'undefined') {
-            if (!options.gridRow.hasEnabledAction(this)) {
+            if (!options.gridRow.observeEnabledAction(this)()) {
                 // Current action is disabled for gridRow instance specified.
                 return;
             }
