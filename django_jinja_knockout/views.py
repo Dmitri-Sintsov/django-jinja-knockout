@@ -284,14 +284,17 @@ class FieldValidator():
 
     def get_form_field(self):
         for model_field_type, form_field_type in self.__class__.field_types:
-            if isinstance(self.model_field, getattr(models, model_field_type)):
+            model_field = getattr(models, model_field_type)
+            if isinstance(self.model_field, model_field):
+                field_filter_type = model_field_type.lower().split('field')[0]
                 # Use the same field type from forms by default.
-                return (
-                    getattr(
-                        forms, model_field_type if form_field_type is None else form_field_type
-                    )(localize=True, required=False),
-                    model_field_type.lower().split('field')[0]
-                )
+                if form_field_type is None:
+                    return model_field().formfield(localize=True, required=False), field_filter_type
+                else:
+                    return (
+                        getattr(forms, form_field_type)(localize=True, required=False),
+                        field_filter_type
+                    )
         return None, None
 
     def set_auto_id(self, lookup):
