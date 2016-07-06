@@ -440,52 +440,77 @@ App.ko.FkGridFilter = function(options) {
 })(App.ko.FkGridFilter.prototype);
 
 /**
- * DateTime grid filter control. Contains dialog with two datetime fields to select datetime interval of field value.
+ * Range grid filter control. Contains dialog with two scalar fields to select interval of field value.
+ * Currently supports DateTimeField, DateField, DecimalField.
  */
 
-App.ko.DateTimeFilter = function(options) {
+App.ko.RangeFilter = function(options) {
     $.inherit(App.ko.AbstractGridFilter.prototype, this);
     this.init(options);
 };
 
-(function(DateTimeFilter) {
+(function(RangeFilter) {
 
-    DateTimeFilter.init = function(options) {
+    RangeFilter.init = function(options) {
         this.type = options.type;
         this.super._call('init', options);
         this.choices = null;
         this.meta = {
-            datetimeFrom: App.trans('From'),
-            datetimeTo: App.trans('To'),
+            from: App.trans('From'),
+            to: App.trans('To'),
         };
-        this.datetimeFrom = ko.observable('');
-        this.datetimeTo = ko.observable('');
-        ko.switchSubscription(this, 'datetimeFrom');
-        ko.switchSubscription(this, 'datetimeTo');
-        this.dateTimeCss = {};
-        this.dateTimeCss[this.type + '-control'] = true;
+        this.from = ko.observable('');
+        this.to = ko.observable('');
+        ko.switchSubscription(this, 'from');
+        ko.switchSubscription(this, 'to');
+        var method = 'getFieldAttrs_' + this.type;
+        if (typeof this[method] !== 'function') {
+            throw 'App.ko.RangeFilter.' + method + ' is not the function';
+        }
+        this.fieldAttrs = this[method]();
         this.filterDialog = new App.FilterDialog({
             ownerComponent: this,
             title: this.name,
-            template: 'ko_datetime_filter'
+            template: 'ko_range_filter'
         });
     };
 
-    DateTimeFilter.onDropdownClick = function(ev) {
+    RangeFilter.getFieldAttrs_datetime = function() {
+        return {
+            'class': 'form-control datetime-control',
+            'type': 'text'
+        };
+    };
+
+    RangeFilter.getFieldAttrs_date = function() {
+        return {
+            'class': 'form-control date-control',
+            'type': 'text'
+        };
+    };
+
+    RangeFilter.getFieldAttrs_number = function() {
+        return {
+            'class': 'form-control',
+            'type': 'number'
+        };
+    };
+
+    RangeFilter.onDropdownClick = function(ev) {
         this.filterDialog.show();
     };
 
-    DateTimeFilter.onFilterDialogRemoveSelection = function() {
-        this.datetimeFrom('');
-        this.datetimeTo('');
+    RangeFilter.onFilterDialogRemoveSelection = function() {
+        this.from('');
+        this.to('');
         this.hasActiveChoices(false);
     };
 
-    DateTimeFilter.doLookup = function(datetime, lookup) {
+    RangeFilter.doLookup = function(value, lookup) {
         var self = this;
         // console.log('lookup: ' + lookup);
         this.addQueryFilter({
-            'value': datetime,
+            'value': value,
             'lookup': lookup
         });
         this.hasActiveChoices(true);
@@ -498,30 +523,30 @@ App.ko.DateTimeFilter = function(options) {
                     self.hasActiveChoices(false);
                 } else {
                     applyButton.enable();
-                    self.hasActiveChoices(self.datetimeFrom() !== '' || self.datetimeTo() !== '');
+                    self.hasActiveChoices(self.from() !== '' || self.to() !== '');
                 }
             }
         });
     };
 
-    DateTimeFilter.onDatetimeFrom = function(datetimeFrom) {
-        this.doLookup(datetimeFrom, 'gte');
+    RangeFilter.onFrom = function(value) {
+        this.doLookup(value, 'gte');
     };
 
-    DateTimeFilter.onDatetimeTo = function(datetimeTo) {
-        this.doLookup(datetimeTo, 'lte');
+    RangeFilter.onTo = function(value) {
+        this.doLookup(value, 'lte');
     };
 
-    DateTimeFilter.setChoices = function(values) {
+    RangeFilter.setChoices = function(values) {
         if (typeof values.gte !== 'undefined') {
-            this.datetimeFrom(values.gte);
+            this.from(values.gte);
         }
         if (typeof values.lte !== 'undefined') {
-            this.datetimeTo(values.lte);
+            this.to(values.lte);
         }
     };
 
-})(App.ko.DateTimeFilter.prototype);
+})(App.ko.RangeFilter.prototype);
 
 /**
  * Single row of grid (ko viewmodel).
@@ -1656,12 +1681,17 @@ App.ko.Grid = function(options) {
 
     Grid.iocKoFilter_datetime = function(filter, options) {
         options.type = 'datetime';
-        return new App.ko.DateTimeFilter(options);
+        return new App.ko.RangeFilter(options);
     };
 
     Grid.iocKoFilter_date = function(filter, options) {
         options.type = 'date';
-        return new App.ko.DateTimeFilter(options);
+        return new App.ko.RangeFilter(options);
+    };
+
+    Grid.iocKoFilter_decimal = function(filter, options) {
+        options.type = 'number';
+        return new App.ko.RangeFilter(options);
     };
 
     Grid.iocKoFilter_choices = function(filter, options) {

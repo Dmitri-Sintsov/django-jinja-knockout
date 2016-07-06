@@ -270,25 +270,38 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
 # Used to validate values of AJAX submitted filter fields.
 class FieldValidator():
 
+    field_types = (
+        # Order is important, because DateTimeField is ancestor of DateField.
+        ('DateTimeField', None),
+        ('DateField', None),
+        ('DecimalField', None)
+    )
+
     def __init__(self, view, fieldname):
         self.view = view
-        model_field = get_related_field(view.model, fieldname)
-        self.form_field = None
-        # Order is important, because DateTimeField is ancestor of DateField.
-        if isinstance(model_field, models.DateTimeField):
-            self.form_field = forms.DateTimeField(localize=True, required=False)
-        elif isinstance(model_field, models.DateField):
-            self.form_field = forms.DateField(localize=True, required=False)
+        self.model_field = get_related_field(view.model, fieldname)
+        self.form_field, self.field_filter_type = self.get_form_field()
+
+    def get_form_field(self):
+        for model_field_type, form_field_type in self.__class__.field_types:
+            if isinstance(self.model_field, getattr(models, model_field_type)):
+                # Use the same field type from forms by default.
+                return (
+                    getattr(
+                        forms, model_field_type if form_field_type is None else form_field_type
+                    )(localize=True, required=False),
+                    model_field_type.lower().split('field')[0]
+                )
+        return None, None
 
     def set_auto_id(self, lookup):
         if self.form_field is None:
             return
         self.form_field.auto_id = None
-        if isinstance(self.form_field, (forms.DateTimeField, forms.DateField)):
-            if lookup == 'gte':
-                self.form_field.auto_id = 'id_datetime_from'
-            elif lookup == 'lte':
-                self.form_field.auto_id = 'id_datetime_to'
+        if lookup == 'gte':
+            self.form_field.auto_id = 'id_range_from'
+        elif lookup == 'lte':
+            self.form_field.auto_id = 'id_range_to'
 
     def clean(self, value):
         try:
@@ -309,6 +322,30 @@ class FieldValidator():
                     },
                     self.view.get_field_error_viewmodel(self.form_field)
                 )
+
+    # Detect type of filter.
+    # Override in child class to add new type of custom filters.
+    # Implement "App.ko.Grid.iocKoFilter_custom_type" method at client-side.
+    def detect_field_filter(self, filter_def):
+        if self.field_filter_type is not None:
+            return {
+                'type': self.field_filter_type
+            }
+        elif isinstance(self.model_field, models.ForeignKey):
+            # Use App.ko.FkGridFilter to select filter choices.
+            return {
+                'type': 'fk',
+                'multiple_choices': True
+            }
+        elif hasattr(self.model_field, 'choices'):
+            filter_def['choices'] = self.model_field.choices
+            return {
+                'type': 'choices',
+            }
+        else:
+            self.view.report_error(
+                'Cannot determine filter type of field "{}"'.format(str(self.model_field))
+            )
 
 
 # Model queryset filtering / ordering base.
@@ -1086,32 +1123,6 @@ class GridActionsMixin():
             })
         return vm_grid_fields
 
-    # Detect type of filter.
-    # Override in child class to add new type of custom filters.
-    # Implement App.ko.Grid.iocKoFilter_custom_type filter at client-side.
-    def vm_detect_field_filter(self, field, filter_def):
-        if isinstance(field, models.DateTimeField):
-            return {
-                'type': 'datetime'
-            }
-        elif isinstance(field, models.DateField):
-            return {
-                'type': 'date'
-            }
-        elif isinstance(field, models.ForeignKey):
-            # Use App.ko.FkGridFilter to select filter choices.
-            return {
-                'type': 'fk',
-                'multiple_choices': True
-            }
-        elif hasattr(field, 'choices'):
-            filter_def['choices'] = field.choices
-            return {
-                'type': 'choices',
-            }
-        else:
-            self.report_error('Cannot determine filter type of field "{}"'.format(get_verbose_name(field)))
-
     def vm_get_field_filter(self, fieldname, filter_def):
         vm_filter = {
             'field': fieldname,
@@ -1125,8 +1136,8 @@ class GridActionsMixin():
             else:
                 # Use App.ko.FkGridFilter to select filter choices.
                 # Autodetect widget.
-                field = get_related_field(self.model, fieldname)
-                vm_filter.update(self.vm_detect_field_filter(field, filter_def))
+                field_validator = self.get_field_validator(fieldname)
+                vm_filter.update(field_validator.detect_field_filter(filter_def))
         return vm_filter
 
     def vm_process_field_filter_choices(self, vm_filter, filter_def):
