@@ -68,27 +68,27 @@ $.fn.popInstance = function(key) {
  *     childInstance reference
  *  .proto
  *     prototype of ancestor class (parentPrototype)
- *  .super
+ *  ._super
  *     null, when there is no more parent, instance of $.SuperChain when there are base parents.
- *     Deepest nested level of .super.super is the top class (base class).
+ *     Deepest nested level of ._super._super is the context of top class prototype (context of base class).
  */
 $.SuperChain = function(childInstance, parentPrototype) {
     /**
-     * childInstance.super represents current parent call context, which originally matches
-     * immediate parent but may be changed to deeper parents when calling nested super.
+     * childInstance._super represents current parent call context, which originally matches
+     * immediate parent but may be changed to deeper parents when calling nested _super.
      *
-     * this.instance.superTop represents immediate parent call top context (immediate ancestor).
+     * this.instance._superTop represents immediate parent call top context (immediate ancestor context).
      */
-    this.super = null;
-    if (typeof childInstance.superTop !== 'undefined') {
-        var lastSuper = childInstance.superTop;
-        while (lastSuper.super !== null) {
-            lastSuper = lastSuper.super;
+    this._super = null;
+    if (typeof childInstance._superTop !== 'undefined') {
+        var lastSuper = childInstance._superTop;
+        while (lastSuper._super !== null) {
+            lastSuper = lastSuper._super;
         }
-        lastSuper.super = this;
+        lastSuper._super = this;
     } else {
-        childInstance.superTop = this;
-        childInstance.super = this;
+        childInstance._superTop = this;
+        childInstance._super = this;
     }
     this.instance = childInstance;
     this.proto = parentPrototype;
@@ -114,16 +114,16 @@ $.SuperChain = function(childInstance, parentPrototype) {
     SuperChain._find = function(name, hasOwnProto) {
         // Chain of multi-level inheritance.
         var hasProp = typeof this.proto[name] !== 'undefined';
-        var atTopAndOwnProto = this === this.instance.superTop && !hasOwnProto;
-        // Will return immediate super property only when method is defined in instance own prototype.
+        var atTopAndOwnProto = this === this.instance._superTop && !hasOwnProto;
+        // Will return immediate _super property only when method is defined in instance own prototype.
         if (hasProp && !atTopAndOwnProto) {
             return this;
         }
-        if (this.super !== null) {
-            return this.super._find(name, hasOwnProto);
+        if (this._super !== null) {
+            return this._super._find(name, hasOwnProto);
         } else {
             if (hasProp && atTopAndOwnProto) {
-                // Fallback for super methods which are not defined in instance own prototype.
+                // Fallback for _super methods which are not defined in instance own prototype.
                 return this;
             } else {
                 throw 'No such property: ' + name;
@@ -144,14 +144,14 @@ $.SuperChain = function(childInstance, parentPrototype) {
     };
 
     /**
-     * Usage: this.super._call('methodName', arg1, .. argN);
+     * Usage: this._super._call('methodName', arg1, .. argN);
      */
     SuperChain._call = function() {
         return this._apply(arguments[0], Array.prototype.slice.call(arguments, 1));
     };
 
     /**
-     * Usage: this.super._apply('methodName', argsArray);
+     * Usage: this._super._apply('methodName', argsArray);
      */
     SuperChain._apply = function(methodName, args) {
         var context = this.find(methodName);
@@ -159,11 +159,11 @@ $.SuperChain = function(childInstance, parentPrototype) {
         if (typeof method !== 'function') {
             throw 'No such method: ' + methodName;
         }
-        var callerSuper = this.instance.super;
-        // Switch instance super to context parent to allow nested super._call() / super._apply().
-        this.instance.super = context.super;
+        var callerSuper = this.instance._super;
+        // Switch instance _super to context parent to allow nested _super._call() / _super._apply().
+        this.instance._super = context._super;
         var result = method.apply(this.instance, args);
-        this.instance.super = callerSuper;
+        this.instance._super = callerSuper;
         return result;
     };
 

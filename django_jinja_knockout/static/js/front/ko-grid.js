@@ -244,7 +244,7 @@ App.ko.GridFilter = function(options) {
 (function(GridFilter) {
 
     GridFilter.init = function(options) {
-        this.super._call('init', options);
+        this._super._call('init', options);
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
@@ -380,7 +380,7 @@ App.ko.FkGridFilter = function(options) {
             filterOptions: options.fkGridOptions
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
-        this.super._call('init', options);
+        this._super._call('init', options);
         this.choices = null;
     };
 
@@ -453,7 +453,7 @@ App.ko.RangeFilter = function(options) {
 
     RangeFilter.init = function(options) {
         this.type = options.type;
-        this.super._call('init', options);
+        this._super._call('init', options);
         this.choices = null;
         this.meta = {
             from: App.trans('From'),
@@ -2084,7 +2084,7 @@ App.FilterDialog = function(options) {
             dialogOptions.filterOptions
         );
         delete dialogOptions.filterOptions;
-        this.super._call('create', dialogOptions);
+        this._super._call('create', dialogOptions);
     };
 
     FilterDialog.onApply = function() {
@@ -2097,7 +2097,7 @@ App.FilterDialog = function(options) {
     };
 
     FilterDialog.onShow = function() {
-        this.super._call('onShow');
+        this._super._call('onShow');
         if (this.wasOpened) {
             this.recreateContent();
         }
@@ -2109,7 +2109,7 @@ App.FilterDialog = function(options) {
     FilterDialog.onHide = function() {
         ko.cleanNode(this.bdialog.getModal().get(0));
         App.initClient(this.bdialog.getModal(), 'dispose');
-        this.super._call('onHide');
+        this._super._call('onHide');
     };
 
 })(App.FilterDialog.prototype);
@@ -2226,7 +2226,7 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.close = function() {
-        this.super._call('close');
+        this._super._call('close');
         this.propCall('ownerComponent.onGridDialogClose');
     };
 
@@ -2302,7 +2302,7 @@ App.ModelFormDialog = function(options) {
                 buttons: this.getButtons(),
             }, options
         );
-        this.super._call('create', dialogOptions);
+        this._super._call('create', dialogOptions);
     };
 
 })(App.ModelFormDialog.prototype);
@@ -2435,11 +2435,11 @@ App.ActionsMenuDialog = function(options) {
                 buttons: this.getButtons()
             }, options
         );
-        this.super._call('create', dialogOptions);
+        this._super._call('create', dialogOptions);
     };
 
     ActionsMenuDialog.onShow = function() {
-        this.super._call('onShow');
+        this._super._call('onShow');
         if (this.wasOpened) {
             this.recreateContent();
         }
@@ -2451,7 +2451,7 @@ App.ActionsMenuDialog = function(options) {
     ActionsMenuDialog.onHide = function() {
         // Clean only grid bindings of this dialog, not invoker bindings.
         this.grid.cleanBindings(this.bdialog.getModal());
-        this.super._call('onHide');
+        this._super._call('onHide');
     };
 
 })(App.ActionsMenuDialog.prototype);
@@ -2467,7 +2467,7 @@ App.ActionsMenuDialog = function(options) {
     };
 
     ChildActionDialog.create = function(options) {
-        this.super._call('create', options);
+        this._super._call('create', options);
         ...
     };
  */
@@ -2499,7 +2499,7 @@ App.ActionTemplateDialog = function(options) {
 
     ActionTemplateDialog.create = function(options) {
         options.title = options.grid.gridActions.lastKoAction.localName;
-        this.super._call('create', options);
+        this._super._call('create', options);
         /**
          * Update meta (display text) for bound ko template (this.templateId).
          * This may be used to invoke the same dialog with different messages
@@ -2513,7 +2513,7 @@ App.ActionTemplateDialog = function(options) {
 
     // Do not remove, otherwise it will cause double binding error in App.ActionsMenuDialog.onShow.
     ActionTemplateDialog.onShow = function() {
-        this.super._call('onShow');
+        this._super._call('onShow');
     };
 
 })(App.ActionTemplateDialog.prototype);

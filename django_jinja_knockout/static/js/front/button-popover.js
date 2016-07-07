@@ -172,7 +172,7 @@ App.ButtonPopover = function(popoverOptions) {
 
     ButtonPopover.create = function(target, popoverOptions) {
         var self = this;
-        this.super._call('create', target, popoverOptions);
+        this._super._call('create', target, popoverOptions);
         this.onClickPopoverButton = function(ev) {
             ev.preventDefault();
             return self.clickPopoverButton(ev);
@@ -182,7 +182,7 @@ App.ButtonPopover = function(popoverOptions) {
 
     ButtonPopover.destroy = function() {
         this.$popoverContent.off('click', this.onClickPopoverButton);
-        this.super._call('destroy');
+        this._super._call('destroy');
     };
 
     ButtonPopover.createPopoverContent = function() {
