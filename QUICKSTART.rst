@@ -69,7 +69,7 @@ Multiple level Javascript class inheritance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * ``$.inherit`` - implementation of meta inheritance.
   Copies parent object ``prototype`` methods into ``instance`` of pseudo-child. Supports nested multi-level inheritance
-  with chains of ``super`` calls in Javascript via ``$.SuperChain`` class.
+  with chains of ``_super`` calls in Javascript via ``$.SuperChain`` class.
 
 Multi-level inheritance should be specified in descendant to ancestor order.
 
@@ -91,9 +91,9 @@ use the following Javascript code::
         CustomPopover.init = function(options) {
             // Will call App.ButtonPopover.init(), with current 'this' context when such method is defined, or
             // will call App.ClosablePopower.init(), with current 'this' context, otherwise.
-            // App.ButtonPopover.init() also will be able to call it's this.super._call('init', options);
+            // App.ButtonPopover.init() also will be able to call it's this._super._call('init', options);
             // as inheritance chain.
-            this.super._call('init', options);
+            this._super._call('init', options);
         };
 
     })(App.CustomPopover.prototype);
@@ -160,6 +160,7 @@ Injection of server-side data into loaded page
     </script>
 
 * ``cilent_conf`` dict passed to be accessible at client-side (``App.conf`` Javascript object) with the following keys:
+
  * ``'csrfToken'`` - current CSRF token to be used with AJAX POST from Javascript;
  * ``'staticPath'`` - root static url path to be used with AJAX requests from Javascript;
  * ``'userId'`` - current user id, 0 for anonymous; used both in Jinja2 templates to detect authorized users and from

@@ -129,6 +129,22 @@ where AJAX response will be treated as the list of ``viewmodels`` (see section f
 automatically routed by ``app.js``. No usual jQuery response callback is needed! Django exceptions and AJAX errors also
 are handled gracefully, displayed in ``BootstrapDialog`` window by default.
 
+Since version 0.2.0, it is possible to specify client-side routes per view::
+
+    def my_view(request):
+        request.client_routes.extend([
+            'my_url_name'
+        ])
+
+and per class-based view::
+
+    class MyGrid(KoGridView):
+
+        client_routes = [
+            'my_grid_url_name'
+        ]
+
+
 Middleware
 ----------
 
