@@ -48,16 +48,18 @@ Now let's add a named route in ``urls.py`` (see Django docs or some Django proje
 
     from my_app.views import Model1Grid
 
-    # ...
+    # ... skipped ...
+
     url(r'^model1-grid(?P<action>/?\w*)/$', Model1Grid.as_view(), name='model1_grid',
         kwargs={'ajax': True, 'permission_required': 'my_app.change_model1'}),
-    # ...
+
+    # ... skipped ...
 
 ``url()`` regex named capture group ``<action>`` will be used by ``KoGridView.post()`` method for class-based view
 kwargs value HTTP routing to provide grid pagination, optional rows CRUD actions, and custom actions which might be
 implemented in child classes of ``KoGridView`` as well.
 
-We assume that our grid may later define actions which may change ``my_app.Model1`` table rows, thus we require
+We assume that our grid may later define actions which may change ``Model1`` table rows, thus we require
 ``my_app.change_model1`` permission from built-in ``django.contrib.auth`` module.
 
 .. highlight:: jinja
@@ -105,8 +107,13 @@ First one, ``ko_grid()`` generates html code of client-side component which look
 
 It's inserted into web page body block.
 
-* Mandatory ``grid_options`` argument ``'pageRoute'`` key is used to get Django grid class in ``ko_grid()`` macro to
-  autoconfigure client-side options of grid (see the macro code in ``jinja2/ko_grid.htm`` for details).
+* Mandatory ``grid_options`` are used as client-side component options of current grid.
+
+  * Mandatory key ``'pageRoute'`` key is used to get Django grid class in ``ko_grid()`` macro to
+    autoconfigure client-side options of grid (see the macro code in ``jinja2/ko_grid.htm`` for details).
+  * Optional key ``classPath`` may be used to specify another client-side class for instantiation of grid, usually that
+    should be the child of ``App.ko.Grid`` class inserted as custom script to ``bottom_scripts`` Jinja2 block.
+
 * Optional ``template_options`` argument is passed as ``data-template-args`` ``underscore.js`` template arguments,
   which is then used to tune visual layout of grid. In our case we assume that rows of ``my_app.Model`` may be long /
   large enough so we turn on vertical scrolling for these.
@@ -128,3 +135,176 @@ so small, and grids are not always displayed at each Django page, so it is not i
 ``bottom_scripts`` block by default to make total pages traffic lower. However, it is size is well-justified knowing
 that it is loaded just once for all grids, may be cached at client-side by browser, and reduces quite a lot of HTTP
 traffic for grid pagination and grid actions.
+
+Grid configuration
+------------------
+
+.. highlight:: python
+
+Let's see some more advanced grid sample for the same ``Model1``, the Django view part::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
+
+    class Model1Grid(KoGridView):
+
+        client_routes = [
+            'model1_grid'
+        ]
+        template_name = 'model1_grid.htm'
+        model = Model1
+        grid_fields = [
+            'field1',
+            'field2',
+            'field3',
+            'model2_fk__field1',
+        ]
+        allowed_filter_fields = OrderedDict([
+            ('field1', None),
+            ('field2', {
+                'type': 'choices', 'choices': Model1.FIELD2_CHOICES, 'multiple_choices': False
+            }),
+            ('field3', Model3.FIELD3_CHOICES),
+            ('model2_fk__field1', None)
+        ])
+
+Grid fields
+~~~~~~~~~~~
+Django model may have many fields, some of these having long string representation, thus visually grid may become too
+large to fit the screen and hard to navigate. Thus not all of the fields always has to be displayed.
+
+Some fields may need to be hidden from user for the security purposes. One also might want to display foreign key
+relations, which are "chained" in Django ORM via ``'__'`` separator in the field name.
+
+Set Django grid class ``grid_fields`` property value to the list of required model fields, including foreign key
+relations.
+
+``views.KoGridView`` also supports virtual fields, which are not real database table fields, but a calculated values.
+To implement virtual field, one has to override the following methods in the grid child class::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped ...
+        grid_fields = [
+            'field1',
+            'field2',
+            'virtual_field1',
+            'field3',
+            'model2_fk__field1',
+        ]
+
+        def get_field_verbose_name(self, field_name):
+            if field_name == 'virtual_field1':
+                # Add virtual field.
+                return 'Virtual field name'
+            else:
+                return super().get_field_verbose_name(field_name)
+
+        def get_related_fields(self, query_fields=None):
+            query_fields = super().get_related_fields(query_fields)
+            # Remove virtual field from queryset values().
+            query_fields.remove('virtual_field1')
+            return query_fields
+
+        def postprocess_row(self, row, obj):
+            # Add virtual field value.
+            row['virtual_field1'] = obj.calculate_virtual_field1()
+            row = super().postprocess_row(row, obj)
+            return row
+
+        def get_row_str_fields(self, obj, row):
+            str_fields = super().get_row_str_fields(obj, row)
+            if str_fields is None:
+                str_fields = {}
+            # Add formatted display of virtual field.
+            str_fields['virtual_field1'] = some_local_format(row['virtual_field1'])
+            return str_fields
+
+``Model1.calculate_virtual_field1()`` method has to be implemented in ``my_app.models.Model1`` code.
+
+.. highlight:: javascript
+
+To display grid rows visually more compact, there is also the possibility to override ``App.ko.GridRow.toDisplayValue()``
+Javascript class method, to implement custom display layout of field value at client-side. The same method also can be
+used to generate condensed representations of long text values via Boostrap popovers, or even to display fields as form
+inputs (using grid as paginated AJAX form)::
+
+    'use strict';
+
+    App.ko.Model1GridRow = function(options) {
+        $.inherit(App.ko.GridRow.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1GridRow) {
+
+        Model1GridRow.useInitClient = true;
+
+        Model1GridRow.toDisplayValue = function(value, field) {
+            var displayValue = this._super._call('toDisplayValue', value, field);
+            switch (field) {
+            case 'field1':
+                displayValue = $('<span>', {
+                    'class': 'label preformatted'
+                })
+                .text(displayValue)
+                .addClass(this.values['field2'] ? 'label-success' : 'label-info');
+                break;
+            case 'field2':
+                var gridColumn = this.ownerGrid.getKoGridColumn(field);
+                if (this.values[field] !== '') {
+                    displayValue = $('<button>', {
+                        'class': 'btn btn-info',
+                        'data-content': this.values[field],
+                        'data-toggle': 'popover',
+                        'data-trigger': 'click',
+                        'data-placement': 'bottom',
+                        'title': gridColumn.name,
+                    }).text('Read full text');
+                }
+                break;
+            case 'field3':
+                displayValue = $('<input>', {
+                    'type': 'text',
+                    'class': 'form-field',
+                    'name': field + '_' + this.index,
+                    'value': this.values[field]
+                });
+            }
+            return displayValue;
+        };
+
+    })(App.ko.Model1GridRow.prototype);
+
+    App.ko.Model1Grid = function(options) {
+        $.inherit(App.ko.Grid.prototype, this);
+        this.init(options);
+    };
+
+
+    (function(Model1Grid) {
+
+        Model1Grid.iocRow = function(options) {
+            return new App.ko.Model1GridRow(options);
+        };
+
+    })(App.ko.Model1Grid.prototype);
+
+
+Filter fields
+~~~~~~~~~~~~~
+Grids support different types of filters for model fields, to reduce the paginated queryset, which helps to find
+specific data in the whole table.
+
+
+Todo
+~~~~
+self.set_contenttype_filter
+options.separateMeta = true;
+options.pageRouteKwargs
+using grid as paginated AJAX form
