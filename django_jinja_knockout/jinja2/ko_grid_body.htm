@@ -1,7 +1,24 @@
-{% macro ko_grid_body(template_ids={}) -%}
+{% macro ko_grid_body(call_ids={}, template_ids={}) -%}
 
-{% if 'ko_range_filter' not in template_ids %}
-<script type="text/template" id="ko_range_filter">
+{% for template_id in [
+    'ko_range_filter',
+    'ko_grid_row_click_menu',
+    'ko_action_form',
+    'ko_grid_filter_choices',
+    'ko_grid_filter_popup',
+    'ko_grid_search',
+    'ko_grid_nav',
+    'ko_grid_table',
+    'ko_grid_body',
+    'ko_grid_pagination'
+] %}
+    {% if template_id not in template_ids %}
+        {% do template_ids.update({template_id: template_id}) %}
+    {% endif %}
+{% endfor %}
+
+{% if 'ko_range_filter' not in call_ids %}
+<script type="text/template" id="{{ template_ids['ko_range_filter'] }}">
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="row form-group">
@@ -19,8 +36,8 @@
 </script>
 {% endif %}
 
-{% if 'ko_grid_row_click_menu' not in template_ids %}
-<script type="text/template" id="ko_grid_row_click_menu">
+{% if 'ko_grid_row_click_menu' not in call_ids %}
+<script type="text/template" id="{{ template_ids['ko_grid_row_click_menu'] }}">
     <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
         <button class="btn btn-block" data-bind="css: getKoCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
@@ -28,9 +45,9 @@
 </script>
 {% endif %}
 
-{% if 'ko_action_form' not in template_ids %}
+{% if 'ko_action_form' not in call_ids %}
 <!-- 'ko_action_form' template is not actual template but a sceleton of action template for ancestor of App.ActionTemplateDialog. -->
-<script type="text/template" id="ko_action_form">
+<script type="text/template" id="{{ template_ids['ko_action_form'] }}">
     <div class="panel panel-default">
         <div class="panel-body">
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
@@ -43,20 +60,38 @@
 </script>
 {% endif %}
 
-{% if 'ko_grid_filter_choices' not in template_ids %}
-{% do template_ids.update({'ko_grid_filter_choices': 'ko_grid_filter_choices'}) %}
-<script type="text/template" id="ko_grid_filter_choices">
-    <ul data-bind="foreach: choices" class="dropdown-menu">
-        <li data-bind="css: {active: is_active()}">
-            <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
-        </li>
-    </ul>
+{% if 'ko_grid_filter_choices' not in call_ids %}
+{% do call_ids.update({'ko_grid_filter_choices': 'ko_grid_filter_choices'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_filter_choices'] }}">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <span data-bind="text: name"></span> <b class="caret"></b>
+            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+        </a>
+        <ul data-bind="foreach: choices" class="dropdown-menu">
+            <li data-bind="css: {active: is_active()}">
+                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            </li>
+        </ul>
+    </li>
 </script>
 {% endif %}
 
-{% if 'ko_grid_search' not in template_ids %}
-{% do template_ids.update({'ko_grid_search': 'ko_grid_search'}) %}
-<script type="text/template" id="ko_grid_search">
+{% if 'ko_grid_filter_popup' not in call_ids %}
+{% do call_ids.update({'ko_grid_filter_popup': 'ko_grid_filter_popup'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_filter_popup'] }}">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <span data-bind="text: name"></span> <b class="caret"></b>
+            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+        </a>
+    </li>
+</script>
+{% endif %}
+
+{% if 'ko_grid_search' not in call_ids %}
+{% do call_ids.update({'ko_grid_search': 'ko_grid_search'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_search'] }}">
     <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
         <div class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
@@ -74,31 +109,28 @@
 </script>
 {% endif %}
 
-{% if 'ko_grid_nav' not in template_ids %}
-{% do template_ids.update({'ko_grid_nav': 'ko_grid_nav'}) %}
-<script type="text/template" id="ko_grid_nav">
+{% if 'ko_grid_nav' not in call_ids %}
+{% do call_ids.update({'ko_grid_nav': 'ko_grid_nav'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_nav'] }}">
     <nav class="nav navbar navbar-default">
         <div class="container-fluid grid-controls">
             <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
-                <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-                    <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <span data-bind="text: name"></span> <b class="caret"></b>
-                        <div data-bind="visible: current_name() != '', text: current_name()"></div>
-                    </a>
-                    <!-- ko if: choices !== null -->
-                    <div data-template-id="{{ template_ids['ko_grid_filter_choices'] }}"></div>
-                    <!-- /ko -->
-                </li>
+                <!-- ko if: choices === null -->
+                <div data-template-id="{{ call_ids['ko_grid_filter_popup'] }}"></div>
+                <!-- /ko -->
+                <!-- ko if: choices !== null -->
+                <div data-template-id="{{ call_ids['ko_grid_filter_choices'] }}"></div>
+                <!-- /ko -->
             </ul>
-            <div data-template-id="{{ template_ids['ko_grid_search'] }}"></div>
+            <div data-template-id="{{ call_ids['ko_grid_search'] }}"></div>
         </div>
     </nav>
 </script>
 {% endif %}
 
-{% if 'ko_grid_table' not in template_ids %}
-{% do template_ids.update({'ko_grid_table': 'ko_grid_table'}) %}
-<script type="text/template" id="ko_grid_table">
+{% if 'ko_grid_table' not in call_ids %}
+{% do call_ids.update({'ko_grid_table': 'ko_grid_table'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_table'] }}">
     <div data-top="true">
         <div class="table-responsive" <% if (self.get(self, 'vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse" <% if (self.get(self, 'vscroll')) { %> style="margin-bottom: 0;" <% } %>>
@@ -169,18 +201,18 @@
 </script>
 {% endif %}
 
-{% if 'ko_grid_body' not in template_ids %}
-{% do template_ids.update({'ko_grid_body': 'ko_grid_body'}) %}
-<script type="text/template" id="ko_grid_body">
+{% if 'ko_grid_body' not in call_ids %}
+{% do call_ids.update({'ko_grid_body': 'ko_grid_body'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_body'] }}">
     <div <% if (self.get(self, 'show_title')) { %> class="panel panel-primary" <% } %>>
         <% if (self.get(self, 'show_title')) { %>
         <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
         <div class="panel-body">
         <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
-            <div data-template-id="{{ template_ids['ko_grid_nav'] }}"></div>
+            <div data-template-id="{{ call_ids['ko_grid_nav'] }}"></div>
             <!-- /ko -->
-            <div data-template-id="{{ template_ids['ko_grid_table'] }}"></div>
+            <div data-template-id="{{ call_ids['ko_grid_table'] }}"></div>
         <% if (self.get(self, 'show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         </div>
@@ -189,9 +221,9 @@
 </script>
 {% endif %}
 
-{% if 'ko_grid_pagination' not in template_ids %}
-{% do template_ids.update({'ko_grid_pagination': 'ko_grid_pagination'}) %}
-<script type="text/template" id="ko_grid_pagination">
+{% if 'ko_grid_pagination' not in call_ids %}
+{% do call_ids.update({'ko_grid_pagination': 'ko_grid_pagination'}) %}
+<script type="text/template" id="{{ template_ids['ko_grid_pagination'] }}">
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
         <ul data-bind="foreach: gridPages" class="pagination">
             <li data-bind="css:{active: isActive}">
