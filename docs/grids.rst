@@ -304,8 +304,108 @@ inputs (using grid as paginated AJAX form)::
 
 Filter fields
 ~~~~~~~~~~~~~
-Grids support different types of filters for model fields, to reduce the paginated queryset, which helps to find
-specific data in the whole table.
+Grids support different types of filters for model fields, to reduce paginated queryset, which helps to locate specific
+data in the whole model's database table.
+
+.. highlight:: python
+
+Full-length as well as shortcut definitions of field filters are supported::
+
+    from collections import OrderedDict
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
+
+    class Model1Grid(KoGridView):
+        # ... skipped
+
+        allowed_filter_fields = OrderedDict([
+            (
+                # Example of complete filter definition for field type 'choices':
+                'field1',
+                {
+                    'type': 'choices',
+                    'choices': Model1.FIELD1_CHOICES,
+                    # Do not display 'All' choice which resets the filter:
+                    'add_reset_choice': False,
+                    # List of choices that are active by default:
+                    'active_choices': ['my_choice'],
+                    # Do not allow to select multiple choices:
+                    'multiple_choices': False
+                },
+            ),
+            # Only some of filter properties are defined, the rest are autoguessed:
+            (
+                'field2',
+                {
+                    # Commented out to autodetect field type:
+                    # 'type': 'choices',
+                    # Commented out to autodetect field.choices:
+                    # 'choices': Model1.FIELD1_CHOICES,
+                    # Is true by default, thus switching to False:
+                    'multiple_choices': False
+                }
+            ),
+            # Try to autodetect field filter completely:
+            ('field3', None),
+            # Custom choices filter (not necessarily matching Model1.field4 choices):
+            ('field4', CUSTOM_CHOICES_FOR_FIELD4),
+            # Select foreign key choices via AJAX grid built into BootstrapDialog:
+            ('model2_fk', {
+                'type': 'fk'
+            }),
+        ])
+
+Next types of built-in field filters are available:
+
+* ``fk``: Use ``App.ko.FkGridDialog`` to select filter choices of foreign key relation field. This widget is similar to
+  ``django.contrib.admin.ModelAdmin`` class ``raw_id_fields`` option. Because it's completely relies on AJAX calls,
+  one also should create grid class for that foreign key relation field, for example::
+
+    class Model2FkWidgetGrid(KoGridView):
+
+        client_routes = [
+            'model2_grid'
+        ]
+        model = Model2
+        grid_fields = [
+            'field_a', 'field_b', 'field_c'
+        ]
+        search_fields = [
+            ('field_b', 'contains'),
+        ]
+        allowed_sort_orders = '__all__'
+        allowed_filter_fields = OrderedDict([
+            ('field_a', None),
+            ('field_c', None),
+        ])
+
+Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for field ``Model1.model2_fk`` to
+``model2_grid`` route::
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped
+
+        @classmethod
+        def get_default_grid_options(cls):
+            return {
+                'fkGridOptions': {
+                    'model2_fk': {
+                        'pageRoute': 'model2_grid',
+                        # Optional setting for BootstrapDialog:
+                        'dialogOptions': {'size': 'size-wide'},
+                        # Nesting of ``App.ko.FkGridDialog`` is supported:
+                        # 'fkGridOptions': {
+                        #     'model3_fk': {
+                        #         'pageRoute': 'model3_grid'
+                        #     }
+                        # }
+                    }
+                }
+            }
+
+        # ... skipped
 
 Modifying visual layout of grid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -371,7 +471,7 @@ the list of specified choices for the current grid::
                     <div data-template-id="model1_ko_grid_nav"></div>
                     <!-- /ko -->
                     <div data-template-id="ko_grid_table"></div>
-                    <button type="button" class="btn btn-warning">My custom button</button>
+                    <button data-bind="click: myCustomAction" type="button" class="btn btn-warning">My custom button</button>
                 </div>
             </div>
         </script>
@@ -400,3 +500,4 @@ options.separateMeta = true;
 options.pageRouteKwargs
 'pageRouteKwargs': {'model1_id': model1_id},
 using grid as paginated AJAX form
+get_default_grid_options
