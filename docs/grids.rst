@@ -311,26 +311,82 @@ Modifying visual layout of grid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. highlight:: jinja
 
+Top DOM nodes of grid component can be overriden by using Jinja2 ``call(kwargs) ko_grid()`` statement then implementing
+a custom caller section with custom DOM nodes. There is the example of using this approach just below. See the source
+code of ``ko_grid.htm`` template for original DOM nodes of ``App.ko.Grid`` component.
+
 It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component, by passing
-``template_ids`` argument of ``ko_grid_body()`` Jinja2 macro with keys as template names and values as
-custom template ids::
+arguments to ``ko_grid_body()`` Jinja2 macro with keys as template names and values as custom template ids.
+
+* Optional ``call_ids`` argument is used to override expanding nested template DOM ids. It allows to call (expand)
+  another underscore.js template instead of built-in one, eg. ``'model1_ko_grid_filter_choices'`` instead of default
+  ``'ko_grid_filter_choices'`` (see example below).
+* Optional ``template_ids`` argument is used to override DOM ids of ``underscore.js`` templates themselves. That allows
+  to generate standard built-in underscore.js template but with a different DOM id ("copy template with different ID").
+  It is required sometimes to have both standard and visually customized grids at one web page.
+
+Here is the example of overriding visual display of ``App.ko.GridFilter`` that is used to select filter field from
+the list of specified choices for the current grid::
+
+    {% block main %}
+
+        {% call(kwargs) ko_grid(
+            grid_options={
+                'pageRoute': 'model1_grid',
+            },
+            dom_attrs={
+                'id': 'model1_grid'
+            },
+            override_template=True,
+        ) %}
+
+        <div{{ flatatt(kwargs.dom_attrs) }} data-component-options='{{ kwargs._grid_options|escapejs(True) }}'>
+        <a name="{{ kwargs.fragment_name }}"></a>
+            <div data-template-id="model1_ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'>
+            </div>
+        </div>
+
+    {% endcall %}
+
+    {% endblock main %}
 
     {% block bottom_scripts %}
         {{
-            ko_grid_body({
-                'ko_grid_filter_choices': 'model1_ko_grid_filter_choices',
-            })
+            ko_grid_body(
+                call_ids={
+                    'ko_grid_body': 'model1_ko_grid_body',
+                    'ko_grid_filter_choices': 'model1_ko_grid_filter_choices',
+                },
+                template_ids={
+                    'ko_grid_nav': 'model1_ko_grid_nav'
+                }
+            )
         }}
 
+        <script type="text/template" id="model1_ko_grid_body">
+            <div class="panel panel-primary">
+                <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+                <div class="panel-body">
+                    <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
+                    <div data-template-id="model1_ko_grid_nav"></div>
+                    <!-- /ko -->
+                    <div data-template-id="ko_grid_table"></div>
+                    <button type="button" class="btn btn-warning">My custom button</button>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="model1_ko_grid_filter_choices">
-            <ol class="nav nav-tabs">
-                <li ><a name="#" data-bind="text: name"></a></li>
-                <!-- ko foreach: choices -->
-                <li data-bind="css: {active: is_active()}">
-                    <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
-                </li>
-                <!-- /ko -->
-            </ol>
+            <li data-bind="grid_filter">
+                <ol class="nav nav-tabs">
+                    <li ><a name="#" data-bind="text: name"></a></li>
+                    <!-- ko foreach: choices -->
+                    <li data-bind="css: {active: is_active()}">
+                        <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+                    </li>
+                    <!-- /ko -->
+                </ol>
+            </li>
         </script>
 
         <script src="{{ static_hash('js/front/ko-grid.js') }}"></script>
@@ -342,4 +398,5 @@ Todo
 self.set_contenttype_filter
 options.separateMeta = true;
 options.pageRouteKwargs
+'pageRouteKwargs': {'model1_id': model1_id},
 using grid as paginated AJAX form
