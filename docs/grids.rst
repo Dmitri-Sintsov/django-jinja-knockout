@@ -186,6 +186,9 @@ relations, which are "chained" in Django ORM via ``'__'`` separator in the field
 Set Django grid class ``grid_fields`` property value to the list of required model fields, including foreign key
 relations.
 
+Virtual fields
+~~~~~~~~~~~~~~
+
 ``views.KoGridView`` also supports virtual fields, which are not real database table fields, but a calculated values.
 To implement virtual field, one has to override the following methods in the grid child class::
 
@@ -233,12 +236,16 @@ To implement virtual field, one has to override the following methods in the gri
 
 ``Model1.calculate_virtual_field1()`` method has to be implemented in ``my_app.models.Model1`` code.
 
+Customizing visual display of grid fields at client-side
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. highlight:: javascript
 
-To display grid rows visually more compact, there is also the possibility to override ``App.ko.GridRow.toDisplayValue()``
-Javascript class method, to implement custom display layout of field value at client-side. The same method also can be
+To display grid rows in more compact way, there is also the possibility to override ``App.ko.GridRow.toDisplayValue()``
+Javascript class method, to implement custom display layout of field values at client-side. The same method also can be
 used to generate condensed representations of long text values via Boostrap popovers, or even to display fields as form
-inputs (using grid as paginated AJAX form)::
+inputs: using grid as paginated AJAX form - which is also possible but requires writing custom underscore.js grid layout
+templates::
 
     'use strict';
 
@@ -255,6 +262,7 @@ inputs (using grid as paginated AJAX form)::
             var displayValue = this._super._call('toDisplayValue', value, field);
             switch (field) {
             case 'field1':
+                // Display field value as bootstrap label.
                 displayValue = $('<span>', {
                     'class': 'label preformatted'
                 })
@@ -262,6 +270,7 @@ inputs (using grid as paginated AJAX form)::
                 .addClass(this.values['field2'] ? 'label-success' : 'label-info');
                 break;
             case 'field2':
+                // Display field value as bootstrap clickable popover.
                 var gridColumn = this.ownerGrid.getKoGridColumn(field);
                 if (this.values[field] !== '') {
                     displayValue = $('<button>', {
@@ -275,6 +284,7 @@ inputs (using grid as paginated AJAX form)::
                 }
                 break;
             case 'field3':
+                // Display field value as form input.
                 displayValue = $('<input>', {
                     'type': 'text',
                     'class': 'form-field',
@@ -301,6 +311,48 @@ inputs (using grid as paginated AJAX form)::
 
     })(App.ko.Model1Grid.prototype);
 
+``App.ko.GridRow.toDisplayValue()`` method used in ``grid_row_value`` binding supports the following types of values:
+
+.. highlight:: python
+
+* jQuery objects, whose set of elements will be added to cell DOM
+* Nested lists of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
+  Django model has ``.get_str_fields()`` method implemented::
+
+    class Model1(models.Model):
+
+        # ... skipped ...
+
+        def get_str_fields(self):
+            parts = OrderedDict([
+                ('fk1', self.fk1.get_str_fields(),
+                ('fk2', self.fk2.get_str_fields(),
+            ])
+            if self.fk3 is not None:
+                parts['fk3'] = self.fk3.get_str_fields(verbose=False)
+            parts['sum'] = format_currency(self.sum)
+            parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
+            return parts
+
+.. highlight:: javascript
+
+* Scalar values which will be set as grid cell via jQuery.html(). Usually these values are server-side Django generated
+  strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the implementation in v0.2.0::
+
+    // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
+    GridColumnOrder.renderRowValue = function(element, value) {
+        if (value instanceof jQuery) {
+            $(element).empty().append(value);
+        } else if (typeof value === 'object') {
+            $(element).empty();
+            App.renderNestedList(element, value, this.blockTags);
+        } else {
+            // Warning: make sure string is escaped!
+            // Primarily use is to display server-side formatted strings (Djano local date / currency format).
+            $(element).html(value);
+        }
+    };
+
 
 Filter fields
 ~~~~~~~~~~~~~
@@ -317,7 +369,7 @@ Full-length as well as shortcut definitions of field filters are supported::
 
 
     class Model1Grid(KoGridView):
-        # ... skipped
+        # ... skipped ...
 
         allowed_filter_fields = OrderedDict([
             (
@@ -385,7 +437,7 @@ Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for f
 
     class Model1Grid(KoGridView):
 
-        # ... skipped
+        # ... skipped ...
 
         @classmethod
         def get_default_grid_options(cls):
@@ -405,7 +457,7 @@ Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for f
                 }
             }
 
-        # ... skipped
+        # ... skipped ...
 
 Modifying visual layout of grid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
