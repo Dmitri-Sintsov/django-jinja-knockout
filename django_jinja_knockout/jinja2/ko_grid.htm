@@ -1,4 +1,4 @@
-{% macro ko_grid(grid_options, template_options={}, dom_attrs={}, override_template=False) -%}
+{% macro ko_grid(grid_options, template_options={}, dom_attrs={}, body_call_id=none, override_template=False) -%}
 {% set _template_options = {
     'show_title': True,
     'show_pagination': True,
@@ -28,9 +28,12 @@
     'fragment_name': fragment_name
 }) }}
 {% else %}
+{% if body_call_id is none %}
+    {% set body_call_id = 'ko_grid_body' %}
+{% endif %}
 <div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
 <a name="{{ fragment_name }}"></a>
-    <div data-template-id="ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'>
+    <div data-template-id="{{ body_call_id }}" data-template-args='{{ _template_options|escapejs(True) }}'>
     </div>
 </div>
 {% endif %}

@@ -181,7 +181,8 @@ Django model may have many fields, some of these having long string representati
 large to fit the screen and hard to navigate. Thus not all of the fields always has to be displayed.
 
 Some fields may need to be hidden from user for the security purposes. One also might want to display foreign key
-relations, which are "chained" in Django ORM via ``'__'`` separator in the field name.
+relations, which are "chained" in Django ORM via ``'__'`` separator between related fields name, like
+``'model2_fk__field1'`` in this example.
 
 Set Django grid class ``grid_fields`` property value to the list of required model fields, including foreign key
 relations.
@@ -244,8 +245,8 @@ Customizing visual display of grid fields at client-side
 To display grid rows in more compact way, there is also the possibility to override ``App.ko.GridRow.toDisplayValue()``
 Javascript class method, to implement custom display layout of field values at client-side. The same method also can be
 used to generate condensed representations of long text values via Boostrap popovers, or even to display fields as form
-inputs: using grid as paginated AJAX form - which is also possible but requires writing custom underscore.js grid layout
-templates::
+inputs: using grid as paginated AJAX form - (which is also possible but requires writing custom underscore.js grid layout
+templates, partially covered in modifying_visual_layout_of_grid_)::
 
     'use strict';
 
@@ -317,12 +318,14 @@ templates::
 
 * jQuery objects, whose set of elements will be added to cell DOM
 * Nested lists of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
-  Django model has ``.get_str_fields()`` method implemented::
+  Django model has ``.get_str_fields()`` method implemented. This method returns str() representation of some or all
+  model fields::
 
     class Model1(models.Model):
 
         # ... skipped ...
 
+        # Complex nested str fields with foregin keys.
         def get_str_fields(self):
             parts = OrderedDict([
                 ('fk1', self.fk1.get_str_fields(),
@@ -333,6 +336,14 @@ templates::
             parts['sum'] = format_currency(self.sum)
             parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
             return parts
+
+        # Model1.__str__ uses Model1.get_str_fields() for disambiguation.
+        def __str__(self):
+            str_fields = self.get_str_fields()
+            join_dict_values(' / ', str_fields, ['fk1', 'fk2'])
+            if 'fk3' in str_fields:
+                join_dict_values( ' / ', str_fields, ['fk1'])
+            return ' › '.join(str_fields.values())
 
 .. highlight:: javascript
 
@@ -462,6 +473,7 @@ Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for f
 Modifying visual layout of grid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. highlight:: jinja
+.. _modifying_visual_layout_of_grid:
 
 Top DOM nodes of grid component can be overriden by using Jinja2 ``call(kwargs) ko_grid()`` statement then implementing
 a custom caller section with custom DOM nodes. There is the example of using this approach just below. See the source
@@ -475,10 +487,11 @@ arguments to ``ko_grid_body()`` Jinja2 macro with keys as template names and val
   ``'ko_grid_filter_choices'`` (see example below).
 * Optional ``template_ids`` argument is used to override DOM ids of ``underscore.js`` templates themselves. That allows
   to generate standard built-in underscore.js template but with a different DOM id ("copy template with different ID").
-  It is required sometimes to have both standard and visually customized grids at one web page.
+  It is required sometimes to allow both standard and visually customized grids at one web page.
 
 Here is the example of overriding visual display of ``App.ko.GridFilter`` that is used to select filter field from
-the list of specified choices for the current grid::
+the list of specified choices for the current grid. Also ``ko_grid_body`` template is overriden to ``model1_ko_grid_body``
+template with button inserted that has knockout.js ``click: myCustomAction`` binding::
 
     {% block main %}
 

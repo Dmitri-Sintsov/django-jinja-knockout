@@ -8,6 +8,7 @@
     'ko_grid_filter_popup',
     'ko_grid_search',
     'ko_grid_nav',
+    'ko_grid_no_results',
     'ko_grid_table',
     'ko_grid_body',
     'ko_grid_pagination'
@@ -128,6 +129,20 @@
 </script>
 {% endif %}
 
+{% if 'ko_grid_no_results' not in call_ids %}
+{% do call_ids.update({'ko_grid_no_results': 'ko_grid_no_results'}) %}
+<script language="text.template" id="{{ template_ids['ko_grid_no_results'] }}">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {{ _(
+                'No %(verbose_name)s found matching the query',
+                verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
+            )) }}.
+        </div>
+    </div>
+</script>
+{% endif %}
+
 {% if 'ko_grid_table' not in call_ids %}
 {% do call_ids.update({'ko_grid_table': 'ko_grid_table'}) %}
 <script type="text/template" id="{{ template_ids['ko_grid_table'] }}">
@@ -189,12 +204,13 @@
                         <!-- /ko -->
                     </tr>
                 </tbody>
-                <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
-                    {{ _(
-                        'No %(verbose_name)s found matching the query',
-                        verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
-                        )) }}.
-                </div>
+                <tfoot class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
+                    <tr>
+                        <td data-bind="attr: {colspan: gridColumns().length}">
+                            <div data-template-id="{{ call_ids['ko_grid_no_results'] }}"></div>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
