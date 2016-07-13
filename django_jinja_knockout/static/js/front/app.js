@@ -1274,7 +1274,7 @@ $(document)
     App.initClient($row);
 });
 
-ko.set_props = function(src, dst) {
+ko.utils.setProps = function(src, dst) {
     $.each(src, function(k, v) {
         if (typeof dst[k] === 'function') {
             dst[k](v);

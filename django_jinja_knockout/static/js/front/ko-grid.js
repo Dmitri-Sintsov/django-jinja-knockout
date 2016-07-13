@@ -1144,7 +1144,7 @@ App.ko.Grid = function(options) {
 
     // this.meta is the list of visual ko bindings which are formatting flags or messages, not model values.
     Grid.updateMeta = function(data) {
-        ko.set_props(data, this.meta);
+        ko.utils.setProps(data, this.meta);
     };
 
     Grid.uiActionTypes = ['button', 'click', 'glyphicon'];
