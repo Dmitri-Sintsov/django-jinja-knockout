@@ -328,6 +328,17 @@ App.ko.GridFilter = function(options) {
         return null;
     };
 
+    GridFilter.getActiveChoices = function() {
+        var activeChocies = [];
+        for (var i = 0; i < this.choices.length; i++) {
+            var filterChoice = this.choices[i];
+            if (filterChoice.is_active()) {
+                activeChocies.push(filterChoice);
+            }
+        }
+        return activeChocies;
+    };
+
     /**
      * Programmatically set specified values list of filter choices for current filter.
      */
