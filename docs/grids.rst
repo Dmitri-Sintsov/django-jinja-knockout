@@ -535,21 +535,29 @@ widgets may be nested - just define appropriate grid class for Django model ``Mo
 
 Dynamic generation of filter fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Some grids might be used by end-users with different types of permissions thus different kinds of filters should be
-provided to these users. Some grids may have base grid pattern, when there is some base grid class, defining some
-filters, and a few child classes which may alter / add / delete some of the filters.
+There are many cases when grids require dynamic generation of filter fields and their values:
 
-There is also a support for content types framework built into AJAX-based ``KoGridView`` and it's traditional request
-counterpart ``ListSortingView`` via ``BaseFilterView.set_contenttype_filter()``.
+* Different types of filters for end-users depending on their permissions.
+* Implementing base grid pattern, when there is a base grid class defining base filters, and few child classes, which
+  may alter / add / delete some of the filters.
+* ``choices`` filter list of choices might be provided from Django database queryset.
+* ``choices`` filter list of choice values might be generated as foreign key id's for Django contenttypes framework
+  generic models relationships.
 
-For example, if Model1 has foreign key action field::
+Let's explain the last case as the most advanced one.
+
+Generation of ``choices`` filter list of choice values for Django contenttypes framework is implemented via
+``BaseFilterView.get_contenttype_filter()`` method, whose class is a base class for both ``KoGridView`` and it's
+traditional request counterpart ``ListSortingView``.
+
+Imagine ``Model1`` has foreign key ``action`` field defined::
 
     class Model1:
         # ... skipped ...
-        action = models.ForeignKey(Action, verbose_name='Действие')
+        action = models.ForeignKey(Action, verbose_name='Model action')
         # ... skipped ...
 
-Where ``Action`` model utilizes content-types framework, defined like that::
+Where ``Action`` model utilizes contenttypes framework, defined like that::
 
     class Action(models.Model):
 
@@ -559,8 +567,8 @@ Where ``Action`` model utilizes content-types framework, defined like that::
         object_id = models.PositiveIntegerField(blank=True, null=True, verbose_name='Link to object')
         content_object = GenericForeignKey('content_type', 'object_id')
 
-then, child class of ``KoGridView`` should define ``get_allowed_filter_fields()`` method to fill proper ``choices`` filter
-values from content types framework via ``.set_contenttype_filter()`` method::
+then, child class of ``KoGridView`` should define ``get_allowed_filter_fields()`` method to generate ``choices`` filter
+values from contenttypes framework model id's via ``get_contenttype_filter()`` method::
 
     class Model1Grid(KoGridView):
 
@@ -568,17 +576,15 @@ values from content types framework via ``.set_contenttype_filter()`` method::
 
         def get_allowed_filter_fields(self):
             allowed_filter_fields = OrderedDict([
-                ('field1',  None)
-            ])
-            self.set_contenttype_filter(
-                allowed_filter_fields,
-                'action__content_type',
-                (
+                # Autodetect.
+                ('field1',  None),
+                # Choices for contenttypes framework.
+                ('action_content_type', self.get_contenttype_filter(
                     ('my_app', 'model1'),
                     ('my_app2', 'model1'),
-                    ('my_app2', 'model2'),
-                )
-            )
+                    ('my_app2', 'model2')
+                ))
+            ])
             return allowed_filter_fields
 
         # ... skipped ...
@@ -674,7 +680,6 @@ template with button inserted that has knockout.js ``click: myCustomAction`` bin
 ====
 Todo
 ====
-self.set_contenttype_filter
 options.separateMeta = true;
 options.pageRouteKwargs
 'pageRouteKwargs': {'model1_id': model1_id},

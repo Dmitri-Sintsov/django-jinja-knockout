@@ -395,11 +395,12 @@ class BaseFilterView(View):
         # Ordered dict is also supported with the same syntax.
         return ()
 
-    def set_contenttype_filter(self, allowed_filter_fields, field, apps_models):
-        allowed_filter_fields[field] = []
+    def get_contenttype_filter(self, *apps_models):
+        filter_choices = []
         for app_label, model in apps_models:
             ct = ContentType.objects.filter(app_label=app_label, model=model).first()
-            allowed_filter_fields[field].append((ct.pk, ct.name))
+            filter_choices.append((ct.pk, ct.name))
+        return filter_choices
 
     def request_get(self, key, default=None):
         return self.request.GET.get(key, default)
