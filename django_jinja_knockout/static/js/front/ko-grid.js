@@ -1192,7 +1192,6 @@ App.ko.Grid = function(options) {
         this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
         this.gridSearchDisplayStr = ko.observable('');
         this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
-        this.queryString = new QueryString();
         this.initAjaxParams();
         this.localize();
 

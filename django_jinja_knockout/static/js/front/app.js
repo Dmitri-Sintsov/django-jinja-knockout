@@ -43,6 +43,8 @@ App.intVal = function(s) {
     return isNaN(i) ? s : i;
 };
 
+App.queryString = new QueryString();
+
 /**
  * Render scalar element as plain html or as nested list of specified block tags.
  */
