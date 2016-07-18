@@ -313,6 +313,20 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
         }
     };
 
+.. highlight:: python
+
+To override client-side class to ``App.ko.Model1Grid`` instead of default ``App.ko.Grid``, define default grid
+options like this::
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped ...
+        @classmethod
+        def get_default_grid_options(cls):
+            return {
+                'classPath': 'App.ko.Model1Grid'
+            }
+
 Virtual fields
 ~~~~~~~~~~~~~~
 
@@ -517,8 +531,8 @@ Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for f
                         'pageRoute': 'model2_grid',
                         # Optional setting for BootstrapDialog:
                         'dialogOptions': {'size': 'size-wide'},
-                        # Nesting of ``App.ko.FkGridDialog`` is supported,
-                        # just define appropriate grid with 'model3_grid' url name.
+                        # Nesting of ``App.ko.FkGridDialog`` is supported, just define appropriate grid
+                        # with 'model3_grid' url name and uncomment next lines:
                         # 'fkGridOptions': {
                         #     'model3_fk': {
                         #         'pageRoute': 'model3_grid'
@@ -677,11 +691,95 @@ template with button inserted that has knockout.js ``click: myCustomAction`` bin
         <script src="{{ static_hash('js/front/model1-grid.js') }}"></script>
     {% endblock bottom_scripts %}
 
-====
-Todo
-====
+===================
+Grid action routing
+===================
+
+Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP method routing,
+which would be too limiting. All of actions are performed as HTTP POST and query path regexp match in ``urls.py`` is
+used instead::
+
+    from my_app.views import Model1Grid
+
+    # ... skipped ...
+
+    url(r'^model1-grid(?P<action>/?\w*)/$', Model1Grid.as_view(), name='model1_grid',
+        kwargs={'ajax': True, 'permission_required': 'my_app.change_model1'}),
+
+    # ... skipped ...
+
+which value will be available as class-based view ``Model1Grid`` kwargs instance property dict. Key name of view kwargs
+dict used for grid action route may be changed via grid class static property ``action_kwarg``::
+
+    class Model1Grid:
+
+        action_kwarg = 'action'
+        # ... skipped ...
+
+Custom view kwargs
+------------------
+
+In some cases a grid may require additional kwargs to alter initial (base) queryset of grid. For example, if Django app
+has ``Club`` model, grid that displays members of that club may use ``club_id`` supplied from view kwargs defined in
+``urls.py``::
+
+    # ... skipped ...
+    url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
+        kwargs={'ajax': True, 'permission_required': 'my_app.change_club'}),
+    # ... skipped ...
+
+
+Then, grid class may implement base queryset filtering according to ``club_id`` view kwarg value::
+
+    class ClubMemberGrid(KoGridView)
+
+        # ... skipped ...
+        def get_base_queryset(self):
+            return super().get_base_queryset().filter(club_id=self.kwargs['club_id'])
+
+.. highlight:: jinja
+
+Jinja2 template should contain component generation like this::
+
+    {{ ko_grid(
+        grid_options={
+            'pageRoute': 'club_member_grid',
+            'pageRouteKwargs': {'club_id': club_id},
+        },
+        dom_attrs={
+            'id': 'club_member_grid'
+        }
+    ) }}
+
+This way each grid will have custom list of club members according to ``club_id`` view kwarg value.
+
+.. highlight:: python
+
+Because foreign key widgets also utilizes ``KoGridView`` and ``App.ko.Grid`` classes, the same way base querysets of
+foreign key widgets may be limited by supplying optional ``'pageRouteKwargs'`` in ``fkGridOptions`` part of default
+grid options dict::
+
+  class Model1Grid(KoGridView):
+
+      allowed_filter_fields = OrderedDict([
+          # Autodetect filter type.
+          ('field_1', None),
+          ('model2_fk', None),
+      ])
+
+        @classmethod
+        def get_default_grid_options(cls):
+            return {
+                'classPath': 'App.ko.Model1Grid',
+                'fkGridOptions': {
+                    'model2_fk': {
+                        # 'classPath': 'App.ko.Model2Grid',
+                        'pageRoute': 'model2_fk_grid',
+                        'pageRouteKwargs': {'type': 'custom'},
+                        'searchPlaceholder': 'Search for Model2 values',
+                    },
+
+
 options.separateMeta = true;
-options.pageRouteKwargs
-'pageRouteKwargs': {'model1_id': model1_id},
 using grid as paginated AJAX form
 get_default_grid_options
