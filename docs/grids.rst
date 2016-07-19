@@ -696,8 +696,8 @@ Grid action routing
 ===================
 
 Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP method routing,
-which would be too limiting. All of actions are performed as HTTP POST and query path regexp match in ``urls.py`` is
-used instead::
+which would be too limiting. All of actions are performed as HTTP POST and view kwarg ``action`` value is used for
+routing instead (``urls.py``)::
 
     from my_app.views import Model1Grid
 
@@ -708,8 +708,9 @@ used instead::
 
     # ... skipped ...
 
-which value will be available as class-based view ``Model1Grid`` kwargs instance property dict. Key name of view kwargs
-dict used for grid action route may be changed via grid class static property ``action_kwarg``::
+Value of ``action`` kwarg is normalized (leading '/' are stripped) and is stored in ``self.current_action_name``
+property of grid instance at server-side. Key name of view kwargs dict used for grid action route may be changed via
+Django grid class static property ``action_kwarg``::
 
     class Model1Grid:
 
@@ -720,16 +721,15 @@ Custom view kwargs
 ------------------
 
 In some cases a grid may require additional kwargs to alter initial (base) queryset of grid. For example, if Django app
-has ``Club`` model, grid that displays members of that club may use ``club_id`` supplied from view kwargs defined in
-``urls.py``::
+has ``Club`` model, grid that displays members of that club may use ``club_id`` value, supplied from view kwargs defined
+in ``urls.py``::
 
     # ... skipped ...
     url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
         kwargs={'ajax': True, 'permission_required': 'my_app.change_club'}),
     # ... skipped ...
 
-
-Then, grid class may implement base queryset filtering according to ``club_id`` view kwarg value::
+Then, grid class may implement base queryset filtering according to ``club_id`` view kwargs value::
 
     class ClubMemberGrid(KoGridView)
 
@@ -755,9 +755,9 @@ This way each grid will have custom list of club members according to ``club_id`
 
 .. highlight:: python
 
-Because foreign key widgets also utilizes ``KoGridView`` and ``App.ko.Grid`` classes, the same way base querysets of
-foreign key widgets may be limited by supplying optional ``'pageRouteKwargs'`` in ``fkGridOptions`` part of default
-grid options dict::
+Because foreign key widgets also utilizes ``KoGridView`` and ``App.ko.Grid`` classes, base querysets of foreign key
+widgets may be limited by supplying optional ``'pageRouteKwargs'`` via ``fkGridOptions`` key value of the
+default grid options dict::
 
   class Model1Grid(KoGridView):
 
@@ -778,7 +778,6 @@ grid options dict::
                         'pageRouteKwargs': {'type': 'custom'},
                         'searchPlaceholder': 'Search for Model2 values',
                     },
-
 
 options.separateMeta = true;
 using grid as paginated AJAX form
