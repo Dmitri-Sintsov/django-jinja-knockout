@@ -46,6 +46,11 @@
         </div>
         {% endif %}
         {% for formset in formsets %}
+            {% if formset.model._meta.inline_title is defined %}
+                {% do html.update({'inline_title': formset.model._meta.inline_title}) %}
+            {% else %}
+                {% do html.update({'inline_title': formset.model._meta.verbose_name}) %}
+            {% endif %}
             {{ caller({'formset_begin': formset, 'html': html}) }}
             <div class="formset default-padding">
                 <div class="management-form">
@@ -58,7 +63,6 @@
                     {% endfor %}
                     </div>
                 {% endif %}
-                {% do html.update({'inline_title': formset.model._meta.verbose_name}) %}
                 {% if action == '' %}
                     <table class="{{ table_classes }}">
                         <colgroup>
@@ -86,7 +90,9 @@
                 <div data-bind="foreach: {data: forms, afterRender: afterFormRendered}">
                     <div data-bind="anonymous_template: {'base-selector': '.formsets', 'template-index': {{ loop.index0 }}}"></div>
                 </div>
-                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">{{ _('Add "%(verbose_name)s"', verbose_name=formset.model._meta.verbose_name) }}</button>
+                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">
+                    {{ _('Add "%(verbose_name)s"', verbose_name=html.inline_title) }}
+                </button>
                 {% endif %}
             </div>
             {{ caller({'formset_end': formset, 'html': html}) }}

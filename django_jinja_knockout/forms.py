@@ -74,20 +74,22 @@ class WidgetInstancesMixin(forms.ModelForm):
 
 
 # Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #
-def set_empty_template(formset, request):
+def set_empty_template(formset, request, html):
     return None
 
 
 # Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request):
+def set_knockout_template(formset, request, html={}):
     t = tpl_loader.get_template('bs_formset_form.htm')
+    _html = {
+        'formset_form_class': 'form-empty',
+        'inline_title': formset.model._meta.verbose_name,
+        'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
+    }
+    _html.update(html)
     empty_form = t.render(request=request, context={
         'form': formset.empty_form,
-        'html': {
-            'formset_form_class': 'form-empty',
-            'inline_title': formset.model._meta.verbose_name,
-            'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
-        }
+        'html': _html
     })
     # return str(empty_form)
     html = lxml.html.parse(StringIO(empty_form))
@@ -150,8 +152,16 @@ class FormWithInlineFormsets(object):
         if hasattr(form, 'set_request') and callable(form.set_request):
             form.set_request(self.request)
 
+    def get_formset_inline_title(self, formset):
+        return None
+
     def prepare_formset(self, formset):
-        formset.set_knockout_template(self.request)
+        html = {'inline_title' : self.get_formset_inline_title(formset)}
+        if html['inline_title'] is None:
+            html = {}
+        else:
+            formset.model._meta.inline_title = html['inline_title']
+        formset.set_knockout_template(self.request, html)
         formset.request = self.request
         for form in formset:
             if hasattr(form, 'set_request') and callable(form.set_request):
