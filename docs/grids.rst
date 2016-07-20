@@ -265,6 +265,7 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 ``App.ko.GridRow.toDisplayValue()`` method used in ``grid_row_value`` binding supports the following types of values:
 
 .. highlight:: python
+.. _get_str_fields:
 
 * jQuery objects, whose set of elements will be added to cell DOM
 * Nested lists of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
@@ -276,12 +277,14 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
         # Complex nested str fields with foregin keys.
         def get_str_fields(self):
+            # Nested formatting of foreign keys:
             parts = OrderedDict([
                 ('fk1', self.fk1.get_str_fields()),
                  ('fk2', self.fk2.get_str_fields()),
             ])
             if self.fk3 is not None:
                 parts['fk3'] = self.fk3.get_str_fields(verbose=False)
+            # Formatting of scalar fields:
             parts['sum'] = format_currency(self.sum)
             parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
             return parts
@@ -293,6 +296,9 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
             if 'fk3' in str_fields:
                 join_dict_values(' / ', str_fields, ['fk1'])
             return ' › '.join(str_fields.values())
+
+Note that ``get_str_fields()`` will also be used for scalar fields formatting via grid row str_fields. See also
+list_action_.
 
 .. highlight:: javascript
 
@@ -778,6 +784,49 @@ grid options dict::
                         'pageRouteKwargs': {'type': 'custom'},
                         'searchPlaceholder': 'Search for Model2 values',
                     },
+
+============
+Grid actions
+============
+
+Standard grid actions
+---------------------
+
+By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
+one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive, actions can
+be executed as AJAX requests or be purely client-side.
+
+``views.GridActionsMixin.get_actions()`` method returns dict defining built-in actions available. Top level of that dict
+is ``action type``. Let's see which action types are available and their associated actions.
+
+Action type 'built_in'
+~~~~~~~~~~~~~~~~~~~~~~
+
+Actions that are supposed to be used internally without generation of associated invocation elements (buttons,
+glyphicons).
+
+* ``'meta'`` action: returns AJAX response data with the list of allowed sort orders for grid fields, whether search
+  field should be displayed, verbose name of associated Django model, name of primary key field, list of defined grid
+  actions, allowed grid fields (list of grid columns) and field filters which will be displayed in top navigation bar
+  of grid client-side component (``'ko_grid_nav'`` underscore.js template).
+
+.. _list_action:
+
+* ``'list'`` action: returns AJAX response data with the list of current paginated grid rows, both "raw" database field
+  values and their optional formatted ``str_fields`` counterparts. While some grids may do not use ``str_fields`` at all,
+  complex formatting of local date / time / financial currency Django model field values and also nested representation of
+  fields (displaying foreign key as list of it's Django model fields in one grid cell) requires ``str_fields`` counterparts.
+  These are generated at server-side for each grid row via ``views.KoGridView.get_row_str_fields()`` and converted to
+  client-side ``display values`` in ``App.ko.GridRow.toDisplayValue()``. Both methods can be customized by overriding
+  these in child classes. When associated Django model has ``get_str_fields()`` method defined, it will be used to get
+  ``str_fields`` for each row. See also get_str_fields_.
+
+* ``'meta_list'`` action: by default ``meta`` action is not performed in separate AJAX query, rather, it's combined
+  with ``list`` action into one AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server
+  load. However, in some cases, grid filters has to be set up with specific choices before ``'list'`` action is
+  performed. That is required to open grid with initially selected field filter choices.
+
+Because actions might be disabled at per-user or per-row basis,
 
 
 options.separateMeta = true;
