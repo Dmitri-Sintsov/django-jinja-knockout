@@ -701,6 +701,8 @@ template with button inserted that has knockout.js ``click: myCustomAction`` bin
 Grid action routing
 ===================
 
+.. highlight:: python
+
 Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP method routing,
 which would be too limiting. All of actions are performed as HTTP POST and view kwarg ``action`` value is used for
 routing instead (``urls.py``)::
@@ -765,13 +767,13 @@ Because foreign key widgets also utilizes ``KoGridView`` and ``App.ko.Grid`` cla
 widgets may be limited by supplying optional ``'pageRouteKwargs'`` via ``fkGridOptions`` key value of the
 default grid options dict::
 
-  class Model1Grid(KoGridView):
+    class Model1Grid(KoGridView):
 
-      allowed_filter_fields = OrderedDict([
-          # Autodetect filter type.
-          ('field_1', None),
-          ('model2_fk', None),
-      ])
+        allowed_filter_fields = OrderedDict([
+            # Autodetect filter type.
+            ('field_1', None),
+            ('model2_fk', None),
+        ])
 
         @classmethod
         def get_default_grid_options(cls):
@@ -784,6 +786,8 @@ default grid options dict::
                         'pageRouteKwargs': {'type': 'custom'},
                         'searchPlaceholder': 'Search for Model2 values',
                     },
+                }
+            }
 
 ============
 Grid actions
