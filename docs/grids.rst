@@ -265,9 +265,11 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 ``App.ko.GridRow.toDisplayValue()`` method used in ``grid_row_value`` binding supports the following types of values:
 
 .. highlight:: python
-.. _get_str_fields:
 
 * jQuery objects, whose set of elements will be added to cell DOM
+
+.. _get_str_fields:
+
 * Nested lists of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
   Django model has ``.get_str_fields()`` method implemented. This method returns str() representation of some or all
   model fields::
@@ -809,6 +811,8 @@ Action type 'built_in'
 Actions that are supposed to be used internally without generation of associated invocation elements (buttons,
 glyphicons).
 
+.. _meta_action:
+
 * ``'meta'`` action: returns AJAX response data with the list of allowed sort orders for grid fields, whether search
   field should be displayed, verbose name of associated Django model, name of primary key field, list of defined grid
   actions, allowed grid fields (list of grid columns) and field filters which will be displayed in top navigation bar
@@ -825,10 +829,54 @@ glyphicons).
   these in child classes. When associated Django model has ``get_str_fields()`` method defined, it will be used to get
   ``str_fields`` for each row. See also get_str_fields_.
 
+.. _meta_list_action:
+
 * ``'meta_list'`` action: by default ``meta`` action is not performed in separate AJAX query, rather, it's combined
   with ``list`` action into one AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server
   load. However, in some cases, grid filters has to be set up with specific choices before ``'list'`` action is
   performed. That is required to open grid with initially selected field filter choices.
+
+* ``'save_form'`` action: performs validation of AJAX submitted form previously created via ``'create_form'`` /
+  ``'edit_form'`` actions (see below), which will either create new grid row or edit an existing grid row. Each grid row
+  represents an instance of associated Django model. Form rows are bound to ModelForm automatically, but one has to
+  either set value of grid ``form`` static property::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+        form = Model1Form
+        # ... skipped ...
+
+or, to define factory methods, which allows to bind different ModelForm classes to ``'create_form'`` / ``'edit_form'``
+actions target grid row (Django model)::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        def get_create_form(self):
+            return Model1CreateForm
+
+        def get_edit_form(self):
+            return Model1EditForm
+
+``'save_form'`` action will display AJAX form errors in case there are ModelForm validation errors, or will add new
+row to grid when invoked via ``'create_form'`` action / update existing grid row, when invoked via ``'edit_form'``
+action.
+
+To automatize grid update after AJAX submitted action, the following optional JSON properties could be set in viewmodel
+response:
+
+* ``'append_rows'``: list of rows which should be appended to current grid page to the bottom;
+* ``'prepend_rows'``: list of rows which should be prepended to current grid page from the top;
+* ``'update_rows'``: list of rows that are updated, so their display needs to be refreshed;
+* ``'deleted_pks'``: list of primary key values of rows (Django models) that were removed from database thus need to be
+  visually removed from current grid page;
+
+Standard grid action handlers (as well as custom action handlers) may return AJAX viewmodel responses with these JSON
+keys to client-side action viewmodel response handler, issuing multiple CRUD operations at once.  See
+``views.GridActionsMixin`` class ``action_delete_confirmed`` / ``action_save_form`` methods for server-side example.
+Client-side part of multiple CRUD operations is implemented in ``ko-grid.js`` ``App.ko.Grid.updatePage()`` method.
 
 Because actions might be disabled at per-user or per-row basis,
 
