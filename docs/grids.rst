@@ -836,10 +836,12 @@ glyphicons).
   load. However, in some cases, grid filters has to be set up with specific choices before ``'list'`` action is
   performed. That is required to open grid with initially selected field filter choices.
 
+.. _save_form_action:
+
 * ``'save_form'`` action: performs validation of AJAX submitted form previously created via ``'create_form'`` /
   ``'edit_form'`` actions (see below), which will either create new grid row or edit an existing grid row. Each grid row
   represents an instance of associated Django model. Form rows are bound to ModelForm automatically, but one has to
-  either set value of grid ``form`` static property::
+  either set value of grid class ``form`` static property::
 
     class Model1Grid(KoGridView):
 
@@ -847,8 +849,8 @@ glyphicons).
         form = Model1Form
         # ... skipped ...
 
-or, to define factory methods, which allows to bind different ModelForm classes to ``'create_form'`` / ``'edit_form'``
-actions target grid row (Django model)::
+Alternatively, one may define factory methods, which allows to bind different ModelForm classes to ``'create_form'`` /
+``'edit_form'`` actions target grid row (Django model)::
 
     class Model1Grid(KoGridView):
 
@@ -873,10 +875,50 @@ response:
 * ``'deleted_pks'``: list of primary key values of rows (Django models) that were removed from database thus need to be
   visually removed from current grid page;
 
+.. highlight:: javascript
+
 Standard grid action handlers (as well as custom action handlers) may return AJAX viewmodel responses with these JSON
-keys to client-side action viewmodel response handler, issuing multiple CRUD operations at once.  See
-``views.GridActionsMixin`` class ``action_delete_confirmed`` / ``action_save_form`` methods for server-side example.
-Client-side part of multiple CRUD operations is implemented in ``ko-grid.js`` ``App.ko.Grid.updatePage()`` method.
+keys to client-side action viewmodel response handler (``App.GridActions.callback_save_form()`` in our case), issuing
+multiple CRUD operations at once::
+
+    GridActions.callback_save_form = function(viewModel) {
+        this.grid.updatePage(viewModel);
+    };
+
+See also ``views.GridActionsMixin`` class ``action_delete_confirmed`` / ``action_save_form`` methods for server-side
+part example. Client-side part of multiple CRUD operations is implemented in ``ko-grid.js`` ``App.ko.Grid.updatePage()``
+method.
+
+
+.. highlight:: python
+.. _save_inline_action:
+
+* ``'save_inline'`` action: similar to ``'save_form'`` action described above, is an AJAX form submit handler for
+  ``'create_inline'`` / ``'edits inline'`` grid actions. These actions generate AJAX submittable
+  ``FormWithInlineFormsets`` class instance bound to current grid row either via grid class
+  ``form_with_inline_formsets`` static property::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+        form_with_inline_formsets = Model1FormWithInlineFormsets
+        # ... skipped ...
+
+Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
+``'create_inline'`` / ``'edit_inline'`` actions target grid row (Django model)::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        def get_create_form_with_inline_formsets(self):
+            return Model1CreateFormWithInlineFormsets
+
+        def get_edit_form_with_inline_formsets(self):
+            return Model1EditFormWithInlineFormsets
+
+where returned value should be class derived from ``forms.FormWithInlineFormsets``.
+
 
 Because actions might be disabled at per-user or per-row basis,
 
