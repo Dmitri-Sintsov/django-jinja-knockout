@@ -300,7 +300,7 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
             return ' › '.join(str_fields.values())
 
 Note that ``get_str_fields()`` will also be used for scalar fields formatting via grid row str_fields. See also
-list_action_.
+`'list' action`_.
 
 .. highlight:: javascript
 
@@ -791,12 +791,9 @@ default grid options dict::
                 }
             }
 
-============
-Grid actions
-============
-
+=====================
 Standard grid actions
----------------------
+=====================
 
 By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
 one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive, actions can
@@ -806,42 +803,120 @@ be executed as AJAX requests or be purely client-side.
 is ``action type``. Let's see which action types are available and their associated actions.
 
 Action type 'built_in'
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Actions that are supposed to be used internally without generation of associated invocation elements (buttons,
 glyphicons).
 
-.. _meta_action:
+'meta' action
+~~~~~~~~~~~~~
 
-* ``'meta'`` action: returns AJAX response data with the list of allowed sort orders for grid fields, whether search
-  field should be displayed, verbose name of associated Django model, name of primary key field, list of defined grid
-  actions, allowed grid fields (list of grid columns) and field filters which will be displayed in top navigation bar
-  of grid client-side component (``'ko_grid_nav'`` underscore.js template).
+Returns AJAX response data with the list of allowed sort orders for grid fields, whether search field should be
+displayed, verbose name of associated Django model, name of primary key field, list of defined grid actions, allowed
+grid fields (list of grid columns) and field filters which will be displayed in top navigation bar of grid client-side
+component (``'ko_grid_nav'`` underscore.js template).
 
-.. _list_action:
+'list' action
+~~~~~~~~~~~~~
 
-* ``'list'`` action: returns AJAX response data with the list of current paginated grid rows, both "raw" database field
-  values and their optional formatted ``str_fields`` counterparts. While some grids may do not use ``str_fields`` at all,
-  complex formatting of local date / time / financial currency Django model field values and also nested representation of
-  fields (displaying foreign key as list of it's Django model fields in one grid cell) requires ``str_fields`` counterparts.
-  These are generated at server-side for each grid row via ``views.KoGridView.get_row_str_fields()`` and converted to
-  client-side ``display values`` in ``App.ko.GridRow.toDisplayValue()``. Both methods can be customized by overriding
-  these in child classes. When associated Django model has ``get_str_fields()`` method defined, it will be used to get
-  ``str_fields`` for each row. See also get_str_fields_.
+Returns AJAX response data with the list of current paginated grid rows, both "raw" database field values list and their
+optional ``str_fields`` formatted list counterparts. While some grids may do not use ``str_fields`` at all, complex
+formatting of local date / time / financial currency Django model field values and also nested representation of
+fields (displaying foreign key as list of it's Django model fields in one grid cell) requires ``str_fields`` to be
+generated.
 
-.. _meta_list_action:
+``str_fields`` are populated at server-side for each grid row via ``views.KoGridView.get_row_str_fields()`` and
+converted to client-side ``display values`` in ``App.ko.GridRow.toDisplayValue()``. Both methods can be customized by
+overriding these in child classes. When associated Django model has ``get_str_fields()`` method defined, it will be used
+to get ``str_fields`` for each row. See also get_str_fields_.
 
-* ``'meta_list'`` action: by default ``meta`` action is not performed in separate AJAX query, rather, it's combined
-  with ``list`` action into one AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server
-  load. However, in some cases, grid filters has to be set up with specific choices before ``'list'`` action is
-  performed. That is required to open grid with initially selected field filter choices.
+'meta_list' action
+~~~~~~~~~~~~~~~~~~
 
-.. _save_form_action:
+By default ``meta`` action is not performed in separate AJAX query, rather, it's combined with ``list`` action into one
+AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server load. However, in some cases,
+grid filters has to be set up with specific choices before ``'list'`` action is performed. That is required to open
+grid with initially selected field filter choices.
 
-* ``'save_form'`` action: performs validation of AJAX submitted form previously created via ``'create_form'`` /
-  ``'edit_form'`` actions (see below), which will either create new grid row or edit an existing grid row. Each grid row
-  represents an instance of associated Django model. Form rows are bound to ModelForm automatically, but one has to
-  either set value of grid class ``form`` static property::
+If server-side Django grid class specifies the list of selected choices for some field filter like this::
+
+    class ClubMember(models.Model):
+        ROLE_PROMOTER = 0
+        ROLE_SCHOLAR = 1
+        ROLE_EVANGELIST = 2
+        ROLE_FOUNDER = 3
+        ROLES = (
+            (ROLE_PROMOTER, 'Promoter'),
+            (ROLE_SCHOLAR, 'Scholar'),
+            (ROLE_EVANGELIST, 'Evangelist'),
+            (ROLE_FOUNDER, 'Founder'),
+        )
+        profile = models.ForeignKey('my_app.Profile', verbose_name='User profile')
+        role = models.IntegerField(choices=ROLES, default=ROLE_PROMOTER, verbose_name='Member role')
+        note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
+        # Allows to have only one endorsed member via True, but multiple non-endorsed members via None.
+        is_endorsed = models.NullBooleanField(default=None, verbose_name='Endorsed')
+
+
+    class ClubMemberGrid(KoGridView):
+
+        model = ClubMember
+        grid_fields = [
+            'profile',
+            'role',
+            'note',
+            'is_endorsed'
+        ]
+
+        allowed_filter_fields = OrderedDict([
+            (
+                'role',
+                {
+                    'choices': ClubMember.ROLES,
+                    'add_reset_choice': False,
+                    # Next choices will be selected automatically
+                    'active_choices': [ClubMember.ROLE_PROMOTER, ClubMember.ROLE_SCHOLAR],
+                    'multiple_choices': False
+                }
+            ),
+            ('is_endorsed', None)
+        ])
+
+        @classmethod
+        def get_default_grid_options(cls):
+            return {
+                'classPath': 'App.ko.ClubMemberGrid'
+            }
+
+.. highlight:: javascript
+
+Then, to make sure ``'list'`` action respects ``['role']['active_choices']`` filter default selected choices , define
+client-side part of grid class like that::
+
+    App.ko.ClubMemberGrid = function(options) {
+        $.inherit(App.ko.Grid.prototype, this);
+        // This grid has selected choices for query filter 'role' by default,
+        // thus requires separate 'list' action after 'meta' action,
+        // instead of joint 'meta_list' action.
+        options.separateMeta = true;
+        this.init(options);
+    };
+
+With grid ``init()`` method ``options.separateMeta = true``, ``'meta'`` action will be issued first, setting ``'role'``
+filter selected choices, then ``'list'`` action will be performed separately, respecting these filter choices.
+Otherwise, grid ``'role'`` filter will be visually highlighed as selected, but the first (initial) list will retun all
+rows not respecting filter choices.
+
+'save_form' action
+~~~~~~~~~~~~~~~~~~
+
+.. highlight:: python
+
+Performs validation of AJAX submitted form previously created via `'create_form' action`_ / `'edit_form' action`_,
+which will either create new grid row or edit an existing grid row.
+
+Each grid row represents an instance of associated Django model. Form rows are bound to specified Django ``ModelForm``
+automatically, one has to set value of grid class ``form`` static property::
 
     class Model1Grid(KoGridView):
 
@@ -849,8 +924,8 @@ glyphicons).
         form = Model1Form
         # ... skipped ...
 
-Alternatively, one may define factory methods, which allows to bind different ModelForm classes to ``'create_form'`` /
-``'edit_form'`` actions target grid row (Django model)::
+Alternatively, one may define factory methods, which allows to bind different Django ``ModelForm`` classes to target
+grid row, represented by Django model::
 
     class Model1Grid(KoGridView):
 
@@ -862,18 +937,17 @@ Alternatively, one may define factory methods, which allows to bind different Mo
         def get_edit_form(self):
             return Model1EditForm
 
-``'save_form'`` action will display AJAX form errors in case there are ModelForm validation errors, or will add new
-row to grid when invoked via ``'create_form'`` action / update existing grid row, when invoked via ``'edit_form'``
-action.
+``'save_form'`` action will display AJAX form errors in case there are ``ModelForm`` validation errors, or will add new
+row to grid when invoked via `'create_form' action`_ / update existing grid row, when invoked via `'edit_form' action`_.
 
-To automatize grid update after AJAX submitted action, the following optional JSON properties could be set in viewmodel
-response:
+To automatize grid update after AJAX submitted action, the following optional JSON properties could be set in AJAX
+viewmodel response:
 
 * ``'append_rows'``: list of rows which should be appended to current grid page to the bottom;
 * ``'prepend_rows'``: list of rows which should be prepended to current grid page from the top;
 * ``'update_rows'``: list of rows that are updated, so their display needs to be refreshed;
-* ``'deleted_pks'``: list of primary key values of rows (Django models) that were removed from database thus need to be
-  visually removed from current grid page;
+* ``'deleted_pks'``: list of primary key values of rows (Django models) that were deleted in the database thus need to
+  be visually removed from current grid page;
 
 .. highlight:: javascript
 
@@ -885,18 +959,17 @@ multiple CRUD operations at once::
         this.grid.updatePage(viewModel);
     };
 
-See also ``views.GridActionsMixin`` class ``action_delete_confirmed`` / ``action_save_form`` methods for server-side
+See also ``views.GridActionsMixin`` class ``action_delete_confirmed()`` / ``action_save_form()`` methods for server-side
 part example. Client-side part of multiple CRUD operations is implemented in ``ko-grid.js`` ``App.ko.Grid.updatePage()``
 method.
 
-
+'save_inline' action
+~~~~~~~~~~~~~~~~~~~~
 .. highlight:: python
-.. _save_inline_action:
 
-* ``'save_inline'`` action: similar to ``'save_form'`` action described above, is an AJAX form submit handler for
-  ``'create_inline'`` / ``'edits inline'`` grid actions. These actions generate AJAX submittable
-  ``FormWithInlineFormsets`` class instance bound to current grid row either via grid class
-  ``form_with_inline_formsets`` static property::
+Similar to `'save_form' action`_ described above, this action is an AJAX form submit handler for `'create_inline' action`_
+/ `'edit_inline' action`_. These actions generate AJAX submittable BootstrapDialog with ``FormWithInlineFormsets`` class
+instance bound to current grid row via grid class ``form_with_inline_formsets`` static property::
 
     class Model1Grid(KoGridView):
 
@@ -905,7 +978,7 @@ method.
         # ... skipped ...
 
 Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
-``'create_inline'`` / ``'edit_inline'`` actions target grid row (Django model)::
+`'create_inline' action`_ / `'edit_inline' action`_ target grid row (Django model)::
 
     class Model1Grid(KoGridView):
 
@@ -917,8 +990,19 @@ Alternatively, one may define factory methods, which allows to bind different ``
         def get_edit_form_with_inline_formsets(self):
             return Model1EditFormWithInlineFormsets
 
-where returned value should be class derived from ``forms.FormWithInlineFormsets``.
+These methods should return classes derived from ``forms.FormWithInlineFormsets`` built-in class (see :doc:`forms`).
 
+'create_form' action
+~~~~~~~~~~~~~~~~~~~~
+
+'edit_form' action
+~~~~~~~~~~~~~~~~~~
+
+'create_inline' action
+~~~~~~~~~~~~~~~~~~~~~~
+
+'edit_inline' action
+~~~~~~~~~~~~~~~~~~~~
 
 Because actions might be disabled at per-user or per-row basis,
 
