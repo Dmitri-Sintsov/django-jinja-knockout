@@ -795,6 +795,13 @@ method::
         this.grid.lastClickedKoRow.getValue('role');
     };
 
+Manual invocation of interacive action with target grid row::
+
+    Model1Grid.onFirstLoad = function() {
+        var myAction = this.getKoAction('my_action');
+        myAction.doAction({gridRow: targetKoRow});
+    };
+
 * ``actionOptions`` object optional argument is passed to ``App.GridActions.perform()`` ``actionOptions`` argument.
 
 Action queryargs
