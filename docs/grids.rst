@@ -6,15 +6,20 @@ Introduction
 ------------
 Client-side ``static/js/front/ko-grid.js`` script and server-side ``views.KoGridView`` Python class provide possibility
 to create AJAX-powered grids for Django models, similar to traditional ``django.contrib.admin`` built-in module which
-implements such functionality with traditional HTML page generation. ``knockout.js`` is used to provide viewmodels
-to display / update AJAX grids.
+implements such functionality with traditional HTML page generation.
+
+``knockout.js`` viewmodels are used to display / update AJAX grids.
+
+Each grid row represents an instance of associated Django model which can be browsed and manipulated by grid class.
 
 There are key advantages of using AJAX calls to render Django Model grids:
 
-* Reduction of HTTP traffic
+* Reduction of HTTP traffic.
 * Possibility of displaying multiple grids at the same web page and interact between them (for example update another
-  grid when current grid is updated)
-* Custom filters / form widgets that utilize AJAX grids.
+  grid when current grid is updated).
+* Custom filters / form widgets that may utilize nested AJAX grids.
+* In-place display and update of grid rows with associated ``ModelForm`` and inline formsets with AJAX submission
+  directly via BootstrapDialog.
 
 Besides pagination of model data rows, default actions such as CRUD are supported and can be easily enabled for grids.
 Custom grid actions both for the whole grid as well as for specific columns can be implemented by inheriting / extending
@@ -771,17 +776,116 @@ Actions are invoked via Javascript ``App.GridActions.perform()`` method::
   name of action.
 * optional ``ajaxCallback`` argument: a function closure that will be executed when action is complete;
 
+Interactive actions (standard action types ``'button'`` / ``'glyphicon'``) are also represented by instances of
+``App.ko.Action`` Javascript class, used to setup CSS classes of destination button / glyphicon. When clicked, these
+interactive actions invoke ``App.ko.Action.doAction()`` method for particular visual action Knockout.js viewmodel, which
+calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing the same ``App.GridActions.perform()``
+method::
+
+    Action.doAction = function(options, actionOptions)
+
+* ``options`` object argument may pass key ``'gridRow'`` which is the instance of ``App.ko.GridRow`` class that will
+  be used as interactive action target row. It is used for interactive actions that are related to specified grid row,
+  such as `'edit_form' action`_.
+* ``actionOptions`` object optional argument is passed to ``App.GridActions.perform()`` ``actionOptions`` argument.
+
 Action queryargs
 ~~~~~~~~~~~~~~~~
 
-Here is the example of ``'list'`` action queryargs population::
+Here is the example of ``'list'`` action AJAX request queryargs population::
 
     GridActions.queryargs_list = function(options) {
         return this.grid.getListQueryArgs();
     };
 
+    // ... skipped ...
+
+    Grid.getListQueryArgs = function() {
+        this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
+        this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
+        return this.queryArgs;
+    };
+
+    // ... skipped ...
+
+    Grid.listAction = function(callback) {
+        if (typeof callback === 'function') {
+            this.gridActions.perform('list', {}, callback);
+        } else {
+            this.gridActions.perform('list', {});
+        }
+    };
+
+    // ... skipped ...
+
+    Grid.searchSubstring = function(s) {
+        var self = this;
+        if (typeof s !== 'undefined') {
+            self.gridSearchStr(s);
+        }
+        self.queryArgs.page = 1;
+        self.listAction();
+    };
+
+Note that some keys of ``queryArgs`` object are populated in grid class own methods, while only the ``'list_search'``
+and ``'list_filter'`` keys are setup by ``App.GridActions.queryargs_list()`` method, so both ways of AJAX queryargs
+population are possible but it's easier and more convenient to implement common ``queryargs_NAME`` method.
+
+it is also possivble to execute actions interactively with custom options (queryargs)::
+
+    Model1Grid.onFirstLoad = function() {
+        var myAction = this.getKoAction('my_custom_action');
+        myAction.doAction({gridRow: targetKoRow}, {'ko_prop_name': ko_prop_value});
+    };
+
+When action is purely client-side implemented via custom ``App.GridActions`` ancestor ``perform_NAME`` method, queryArgs
+may be used as options of client-side, for example to pass initial values of Knockout.js viewmodel properties, hence
+these are called ``options``, not ``queryArgs`` in ``queryargs_NAME`` method.
+
+.. highlight:: text
+
+For the reverse url of grid action ``'list'``::
+
+    http://127.0.0.1:8000/model1-grid/list/
+
+it will generate AJAX request queryargs similar to these::
+
+    page: 2
+    row_model_str: false
+    list_search: test
+    list_filter: {"role": 2}
+    csrfmiddlewaretoken: JqkaCTUzwpl7katgKiKnYCjcMpNYfjQc
+
+which will be then parsed by ``get_rows`` method called from Django grid ``action_list`` method.
+
+Action AJAX response handler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To process AJAX response data, returned from Django grid ``action_NAME`` method, one has to implement ``App.GridActions``
+derived class, where ``callback_NAME`` Javascript method will be used to update client-side of grid. For example, AJAX
+``ModelForm``, generated by standard `'create_form' action`_  is displayed with::
+
+    GridActions.callback_create_form = function(viewModel) {
+        viewModel.grid = this.grid;
+        var dialog = new App.ModelFormDialog(viewModel);
+        dialog.show();
+    };
+
+grid meta-data (verbose names, field filters) are updated via::
+
+    GridActions.callback_meta = function(data) {
+        if (typeof data.action_kwarg !== 'undefined') {
+            this.setActionKwarg(data.action_kwarg);
+        }
+        this.grid.loadMetaCallback(data);
+    };
+
+and so on - see the examples in ``ko-grid.js`` ``App.GridActions`` code.
+
 Client-side actions
 ~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: javascript
 
 It is also possible to perform actions partially or entirely at client-side. To implement this, one should define
 ``perform_NAME`` in ``App.ko.GridActions`` derived class. Mostly it's used to display client-side BootstrapDialogs via
@@ -1139,6 +1243,33 @@ Alternatively, one may define factory methods, which allows to bind different ``
 
 These methods should return classes derived from ``forms.FormWithInlineFormsets`` built-in class (see :doc:`forms`).
 
+'delete_confirmed' action
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Deletes one or more grid rows via their pk values previously submitted by `'delete' action`_. To selectively disable
+deletion of some grid rows, one may implement custom ``action_delete_is_allowed`` method in the Django grid class::
+
+    class ClubMemberGrid(KoGridView):
+
+        model = ClubMember
+
+        # ... skipped ...
+
+        # Do not allow to delete ClubMember instances with role=ClubMember.ROLE_FOUNDER:
+        def action_delete_is_allowed(self, objects):
+            # ._clone() is required because original pagination queryset is passed as objects argument.
+            qs = objects._clone()
+            return not qs.filter(role__in=ClubMember.ROLE_FOUNDER).exists()
+
+Action type 'button'
+--------------------
+
+These actions are visually displayed as buttons and manually invoked via button click. With default underscore.js
+templates these buttons will be located at top navbar of the grid.
+
+New actions of 'button' type may be added by overriding ``get_actions`` method of Django grid class and extending grid
+client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see `Client-side action routing`_ for
+more info).
+
 'create_form' action
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1153,8 +1284,23 @@ These methods should return classes derived from ``forms.FormWithInlineFormsets`
 'edit_inline' action
 ~~~~~~~~~~~~~~~~~~~~
 
+'delete' action
+~~~~~~~~~~~~~~~
+
+
 Because actions might be disabled at per-user or per-row basis,
 
 options.separateMeta = true;
 using grid as paginated AJAX form
 get_default_grid_options
+form widget
+grid components interaction
+custom action types
+
+App.FilterDialog
+App.GridDialog
+App.ModelFormDialog
+App.ActionsMenuDialog
+App.ActionTemplateDialog
+row_model_str
+ioc
