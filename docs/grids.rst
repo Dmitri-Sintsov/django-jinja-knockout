@@ -786,7 +786,15 @@ method::
 
 * ``options`` object argument may pass key ``'gridRow'`` which is the instance of ``App.ko.GridRow`` class that will
   be used as interactive action target row. It is used for interactive actions that are related to specified grid row,
-  such as `'edit_form' action`_.
+  such as `'edit_form' action`_. Action target row ``App.ko.GridRow`` instance also will be stored in ``App.ko.Grid``
+  ``lastClickedKoRow`` property available in ``App.GridActions`` derived class ``perform_NAME`` method as
+  ``this.grid.lastClickedKoRow``, eg::
+
+    Model1GridActions.perform_my_action = function(queryArgs, ajaxCallback) {
+        // Get raw value of last clicked grid row 'role' field.
+        this.grid.lastClickedKoRow.getValue('role');
+    };
+
 * ``actionOptions`` object optional argument is passed to ``App.GridActions.perform()`` ``actionOptions`` argument.
 
 Action queryargs
@@ -1304,3 +1312,4 @@ App.ActionsMenuDialog
 App.ActionTemplateDialog
 row_model_str
 ioc
+methods to get actions / filters / rows / row field values
