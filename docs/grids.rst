@@ -1212,8 +1212,9 @@ automatically, one has to set value of grid class ``form`` static property::
         form = Model1Form
         # ... skipped ...
 
-Alternatively, one may define factory methods, which allows to bind different Django ``ModelForm`` classes to target
-grid row, represented by Django model::
+Alternatively, one may define factory methods, which would bind different Django ``ModelForm`` classes to
+`'create_form' action`_ and `'edit_form' action`_. That allows to have different set of bound model fields when creating
+and editing grid row Django models::
 
     class Model1Grid(KoGridView):
 
@@ -1301,7 +1302,11 @@ Action type 'button'
 --------------------
 
 These actions are visually displayed as buttons and manually invoked via button click. With default underscore.js
-templates these buttons will be located at top navbar of the grid.
+templates these buttons will be located at top navbar of the grid. Usually type ``'button'`` actions are not targeted to
+existing grid rows but are supposed either create new rows or to process the whole queryset / list of rows. However,
+when client-side ``App.ko.Grid`` derived class instance has visible row selection enabled via ``App.ko.Grid.init()``
+options ``showSelection: true`` and / or ``selectMultipleRows: true``, then the button action could be applied to the
+selected row(s) as well.
 
 New actions of 'button' type may be added by overriding ``get_actions`` method of Django grid class and extending grid
 client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see `Client-side action routing`_ for
@@ -1309,14 +1314,56 @@ more info).
 
 'create_form' action
 ~~~~~~~~~~~~~~~~~~~~
+This action is enabled (and thus UI button will be displayed in grid component navbar) when Django grid class-based view
+has ``ModelForm`` class specified as::
 
-'last_action': 'save_form',
+    class Model1Grid(KoGridView):
 
-'edit_form' action
-~~~~~~~~~~~~~~~~~~
+        model = Model1
+        form = Model1Form
+        # ... skipped ...
+
+Alternatively, one may define factory methods, which would bind different Django ``ModelForm`` classes to
+`'create_form' action`_ and `'edit_form' action`_. That allows to have different set of bound model fields when creating
+and editing grid row Django models::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        def get_create_form(self):
+            return Model1CreateForm
+
+        def get_edit_form(self):
+            return Model1EditForm
+
+.. highlight:: python
+
+When one would look at server-side part ``views.GridActionsMixin.action_create_form()`` action implementation, there
+is key ``'last_action'`` set to value ``'save_form'`` in the returned AJAX viewmodel::
+
+        # ... skipped ...
+        return vm_list({
+            'view': self.__class__.viewmodel_name,
+            'last_action': 'save_form',
+            'title': format_html('{}: {}',
+                self.get_action_local_name(),
+                self.get_model_meta('verbose_name')
+            ),
+            'message': form_html
+        })
+
+Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions.respond()`` method to override the
+name of last executed action from current ``'create_form'`` to ``'save_form'``. It is then used in client-side Javascript
+``App.ModelFormDialog.getButtons()`` method ``submit`` button ``action`` handler to perform ``'save_form'`` action
+when that button is clicked by end-user, instead of already executed ``'create_form'`` action, which generated AJAX
+model form and displayed it via ``App.ModelFormDialog`` instance.
 
 'create_inline' action
 ~~~~~~~~~~~~~~~~~~~~~~
+
+'edit_form' action
+~~~~~~~~~~~~~~~~~~
 
 'edit_inline' action
 ~~~~~~~~~~~~~~~~~~~~
@@ -1342,3 +1389,4 @@ App.ActionTemplateDialog
 row_model_str
 ioc
 methods to get actions / filters / rows / row field values
+Grid init options.
