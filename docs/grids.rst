@@ -331,6 +331,9 @@ Note that ``get_str_fields()`` will also be used for scalar fields formatting vi
 To override client-side class to ``App.ko.Model1Grid`` instead of default ``App.ko.Grid``, define default grid
 options like this::
 
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
     class Model1Grid(KoGridView):
 
         # ... skipped ...
@@ -473,6 +476,9 @@ Choices filter
 
 When using field filter autodetection in grid view, instance of ``App.ko.GridFilter`` will be created, representing
 a dropdown with the list of possible choices from the ``Model1.ROLES`` tuple above::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1, Model2
 
     class Model1Grid(KoGridView):
 
@@ -710,9 +716,9 @@ Grid action routing
 
 .. highlight:: python
 
-Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP method routing,
-which would be too limiting. All of actions are performed as HTTP POST and view kwarg ``action`` value is used for
-routing instead (``urls.py``)::
+Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP PUT DELETE method
+routing, which would be too limiting. All of grid actions are performed as HTTP POST; Django class-based view kwarg
+``action`` value is used for routing in ``urls.py``::
 
     from my_app.views import Model1Grid
 
@@ -727,9 +733,13 @@ Value of ``action`` kwarg is normalized (leading '/' are stripped) and is stored
 property of grid instance at server-side. Key name of view kwargs dict used for grid action route may be changed via
 Django grid class static property ``action_kwarg``::
 
-    class Model1Grid:
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
+    class Model1Grid(KoGridView):
 
         action_kwarg = 'action'
+        model = Model1
         # ... skipped ...
 
 Server-side action routing
@@ -739,7 +749,9 @@ At server-side (in Django view, derived from ``KoGridView``) actions are defined
 method and implemented via grid ``action_NAME`` method, where ``NAME`` is actual name of defined action, for example
 built-in action ``'list'`` is mapped to ``GridActionsMixin.action_list()`` method.
 
-Django grid action method is called via AJAX so it is supposed to return one or more AJAX response :doc:`viewmodels`.
+Django grid action method is called via AJAX so it is supposed to return one or more viewmodels via AJAX response, see
+:doc:`viewmodels`.
+
 It might be one of pre-defined viewmodels, like ``{'view': 'alert'}`` (see ``app.js`` for the basic list of viewmodels),
 or a grid viewmodel, especially designated to be processed by ``App.GridActions`` class (or it's child class) at
 client-side. Here is the example of built-in list action implementation::
@@ -795,14 +807,22 @@ method::
         this.grid.lastClickedKoRow.getValue('role');
     };
 
-Manual invocation of interacive action with target grid row::
+Javascript invocation of interacive action with specified target grid row when grid just loaded first time::
 
     Model1Grid.onFirstLoad = function() {
-        var myAction = this.getKoAction('my_action');
-        myAction.doAction({gridRow: targetKoRow});
+        // Get instance of App.ko.Action for specified action name:
+        var editFormAction = this.getKoAction('edit_form');
+        // Find row with pk value === 3, if any, in current page queryset:
+        var targetKoRow = this.findKoRowByPkVal(3);
+        // Check whether the row with pk value === 3 is in current page queryset:
+        if (targetKoRow !== null) {
+          // Execute 'edit_form' action for row with pk value === 3.
+            editFormAction.doAction({gridRow: targetKoRow});
+        }
     };
 
-* ``actionOptions`` object optional argument is passed to ``App.GridActions.perform()`` ``actionOptions`` argument.
+* ``actionOptions`` object optional argument that is passed to ``App.GridActions.perform()`` as ``actionOptions``
+  argument.
 
 Action queryargs
 ~~~~~~~~~~~~~~~~

@@ -5,6 +5,8 @@ Client-side viewmodels and AJAX response routing
 Client-side viewmodels
 ----------------------
 
+.. highlight:: javascript
+
 ``django_jinja_knockout`` implements AJAX response routing with client-side viewmodels.
 
 Viewmodels are defined as array of simple objects in Javascript::
@@ -25,6 +27,8 @@ Viewmodels are defined as array of simple objects in Javascript::
             }]
         }
     ];
+
+.. highlight:: python
 
 and as the special list (vm_list) of ordinary dicts in Python::
 
@@ -55,6 +59,8 @@ specified ``selector``, then it will show ``BootstrapDialog`` confirmation windo
 client-side viewmodels will be executed, which defines just one command: ``redirect_to`` specified ``url``. In case user
 cancels confirmation dialog, no extra viewmodels will be executed.
 
+.. highlight:: javascript
+
 Now, how to execute these viewmodels we defined actually? At Javascript side it's the most obvious::
 
     App.viewResponse(viewmodels);
@@ -73,17 +79,19 @@ Key ``'view'`` of each Javascript object / Python dict in the list stores value 
 Javascript ``viewmodel handler``. Rest of the keys are arguments of each current ``viewmodel`` with corresponding values,
 passed to their ``viewmodel handler``. The following built-in viewmodel names currently are available (version 0.1.2)::
 
-    'redirect_to',
-    'alert',
-    'alert_error',
-    'confirm',
-    'append',
-    'prepend',
-    'after',
-    'before',
-    'remove',
-    'html',
-    'replaceWith'
+    [
+        'redirect_to',
+        'alert',
+        'alert_error',
+        'confirm',
+        'append',
+        'prepend',
+        'after',
+        'before',
+        'remove',
+        'html',
+        'replaceWith'
+    ]
 
 If your AJAX code just needs to display alert / confirm window, redirect to some url or to perform series of jQuery DOM
 manipulation, then you may just use list of viewmodels that map to these already pre-defined handlers.
@@ -143,11 +151,15 @@ where newly defined handler ``popover_error`` executes already existing one ``to
 AJAX response routing
 ---------------------
 
+.. highlight:: html
+
 Imagine you are developing mixed web application with traditional server-side generated html responses but also
 having lots of AJAX interaction. With tradidional approach, you will have to write a lot of boilerplate code, like this,
 html::
 
     <button id="my_button" class="button btn btn-default">Save your form template</button>
+
+.. highlight:: javascript
 
 Javascript::
 
@@ -177,12 +189,16 @@ Such code have many disadvantages:
 3. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
    to open ``BootstrapDialog``, sometimes to redirect instead, sometimes to perform some custom action?
 
+.. highlight:: html
+
 Now, with client-side viewmodels response routing, to execute AJAX post via button click, the following Jinja2 template
 code is enough::
 
     <button class="button btn btn-default" data-route="my_url_name">
         Save your form template
     </button>
+
+.. highlight:: python
 
 ``app.js`` will care itself of setting Javascript event handler, performing AJAX request POST and AJAX response routing
 will execute viewmodels returned from Django view. If you want to ensure AJAX requests, just set your ``urls.py`` route
@@ -225,7 +241,25 @@ that's all.
 If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like above, you
 do not even have to modify a single bit of your Javascript code!
 
-Also it is possible to set client-side bind context with the second argument of viewmodel handler::
+Since version 0.2.0, it is possible to specify client-side routes per view, not having to define them globally
+in template context processor::
+
+    def my_view(request):
+        request.client_routes.extend([
+            'my_url_name'
+        ])
+
+and per class-based view::
+
+    class MyGrid(KoGridView):
+
+        client_routes = [
+            'my_grid_url_name'
+        ]
+
+.. highlight:: javascript
+
+Also it is possible to change view handler Javascript bind context with the second argument of viewmodel handler::
 
     App.addViewHandler('set_context_title', function(viewModel, bindContext) {
         bindContext.setTitle(viewModel.title);
@@ -240,6 +274,8 @@ and of course Django view mapped to ``'my_url_name'`` (see :doc:`installation`) 
 with one of it's elements having the key ``{'view': 'set_context_title'}`` to have the viewmodel handler above to be
 actually called.
 
+.. highlight:: jinja
+
 In case your AJAX POST button route contains kwargs / query parameters, you may use ``data-url`` html5 attribute
 instead::
 
@@ -253,6 +289,8 @@ Non-AJAX server-side invocation of client-side viewmodels.
 Besides direct client-side invocation of viewmodels via ``app.js`` ``App.viewResponse()`` method, and AJAX POST /
 AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with
 server-side invocation.
+
+.. highlight:: python
 
 Client-side viewmodels can be injected into generated HTML page and then executed when page DOM is loaded. It's
 useful to prepare page / form templates which may require automated Javascript code applying, or to display
@@ -308,6 +346,8 @@ To inject client-side viewmodels on page DOM load persistently in user session::
 
 Require viewmodels handlers
 ---------------------------
+.. highlight:: javascript
+
 Sometimes there are many separate Javascript source files which define different viewmodel handlers. To assure that
 required external source viewmodel handlers are available, ``app.js`` provides ``App.requireViewHandlers()`` method::
 
