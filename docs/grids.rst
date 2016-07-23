@@ -789,10 +789,11 @@ Actions are invoked via Javascript ``App.GridActions.perform()`` method::
 * optional ``ajaxCallback`` argument: a function closure that will be executed when action is complete;
 
 Interactive actions (standard action types ``'button'`` / ``'glyphicon'``) are also represented by instances of
-``App.ko.Action`` Javascript class, used to setup CSS classes of destination button / glyphicon. When clicked, these
-interactive actions invoke ``App.ko.Action.doAction()`` method for particular visual action Knockout.js viewmodel, which
-calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing the same ``App.GridActions.perform()``
-method::
+``App.ko.Action`` Javascript class, used to setup CSS classes of bound DOM element button or glyphicon.
+
+When bound DOM element is clicked, these interactive actions invoke ``App.ko.Action.doAction()`` method for particular
+visual action Knockout.js viewmodel, which calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing
+the same ``App.GridActions.perform()`` method::
 
     Action.doAction = function(options, actionOptions)
 
@@ -836,8 +837,8 @@ Here is the example of ``'list'`` action AJAX request queryargs population::
     // ... skipped ...
 
     Grid.getListQueryArgs = function() {
-        this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
-        this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
+        this.queryArgs['list_search'] = this.gridSearchStr();
+        this.queryArgs['list_filter'] = JSON.stringify(this.queryFilters);
         return this.queryArgs;
     };
 
@@ -854,32 +855,20 @@ Here is the example of ``'list'`` action AJAX request queryargs population::
     // ... skipped ...
 
     Grid.searchSubstring = function(s) {
-        var self = this;
         if (typeof s !== 'undefined') {
-            self.gridSearchStr(s);
+            this.gridSearchStr(s);
         }
-        self.queryArgs.page = 1;
-        self.listAction();
+        this.queryArgs.page = 1;
+        this.listAction();
     };
 
 Note that some keys of ``queryArgs`` object are populated in grid class own methods, while only the ``'list_search'``
 and ``'list_filter'`` keys are setup by ``App.GridActions.queryargs_list()`` method, so both ways of AJAX queryargs
 population are possible but it's easier and more convenient to implement common ``queryargs_NAME`` method.
 
-it is also possivble to execute actions interactively with custom options (queryargs)::
-
-    Model1Grid.onFirstLoad = function() {
-        var myAction = this.getKoAction('my_custom_action');
-        myAction.doAction({gridRow: targetKoRow}, {'ko_prop_name': ko_prop_value});
-    };
-
-When action is purely client-side implemented via custom ``App.GridActions`` ancestor ``perform_NAME`` method, queryArgs
-may be used as options of client-side, for example to pass initial values of Knockout.js viewmodel properties, hence
-these are called ``options``, not ``queryArgs`` in ``queryargs_NAME`` method.
-
 .. highlight:: text
 
-For the reverse url of grid action ``'list'``::
+For the reverse url of ``Model1Grid`` class-based view action ``'list'``::
 
     http://127.0.0.1:8000/model1-grid/list/
 
@@ -892,6 +881,19 @@ it will generate AJAX request queryargs similar to these::
     csrfmiddlewaretoken: JqkaCTUzwpl7katgKiKnYCjcMpNYfjQc
 
 which will be then parsed by ``get_rows`` method called from Django grid ``action_list`` method.
+
+.. highlight:: javascript
+
+it is also possivble to execute actions interactively with custom options (queryargs)::
+
+    Model1Grid.onFirstLoad = function() {
+        var myAction = this.getKoAction('my_custom_action');
+        myAction.doAction({gridRow: targetKoRow}, {'ko_prop_name': ko_prop_value});
+    };
+
+When action is purely client-side implemented via custom ``App.GridActions`` ancestor ``perform_NAME`` method, queryArgs
+may be used as options of client-side, for example to pass initial values of Knockout.js viewmodel properties, hence
+these are called ``options``, not ``queryArgs`` in ``queryargs_NAME`` method.
 
 Action AJAX response handler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -915,7 +917,7 @@ grid meta-data (verbose names, field filters) are updated via::
         this.grid.loadMetaCallback(data);
     };
 
-and so on - see the examples in ``ko-grid.js`` ``App.GridActions`` code.
+and so on - see actual ``'callback_NAME'`` examples in ``ko-grid.js`` ``App.GridActions`` class code.
 
 Client-side actions
 ~~~~~~~~~~~~~~~~~~~
@@ -1017,8 +1019,8 @@ Custom view kwargs
 .. highlight:: python
 
 In some cases a grid may require additional kwargs to alter initial (base) queryset of grid. For example, if Django app
-has ``Club`` model, grid that displays members of that club may use ``club_id`` value, supplied from view kwargs defined
-in ``urls.py``::
+has ``ClubMember`` model related as many to one ``Club`` Django model, grid that displays members of specified club id
+(foreign key pk value), one may define ``club_id`` view kwarg match in ``urls.py``::
 
     # ... skipped ...
     url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
