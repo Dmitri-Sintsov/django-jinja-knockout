@@ -1260,6 +1260,10 @@ Similar to `'save_form' action`_ described above, this action is an AJAX form su
 / `'edit_inline' action`_. These actions generate AJAX submittable BootstrapDialog with ``FormWithInlineFormsets`` class
 instance bound to current grid row via grid class ``form_with_inline_formsets`` static property::
 
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1FormWithInlineFormsets
+
     class Model1Grid(KoGridView):
 
         model = Model1
@@ -1314,8 +1318,14 @@ more info).
 
 'create_form' action
 ~~~~~~~~~~~~~~~~~~~~
+Server-side part of this action renders AJAX-powered Django ``ModelForm`` instance bound to new Django grid model.
+
+Client-side part of this action displays rendered ``ModelForm`` as ``BootstrapDialog`` modal dialog. Together with
+`'save_form' action`_, which serves as callback for this action, it allows to create new grid rows (new Django model
+instances).
+
 This action is enabled (and thus UI button will be displayed in grid component navbar) when Django grid class-based view
-has ``ModelForm`` class specified as::
+has assigned ``ModelForm`` class specified as::
 
     class Model1Grid(KoGridView):
 
@@ -1339,8 +1349,8 @@ and editing grid row Django models::
 
 .. highlight:: python
 
-When one would look at server-side part ``views.GridActionsMixin.action_create_form()`` action implementation, there
-is key ``'last_action'`` set to value ``'save_form'`` in the returned AJAX viewmodel::
+When one would look at server-side part of ``views.GridActionsMixin.action_create_form()`` action implementation, there
+is ``'last_action'`` key set to value ``'save_form'`` in the returned AJAX viewmodel::
 
         # ... skipped ...
         return vm_list({
@@ -1355,12 +1365,51 @@ is key ``'last_action'`` set to value ``'save_form'`` in the returned AJAX viewm
 
 Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions.respond()`` method to override the
 name of last executed action from current ``'create_form'`` to ``'save_form'``. It is then used in client-side Javascript
-``App.ModelFormDialog.getButtons()`` method ``submit`` button ``action`` handler to perform ``'save_form'`` action
-when that button is clicked by end-user, instead of already executed ``'create_form'`` action, which generated AJAX
-model form and displayed it via ``App.ModelFormDialog`` instance.
+``App.ModelFormDialog.getButtons()`` method ``submit`` button event handler to perform ``'save_form'`` action when that
+button is clicked by end-user, instead of already executed ``'create_form'`` action, which generated AJAX model form and
+displayed it via ``App.ModelFormDialog`` instance.
 
 'create_inline' action
 ~~~~~~~~~~~~~~~~~~~~~~
+Server-side part of this action renders AJAX-powered ``django_jinja_knockout`` ``forms.FormWithInlineFormsets`` instance
+bound to new Django grid model.
+
+Client-side part of this action displays rendered ``FormWithInlineFormsets`` as ``BootstrapDialog`` modal dialog.
+Together with `'save_form' action`_, which serves as callback for this action, it allows to create new grid rows (new
+Django model instances) while also adding one to many related models via inline formsets.
+
+This action is enabled (and thus UI button will be displayed in grid component navbar) when Django grid class-based view
+has assigned ``forms.FormWithInlineFormsets`` derived class (see :doc:`forms` for more info about that class). It should
+be specified as::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1FormWithInlineFormsets
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+        form_with_inline_formsets = Model1FormWithInlineFormsets
+        # ... skipped ...
+
+Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
+`'create_inline' action`_ / `'edit_inline' action`_ target grid row (Django model)::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        def get_create_form_with_inline_formsets(self):
+            return Model1CreateFormWithInlineFormsets
+
+        def get_edit_form_with_inline_formsets(self):
+            return Model1EditFormWithInlineFormsets
+
+These methods should return classes derived from ``forms.FormWithInlineFormsets`` built-in class (see :doc:`forms`).
+
+Server-side part of this action sets AJAX response viewmodel ``last_action`` key to ``save_inline`` value, to override
+current action of BoostrapDialog modal button. See `'create_form' action`_ description for more info about
+``last_action`` key.
 
 'edit_form' action
 ~~~~~~~~~~~~~~~~~~
