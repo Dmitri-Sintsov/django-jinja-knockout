@@ -203,7 +203,7 @@ App.ko.AbstractGridFilter = function(options) {
     };
 
     AbstractGridFilter.getQueryFilter = function() {
-        return this.ownerGrid.getQueryFilter(this.field);
+        return this.ownerGrid.getFieldQueryFilter(this.field);
     };
 
     AbstractGridFilter.addQueryFilter = function(options) {
@@ -1209,7 +1209,7 @@ App.ko.Grid = function(options) {
         return typeof this.sortOrders[field] !== 'undefined';
     };
 
-    Grid.getQueryFilter = function(field) {
+    Grid.getFieldQueryFilter = function(field) {
         if (typeof this.queryFilters[field] !== 'undefined') {
             return this.queryFilters[field];
         } else {
