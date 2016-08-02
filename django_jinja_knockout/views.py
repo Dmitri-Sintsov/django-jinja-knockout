@@ -920,13 +920,12 @@ class GridActionsMixin():
             )
         )
 
-    def action_create_form(self):
-        form = self.get_create_form()()
+    def vm_form(self, form, verbose_name, action_query={}):
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_': True,
             'form': form,
-            'action': self.get_action_url('save_form'),
+            'action': self.get_action_url('save_form', query=action_query),
             'opts': self.get_bs_form_opts()
         })
         return vm_list({
@@ -934,41 +933,32 @@ class GridActionsMixin():
             'last_action': 'save_form',
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
-                self.get_model_meta('verbose_name')
+                verbose_name
             ),
             'message': form_html
         })
+
+    def action_create_form(self):
+        form = self.get_create_form()()
+        return self.vm_form(
+            form, self.get_model_meta('verbose_name')
+        )
 
     def action_edit_form(self):
         pk_val = self.request_get('pk_val')
         obj = self.__class__.model.objects.filter(pk=pk_val).first()
         form = self.get_edit_form()(instance=obj)
-        t = tpl_loader.get_template('bs_form.htm')
-        form_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': form,
-            'action': self.get_action_url('save_form', query={'pk_val': pk_val}),
-            'opts': self.get_bs_form_opts()
-        })
-        return vm_list({
-            'view': self.__class__.viewmodel_name,
-            'last_action': 'save_form',
-            'title': format_html('{}: {}',
-                 self.get_action_local_name(),
-                 self.render_object_desc(obj)
-            ),
-            'message': form_html
-        })
+        return self.vm_form(
+            form, self.render_object_desc(obj), {'pk_val': pk_val}
+        )
 
-    def action_create_inline(self):
-        ff = self.get_create_form_with_inline_formsets()(self.request)
-        ff.get()
+    def vm_inline(self, ff, verbose_name, action_query={}):
         t = tpl_loader.get_template('bs_inline_formsets.htm')
         ff_html = t.render(request=self.request, context={
             '_render_': True,
             'form': ff.form,
             'formsets': ff.formsets,
-            'action': self.get_action_url('save_inline'),
+            'action': self.get_action_url('save_inline', query=action_query),
             'html': self.get_bs_form_opts()
         })
         return vm_list({
@@ -976,33 +966,26 @@ class GridActionsMixin():
             'last_action': 'save_inline',
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
-                self.get_model_meta('verbose_name')
+                verbose_name
             ),
             'message': ff_html
         })
+
+    def action_create_inline(self):
+        ff = self.get_create_form_with_inline_formsets()(self.request)
+        ff.get()
+        return self.vm_inline(
+            ff, self.get_model_meta('verbose_name')
+        )
 
     def action_edit_inline(self):
         pk_val = self.request_get('pk_val')
         obj = self.__class__.model.objects.filter(pk=pk_val).first()
         ff = self.get_edit_form_with_inline_formsets()(self.request)
         ff.get(instance=obj)
-        t = tpl_loader.get_template('bs_inline_formsets.htm')
-        ff_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': ff.form,
-            'formsets': ff.formsets,
-            'action': self.get_action_url('save_inline', query={'pk_val': pk_val}),
-            'html': self.get_bs_form_opts()
-        })
-        return vm_list({
-            'view': self.__class__.viewmodel_name,
-            'last_action': 'save_inline',
-            'title': format_html('{}: {}',
-                 self.get_action_local_name(),
-                 self.render_object_desc(obj)
-            ),
-            'message': ff_html
-        })
+        return self.vm_inline(
+            ff, self.render_object_desc(obj), {'pk_val': pk_val}
+        )
 
     def get_object_desc(self, obj):
         return get_object_description(obj)

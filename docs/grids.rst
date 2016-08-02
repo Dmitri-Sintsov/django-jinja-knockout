@@ -462,6 +462,8 @@ Choices filter
 
 * ``choices``: It's used by default when Django model field has ``choices`` property defined, similar to this::
 
+    from django.utils.translation import ugettext as _
+
     class Model1(models.Model):
         ROLE_STAFF = 0
         ROLE_MEMBER = 1
@@ -591,6 +593,8 @@ Imagine ``Model1`` has foreign key ``action`` field defined::
         # ... skipped ...
 
 Where ``Action`` model utilizes contenttypes framework, defined like that::
+
+    from django.utils.translation import ugettext as _
 
     class Action(models.Model):
 
@@ -986,7 +990,8 @@ derived class instance::
 
 .. highlight:: jinja
 
-Where the ``'ko_model1_action_form'`` template could be like this::
+Where the ``'ko_model1_action_form'`` template could be like this, based on ``ko_action_form`` template located in
+``ko_grid_body.htm``::
 
     <script type="text/template" id="ko_model1_action_form">
         <div class="panel panel-default">
@@ -1312,8 +1317,8 @@ when client-side ``App.ko.Grid`` derived class instance has visible row selectio
 options ``showSelection: true`` and / or ``selectMultipleRows: true``, then the button action could be applied to the
 selected row(s) as well.
 
-New actions of 'button' type may be added by overriding ``get_actions`` method of Django grid class and extending grid
-client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see `Client-side action routing`_ for
+New actions of ``button`` type may be added by overriding ``get_actions`` method of Django grid class and extending grid
+client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see `Client-side actions`_ for
 more info).
 
 'create_form' action
@@ -1411,8 +1416,40 @@ Server-side part of this action sets AJAX response viewmodel ``last_action`` key
 current action of BoostrapDialog modal button. See `'create_form' action`_ description for more info about
 ``last_action`` key.
 
+Action type 'click'
+-------------------
+These actions are designed to process already displayed grid row, associated to existing Django model.
+
+* By default there is no active click actions, so clicking grid row does nothing.
+* When there is only one click action enabled, it will be executed immediately after end-user clicking target row.
+* When there is more than one click actions enabled, ``App.ko.Grid`` will use special version of BootstrapDialog
+  wrapper ``App.ActionsMenuDialog`` to display menu with clickable buttons to select one action from the list of
+  available ones.
+
 'edit_form' action
 ~~~~~~~~~~~~~~~~~~
+This action is enabled, when current Django grid class inherited from ``KoGridView`` class has defined class property
+``form`` with specified Django ``ModelForm`` class used to edit associated Django models::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1Form
+
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+        form = Model1Form
+
+Alternatively, one may define ``get_edit_form()`` method to return ``ModelForm`` class dynamically or to have separate
+``ModelForm`` for `'create_form' action`_ and `'edit_form' action`_.
+
+Server-side of this action is implemented in ``views``.``GridActionsMixin``.``action_edit_form()``. It returns AJAX
+response with generated HTML of ``ModelForm`` bound to target grid row Django model instance and overrides
+``last_action`` viewmodel property to `'save_form' action`_.
+
+Client-side of this action uses ``App.ModelFormDialog`` to display generated ``ModelForm`` html and to submit AJAX form
+to `'save_form' action`_.
 
 'edit_inline' action
 ~~~~~~~~~~~~~~~~~~~~
@@ -1420,6 +1457,64 @@ current action of BoostrapDialog modal button. See `'create_form' action`_ descr
 'delete' action
 ~~~~~~~~~~~~~~~
 
+Implementing custom actions of type 'click'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First step to add new action is to override ``get_actions`` method in Django grid class. Let's create new action
+``'ask_user'`` of ``'click'`` type::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from django.utils.translation import ugettext as _
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped ...
+
+        def get_actions(self):
+            actions = super().get_actions()
+            action_type = 'click'
+            actions[action_type]['ask_user'] = {
+                'localName': _('Add funds'),
+                'class': 'btn-warning',
+                'enabled': True
+            }
+            return actions
+
+If one want to add custom action via Django ``ModelForm`` class, then the server-side of the action might be implemented
+like this::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1Form, Model1AskUserForm
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped ...
+
+        # Based on GridActionsMixin.action_edit_form() implementation.
+        def action_ask_user(self):
+            pk_val = self.request_get('pk_val')
+            obj = self.__class__.model.objects.filter(pk=pk_val).first()
+            form = Model1AskUserForm(instance=obj)
+            return self.vm_form(
+                form, self.render_object_desc(obj), {'pk_val': pk_val}
+            )
+
+.. highlight:: javascript
+
+while using ``App.ModelFormDialog`` class to render AJAX-generated Django ``ModelForm`` at client-side. One has to
+inherit ``App.Model1GridActions`` from ``App.GridActions`` and define it's own ``callback_NAME`` (see
+`Action AJAX response handler`_ for more info)::
+
+    Model1GridActions.callback_ask_user = function(viewModel) {
+        viewModel.grid = this.grid;
+        var dialog = new App.ModelFormDialog(viewModel);
+        dialog.show();
+    };
+
+Completely separate way of generating form with pure client-side underscore.js / Knockout.js templates for ``ask_user``
+action (no AJAX callback is required)  is implemented in `Client-side actions`_ section of the documentation.
 
 Because actions might be disabled at per-user or per-row basis,
 
@@ -1439,3 +1534,4 @@ row_model_str
 ioc
 methods to get actions / filters / rows / row field values
 Grid init options.
+action permissions

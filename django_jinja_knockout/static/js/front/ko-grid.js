@@ -1212,6 +1212,8 @@ App.ko.Grid = function(options) {
     Grid.getQueryFilter = function(field) {
         if (typeof this.queryFilters[field] !== 'undefined') {
             return this.queryFilters[field];
+        } else {
+            return [];
         }
     };
 
@@ -2347,6 +2349,10 @@ App.FkGridWidget = function(options) {
         this.$element.find('.fk-choose').on('click', function(ev) {
             self.gridDialog.show();
         });
+    };
+
+    FkGridWidget.getQueryFilter = function() {
+        return [];
     };
 
     FkGridWidget.getValue = function() {
