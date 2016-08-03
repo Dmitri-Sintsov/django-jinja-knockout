@@ -1288,7 +1288,8 @@ Alternatively, one may define factory methods, which allows to bind different ``
         def get_edit_form_with_inline_formsets(self):
             return Model1EditFormWithInlineFormsets
 
-These methods should return classes derived from ``forms.FormWithInlineFormsets`` built-in class (see :doc:`forms`).
+These methods should return classes derived from ``django_jinja_knockout.forms.FormWithInlineFormsets``
+class (see :doc:`forms`).
 
 'delete_confirmed' action
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1428,8 +1429,8 @@ These actions are designed to process already displayed grid row, associated to 
 
 'edit_form' action
 ~~~~~~~~~~~~~~~~~~
-This action is enabled, when current Django grid class inherited from ``KoGridView`` class has defined class property
-``form`` with specified Django ``ModelForm`` class used to edit associated Django models::
+This action is enabled when current Django grid class inherited from ``KoGridView`` class has defined class property
+``form`` set to specified Django ``ModelForm`` class used to edit grid row associated Django model::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1441,11 +1442,11 @@ This action is enabled, when current Django grid class inherited from ``KoGridVi
         model = Model1
         form = Model1Form
 
-Alternatively, one may define ``get_edit_form()`` method to return ``ModelForm`` class dynamically or to have separate
-``ModelForm`` for `'create_form' action`_ and `'edit_form' action`_.
+Alternatively, one may define ``get_edit_form()`` Django grid method to return ``ModelForm`` class dynamically or to
+have separate ``ModelForm`` for `'create_form' action`_ and `'edit_form' action`_.
 
-Server-side of this action is implemented in ``views``.``GridActionsMixin``.``action_edit_form()``. It returns AJAX
-response with generated HTML of ``ModelForm`` bound to target grid row Django model instance and overrides
+Server-side of this action is implemented in ``views.GridActionsMixin.action_edit_form()``. It returns AJAX
+response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance and overrides
 ``last_action`` viewmodel property to `'save_form' action`_.
 
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``ModelForm`` html and to submit AJAX form
@@ -1453,13 +1454,35 @@ to `'save_form' action`_.
 
 'edit_inline' action
 ~~~~~~~~~~~~~~~~~~~~
+This action is enabled when current Django grid class has defined class property ``form_with_inline_formsets`` set to
+specified ``django_jinja_knockout.forms.FormWithInlineFormsets`` class used to edit grid row and it's foreign
+relationships via Django inline formsets (see :doc:`forms`)::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1FormWithInlineFormsets
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+        form_with_inline_formsets = Model1FormWithInlineFormsets
+
+Alternatively, one may define ``get_edit_form_with_inline_formsets()`` Django grid method to return
+``FormWithInlineFormsets`` based class dynamically or separately for `'create_inline' action`_ and
+`'edit_inline' action`_.
+
+Server-side of this action is implemented in ``views.GridActionsMixin.action_edit_inline()``. It returns AJAX
+response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django model instance and
+overrides ``last_action`` viewmodel property to `'save_inline' action`_.
+
+Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
+submit AJAX form to `'save_inline' action`_.
 
 'delete' action
 ~~~~~~~~~~~~~~~
 
 Implementing custom actions of type 'click'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 First step to add new action is to override ``get_actions`` method in Django grid class. Let's create new action
 ``'ask_user'`` of ``'click'`` type::
 
@@ -1481,8 +1504,8 @@ First step to add new action is to override ``get_actions`` method in Django gri
             }
             return actions
 
-If one want to add custom action via Django ``ModelForm`` class, then the server-side of the action might be implemented
-like this::
+If one wants to add custom action via Django ``ModelForm`` class, then the server-side of the action might be
+implemented like this::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1

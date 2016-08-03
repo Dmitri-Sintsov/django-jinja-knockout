@@ -295,8 +295,12 @@ In your class-based views.py::
         form_with_inline_formsets = ProjectFormWithInlineFormsets
         template_name = 'project_form.htm'
 
-Why there is extra step of defining ``ProjectFormWithInlineFormsets``? Because that class also can be used in
-traditional functional style views as well::
+FormWithInlineFormsets class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There is extra step of deriving ``ProjectFormWithInlineFormsets`` from  ``forms.FormWithInlineFormsets`` class because
+that class serves as intermediate layer between form and inline formsets and Django views. Besides class-based views
+(``InlineCreateView``, ``InlineDetailView``, ``FormWithInlineFormsetsMixin``) it can be used in traditional functional
+views as well::
 
     ff = ProjectFormWithInlineFormsets(request, create=True)
     if request.method == 'POST':
