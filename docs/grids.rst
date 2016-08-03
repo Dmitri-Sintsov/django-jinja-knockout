@@ -1478,11 +1478,103 @@ overrides ``last_action`` viewmodel property to `'save_inline' action`_.
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
 
+See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
+types.
+
+Action type 'glyphicon'
+-----------------------
+These actions are designed to process already displayed grid row, associated to existing Django model. Their
+implementation is very similar to Action type 'button', but instead of clicking at any place of row, these actions
+are visually displayed as bootstrap glyphicon links in separate columns of grid.
+
+By default there is no ``glyphicon`` type actions enabled. But there is one standard action of such type implemented
+in ``KoGridView``, `'delete' action`_.
+
 'delete' action
 ~~~~~~~~~~~~~~~
+This action is implemented to delete grid row (Django model instance) but is disabled by default. To enable grid row
+deletion, one has to override Django grid ``get_action()`` method like this::
 
-Implementing custom actions of type 'click'
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        # ... skipped ...
+
+        def get_actions(self):
+            actions = super().get_actions()
+            actions['glyphicon']['delete']['enabled'] = True
+            actions['built_in']['delete_confirmed']['enabled'] = True
+            return actions
+
+Note that `'delete_confirmed' action`_ is used as success callback for `'delete' action`_ also should be enabled.
+`'delete_confirmed' action`_ section has the primer of checking delete permissions.
+
+The action itself is defined in ``django_jinja_knockout.views.GridActionsMixin`` like this::
+
+        OrderedDict([
+            # Delete one or many model object.
+            ('delete', {
+                'localName': _('Remove'),
+                'class': 'glyphicon-remove',
+                'enabled': False
+            })
+        ])
+
+See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
+types.
+
+.. highlight:: javascript
+
+Grid rows may selectively enable / disable their actions on the fly with visual updates. It is especially important to
+actions of type ``'glyphicon'``, because these are always visible in grid columns. To implement online update of
+grid row actions one should override client-side ``App.ko.GridRow.hasEnabledAction()`` method like this::
+
+    App.ko.Model1GridRow = function(options) {
+        $.inherit(App.ko.GridRow.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1GridRow) {
+
+        Model1GridRow.hasEnabledAction = function(action) {
+            if (action.name === 'ask_user') {
+                return this.values['field2'] === 'APPROVED';
+            } else {
+                return true;
+            }
+        };
+
+    })(App.ko.Model1GridRow.prototype);
+
+    App.ko.Model1Grid = function(options) {
+        $.inherit(App.ko.Grid.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1Grid) {
+
+        Model1Grid.iocRow = function(options) {
+            return new App.ko.Model1GridRow(options);
+        };
+
+    })(App.ko.Model1Grid.prototype);
+
+This way ``glyphicon`` action with name ``'ask_user'`` link will be displayed only when associated Django model instance
+field name ``field2`` has value ``'APPROVED'``. Updating grid rows with ``App.ko.Grid.updatePage()`` will cause refresh
+of available grid rows actions display (see `'save_form' action`_ documentation).
+
+Of course if action is not pure client-side (has ``callback_NAME``) then additional permission check also should be
+performed in server-side Django grid ``action_NAME`` method, see `Action AJAX response handler`_ for explanation of
+server-side actions vs pure client-side actions.
+
+Implementing custom grid row actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. highlight:: python
+
 First step to add new action is to override ``get_actions`` method in Django grid class. Let's create new action
 ``'ask_user'`` of ``'click'`` type::
 
@@ -1503,6 +1595,28 @@ First step to add new action is to override ``get_actions`` method in Django gri
                 'enabled': True
             }
             return actions
+
+To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from django.utils.translation import ugettext as _
+
+    class Model1Grid(KoGridView):
+
+        # ... skipped ...
+
+        def get_actions(self):
+            actions = super().get_actions()
+            action_type = 'glyphicon'
+            actions[action_type]['ask_user'] = {
+                'localName': _('Add funds'),
+                'class': 'glyphicon-cloud-upload',
+                'enabled': True
+            }
+            return actions
+
+Next step is to implement newly defined action server-side and / or client-side parts.
 
 If one wants to add custom action via Django ``ModelForm`` class, then the server-side of the action might be
 implemented like this::
@@ -1526,7 +1640,7 @@ implemented like this::
 
 .. highlight:: javascript
 
-while using ``App.ModelFormDialog`` class to render AJAX-generated Django ``ModelForm`` at client-side. One has to
+``App.ModelFormDialog`` class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
 inherit ``App.Model1GridActions`` from ``App.GridActions`` and define it's own ``callback_NAME`` (see
 `Action AJAX response handler`_ for more info)::
 
