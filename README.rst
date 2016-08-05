@@ -1,11 +1,18 @@
-=============================
+=====================
 django-jinja-knockout
-=============================
+=====================
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
     :target: https://badge.fury.io/py/django-jinja-knockout
 
-Bootstrap / Jinja2 / Knockout.js integration into Django projects.
+Key features
+------------
+
+* Bootstrap / Jinja2 / Knockout.js integration into Django projects.
+* Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
+* Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
+* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality via AJAX query / response in non-admin
+``ModelForm`` classes to select Django ``ModelForm`` foreign key fields value.
 
 Overview
 --------
@@ -30,16 +37,16 @@ which aren't "outdated" in any way - because such applications are much better i
 better language than Javascript in general and server-side has less glitches than browsers.
 
 Most of client-side scripts included into this redistributable app are server-side agnostic and are not tied much to
-Django, except for client-side localization. In fact, most of that client-side code is also used in large Laravel
-project as well. They are included for developer's convenience. Also my personal feeling is, that Django itself lacks
+Django, except for client-side localization. In fact, significant parts of that client-side code also were used in large
+Laravel project. They are included for developer's convenience. Also my personal feeling is, that Django itself lacks
 a bit heavier support of client-side Javascript out-of-box. Knockout.js would be great inclusion for ``empty_form``
 handling and in ``django.admin``, considering it's small size.
 
 However, some of server-side functionality, like AJAX form validation and viewmodels manipulation is either useless or
 will not work without these scripts.
 
-Obviously, only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``)
-are tied to bundled client-side scripts.
+Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
+client-side scripts.
 
 Major changes (version 0.2.0)
 -----------------------------
@@ -53,7 +60,7 @@ allows to implement arbitrary actions in descendant classes and quickly design d
 non-admin views. AJAX calls also saves some HTTP traffic, reducing bandwitch and making the UI more responsive.
 
 New ``ForeignKeyGridWidget`` was developed which provides ``ForeignKeyRawIdWidget``-like functionality
-via AJAX query / response in non-admin forms to select ``ModelForm`` foreign key values.
+via AJAX query / response in non-admin ``ModelForm`` classes to select foreign key fields value.
 
 Support of auto-instantiating Javascript classes with binding these to selected DOM nodes with 'component' css class via
 ``App.Components`` class.

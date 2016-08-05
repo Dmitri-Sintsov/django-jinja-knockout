@@ -25,6 +25,13 @@ Besides pagination of model data rows, default actions such as CRUD are supporte
 Custom grid actions both for the whole grid as well as for specific columns can be implemented by inheriting / extending
 ``App.ko.Grid`` Javascript class and / or ``views.KoGridView`` Python class.
 
+Possible ways of grid usage
+---------------------------
+* AJAX grids injected into Jinja2 templates as client-side components with `ko_grid() macro`_.
+* Optional `Foreign key filters`_ for AJAX grid components.
+* Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality via
+  AJAX query / response in non-admin ``ModelForm`` classes to select Django foreign key fields value.
+
 Simpliest grid
 --------------
 
@@ -158,7 +165,6 @@ Let's see some more advanced grid sample for the same ``Model1``, the Django vie
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
 
-
     class Model1Grid(KoGridView):
 
         client_routes = [
@@ -170,6 +176,7 @@ Let's see some more advanced grid sample for the same ``Model1``, the Django vie
             'field1',
             'field2',
             'field3',
+            # Will join field1 from related model2 foreign key automatically via Django ORM.
             'model2_fk__field1',
         ]
         allowed_filter_fields = OrderedDict([
@@ -198,11 +205,11 @@ Customizing visual display of grid fields at client-side
 
 .. highlight:: javascript
 
-To display grid rows in more compact way, there is also the possibility to override ``App.ko.GridRow.toDisplayValue()``
+To display grid rows in more compact way, there is also possibility to override ``App.ko.GridRow.toDisplayValue()``
 Javascript class method, to implement custom display layout of field values at client-side. The same method also can be
 used to generate condensed representations of long text values via Boostrap popovers, or even to display fields as form
-inputs: using grid as paginated AJAX form - (which is also possible but requires writing custom underscore.js grid layout
-templates, partially covered in modifying_visual_layout_of_grid_)::
+inputs: using grid as paginated AJAX form - (which is also possible but requires writing custom underscore.js grid
+layout templates, partially covered in modifying_visual_layout_of_grid_)::
 
     'use strict';
 
@@ -245,7 +252,9 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
                 displayValue = $('<input>', {
                     'type': 'text',
                     'class': 'form-field',
-                    'name': field + '_' + this.index,
+                    'name': field + '_' + this.ownerGrid.getValue(
+                        this.ownerGrid.meta.pkField
+                    ),
                     'value': this.values[field]
                 });
             }
@@ -1492,8 +1501,8 @@ in ``KoGridView``, `'delete' action`_.
 
 'delete' action
 ~~~~~~~~~~~~~~~
-This action is implemented to delete grid row (Django model instance) but is disabled by default. To enable grid row
-deletion, one has to override Django grid ``get_action()`` method like this::
+This action deletes grid row (Django model instance) but is disabled by default. To enable grid row deletion, one has to
+override Django grid ``get_action()`` method like this::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1653,12 +1662,130 @@ inherit ``App.Model1GridActions`` from ``App.GridActions`` and define it's own `
 Completely separate way of generating form with pure client-side underscore.js / Knockout.js templates for ``ask_user``
 action (no AJAX callback is required)  is implemented in `Client-side actions`_ section of the documentation.
 
-Because actions might be disabled at per-user or per-row basis,
+ForeignKeyGridWidget
+--------------------
+``django_jinja_knockout.widgets.ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality via AJAX
+query / response in non-admin ``ModelForm`` classes to select Django foreign key fields value.
 
-options.separateMeta = true;
-using grid as paginated AJAX form
-get_default_grid_options
-form widget
+.. highlight:: python
+
+To use ``ForeignKeyGridWidget`` in your form, import the widget and add it to your app ``forms.py``::
+
+    from django_jinja_knockout.forms import BootstrapModelForm
+    from django_jinja_knockout.widgets import ForeignKeyGridWidget
+    from .models import Model1
+
+    class Model1Form(BootstrapModelForm):
+
+        class Meta:
+            model = Model1
+            widgets = {
+                'model2_fk': ForeignKeyGridWidget(grid_options={
+                    'pageRoute': 'model2_fk_widget_grid',
+                    'dialogOptions': {'size': 'size-wide'},
+                    # Could have nested foreign key filter options defined, if required:
+                    # 'fkGridOptions': {
+                    #    'model3': {
+                    #        'pageRoute': 'model3_grid'
+                    #    }
+                    # },
+                    # Specify initial ordering, overriding default Django model Meta.ordering value (optional):
+                    'defaultOrderBy': 'field3',
+                    # Override default search field label (optional):
+                    'searchPlaceholder': 'Search by field3'
+                })
+            }
+
+Note that the value of ``grid_options`` call argument of ``ForeignKeyGridWidget()`` is very much similar to
+`Foreign key filters`_ example of Django grid method ``get_default_grid_options()`` definition of ``'fkGridOptions'``
+value.
+
+It is because grid's foreign key filter is quite similar to ``ModelForm`` foreign key field widget, with the difference
+that the first one limits grid queryset, while second one is used to set foreign key value submitted via ``ModelForm``
+(including both traditional HTML response and AJAX ones).
+
+Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
+component class instead of ``App.ko.Grid`` class.
+
+Next step is to define Django grid class which will control server-side part of our foreign key widget::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model2
+
+    class Model2FkWidgetGrid(KoGridView):
+
+        model = Model2
+        grid_fields = [
+            'field1', 'field2', 'field3'
+        ]
+        search_fields = [
+            ('field3', 'contains'),
+        ]
+        allowed_sort_orders = '__all__'
+        allowed_filter_fields = OrderedDict([
+            ('field1', None),
+            ('field2', None),
+        ])
+
+Now we have to register server-side part of foreign key widget as a named route in ``urls.py``::
+
+    from my_app.views import Model2FkWidgetGrid
+
+    # ... skipped ...
+
+    url(r'^model2-fk-grid(?P<action>/?\w*)/$', Model2FkWidgetGrid.as_view(), name='model2_fk_widget_grid',
+        kwargs={'ajax': True, 'permission_required': 'my_app.change_model2'}),
+
+    # ... skipped ...
+
+In your class-based view bound to ``Model1Form`` inject ``'model2_fk_widget_grid'`` url name (route) at client-side
+(see :doc:`viewmodels` for details about injecting url names to client-side)::
+
+    from django.views.generic.edit import CreateView
+    from .forms import Model2Form
+
+    class Model2Create(CreateView):
+        # Next line is required for ``Model2FkWidgetGrid`` to be callable from client-side:
+        client_routes = ['model2_fk_widget_grid']
+        form = Model2Form
+
+.. highlight:: javascript
+
+Client-side part of widget, located in ``App.FkGridWidget`` uses ``App.GridDialog`` to browse and to select foreign key
+field value for displayed ``ModelForm``. To render visual representation of foreign key, ``App.GridDialog`` is
+instantiated with ``gridOptions.ajaxParams.row_model_str = true``::
+
+    FkGridWidget.init = function(options) {
+        var gridOptions = $.extend(options, {
+            ajaxParams: {
+                row_model_str: true
+            },
+            selectMultipleRows: false,
+            showSelection: true
+        });
+        this.gridDialog = new App.GridDialog({
+            ownerComponent: this,
+            filterOptions: gridOptions
+        });
+    };
+
+.. highlight:: python
+
+The ``row_model_str`` parameter of grid is then passed to server-side ``KoGridView``, where it is used to generate
+``str()`` representation for each Django model instance associated to each grid row::
+
+    def postprocess_row(self, row, obj):
+        str_fields = self.get_row_str_fields(obj, row)
+        if str_fields is not None:
+            row['__str_fields'] = str_fields
+        if getattr(self ,'row_model_str', True):
+            row['__str'] = str(obj)
+        return row
+
+Note that widget itself is dependent on ``base_min.htm`` Jinja2 template included Javascript files: Knockout.js,
+``app.js``, ``ko-grid.js`` and so on. Either use ``base_min.htm`` as base template for your project, or develop a
+separate templates with these client-side scripts included.
+
 grid components interaction
 custom action types
 
