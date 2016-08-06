@@ -46,7 +46,6 @@ In your app view code (we use ``my_app/views.py`` in this example) create the fo
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
 
-
     class Model1Grid(KoGridView):
 
         client_routes = [
@@ -1244,6 +1243,9 @@ and editing grid row Django models::
 ``'save_form'`` action will display AJAX form errors in case there are ``ModelForm`` validation errors, or will add new
 row to grid when invoked via `'create_form' action`_ / update existing grid row, when invoked via `'edit_form' action`_.
 
+App.ko.Grid.updatePage() method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To automatize grid update after AJAX submitted action, the following optional JSON properties could be set in AJAX
 viewmodel response:
 
@@ -1810,7 +1812,137 @@ Note that widget itself is dependent on ``base_min.htm`` Jinja2 template which i
 ``app.js``, ``ko-grid.js`` and so on. Either use ``base_min.htm`` as base template for your project, or develop a
 separate templates with these client-side scripts included.
 
-grid components interaction
+=================
+Grids interaction
+=================
+It's easily possible to display multiple grid components at one html page. Each grid will have it's own sorting,
+filters, pagination and actions. Sometimes it's desirable to update one grid state depending on action performed
+in another grid.
+
+Server-side interaction of grids
+--------------------------------
+Imagine that ``my_app.views`` has ``Model1Grid`` and ``Model2Grid`` class-based views.
+
+``Model1Grid`` has custom action ``'ask_user'`` implemented as::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1, Model2
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        grid_fields = [
+            'field1',
+            'field2',
+            'field3',
+            'model2_fk__field1',
+        ]
+        allowed_filter_fields = OrderedDict([
+            ('field1', None),
+            ('field2', {
+                'type': 'choices', 'choices': Model1.FIELD2_CHOICES, 'multiple_choices': False
+            }),
+            ('field3', Model3.FIELD3_CHOICES),
+            ('model2_fk__field1', None)
+        ])
+
+        def action_ask_user(self):
+            obj = Model1.objects.filter(pk=self.request_get('pk_val')).first()
+            if operation_request is None:
+                return vm_list({
+                    'view': 'alert_error',
+                    'title': 'Error',
+                    'message': 'Unknown instance of Model1'
+                })
+            # Perform custom method of Model1, which returns Model2 queryset or Python list of Model2 instances:
+            model2_qs = obj.confirm_ask_user()
+            # Instantiate Model2Grid to update it.
+            model2_grid = Model2Grid()
+            model2_grid.request = self.request
+            model2_grid.init_class(model2_grid)
+            # Postprocess Model2Grid rows for client-side App.ko.Model2Grid.updatePage():
+            model2_grid_rows = model2_grid.postprocess_qs(model2_qs)
+            return vm_list({
+                'view': self.__class__.viewmodel_name,
+                'update_rows': self.postprocess_qs([obj]),
+                # return grid rows for client-side App.ko.Model2Grid.updatePage():
+                'model2_grid_view': {
+                    'update_rows': model2_grid_rows
+                }
+            })
+
+    class Model2Grid(KoGridView):
+
+        model = Model2
+
+        grid_fields = [
+            'field1',
+            'field2',
+            'field3'
+        ]
+
+Note that grid viewmodel returned by ``Model1Grid.action_ask_user()`` method has ``'model2_grid_view'`` subproperty
+to update rows of ``Model2Grid``. Two sets of rows will be returned to be updated by
+`App.ko.Grid.updatePage() method`_:
+
+* vm_list ``'update_rows': self.postprocess_qs([obj])`` list of rows to be updated for ``Model1Grid``
+* vm_list ``'model2_grid_view': {'update_rows': model2_grid_rows}`` list of rows to be updated for ``Model2Grid``
+
+
+Client-side interaction of grids
+--------------------------------
+.. highlight:: javascript
+
+At client-side ``Model1Grid`` has to implement custom ``App.GridActions`` derived Javascript class with custom
+callback for ``'ask_user'`` action::
+
+    App.Model1GridActions = function(options) {
+        $.inherit(App.GridActions.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1GridActions) {
+
+        Model1GridActions.callback_ask_user = function(viewModel) {
+            var model2GridView = viewModel.model2_grid_view;
+            delete viewModel.model2_grid_view;
+
+            this.grid.updatePage(viewModel);
+            // Get client-side class of Model2Grid component by id (instance of App.ko.Grid or derived class).
+            var model2Grid = $('#model2_grid').component();
+            if (model2Grid !== null) {
+                // Update rows of Model2Grid component (instance of App.ko.Grid or derived class).
+                model2Grid.updatePage(model2GridView);
+            }
+        };
+
+    })(App.Model1GridActions.prototype);
+
+    App.ko.Model1Grid = function(options) {
+        $.inherit(App.ko.Grid.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1Grid) {
+
+        Model1Grid.iocGridActions = function(options) {
+            return new App.Model1GridActions(options);
+        };
+
+    })(App.ko.Model1Grid.prototype);
+
+Let's explain ``callback_ask_user()`` code flow:
+
+* ``this.grid`` stores an instance of ``App.ko.Grid`` for ``Model1Grid``. We call ``.updatePage(viewModel)`` on that
+  instance to update rows of current grid.
+* jQuery DOM element ``$('#model2_grid')`` is root element for ``Model2Grid`` component. It's ``App.ko.Grid`` instance
+  is retrieved with ``.component()`` call on that element. Then ``.updatePage(model2GridView)`` updates the rows of
+  that grid.
+
+See also ``dom_attrs`` argument of `ko_grid() macro`_ to understand how to set grid component DOM id like
+``'#model2_grid'`` in the example above.
+
 custom action types
 
 App.FilterDialog
