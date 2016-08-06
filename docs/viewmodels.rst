@@ -184,7 +184,7 @@ Javascript::
 Such code have many disadvantages:
 
 1. Repeated boilerplate code with ``$.post()`` numerous arguments, including manual specification of CSRF token.
-2. Route urls are tied into client-side Javascript, instead of being supplied from Django. If you change an url of
+2. Route url names are tied into client-side Javascript, instead of being supplied from Django. If you change an url of
    route in ``urls.py``, and forget to update url path in Javascript code, AJAX POST may break.
 3. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
    to open ``BootstrapDialog``, sometimes to redirect instead, sometimes to perform some custom action?
@@ -206,7 +206,7 @@ kwargs key ``is_ajax`` to ``True`` (optional step)::
 
     url(r'^button-click/$', 'my_app.views.button_click', name='my_url_name', kwargs={'ajax': True}),
 
-register AJAX client-side route in ``context_processors.py``::
+register AJAX client-side route (url name) in ``context_processors.py``::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
 
@@ -238,8 +238,8 @@ and return the list of viewmodels in my_app/views.py::
 
 that's all.
 
-If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like above, you
-do not even have to modify a single bit of your Javascript code!
+If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like in the
+example above, you do not even have to modify a single bit of your Javascript code!
 
 Since version 0.2.0, it is possible to specify client-side routes per view, not having to define them globally
 in template context processor::
@@ -251,7 +251,7 @@ in template context processor::
 
 and per class-based view::
 
-    class MyGrid(KoGridView):
+    class MyGridView(KoGridView):
 
         client_routes = [
             'my_grid_url_name'

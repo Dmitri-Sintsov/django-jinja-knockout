@@ -29,8 +29,8 @@ Possible ways of grid usage
 ---------------------------
 * AJAX grids injected into Jinja2 templates as client-side components with `ko_grid() macro`_.
 * Optional `Foreign key filters`_ for AJAX grid components.
-* Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality via
-  AJAX query / response in non-admin ``ModelForm`` classes to select Django foreign key fields value.
+* Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality for
+  ``ModelForm`` to select foreign key field value via AJAX query / response.
 
 Simpliest grid
 --------------
@@ -56,7 +56,8 @@ In your app view code (we use ``my_app/views.py`` in this example) create the fo
         model = Model1
         grid_fields = '__all__'
 
-Now let's add a named route in ``urls.py`` (see Django docs or some Django project for the complete ``urls.py`` example)::
+Now let's add an url name (route) in ``urls.py`` (see Django docs or some Django project for the complete ``urls.py``
+example)::
 
     from my_app.views import Model1Grid
 
@@ -546,7 +547,7 @@ Foreign key filters
         ])
 
 Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for field ``Model1.model2_fk`` to
-``model2_grid`` route::
+``model2_grid`` url name (route)::
 
     class Model1Grid(KoGridView):
 
@@ -743,7 +744,7 @@ routing, which would be too limiting. All of grid actions are performed as HTTP 
     # ... skipped ...
 
 Value of ``action`` kwarg is normalized (leading '/' are stripped) and is stored in ``self.current_action_name``
-property of grid instance at server-side. Key name of view kwargs dict used for grid action route may be changed via
+property of grid instance at server-side. Key name of view kwargs dict used for grid action url name may be changed via
 Django grid class static property ``action_kwarg``::
 
     from django_jinja_knockout.views import KoGridView
@@ -1662,19 +1663,24 @@ inherit ``App.Model1GridActions`` from ``App.GridActions`` and define it's own `
 Completely separate way of generating form with pure client-side underscore.js / Knockout.js templates for ``ask_user``
 action (no AJAX callback is required)  is implemented in `Client-side actions`_ section of the documentation.
 
+====================
 ForeignKeyGridWidget
---------------------
-``django_jinja_knockout.widgets.ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality via AJAX
-query / response in non-admin ``ModelForm`` classes to select Django foreign key fields value.
+====================
+``django_jinja_knockout.widgets.ForeignKeyGridWidget`` is similar to ``django.admin`` ``ForeignKeyRawIdWidget``, but
+is easier to integrate into non-admin views. It provides built-in sorting / filters (and potentially even custom edit
+actions) because it is based on the same code of ``KoGridView`` and ``App.ko.Grid``.
 
 .. highlight:: python
 
-To use ``ForeignKeyGridWidget`` in your form, import the widget and add it to your app ``forms.py``::
+To use ``ForeignKeyGridWidget`` in your form, import the widget and add it to your app ``forms.py`` ``ModelForm``
+class::
 
     from django_jinja_knockout.forms import BootstrapModelForm
     from django_jinja_knockout.widgets import ForeignKeyGridWidget
     from .models import Model1
 
+    # One also may inherit directly from forms.ModelForm, but bootstrap css classes
+    # will not be applied automatically to the fields.
     class Model1Form(BootstrapModelForm):
 
         class Meta:
@@ -1696,16 +1702,15 @@ To use ``ForeignKeyGridWidget`` in your form, import the widget and add it to yo
                 })
             }
 
-Note that the value of ``grid_options`` call argument of ``ForeignKeyGridWidget()`` is very much similar to
-`Foreign key filters`_ example of Django grid method ``get_default_grid_options()`` definition of ``'fkGridOptions'``
-value.
+Note that the value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
+``'fkGridOptions'`` value in `Foreign key filters`_ example of Django grid method ``get_default_grid_options()``.
 
-It is because grid's foreign key filter is quite similar to ``ModelForm`` foreign key field widget, with the difference
-that the first one limits grid queryset, while second one is used to set foreign key value submitted via ``ModelForm``
+It is because grid's foreign key filter is quite similar to ``ForeignKeyGridWidget``, with the difference that the first
+one limits grid queryset, while second one is used to set foreign key value, to be later submitted via ``ModelForm``
 (including both traditional HTML response and AJAX ones).
 
 Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
-component class instead of ``App.ko.Grid`` class.
+component class instead of ``App.ko.Grid`` component class.
 
 Next step is to define Django grid class which will control server-side part of our foreign key widget::
 
@@ -1727,7 +1732,7 @@ Next step is to define Django grid class which will control server-side part of 
             ('field2', None),
         ])
 
-Now we have to register server-side part of foreign key widget as a named route in ``urls.py``::
+Now we have to register server-side part of foreign key widget as a url name in ``urls.py``::
 
     from my_app.views import Model2FkWidgetGrid
 
@@ -1738,7 +1743,7 @@ Now we have to register server-side part of foreign key widget as a named route 
 
     # ... skipped ...
 
-In your class-based view bound to ``Model1Form`` inject ``'model2_fk_widget_grid'`` url name (route) at client-side
+In your class-based view that handlers ``Model1Form`` inject ``'model2_fk_widget_grid'`` url name (route) at client-side
 (see :doc:`viewmodels` for details about injecting url names to client-side)::
 
     from django.views.generic.edit import CreateView
@@ -1749,11 +1754,30 @@ In your class-based view bound to ``Model1Form`` inject ``'model2_fk_widget_grid
         client_routes = ['model2_fk_widget_grid']
         form = Model2Form
 
+Of course the same widget can be used in ``ModelForm`` related actions of grids like `'create_form' action`_ /
+`'edit_form' action`_ and custom actions with ``ModelForm``.
+
+When the widget is used in many different views, it's more handy to register client-side route (url name) globally in
+project ``context_processors.py``::
+
+    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
+
+
+    class TemplateContextProcessor(BaseContextProcessor):
+
+        CLIENT_ROUTES = (
+            ('model2_fk_widget_grid', True),
+        )
+
+
+    def template_context_processor(HttpRequest=None):
+        return TemplateContextProcessor(HttpRequest).get_context_data()
+
 .. highlight:: javascript
 
-Client-side part of widget, located in ``App.FkGridWidget`` uses ``App.GridDialog`` to browse and to select foreign key
-field value for displayed ``ModelForm``. To render visual representation of foreign key, ``App.GridDialog`` is
-instantiated with ``gridOptions.ajaxParams.row_model_str = true``::
+Client-side part of ``ForeignKeyGridWidget``, located in ``App.FkGridWidget``, uses ``App.GridDialog`` to browse and to
+select foreign key field value for displayed ``ModelForm``. To render chosen visual representation of foreign key,
+``App.GridDialog`` is instantiated with ``gridOptions.ajaxParams.row_model_str = true``::
 
     FkGridWidget.init = function(options) {
         var gridOptions = $.extend(options, {
@@ -1782,7 +1806,7 @@ The ``row_model_str`` parameter of grid is then passed to server-side ``KoGridVi
             row['__str'] = str(obj)
         return row
 
-Note that widget itself is dependent on ``base_min.htm`` Jinja2 template included Javascript files: Knockout.js,
+Note that widget itself is dependent on ``base_min.htm`` Jinja2 template which includes Javascript files: Knockout.js,
 ``app.js``, ``ko-grid.js`` and so on. Either use ``base_min.htm`` as base template for your project, or develop a
 separate templates with these client-side scripts included.
 

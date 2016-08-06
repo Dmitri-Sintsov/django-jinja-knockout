@@ -11,8 +11,8 @@ Key features
 * Bootstrap / Jinja2 / Knockout.js integration into Django projects.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
-* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality via AJAX query / response in non-admin
-``ModelForm`` classes to select Django ``ModelForm`` foreign key fields value.
+* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
+  field value via AJAX query / response.
 
 Overview
 --------
@@ -59,8 +59,8 @@ Knockout.js templates and Javascript classes at client-side. Besides providing s
 allows to implement arbitrary actions in descendant classes and quickly design django.admin-like user interfaces in
 non-admin views. AJAX calls also saves some HTTP traffic, reducing bandwitch and making the UI more responsive.
 
-New ``ForeignKeyGridWidget`` was developed which provides ``ForeignKeyRawIdWidget``-like functionality
-via AJAX query / response in non-admin ``ModelForm`` classes to select foreign key fields value.
+New ``ForeignKeyGridWidget`` was developed which provides ``ForeignKeyRawIdWidget``-like functionality in non-admin
+``ModelForm`` classes to select foreign key fields value via AJAX query / response.
 
 Support of auto-instantiating Javascript classes with binding these to selected DOM nodes with 'component' css class via
 ``App.Components`` class.
