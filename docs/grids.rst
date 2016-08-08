@@ -179,6 +179,9 @@ Let's see some more advanced grid sample for the same ``Model1``, the Django vie
             # Will join field1 from related model2 foreign key automatically via Django ORM.
             'model2_fk__field1',
         ]
+        allowed_sort_orders = [
+            'field1', 'field2', 'field3'
+        ]
         allowed_filter_fields = OrderedDict([
             ('field1', None),
             ('field2', {
@@ -1113,10 +1116,32 @@ glyphicons).
 'meta' action
 ~~~~~~~~~~~~~
 
-Returns AJAX response data with the list of allowed sort orders for grid fields, whether search field should be
-displayed, verbose name of associated Django model, name of primary key field, list of defined grid actions, allowed
-grid fields (list of grid columns) and field filters which will be displayed in top navigation bar of grid client-side
-component (``'ko_grid_nav'`` underscore.js template).
+Returns AJAX response data:
+
+* the list of allowed sort orders for grid fields (``'sortOrders'``);
+* flag whether search field should be displayed (``'meta.hasSearch'``);
+* verbose name of associated Django model (``'meta.verboseName' / 'meta.verboseNamePlural'``);
+* name of primary key field ``'meta.pkField'`` that is used in different parts of ``App.ko.Grid`` to address grid rows;
+* list of defined grid actions, See `Standard grid actions`_, `Grid action routing`_, `Grid custom action types`_;
+* allowed grid fields (list of grid columns), see `Grid configuration`_;
+* field filters which will be displayed in top navigation bar of grid client-side component in
+  ``'ko_grid_nav'`` underscore.js template, see `Filter fields`_;
+
+Custom Django grid class-based views derived from ``KoGridView`` also may define more meta properties for custom
+client-side templates. These should be updated "on the fly" automatically with standard client-side
+``App.GridActions.callback_meta()`` method.
+
+.. highlight:: javascript
+
+Custom actions can also update grid meta as well, calling client-side ``App.ko.Grid.updateMeta()`` method directly::
+
+    Model1GridActions.callback_approve_user = function(viewModel) {
+        this.grid.updateMeta(viewModel.meta);
+    };
+
+See `Action AJAX response handler`_ how meta is updated in client-side AJAX callback.
+
+See `Modifying visual layout of grid`_ how to override client-side underscore.js / Knockout.js templates.
 
 'list' action
 ~~~~~~~~~~~~~
@@ -1139,6 +1164,8 @@ By default ``meta`` action is not performed in separate AJAX query, rather, it's
 AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server load. However, in some cases,
 grid filters has to be set up with specific choices before ``'list'`` action is performed. That is required to open
 grid with initially selected field filter choices.
+
+.. highlight:: python
 
 If server-side Django grid class specifies the list of selected choices for some field filter like this::
 
@@ -1815,12 +1842,11 @@ separate templates with these client-side scripts included.
 =================
 Grids interaction
 =================
-It's easily possible to display multiple grid components at one html page. Each grid will have it's own sorting,
-filters, pagination and actions. Sometimes it's desirable to update one grid state depending on action performed
-in another grid.
+Multiple grid components can be rendered at one html page. Each grid will have it's own sorting, filters, pagination and
+actions. Sometimes it's desirable to update one grid state depending on action performed in another grid.
 
-Server-side interaction of grids
---------------------------------
+Server-side interaction between grids
+-------------------------------------
 Imagine that ``my_app.views`` has ``Model1Grid`` and ``Model2Grid`` class-based views.
 
 ``Model1Grid`` has custom action ``'ask_user'`` implemented as::
@@ -1883,19 +1909,19 @@ Imagine that ``my_app.views`` has ``Model1Grid`` and ``Model2Grid`` class-based 
         ]
 
 Note that grid viewmodel returned by ``Model1Grid.action_ask_user()`` method has ``'model2_grid_view'`` subproperty
-to update rows of ``Model2Grid``. Two sets of rows will be returned to be updated by
+which will be used to update rows of ``Model2Grid``. Two lists of rows will be returned to be updated by
 `App.ko.Grid.updatePage() method`_:
 
 * vm_list ``'update_rows': self.postprocess_qs([obj])`` list of rows to be updated for ``Model1Grid``
 * vm_list ``'model2_grid_view': {'update_rows': model2_grid_rows}`` list of rows to be updated for ``Model2Grid``
 
 
-Client-side interaction of grids
---------------------------------
+Client-side interaction between grids
+-------------------------------------
 .. highlight:: javascript
 
-At client-side ``Model1Grid`` has to implement custom ``App.GridActions`` derived Javascript class with custom
-callback for ``'ask_user'`` action::
+At client-side ``Model1Grid`` has to implement custom ``App.GridActions`` derived class with custom callback for
+``'ask_user'`` action::
 
     App.Model1GridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
@@ -1936,14 +1962,190 @@ Let's explain ``callback_ask_user()`` code flow:
 
 * ``this.grid`` stores an instance of ``App.ko.Grid`` for ``Model1Grid``. We call ``.updatePage(viewModel)`` on that
   instance to update rows of current grid.
-* jQuery DOM element ``$('#model2_grid')`` is root element for ``Model2Grid`` component. It's ``App.ko.Grid`` instance
-  is retrieved with ``.component()`` call on that element. Then ``.updatePage(model2GridView)`` updates the rows of
-  that grid.
+* jQuery selector ``$('#model2_grid')`` finds root DOM element for ``Model2Grid`` component. It's ``App.ko.Grid``
+  instance is retrieved with ``.component()`` call on that jQuery selector. When grid class instance is stored in
+  local ``model2Grid`` variable, it's rows are updated by callling ``.updatePage(model2GridView)`` method of that grid.
 
 See also ``dom_attrs`` argument of `ko_grid() macro`_ to understand how to set grid component DOM id like
 ``'#model2_grid'`` in the example above.
 
-custom action types
+========================
+Grid custom action types
+========================
+.. highlight:: python
+
+It is possible to define new grid action types. However to display these at client-side one has to use custom templates,
+which is explained in `Modifying visual layout of grid`_ section.
+
+Let's define new action type ``'button_bottom'``, which will be displayed as grid action buttons below the grid rows,
+not above as standard ``'button'`` action type actions.
+
+First step is to override your Django grid class ``get_actions()`` method to return new grid action type with action
+definition(s)::
+
+    class Model1Grid(KoGridView):
+
+        model = Model1
+
+        # ... skipped ...
+
+        def get_actions(self):
+            actions = super().get_actions()
+            # Custom type UI actions.
+            actions['button_bottom'] = OrderedDict([
+                ('approve_user', {
+                    'localName': _('Approve user'),
+                    'class': {
+                        'button': 'btn-warning',
+                        'glyphicon': 'glyphicon-user'
+                    },
+                    'enabled': True
+                })
+            ])
+            return actions
+
+        def get_custom_meta(self):
+            return {
+                'user_name': str(self.user)
+            }
+
+        def action_meta(self):
+            vm = super().action_meta()
+            vm['meta'].update(self.get_custom_meta())
+            return vm
+
+        def action_approve_user(self):
+            role = self.request.POST.get('role_str')
+            self.user = self.request.POST.get('user_id')
+            self.user.set_role(role)
+            # Implement custom logic in user model:
+            user.approve()
+            return vm_list({
+                'view': self.__class__.viewmodel_name,
+                'title': format_html('User was approved {0}', self.user.username),
+                'message': 'Congratulations!!!',
+                'meta': self.get_custom_meta(),
+                'update_rows': [self.user]
+            })
+
+.. highlight:: javascript
+
+Second step is to override ``uiActionTypes`` property of client-side ``App.ko.Grid`` class to add ``'button_bottom'`` to
+the list of interactive action types::
+
+    App.ko.Model1Grid = function(options) {
+        $.inherit(App.ko.Grid.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1Grid) {
+
+        Model1Grid.uiActionTypes = ['button', 'click', 'glyphicon', 'button_bottom'];
+
+        Model1Grid.iocGridActions = function(options) {
+            return new App.Model1GridActions(options);
+        };
+
+        Model1Grid.getRoleFilterChoice = function() {
+            return this.getKoFilter('role').getActiveChoices()[0];
+        };
+
+    })(App.ko.Model1Grid.prototype);
+
+One also has to implement client-side handling methods for newly defined ``approve_user`` action. The following example
+assumes that the action will be perofmed as AJAX query / response with ``Model1Grid.action_approve_user()`` defined
+above::
+
+    App.Model1GridActions = function(options) {
+        $.inherit(App.GridActions.prototype, this);
+        this.init(options);
+    };
+
+    (function(Model1GridActions) {
+
+        Model1GridActions.queryargs_approve_user = function(options) {
+            var roleFilterChoice = this.grid.getRoleFilterChoice();
+            options['role_str'] = roleFilterChoice.value;
+            return options;
+        };
+
+        Model1GridActions.callback_approve_user = function(viewModel) {
+            // Update grid meta (visual appearance).
+            this.grid.updateMeta(viewModel.meta);
+            // Update grid rows.
+            this.grid.updatePage(viewModel);
+            // Display dialog with server-side title / message generated in Model1Grid.action_approve_user.
+            var dialog = new App.Dialog(viewModel);
+            dialog.alert();
+        };
+
+    })(App.Model1GridActions.prototype);
+
+
+.. highlight:: jinja
+
+And the final step is to generate client-side component in Jinja2 template with overriden ``ko_grid_body`` template ::
+
+    {% extends 'base_min.htm' %}
+    {% from 'bs_navs.htm' import bs_navs with context %}
+    {% from 'ko_grid.htm' import ko_grid with context %}
+    {% from 'ko_grid_body.htm' import ko_grid_body with context %}
+
+
+    {% block main %}
+
+    {{ bs_navs(main_navs) }}
+
+    {{ ko_grid(
+        grid_options={
+            'pageRoute': 'model1_grid',
+        },
+        dom_attrs={
+            'id': 'model1_grid'
+        },
+        body_call_id='model1_ko_grid_body'
+    ) }}
+
+    {% endblock main %}
+
+    {% block bottom_scripts %}
+        {{ ko_grid_body() }}
+        {{
+            ko_grid_body(
+                call_ids={
+                    'ko_grid_body': 'model1_ko_grid_body',
+                },
+                template_ids={
+                    'ko_grid_nav': 'model1_ko_grid_nav',
+                    'ko_grid_table': 'model1_ko_grid_table'
+                }
+            )
+        }}
+
+        <script type="text/template" id="model1_ko_grid_body">
+            <div class="panel panel-primary">
+                <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+                <div class="panel-body">
+                    <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
+                    <div data-template-id="model1_ko_grid_nav"></div>
+                    <!-- /ko -->
+                    <div data-template-id="model1_ko_grid_table"></div>
+                    <!-- ko foreach: actionTypes['button_bottom'] -->
+                        <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
+                            <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
+                            <span data-bind="text: $data.localName"></span>
+                        </button>
+                    <!-- /ko -->
+                </div>
+            </div>
+        </script>
+
+        <script src="{{ static_hash('js/front/ko-grid.js') }}"></script>
+        <script src="{{ static_hash('js/front/model1-grid.js') }}"></script>
+    {% endblock bottom_scripts %}
+
+Knockout.js ``<!-- ko foreach: actionTypes['button_bottom'] -->`` binding is very similar to standard ``'button'`` type
+actions binding with the exception that buttons are placed below the grid table, not above.
 
 App.FilterDialog
 App.GridDialog
