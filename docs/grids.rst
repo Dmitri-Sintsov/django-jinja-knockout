@@ -32,14 +32,97 @@ Possible ways of grid usage
 * Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality for
   ``ModelForm`` to select foreign key field value via AJAX query / response.
 
+Models used in this documentation
+---------------------------------
+.. highlight:: python
+
+This documentation refers to two Django models with one to many relationship defined in ``my_app.models.py``::
+
+    from collections import OrderedDict
+    from django.db import models
+    from django_jinja_knockout.tpl import format_local_date
+
+    class Club(models.Model):
+        CATEGORY_RECREATIONAL = 0
+        CATEGORY_PROFESSIONAL = 1
+        CATEGORIES = (
+            (CATEGORY_RECREATIONAL, 'Recreational'),
+            (CATEGORY_PROFESSIONAL, 'Professional'),
+        )
+        SPORT_BADMINTON = 0
+        SPORT_TENNIS = 1
+        SPORT_TABLE_TENNIS = 2
+        SPORT_SQUASH = 3
+        SPORTS = (
+            (SPORT_BADMINTON, 'Badminton'),
+            (SPORT_TENNIS, 'Tennis'),
+            (SPORT_TABLE_TENNIS, 'Table tennis'),
+            (SPORT_SQUASH, 'Squash'),
+        )
+        title = models.CharField(max_length=64, verbose_name='Title')
+        sport = models.IntegerField(choices=SPORTS, default=SPORT_BADMINTON, verbose_name='Sport')
+        category = models.IntegerField(choices=CATEGORIES, default=CATEGORY_RECREATIONAL, verbose_name='Category')
+        foundation_date = models.DateField(db_index=True, verbose_name='Foundation date')
+
+        def get_str_fields(self):
+            return OrderedDict([
+                ('title', title),
+                ('sport', self.get_sport_display()),
+                ('category', self.get_category_display()),
+                ('foundation_date', format_local_date(self.foundation_date))
+            ])
+
+        def __str__(self):
+            return ' › '.join(list(self.get_str_fields.values()))
+
+    class ClubMember(models.Model):
+        ROLE_PROMOTER = 0
+        ROLE_SCHOLAR = 1
+        ROLE_EVANGELIST = 2
+        ROLE_FOUNDER = 3
+        ROLES = (
+            (ROLE_PROMOTER, 'Promoter'),
+            (ROLE_SCHOLAR, 'Scholar'),
+            (ROLE_EVANGELIST, 'Evangelist'),
+            (ROLE_FOUNDER, 'Founder'),
+        )
+        club = models.ForeignKey(Club, verbose_name='Club')
+        first_name = models.CharField(max_length=30, verbose_name='First name')
+        last_name = models.CharField(max_length=30, verbose_name='Last name')
+        role = models.IntegerField(choices=ROLES, default=ROLE_PROMOTER, verbose_name='Member role')
+        note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
+        # Allows to have only one endorsed member via True, but multiple non-endorsed members via None.
+        is_endorsed = models.NullBooleanField(default=None, verbose_name='Endorsed')
+
+        # Complex nested str fields with foregin keys.
+        def get_str_fields(self):
+            # Nested formatting of foreign keys:
+            parts = OrderedDict([
+                ('fk1', self.fk1.get_str_fields()),
+                 ('fk2', self.fk2.get_str_fields()),
+            ])
+            if self.fk3 is not None:
+                parts['fk3'] = self.fk3.get_str_fields(verbose=False)
+            # Formatting of scalar fields:
+            parts['sum'] = format_currency(self.sum)
+            parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
+            return parts
+
+        # Model1.__str__ uses Model1.get_str_fields() for disambiguation.
+        def __str__(self):
+            str_fields = self.get_str_fields()
+            join_dict_values(' / ', str_fields, ['fk1', 'fk2'])
+            if 'fk3' in str_fields:
+                join_dict_values(' / ', str_fields, ['fk1'])
+            return ' › '.join(str_fields.values())
+
+
 Simpliest grid
 --------------
 
 If you have Django model created and migrated, then it is quite easy to add grid for that model to the Django app Jinja2
 template, providing your templates are inherited from ``jinja2/base_min.htm``, or from a custom-based template which
 includes the same client-side scripts as ``base_min.htm`` does.
-
-.. highlight:: python
 
 In your app view code (we use ``my_app/views.py`` in this example) create the following view::
 
@@ -1168,23 +1251,6 @@ grid with initially selected field filter choices.
 .. highlight:: python
 
 If server-side Django grid class specifies the list of selected choices for some field filter like this::
-
-    class ClubMember(models.Model):
-        ROLE_PROMOTER = 0
-        ROLE_SCHOLAR = 1
-        ROLE_EVANGELIST = 2
-        ROLE_FOUNDER = 3
-        ROLES = (
-            (ROLE_PROMOTER, 'Promoter'),
-            (ROLE_SCHOLAR, 'Scholar'),
-            (ROLE_EVANGELIST, 'Evangelist'),
-            (ROLE_FOUNDER, 'Founder'),
-        )
-        profile = models.ForeignKey('my_app.Profile', verbose_name='User profile')
-        role = models.IntegerField(choices=ROLES, default=ROLE_PROMOTER, verbose_name='Member role')
-        note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
-        # Allows to have only one endorsed member via True, but multiple non-endorsed members via None.
-        is_endorsed = models.NullBooleanField(default=None, verbose_name='Endorsed')
 
 
     class ClubMemberGrid(KoGridView):
