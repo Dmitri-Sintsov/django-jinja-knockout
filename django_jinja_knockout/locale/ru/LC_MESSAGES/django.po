@@ -26,6 +26,9 @@ msgstr "Да"
 msgid "No"
 msgstr "Нет"
 
+msgid "Home"
+msgstr "В начало"
+
 msgid "First page"
 msgstr "В начало"
 
