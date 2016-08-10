@@ -7,6 +7,10 @@
 		url('/static/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 
+body {
+	padding: 1em;
+}
+
 .label {
 	margin: 0 0.1em;
 }
@@ -34,6 +38,11 @@
 .href-target:target {
 	border: 2px solid Aquamarine;
 	background-color: Aquamarine;
+}
+
+.nav-main {
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 .vscroll,
@@ -201,4 +210,3 @@ table > tbody > tr.grid-new-row > td.success {
 table > tbody > tr.grid-new-row > td.info {
 	background-color: #E0F5FF; /* original: d9edf7 */
 }
-
