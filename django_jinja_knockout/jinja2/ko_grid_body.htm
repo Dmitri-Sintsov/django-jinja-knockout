@@ -93,19 +93,17 @@
 {% if 'ko_grid_search' not in call_ids %}
 {% do call_ids.update({'ko_grid_search': 'ko_grid_search'}) %}
 <script type="text/template" id="{{ template_ids['ko_grid_search'] }}">
-    <form data-bind="if: meta.hasSearch()" class="navbar-form navbar-left">
-        <div class="form-group">
+    <form class="navbar-form navbar-left">
+        <div data-bind="if: meta.hasSearch()" class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
+            <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
         </div>
-        <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
-        <% if (self.get(self, 'show_action_buttons')) { %>
         <!-- ko foreach: actionTypes['button'] -->
             <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
                 <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
                 <span data-bind="text: $data.localName"></span>
             </button>
         <!-- /ko -->
-        <% } %>
     </form>
 </script>
 {% endif %}
@@ -225,7 +223,7 @@
         <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
         <div class="panel-body">
         <% } %>
-            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
+            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
             <div data-template-id="{{ call_ids['ko_grid_nav'] }}"></div>
             <!-- /ko -->
             <div data-template-id="{{ call_ids['ko_grid_table'] }}"></div>
