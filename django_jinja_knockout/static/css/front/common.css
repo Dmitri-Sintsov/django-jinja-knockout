@@ -203,10 +203,14 @@ a[name="#"] {
 	width: 2em;
 }
 
+/* Support for App.ko.Grid highlight mode 1 / 2 */
+table > tbody > tr.grid-new-row.success > td,
 table > tbody > tr.grid-new-row > td.success {
 	background-color: #EDFFE6; /* original: dff0d8 */
 }
 
+/* Support for App.ko.Grid highlight mode 1 / 2 */
+table > tbody > tr.grid-new-row.info > td,
 table > tbody > tr.grid-new-row > td.info {
 	background-color: #E0F5FF; /* original: d9edf7 */
 }

@@ -40,7 +40,7 @@
 {% if 'ko_grid_row_click_menu' not in call_ids %}
 <script type="text/template" id="{{ template_ids['ko_grid_row_click_menu'] }}">
     <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
-        <button class="btn btn-block" data-bind="css: getKoCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
+        <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
     </div>
 </script>
@@ -99,8 +99,8 @@
             <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
         </div>
         <!-- ko foreach: actionTypes['button'] -->
-            <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
-                <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
+            <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction({}); }">
+                <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
                 <span data-bind="text: $data.localName"></span>
             </button>
         <!-- /ko -->
@@ -162,7 +162,7 @@
                                 text: name,
                                 grid_order_by,
                                 click: onSwitchOrder,
-                                css:{'sort-inactive': order() === null, 'sort-asc': order() === true, 'sort-desc': order() === false}
+                                css: orderCss
                             " class="halflings-before" name="#"></a>
                             <!-- /ko -->
                             <!-- ko if: !isSortedColumn() -->
@@ -182,13 +182,13 @@
                     <tr data-bind="grid_row, css: rowCss">
                         <!-- ko if: $parent.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
-                            <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
+                            <span data-bind="css: selectionCss" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
                         <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
                         <td class="grid-glyph-cell" data-bind="click: function() { doAction({gridRow: $parent}); }">
                             <!-- ko if: $parent.observeEnabledAction($data) -->
-                            <span data-bind="css: getKoCss(), attr: {title: $data.localName}" class="halflings glyphicon"></span>
+                            <span data-bind="css: actionCss(), attr: {title: $data.localName}" class="halflings glyphicon"></span>
                             <!-- /ko -->
                         </td>
                         <!-- /ko -->
@@ -197,7 +197,7 @@
                             click: $parent.onRowClick.bind($parent),
                             grid_row_value: $parent.displayValues[field],
                             attr: {index: $index, 'data-caption': name},
-                            css: {success: !($index() & 1), info: $index() & 1}
+                            css: columnCss
                         "></td>
                         <!-- /ko -->
                     </tr>

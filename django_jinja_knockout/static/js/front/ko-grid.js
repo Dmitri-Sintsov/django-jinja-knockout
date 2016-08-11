@@ -55,6 +55,29 @@ App.ko.GridColumnOrder = function(options) {
         // true means 'asc', false means 'desc'.
         this.order = ko.observable(null);
         this.isSortedColumn = ko.observable(options.isSorted);
+        this.orderCss = ko.computed(this.getOrderCss, this);
+        this.columnCss = ko.computed(this.getColumnCss, this);
+    };
+
+    GridColumnOrder.getOrderCss = function() {
+        return {
+            'sort-inactive': this.order() === null,
+            'sort-asc': this.order() === true,
+            'sort-desc': this.order() === false
+        };
+    };
+
+    GridColumnOrder.getColumnCss = function() {
+        var css = {};
+        if (this.ownerGrid.highlightMode() === 1) {
+            // Finds foreach $index() inaccessible directly in computed.
+            var index = this.ownerGrid.gridColumns().indexOf(this);
+            css = $.extend({
+                'success': !(index & 1),
+                'info': index & 1
+            }, css);
+        }
+        return css;
     };
 
     GridColumnOrder.setSwitchElement = function($element) {
@@ -642,20 +665,39 @@ App.ko.GridRow = function(options) {
         this.displayValues = _.mapObject(this.values, _.bind(this.wrapDisplayValue, this));
     };
 
+    GridRow.getSelectionCss = function() {
+        return {
+            'glyphicon-check': this.isSelectedRow(),
+            'glyphicon-unchecked': !this.isSelectedRow()
+        };
+    };
+
+    GridRow.getRowCss = function() {
+        var css = {
+            'grid-new-row': this.isUpdated(),
+            'pointer': this.ownerGrid.actionTypes['click']().length > 0
+        };
+        if (this.ownerGrid.highlightMode() === 2) {
+            // Finds foreach $index() inaccessible directly in computed.
+            var index = this.ownerGrid.gridRows().indexOf(this);
+            css = $.extend({
+                'success': !(index & 1),
+                'info': index & 1
+            }, css);
+        }
+        return css;
+    };
+
     GridRow.init = function(options) {
         var self = this;
         this.ownerGrid = options.ownerGrid;
         this.index = options.index;
         this.isSelectedRow = ko.observable(options.isSelectedRow);
+        this.selectionCss = ko.computed(this.getSelectionCss, this);
         this.isUpdated = ko.observable(
             (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
         );
-        this.rowCss = ko.computed(function() {
-            return {
-                'grid-new-row': this.isUpdated(),
-                'pointer': this.ownerGrid.actionTypes['click']().length > 0
-            };
-        }, this);
+        this.rowCss = ko.computed(this.getRowCss, this);
         this.isSelectedRow.subscribe(function(newValue) {
             if (newValue) {
                 self.ownerGrid.onSelectRow(self);
@@ -1164,13 +1206,14 @@ App.ko.Grid = function(options) {
         this.options = $.extend({
             alwaysShowPagination: true,
             ajaxParams: {},
-            ownerCtrl: null,
             defaultOrderBy: null,
             fkGridOptions: {},
+            highlightMode: 2,
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
             showSelection: false,
+            ownerCtrl: null,
             pageRoute: null,
             pageRouteKwargs: {},
         }, options);
@@ -1209,6 +1252,7 @@ App.ko.Grid = function(options) {
         this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
         this.gridSearchDisplayStr = ko.observable('');
         this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
+        this.highlightMode = ko.observable(this.options.highlightMode);
         this.initAjaxParams();
         this.localize();
 
@@ -2020,7 +2064,7 @@ App.ko.Action = function(options) {
         this.localName = this.actDef.localName;
     };
 
-    Action.getKoCss = function(type) {
+    Action.actionCss = function(type) {
         var koCss = {};
         switch (typeof this.actDef.class) {
         case 'string':
