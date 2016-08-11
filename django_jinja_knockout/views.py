@@ -340,6 +340,14 @@ class FieldValidator():
                 'type': 'fk',
                 'multiple_choices': True
             }
+        elif isinstance(self.model_field, models.BooleanField):
+            filter_def['choices'] = (
+                (True, _('Yes')),
+                (False, _('No'))
+            )
+            return {
+                'type': 'choices'
+            }
         elif hasattr(self.model_field, 'choices'):
             filter_def['choices'] = self.model_field.choices
             return {
@@ -774,6 +782,7 @@ class GridActionsMixin():
     form = None
     formset = None
     form_with_inline_formsets = None
+    enable_deletion = False
 
     def get_model_meta(self, key):
         return get_meta(self.__class__.model, key)
@@ -817,7 +826,7 @@ class GridActionsMixin():
                     'enabled': True
                 }),
                 ('delete_confirmed', {
-                    'enabled': False
+                    'enabled': self.__class__.enable_deletion
                 })
             ]),
             'button': OrderedDict([
@@ -871,7 +880,7 @@ class GridActionsMixin():
                 ('delete', {
                     'localName': _('Remove'),
                     'class': 'glyphicon-remove',
-                    'enabled': False
+                    'enabled': self.__class__.enable_deletion
                 })
             ])
         }
