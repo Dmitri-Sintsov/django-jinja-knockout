@@ -699,6 +699,11 @@ App.ko.GridRow = function(options) {
         return false;
     };
 
+    GridRow.onSelect = function(data, ev) {
+        this.ownerGrid.rowSelect(this);
+        return false;
+    };
+
     GridRow.setRowElement = function($element) {
         this.$row = $element;
     };
@@ -1074,8 +1079,7 @@ App.ko.Grid = function(options) {
 
     Grid.initAjaxParams = function() {
         this.queryArgs = $.extend({
-                page: 1,
-                row_model_str: false
+                page: 1
             },
             this.options.ajaxParams
         );
@@ -1184,6 +1188,13 @@ App.ko.Grid = function(options) {
         this.sortOrders = {};
         this.selectedRowsPks = [];
         this.gridColumns = ko.observableArray();
+        this.totalColumns = ko.computed(function() {
+            var totalColumns = this.gridColumns().length + this.actionTypes['glyphicon']().length;
+            if (this.options.showSelection) {
+                totalColumns++;
+            }
+            return totalColumns;
+        }, this);
         this.gridFilters = ko.observableArray();
         this.gridRows = ko.observableArray();
         this.gridPages = ko.observableArray();
@@ -1587,14 +1598,17 @@ App.ko.Grid = function(options) {
         return new App.ActionsMenuDialog(options);
     };
 
-    Grid.rowClick = function(currKoRow) {
-        this.lastClickedKoRow = currKoRow;
+    Grid.rowSelect = function(currKoRow) {
         console.log('Grid.rowClick() values: ' + JSON.stringify(currKoRow.values));
         if (this.options.selectMultipleRows) {
             currKoRow.inverseSelection();
         } else {
             var currPkVal = this.selectOnlyKoRow(currKoRow);
         }
+    };
+
+    Grid.rowClick = function(currKoRow) {
+        this.lastClickedKoRow = currKoRow;
         if (this.actionTypes.click().length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
@@ -1603,6 +1617,8 @@ App.ko.Grid = function(options) {
             this.actionsMenuDialog.show();
         } else if (this.actionTypes.click().length > 0) {
             this.actionTypes.click()[0].doAction({gridRow: currKoRow});
+        } else {
+            this.rowSelect(currKoRow);
         }
         /*
             if (this.gridActions.has('edit_formset')) {
@@ -2024,8 +2040,6 @@ App.ko.Action = function(options) {
                 return;
             }
             this.grid.lastClickedKoRow = options.gridRow;
-            // Clicking current row implies that it is also has to be used for current action.
-            options.gridRow.isSelectedRow(true);
             // Clicked row pk value.
             actionOptions['pk_val'] = options.gridRow.getValue(this.grid.meta.pkField);
         }
@@ -2331,9 +2345,6 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.init = function(options) {
         var gridOptions = $.extend(options, {
-            ajaxParams: {
-                row_model_str: true
-            },
             selectMultipleRows: false,
             showSelection: true
         });
@@ -2347,7 +2358,9 @@ App.FkGridWidget = function(options) {
         var self = this;
         this.$element = $(element);
         this.$element.find('.fk-choose').on('click', function(ev) {
+            ev.preventDefault();
             self.gridDialog.show();
+            return false;
         });
     };
 
@@ -2383,7 +2396,7 @@ App.FkGridWidget = function(options) {
     FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
         if (koRow.str === null) {
-            throw "Set childGrid.options.ajaxParams.row_model_str = true";
+            throw "Set views.KoGridView static property row_model_str = true";
         }
         this.setValue(options.pkVal)
             .setDisplayValue(koRow.str);

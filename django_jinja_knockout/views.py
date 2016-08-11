@@ -1243,6 +1243,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     # in grid column.
     grid_fields = None
     current_page = 1
+    row_model_str = False
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 
     def request_get(self, key, default=None):
@@ -1329,7 +1330,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         str_fields = self.get_row_str_fields(obj, row)
         if str_fields is not None:
             row['__str_fields'] = str_fields
-        if getattr(self ,'row_model_str', True):
+        if self.__class__.row_model_str:
             row['__str'] = str(obj)
         return row
 
@@ -1376,7 +1377,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         self.args = args
         self.kwargs = kwargs
         self.current_action_name = self.get_current_action_name()
-        self.row_model_str = self.request_get('row_model_str', '') == 'true'
         if self.current_action_name == '':
             self.current_action_name = 'list'
         current_action = self.get_action(self.current_action_name)
@@ -1388,3 +1388,8 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     def get_base_queryset(self):
         return self.__class__.model.objects.all()
+
+
+class KoGridWidget(KoGridView):
+
+    row_model_str = True

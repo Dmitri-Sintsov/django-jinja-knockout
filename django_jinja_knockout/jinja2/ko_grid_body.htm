@@ -181,7 +181,7 @@
                 <tbody data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
                     <tr data-bind="grid_row, css: {'grid-new-row': isUpdated()}" class="pointer">
                         <!-- ko if: $parent.options.showSelection -->
-                        <td data-bind="click: onRowClick" class="grid-glyph-cell">
+                        <td data-bind="click: onSelect" class="grid-glyph-cell">
                             <span data-bind="css: {'glyphicon-check': isSelectedRow(), 'glyphicon-unchecked': !isSelectedRow()}" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
@@ -204,7 +204,7 @@
                 </tbody>
                 <tfoot class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
                     <tr>
-                        <td data-bind="attr: {colspan: gridColumns().length}">
+                        <td data-bind="attr: {colspan: totalColumns()}">
                             <div data-template-id="{{ call_ids['ko_grid_no_results'] }}"></div>
                         </td>
                     </tr>
