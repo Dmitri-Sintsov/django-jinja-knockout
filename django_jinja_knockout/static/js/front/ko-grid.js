@@ -644,11 +644,18 @@ App.ko.GridRow = function(options) {
 
     GridRow.init = function(options) {
         var self = this;
+        this.ownerGrid = options.ownerGrid;
         this.index = options.index;
         this.isSelectedRow = ko.observable(options.isSelectedRow);
         this.isUpdated = ko.observable(
             (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
         );
+        this.rowCss = ko.computed(function() {
+            return {
+                'grid-new-row': this.isUpdated(),
+                'pointer': this.ownerGrid.actionTypes['click']().length > 0
+            };
+        }, this);
         this.isSelectedRow.subscribe(function(newValue) {
             if (newValue) {
                 self.ownerGrid.onSelectRow(self);
@@ -657,7 +664,6 @@ App.ko.GridRow = function(options) {
             }
         });
         this.$row = null;
-        this.ownerGrid = options.ownerGrid;
         // Source data field values. May be used for AJAX DB queries, for example.
         this.values = options.values;
         // See views.KoGridView.postprocess_row() how and when this.values.__str_fields are populated.
