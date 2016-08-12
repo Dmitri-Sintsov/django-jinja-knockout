@@ -9,6 +9,7 @@ def set_datetime_12_hour_format():
     try:
         get_format('DATETIME_INPUT_FORMATS', settings.LANGUAGE_CODE, settings.USE_L10N)
     except ImproperlyConfigured:
+        # Not an error, but a pypi package installation mode.
         return
     for key in _format_cache:
         if key[0] == 'DATETIME_INPUT_FORMATS':
