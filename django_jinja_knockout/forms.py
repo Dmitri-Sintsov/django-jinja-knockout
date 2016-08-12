@@ -6,7 +6,7 @@ from django.conf import settings
 from .context_processors import LAYOUT_CLASSES
 from django.db import transaction
 from django import forms
-from django.forms.models import BaseInlineFormSet, ModelFormMetaclass
+from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.template import loader as tpl_loader
 from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
@@ -119,6 +119,12 @@ def set_knockout_template(formset, request, html={}):
     # @note: Uncomment next line to test knockout.js template for XSS.
     # alert() should execute only when new form is added into formset, not during the page load.
     # formset.knockout_template += '<script language="javascript">alert(1);</script>'
+
+
+def ko_inlineformset_factory(parent_model, model, form, **kwargs):
+    formset = inlineformset_factory(parent_model, model, form, **kwargs)
+    formset.set_knockout_template = set_knockout_template
+    return formset
 
 
 # Layer on top of related form and it's many to one multiple formsets.

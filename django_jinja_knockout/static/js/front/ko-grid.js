@@ -1208,6 +1208,10 @@ App.ko.Grid = function(options) {
             ajaxParams: {},
             defaultOrderBy: null,
             fkGridOptions: {},
+            // Currently available modes:
+            //   0 - do not highlight,
+            //   1 - highlight columns,
+            //   2 - highlight rows.
             highlightMode: 2,
             searchPlaceholder: null,
             selectMultipleRows: false,
