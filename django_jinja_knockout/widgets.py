@@ -72,14 +72,17 @@ class DisplayText(Widget):
             self.get_text(display_value)
         )
 
+    def to_display_value(self, value):
+        if hasattr(self, 'choices'):
+            for choice_val, choice_display in self.choices:
+                if choice_val == value:
+                    return choice_display
+        return value
+
     def get_display_values(self, values):
         display_values = copy(values)
-        for value_key, display_value in enumerate(display_values):
-            if hasattr(self, 'choices'):
-                for choice_val, choice_display in self.choices:
-                    if choice_val == display_value:
-                        display_value = choice_display
-                        break
+        for value_key, value in enumerate(values):
+            display_value = self.to_display_value(value)
             if display_value in self.scalar_display:
                 display_value = self.scalar_display[display_value]
             display_values[value_key] = display_value
@@ -111,8 +114,10 @@ class DisplayText(Widget):
 
 class ForeignKeyGridWidget(DisplayText):
 
-    def __init__(self, attrs=None, scalar_display=None, grid_options={}):
+    # Setting 'model' argument is required only for non-AJAX form submissions.
+    def __init__(self, attrs=None, scalar_display=None, model=None, grid_options={}):
         super().__init__(attrs=attrs, scalar_display=scalar_display, layout='div')
+        self.model = model
         self.grid_options = grid_options
         if 'classPath' not in self.grid_options:
             self.grid_options['classPath'] = 'App.FkGridWidget'
@@ -144,3 +149,10 @@ class ForeignKeyGridWidget(DisplayText):
             display_value=self.get_text(display_value),
             final_attrs=flatatt(final_attrs)
         )
+
+    def to_display_value(self, value):
+        if self.model is not None:
+            obj = self.model.objects.filter(pk=value).first()
+            if obj is not None:
+                return str(obj)
+        return value
