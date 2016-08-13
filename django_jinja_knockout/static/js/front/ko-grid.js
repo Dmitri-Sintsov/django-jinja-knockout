@@ -1429,6 +1429,10 @@ App.ko.Grid = function(options) {
         });
     };
 
+    Grid.removeAllSelectedPkVals = function() {
+        this.selectedRowsPks = [];
+    };
+
     Grid.propCall = App.propCall;
 
     /**
@@ -1475,6 +1479,7 @@ App.ko.Grid = function(options) {
      */
     Grid.selectKoRowsByPkVals = function(pkVals) {
         var self = this;
+        this.removeAllSelectedPkVals();
         if (!_.isArray(pkVals)) {
             pkVals = [pkVals];
         }
@@ -1488,7 +1493,11 @@ App.ko.Grid = function(options) {
         }
         _.each(this.gridRows(), function(v) {
             var val = v.getValue(self.meta.pkField);
-            v.isSelectedRow(_.indexOf(intPkVals, val) !== -1);
+            var isSelected = _.indexOf(intPkVals, val) !== -1;
+            if (isSelected) {
+                self.addSelectedPkVal(val);
+            }
+            v.isSelectedRow(isSelected);
         });
     };
 
@@ -2419,14 +2428,16 @@ App.FkGridWidget = function(options) {
     };
 
     FkGridWidget.getQueryFilter = function() {
-        return [];
+        var pkVal = this.getInputValue();
+        var koRow = this.gridDialog.grid.findKoRowByPkVal(pkVal);
+        return (koRow !== null) ? [pkVal] : [];
     };
 
-    FkGridWidget.getValue = function() {
+    FkGridWidget.getInputValue = function() {
         return App.intVal(this.$element.find('.fk-value').val());
     };
 
-    FkGridWidget.setValue = function(value) {
+    FkGridWidget.setInputValue = function(value) {
         this.$element.find('.fk-value')
             .val(value);
         return this;
@@ -2438,26 +2449,17 @@ App.FkGridWidget = function(options) {
         return this;
     };
 
-    FkGridWidget.onGridDialogFirstLoad = function(options) {
-        var pkVal = this.getValue();
-        options.childGrid.addSelectedPkVal(pkVal);
-        var koRow = options.childGrid.findKoRowByPkVal(pkVal);
-        if (koRow !== null) {
-            options.childGrid.selectOnlyKoRow(koRow);
-        }
-    };
-
     FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
         if (koRow.str === null) {
             throw "Set views.KoGridView static property row_model_str = true";
         }
-        this.setValue(options.pkVal)
+        this.setInputValue(options.pkVal)
             .setDisplayValue(koRow.str);
     };
 
     FkGridWidget.onGridDialogUnselectAllRows = function(options) {
-        this.setValue('')
+        this.setInputValue('')
             .setDisplayValue('');
     };
 
