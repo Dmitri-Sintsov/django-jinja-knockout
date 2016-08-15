@@ -133,8 +133,8 @@ class ForeignKeyGridWidget(DisplayText):
 
     def render_scalar(self, final_attrs, value, display_value):
         final_attrs['type'] = 'hidden'
-        if value is not None:
-            final_attrs['value'] = value
+        # Do not map None value to empty string, it will cause Django field int() conversion error.
+        final_attrs['value'] = 0 if value is None else value
         return format_html(
             '<div {wrapper_attrs}>'
                 '<input {final_attrs}/>'
@@ -151,6 +151,8 @@ class ForeignKeyGridWidget(DisplayText):
         )
 
     def to_display_value(self, value):
+        if value == '0':
+            return '-------'
         if self.model is not None:
             obj = self.model.objects.filter(pk=value).first()
             if obj is not None:

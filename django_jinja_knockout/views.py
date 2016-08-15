@@ -107,6 +107,20 @@ def prepare_bs_navs(navs, request):
 # Automatic template context processor for bs_navs() jinja2 macro. #
 class BsTabsMixin(object):
 
+    def get_main_navs(self, request, object_id=None):
+        main_navs = []
+        """
+        from django.core.urlresolvers import reverse
+        main_navs.append({
+            'url': reverse('list_objects_url_name'), 'text': 'List'
+        })
+        if object_id is not None:
+            main_navs.append({
+                'url': reverse('view_object_url_name', kwargs={'obj_id': object_id}), 'text': 'View'
+            })
+        """
+        return main_navs
+
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         main_navs = self.get_main_navs(
@@ -177,6 +191,23 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     # @note: Required to define ONLY when form_with_inline_formsets has FormClass is None
     # ("edit many related formsets without master form" mode).
     form_with_inline_formsets = None
+
+    def get_form_action_url(self):
+        return ''
+
+    # Do not just remove bs_form() options.
+    # BootstrapDialog panel might render with overlapped layout without these options.
+    def get_bs_form_opts(self):
+        return {}
+        """
+        return {
+            'is_ajax': True,
+            'layout_classes': {
+                'label': 'col-md-4',
+                'field': 'col-md-6'
+            }
+        }
+        """
 
     def get_form_with_inline_formsets(self, request):
         # UPDATE mode by default (UPDATE / VIEW).
@@ -262,6 +293,18 @@ class InlineCreateView(FormWithInlineFormsetsMixin, TemplateView):
 
 # @note: Suitable both for CREATE and for VIEW actions (via form metaclass=DisplayModelMetaclass).
 class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
+
+    format_view_title = False
+
+    def __init__(self):
+        self.view_title_is_formatted = False
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if self.__class__.format_view_title and not self.view_title_is_formatted:
+            self.request.view_title = self.request.view_title.format(obj)
+            self.view_title_is_formatted = True
+        return obj
 
     def get_object_from_url(self):
         return self.get_object()

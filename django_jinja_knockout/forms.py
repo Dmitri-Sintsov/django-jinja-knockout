@@ -122,8 +122,15 @@ def set_knockout_template(formset, request, html={}):
 
 
 def ko_inlineformset_factory(parent_model, model, form, **kwargs):
+    if isinstance(form, DisplayModelMetaclass):
+        kwargs.update({
+            'extra': 0,
+            'can_delete': False
+        })
     formset = inlineformset_factory(parent_model, model, form, **kwargs)
-    formset.set_knockout_template = set_knockout_template
+    formset.set_knockout_template = set_empty_template \
+        if isinstance(form, DisplayModelMetaclass) \
+        else set_knockout_template
     return formset
 
 
