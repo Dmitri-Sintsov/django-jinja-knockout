@@ -310,8 +310,8 @@ class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
         return self.get_object()
 
 
-# Used to validate values of AJAX submitted filter fields.
-class FieldValidator():
+# Used to validate values of submitted filter fields.
+class FieldValidator:
 
     field_types = (
         # Order is important, because DateTimeField is ancestor of DateField.
@@ -466,10 +466,6 @@ class BaseFilterView(View):
     def get_all_allowed_sort_orders(self):
         return self.get_all_fieldnames()
 
-    def get_field_verbose_name(self, field_name):
-        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-        return str(get_verbose_name(self.__class__.model, field_name))
-
     @classmethod
     def init_class(cls, self):
 
@@ -489,6 +485,80 @@ class BaseFilterView(View):
             self.search_fields = self.get_search_fields()
         else:
             self.search_fields = cls.search_fields
+
+    def get_field_verbose_name(self, field_name):
+        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+        return str(get_verbose_name(self.__class__.model, field_name))
+
+    def get_field_filter(self, fieldname, filter_def):
+        vm_filter = {
+            'field': fieldname,
+            'name': self.get_field_verbose_name(fieldname),
+        }
+        if filter_def.get('type') is not None:
+            vm_filter['type'] = filter_def['type']
+        else:
+            if isinstance(filter_def.get('choices'), (list, tuple)):
+                vm_filter['type'] = 'choices'
+            else:
+                # Use App.ko.FkGridFilter to select filter choices.
+                # Autodetect widget.
+                field_validator = self.get_field_validator(fieldname)
+                vm_filter.update(field_validator.detect_field_filter(filter_def))
+        return vm_filter
+
+    def process_field_filter_choices(self, vm_filter, filter_def):
+        if 'multiple_choices' not in filter_def:
+            # Autodetect 'multiple_choices' option.
+            filter_def['multiple_choices'] = \
+                True if filter_def.get('choices') is None else len(filter_def['choices']) > 2
+        # Pre-built list of field values / menu names.
+        vm_choices = []
+        if filter_def['add_reset_choice']:
+            vm_choices.append({
+                'value': None,
+                'name': _('All'),
+                'is_active': len(filter_def['active_choices']) == 0
+            })
+        # Convert filter_def choices from Django view to viewmodel choices for client-side AJAX response handler.
+        for value, name in filter_def['choices']:
+            choice = {
+                'value': value,
+                'name': name,
+            }
+            if value in filter_def['active_choices']:
+                choice['is_active'] = True
+            vm_choices.append(choice)
+        vm_filter['choices'] = vm_choices
+
+    def get_filter(self, fieldname):
+        filter_def = self.allowed_filter_fields[fieldname]
+        # Make "canonical" canon_filter_def from filter_def.
+        canon_filter_def = {
+            'add_reset_choice': True,
+            'active_choices': [],
+        }
+        if isinstance(filter_def, (list, tuple)):
+            canon_filter_def['choices'] = filter_def
+        if isinstance(filter_def, dict):
+            canon_filter_def.update(filter_def)
+        # Autodetect widget.
+        vm_filter = self.get_field_filter(fieldname, canon_filter_def)
+        process_method = getattr(self, 'process_field_filter_{}'.format(vm_filter['type']), None)
+        if callable(process_method):
+            process_method(vm_filter, canon_filter_def)
+        if 'multiple_choices' in canon_filter_def:
+            vm_filter['multiple_choices'] = canon_filter_def['multiple_choices']
+        return vm_filter
+
+    def get_filters(self):
+
+        vm_filters = []
+
+        for fieldname in self.allowed_filter_fields:
+            vm_filters.append(self.get_filter(fieldname))
+
+        return vm_filters
 
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
@@ -612,7 +682,7 @@ class BaseFilterView(View):
             )
 
 
-# Traditional server-side generated filtered / sorted ListView.
+# Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 class ListSortingView(BaseFilterView, ListView):
 
     def get_json_order_result(self, sort_order):
@@ -669,53 +739,61 @@ class ListSortingView(BaseFilterView, ListView):
             return False
         return self.current_list_filter[fieldname] == fieldval
 
-    # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template. #
-    def get_filter_navs(self, filter_field):
-        reset_list_filter = copy(self.current_list_filter)
-        link = {'atts': {}}
-        if self.current_list_filter is None:
-            link['atts']['class'] = 'active'
-            reset_list_filter = {}
-        elif filter_field in reset_list_filter:
-            del reset_list_filter[filter_field]
-        else:
-            link['atts']['class'] = 'active'
-        link.update({
-            'url': qtpl.reverseq(
-                self.request.url_name,
-                kwargs=self.kwargs,
-                query=self.get_current_sort_order_querypart(
-                    query=self.get_list_filter_querypart(
-                        list_filter=reset_list_filter
-                    )
-                )
-            ),
-            'text': _('All')
-        })
-        navs = [link]
+    def render_filter_choices(self, filter_field, vm_filter):
+        curr_list_filter = copy(self.current_list_filter)
+        navs = []
         display = []
-        filter_def = self.allowed_filter_fields[filter_field]
-        choices = filter_def['choices'] if isinstance(filter_def, dict) else filter_def
-        for filter_type, filter_type_display in choices:
-            reset_list_filter[filter_field] = filter_type
-            link = {
-                'url': qtpl.reverseq(
-                    self.request.url_name,
-                    kwargs=self.kwargs,
-                    query=self.get_current_sort_order_querypart(
-                        query=self.get_list_filter_querypart(
-                            list_filter=reset_list_filter
+        for choice_def in vm_filter['choices']:
+            if choice_def['value'] is None:
+                # Reset filter.
+                link = {'atts': {}}
+                if self.current_list_filter is None:
+                    link['atts']['class'] = 'active'
+                    curr_list_filter = {}
+                elif filter_field in curr_list_filter:
+                    del curr_list_filter[filter_field]
+                else:
+                    link['atts']['class'] = 'active'
+                link.update({
+                    'url': qtpl.reverseq(
+                        self.request.url_name,
+                        kwargs=self.kwargs,
+                        query=self.get_current_sort_order_querypart(
+                            query=self.get_list_filter_querypart(
+                                list_filter=curr_list_filter
+                            )
                         )
-                    )
-                ),
-                'text': filter_type_display,
-                'atts': {}
-            }
-            if self.has_current_filter(filter_field, filter_type):
-                display.append(filter_type_display)
+                    ),
+                    'text': _('All')
+                })
+            else:
+                curr_list_filter[filter_field] = choice_def['value']
+                link = {
+                    'url': qtpl.reverseq(
+                        self.request.url_name,
+                        kwargs=self.kwargs,
+                        query=self.get_current_sort_order_querypart(
+                            query=self.get_list_filter_querypart(
+                                list_filter=curr_list_filter
+                            )
+                        )
+                    ),
+                    'text': choice_def['name'],
+                    'atts': {}
+                }
+            if self.has_current_filter(filter_field, choice_def['value']):
+                display.append(choice_def['name'])
                 link['atts']['class'] = 'active'
             navs.append(link)
         return navs, display
+
+    # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
+    # Currently supports only filter fields of type='choices'.
+    # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
+    def get_filter_navs(self, filter_field):
+        vm_filter = self.get_filter(filter_field)
+        process_method = getattr(self, 'render_filter_{}'.format(vm_filter['type']), None)
+        return process_method(filter_field, vm_filter)
 
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if type(sort_order) is str:
@@ -818,7 +896,7 @@ class ViewmodelView(TemplateView):
         return result
 
 
-class GridActionsMixin():
+class GridActionsMixin:
 
     viewmodel_name = 'grid_page'
     action_kwarg = 'action'
@@ -1162,73 +1240,6 @@ class GridActionsMixin():
             })
         return vm_grid_fields
 
-    def vm_get_field_filter(self, fieldname, filter_def):
-        vm_filter = {
-            'field': fieldname,
-            'name': self.get_field_verbose_name(fieldname),
-        }
-        if filter_def.get('type') is not None:
-            vm_filter['type'] = filter_def['type']
-        else:
-            if isinstance(filter_def.get('choices'), (list, tuple)):
-                vm_filter['type'] = 'choices'
-            else:
-                # Use App.ko.FkGridFilter to select filter choices.
-                # Autodetect widget.
-                field_validator = self.get_field_validator(fieldname)
-                vm_filter.update(field_validator.detect_field_filter(filter_def))
-        return vm_filter
-
-    def vm_process_field_filter_choices(self, vm_filter, filter_def):
-        if 'multiple_choices' not in filter_def:
-            # Autodetect 'multiple_choices' option.
-            filter_def['multiple_choices'] = \
-                True if filter_def.get('choices') is None else len(filter_def['choices']) > 2
-        # Pre-built list of field values / menu names.
-        vm_choices = []
-        if filter_def['add_reset_choice']:
-            vm_choices.append({
-                'value': None,
-                'name': _('All'),
-                'is_active': len(filter_def['active_choices']) == 0
-            })
-        # Convert filter_def choices from Django view to viewmodel choices for client-side AJAX response handler.
-        for value, name in filter_def['choices']:
-            choice = {
-                'value': value,
-                'name': name,
-            }
-            if value in filter_def['active_choices']:
-                choice['is_active'] = True
-            vm_choices.append(choice)
-        vm_filter['choices'] = vm_choices
-
-    def vm_get_filters(self):
-        if not isinstance(self.allowed_filter_fields, OrderedDict):
-            self.report_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
-
-        vm_filters = []
-
-        for fieldname, filter_def in self.allowed_filter_fields.items():
-            # Make "canonical" canon_filter_def from filter_def.
-            canon_filter_def = {
-                'add_reset_choice': True,
-                'active_choices': [],
-            }
-            if isinstance(filter_def, (list, tuple)):
-                canon_filter_def['choices'] = filter_def
-            if isinstance(filter_def, dict):
-                canon_filter_def.update(filter_def)
-            # Autodetect widget.
-            vm_filter = self.vm_get_field_filter(fieldname, canon_filter_def)
-            process_method = getattr(self, 'vm_process_field_filter_{}'.format(vm_filter['type']), None)
-            if callable(process_method):
-                process_method(vm_filter, canon_filter_def)
-            if 'multiple_choices' in canon_filter_def:
-                vm_filter['multiple_choices'] = canon_filter_def['multiple_choices']
-            vm_filters.append(vm_filter)
-        return vm_filters
-
     # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
     # ordering, to preserve visual ordering of actions.
     def vm_get_actions(self):
@@ -1258,7 +1269,7 @@ class GridActionsMixin():
             },
             'actions': self.vm_get_actions(),
             'gridFields': self.vm_get_grid_fields(),
-            'filters': self.vm_get_filters()
+            'filters': self.get_filters()
         }
         return vm
 
@@ -1358,6 +1369,10 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         model_class_members = get_object_members(self.__class__.model)
         self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
+    def get_filters(self):
+        if not isinstance(self.allowed_filter_fields, OrderedDict):
+            self.report_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
+        return super().get_filters()
 
     def object_from_row(self, row):
         row_related = {}
