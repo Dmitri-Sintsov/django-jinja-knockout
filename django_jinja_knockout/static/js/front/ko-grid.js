@@ -1672,7 +1672,7 @@ App.ko.Grid = function(options) {
 
     Grid.rowClick = function(currKoRow) {
         this.lastClickedKoRow = currKoRow;
-        if (this.actionTypes.click().length > 1) {
+        if (this.getEnabledActions(currKoRow, 'click').length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
                 grid: this
