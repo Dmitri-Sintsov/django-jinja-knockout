@@ -1386,7 +1386,17 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     # row may be used in overloaded method when virtual fields were added to row by overloaded get_model_row().
     def get_row_str_fields(self, obj, row):
-        return obj.get_str_fields() if self.has_get_str_fields else None
+        if self.has_get_str_fields:
+            str_fields = obj.get_str_fields()
+            for fieldname in self.grid_fields:
+                if '__' in fieldname:
+                    rel_path = fieldname.split('__')
+                    rel_str = get_nested(str_fields, rel_path)
+                    if rel_str is not None:
+                        str_fields[fieldname] = rel_str
+            return str_fields
+        else:
+            return None
 
     def get_model_row(self, obj):
         return model_values(obj, self.query_fields, strict_related=False)
