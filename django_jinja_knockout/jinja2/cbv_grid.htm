@@ -1,0 +1,21 @@
+{% from 'ko_grid.htm' import ko_grid with context %}
+{% from 'ko_grid_body.htm' import ko_grid_body with context %}
+{% extends 'base.htm' %}
+
+{% block main %}
+
+{{
+ko_grid(
+    grid_options={
+        'pageRoute': view.request.url_name,
+    }
+)
+}}
+
+{% endblock main %}
+
+{% block bottom_scripts %}
+    {{ ko_grid_body() }}
+    <script src="{{ static('js/front/ko-grid.js') }}"></script>
+{% endblock bottom_scripts %}
+

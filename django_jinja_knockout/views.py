@@ -1297,6 +1297,7 @@ class GridActionsMixin:
 class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
 
     context_object_name = 'model'
+    template_name = 'cbv_grid.htm'
     model = None
     # query all fields by default.
     query_fields = None
@@ -1447,6 +1448,10 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
                 'field': 'col-md-6'
             }
         }
+
+    def get(self, request, *args, **kwargs):
+        request.client_routes.append(request.url_name)
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()

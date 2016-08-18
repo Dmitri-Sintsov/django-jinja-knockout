@@ -184,7 +184,7 @@ class ContextMiddleware(object):
         if hasattr(view_func, '__wrapped__'):
             view_class = get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
-                request.client_routes = view_class.client_routes
+                request.client_routes.extend(view_class.client_routes)
         self.request = request
         self.view_func = view_func
         self.view_args = view_args
