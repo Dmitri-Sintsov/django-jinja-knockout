@@ -1492,6 +1492,7 @@ App.initClientHooks.push({
         new App.AjaxForm($selector).init();
         new App.AjaxButton($selector).init();
         new App.DialogButton($selector).init();
+        $selector.inputAsSelect('init');
         $selector.autogrow('init');
         $selector.optionalInput('init');
         $selector.collapsibleSubmit('init');
@@ -1502,6 +1503,7 @@ App.initClientHooks.push({
         $selector.collapsibleSubmit('destroy');
         $selector.optionalInput('destroy');
         $selector.autogrow('destroy');
+        $selector.inputAsSelect('destroy');
         new App.DialogButton($selector).destroy();
         new App.AjaxButton($selector).destroy();
         new App.AjaxForm($selector).destroy();

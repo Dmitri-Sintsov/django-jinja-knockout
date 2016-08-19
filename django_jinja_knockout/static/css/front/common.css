@@ -28,11 +28,24 @@ body {
 }
 
 .bold {
-	font-weight: 800;
+	font-weight: 800 !important;
 }
 
 .condensed {
 	padding: 0.2em;
+}
+
+.field-choice {
+	display: block;
+	padding: 3px;
+	border-radius: 2px;
+	border: 1px solid transparent;
+}
+
+.field-choice.selected {
+	background-color: #dff0d8;
+	border-radius: 2px;
+	border: 1px solid lightgray;
 }
 
 .href-target:target {
@@ -46,6 +59,7 @@ body {
 }
 
 .vscroll,
+.input-as-select,
 .bootstrap-dialog-message {
 	max-height: 500px;
 	overflow-y: auto;

@@ -290,6 +290,32 @@ $.fn.optionalInput = function(method) {
     }[method].call(this);
 };
 
+$.fn.inputAsSelect = function(method) {
+
+    function highlightSelection(ev) {
+        if ($(ev.target).prop('checked')) {
+            $(ev.target).closest('label').addClass('selected');
+        } else {
+            $(ev.target).closest('label').removeClass('selected');
+        }
+    };
+
+    function getInputs(self) {
+        return self.find('.input-as-select input[type="checkbox"], .input-as-select input[type="radio"]');
+    };
+
+    return {
+        'init' : function() {
+            var $inputs = getInputs(this);
+            $inputs.filter(':checked').parent('label').addClass('selected');
+            $inputs.on('change', highlightSelection);
+        },
+        'destroy' : function() {
+            getInputs(this).off('change', highlightSelection);
+        },
+    }[method].call(this);
+};
+
 /**
  * Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
  */

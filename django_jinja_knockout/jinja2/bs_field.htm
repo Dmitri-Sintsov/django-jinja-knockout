@@ -61,10 +61,10 @@
 {% if field.auto_id %}
 <label class="control-label {{ classes.label }} {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
 {% endif %}
-<div class="field {{ classes.field }}">
+<div class="field input-as-select {{ classes.field }}">
     {% for choice in field %}
     <div class="{{ classes.multiple_type }}">
-        <label>
+        <label class="field-choice">&nbsp;
         {{ choice.tag()|safe }}
         {{ choice.choice_label }}
         </label>
