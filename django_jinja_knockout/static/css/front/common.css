@@ -53,6 +53,7 @@ body {
 }
 
 .input-as-select {
+	padding: 0 10px 0 10px;
 	border-radius: 2px;
 	border: 1px solid lightgray;
 	/* Uncomment next line to display input-as-select inputs */
