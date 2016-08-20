@@ -292,23 +292,29 @@ $.fn.optionalInput = function(method) {
 
 $.fn.inputAsSelect = function(method) {
 
-    function highlightSelection(ev) {
-        if ($(ev.target).prop('checked')) {
-            $(ev.target).closest('label').addClass('selected');
-        } else {
-            $(ev.target).closest('label').removeClass('selected');
-        }
+    function getInputs(self) {
+        return self.findSelf('.input-as-select')
+            .find('input[type="checkbox"], input[type="radio"]');
     };
 
-    function getInputs(self) {
-        return self.find('.input-as-select input[type="checkbox"], .input-as-select input[type="radio"]');
+    function updateLabels($inputs) {
+        $inputs.filter(':checked').parent('label').addClass('selected');
+        $inputs.filter(':not(:checked)').parent('label').removeClass('selected');
+    };
+
+    function highlightSelection(ev) {
+        $(ev.target).closest('.input-as-select').inputAsSelect('update');
     };
 
     return {
         'init' : function() {
             var $inputs = getInputs(this);
-            $inputs.filter(':checked').parent('label').addClass('selected');
+            updateLabels($inputs);
             $inputs.on('change', highlightSelection);
+        },
+        'update': function() {
+            var $inputs = getInputs(this);
+            updateLabels($inputs);
         },
         'destroy' : function() {
             getInputs(this).off('change', highlightSelection);
