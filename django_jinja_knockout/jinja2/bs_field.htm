@@ -61,23 +61,25 @@
 {% if field.auto_id %}
 <label class="control-label {{ classes.label }} {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
 {% endif %}
-<div class="field input-as-select {{ classes.field }}">
-    {% for choice in field %}
-    <div class="{{ classes.multiple_type }}">
-        <label class="field-choice">&nbsp;
-        {{ choice.tag()|safe }}
-        {{ choice.choice_label }}
-        </label>
+<div class="field {{ classes.field }}">
+    <div class="input-as-select">
+        {% for choice in field %}
+        <div class="{{ classes.multiple_type }}">
+            <label>
+                {{ choice.tag()|safe }}
+                {{ choice.choice_label }}
+            </label>
+        </div>
+        {% endfor %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+        {% endfor %}
+        {% if field.help_text %}
+        <p class="help-block">
+            {{ field.help_text|safe }}
+        </p>
+        {% endif %}
     </div>
-    {% endfor %}
-    {% for error in field.errors %}
-    <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
-    {% endfor %}
-    {% if field.help_text %}
-    <p class="help-block">
-        {{ field.help_text|safe }}
-    </p>
-    {% endif %}
 </div>
 {%- endmacro %}
 

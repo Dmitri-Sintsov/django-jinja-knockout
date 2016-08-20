@@ -35,19 +35,6 @@ body {
 	padding: 0.2em;
 }
 
-.field-choice {
-	display: block;
-	padding: 3px;
-	border-radius: 2px;
-	border: 1px solid transparent;
-}
-
-.field-choice.selected {
-	background-color: #dff0d8;
-	border-radius: 2px;
-	border: 1px solid lightgray;
-}
-
 .href-target:target {
 	border: 2px solid Aquamarine;
 	background-color: Aquamarine;
@@ -63,6 +50,31 @@ body {
 .bootstrap-dialog-message {
 	max-height: 500px;
 	overflow-y: auto;
+}
+
+.input-as-select {
+	border-radius: 2px;
+	border: 1px solid lightgray;
+	/* Uncomment next line to display input-as-select inputs */
+	/* padding: 0 5px 0 20px; */
+}
+
+.input-as-select input[type="checkbox"],
+.input-as-select input[type="radio"] {
+	display: none;
+}
+
+.input-as-select label {
+	display: block;
+	padding: 3px;
+	border-radius: 2px;
+	border: 1px solid transparent;
+}
+
+.input-as-select label.selected {
+	background-color: #dff0d8;
+	border-radius: 2px;
+	border: 1px solid lightgray;
 }
 
 .default-padding {
