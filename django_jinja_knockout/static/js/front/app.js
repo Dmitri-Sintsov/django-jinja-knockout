@@ -642,27 +642,45 @@ App.DatetimeWidget = function($parent) {
         .trigger('click');
     };
 
+    // Override moment.js Django-incompatible locales formatting used by bootstrap datetimepicker.
+    // Locale 'ru' moment.js is compatible to Django thus does not require override, for example.
+    DatetimeWidget.formatFixes = {
+        'en-us': {
+            'date': 'YYYY-MM-DD',
+            'datetime': 'YYYY-MM-DD HH:mm:ss'
+        }
+    };
+
     DatetimeWidget.init = function() {
         if (!this.has()) {
             return;
         }
         this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
         this.$dateControls.after('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
+        var formatFix = App.propGet(DatetimeWidget.formatFixes, App.conf.languageCode);
         // Date field widget.
-        this.$parent.find('.date-control').datetimepicker({
+        var options = {
             pickTime: false,
             language: App.conf.languageCode,
             icons: {
                 date: 'calendar'
             }
-        });
+        };
+        if (formatFix !== undefined) {
+            options.format = formatFix.date;
+        }
+        this.$parent.find('.date-control').datetimepicker(options);
         // Datetime field widget.
-        this.$parent.find('.datetime-control').datetimepicker({
+        options = {
             language: App.conf.languageCode,
             icons: {
                 date: 'calendar'
             }
-        });
+        };
+        if (formatFix !== undefined) {
+            options.format = formatFix.datetime;
+        }
+        this.$parent.find('.datetime-control').datetimepicker(options);
         // Picker window button help.
         this.$parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
         // Icon clicking.
@@ -1223,7 +1241,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
         if (propType !== 'undefined') {
             if (propType === 'function' && typeof get_context !== 'undefined') {
                 /**
-                 * Javascript cannot .apply() to bound function without implicitely specifying context,
+                 * Javascript cannot .apply() to bound function without implicitly specifying context,
                  * thus next code is commented out:
                  */
                 // return _.bind(prop[propName], prop);
