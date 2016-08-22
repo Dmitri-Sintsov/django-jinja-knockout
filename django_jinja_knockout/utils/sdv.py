@@ -58,13 +58,13 @@ def dbg(name, value=None):
 
 
 @ensure_annotations
-def join_dict_values(ch:str, d:dict, keys:list):
+def join_dict_values(ch: str, d: dict, keys: list):
     for key in keys:
         d[key] = ch.join([str(val) for val in d[key].values()])
 
 
-def get_object_members(object):
-    return OrderedDict(inspect.getmembers(object))
+def get_object_members(obj):
+    return OrderedDict(inspect.getmembers(obj))
 
 
 # http://stackoverflow.com/questions/3589311/get-defining-class-of-unbound-method-object-in-python-3/25959545#25959545

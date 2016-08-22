@@ -17,7 +17,7 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonRespon
 from django.template import loader as tpl_loader
 from django.db import models
 from django.views.generic.base import View
-from django.views.generic import TemplateView, DetailView, ListView
+from django.views.generic import TemplateView, DetailView, ListView, UpdateView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
@@ -102,6 +102,11 @@ def prepare_bs_navs(navs, request):
         if nav['url'] == request.path:
             nav['atts']['class'] += ' active'
         nav['atts']['class'].strip()
+
+
+class FormDetailView(UpdateView):
+
+    template_name = 'form_detail_view.htm'
 
 
 # Automatic template context processor for bs_navs() jinja2 macro. #

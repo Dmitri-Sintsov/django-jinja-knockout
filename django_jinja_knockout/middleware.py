@@ -1,15 +1,15 @@
 import json
 import pytz
-import re
 import threading
-from .utils import sdv
-from .utils.modules import get_fqn
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
-from .utils.sdv import get_cbv_from_dispatch_wrapper
+
+from .utils import sdv
+from .utils.modules import get_fqn
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, to_vm_list, has_vm_list
 
@@ -176,13 +176,16 @@ class ContextMiddleware(object):
         return True
 
     def is_our_module(self, module):
-        return re.match(r'^django_jinja_knockout.', module)
+        for our_module in settings.DJK_APPS:
+            if module.startswith(our_module + '.'):
+                return True
+        return module.startswith('django_jinja_knockout.')
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if not self.is_our_module(view_func.__module__):
             return
         if hasattr(view_func, '__wrapped__'):
-            view_class = get_cbv_from_dispatch_wrapper(view_func)
+            view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
                 request.client_routes.extend(view_class.client_routes)
         self.request = request
