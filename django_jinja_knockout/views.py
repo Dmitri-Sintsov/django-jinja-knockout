@@ -23,7 +23,8 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from . import tpl as qtpl
 from .models import (
-    get_meta, get_verbose_name, get_related_field, yield_model_fieldnames, model_values, get_object_description
+    normalize_fk_fieldname, get_meta, get_verbose_name, get_related_field,
+    yield_model_fieldnames, model_values, get_object_description
 )
 from .viewmodels import vm_list
 from .utils.sdv import yield_ordered, get_object_members, get_nested
@@ -418,6 +419,11 @@ class BaseFilterView(View):
     order_key = 'list_order_by'
     search_key = 'list_search'
     field_validator = FieldValidator
+    # List / grid columns. Use '__all__' value to display all model fields as grid columns,
+    # or specify the list of field names, where each value is str.
+    # Tuple value ('field', 'Column name') may be used instead of str value to override field names displayed
+    # in grid column.
+    grid_fields = None
     allowed_sort_orders = None
     allowed_filter_fields = None
     search_fields = None
@@ -435,6 +441,31 @@ class BaseFilterView(View):
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
+        self.has_get_str_fields = False
+
+    def get_grid_fields_attnames(self):
+        return [field[0] if type(field) is tuple else field for field in self.grid_fields]
+
+    def get_all_allowed_sort_orders(self):
+        # If there are related grid fields explicitly defined in self.__class__.grid_fields attribute,
+        # these will be automatically added to allowed sort orders.
+        return self.get_all_fieldnames() if self.grid_fields is None else self.get_all_related_fields()
+
+    def get_grid_fields(self):
+        return []
+
+    def get_related_fields(self, query_fields=None):
+        if query_fields is None:
+            query_fields = self.get_all_fieldnames()
+        return list(set(self.get_grid_fields_attnames()) - set(query_fields))
+
+    # A superset of self.get_all_fieldnames() which also returns foreign related fields, if any.
+    # It is used to automatically include related query fields / sort orders.
+    def get_all_related_fields(self):
+        query_fields = self.get_all_fieldnames()
+        related_fields = self.get_related_fields(query_fields)
+        query_fields.extend(related_fields)
+        return query_fields
 
     def get_field_validator(self, fieldname):
         return self.__class__.field_validator(self, fieldname)
@@ -472,11 +503,46 @@ class BaseFilterView(View):
     def get_all_fieldnames(self):
         return list(yield_model_fieldnames(self.__class__.model))
 
-    def get_all_allowed_sort_orders(self):
-        return self.get_all_fieldnames()
+    # row may be used in overloaded method when virtual fields were added to row by overloaded get_model_row().
+    def get_row_str_fields(self, obj, row={}):
+        if self.has_get_str_fields:
+            str_fields = obj.get_str_fields()
+            for fieldname in self.grid_fields:
+                if '__' in fieldname:
+                    rel_path = fieldname.split('__')
+                    rel_str = get_nested(str_fields, rel_path)
+                    if rel_str is not None:
+                        str_fields[fieldname] = rel_str
+            return str_fields
+        else:
+            return None
+
+    # Override in child class to customize output.
+    def get_display_value(self, obj, field):
+        if not hasattr(obj, '_display_value'):
+            obj._display_value = self.get_row_str_fields(obj)
+        normalized_field = normalize_fk_fieldname(field)
+        display_value = ''
+        if field in obj._display_value:
+            display_value = obj._display_value[field]
+        elif normalized_field in obj._display_value:
+            display_value = obj._display_value[normalized_field]
+        else:
+            display_value = getattr(obj, field)
+        if isinstance(display_value, dict):
+            return qtpl.print_list_group(display_value.values())
+        else:
+            return display_value
 
     @classmethod
     def init_class(cls, self):
+
+        if cls.grid_fields is None:
+            self.grid_fields = self.get_grid_fields()
+        elif cls.grid_fields == '__all__':
+            self.grid_fields = self.get_all_fieldnames()
+        else:
+            self.grid_fields = cls.grid_fields
 
         if cls.allowed_sort_orders is None:
             self.allowed_sort_orders = self.get_allowed_sort_orders()
@@ -494,6 +560,9 @@ class BaseFilterView(View):
             self.search_fields = self.get_search_fields()
         else:
             self.search_fields = cls.search_fields
+
+        model_class_members = get_object_members(self.__class__.model)
+        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
     def get_field_verbose_name(self, field_name):
         # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
@@ -693,6 +762,8 @@ class BaseFilterView(View):
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 class ListSortingView(BaseFilterView, ListView):
+
+    template_name = 'cbv_list.htm'
 
     def get_json_order_result(self, sort_order):
         return {
@@ -1310,11 +1381,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     model = None
     # query all fields by default.
     query_fields = None
-    # Knockout.js grid viewmodel columns. Use '__all__' value to display all model fields as grid columns.
-    # or specify list of field names, each value is str.
-    # Tuple value ('field', 'Column name') may be used instead of str value to override field names displayed
-    # in grid column.
-    grid_fields = None
     current_page = 1
     row_model_str = False
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -1327,19 +1393,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     def get_default_grid_options(cls):
         return {}
 
-    def get_related_fields(self, query_fields=None):
-        if query_fields is None:
-            query_fields = self.get_all_fieldnames()
-        return list(set(self.get_grid_fields_attnames()) - set(query_fields))
-
-    # A superset of self.get_all_fieldnames() which also returns foreign related fields, if any.
-    # It is used to automatically include related query fields / sort orders.
-    def get_all_related_fields(self):
-        query_fields = self.get_all_fieldnames()
-        related_fields = self.get_related_fields(query_fields)
-        query_fields.extend(related_fields)
-        return query_fields
-
     # It is possible to get related fields:
     # https://code.djangoproject.com/ticket/5768
     # https://github.com/django/django/commit/9b432cb67b
@@ -1347,37 +1400,17 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     def get_query_fields(self):
         return self.get_all_related_fields()
 
-    def get_grid_fields_attnames(self):
-        return [field[0] if type(field) is tuple else field for field in self.grid_fields]
-
-    def get_all_allowed_sort_orders(self):
-        # If there are related grid fields explicitely defined in self.__class__.grid_fields attribute,
-        # these will be automatically added to allowed sort orders.
-        return self.get_all_fieldnames() if self.grid_fields is None else self.get_all_related_fields()
-
-    def get_grid_fields(self):
-        return []
-
     def get_allowed_filter_fields(self):
         return OrderedDict()
 
     @classmethod
     def init_class(cls, self):
-        if cls.grid_fields is None:
-            self.grid_fields = self.get_grid_fields()
-        elif cls.grid_fields == '__all__':
-            self.grid_fields = self.get_all_fieldnames()
-        else:
-            self.grid_fields = cls.grid_fields
+        super(KoGridView, cls).init_class(self)
 
         if cls.query_fields is None:
             self.query_fields = self.get_query_fields()
         else:
             self.query_fields = cls.query_fields
-
-        super(KoGridView, cls).init_class(self)
-        model_class_members = get_object_members(self.__class__.model)
-        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
     def get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -1393,20 +1426,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         for field, value in row_related.items():
             row[field] = value
         return obj
-
-    # row may be used in overloaded method when virtual fields were added to row by overloaded get_model_row().
-    def get_row_str_fields(self, obj, row):
-        if self.has_get_str_fields:
-            str_fields = obj.get_str_fields()
-            for fieldname in self.grid_fields:
-                if '__' in fieldname:
-                    rel_path = fieldname.split('__')
-                    rel_str = get_nested(str_fields, rel_path)
-                    if rel_str is not None:
-                        str_fields[fieldname] = rel_str
-            return str_fields
-        else:
-            return None
 
     def get_model_row(self, obj):
         return model_values(obj, self.query_fields, strict_related=False)

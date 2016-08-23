@@ -3,7 +3,13 @@ from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 from .utils.sdv import nested_values
+
+
+def normalize_fk_fieldname(fieldname):
+    return fieldname[:-3] if fieldname.endswith('_id') else fieldname
 
 
 def get_permission_object(permission_str):
@@ -49,7 +55,11 @@ def get_related_field(obj, fieldname):
 def get_meta(obj, meta_attr, fieldname=None):
     if fieldname is None:
         return getattr(obj._meta, meta_attr)
-    return getattr(get_related_field(obj, fieldname), meta_attr)
+    related_field = get_related_field(obj, fieldname)
+    if isinstance(related_field, GenericForeignKey):
+        return get_meta(obj, meta_attr, related_field.ct_field)
+    else:
+        return getattr(related_field, meta_attr)
 
 
 def get_verbose_name(obj, fieldname=None):
