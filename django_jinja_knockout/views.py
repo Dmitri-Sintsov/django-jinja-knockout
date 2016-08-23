@@ -104,7 +104,25 @@ def prepare_bs_navs(navs, request):
         nav['atts']['class'].strip()
 
 
-class FormDetailView(UpdateView):
+class FormatTitleMixin:
+
+    format_view_title = False
+
+    def __init__(self):
+        self.view_title_is_formatted = False
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if self.__class__.format_view_title and not self.view_title_is_formatted:
+            self.request.view_title = self.request.view_title.format(obj)
+            self.view_title_is_formatted = True
+        return obj
+
+    def get_object_from_url(self):
+        return self.get_object()
+
+
+class FormDetailView(FormatTitleMixin, UpdateView):
 
     template_name = 'form_detail_view.htm'
 
@@ -297,22 +315,8 @@ class InlineCreateView(FormWithInlineFormsetsMixin, TemplateView):
 
 
 # @note: Suitable both for CREATE and for VIEW actions (via form metaclass=DisplayModelMetaclass).
-class InlineDetailView(FormWithInlineFormsetsMixin, DetailView):
-
-    format_view_title = False
-
-    def __init__(self):
-        self.view_title_is_formatted = False
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if self.__class__.format_view_title and not self.view_title_is_formatted:
-            self.request.view_title = self.request.view_title.format(obj)
-            self.view_title_is_formatted = True
-        return obj
-
-    def get_object_from_url(self):
-        return self.get_object()
+class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
+    pass
 
 
 # Used to validate values of submitted filter fields.

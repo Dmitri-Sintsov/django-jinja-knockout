@@ -1,17 +1,8 @@
 {% extends 'base.htm' %}
-{% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 {% from 'bs_form.htm' import bs_form with context %}
 
 {% block main %}
 
-{{ bs_form(form, '', opts={}) }}
-
-{% call(kwargs)
-bs_inline_formsets(related_form=form, formsets=[], action='', html={
-    'class': 'signup',
-    'title': view.object,
-}) %}
-
-{% endcall %}
+{{ bs_form(form, '', opts={'class': 'detail-view', 'title': view.object, }) }}
 
 {% endblock main %}
