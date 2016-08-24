@@ -1,6 +1,7 @@
 {% extends 'base.htm' %}
 {% from 'bs_panel.htm' import bs_panel with context %}
 {% from 'bs_breadcrumbs.htm' import bs_breadcrumbs with context %}
+{% from 'bs_filters.htm' import bs_filters with context %}
 {% from 'bs_pagination.htm' import bs_pagination with context %}
 
 {% block main %}
@@ -43,7 +44,7 @@
 {% else %}
 <div class="jumbotron">
     <div class="default-padding">
-        There is no {{ bs_filters(filter_title, filter_display, ' type') }}.
+        {{ bs_filters(filter_title, filter_display, _('There is no'), _('to display')) }}
     </div>
 </div>
 {% endif %}
