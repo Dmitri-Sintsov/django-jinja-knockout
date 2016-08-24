@@ -1,12 +1,13 @@
 {% extends 'base.htm' %}
 {% from 'bs_panel.htm' import bs_panel with context %}
 {% from 'bs_breadcrumbs.htm' import bs_breadcrumbs with context %}
+{% from 'bs_pagination.htm' import bs_pagination with context %}
 
 {% block main %}
 
 {% call bs_panel(
     type='primary',
-    heading=get_meta(view.__class__.model, 'verbose_name_plural'),
+    heading=view.get_heading(),
 ) %}
 
 {% for field in view.allowed_filter_fields %}
@@ -29,6 +30,7 @@
             </th>
         {% endfor %}
         </tr>
+        {% endif %}
         <tr>
         {% for field in view.grid_fields %}
             <td class="{{ row_class.__next__() }}" data-caption="{{ get_verbose_name(obj, field) }}">
@@ -36,12 +38,20 @@
             </td>
         {% endfor %}
         </tr>
-        {% endif %}
     {% endfor %}
     </table>
+{% else %}
+<div class="jumbotron">
+    <div class="default-padding">
+        There is no {{ bs_filters(filter_title, filter_display, ' type') }}.
+    </div>
+</div>
+{% endif %}
+
+{% if object_list and is_paginated %}
+    {{ bs_pagination(cbv=cbv, page_obj=page_obj) }}
 {% endif %}
 
 {% endcall %}
 
 {% endblock main %}
-

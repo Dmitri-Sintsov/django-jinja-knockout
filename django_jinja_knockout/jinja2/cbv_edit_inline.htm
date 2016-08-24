@@ -1,0 +1,30 @@
+{% extends 'base.htm' %}
+{% from 'bs_navs.htm' import bs_navs with context %}
+{% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
+{% from 'bs_panel.htm' import bs_panel with context %}
+
+{% block main %}
+
+{% if main_navs is defined %}
+{{ bs_navs(main_navs) }}
+{% endif %}
+
+{% call bs_panel(
+    type='primary',
+    heading=view.get_heading(),
+) %}
+
+{% call(kwargs)
+bs_inline_formsets(
+    related_form=form, formsets=formsets, action=view.get_form_action_url(), html=view.get_bs_form_opts()
+) %}
+
+{% endcall %}
+
+{% endcall %}
+
+{% endblock main %}
+
+{% block bottom_scripts %}
+    <script src="{{ static('js/front/formsets.js') }}"></script>
+{% endblock bottom_scripts %}

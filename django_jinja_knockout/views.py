@@ -122,6 +122,12 @@ class FormatTitleMixin:
     def get_object_from_url(self):
         return self.get_object()
 
+    def get_heading(self):
+        if self.object is not None:
+            return self.object
+        else:
+            return get_verbose_name(self.model)
+
 
 class FormDetailView(FormatTitleMixin, UpdateView):
 
@@ -306,7 +312,9 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             return self.form_invalid(self.ff.form, self.ff.formsets)
 
 
-class InlineCreateView(FormWithInlineFormsetsMixin, TemplateView):
+class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, TemplateView):
+
+    template_name = 'cbv_edit_inline.htm'
 
     def get_form_with_inline_formsets(self, request):
         return self.__class__.form_with_inline_formsets(request, create=True)
@@ -317,7 +325,8 @@ class InlineCreateView(FormWithInlineFormsetsMixin, TemplateView):
 
 # @note: Suitable both for CREATE and for VIEW actions (via form metaclass=DisplayModelMetaclass).
 class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
-    pass
+
+    template_name = 'cbv_edit_inline.htm'
 
 
 # Used to validate values of submitted filter fields.
@@ -522,17 +531,18 @@ class BaseFilterView(View):
         if not hasattr(obj, '_display_value'):
             obj._display_value = self.get_row_str_fields(obj)
         normalized_field = normalize_fk_fieldname(field)
-        display_value = ''
-        if field in obj._display_value:
+        field_val = getattr(obj, field)
+        if isinstance(field_val, models.Model) and hasattr(field_val, 'get_canonical_link'):
+            display_value = format_html('<a href="{1}">{0}</a>', *field_val.get_canonical_link())
+        elif field in obj._display_value:
             display_value = obj._display_value[field]
         elif normalized_field in obj._display_value:
             display_value = obj._display_value[normalized_field]
         else:
-            display_value = getattr(obj, field)
+            display_value = field_val
         if isinstance(display_value, dict):
-            return qtpl.print_list_group(display_value.values())
-        else:
-            return display_value
+            display_value = qtpl.print_list_group(display_value.values())
+        return display_value
 
     @classmethod
     def init_class(cls, self):
@@ -764,6 +774,9 @@ class BaseFilterView(View):
 class ListSortingView(BaseFilterView, ListView):
 
     template_name = 'cbv_list.htm'
+
+    def get_heading(self):
+        return get_meta(self.__class__.model, 'verbose_name_plural')
 
     def get_json_order_result(self, sort_order):
         return {

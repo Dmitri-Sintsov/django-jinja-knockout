@@ -8,7 +8,7 @@ from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
-from .models import get_meta, get_verbose_name, ContentTypeLinker
+from .models import get_verbose_name, ContentTypeLinker
 from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq
 
 
@@ -95,7 +95,6 @@ class TemplateContextProcessor():
             'escape': escape,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
-            'get_meta': get_meta,
             'flatatt': flatatt,
             'format_html': format_html,
             'force_text': force_text,
