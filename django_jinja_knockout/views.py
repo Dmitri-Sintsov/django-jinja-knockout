@@ -1387,6 +1387,11 @@ class GridActionsMixin:
 #     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
 # To browse specified Django model.
 #
+# HTTP GET response is HTML generated from template_name, which has Javascript component html.
+# It is optional and is not required.
+#
+# HTTP POST response is AJAX JSON for App.ko.Grid / App.FkGridWidget Javascript components.
+#
 class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
 
     context_object_name = 'model'

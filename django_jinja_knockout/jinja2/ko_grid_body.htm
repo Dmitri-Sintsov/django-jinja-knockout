@@ -96,7 +96,7 @@
     <form class="navbar-form navbar-left">
         <div data-bind="if: meta.hasSearch()" class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-            <button data-bind="click: onSearchReset" class="btn btn-default">Очистить</button>
+            <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
         </div>
         <!-- ko foreach: actionTypes['button'] -->
             <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction({}); }">
