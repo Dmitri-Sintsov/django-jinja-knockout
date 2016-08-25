@@ -1125,7 +1125,7 @@ class GridActionsMixin:
         if action_name is None:
             action_name = self.current_action_name
         action = self.get_action(action_name)
-        return action['localName'] if 'localName' in action else action_name
+        return action['localName'] if action is not None and 'localName' in action else action_name
 
     def action_is_denied(self):
         self.report_error(
@@ -1508,7 +1508,9 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         if self.current_action_name == '':
             self.current_action_name = 'list'
         current_action = self.get_action(self.current_action_name)
-        if current_action is not None and current_action['enabled']:
+        if current_action is None:
+            handler = self.action_not_implemented
+        elif current_action['enabled']:
             handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
         else:
             handler = self.action_is_denied

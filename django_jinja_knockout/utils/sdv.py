@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, ValuesView
 import os
 import inspect
 from pprint import pprint
@@ -12,10 +12,21 @@ def yield_ordered(iterable):
         for key, val in iterable.items():
             yield key, val
     elif isinstance(iterable, list):
-        for key, val in iterable:
+        for key, val in enumerate(iterable):
             yield key, val
     else:
         raise ValueError('iterable is not ordered')
+
+
+def yield_ordered_values(iterable):
+    if isinstance(iterable, OrderedDict):
+        for val in iterable.values():
+            yield val
+    elif isinstance(iterable, (list, ValuesView)):
+        for val in iterable:
+            yield val
+    else:
+        raise ValueError('iterable values are not ordered')
 
 
 # http://stackoverflow.com/questions/14692690/access-python-nested-dictionary-items-via-a-list-of-keys

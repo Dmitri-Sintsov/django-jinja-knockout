@@ -2,11 +2,13 @@ import lxml.html
 from lxml import etree
 from ensure import ensure_annotations
 from datetime import date, datetime
+from urllib.parse import urlencode
+
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import resolve, reverse
-from urllib.parse import urlencode
-from .utils.sdv import get_cbv_from_dispatch_wrapper
+
+from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -26,7 +28,7 @@ def repeat_insert_rtl(s:str, separator:str=' ', each:int=3):
 # Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
     result = []
-    for elem in row:
+    for elem in yield_ordered_values(row):
         if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
             result.append(print_list(elem, elem_tpl, top_tpl, cb))
         else:
