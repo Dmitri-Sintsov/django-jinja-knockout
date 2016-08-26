@@ -1523,3 +1523,8 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 class KoGridWidget(KoGridView):
 
     row_model_str = True
+
+
+class KoGridInline(KoGridView):
+
+    template_name = 'cbv_grid_inline.htm'
