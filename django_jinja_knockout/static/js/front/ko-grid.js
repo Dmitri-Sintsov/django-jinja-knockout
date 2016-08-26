@@ -1003,10 +1003,13 @@ App.GridActions = function(options) {
         }
     ];
 
-    GridActions.renderDescription = function(viewModel) {
+    GridActions.renderDescription = function(viewModel, dialogType) {
         viewModel.message = $('<div>');
         App.renderNestedList(viewModel.message, viewModel.description, this.blockTags);
-        viewModel.type = BootstrapDialog.TYPE_DANGER;
+        if (typeof dialogType === 'undefined') {
+            dialogType = BootstrapDialog.TYPE_DANGER;
+        }
+        viewModel.type = dialogType;
         delete viewModel.description;
     };
 
