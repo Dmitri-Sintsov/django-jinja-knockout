@@ -285,7 +285,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             )
 
     def get_object_from_url(self):
-        raise ValueError('Abstract method')
+        raise NotImplementedError('Abstract method')
 
     def get(self, request, *args, **kwargs):
         """
