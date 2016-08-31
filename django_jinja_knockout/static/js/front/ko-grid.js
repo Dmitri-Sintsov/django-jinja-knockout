@@ -596,12 +596,22 @@ App.ko.GridRow = function(options) {
     // todo: turn off by default and update saved row at whole.
     GridRow.observeDisplayValue = true;
 
+    GridRow.prepare = function() {
+        App.initClient(this.$row);
+    };
+
+    GridRow.dispose = function() {
+        App.initClient(this.$row, 'dispose');
+    };
+
     GridRow.afterRender = function() {
         var self = this;
         if (this.useInitClient) {
-            App.initClient(this.$row);
+            // Add row.
+            this.prepare();
             ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
-                App.initClient(self.$row, 'dispose');
+                // Remove row.
+                self.dispose();
             });
         }
     };
@@ -762,6 +772,10 @@ App.ko.GridRow = function(options) {
     GridRow.update = function(savedRow) {
         var self = this;
         this.str = savedRow.str;
+        if (this.useInitClient) {
+            // Dispose old row.
+            this.dispose();
+        }
         this.isUpdated(savedRow.isUpdated);
         _.each(savedRow.values, function(value, field) {
             self.values[field] = value;
@@ -773,6 +787,10 @@ App.ko.GridRow = function(options) {
             self.displayValues[field](ko.utils.unwrapObservable(value));
             // self.displayValues[field].valueHasMutated();
         });
+        if (this.useInitClient) {
+            // Init updated row.
+            this.prepare();
+        }
     };
 
     GridRow.getDescParts = function() {

@@ -1495,6 +1495,9 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             }
         }
 
+    def get_object_from_action_template(self):
+        return self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
+
     def get(self, request, *args, **kwargs):
         request.client_routes.append(request.url_name)
         return super().get(request, *args, **kwargs)

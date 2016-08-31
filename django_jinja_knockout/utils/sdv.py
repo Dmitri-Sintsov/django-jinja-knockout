@@ -13,7 +13,10 @@ def yield_ordered(iterable):
             yield key, val
     elif isinstance(iterable, list):
         for key, val in enumerate(iterable):
-            yield key, val
+            if type(key) is int and isinstance(val, tuple) and len(val) == 2:
+                yield val
+            else:
+                raise ValueError('Iterable value is not pair tuple')
     else:
         raise ValueError('iterable is not ordered')
 
