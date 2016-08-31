@@ -56,14 +56,18 @@
 {%- endif %}
 
 {% if include_ids['ko_action_form'] -%}
-<!-- 'ko_action_form' template is not actual template but a sceleton of action template for ancestor of App.ActionTemplateDialog. -->
+<!-- 'ko_action_form' template is not actual template but a sceleton of action template for App.ActionTemplateDialog class. -->
 <script type="text/template" id="{{ template_ids['ko_action_form'] }}">
     <div class="panel panel-default">
         <div class="panel-body">
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
                 <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                 <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
-                <!-- Add your fields here. -->
+                <div class="jumbotron">
+                    <div class="default-padding">
+                        This is the sample template. Copy this template with another id then add your MVVM fields here.
+                    </div>
+                </div>
             </form>
         </div>
     </div>
