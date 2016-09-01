@@ -503,7 +503,10 @@ class BaseFilterView(View):
         return filter_choices
 
     def request_get(self, key, default=None):
-        return self.request.GET.get(key, default)
+        if key in self.request.POST:
+            return self.request.POST.get(key)
+        else:
+            return self.request.GET.get(key, default)
 
     # Respond with exception (non-AJAX mode).
     def report_error(self, message, *args, **kwargs):
@@ -1144,6 +1147,15 @@ class GridActionsMixin:
             )
         )
 
+    def get_object_for_action(self):
+        return self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
+
+    def get_queryset_for_action(self):
+        pks = self.request.POST.getlist('pk_vals[]')
+        if len(pks) == 0:
+            pks = [self.request_get('pk_val')]
+        return self.__class__.model.objects.filter(pk__in=pks)
+
     def vm_form(self, form, verbose_name, action_query={}):
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
@@ -1169,11 +1181,10 @@ class GridActionsMixin:
         )
 
     def action_edit_form(self):
-        pk_val = self.request_get('pk_val')
-        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        obj = self.get_object_for_action()
         form = self.get_edit_form()(instance=obj)
         return self.vm_form(
-            form, self.render_object_desc(obj), {'pk_val': pk_val}
+            form, self.render_object_desc(obj), {'pk_val': obj.pk}
         )
 
     def vm_inline(self, ff, verbose_name, action_query={}):
@@ -1203,12 +1214,11 @@ class GridActionsMixin:
         )
 
     def action_edit_inline(self):
-        pk_val = self.request_get('pk_val')
-        obj = self.__class__.model.objects.filter(pk=pk_val).first()
+        obj = self.get_object_for_action()
         ff = self.get_edit_form_with_inline_formsets()(self.request)
         ff.get(instance=obj)
         return self.vm_inline(
-            ff, self.render_object_desc(obj), {'pk_val': pk_val}
+            ff, self.render_object_desc(obj), {'pk_val': obj.pk}
         )
 
     def get_object_desc(self, obj):
@@ -1228,10 +1238,7 @@ class GridActionsMixin:
         return True
 
     def action_delete(self):
-        pks = self.request.POST.getlist('pk_vals[]')
-        if len(pks) == 0:
-            pks = [self.request.POST.get('pk_val')]
-        objects = self.__class__.model.objects.filter(pk__in=pks)
+        objects = self.get_queryset_for_action()
         viewmodel = {
             'view': self.__class__.viewmodel_name,
             'description': self.get_objects_descriptions(objects),
@@ -1241,7 +1248,7 @@ class GridActionsMixin:
                 'title': format_html('{}',
                      self.get_action_local_name()
                 ),
-                'pkVals': pks
+                'pkVals': list(objects.values_list('pk', flat=True))
             })
         else:
             viewmodel.update({
@@ -1251,8 +1258,8 @@ class GridActionsMixin:
         return vm_list(viewmodel)
 
     def action_delete_confirmed(self):
-        pks = self.request.POST.getlist('pk_vals[]')
-        objects = self.__class__.model.objects.filter(pk__in=pks)
+        objects = self.get_queryset_for_action()
+        pks = list(objects.values_list('pk', flat=True))
         if self.action_delete_is_allowed(objects):
             objects.delete()
             return vm_list({
@@ -1269,19 +1276,18 @@ class GridActionsMixin:
 
     # Supports both 'create_form' and 'edit_form' actions.
     def action_save_form(self):
-        pk_val = self.request.GET.get('pk_val')
-        form_class = self.get_create_form() if pk_val is None else self.get_edit_form()
-        obj = self.__class__.model.objects.filter(pk=pk_val).first()
-        form = form_class(self.request.POST, instance=obj)
+        old_obj = self.get_object_for_action()
+        form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
+        form = form_class(self.request.POST, instance=old_obj)
         if form.is_valid():
             vm = {'view': self.__class__.viewmodel_name}
             if form.has_changed():
-                obj = form.save()
+                new_obj = form.save()
                 row = self.postprocess_row(
-                    self.get_model_row(obj),
-                    obj
+                    self.get_model_row(new_obj),
+                    new_obj
                 )
-                if pk_val is None:
+                if old_obj is None:
                     vm['prepend_rows'] = [row]
                 else:
                     vm['update_rows'] = [row]
@@ -1293,22 +1299,21 @@ class GridActionsMixin:
 
     # Supports both 'create_inline' and 'edit_inline' actions.
     def action_save_inline(self):
-        pk_val = self.request.GET.get('pk_val')
-        if pk_val is None:
+        old_obj = self.get_object_for_action()
+        if old_obj is None:
             ff_class = self.get_create_form_with_inline_formsets()
         else:
             ff_class = self.get_edit_form_with_inline_formsets()
-        obj = self.__class__.model.objects.filter(pk=pk_val).first()
-        ff = ff_class(self.request, create=pk_val is None)
-        obj = ff.save(instance=obj)
-        if obj is not None:
+        ff = ff_class(self.request, create=old_obj is None)
+        new_obj = ff.save(instance=old_obj)
+        if new_obj is not None:
             vm = {'view': self.__class__.viewmodel_name}
             if ff.has_changed():
                 row = self.postprocess_row(
-                    self.get_model_row(obj),
-                    obj
+                    self.get_model_row(new_obj),
+                    new_obj
                 )
-                if pk_val is None:
+                if old_obj is None:
                     vm['prepend_rows'] = [row]
                 else:
                     vm['update_rows'] = [row]
@@ -1406,9 +1411,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     row_model_str = False
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 
-    def request_get(self, key, default=None):
-        return self.request.POST.get(key, default)
-
     # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
     def get_default_grid_options(cls):
@@ -1497,9 +1499,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
                 'field': 'col-md-6'
             }
         }
-
-    def get_object_from_action_template(self):
-        return self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
 
     def get(self, request, *args, **kwargs):
         request.client_routes.append(request.url_name)
