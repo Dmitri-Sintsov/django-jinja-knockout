@@ -632,7 +632,7 @@ App.ko.GridRow = function(options) {
         if (fieldRelated !== null) {
             fieldRelated = fieldRelated[1];
         }
-        var markSafe = false;
+        var markSafe = this.ownerGrid.isMarkSafeField(field);
         // Automatic server-side formatting.
         if (typeof this.strFields[field] !== 'undefined') {
             displayValue = this.strFields[field];
@@ -1249,6 +1249,7 @@ App.ko.Grid = function(options) {
         this.meta = {
             pkField: '',
             hasSearch: ko.observable(false),
+            markSafeFields: [],
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
@@ -1965,6 +1966,13 @@ App.ko.Grid = function(options) {
         if (typeof data.filters !== 'undefined') {
             this.setKoFilters(data.filters);
         }
+        if (typeof data.markSafe !== 'undefined' && _.isArray(data.markSafe)) {
+            this.meta.markSafeFields = data.markSafe;
+        }
+    };
+
+    Grid.isMarkSafeField = function(fieldName) {
+        return _.indexOf(this.meta.markSafeFields, fieldName) !== -1;
     };
 
     Grid.listCallback = function(data) {

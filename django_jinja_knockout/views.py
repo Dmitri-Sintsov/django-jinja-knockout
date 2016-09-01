@@ -997,6 +997,7 @@ class GridActionsMixin:
     formset = None
     form_with_inline_formsets = None
     enable_deletion = False
+    mark_safe_fields = None
 
     def get_model_meta(self, key):
         return get_meta(self.__class__.model, key)
@@ -1364,6 +1365,8 @@ class GridActionsMixin:
             'gridFields': self.vm_get_grid_fields(),
             'filters': self.get_filters()
         }
+        if self.__class__.mark_safe_fields is not None:
+            vm['markSafe'] = self.__class__.mark_safe_fields
         return vm
 
     def action_list(self):
