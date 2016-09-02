@@ -515,7 +515,14 @@ class BaseFilterView(View):
     def get_all_fieldnames(self):
         return list(yield_model_fieldnames(self.__class__.model))
 
-    # row may be used in overloaded method when virtual fields were added to row by overloaded get_model_row().
+    # virtual / annotated fields may be added to row via overloading:
+    #
+    #   get_field_verbose_name()
+    #   get_related_fields()
+    #   get_model_fields()
+    #   postprocess_row()
+    #   get_row_str_fields()
+    #
     def get_row_str_fields(self, obj, row={}):
         if self.has_get_str_fields:
             str_fields = obj.get_str_fields()
@@ -1458,8 +1465,11 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             row[field] = value
         return obj
 
+    def get_model_fields(self):
+        return self.query_fields
+
     def get_model_row(self, obj):
-        return model_values(obj, self.query_fields, strict_related=False)
+        return model_values(obj, self.get_model_fields(), strict_related=False)
 
     # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
     # the keys are field names while the values are Django-formatted display values (not raw values).
