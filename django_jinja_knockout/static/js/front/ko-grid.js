@@ -604,6 +604,10 @@ App.ko.GridRow = function(options) {
         App.initClient(this.$row, 'dispose');
     };
 
+    GridRow.is = function(gridRow) {
+        return _.isEqual(this.values, gridRow.values);
+    };
+
     GridRow.afterRender = function() {
         var self = this;
         if (this.useInitClient) {
@@ -1095,11 +1099,19 @@ App.GridActions = function(options) {
         return this.grid.getListQueryArgs();
     };
 
+    GridActions.queryargs_update = function(options) {
+        return this.queryargs_list(options);
+    };
+
     /**
      * Populate viewmodel from AJAX response.
      */
     GridActions.callback_list = function(data) {
         this.grid.listCallback(data);
+    };
+
+    GridActions.callback_update = function(data) {
+        this.callback_list(data);
     };
 
     /**
@@ -1478,18 +1490,35 @@ App.ko.Grid = function(options) {
     /**
      * Find App.ko.GridRow instance in this.gridRows by row pk value.
      */
-    Grid.findKoRowByPkVal = function(pkVal) {
+    Grid.findKoRowByPkVal = function(options) {
         var self = this;
+        var pkVal, withKey;
+        if (typeof options === 'object') {
+            pkVal = options.pkVal;
+            withKey = App.propGet(options, 'withKey', false);
+        } else {
+            pkVal = options;
+            withKey = false;
+        }
         var intPkVal = App.intVal(pkVal);
         var koRow = null;
-        _.each(this.gridRows(), function(v) {
+        var key = -1;
+        _.each(this.gridRows(), function(v, k) {
             var val = v.getValue(self.meta.pkField);
             if (val === pkVal || val === intPkVal) {
                 koRow = v;
+                key = k;
                 return false;
             }
         });
-        return koRow;
+        if (withKey) {
+            return {
+                'koRow': koRow,
+                'key': key
+            }
+        } else {
+            return koRow;
+        }
     };
 
     /**
@@ -2000,7 +2029,24 @@ App.ko.Grid = function(options) {
                 })
             );
         });
-        self.gridRows(gridRows);
+        if (App.propGet(data, 'update') === true) {
+            for (var i = 0; i < gridRows.length; i++) {
+                var newRow = gridRows[i];
+                var findResult = this.findKoRowByPkVal({
+                    pkVal: newRow.getValue(this.meta.pkField),
+                    withKey: true
+                });
+                if (findResult.koRow === null) {
+                    newRow.isUpdated(true);
+                    self.gridRows.unshift(newRow);
+                } else if (!newRow.is(findResult.koRow)) {
+                    newRow.isUpdated(true);
+                    self.gridRows.splice(findResult.key, 1, newRow);
+                }
+            }
+        } else {
+            self.gridRows(gridRows);
+        }
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);
     };

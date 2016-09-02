@@ -1034,6 +1034,9 @@ class GridActionsMixin:
                 ('list', {
                     'enabled': True
                 }),
+                ('update', {
+                    'enabled': True
+                }),
                 ('meta_list', {
                     'enabled': True
                 }),
@@ -1381,6 +1384,11 @@ class GridActionsMixin:
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
+        return vm
+
+    def action_update(self):
+        vm = self.action_list()
+        vm['update'] = True
         return vm
 
     def action_meta_list(self):
