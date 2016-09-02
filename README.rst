@@ -14,6 +14,17 @@ Key features
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
 
+Documentation (in development): https://django-jinja-knockout.readthedocs.org/
+
+Sample application: https://github.com/Dmitri-Sintsov/djk-sample
+
+Screenshot of sample application:
+
+.. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_edit_inline.png
+   :width: 740px
+
+More screenshots with description are available at: https://github.com/Dmitri-Sintsov/djk-sample/wiki
+
 Overview
 --------
 
