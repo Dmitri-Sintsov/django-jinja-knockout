@@ -2,13 +2,27 @@
 Grids
 =====
 
+.. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
+.. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
+.. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
+.. _jinja2/cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
+.. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
+.. _knockout.js: http://knockoutjs.com/
+.. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
+.. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
+
+
 Introduction
 ------------
-Client-side ``static/js/front/ko-grid.js`` script and server-side ``views.KoGridView`` Python class provide possibility
-to create AJAX-powered grids for Django models, similar to traditional ``django.contrib.admin`` built-in module which
+Client-side `ko_grid.js`_ script and server-side `views.KoGridView`_ Python class provide possibility to create
+AJAX-powered grids for Django models, similar to traditional ``django.contrib.admin`` built-in module which
 implements such functionality with traditional HTML page generation.
 
-``knockout.js`` viewmodels are used to display / update AJAX grids.
+``views.KoGridView`` itself is based on common foundation with ``views.ListSortingView`` via ``views.BaseFilterView``,
+which allows to partially share the functionality between AJAX grids and traditional paginated lists, although
+currently grids are more full-featured (for example support wider variety of model field filters).
+
+`knockout.js`_ viewmodels are used to display / update AJAX grids.
 
 Each grid row represents an instance of associated Django model which can be browsed and manipulated by grid class.
 
@@ -36,11 +50,7 @@ Models used in this documentation
 ---------------------------------
 .. highlight:: python
 
-This documentation refers to two Django models with one to many relationship defined in ``my_app.models.py``::
-
-    from collections import OrderedDict
-    from django.db import models
-    from django_jinja_knockout.tpl import format_local_date
+This documentation refers to Django models with one to many relationship defined in `club_app.models`_::
 
     class Club(models.Model):
         CATEGORY_RECREATIONAL = 0
@@ -49,117 +59,131 @@ This documentation refers to two Django models with one to many relationship def
             (CATEGORY_RECREATIONAL, 'Recreational'),
             (CATEGORY_PROFESSIONAL, 'Professional'),
         )
-        SPORT_BADMINTON = 0
-        SPORT_TENNIS = 1
-        SPORT_TABLE_TENNIS = 2
-        SPORT_SQUASH = 3
-        SPORTS = (
-            (SPORT_BADMINTON, 'Badminton'),
-            (SPORT_TENNIS, 'Tennis'),
-            (SPORT_TABLE_TENNIS, 'Table tennis'),
-            (SPORT_SQUASH, 'Squash'),
+        title = models.CharField(max_length=64, unique=True, verbose_name='Title')
+        category = models.IntegerField(
+            choices=CATEGORIES, default=CATEGORY_RECREATIONAL, db_index=True, verbose_name='Category'
         )
-        title = models.CharField(max_length=64, verbose_name='Title')
-        sport = models.IntegerField(choices=SPORTS, default=SPORT_BADMINTON, verbose_name='Sport')
-        category = models.IntegerField(choices=CATEGORIES, default=CATEGORY_RECREATIONAL, verbose_name='Category')
         foundation_date = models.DateField(db_index=True, verbose_name='Foundation date')
+
+        class Meta:
+            verbose_name = 'Sport club'
+            verbose_name_plural = 'Sport clubs'
+            ordering = ('title', 'category')
+
+        def save(self, *args, **kwargs):
+            if self.pk is None:
+                if self.foundation_date is None:
+                    self.foundation_date = timezone.now()
+            super().save(*args, **kwargs)
+
+        def get_canonical_link(self):
+            return str(self.title), reverse('club_detail', kwargs={'club_id': self.pk})
 
         def get_str_fields(self):
             return OrderedDict([
-                ('title', title),
-                ('sport', self.get_sport_display()),
+                ('title', self.title),
                 ('category', self.get_category_display()),
                 ('foundation_date', format_local_date(self.foundation_date))
             ])
 
         def __str__(self):
-            return ' › '.join(list(self.get_str_fields.values()))
+            return ' › '.join(self.get_str_fields().values())
 
-    class ClubMember(models.Model):
-        ROLE_PROMOTER = 0
-        ROLE_SCHOLAR = 1
-        ROLE_EVANGELIST = 2
-        ROLE_FOUNDER = 3
-        ROLES = (
-            (ROLE_PROMOTER, 'Promoter'),
-            (ROLE_SCHOLAR, 'Scholar'),
-            (ROLE_EVANGELIST, 'Evangelist'),
-            (ROLE_FOUNDER, 'Founder'),
+
+    class Member(models.Model):
+        SPORT_BADMINTON = 0
+        SPORT_TENNIS = 1
+        SPORT_TABLE_TENNIS = 2
+        SPORT_SQUASH = 3
+        SPORT_ANOTHER = 4
+        BASIC_SPORTS = (
+            (SPORT_BADMINTON, 'Badminton'),
+            (SPORT_TENNIS, 'Tennis'),
+            (SPORT_TABLE_TENNIS, 'Table tennis'),
+            (SPORT_SQUASH, 'Squash'),
         )
-        club = models.ForeignKey(Club, verbose_name='Club')
-        first_name = models.CharField(max_length=30, verbose_name='First name')
-        last_name = models.CharField(max_length=30, verbose_name='Last name')
-        role = models.IntegerField(choices=ROLES, default=ROLE_PROMOTER, verbose_name='Member role')
+        SPORTS = BASIC_SPORTS + ((SPORT_ANOTHER, 'Another sport'),)
+        ROLE_OWNER = 0
+        ROLE_FOUNDER = 1
+        ROLE_MEMBER = 2
+        ROLES = (
+            (ROLE_OWNER, 'Owner'),
+            (ROLE_FOUNDER, 'Founder'),
+            (ROLE_MEMBER, 'Member'),
+        )
+        profile = models.ForeignKey(Profile, verbose_name='Sportsman')
+        club = models.ForeignKey(Club, blank=True, verbose_name='Club')
+        last_visit = models.DateTimeField(db_index=True, verbose_name='Last visit time')
+        plays = models.IntegerField(choices=SPORTS, default=SPORT_ANOTHER, verbose_name='Plays sport')
+        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
         note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
-        # Allows to have only one endorsed member via True, but multiple non-endorsed members via None.
-        is_endorsed = models.NullBooleanField(default=None, verbose_name='Endorsed')
+        is_endorsed = models.BooleanField(default=False, verbose_name='Endorsed')
 
-        # Complex nested str fields with foregin keys.
+        class Meta:
+            unique_together = ('profile', 'club')
+            verbose_name = 'Sport club member'
+            verbose_name_plural = 'Sport club members'
+
+        def get_canonical_link(self):
+            str_fields = self.get_str_fields()
+            join_dict_values(' / ', str_fields, ['profile', 'club'])
+            return ' / '.join([str_fields['profile'], str_fields['club']]), \
+                   reverse('member_detail', kwargs={'member_id': self.pk})
+
         def get_str_fields(self):
-            # Nested formatting of foreign keys:
             parts = OrderedDict([
-                ('fk1', self.fk1.get_str_fields()),
-                 ('fk2', self.fk2.get_str_fields()),
+                ('profile', self.profile.get_str_fields()),
+                ('club', self.club.get_str_fields()),
+                ('last_visit', format_local_date(timezone.localtime(self.last_visit))),
+                ('plays', self.get_plays_display()),
+                ('role', self.get_role_display()),
+                ('is_endorsed', 'endorsed' if self.is_endorsed else 'unofficial')
             ])
-            if self.fk3 is not None:
-                parts['fk3'] = self.fk3.get_str_fields(verbose=False)
-            # Formatting of scalar fields:
-            parts['sum'] = format_currency(self.sum)
-            parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
             return parts
 
-        # Model1.__str__ uses Model1.get_str_fields() for disambiguation.
         def __str__(self):
             str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['fk1', 'fk2'])
-            if 'fk3' in str_fields:
-                join_dict_values(' / ', str_fields, ['fk1'])
+            join_dict_values(' / ', str_fields, ['profile', 'club'])
             return ' › '.join(str_fields.values())
-
 
 Simpliest grid
 --------------
 
-If you have Django model created and migrated, then it is quite easy to add grid for that model to the Django app Jinja2
-template, providing your templates are inherited from ``jinja2/base_min.htm``, or from a custom-based template which
+If you have Django model created and migrated, then it is quite easy to add grid for that model to Django app Jinja2
+template, providing your templates are inherited from `jinja2/base_min.htm`_, or based on a custom-based template which
 includes the same client-side scripts as ``base_min.htm`` does.
 
-In your app view code (we use ``my_app/views.py`` in this example) create the following view::
+In your app view code (we use `club_app.views_ajax`_ in this example) create the following view::
 
-    from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    class SimpleClubGrid(KoGridView):
 
-    class Model1Grid(KoGridView):
-
-        client_routes = [
-            'model1_grid'
-        ]
-        template_name = 'model1_grid.htm'
-        model = Model1
+        model = Club
         grid_fields = '__all__'
+        # Remove next line to disable columns sorting:
+        allowed_sort_orders = '__all__'
 
-Now let's add an url name (route) in ``urls.py`` (see Django docs or some Django project for the complete ``urls.py``
-example)::
+Now let's add an url name (route) in `urls.py`_::
 
-    from my_app.views import Model1Grid
+    from club_app.views_ajax import SimpleClubGrid
 
     # ... skipped ...
 
-    url(r'^model1-grid(?P<action>/?\w*)/$', Model1Grid.as_view(), name='model1_grid',
-        kwargs={'ajax': True, 'permission_required': 'my_app.change_model1'}),
-
+    url(r'^club-grid-simple(?P<action>/?\w*)/$', SimpleClubGrid.as_view(), name='club_grid_simple',
+        kwargs={'view_title': 'Simple club grid', 'permission_required': 'club_app.change_club'}),
     # ... skipped ...
 
 ``url()`` regex named capture group ``<action>`` will be used by ``KoGridView.post()`` method for class-based view
-kwargs value HTTP routing to provide grid pagination, optional rows CRUD actions, and custom actions which might be
-implemented in child classes of ``KoGridView`` as well.
+kwargs value HTTP routing to provide grid pagination and optional CRUD actions. Custom actions might be implemented
+via ancestor classes of ``KoGridView``.
 
-We assume that our grid may later define actions which may change ``Model1`` table rows, thus we require
-``my_app.change_model1`` permission from built-in ``django.contrib.auth`` module.
+We assume that our grid may later define actions which can change ``Club`` table rows, thus our view requires
+``club_app.change_club`` permission from built-in ``django.contrib.auth`` module.
 
 .. highlight:: jinja
 
-Create the following Jinja2 template under filepath ``my_app/jinja2/model1_grid.htm``::
+Our grid is works just with few lines of code, but where is the template that generated initial HTML content?
+
+By default, KoGridView uses built-in `jinja2/cbv_grid.htm`_ template, which content looks like this::
 
     {% from 'ko_grid.htm' import ko_grid with context %}
     {% from 'ko_grid_body.htm' import ko_grid_body with context %}
@@ -170,13 +194,7 @@ Create the following Jinja2 template under filepath ``my_app/jinja2/model1_grid.
     {{
     ko_grid(
         grid_options={
-            'pageRoute': 'model1_grid',
-        },
-        template_options={
-            'vscroll': True
-        },
-        dom_attrs={
-            'id': 'model1_grid'
+            'pageRoute': view.request.url_name,
         }
     )
     }}
@@ -185,8 +203,10 @@ Create the following Jinja2 template under filepath ``my_app/jinja2/model1_grid.
 
     {% block bottom_scripts %}
         {{ ko_grid_body() }}
-        <script src="{{ static_hash('js/front/ko-grid.js') }}"></script>
+        <script src="{{ static('js/front/ko-grid.js') }}"></script>
     {% endblock bottom_scripts %}
+
+One may extend this template to customize grid, which we will do later.
 
 Take a note that two Jinja2 macros are imported. Let's explain their purpose.
 
