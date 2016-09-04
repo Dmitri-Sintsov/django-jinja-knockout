@@ -2,13 +2,17 @@
 Grids
 =====
 
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _jinja2/cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
+.. _jinja2/ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
+.. _jinja2/ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
+.. _underscore.js template: http://underscorejs.org/#template
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 
@@ -217,45 +221,50 @@ ko_grid() macro
 
 First macro ``ko_grid()`` generates html code of client-side component which looks like this in the generated page html::
 
-    <div class="component" id="model1_grid" data-component-options='{"pageRoute": "model1_grid", "classPath": "App.ko.Grid"}'>
-    <a name="model1_grid"></a>
+    <div class="component" id="club_grid" data-component-options='{"pageRoute": "club_grid", "classPath": "App.ko.Grid"}'>
+    <a name="club_grid"></a>
         <div data-template-id="ko_grid_body" data-template-args='{"show_pagination": true, "vscroll": true, "show_title": true, "show_action_buttons": true}'>
         </div>
     </div>
 
-It's inserted into web page body block.
+The code is inserted into web page body block.
 
-* Mandatory ``grid_options`` are used as client-side component options of current grid.
+``ko_grid()`` macro accepts the following kwargs:
 
-  * Mandatory key ``'pageRoute'`` key is used to get Django grid class in ``ko_grid()`` macro to
-    autoconfigure client-side options of grid (see the macro code in ``jinja2/ko_grid.htm`` for details).
-  * Optional key ``classPath`` may be used to specify another client-side class for instantiation of grid, usually that
-    should be the child of ``App.ko.Grid`` class inserted as custom script to ``bottom_scripts`` Jinja2 block.
+* Mandatory ``grid_options`` are client-side component options of current grid. It's a dict with the following keys:
 
-* Optional ``template_options`` argument is passed as ``data-template-args`` attribute to ``underscore.js`` template,
-  which is then used to tune visual layout of grid. In our case we assume that rows of ``my_app.Model`` may be long /
-  large enough so we turn on vertical scrolling for these (which is off by default).
+  * Mandatory key ``'pageRoute'`` is used to get Python grid class in ``ko_grid()`` macro to autoconfigure client-side
+    options of grid (see the macro code in `jinja2/ko_grid.htm`_ for details).
+  * Optional key ``classPath`` overrides client-side class used for instantiation of grid. Usually that should be
+    ancestor of ``App.ko.Grid`` class inserted via custom ``<script>`` tag to ``bottom_scripts`` Jinja2 template block.
+
+* Optional ``template_options`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
+  which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
+  visually long enough so we turn on vertical scrolling for these (which is off by default).
 * Optional ``dom_attrs`` argument is used to set extra DOM attributes of component template. It passes the value of
   component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid`` class).
   It is especially useful in pages which define multiple grids that interact to each other.
 
-Of course it is not the full DOM subtree of grid but a stub. It will be automatically expanded with the content of
-``underscore.js`` template with name ``ko_grid_body`` by ``App.loadTemplates()`` call defined in ``App.initClientHooks``,
-then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via ``App.components.add()``
-to make grid "alive". See ``static/js/front/app.js`` code for the implementation of client-side components.
+Of course this HTML is not the full DOM subtree of grid but a stub. It will be automatically expanded with the content
+of underscore.js template with name ``ko_grid_body`` by ``App.loadTemplates()`` call defined in
+``App.initClientHooks``, then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via
+``App.components.add()`` to make grid "alive".
+
+See `app.js`_ code for the details of client-side components implementation.
 
 ko_grid_body() macro
 ~~~~~~~~~~~~~~~~~~~~
 
-Second macro, ``ko_grid_body()`` is inserted into web page bottom scripts block. However it does not contain
-directly executed Javascript code, but a set of recursive ``underscore.js`` templates (such as ``ko_grid_body``) that
-are applied automatically to each grid component DOM nodes, generated by beforementioned ``ko_grid()`` Jinja2 macro.
+``ko_grid_body()`` macro, defined in `jinja2/ko_grid_body.htm`_ is inserted into web page bottom scripts block.
+However it does not contain directly executed Javascript code, but a set of recursive ``underscore.js`` templates (such
+as ``ko_grid_body``) that are applied automatically to each grid component DOM nodes, generated by beforementioned
+``ko_grid()`` Jinja2 macro.
 
-Then we include actual client-side implementation of ``App.ko.Grid`` from ``'js/front/ko-grid.js'``. The script is not
-so small, and grids are not always displayed at each Django page, so it is not included in ``base_min.htm``
-``bottom_scripts`` block by default to make total pages traffic lower. However, it is size is well-justified knowing
-that it is loaded just once for all grids, may be cached at client-side by browser, and reduces quite a lot of HTTP
-traffic for grid pagination and grid actions.
+Then `jinja2/cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `ko_grid.js`_. The script
+is not so small, and grids are not always displayed at each Django page, so it is not included in `jinja2/base_min.htm`_
+``bottom_scripts`` block by default to make total pages traffic lower. However, it's size is well-justified knowing
+that it is loaded just once for all grids. Also it may be cached at client-side by browser, and reduces quite a lot of
+HTTP traffic for grid pagination and grid actions.
 
 ==================
 Grid configuration
