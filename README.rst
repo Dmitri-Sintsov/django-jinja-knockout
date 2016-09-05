@@ -24,6 +24,9 @@ Key features
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
+* Possibility to include Jinja2 templates from DTL Django templates via custom template tag::
+
+    {% jinja 'template.htm' %}
 
 Overview
 --------
