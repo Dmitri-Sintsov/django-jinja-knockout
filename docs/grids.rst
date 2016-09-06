@@ -5,12 +5,18 @@ Grids
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
+.. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
+.. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
+.. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
+.. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _jinja2/cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
 .. _jinja2/ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _jinja2/ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
+.. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
+.. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _underscore.js template: http://underscorejs.org/#template
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
@@ -263,8 +269,8 @@ as ``ko_grid_body``) that are applied automatically to each grid component DOM n
 Then `jinja2/cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `ko_grid.js`_. The script
 is not so small, and grids are not always displayed at each Django page, so it is not included in `jinja2/base_min.htm`_
 ``bottom_scripts`` block by default to make total pages traffic lower. However, it's size is well-justified knowing
-that it is loaded just once for all grids. Also it may be cached at client-side by browser, and reduces quite a lot of
-HTTP traffic for grid pagination and grid actions.
+that it is loaded just once for all grids of the side. Usually it's cached at client-side by browser, and reduces quite
+a lot of HTTP traffic for grid pagination and grid actions.
 
 ==================
 Grid configuration
@@ -272,83 +278,109 @@ Grid configuration
 
 .. highlight:: python
 
-Let's see some more advanced grid sample for the same ``Model1``, the Django view part::
+Let's see some more advanced grid sample for the ``club_app.models.Member``, Django view part::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    from .models import Member
 
-    class Model1Grid(KoGridView):
+    class MemberGrid(KoGridView):
 
         client_routes = [
-            'model1_grid'
+            'member_grid',
+            # url name (route) for 'profile' key of allowed_filter_fields
+            'profile_fk_widget_grid',
+            # url name (route) for 'club' key of allowed_filter_fields
+            'club_grid_simple'
         ]
-        template_name = 'model1_grid.htm'
-        model = Model1
+        # Use custom grid template instead of default 'cbv_grid.htm' template.
+        template_name = 'member_grid.htm'
+        model = Member
         grid_fields = [
-            'field1',
-            'field2',
-            'field3',
-            # Will join field1 from related model2 foreign key automatically via Django ORM.
-            'model2_fk__field1',
+            'profile',
+            'club',
+            # Will join 'category' field from related 'Club' model automatically via Django ORM (span relationships).
+            'club__category',
+            'last_visit',
+            'plays',
+            'role',
+            'note',
+            'is_endorsed'
+        ]
+        search_fields = [
+            ('club__title', 'icontains'),
+            ('profile__first_name', 'icontains'),
+            ('profile__last_name', 'icontains')
         ]
         allowed_sort_orders = [
-            'field1', 'field2', 'field3'
+            'club',
+            'last_visit',
+            'plays',
+            'is_endorsed'
         ]
         allowed_filter_fields = OrderedDict([
-            ('field1', None),
-            ('field2', {
-                'type': 'choices', 'choices': Model1.FIELD2_CHOICES, 'multiple_choices': False
+            ('profile', None),
+            ('club', None),
+            ('last_visit', None),
+            ('club__category', None),
+            # Include only some Django model choices and disable multiple choices for 'plays' filter.
+            ('plays', {
+                'type': 'choices', 'choices': Member.BASIC_SPORTS, 'multiple_choices': False
             }),
-            ('field3', Model3.FIELD3_CHOICES),
-            ('model2_fk__field1', None)
+            ('role', None),
+            ('is_endorsed', None),
         ])
+
+See `club_app.views_ajax`_ for the full sample.
 
 Grid fields
 -----------
 Django model may have many fields, some of these having long string representation, thus visually grid may become too
-large to fit the screen and hard to navigate. Thus not all of the fields always has to be displayed.
+large to fit the screen and hard to navigate. Not all of the fields always has to be displayed.
 
-Some fields may need to be hidden from user for the security purposes. One also might want to display foreign key
-relations, which are "chained" in Django ORM via ``'__'`` separator between related fields name, like
-``'model2_fk__field1'`` in this example.
+Some fields may need to be hidden from user for security purposes. One also might want to display foreign key span
+relationships, which are implemented in Django ORM via ``'__'`` separator between related fields name, like
+``club__category`` in this example.
 
-Set Django grid class ``grid_fields`` property value to the list of required model fields, including foreign key
-relations.
+Set Django grid class ``grid_fields`` property value to the list of model fields that will be displayed as grid columns.
+Foreign key relationship spans are supported too.
 
 Customizing visual display of grid fields at client-side
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: javascript
 
-To display grid rows in more compact way, there is also possibility to override ``App.ko.GridRow.toDisplayValue()``
-Javascript class method, to implement custom display layout of field values at client-side. The same method also can be
-used to generate condensed representations of long text values via Boostrap popovers, or even to display fields as form
-inputs: using grid as paginated AJAX form - (which is also possible but requires writing custom underscore.js grid
-layout templates, partially covered in modifying_visual_layout_of_grid_)::
+To alter visual representation of grid row cells, one should override ``App.ko.GridRow.toDisplayValue()`` Javascript
+class method, to implement custom display layout of field values at client-side. The same method also can be used to
+generate condensed representations of long text values via Boostrap popovers, or even to display fields as form inputs:
+using grid as paginated AJAX form - (which is also possible but requires writing custom ``underscore.js`` grid layout
+templates, partially covered in modifying_visual_layout_of_grid_)::
 
     'use strict';
 
-    App.ko.Model1GridRow = function(options) {
+    App.ko.MemberGridRow = function(options) {
         $.inherit(App.ko.GridRow.prototype, this);
         this.init(options);
     };
 
-    (function(Model1GridRow) {
+    (function(MemberGridRow) {
 
-        Model1GridRow.useInitClient = true;
+        MemberGridRow.useInitClient = true;
 
-        Model1GridRow.toDisplayValue = function(value, field) {
+        MemberGridRow.toDisplayValue = function(value, field) {
             var displayValue = this._super._call('toDisplayValue', value, field);
             switch (field) {
-            case 'field1':
+            case 'role':
                 // Display field value as bootstrap label.
+                var types = ['success', 'info', 'primary'];
                 displayValue = $('<span>', {
                     'class': 'label preformatted'
                 })
                 .text(displayValue)
-                .addClass(this.values['field2'] ? 'label-success' : 'label-info');
+                .addClass(
+                    'label-' + (this.values[field] < types.length ? types[this.values[field]] : 'info')
+                );
                 break;
-            case 'field2':
+            case 'note':
                 // Display field value as bootstrap clickable popover.
                 var gridColumn = this.ownerGrid.getKoGridColumn(field);
                 if (this.values[field] !== '') {
@@ -359,39 +391,45 @@ layout templates, partially covered in modifying_visual_layout_of_grid_)::
                         'data-trigger': 'click',
                         'data-placement': 'bottom',
                         'title': gridColumn.name,
-                    }).text('Read full text');
+                    }).text('Full text');
                 }
                 break;
-            case 'field3':
+            case 'is_endorsed':
                 // Display field value as form input.
-                displayValue = $('<input>', {
-                    'type': 'text',
-                    'class': 'form-field',
-                    'name': field + '_' + this.ownerGrid.getValue(
-                        this.ownerGrid.meta.pkField
-                    ),
-                    'value': this.values[field]
-                });
+                var attrs = {
+                    'type': 'checkbox',
+                    'class': 'form-field club-member',
+                    'data-pkval': this.getValue(this.ownerGrid.meta.pkField),
+                    'name': field + '[]',
+                };
+                if (this.values[field]) {
+                    attrs['checked'] = 'checked';
+                }
+                displayValue = $('<input>', attrs);
             }
             return displayValue;
         };
 
-    })(App.ko.Model1GridRow.prototype);
+    })(App.ko.MemberGridRow.prototype);
 
-    App.ko.Model1Grid = function(options) {
+
+    App.ko.MemberGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
-    (function(Model1Grid) {
+    (function(MemberGrid) {
 
-        Model1Grid.iocRow = function(options) {
-            return new App.ko.Model1GridRow(options);
+        MemberGrid.iocRow = function(options) {
+            return new App.ko.MemberGridRow(options);
         };
 
-    })(App.ko.Model1Grid.prototype);
+    })(App.ko.MemberGrid.prototype);
 
-``App.ko.GridRow.toDisplayValue()`` method used in ``grid_row_value`` binding supports the following types of values:
+See `member-grid.js`_ for full-size example.
+
+``App.ko.GridRow.toDisplayValue()`` method used in `ko_grid.js`_ ``grid_row_value`` binding supports the following types
+of values:
 
 .. highlight:: python
 
@@ -399,42 +437,41 @@ layout templates, partially covered in modifying_visual_layout_of_grid_)::
 
 .. _get_str_fields:
 
-* Nested lists of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
-  Django model has ``.get_str_fields()`` method implemented. This method returns str() representation of some or all
+* Nested list of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
+  Django model has ``get_str_fields()`` method implemented. This method returns str() representation of some or all
   model fields::
 
-    class Model1(models.Model):
+    class Member(models.Model):
+
         # ... skipped ...
 
-        # Complex nested str fields with foregin keys.
+        # returns the list of str() values for all or some of model fields,
+        # optionally spanning relationships via nested lists.
         def get_str_fields(self):
-            # Nested formatting of foreign keys:
             parts = OrderedDict([
-                ('fk1', self.fk1.get_str_fields()),
-                 ('fk2', self.fk2.get_str_fields()),
+                ('profile', self.profile.get_str_fields()),
+                ('club', self.club.get_str_fields()),
+                ('last_visit', format_local_date(timezone.localtime(self.last_visit))),
+                ('plays', self.get_plays_display()),
+                ('role', self.get_role_display()),
+                ('is_endorsed', 'endorsed' if self.is_endorsed else 'unofficial')
             ])
-            if self.fk3 is not None:
-                parts['fk3'] = self.fk3.get_str_fields(verbose=False)
-            # Formatting of scalar fields:
-            parts['sum'] = format_currency(self.sum)
-            parts['created_at'] = format_local_date(timezone.localtime(self.created_at))
             return parts
 
-        # Model1.__str__ uses Model1.get_str_fields() for disambiguation.
+        # It's preferrable to reconstruct model's str() via get_str_fields() to keep it DRY.
         def __str__(self):
             str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['fk1', 'fk2'])
-            if 'fk3' in str_fields:
-                join_dict_values(' / ', str_fields, ['fk1'])
+            join_dict_values(' / ', str_fields, ['profile', 'club'])
             return ' › '.join(str_fields.values())
 
-Note that ``get_str_fields()`` will also be used for scalar fields formatting via grid row str_fields. See also
-`'list' action`_.
+Note that ``get_str_fields()`` will also be used for automatic formatting of scalar fields via grid row ``str_fields``
+property. See `'list' action`_ for more info.
 
 .. highlight:: javascript
 
-* Scalar values which will be set as grid cell via jQuery.html(). Usually these values are server-side Django generated
-  strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the implementation in v0.2.0::
+* Scalar values will be placed into grid cells via ``jQuery.html()`` WITHOUT XSS protection. Usually these values are
+  server-side Django generated strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the
+  implementation in   version 0.2.0 `ko_grid.js`_::
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
@@ -452,19 +489,21 @@ Note that ``get_str_fields()`` will also be used for scalar fields formatting vi
 
 .. highlight:: python
 
-To override client-side class to ``App.ko.Model1Grid`` instead of default ``App.ko.Grid``, define default grid
+To override client-side class to ``App.ko.MemberGrid`` instead of default ``App.ko.Grid``, define default grid
 options like this::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    from .models import Member
 
-    class Model1Grid(KoGridView):
+    # ... skipped ...
+
+    class MemberGrid(KoGridView):
 
         # ... skipped ...
         @classmethod
         def get_default_grid_options(cls):
             return {
-                'classPath': 'App.ko.Model1Grid'
+                'classPath': 'App.ko.MemberGrid'
             }
 
 Virtual fields
@@ -473,55 +512,75 @@ Virtual fields
 .. highlight:: python
 
 ``views.KoGridView`` also supports virtual fields, which are not real database table fields, but a calculated values.
-To implement virtual field, one has to override the following methods in the grid child class::
+It supports both SQL calculated fields via Django ORM annotations and virtual fields calculated in Python code.
+To implement virtual field(s), one has to override the following methods in the grid child class::
 
-    from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    class ClubGridWithVirtualField(SimpleClubGrid):
 
-
-    class Model1Grid(KoGridView):
-
-        # ... skipped ...
         grid_fields = [
-            'field1',
-            'field2',
-            'virtual_field1',
-            'field3',
-            'model2_fk__field1',
+            'title',
+            'category',
+            'foundation_date',
+            # Annotated field.
+            'total_members',
+            # Virtual field.
+            'exists_days'
         ]
 
+        def get_base_queryset(self):
+            # Django ORM annotated field 'total_members'.
+            return super().get_base_queryset().annotate(total_members=Count('member'))
+
         def get_field_verbose_name(self, field_name):
-            if field_name == 'virtual_field1':
+            if field_name == 'exists_days':
                 # Add virtual field.
-                return 'Virtual field name'
+                return 'Days since foundation'
+            elif field_name == 'total_members':
+                # Add annotated field.
+                return 'Total members'
             else:
                 return super().get_field_verbose_name(field_name)
 
         def get_related_fields(self, query_fields=None):
             query_fields = super().get_related_fields(query_fields)
             # Remove virtual field from queryset values().
-            query_fields.remove('virtual_field1')
+            query_fields.remove('exists_days')
             return query_fields
+
+        def get_model_fields(self):
+            model_fields = copy(super().get_model_fields())
+            # Remove annotated field which is unavailable when creating / updating single object which does not uses
+            # self.get_base_queryset()
+            # Required only because current grid is editable.
+            model_fields.remove('total_members')
+            return model_fields
 
         def postprocess_row(self, row, obj):
             # Add virtual field value.
-            row['virtual_field1'] = obj.calculate_virtual_field1()
+            row['exists_days'] = (timezone.now().date() - obj.foundation_date).days
+            if 'total_members' not in row:
+                # Add annotated field value which is unavailable when creating / updating single object which does not uses
+                # self.get_base_queryset()
+                # Required only because current grid is editable.
+                row['total_members'] = obj.member_set.count()
             row = super().postprocess_row(row, obj)
             return row
 
+        # Optional formatting of virtual field (not required).
         def get_row_str_fields(self, obj, row):
             str_fields = super().get_row_str_fields(obj, row)
             if str_fields is None:
                 str_fields = {}
             # Add formatted display of virtual field.
-            str_fields['virtual_field1'] = some_local_format(row['virtual_field1'])
+            is_plural = pluralize(row['exists_days'], arg='days')
+            str_fields['exists_days'] = '{} {}'.format(row['exists_days'], 'day' if is_plural == '' else is_plural)
             return str_fields
 
-``Model1.calculate_virtual_field1()`` method has to be implemented in ``my_app.models.Model1`` code.
+See `club_app.views_ajax`_ code for full implementation.
 
 Filter fields
 -------------
-Grids support different types of filters for model fields, to reduce paginated queryset, which helps to locate specific
+Grid supports different types of filters for model fields, to reduce paginated queryset, which helps to locate specific
 data in the whole model's database table rows set.
 
 .. highlight:: python
@@ -546,7 +605,7 @@ Full-length as well as shortcut definitions of field filters are supported::
                     # Do not display 'All' choice which resets the filter:
                     'add_reset_choice': False,
                     # List of choices that are active by default:
-                    'active_choices': ['my_choice'],
+                    'active_choices': ['field1_value_1'],
                     # Do not allow to select multiple choices:
                     'multiple_choices': False
                 },
@@ -567,7 +626,9 @@ Full-length as well as shortcut definitions of field filters are supported::
             ('field3', None),
             # Custom choices filter (not necessarily matching Model1.field4 choices):
             ('field4', CUSTOM_CHOICES_FOR_FIELD4),
-            # Select foreign key choices via AJAX grid built into BootstrapDialog:
+            # Select foreign key choices via AJAX grid built into BootstrapDialog.
+            # Can be replaced to ('model2_fk', None) to autodetect filter type,
+            # but explicit type might be required when using IntegerField as foreign key.
             ('model2_fk', {
                 'type': 'fk'
             }),
@@ -578,8 +639,8 @@ Next types of built-in field filters are available:
 Range filters
 ~~~~~~~~~~~~~
 
-* ``decimal`` / ``datetime`` / ``date``: Uses ``App.ko.RangeFilter`` to display dialog with range of scalar values.
-  It's a range filter for the corresponding Django model scalar fields.
+* ``decimal`` / ``datetime`` / ``date``: Uses ``App.ko.RangeFilter`` from `ko_grid.js`_ to display dialog with range of
+  scalar values. It's applied to the corresponding Django model scalar fields.
 
 Choices filter
 ~~~~~~~~~~~~~~
@@ -587,110 +648,163 @@ Choices filter
 * ``choices``: It's used by default when Django model field has ``choices`` property defined, similar to this::
 
     from django.utils.translation import ugettext as _
+    # ... skipped ...
 
-    class Model1(models.Model):
-        ROLE_STAFF = 0
-        ROLE_MEMBER = 1
-        ROLE_GUEST = 2
-        ROLES = (
-            (ROLE_STAFF, _('Staff')),
-            (ROLE_MEMBER, _('Member')),
-            (ROLE_GUEST, _('Guest')),
+    class Member(models.Model):
+        SPORT_BADMINTON = 0
+        SPORT_TENNIS = 1
+        SPORT_TABLE_TENNIS = 2
+        SPORT_SQUASH = 3
+        SPORT_ANOTHER = 4
+        BASIC_SPORTS = (
+            (SPORT_BADMINTON, 'Badminton'),
+            (SPORT_TENNIS, 'Tennis'),
+            (SPORT_TABLE_TENNIS, 'Table tennis'),
+            (SPORT_SQUASH, 'Squash'),
         )
-        model2_fk = models.ForeignKey(Modrl2, verbose_name='One to many relationship to Model2')
-        role = models.IntegerField(choices=ROLES, null=True, verbose_name='User role')
+        SPORTS = BASIC_SPORTS + ((SPORT_ANOTHER, 'Another sport'),)
+        ROLE_OWNER = 0
+        ROLE_FOUNDER = 1
+        ROLE_MEMBER = 2
+        ROLES = (
+            (ROLE_OWNER, 'Owner'),
+            (ROLE_FOUNDER, 'Founder'),
+            (ROLE_MEMBER, 'Member'),
+        )
+        profile = models.ForeignKey(Profile, verbose_name='Sportsman')
+        club = models.ForeignKey(Club, blank=True, verbose_name='Club')
+        last_visit = models.DateTimeField(db_index=True, verbose_name='Last visit time')
+        plays = models.IntegerField(choices=SPORTS, default=SPORT_ANOTHER, verbose_name='Plays sport')
+        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
+        note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
+        is_endorsed = models.BooleanField(default=False, verbose_name='Endorsed')
 
 When using field filter autodetection in grid view, instance of ``App.ko.GridFilter`` will be created, representing
-a dropdown with the list of possible choices from the ``Model1.ROLES`` tuple above::
+a dropdown with the list of possible choices from the ``Club.CATEGORIES`` tuple above::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1, Model2
+    from .models import Member
 
-    class Model1Grid(KoGridView):
+    class MemberGrid(KoGridView):
 
+        model = Member
         # ... skipped ...
+
         allowed_filter_fields = OrderedDict([
-            # Autodetect the type of filter field:
-            ('model2_fk', None),
-            # Autodetect the type of filter field:
+            ('profile', None),
+            ('club', None),
+            ('last_visit', None),
+            ('club__category', None),
+            # Include all Django model field choices, multiple selection will be auto-enabled
+            # when there are more than two choices.
+            ('plays', None),
             ('role', None),
+            ('is_endorsed', None),
         ])
 
 The ``choices`` filter definition may be customized by supplying a dict with additional keys / values::
 
-    class Model1Grid(KoGridView):
+    class MemberGrid(KoGridView):
 
+        model = Member
         # ... skipped ...
+
         allowed_filter_fields = OrderedDict([
-            ('model2_fk', None),
-            ('role', {
-                'type': 'choices',
-                'choices': Model1.REGISTERED_ROLES,
-                # Do not display 'All' choice which resets the filter:
-                'add_reset_choice': False,
-                # List of choices that are active by default:
-                'active_choices': [Model1.ROLE_MEMBER],
-                # Do not allow to select multiple choices:
-                'multiple_choices': False
-            })
+            ('profile', None),
+            ('club', None),
+            ('last_visit', None),
+            ('club__category', None),
+            # Include only limited BASIC_SPORTS Django model field choices
+            # and disable multiple choices for 'plays' filter.
+            ('plays', {
+                'type': 'choices', 'choices': Member.BASIC_SPORTS, 'multiple_choices': False
+            }),
+            ('role', None),
+            ('is_endorsed', None),
         ])
 
 Foreign key filters
 ~~~~~~~~~~~~~~~~~~~
 
-* ``fk``: Uses ``App.ko.FkGridDialog`` to select filter choices of foreign key relation field. This widget is similar to
-  ``django.contrib.admin.ModelAdmin`` class ``raw_id_fields`` option. Because it's completely relies on AJAX calls,
-  one also should create grid class for that foreign key relation field, for example::
+* ``fk``: Uses ``App.ko.FkGridDialog`` from `ko_grid.js`_ to select filter choices of foreign key field. This widget is
+  similar to ``ForeignKeyRawIdWidget`` defined in `django.contrib.admin.widgets`_ that is used via ``raw_id_fields``
+  django.admin class option. Because it completely relies on AJAX calls, one should create grid class for the foreign
+  key field, for example::
 
-    class Model2FkWidgetGrid(KoGridView):
+    class ProfileFkWidgetGrid(KoGridWidget):
+
+        model = Profile
+        form = ProfileForm
+        enable_deletion = True
+        grid_fields = ['first_name', 'last_name']
+        allowed_sort_orders = '__all__'
+
+Define it's url name (route) in `urls.py`_ in usual way::
+
+    url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+        name='profile_fk_widget_grid',
+        # kwargs={'ajax': True, 'permission_required': 'club_app.change_profile'}),
+        kwargs={'ajax': True}),
+
+Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-grid`` url name (route)::
+
+    class MemberGrid(KoGridView):
 
         client_routes = [
-            'model2_grid'
+            'member_grid',
+            'profile_fk_widget_grid',
+            'club_grid_simple'
         ]
-        model = Model2
+        template_name = 'member_grid.htm'
+        model = Member
         grid_fields = [
-            'field_a', 'field_b', 'field_c'
+            'profile',
+            'club',
+            'last_visit',
+            'plays',
+            'role',
+            'note',
+            'is_endorsed'
         ]
-        search_fields = [
-            ('field_b', 'contains'),
-        ]
-        allowed_sort_orders = '__all__'
         allowed_filter_fields = OrderedDict([
-            ('field_a', None),
-            ('field_c', None),
+            ('profile', None),
+            ('club', None),
+            ('last_visit', None),
+            ('plays', None),
+            ('role', None),
+            ('is_endorsed', None),
         ])
-
-Then add the following method to ``Model1Grid`` class, to bind 'fk' widget for field ``Model1.model2_fk`` to
-``model2_grid`` url name (route)::
-
-    class Model1Grid(KoGridView):
 
         # ... skipped ...
 
         @classmethod
         def get_default_grid_options(cls):
             return {
+                # Note: 'classPath' is not required for standard App.ko.Grid.
+                'classPath': 'App.ko.MemberGrid',
+                'searchPlaceholder': 'Search for club or member profile',
                 'fkGridOptions': {
-                    'model2_fk': {
-                        # url name of Model2FkWidgetGrid defined just above:
-                        'pageRoute': 'model2_grid',
+                    'profile': {
+                        'pageRoute': 'profile_fk_widget_grid'
+                    },
+                    'club': {
+                        'pageRoute': 'club_grid_simple',
                         # Optional setting for BootstrapDialog:
                         'dialogOptions': {'size': 'size-wide'},
-                        # Nesting of ``App.ko.FkGridDialog`` is supported, just define appropriate grid
-                        # with 'model3_grid' url name and uncomment next lines:
+                        # Nested filtering is supported, just define appropriate grid with 'another_model_grid' url name
+                        # and uncomment / alter next lines:
                         # 'fkGridOptions': {
-                        #     'model3_fk': {
-                        #         'pageRoute': 'model3_grid'
+                        #     'another_model_fk': {
+                        #         'pageRoute': 'another_model_grid'
                         #     }
                         # }
                     }
                 }
             }
 
-        # ... skipped ...
-
-Also notice that commented out section of ``Model1Grid.get_default_grid_options()`` shows how foreign key filter
-widgets may be nested - just define appropriate grid class for Django model ``Model3`` with ``'model3_grid'`` url name.
+Also notice that commented out section of ``MemberGrid.get_default_grid_options()`` shows how foreign key filter
+widgets may be nested - just define appropriate grid class for Django model ``AnotherModel`` with `'another_model_grid'`
+url name.
 
 Dynamic generation of filter fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -699,56 +813,124 @@ There are many cases when grids require dynamic generation of filter fields and 
 * Different types of filters for end-users depending on their permissions.
 * Implementing base grid pattern, when there is a base grid class defining base filters, and few child classes, which
   may alter / add / delete some of the filters.
-* ``choices`` filter list of choices might be provided from Django database queryset.
-* ``choices`` filter list of choice values might be generated as foreign key id's for Django contenttypes framework
-  generic models relationships.
+* ``'choices' filter`` values might be provided via Django database queryset.
+* ``'choices' filter`` values might be generated as foreign key id's for Django `contenttypes framework`_ generic models
+  relationships.
 
 Let's explain the last case as the most advanced one.
 
 Generation of ``choices`` filter list of choice values for Django contenttypes framework is implemented via
 ``BaseFilterView.get_contenttype_filter()`` method, whose class is a base class for both ``KoGridView`` and it's
-traditional request counterpart ``ListSortingView``.
+traditional request counterpart ``ListSortingView`` (see `views`_ for details).
 
-Imagine ``Model1`` has foreign key ``action`` field defined::
+We want to implement generic action logging, similar to ``django.admin`` logging but visually displayed as AJAX grid.
+Our ``Action`` model, defined in `event_app.models`_ looks like this::
 
-    class Model1:
-        # ... skipped ...
-        action = models.ForeignKey(Action, verbose_name='Model action')
-        # ... skipped ...
+    from collections import OrderedDict
 
-Where ``Action`` model utilizes contenttypes framework, defined like that::
+    from django.utils import timezone
+    from django.db import models
+    from django.db import transaction
+    from django.contrib.auth.models import User
+    from django.contrib.contenttypes.fields import GenericForeignKey
+    from django.contrib.contenttypes.models import ContentType
 
-    from django.utils.translation import ugettext as _
+    from django_jinja_knockout.tpl import format_local_date
+    from django_jinja_knockout.utils.sdv import join_dict_values
 
     class Action(models.Model):
 
-        performer = models.ForeignKey(User, related_name='+', verbose_name=_('User'))
-        date = models.DateTimeField(verbose_name=_('Date'), db_index=True)
-        content_type = models.ForeignKey(ContentType, related_name='related_content', blank=True, null=True, verbose_name='Object description')
-        object_id = models.PositiveIntegerField(blank=True, null=True, verbose_name='Link to object')
+        TYPE_CREATED = 0
+        TYPE_MODIFIED = 1
+        TYPES = (
+            (TYPE_CREATED, 'Created'),
+            (TYPE_MODIFIED, 'Modified'),
+        )
+
+        performer = models.ForeignKey(User, related_name='+', verbose_name='Performer')
+        date = models.DateTimeField(verbose_name='Date', db_index=True)
+        action_type = models.IntegerField(choices=TYPES, verbose_name='Type of action')
+        content_type = models.ForeignKey(ContentType, related_name='related_content', blank=True, null=True,
+                                         verbose_name='Related object')
+        object_id = models.PositiveIntegerField(blank=True, null=True, verbose_name='Object link')
         content_object = GenericForeignKey('content_type', 'object_id')
 
-then, child class of ``KoGridView`` should define ``get_allowed_filter_fields()`` method to generate ``choices`` filter
-values from contenttypes framework model id's via ``get_contenttype_filter()`` method::
-
-    class Model1Grid(KoGridView):
+        class Meta:
+            verbose_name = 'Action'
+            verbose_name_plural = 'Actions'
+            ordering = ('-date',)
 
         # ... skipped ...
 
+To display saved actions via grid, ancestor class of ``KoGridView`` should define ``get_allowed_filter_fields()`` method
+to generate ``choices`` filter values from contenttypes framework model id's via ``get_contenttype_filter()`` method::
+
+    from collections import OrderedDict
+    from django.utils.html import format_html
+    from django_jinja_knockout.views import KoGridView
+    from .models import Action
+
+    class ActionGrid(KoGridView):
+
+        model = Action
+        grid_fields = [
+            'performer',
+            'date',
+            'action_type',
+            # Note that generic object relationship field is treated as virtual field because Django ORM does not
+            # allow to perform values() method on such fields.
+            'content_object'
+        ]
+        allowed_sort_orders = [
+            'performer',
+            'date',
+            'action_type',
+        ]
+        mark_safe_fields = [
+            'content_object'
+        ]
+        enable_deletion = True
+
         def get_allowed_filter_fields(self):
             allowed_filter_fields = OrderedDict([
-                # Autodetect.
-                ('field1',  None),
-                # Choices for contenttypes framework.
-                ('action_content_type', self.get_contenttype_filter(
-                    ('my_app', 'model1'),
-                    ('my_app2', 'model1'),
-                    ('my_app2', 'model2')
+                ('action_type', None),
+                ('content_type', self.get_contenttype_filter(
+                    ('club_app', 'club'),
+                    ('club_app', 'equipment'),
+                    ('club_app', 'member'),
                 ))
             ])
             return allowed_filter_fields
 
-        # ... skipped ...
+        def get_related_fields(self, query_fields=None):
+            query_fields = super().get_related_fields(query_fields)
+            # Remove virtual field from queryset values().
+            query_fields.remove('content_object')
+            return query_fields
+
+        def postprocess_row(self, row, obj):
+            # Add virtual field value.
+            content_object = obj.content_object
+            row['content_object'] = content_object.get_str_fields() \
+                if hasattr(content_object, 'get_str_fields') \
+                else str(content_object)
+            row = super().postprocess_row(row, obj)
+            return row
+
+        # Optional formatting of virtual field (not required).
+        def get_row_str_fields(self, obj, row):
+            str_fields = super().get_row_str_fields(obj, row)
+            if str_fields is None:
+                str_fields = {}
+            # Add formatted display of virtual field.
+            if hasattr(obj.content_object, 'get_canonical_link'):
+                str_fields['content_object'] = format_html(
+                    '<a href="{1}">{0}</a>',
+                    *obj.content_object.get_canonical_link()
+                )
+            return str_fields
+
+See `event_app.views_ajax`_ for the complete example.
 
 Modifying visual layout of grid
 -------------------------------
