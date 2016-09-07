@@ -1373,8 +1373,10 @@ class GridActionsMixin:
             'meta': {
                 'hasSearch': len(self.search_fields) > 0,
                 'pkField': pk_field,
-                'verboseName': self.get_model_meta('verbose_name'),
-                'verboseNamePlural': self.get_model_meta('verbose_name_plural')
+                # str() is used because django.contrib.auth.models.User uses instances of
+                # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
+                'verboseName': str(self.get_model_meta('verbose_name')),
+                'verboseNamePlural': str(self.get_model_meta('verbose_name_plural'))
             },
             'actions': self.vm_get_actions(),
             'gridFields': self.vm_get_grid_fields(),
