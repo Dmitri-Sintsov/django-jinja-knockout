@@ -1,9 +1,9 @@
 {% macro bs_filters(filter_title, filter_display, init_str='', end_str='') -%}
+{% if filter_display|length > 0 %}
+    {{ init_str }}
+{% endif %}
 {% for filter_field, filters in filter_display.items() -%}
     {% if filters|length > 0 %}
-        {% if loop.index0 == 0 %}
-            {{ init_str }}
-        {% endif %}
         <span class="badge">{{ filter_title[filter_field] }}</span>
         {% for filter_name in filters %}
             <span class="label label-info">{{ filter_name }}</span>
