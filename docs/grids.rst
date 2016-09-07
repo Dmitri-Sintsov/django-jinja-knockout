@@ -9,13 +9,17 @@ Grids
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
 .. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
-.. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
-.. _jinja2/cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
-.. _jinja2/ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
-.. _jinja2/ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
+
+.. _base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
+.. _cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
+.. _ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
+.. _ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
+.. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
+
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
+
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _underscore.js template: http://underscorejs.org/#template
@@ -52,7 +56,7 @@ Custom grid actions both for the whole grid as well as for specific columns can 
 Possible ways of grid usage
 ---------------------------
 * AJAX grids injected into Jinja2 templates as client-side components with `ko_grid() macro`_.
-* Optional `Foreign key filters`_ for AJAX grid components.
+* Optional `Foreign key filter`_ for AJAX grid components.
 * Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality for
   ``ModelForm`` to select foreign key field value via AJAX query / response.
 
@@ -160,7 +164,7 @@ Simpliest grid
 --------------
 
 If you have Django model created and migrated, then it is quite easy to add grid for that model to Django app Jinja2
-template, providing your templates are inherited from `jinja2/base_min.htm`_, or based on a custom-based template which
+template, providing your templates are inherited from `base_min.htm`_, or based on a custom-based template which
 includes the same client-side scripts as ``base_min.htm`` does.
 
 In your app view code (we use `club_app.views_ajax`_ in this example) create the following view::
@@ -193,7 +197,7 @@ We assume that our grid may later define actions which can change ``Club`` table
 
 Our grid is works just with few lines of code, but where is the template that generated initial HTML content?
 
-By default, KoGridView uses built-in `jinja2/cbv_grid.htm`_ template, which content looks like this::
+By default, KoGridView uses built-in `cbv_grid.htm`_ template, which content looks like this::
 
     {% from 'ko_grid.htm' import ko_grid with context %}
     {% from 'ko_grid_body.htm' import ko_grid_body with context %}
@@ -240,7 +244,7 @@ The code is inserted into web page body block.
 * Mandatory ``grid_options`` are client-side component options of current grid. It's a dict with the following keys:
 
   * Mandatory key ``'pageRoute'`` is used to get Python grid class in ``ko_grid()`` macro to autoconfigure client-side
-    options of grid (see the macro code in `jinja2/ko_grid.htm`_ for details).
+    options of grid (see the macro code in `ko_grid.htm`_ for details).
   * Optional key ``classPath`` overrides client-side class used for instantiation of grid. Usually that should be
     ancestor of ``App.ko.Grid`` class inserted via custom ``<script>`` tag to ``bottom_scripts`` Jinja2 template block.
 
@@ -261,13 +265,13 @@ See `app.js`_ code for the details of client-side components implementation.
 ko_grid_body() macro
 ~~~~~~~~~~~~~~~~~~~~
 
-``ko_grid_body()`` macro, defined in `jinja2/ko_grid_body.htm`_ is inserted into web page bottom scripts block.
+``ko_grid_body()`` macro, defined in `ko_grid_body.htm`_ is inserted into web page bottom scripts block.
 However it does not contain directly executed Javascript code, but a set of recursive ``underscore.js`` templates (such
 as ``ko_grid_body``) that are applied automatically to each grid component DOM nodes, generated by beforementioned
 ``ko_grid()`` Jinja2 macro.
 
-Then `jinja2/cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `ko_grid.js`_. The script
-is not so small, and grids are not always displayed at each Django page, so it is not included in `jinja2/base_min.htm`_
+Then `cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `ko_grid.js`_. The script
+is not so small, and grids are not always displayed at each Django page, so it is not included in `base_min.htm`_
 ``bottom_scripts`` block by default to make total pages traffic lower. However, it's size is well-justified knowing
 that it is loaded just once for all grids of the side. Usually it's cached at client-side by browser, and reduces quite
 a lot of HTTP traffic for grid pagination and grid actions.
@@ -639,13 +643,13 @@ Next types of built-in field filters are available:
 Range filters
 ~~~~~~~~~~~~~
 
-* ``decimal`` / ``datetime`` / ``date``: Uses ``App.ko.RangeFilter`` from `ko_grid.js`_ to display dialog with range of
-  scalar values. It's applied to the corresponding Django model scalar fields.
+* ``'decimal' filter`` / ``'datetime' filter`` / ``'date' filter``: Uses ``App.ko.RangeFilter`` from `ko_grid.js`_ to
+  display dialog with range of scalar values. It's applied to the corresponding Django model scalar fields.
 
 Choices filter
 ~~~~~~~~~~~~~~
 
-* ``choices``: It's used by default when Django model field has ``choices`` property defined, similar to this::
+* ``'choices' filter`` is used by default when Django model field has ``choices`` property defined, similar to this::
 
     from django.utils.translation import ugettext as _
     # ... skipped ...
@@ -702,7 +706,7 @@ a dropdown with the list of possible choices from the ``Club.CATEGORIES`` tuple 
             ('is_endorsed', None),
         ])
 
-The ``choices`` filter definition may be customized by supplying a dict with additional keys / values::
+The ``'choices' filter`` definition may be customized by supplying a dict with additional keys / values::
 
     class MemberGrid(KoGridView):
 
@@ -723,13 +727,13 @@ The ``choices`` filter definition may be customized by supplying a dict with add
             ('is_endorsed', None),
         ])
 
-Foreign key filters
-~~~~~~~~~~~~~~~~~~~
+Foreign key filter
+~~~~~~~~~~~~~~~~~~
 
-* ``fk``: Uses ``App.ko.FkGridDialog`` from `ko_grid.js`_ to select filter choices of foreign key field. This widget is
-  similar to ``ForeignKeyRawIdWidget`` defined in `django.contrib.admin.widgets`_ that is used via ``raw_id_fields``
-  django.admin class option. Because it completely relies on AJAX calls, one should create grid class for the foreign
-  key field, for example::
+* ``'fk' filter``: Uses ``App.ko.FkGridDialog`` from `ko_grid.js`_ to select filter choices of foreign key field. This
+  widget is similar to ``ForeignKeyRawIdWidget`` defined in `django.contrib.admin.widgets`_ that is used via
+  ``raw_id_fields`` django.admin class option. Because it completely relies on AJAX calls, one should create grid class
+  for the foreign key field, for example::
 
     class ProfileFkWidgetGrid(KoGridWidget):
 
@@ -791,20 +795,25 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-gri
                         'pageRoute': 'club_grid_simple',
                         # Optional setting for BootstrapDialog:
                         'dialogOptions': {'size': 'size-wide'},
-                        # Nested filtering is supported, just define appropriate grid with 'another_model_grid' url name
-                        # and uncomment / alter next lines:
+                        # Nested filtering is supported:
                         # 'fkGridOptions': {
-                        #     'another_model_fk': {
-                        #         'pageRoute': 'another_model_grid'
+                        #     'specialization': {
+                        #         'pageRoute': 'specialization_grid'
                         #     }
                         # }
                     }
                 }
             }
 
-Also notice that commented out section of ``MemberGrid.get_default_grid_options()`` shows how foreign key filter
-widgets may be nested - just define appropriate grid class for Django model ``AnotherModel`` with `'another_model_grid'`
-url name.
+Also notice that commented section of ``MemberGrid.get_default_grid_options()`` method shows how foreign key filter
+widgets may be nested:
+
+* Define model ``Specialization``.
+* Add foreignKey field ``specialization = models.ForeignKey(Specialization, verbose_name='Specialization')`` to
+  ``Profile`` model.
+* Create ``SpecializationGrid`` with ``model = Specialization``.
+* Add url for ``SpecializationGrid`` with url name (route) ``'specialization_grid'`` to ``urls.py``.
+* Add ``'specialization_grid'`` entry to ``MemberGrid`` ``client_routes`` list.
 
 Dynamic generation of filter fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -819,7 +828,7 @@ There are many cases when grids require dynamic generation of filter fields and 
 
 Let's explain the last case as the most advanced one.
 
-Generation of ``choices`` filter list of choice values for Django contenttypes framework is implemented via
+Generation of ``'choices' filter`` list of choice values for Django contenttypes framework is implemented via
 ``BaseFilterView.get_contenttype_filter()`` method, whose class is a base class for both ``KoGridView`` and it's
 traditional request counterpart ``ListSortingView`` (see `views`_ for details).
 
@@ -862,8 +871,9 @@ Our ``Action`` model, defined in `event_app.models`_ looks like this::
 
         # ... skipped ...
 
-To display saved actions via grid, ancestor class of ``KoGridView`` should define ``get_allowed_filter_fields()`` method
-to generate ``choices`` filter values from contenttypes framework model id's via ``get_contenttype_filter()`` method::
+To allow queryset filtering via 'content_object' field ``'choices' filter`` (`Choices filter`_), ``ActionGrid``
+overrides ``get_allowed_filter_fields()`` method to generate ``'choices' filter`` values from contenttypes framework by
+calling ``get_contenttype_filter()`` method::
 
     from collections import OrderedDict
     from django.utils.html import format_html
@@ -878,7 +888,7 @@ to generate ``choices`` filter values from contenttypes framework model id's via
             'date',
             'action_type',
             # Note that generic object relationship field is treated as virtual field because Django ORM does not
-            # allow to perform values() method on such fields.
+            # allow to perform values() method on querysets which have such fields.
             'content_object'
         ]
         allowed_sort_orders = [
@@ -894,6 +904,7 @@ to generate ``choices`` filter values from contenttypes framework model id's via
         def get_allowed_filter_fields(self):
             allowed_filter_fields = OrderedDict([
                 ('action_type', None),
+                # Get names / ids of 'content_type' choices filter.
                 ('content_type', self.get_contenttype_filter(
                     ('club_app', 'club'),
                     ('club_app', 'equipment'),
@@ -937,39 +948,47 @@ Modifying visual layout of grid
 .. highlight:: jinja
 .. _modifying_visual_layout_of_grid:
 
-Top DOM nodes of grid component can be overriden by using Jinja2 ``call(kwargs) ko_grid()`` statement then implementing
-a custom caller section with custom DOM nodes. There is the example of using this approach just below. See the source
-code of ``ko_grid.htm`` template for original DOM nodes of ``App.ko.Grid`` component.
+Top DOM nodes of grid component can be overriden by using Jinja2 ``{% call(kwargs) ko_grid() %}`` statement, then
+implementing a caller section with custom DOM nodes. There is the example of using this approach just below.
+See the source code of `ko_grid.htm`_ template for original DOM nodes of ``App.ko.Grid`` component.
 
 It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component, by passing
 arguments to ``ko_grid_body()`` Jinja2 macro with keys as template names and values as custom template ids.
 
-* Optional ``call_ids`` argument is used to override expanding nested template DOM ids. It allows to call (expand)
-  another underscore.js template instead of built-in one, eg. ``'model1_ko_grid_filter_choices'`` instead of default
+* Optional ``'call_ids' argument`` is used to override expanded nested templates DOM ids. It allows to call (expand)
+  another underscore.js template instead of built-in one, eg. ``'member_ko_grid_filter_choices'`` instead of default
   ``'ko_grid_filter_choices'`` (see example below).
-* Optional ``template_ids`` argument is used to override DOM ids of ``underscore.js`` templates themselves. That allows
-  to generate standard built-in underscore.js template but with a different DOM id ("copy template with different ID").
-  It is required sometimes to allow both standard and visually customized grids at one web page.
+* Optional ``'template_ids' argument`` is used to override DOM ids of ``underscore.js`` templates bodies. That allows
+  to generate standard built-in underscore.js template but with a different DOM id, to "copy the same template with
+  different DOM id". It is required sometimes to allow both standard and visually customized grids at one web page.
+* Optional ``'override_template' argument`` is used to enable Jinja2 caller section.
 
 Here is the example of overriding visual display of ``App.ko.GridFilter`` that is used to select filter field from
-the list of specified choices for the current grid. Also ``ko_grid_body`` template is overriden to ``model1_ko_grid_body``
-template with button inserted that has knockout.js ``click: myCustomAction`` binding::
+the list of specified choices. Also ``ko_grid_body`` template is overriden to ``member_ko_grid_body`` template with
+button inserted that has knockout.js ``"click: onChangeEndorsementButtonClick.bind($data)"`` custom binding::
+
+    {% from 'ko_grid.htm' import ko_grid with context %}
+    {% from 'ko_grid_body.htm' import ko_grid_body with context %}
+    {% extends 'base.htm' %}
 
     {% block main %}
 
         {% call(kwargs) ko_grid(
             grid_options={
-                'pageRoute': 'model1_grid',
+                'pageRoute': view.request.url_name,
+            },
+            template_options={
+                'vscroll': True
             },
             dom_attrs={
-                'id': 'model1_grid'
+                'id': 'member_grid'
             },
             override_template=True,
         ) %}
 
-        <div{{ flatatt(kwargs.dom_attrs) }} data-component-options='{{ kwargs._grid_options|escapejs(True) }}'>
+        <div{{ flatatt(kwargs.dom_attrs) }} data-component-options='{{ kwargs._grid_options|escapejs }}'>
         <a name="{{ kwargs.fragment_name }}"></a>
-            <div data-template-id="model1_ko_grid_body" data-template-args='{{ _template_options|escapejs(True) }}'>
+            <div data-template-id="member_ko_grid_body" data-template-args='{{ kwargs._template_options|escapejs }}'>
             </div>
         </div>
 
@@ -978,47 +997,70 @@ template with button inserted that has knockout.js ``click: myCustomAction`` bin
     {% endblock main %}
 
     {% block bottom_scripts %}
+        {# Generate standard grid templates for KoGridWidget #}
+        {{ ko_grid_body() }}
+
+        {#
+            Overwrites templates for custom display of MemberGrid.
+            has_full_body=True indicates that ko_grid_body() without arguments was already called, generating
+            standard templates, thus only call_ids / template_ids related templates has to be re-generated.
+            It will work without has_full_body=True as well, but duplicate templates with the same id / content
+            would be generated in such case.
+        #}
         {{
             ko_grid_body(
                 call_ids={
-                    'ko_grid_body': 'model1_ko_grid_body',
-                    'ko_grid_filter_choices': 'model1_ko_grid_filter_choices',
+                    'ko_grid_body': 'member_ko_grid_body',
+                    'ko_grid_filter_choices': 'member_ko_grid_filter_choices',
                 },
                 template_ids={
-                    'ko_grid_nav': 'model1_ko_grid_nav'
-                }
+                    'ko_grid_nav': 'member_ko_grid_nav'
+                },
+                has_full_body=True
             )
         }}
 
-        <script type="text/template" id="model1_ko_grid_body">
+        <script type="text/template" id="member_ko_grid_body">
             <div class="panel panel-primary">
                 <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
                 <div class="panel-body">
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
-                    <div data-template-id="model1_ko_grid_nav"></div>
+                    <div data-template-id="member_ko_grid_nav"></div>
                     <!-- /ko -->
                     <div data-template-id="ko_grid_table"></div>
-                    <button data-bind="click: myCustomAction" type="button" class="btn btn-warning">My custom button</button>
+                    <div class="default-padding">
+                        <button
+                                data-bind="click: onChangeEndorsementButtonClick.bind($data)" type="button" class="btn btn-warning">
+                            Change endorsement
+                        </button>
+                    </div>
                 </div>
+                <div data-template-id="ko_grid_pagination"></div>
             </div>
         </script>
 
-        <script type="text/template" id="model1_ko_grid_filter_choices">
+        <script type="text/template" id="member_ko_grid_filter_choices">
             <li data-bind="grid_filter">
-                <ol class="nav nav-tabs">
-                    <li ><a name="#" data-bind="text: name"></a></li>
-                    <!-- ko foreach: choices -->
-                    <li data-bind="css: {active: is_active()}">
-                        <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
-                    </li>
-                    <!-- /ko -->
-                </ol>
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <div class="navbar-header"><a class="navbar-brand" href="##" data-bind="text: name"></a></div>
+                        <ul class="nav navbar-nav">
+                            <!-- ko foreach: choices -->
+                            <li data-bind="css: {active: is_active()}">
+                                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+                            </li>
+                            <!-- /ko -->
+                        </ul>
+                    </div>
+                </nav>
             </li>
         </script>
 
-        <script src="{{ static_hash('js/front/ko-grid.js') }}"></script>
-        <script src="{{ static_hash('js/front/model1-grid.js') }}"></script>
+        <script src="{{ static('js/front/ko-grid.js') }}"></script>
+        <script src="{{ static('js/front/member-grid.js') }}"></script>
     {% endblock bottom_scripts %}
+
+See `member_grid_tabs.htm`_, `member-grid.js`_, `club_app.views_ajax`_ for the complete example.
 
 ===================
 Grid action routing
@@ -2009,7 +2051,7 @@ class::
             }
 
 Note that the value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
-``'fkGridOptions'`` value in `Foreign key filters`_ example of Django grid method ``get_default_grid_options()``.
+``'fkGridOptions'`` value in `Foreign key filter`_ example of Django grid method ``get_default_grid_options()``.
 
 It is because grid's foreign key filter is quite similar to ``ForeignKeyGridWidget``, with the difference that the first
 one limits grid queryset, while second one is used to set foreign key value, to be later submitted via ``ModelForm``
