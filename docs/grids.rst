@@ -1373,26 +1373,28 @@ Custom view kwargs
 ------------------
 .. highlight:: python
 
-In some cases a grid may require additional kwargs to alter initial (base) queryset of grid. For example, if Django app
-has ``ClubMember`` model related as many to one ``Club`` Django model, grid that displays members of specified club id
-(foreign key pk value), one may define ``club_id`` view kwarg match in ``urls.py``::
+In some cases a grid may require additional kwargs to alter base queryset of grid. For example, if Django app
+has ``Member`` model related as many to one to ``Club`` model, grid that displays members of specified club id
+(foreign key value) requires additional ``club_id`` view kwarg in ``urls.py``::
 
     # ... skipped ...
     url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
-        kwargs={'ajax': True, 'permission_required': 'my_app.change_club'}),
+        kwargs={'ajax': True, 'permission_required': 'my_app.change_member'}),
     # ... skipped ...
 
-Then, grid class may implement base queryset filtering according to ``club_id`` view kwargs value::
+Then, grid class may filter base queryset according to received ``club_id`` view kwargs value::
 
-    class ClubMemberGrid(KoGridView)
+    class ClubMemberGrid(KoGridView):
 
+        model = Member
         # ... skipped ...
         def get_base_queryset(self):
             return super().get_base_queryset().filter(club_id=self.kwargs['club_id'])
 
 .. highlight:: jinja
 
-Jinja2 template should contain component generation like this::
+Jinja2 template should contain component generation like this (do not forget to pass ``club_id`` when rendering the
+template)::
 
     {{ ko_grid(
         grid_options={
@@ -1404,13 +1406,13 @@ Jinja2 template should contain component generation like this::
         }
     ) }}
 
-This way each grid will have custom list of club members according to ``club_id`` view kwarg value.
+This way grid will have custom list of club members according to ``club_id`` view kwarg value.
 
 .. highlight:: python
 
-Because foreign key widgets also utilizes ``KoGridView`` and ``App.ko.Grid`` classes, base querysets of foreign key
-widgets may be limited by supplying optional ``'pageRouteKwargs'`` via ``fkGridOptions`` key value of the
-default grid options dict::
+Because foreign key widgets also utilize ``KoGridView`` and ``App.ko.Grid`` classes, base querysets of foreign key
+widgets may be filtered via supplying ``['pageRouteKwargs']`` ``['fkGridOptions']`` key value of the default grid
+options dict::
 
     class Model1Grid(KoGridView):
 
@@ -1423,7 +1425,7 @@ default grid options dict::
         @classmethod
         def get_default_grid_options(cls):
             return {
-                'classPath': 'App.ko.Model1Grid',
+                # 'classPath': 'App.ko.Model1Grid',
                 'fkGridOptions': {
                     'model2_fk': {
                         # 'classPath': 'App.ko.Model2Grid',
@@ -1439,11 +1441,13 @@ Standard grid actions
 =====================
 
 By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
-one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive, actions can
-be executed as AJAX requests or be purely client-side.
+one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive.
+Actions can be executed as one or multiple AJAX requests or be partially / purely client-side.
 
-``views.GridActionsMixin.get_actions()`` method returns dict defining built-in actions available. Top level of that dict
-is ``action type``. Let's see which action types are available and their associated actions.
+``views.GridActionsMixin`` class ``get_actions()`` method returns dict defining built-in actions available.
+Top level of that dict is ``action type``.
+
+Let's see which action types are available and their associated actions.
 
 Action type 'built_in'
 ----------------------
@@ -1462,19 +1466,20 @@ Returns AJAX response data:
 * name of primary key field ``'meta.pkField'`` that is used in different parts of ``App.ko.Grid`` to address grid rows;
 * list of defined grid actions, See `Standard grid actions`_, `Grid action routing`_, `Grid custom action types`_;
 * allowed grid fields (list of grid columns), see `Grid configuration`_;
-* field filters which will be displayed in top navigation bar of grid client-side component in
-  ``'ko_grid_nav'`` underscore.js template, see `Filter fields`_;
+* field filters which will be displayed in top navigation bar of grid client-side component via ``'ko_grid_nav'``
+  underscore.js template, see `Filter fields`_;
 
-Custom Django grid class-based views derived from ``KoGridView`` also may define more meta properties for custom
-client-side templates. These should be updated "on the fly" automatically with standard client-side
-``App.GridActions.callback_meta()`` method.
+Custom Django grid class-based views derived from ``KoGridView`` may return more meta properties for custom
+client-side templates. These will be updated "on the fly" automatically with standard client-side
+``App.GridActions`` class ``callback_meta()`` method.
 
 .. highlight:: javascript
 
-Custom actions can also update grid meta as well, calling client-side ``App.ko.Grid.updateMeta()`` method directly::
+Custom actions also can update grid meta by calling client-side ``App.ko.Grid`` class ``updateMeta()`` method directly::
 
     Model1GridActions.callback_approve_user = function(viewModel) {
         this.grid.updateMeta(viewModel.meta);
+        // Do something more...
     };
 
 See `Action AJAX response handler`_ how meta is updated in client-side AJAX callback.
@@ -1484,16 +1489,21 @@ See `Modifying visual layout of grid`_ how to override client-side underscore.js
 'list' action
 ~~~~~~~~~~~~~
 
-Returns AJAX response data with the list of current paginated grid rows, both "raw" database field values list and their
-optional ``str_fields`` formatted list counterparts. While some grids may do not use ``str_fields`` at all, complex
-formatting of local date / time / financial currency Django model field values and also nested representation of
-fields (displaying foreign key as list of it's Django model fields in one grid cell) requires ``str_fields`` to be
-generated.
+Returns AJAX response data with the list of currently paginated grid rows, both "raw" database field values list and
+their optional ``str_fields`` formatted list counterparts. While some grids may do not use ``str_fields`` at all,
+complex formatting of local date / time / financial currency Django model field values requires ``str_fields`` to be
+generated at server-side.
 
-``str_fields`` are populated at server-side for each grid row via ``views.KoGridView.get_row_str_fields()`` and
-converted to client-side ``display values`` in ``App.ko.GridRow.toDisplayValue()``. Both methods can be customized by
-overriding these in child classes. When associated Django model has ``get_str_fields()`` method defined, it will be used
-to get ``str_fields`` for each row. See also get_str_fields_.
+``str_fields`` also are used for nested representation of fields (displaying foreign related models as the list of it's
+fields in one grid cell).
+
+``str_fields`` are populated at server-side for each grid row via ``views.KoGridView`` class .get_row_str_fields()``
+method and converted to client-side ``display values`` in ``App.ko.GridRow`` class ``toDisplayValue()`` method.
+
+Both methods can be customized by overriding these in ancestor classes. When associated Django model has
+``get_str_fields()`` method defined, it will be used to get ``str_fields`` for each row.
+
+See also get_str_fields_.
 
 'meta_list' action
 ~~~~~~~~~~~~~~~~~~
