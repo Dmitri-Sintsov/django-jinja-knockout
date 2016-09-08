@@ -14,6 +14,7 @@ Grids
 .. _cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
 .. _ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
+.. _member_grid_custom_actions.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_custom_actions.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
@@ -1068,9 +1069,9 @@ Grid action routing
 
 .. highlight:: python
 
-Grids support lots of built-in actions besides standard CRUD, thus grid requests do not use HTTP PUT DELETE method
-routing, which would be too limiting. All of grid actions are performed as HTTP POST; Django class-based view kwarg
-``action`` value is used for routing in ``urls.py``::
+Grids support arbitrary number of built-in and custom actions besides standard CRUD. Thus grid requests do not use
+HTTP method routing such as PUT DELETE, which would be too limiting approach. All of grid actions are performed as
+HTTP POST; Django class-based view kwarg ``action`` value is used for routing in ``urls.py``::
 
     from my_app.views import Model1Grid
 
@@ -1082,8 +1083,8 @@ routing, which would be too limiting. All of grid actions are performed as HTTP 
     # ... skipped ...
 
 Value of ``action`` kwarg is normalized (leading '/' are stripped) and is stored in ``self.current_action_name``
-property of grid instance at server-side. Key name of view kwargs dict used for grid action url name may be changed via
-Django grid class static property ``action_kwarg``::
+property of grid class instance at server-side. Key name of view kwargs dict used for grid action url name may be
+changed via Django grid class static property ``action_kwarg``::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1097,35 +1098,52 @@ Django grid class static property ``action_kwarg``::
 Server-side action routing
 --------------------------
 
-At server-side (in Django view, derived from ``KoGridView``) actions are defined via ``GridActionsMixin.get_actions()``
-method and implemented via grid ``action_NAME`` method, where ``NAME`` is actual name of defined action, for example
-built-in action ``'list'`` is mapped to ``GridActionsMixin.action_list()`` method.
+Django class-based view derived from `views.KoGridView`_ defines the list of available actions via ``get_actions()``
+method. Defined actions are implemented via grid ``action_NAME`` method, where ``NAME`` is actual name of defined
+action, for example built-in action ``'list'`` is mapped to ``GridActionsMixin.action_list()`` method.
 
 Django grid action method is called via AJAX so it is supposed to return one or more viewmodels via AJAX response, see
 :doc:`viewmodels`.
 
-It might be one of pre-defined viewmodels, like ``{'view': 'alert'}`` (see ``app.js`` for the basic list of viewmodels),
-or a grid viewmodel, especially designated to be processed by ``App.GridActions`` class (or it's child class) at
-client-side. Here is the example of built-in list action implementation::
+It might be either one of pre-defined viewmodels, like ``{'view': 'alert'}`` (see `app.js`_ for the basic list of
+viewmodels), or a grid viewmodel, which is routed to ``App.GridActions`` class (or it's child class) at client-side.
+Here is the example of action implementation::
 
-    class MyGrid(KoGridAction):
+    from django_jinja_knockout.views import KoGridView
+    # ... skipped ...
+
+    class MemberGridCustomActions(KoGridView):
 
         # ... skipped ...
-        def action_list(self):
-            rows = self.get_rows()
-            vm = {
-                'view': self.__class__.viewmodel_name,
-                'entries': list(rows),
-                'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
-            }
-            return vm
+        def action_edit_note(self):
+            member = self.get_object_for_action()
+            note = self.request_get('note')
+            modified_members = []
+            if member.note != note:
+                member.note = note
+                member.save()
+                modified_members.append(member)
+            if len(modified_members) == 0:
+                return vm_list({
+                    'view': 'alert',
+                    'title': str(member.profile),
+                    'message': 'Note was not changed.'
+                })
+            else:
+                return vm_list({
+                    'view': self.__class__.viewmodel_name,
+                    'update_rows': self.postprocess_qs(modified_members),
+                })
+
+`views`_ module has many built-in actions implemented, while `club_app.views_ajax`_ has some examples of custom
+actions code.
 
 Client-side action routing
 --------------------------
 
 .. highlight:: javascript
 
-``App.GridActions`` class defined in ``ko-grid.js`` is used both to invoke grid actions and to process their results.
+``App.GridActions`` class defined in `ko_grid.js`_ is used both to invoke grid actions and to process their results.
 
 Invocation of action
 ~~~~~~~~~~~~~~~~~~~~
@@ -1134,14 +1152,14 @@ Actions are invoked via Javascript ``App.GridActions.perform()`` method::
 
     GridActions.perform = function(action, actionOptions, ajaxCallback)
 
-* mandatory ``action`` argument: name of action as it is returned by grid ``get_actions()`` method at server-side;
-* optional ``actionOptions`` argument: custom parameters of action (usually a Javascript object). These are passed to
-  AJAX query request. To add queryargs to some action, implement ``queryargs_NAME`` method, where ``NAME`` is actual
-  name of action.
-* optional ``ajaxCallback`` argument: a function closure that will be executed when action is complete;
+* ``'action' argument``: mandatory name of action as it is returned by Django grid ``get_actions()`` method;
+* ``'actionOptions' argument``: optional, custom parameters of action (usually Javascript object). These are passed to
+  AJAX query request data.
+  To add queryargs to some action, implement ``queryargs_NAME`` method, where ``NAME`` is actual name of action.
+* ``'ajaxCallback' argument``: optional function closure that will be executed when action is complete;
 
-Interactive actions (standard action types ``'button'`` / ``'glyphicon'``) are also represented by instances of
-``App.ko.Action`` Javascript class, used to setup CSS classes of bound DOM element button or glyphicon.
+Interactive actions (action types ``'button'`` / ``'glyphicon'``) are also represented by instances of ``App.ko.Action``
+Javascript class, which is used to setup CSS classes of bound DOM element button or glyphicon in `ko_grid_body.htm`_.
 
 When bound DOM element is clicked, these interactive actions invoke ``App.ko.Action.doAction()`` method for particular
 visual action Knockout.js viewmodel, which calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing
@@ -1149,11 +1167,11 @@ the same ``App.GridActions.perform()`` method::
 
     Action.doAction = function(options, actionOptions)
 
-* ``options`` object argument may pass key ``'gridRow'`` which is the instance of ``App.ko.GridRow`` class that will
-  be used as interactive action target row. It is used for interactive actions that are related to specified grid row,
-  such as `'edit_form' action`_. Action target row ``App.ko.GridRow`` instance also will be stored in ``App.ko.Grid``
-  ``lastClickedKoRow`` property available in ``App.GridActions`` derived class ``perform_NAME`` method as
-  ``this.grid.lastClickedKoRow``, eg::
+* ``'options' argument`` of object type may pass key ``'gridRow'`` which value is the instance of ``App.ko.GridRow``
+  class that will be used as interactive action target row. It is used by interactive actions that are related to
+  specified grid row, such as `'edit_form' action`_. Target row instance of ``App.ko.GridRow`` will be stored in
+  ``App.ko.Grid`` instance ``lastClickedKoRow`` property, accessible in ``App.GridActions`` derived instance
+  ``this.grid.lastClickedKoRow`` property in every ``perform_NAME`` method, eg.::
 
     Model1GridActions.perform_my_action = function(queryArgs, ajaxCallback) {
         // Get raw value of last clicked grid row 'role' field.
@@ -1174,8 +1192,9 @@ Javascript invocation of interacive action with specified target grid row when g
         }
     };
 
-* ``actionOptions`` object optional argument that is passed to ``App.GridActions.perform()`` as ``actionOptions``
-  argument.
+* ``'actionOptions' argument`: optional Javascript object that is passed to ``App.GridActions.perform()`` as
+  ``actionOptions`` argument, usually to extend queryargs of action AJAX POST request, but might be used to pass custom
+  data to client-side actions as well.
 
 Action queryargs
 ~~~~~~~~~~~~~~~~
@@ -1215,8 +1234,8 @@ Here is the example of ``'list'`` action AJAX request queryargs population::
     };
 
 Note that some keys of ``queryArgs`` object are populated in grid class own methods, while only the ``'list_search'``
-and ``'list_filter'`` keys are setup by ``App.GridActions.queryargs_list()`` method, so both ways of AJAX queryargs
-population are possible but it's easier and more convenient to implement common ``queryargs_NAME`` method.
+and ``'list_filter'`` entries are set by ``App.GridActions.queryargs_list()`` method. It's easier and more convenient to
+implement ``queryargs_NAME`` method for that purpose.
 
 .. highlight:: text
 
@@ -1232,7 +1251,7 @@ it will generate AJAX request queryargs similar to these::
     list_filter: {"role": 2}
     csrfmiddlewaretoken: JqkaCTUzwpl7katgKiKnYCjcMpNYfjQc
 
-which will be then parsed by ``get_rows`` method called from Django grid ``action_list`` method.
+which will be parsed by ``KoGridView`` derived instance ``action_list()`` method.
 
 .. highlight:: javascript
 
@@ -1240,19 +1259,20 @@ it is also possivble to execute actions interactively with custom options (query
 
     Model1Grid.onFirstLoad = function() {
         var myAction = this.getKoAction('my_custom_action');
+        var targetKoRow = this.findKoRowByPkVal(10);
         myAction.doAction({gridRow: targetKoRow}, {'ko_prop_name': ko_prop_value});
     };
 
-When action is purely client-side implemented via custom ``App.GridActions`` ancestor ``perform_NAME`` method, queryArgs
-may be used as options of client-side, for example to pass initial values of Knockout.js viewmodel properties, hence
-these are called ``options``, not ``queryArgs`` in ``queryargs_NAME`` method.
+When action is a purely client-side one implemented via ``App.GridActions`` derived instance ``perform_NAME()`` method,
+queryArgs may be used as client-side options, for example to pass initial values of Knockout.js custom template
+viewmodel properties, hence these are called ``options``, not ``queryArgs`` in ``queryargs_NAME`` method.
 
 Action AJAX response handler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To process AJAX response data, returned from Django grid ``action_NAME`` method, one has to implement ``App.GridActions``
-derived class, where ``callback_NAME`` Javascript method will be used to update client-side of grid. For example, AJAX
-``ModelForm``, generated by standard `'create_form' action`_  is displayed with::
+To process AJAX response data returned from Django grid ``action_NAME()`` method, one has to implement
+``App.GridActions`` derived class, where ``callback_NAME()`` method will be used to update client-side of grid.
+For example, AJAX ``ModelForm``, generated by standard `'create_form' action`_  is displayed with::
 
     GridActions.callback_create_form = function(viewModel) {
         viewModel.grid = this.grid;
@@ -1269,7 +1289,8 @@ grid meta-data (verbose names, field filters) are updated via::
         this.grid.loadMetaCallback(data);
     };
 
-and so on - see actual ``'callback_NAME'`` examples in ``ko-grid.js`` ``App.GridActions`` class code.
+See standard ``callback_*()`` methods in `ko_grid.js`_ ``App.GridActions`` class code and custom ``callback_*()``
+methods in `member-grid.js`_ for more examples.
 
 Client-side actions
 ~~~~~~~~~~~~~~~~~~~
@@ -1277,86 +1298,64 @@ Client-side actions
 .. highlight:: javascript
 
 It is also possible to perform actions partially or entirely at client-side. To implement this, one should define
-``perform_NAME`` in ``App.ko.GridActions`` derived class. Mostly it's used to display client-side BootstrapDialogs via
-ancestor of ``App.ActionTemplateDialog`` class with underscore.js / knockout.js template bound to current ``App.ko.Grid``
-derived class instance::
+``perform_NAME()`` method of ``App.ko.GridActions`` derived class. It's used to display client-side BootstrapDialogs via
+``App.ActionTemplateDialog`` -derived instances with underscore.js / knockout.js templates bound to current
+``App.ko.Grid`` derived instance::
 
-    App.Model1ActionDialog = function(options) {
-        $.inherit(App.ActionTemplateDialog.prototype, this);
-        this.create(options);
-    };
-
-    (function(Model1ActionDialog) {
-
-        Model1ActionDialog.templateId = 'ko_model1_action_form';
-
-        Model1ActionDialog.create = function(options) {
-            this._super._call('create', options);
-            // this.grid.doStuff();
-        };
-
-    })(App.Model1ActionDialog.prototype);
-
-    App.Model1GridActions = function(options) {
+    App.MemberGridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
         this.init(options);
     };
 
-    (function(Model1GridActions) {
+    (function(MemberGridActions) {
 
-        Model1GridActions.perform_ask_user = function(queryArgs, ajaxCallback) {
-            var model1ActionDialog = new App.Model1ActionDialog({
+        // Client-side invocation of the action.
+        MemberGridActions.perform_edit_note = function(queryArgs, ajaxCallback) {
+            var actionDialog = new App.ActionTemplateDialog({
+                template: 'member_note_form',
                 grid: this.grid,
                 meta: {
-                    nameLabel: 'Please enter your name',
-                    familyLabel: 'Please enter your familyname',
+                    noteLabel: 'Member note',
+                    note: this.grid.lastClickedKoRow.getValue('note')
                 },
             });
-            model1ActionDialog.show();
+            actionDialog.show();
         };
 
-    })(App.Model1GridActions.prototype);
+        MemberGridActions.callback_edit_note = function(viewModel) {
+            this.grid.updatePage(viewModel);
+        };
 
-    App.ko.Model1Grid = function(options) {
+    })(App.MemberGridActions.prototype);
+
+    App.ko.MemberGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
-    (function(Model1Grid) {
+    (function(MemberGrid) {
 
-        Model1Grid.init = function(options) {
-            this._super._call('init', options);
-            this.username = ko.observable('');
-            this.familyName = ko.ovservable('');
+        MemberGrid.iocGridActions = function(options) {
+            return new App.MemberGridActions(options);
         };
 
-        Model1Grid.iocGridActions = function(options) {
-            return new App.Model1GridActions(options);
-        };
-
-    })(App.ko.Model1Grid);
+    })(App.ko.MemberGrid.prototype);
 
 .. highlight:: jinja
 
-Where the ``'ko_model1_action_form'`` template could be like this, based on ``ko_action_form`` template located in
-``ko_grid_body.htm``::
+Where the ``'member_note_form'`` template could be like this, based on ``ko_action_form`` template located in
+`ko_grid_body.htm`_::
 
-    <script type="text/template" id="ko_model1_action_form">
+    <script type="text/template" id="member_note_form">
         <div class="panel panel-default">
             <div class="panel-body">
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                     <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
                     <div class="row form-group">
-                        <label data-bind="text: meta.nameLabel" class="control-label col-md-4" for="id_username"></label>
+                        <label data-bind="text: meta.noteLabel" class="control-label col-md-4" for="id_note"></label>
                         <div class="field col-md-6">
-                            <input data-bind="textInput: username" id="id_username" class="form-control" name="username" type="text">
-                        </div>
-                    </div>
-                    <div class="row form-group">
-                        <label data-bind="text: meta.familyLabel" class="control-label col-md-4" for="id_familyname"></label>
-                        <div class="field col-md-6">
-                            <input data-bind="textInput: familyName" id="id_familyname" class="form-control" name="familyname" type="text">
+                            <textarea data-bind="textInput: meta.note" id="id_note" class="form-control autogrow" name="note" type="text"></textarea>
                         </div>
                     </div>
                 </form>
@@ -1364,8 +1363,11 @@ Where the ``'ko_model1_action_form'`` template could be like this, based on ``ko
         </div>
     </script>
 
-which also may include any custom Knockout.js properties / observables bound to current grid instance (client-side forms
-with rich content).
+which may include any custom Knockout.js properties / observables bound to current grid instance. That allows to prodice
+interactive client-side forms without extra AJAX requests.
+
+See `club_app.views_ajax`_, `member_grid_custom_actions.htm`_ and `member-grid.js`_ for full example of 'edit_note' action
+implementation.
 
 Custom view kwargs
 ------------------
