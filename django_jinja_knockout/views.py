@@ -105,6 +105,9 @@ def prepare_bs_navs(navs, request):
         nav['atts']['class'].strip()
 
 
+# Supports both ancestors of DetailView and KoGridView.
+# DetailView and it's ancestors are supported automatically.
+# For KoGridView, one has to override .get() method and call .format_title() with appropriate args.
 class FormatTitleMixin:
 
     format_view_title = False
@@ -118,17 +121,17 @@ class FormatTitleMixin:
             self.request.view_title = self.request.view_title.format(*args)
             self.view_title_is_formatted = True
 
-    # Unused when mixed with KoGridView.
+    # Used when mixed with DetailView ancestors.
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         self.format_title(obj)
         return obj
 
-    # Unused when mixed with KoGridView.
+    # Used when mixed with DetailView ancestors.
     def get_object_from_url(self):
         return self.get_object()
 
-    # Unused when mixed with KoGridView.
+    # Used when mixed with DetailView ancestors.
     def get_heading(self):
         if getattr(self, 'object', None) is not None:
             return self.object
