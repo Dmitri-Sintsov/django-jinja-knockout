@@ -16,16 +16,16 @@
     'ko_grid_pagination'
 ] -%}
     {% if template_id not in template_ids -%}
-        {% do template_ids.update({template_id: template_id}) %}
-    {%- endif %}
-    {%- do include_ids.update({template_id: template_id not in call_ids}) -%}
+        {% do template_ids.update({template_id: template_id}) -%}
+    {% endif -%}
+    {% do include_ids.update({template_id: template_id not in call_ids}) -%}
     {% if template_id not in call_ids -%}
-        {%- do call_ids.update({template_id: template_id}) -%}
+        {% do call_ids.update({template_id: template_id}) -%}
         {% if has_full_body and template_ids[template_id] == template_id -%}
-            {% do include_ids.update({template_id: False}) %}
-        {%- endif %}
-    {%- endif %}
-{%- endfor %}
+            {% do include_ids.update({template_id: False}) -%}
+        {% endif -%}
+    {% endif -%}
+{% endfor -%}
 
 {% if include_ids['ko_range_filter'] -%}
 <script type="text/template" id="{{ template_ids['ko_range_filter'] }}">
@@ -44,7 +44,7 @@
         </div>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_row_click_menu'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_row_click_menu'] }}">
@@ -53,7 +53,7 @@
         </button>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_action_form'] -%}
 <!-- 'ko_action_form' template is not actual template but a sceleton of action template for App.ActionTemplateDialog class. -->
@@ -72,7 +72,7 @@
         </div>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_filter_choices'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_filter_choices'] }}">
@@ -88,7 +88,7 @@
         </ul>
     </li>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_filter_popup'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_filter_popup'] }}">
@@ -99,7 +99,7 @@
         </a>
     </li>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_search'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_search'] }}">
@@ -116,7 +116,7 @@
         <!-- /ko -->
     </form>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_nav'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_nav'] }}">
@@ -134,7 +134,7 @@
         </div>
     </nav>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_no_results'] -%}
 <script language="text.template" id="{{ template_ids['ko_grid_no_results'] }}">
@@ -147,7 +147,7 @@
         </div>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_table'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_table'] }}">
@@ -220,7 +220,7 @@
         </div>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_body'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_body'] }}">
@@ -239,7 +239,7 @@
         <% } %>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
 {% if include_ids['ko_grid_pagination'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_pagination'] }}">
@@ -251,6 +251,18 @@
         </ul>
     </div>
 </script>
-{%- endif %}
+{% endif -%}
 
-{%- endmacro %}
+{% endmacro -%}
+{% if _render_ -%}
+    {% if not call_ids is defined -%}
+        {% set call_ids={} -%}
+    {% endif -%}
+    {% if not template_ids is defined -%}
+        {% set template_ids={} -%}
+    {% endif -%}
+    {% if not has_full_body is defined -%}
+        {% set has_full_body = False -%}
+    {% endif -%}
+    {{ ko_grid_body(call_ids=call_ids, template_ids=template_ids, has_full_body=has_full_body) }}
+{% endif -%}

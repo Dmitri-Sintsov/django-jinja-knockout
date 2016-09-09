@@ -1,7 +1,11 @@
+{# See 'jinja2/base.htm' template used as source of this template. #}
+{% load i18n %}
+{% load staticfiles %}
+{% load jinja %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-{% include 'base_head.htm' %}
+{% jinja 'base_head.htm' %}
 {% block head %}
 {% endblock head %}
 </head>
@@ -22,8 +26,8 @@
                 <ul class="nav nav-pills nav-stacked nav-main">
                     {% block mainmenu %}
                     <li>
-                        <a href="/{# url('home') #}">
-                            <span class="glyphicon glyphicon-home"></span> {{ _('Home') }}
+                        <a href="/{# static 'home' #}">
+                            <span class="glyphicon glyphicon-home"></span> {% trans 'Home' %}
                         </a>
                     </li>
                     {% endblock mainmenu %}
@@ -34,14 +38,14 @@
     <main class="col-md-10">
         <div class="container">
             {% if messages %}
-                {% include 'base_messages.htm' %}
+                {% jinja 'base_messages.htm' %}
             {% endif %}
             {% block main %}
             {% endblock main %}
         </div>
     </main>
     {% endblock body %}
-	{% include 'base_bottom_scripts.htm' %}
+	{% jinja 'base_bottom_scripts.htm' %}
     {% block bottom_scripts %}
     {% endblock bottom_scripts %}
 </body>

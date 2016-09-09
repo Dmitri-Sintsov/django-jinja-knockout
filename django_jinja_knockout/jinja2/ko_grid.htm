@@ -5,53 +5,53 @@
     'show_action_buttons': True,
     'vscroll': False
 } -%}
-{%- do _template_options.update(template_options) -%}
+{% do _template_options.update(template_options) -%}
 {#
 
 Setup url name kwargs both for resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
 
-#}
-{%- set view_kwargs = {} -%}
+-#}
+{% set view_kwargs = {} -%}
 {% if grid_options.pageRouteKwargsKeys -%}
     {% for key in grid_options.pageRouteKwargsKeys -%}
         {% if key in request.view_kwargs -%}
-            {%- do view_kwargs.update({key: request.view_kwargs[key]}) -%}
-        {%- endif %}
-    {%- endfor %}
-{%- endif %}
+            {% do view_kwargs.update({key: request.view_kwargs[key]}) -%}
+        {% endif -%}
+    {% endfor -%}
+{% endif -%}
 {% if grid_options.pageRouteKwargs -%}
-    {%- do view_kwargs.update(grid_options.pageRouteKwargs) -%}
-{%- endif %}
+    {% do view_kwargs.update(grid_options.pageRouteKwargs) -%}
+{% endif -%}
 {% if view_kwargs|length > 0 -%}
-    {%- do sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs}) -%}
-{%- endif %}
-{%- do view_kwargs.update({'action': ''}) -%}
-{%- set view = resolve_cbv(grid_options.pageRoute, view_kwargs) -%}
+    {% do sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs}) -%}
+{% endif -%}
+{% do view_kwargs.update({'action': ''}) -%}
+{% set view = resolve_cbv(grid_options.pageRoute, view_kwargs) -%}
 {#
 
 Setup final _grid_options (component options).
 
-#}
-{%- set _grid_options = {'classPath': 'App.ko.Grid'} -%}
-{%- do _grid_options.update(view.get_default_grid_options()) -%}
-{%- do _grid_options.update(grid_options) -%}
+-#}
+{% set _grid_options = {'classPath': 'App.ko.Grid'} -%}
+{% do _grid_options.update(view.get_default_grid_options()) -%}
+{% do _grid_options.update(grid_options) -%}
 {#
 
 Setup dom_attrs.
 
-#}
-{%- do add_css_classes_to_dict(dom_attrs, 'component') -%}
+-#}
+{% do add_css_classes_to_dict(dom_attrs, 'component') -%}
 {% if 'name' in dom_attrs -%}
-    {%- set fragment_name = dom_attrs['name'] -%}
-    {%- do dom_attrs.pop('name') -%}
-{% elif 'id' in dom_attrs %}
-    {%- set fragment_name = dom_attrs['id'] -%}
-{%- endif %}
+    {% set fragment_name = dom_attrs['name'] -%}
+    {% do dom_attrs.pop('name') -%}
+{% elif 'id' in dom_attrs -%}
+    {% set fragment_name = dom_attrs['id'] -%}
+{% endif -%}
 {#
 
 Optional caller support.
 
-#}
+-#}
 {% if override_template -%}
 {{ caller({
     'dom_attrs': dom_attrs,
@@ -59,15 +59,35 @@ Optional caller support.
     'fragment_name': fragment_name,
     '_template_options': _template_options
 }) }}
-{% else %}
+{% else -%}
 {% if body_call_id is none -%}
-    {%- set body_call_id = 'ko_grid_body' -%}
-{%- endif %}
+    {% set body_call_id = 'ko_grid_body' -%}
+{% endif -%}
 <div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
 <a name="{{ fragment_name }}"></a>
     <div data-template-id="{{ body_call_id }}" data-template-args='{{ _template_options|escapejs(True) }}'>
     </div>
 </div>
-{%- endif %}
-
-{%- endmacro %}
+{% endif -%}
+{% endmacro -%}
+{% if _render_ -%}
+    {% if not template_options is defined -%}
+        {% set template_options = {} -%}
+    {% endif -%}
+    {% if not dom_attrs is defined -%}
+        {% set dom_attrs = {} -%}
+    {% endif -%}
+    {% if not body_call_id is defined -%}
+        {% set body_call_id = none -%}
+    {% endif -%}
+    {% if not override_template is defined -%}
+        {% set override_template = False -%}
+    {% endif -%}
+    {{ ko_grid(
+        grid_options,
+        template_options=template_options,
+        dom_attrs=dom_attrs,
+        body_call_id=body_call_id,
+        override_template=override_template
+    ) }}
+{% endif -%}

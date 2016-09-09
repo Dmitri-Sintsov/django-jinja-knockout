@@ -1,0 +1,22 @@
+	<script src="{{ static('js/jquery.min.js') }}"></script>
+	<script src="{{ static('js/underscore-min.js') }}"></script>
+    <script src="{{ static('js/sprintf.min.js') }}"></script>
+    <script src="{{ static('js/js.cookie.js') }}"></script>
+    <script src="{{ static('js/QueryString.js') }}"></script>
+    <script src="{{ url('django.views.i18n.javascript_catalog') }}"></script>
+    <script src="{{ static('js/knockout-3.4.0.js') }}"></script>
+    <script src="{{ static('js/jquery.form.min.js') }}"></script>
+    <script src="{{ static('js/moment-with-locales.min.js') }}"></script>
+    <script src="{{ static('js/bootstrap.min.js') }}"></script>
+    <script src="{{ static('js/bootstrap-dialog.min.js') }}"></script>
+    <script src="{{ static('js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script src="{{ static('js/spin.min.js') }}"></script>
+    <script src="{{ static('js/ladda.min.js') }}"></script>
+    <script src="{{ static('js/front/plugins.js') }}"></script>
+    <script src="{{ static('js/front/app.js') }}"></script>
+    <script language="JavaScript">
+        App.conf = {{ client_conf|escapejs(True) }};
+        App.clientData = {{ client_data|escapejs(True) }};
+    </script>
+    <script src="{{ static('js/front/button-popover.js') }}"></script>
+    <script src="{{ static('js/front/tooltips.js') }}"></script>
