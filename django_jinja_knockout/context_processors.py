@@ -107,7 +107,7 @@ class TemplateContextProcessor():
             'resolve_cbv': resolve_cbv,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
-            'sdv_dbg': sdv.dbg,
+            'sdv': sdv,
             'str': str,
         }
 

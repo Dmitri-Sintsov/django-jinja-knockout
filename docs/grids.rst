@@ -1508,7 +1508,7 @@ See also get_str_fields_.
 'meta_list' action
 ~~~~~~~~~~~~~~~~~~
 
-By default ``meta`` action is not performed in separate AJAX query, rather, it's combined with ``list`` action into one
+By default ``meta`` action is not performed in separate AJAX query, rather it's combined with ``list`` action into one
 AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server load. However, in some cases,
 grid filters has to be set up with specific choices before ``'list'`` action is performed. That is required to open
 grid with initially selected field filter choices.

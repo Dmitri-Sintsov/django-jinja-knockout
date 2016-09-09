@@ -109,21 +109,28 @@ class FormatTitleMixin:
 
     format_view_title = False
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.view_title_is_formatted = False
+        super().__init__(*args, **kwargs)
 
+    def format_title(self, *args):
+        if self.__class__.format_view_title and not self.view_title_is_formatted:
+            self.request.view_title = self.request.view_title.format(*args)
+            self.view_title_is_formatted = True
+
+    # Unused when mixed with KoGridView.
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
-        if self.__class__.format_view_title and not self.view_title_is_formatted:
-            self.request.view_title = self.request.view_title.format(obj)
-            self.view_title_is_formatted = True
+        self.format_title(obj)
         return obj
 
+    # Unused when mixed with KoGridView.
     def get_object_from_url(self):
         return self.get_object()
 
+    # Unused when mixed with KoGridView.
     def get_heading(self):
-        if self.object is not None:
+        if getattr(self, 'object', None) is not None:
             return self.object
         else:
             return get_verbose_name(self.model)

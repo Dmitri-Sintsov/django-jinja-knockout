@@ -1,4 +1,4 @@
-from collections import OrderedDict, ValuesView
+from collections import OrderedDict, ValuesView, Mapping
 import os
 import inspect
 from pprint import pprint
@@ -52,6 +52,20 @@ def get_nested(nested_data, map_list, default_value=None):
 
 def nested_values(d):
     return [nested_values(v) if isinstance(v, dict) else v for v in d.values()]
+
+
+# http://stackoverflow.com/a/32357112
+def nested_update(d, u):
+    for k, v in u.items():
+        if isinstance(d, Mapping):
+            if isinstance(v, Mapping):
+                r = nested_update(d.get(k, {}), v)
+                d[k] = r
+            else:
+                d[k] = u[k]
+        else:
+            d = {k: u[k]}
+    return d
 
 
 def dbg(name, value=None):
