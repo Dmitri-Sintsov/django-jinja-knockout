@@ -1,7 +1,11 @@
-{% macro bs_navs(navs) -%}
+{%- macro bs_navs(navs) -%}
 <ul class="nav nav-tabs">
-    {% for nav in navs %}
+    {% for nav in navs -%}
     <li {{ flatatt(nav.atts) }}><a href="{{ nav.url }}">{{ nav.text }}</a></li>
-    {% endfor %}
+    {% endfor -%}
 </ul>
-{%- endmacro %}
+{% endmacro -%}
+{% if _render_ %}
+    {{ bs_navs(navs) }}
+{% endif %}
+

@@ -1,58 +1,6 @@
 {% extends 'base.htm' %}
-{% from 'bs_panel.htm' import bs_panel with context %}
-{% from 'bs_breadcrumbs.htm' import bs_breadcrumbs with context %}
-{% from 'bs_filters.htm' import bs_filters with context %}
-{% from 'bs_pagination.htm' import bs_pagination with context %}
 
 {% block main %}
-
-{% call bs_panel(
-    type='primary',
-    heading=view.get_heading(),
-) %}
-
-{% for field in view.allowed_filter_fields %}
-    {{ bs_breadcrumbs(filter_title[field], filter_navs[field]) }}
-{% endfor %}
-
-{% if object_list %}
-    <table class="table table-collapse display-block-condition">
-    {% for obj in object_list %}
-        {% set row_class = cycler('info', 'success', 'active') %}
-        {% if loop.index0 == 0 %}
-        <tr>
-        {% for field in view.grid_fields %}
-            <th>
-            {% if field in view.allowed_sort_orders %}
-                {{ cbv.get_sort_order_link(field) }}
-            {% else %}
-                {{ field }}
-            {% endif %}
-            </th>
-        {% endfor %}
-        </tr>
-        {% endif %}
-        <tr>
-        {% for field in view.grid_fields %}
-            <td class="{{ row_class.__next__() }}" data-caption="{{ get_verbose_name(obj, field) }}">
-                {{ view.get_display_value(obj, field) }}
-            </td>
-        {% endfor %}
-        </tr>
-    {% endfor %}
-    </table>
-{% else %}
-<div class="jumbotron">
-    <div class="default-padding">
-        {{ bs_filters(filter_title, filter_display, _('There is no'), _('to display')) }}
-    </div>
-</div>
-{% endif %}
-
-{% if object_list and is_paginated %}
-    {{ bs_pagination(cbv=cbv, page_obj=page_obj) }}
-{% endif %}
-
-{% endcall %}
-
+{% from 'bs_list.htm' import bs_list with context %}
+{{ bs_list(view, object_list, is_paginated, page_obj) }}
 {% endblock main %}
