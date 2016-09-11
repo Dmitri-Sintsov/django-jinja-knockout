@@ -52,8 +52,8 @@ App.ko.GridColumnOrder = function(options) {
         this.ownerGrid = options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
-        // true means 'asc', false means 'desc'.
-        this.order = ko.observable(null);
+        // true means 'asc', false means 'desc', null means unsorted.
+        this.order = ko.observable(options.order);
         this.isSortedColumn = ko.observable(options.isSorted);
         this.orderCss = ko.computed(this.getOrderCss, this);
         this.columnCss = ko.computed(this.getColumnCss, this);
@@ -96,7 +96,9 @@ App.ko.GridColumnOrder = function(options) {
             this.order(!this.order());
         }
         var direction = this.order() ? 'desc' : 'asc';
-        this.ownerGrid.setQueryOrderBy(this.field, direction);
+        var orderBy = {};
+        orderBy[this.field] = direction;
+        this.ownerGrid.setQueryOrderBy(orderBy);
         this.ownerGrid.listAction();
     };
 
@@ -1165,8 +1167,9 @@ App.ko.Grid = function(options) {
             this.options.ajaxParams
         );
         this.queryFilters = {};
-        if (this.options.defaultOrderBy !== null)
-        this.setQueryOrderBy(this.options.defaultOrderBy);
+        if (this.options.defaultOrderBy !== null) {
+            this.setQueryOrderBy(this.options.defaultOrderBy);
+        }
     };
 
     Grid.firstLoad = function(callback) {
@@ -1261,6 +1264,7 @@ App.ko.Grid = function(options) {
         this.meta = {
             pkField: '',
             hasSearch: ko.observable(false),
+            orderBy: {},
             markSafeFields: [],
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
@@ -1417,19 +1421,22 @@ App.ko.Grid = function(options) {
         }
     };
 
-    // todo: Support multiple order_by.
-    Grid.setQueryOrderBy = function(fieldName, direction) {
-        if (typeof fieldName == 'undefined') {
-            delete this.queryArgs[this.queryKeys.order];
-        } else {
-            var orderBy = '';
+    // Supported multiple order_by at api level but not in 'ko_grid.htm' templates.
+    Grid.setQueryOrderBy = function(orderBy) {
+        var prefixedOrders = [];
+        _.each(orderBy, function(direction, fieldName) {
+            var prefixedOrder = '';
             // Django specific implementation.
             if (direction === 'desc') {
-                orderBy += '-';
+                prefixedOrder += '-';
             }
-            orderBy += fieldName;
-            this.queryArgs[this.queryKeys.order] = JSON.stringify(orderBy);
+            prefixedOrder += fieldName;
+            prefixedOrders.push(prefixedOrder);
+        });
+        if (prefixedOrders.length === 1) {
+            prefixedOrders = prefixedOrders[0];
         }
+        this.queryArgs[this.queryKeys.order] = JSON.stringify(prefixedOrders);
     };
 
     Grid.hasSelectedPkVal = function(pkVal) {
@@ -1781,11 +1788,13 @@ App.ko.Grid = function(options) {
         var koGridColumns = [];
         for (var i = 0; i < gridFields.length; i++) {
             var gridColumn = gridFields[i];
+            var order = App.propGet(this.meta.orderBy, gridColumn.field, null);
             koGridColumns.push(
                 this.iocKoGridColumn({
                     field: gridColumn.field,
                     name: gridColumn.name,
                     isSorted: this.isSortedField(gridColumn.field),
+                    order: order,
                     ownerGrid: this
                 })
             );
