@@ -20,18 +20,26 @@ App.addViewHandler('form_error', function(viewModel) {
     if ($field.length == 0) {
         throw "Unknown field auto_id:" + viewModel.id;
     }
+    var $inputGroup = $field.parents('.input-group:eq(0)');
+    if ($inputGroup.length > 0) {
+        $field = $inputGroup;
+    }
+    var $formErrors = $field.parent('.has-error');
+    if ($formErrors.length === 0) {
+        var $formErrors = $('<div>').addClass('has-error');
+        $field.wrap($formErrors);
+    } else {
+        $formErrors.find('.alert').remove();
+    }
     var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
-    $field.prev('.form-errors').remove();
-    var $contents = $('<div>').addClass('form-errors');
-    _.each(viewModel.messages, function(v) {
-        $contents.append($.contents(
+    for (var i = 0; i < viewModel.messages.length; i++) {
+        $field.after($.contents(
             sprintf(
                 '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
-                alert_class, v
+                alert_class, viewModel.messages[i]
             )
         ));
-    });
-    $field.before($contents);
+    }
 });
 
 /**
