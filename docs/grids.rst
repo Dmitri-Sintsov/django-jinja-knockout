@@ -2,28 +2,29 @@
 Grids
 =====
 
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
-.. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
-.. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
-.. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
-.. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 
 .. _base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
+.. _club_grid_with_action_logging.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_grid_with_action_logging.htm
 .. _ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _member_grid_custom_actions.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_custom_actions.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
+.. _underscore.js template: http://underscorejs.org/#template
 
+.. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
+.. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
+.. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
+.. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
-.. _underscore.js template: http://underscorejs.org/#template
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 
@@ -1509,63 +1510,101 @@ See also get_str_fields_.
 ~~~~~~~~~~~~~~~~~~
 
 By default ``meta`` action is not performed in separate AJAX query, rather it's combined with ``list`` action into one
-AJAX request via ``meta_list`` action. It saves some of HTTP traffic and reduces server load. However, in some cases,
-grid filters has to be set up with specific choices before ``'list'`` action is performed. That is required to open
-grid with initially selected field filter choices.
+AJAX request via ``meta_list`` action. Such way it saves HTTP traffic and reduces server load. However, in some cases,
+grid filters or sorting orders has to be set up with specific choices before ``'list'`` action is performed.
+That is required to load grid with initially selected field filter choices or to change default sorting.
+
+'meta_list' action and custom initial field filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: python
 
-If server-side Django grid class specifies the list of selected choices for some field filter like this::
+If Django grid class specifies the list of initially selected field filter choices as ``active_choices``::
 
+    class MemberGridTabs(MemberGrid):
+
+        template_name = 'member_grid_tabs.htm'
+
+        allowed_filter_fields = OrderedDict([
+            ('profile', None),
+            ('last_visit', None),
+            # Next choices of 'plays' field filter will be set when grid loads.
+            ('plays', {'active_choices': [Member.SPORT_BADMINTON, Member.SPORT_SQUASH]}),
+            ('role', None),
+            ('is_endorsed', None),
+        ])
+
+.. highlight:: jinja
+
+To make sure ``ClubMemberGrid`` action ``'list'`` respects ``allowed_filter_fields`` definition of
+``['plays']['active_choices']`` default choices values, one has to turn on client-side ``App.ko.Grid`` class
+``options.separateMeta`` value to ``true`` either with ``ko_grid()`` Jinja2 macro grid_options::
+
+    {{ ko_grid(
+        grid_options={
+            'pageRoute': 'club_member_grid',
+            'separateMeta': True,
+        },
+        dom_attrs={
+            'id': 'club_member_grid'
+        }
+    ) }}
+
+.. highlight:: python
+
+or by overriding of Django grid ``get_default_grid_options()``::
 
     class ClubMemberGrid(KoGridView):
 
         model = ClubMember
-        grid_fields = [
-            'profile',
-            'role',
-            'note',
-            'is_endorsed'
-        ]
-
-        allowed_filter_fields = OrderedDict([
-            (
-                'role',
-                {
-                    'choices': ClubMember.ROLES,
-                    'add_reset_choice': False,
-                    # Next choices will be selected automatically
-                    'active_choices': [ClubMember.ROLE_PROMOTER, ClubMember.ROLE_SCHOLAR],
-                    'multiple_choices': False
-                }
-            ),
-            ('is_endorsed', None)
-        ])
+        # ... skipped ...
 
         @classmethod
         def get_default_grid_options(cls):
             return {
-                'classPath': 'App.ko.ClubMemberGrid'
+                'classPath': 'App.ko.ClubMemberGrid',
+                'separateMeta': True,
             }
 
 .. highlight:: javascript
 
-Then, to make sure ``'list'`` action respects ``['role']['active_choices']`` filter default selected choices , define
-client-side part of grid class like that::
+or via overloading of client-side ``App.ko.Grid`` by custom class::
 
     App.ko.ClubMemberGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
-        // This grid has selected choices for query filter 'role' by default,
-        // thus requires separate 'list' action after 'meta' action,
-        // instead of joint 'meta_list' action.
+        /**
+         * This grid has selected choices for query filter 'plays' by default,
+         * thus requires separate 'list' action after 'meta' action,
+         * instead of joint 'meta_list' action.
+         */
         options.separateMeta = true;
         this.init(options);
     };
 
-With grid ``init()`` method ``options.separateMeta = true``, ``'meta'`` action will be issued first, setting ``'role'``
-filter selected choices, then ``'list'`` action will be performed separately, respecting these filter choices.
-Otherwise, grid ``'role'`` filter will be visually highlighed as selected, but the first (initial) list will retun all
-rows not respecting filter choices.
+When ``options.separateMeta`` is ``true``, ``meta`` action will be issued first, setting ``'plays'`` filter selected
+choices, then ``'list'`` action will be performed separately, respecting these filter choices.
+
+Otherwise, grid ``plays`` filter will be visually highlighed as selected, but the first (initial) ``list`` action will
+return unfiltered rows.
+
+'meta_list' action and custom initial ordering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When one supplies custom initial ordering of rows that does not match default Django model ordering::
+
+    {{ ko_grid(
+        grid_options={
+            'pageRoute': 'club_grid_with_action_logging',
+            'defaultOrderBy': {'foundation_date': False},
+        },
+        dom_attrs={
+            'id': 'club_grid'
+        }
+    ) }}
+
+``App.ko.Grid`` ``options.separateMeta`` will be enabled automatically and does not require to be explicitely passed in.
+
+See `club_grid_with_action_logging.htm`_ for fully featured example.
 
 'save_form' action
 ~~~~~~~~~~~~~~~~~~
