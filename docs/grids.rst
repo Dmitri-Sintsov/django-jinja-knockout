@@ -14,6 +14,7 @@ Grids
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
+.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/club-grid.js
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
@@ -24,6 +25,7 @@ Grids
 .. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
+.. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
@@ -1604,7 +1606,45 @@ When one supplies custom initial ordering of rows that does not match default Dj
 
 ``App.ko.Grid`` ``options.separateMeta`` will be enabled automatically and does not require to be explicitely passed in.
 
-See `club_grid_with_action_logging.htm`_ for fully featured example.
+See `club_app.views_ajax`_, `club_grid_with_action_logging.htm`_ for fully featured example.
+
+'update' action
+~~~~~~~~~~~~~~~
+This action is not called directly internally but is implemented for user convenience. It performs the same ORM query as
+`'list' action`_, but instead of removing all existing rows and replacing them with new ones, it compares old rows
+and new rows, deletes non-existing rows, keeps unchanged rows intact, adding new rows while highlighting them.
+
+This action is useful to update related grid after current grid performed some actions that changed related models of
+related grid.
+
+.. highlight:: javascript
+
+Open `club-grid.js`_ to see the example of manually executing ``ActionGrid`` `'update' action`_ on the completion of
+``ClubGrid`` `'save_inline' action`_ and `'delete_confirmed' action`_::
+
+    (function(ClubGridActions) {
+
+        ClubGridActions.updateActionGrid = function() {
+            // Get instance of ActionGrid.
+            var actionGrid = $('#action_grid').component();
+            if (actionGrid !== null) {
+                // Update ActionGrid.
+                actionGrid.gridActions.perform('update');
+            }
+        };
+
+        ClubGridActions.callback_save_inline = function(viewModel) {
+            this._super._call('callback_save_inline', viewModel);
+            this.updateActionGrid();
+        };
+
+        ClubGridActions.callback_delete_confirmed = function(viewModel) {
+            this._super._call('callback_delete_confirmed', viewModel);
+            this.updateActionGrid();
+        };
+
+    })(App.ClubGridActions.prototype);
+
 
 'save_form' action
 ~~~~~~~~~~~~~~~~~~
@@ -1655,16 +1695,16 @@ viewmodel response:
 .. highlight:: javascript
 
 Standard grid action handlers (as well as custom action handlers) may return AJAX viewmodel responses with these JSON
-keys to client-side action viewmodel response handler (``App.GridActions.callback_save_form()`` in our case), issuing
-multiple CRUD operations at once::
+keys to client-side action viewmodel response handler (``App.GridActions`` class ``callback_save_form()`` method),
+issuing multiple CRUD operations at once::
 
     GridActions.callback_save_form = function(viewModel) {
         this.grid.updatePage(viewModel);
     };
 
-See also ``views.GridActionsMixin`` class ``action_delete_confirmed()`` / ``action_save_form()`` methods for server-side
-part example. Client-side part of multiple CRUD operations is implemented in ``ko-grid.js`` ``App.ko.Grid.updatePage()``
-method.
+See also `views.GridActionsMixin`_ class ``action_delete_confirmed()`` / ``action_save_form()`` methods for server-side
+part example. Client-side part of multiple CRUD operations is implemented in `ko_grid.js`_ ``App.ko.Grid`` class
+``updatePage()`` method.
 
 'save_inline' action
 ~~~~~~~~~~~~~~~~~~~~
