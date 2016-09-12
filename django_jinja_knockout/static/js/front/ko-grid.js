@@ -95,9 +95,8 @@ App.ko.GridColumnOrder = function(options) {
         } else {
             this.order(!this.order());
         }
-        var direction = this.order() ? 'desc' : 'asc';
         var orderBy = {};
-        orderBy[this.field] = direction;
+        orderBy[this.field] = this.order();
         this.ownerGrid.setQueryOrderBy(orderBy);
         this.ownerGrid.listAction();
     };
@@ -1167,9 +1166,6 @@ App.ko.Grid = function(options) {
             this.options.ajaxParams
         );
         this.queryFilters = {};
-        if (this.options.defaultOrderBy !== null) {
-            this.setQueryOrderBy(this.options.defaultOrderBy);
-        }
     };
 
     Grid.firstLoad = function(callback) {
@@ -1181,6 +1177,10 @@ App.ko.Grid = function(options) {
              * values of dict type: see views.GridActionxMixin.vm_get_filters().
              */
             this.gridActions.perform('meta', {}, function(viewmodel) {
+                if (self.options.defaultOrderBy !== null) {
+                    // Override 'list' action AJAX queryargs ordering.
+                    self.setQueryOrderBy(self.options.defaultOrderBy);
+                }
                 self.gridActions.perform('list', {}, function(viewmodel) {
                     self.onFirstLoad();
                     if (typeof callback === 'function') {
@@ -1242,6 +1242,7 @@ App.ko.Grid = function(options) {
         this.options = $.extend({
             alwaysShowPagination: true,
             ajaxParams: {},
+            // Overrides this.meta.orderBy value when not null.
             defaultOrderBy: null,
             fkGridOptions: {},
             // Currently available modes:
@@ -1257,6 +1258,10 @@ App.ko.Grid = function(options) {
             pageRoute: null,
             pageRouteKwargs: {},
         }, options);
+        if (this.options.defaultOrderBy !== null) {
+            // Requires  separate 'meta' action to properly show initial overriden ordering.
+            this.options.separateMeta = true;
+        }
         if (this.options.selectMultipleRows) {
             this.options.showSelection = true;
         }
@@ -1264,6 +1269,7 @@ App.ko.Grid = function(options) {
         this.meta = {
             pkField: '',
             hasSearch: ko.observable(false),
+            // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
             verboseName: ko.observable(''),
@@ -1427,7 +1433,7 @@ App.ko.Grid = function(options) {
         _.each(orderBy, function(direction, fieldName) {
             var prefixedOrder = '';
             // Django specific implementation.
-            if (direction === 'desc') {
+            if (!direction) {
                 prefixedOrder += '-';
             }
             prefixedOrder += fieldName;
@@ -1999,6 +2005,10 @@ App.ko.Grid = function(options) {
             }
         }
         if (typeof data.gridFields !== 'undefined') {
+            if (this.options.defaultOrderBy !== null) {
+                // Override grid meta.orderBy via supplied App.ko.Grid() options.
+                this.meta.orderBy = this.options.defaultOrderBy;
+            }
             this.setKoGridColumns(data.gridFields);
         }
         if (typeof data.filters !== 'undefined') {
