@@ -343,7 +343,8 @@ views.py
             'category': UserFile.CATEGORIES
         }
 
-* ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of CBV.
+* ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
+  class-based view.
 
 widgets.py
 ----------

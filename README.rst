@@ -24,9 +24,15 @@ Key features
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
-* Possibility to include Jinja2 templates from DTL Django templates via custom template tag::
+* Possibility to include Jinja2 templates directly from DTL Django templates via custom template tag::
 
-    {% jinja 'template.htm' %}
+    {% extends 'base_min.html' %}
+    {% load jinja %}
+    {% load staticfiles %}
+
+    {% block main %}
+    {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
+    {% endblock main %}
 
 Overview
 --------
@@ -68,10 +74,11 @@ Major changes (version 0.2.0)
 calls without having to specify parent class prototype property implicitely in descendant class instances, with newly
 introduced ``$.SuperChain`` class.
 
-"django.admin-like" AJAX functionality was implemented via ``KoGridView`` CBV at server-side with corresponding
-Knockout.js templates and Javascript classes at client-side. Besides providing standard CRUD actions and filters, it
-allows to implement arbitrary actions in descendant classes and quickly design django.admin-like user interfaces in
-non-admin views. AJAX calls also saves some HTTP traffic, reducing bandwitch and making the UI more responsive.
+"django.admin-like" AJAX functionality was implemented via ``KoGridView`` class-based view (CBV) at server-side with
+corresponding Knockout.js templates and Javascript classes at client-side. Besides providing standard CRUD actions and
+filters, it allows to implement arbitrary actions in descendant classes and quickly design django.admin-like user
+interfaces in non-admin views. AJAX calls also minimize server HTTP traffic, reducing network bandwitch and making the
+UI more responsive.
 
 New ``ForeignKeyGridWidget`` was developed which provides ``ForeignKeyRawIdWidget``-like functionality in non-admin
 ``ModelForm`` classes to select foreign key fields value via AJAX query / response.
@@ -80,13 +87,24 @@ Support of auto-instantiating Javascript classes with binding these to selected 
 ``App.Components`` class.
 
 Support of auto-compiling / auto-loading client-side underscore.js templates via ``App.compileTemplate`` /
-``App.domTemplate`` / ``App.loadTemplates``. One of usage examples is possibility of loading modal body from
+``App.domTemplate`` / ``App.loadTemplates``. One of usage examples is the possibility of loading modal body from
 underscore.js template in ``App.Dialog``.
 
-Support of client-side generation of view urls with kwargs in client-side routes via updated ``context_processors.py``
+Support of client-side generation of view urls with kwargs for client-side url names via updated ``context_processors.py``
 and client-side ``App.routeUrl()`` Javascript function.
 
 ``tpl.resolve_cbv()`` allows to resolve view class via url name and it's kwargs.
+
+Django templates (DTL) and Jinja2 templates now can be mixed using shared Jinja2 template code via ``{% load jinja %}``
+template library ``jinja`` template tags, which performs ``include`` for Jinja2 template with current context::
+
+    {% extends 'base_min.html' %}
+    {% load jinja %}
+    {% load staticfiles %}
+
+    {% block main %}
+    {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
+    {% endblock main %}
 
 Numerous bug fixes.
 
