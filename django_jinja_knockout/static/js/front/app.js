@@ -620,6 +620,15 @@ App.DatetimeWidget = function($parent) {
 
 (function(DatetimeWidget) {
 
+    // Override moment.js Django-incompatible locales formatting used by bootstrap datetimepicker.
+    // Locale 'ru' moment.js is compatible to Django thus does not require override, for example.
+    DatetimeWidget.formatFixes = {
+        'en-us': {
+            'date': 'YYYY-MM-DD',
+            'datetime': 'YYYY-MM-DD HH:mm:ss'
+        }
+    };
+
     DatetimeWidget.create = function($parent) {
         this.$parent = $parent;
     };
@@ -640,15 +649,6 @@ App.DatetimeWidget = function($parent) {
         $target.closest('.input-group-addon')
         .prev('.date-control, .datetime-control')
         .trigger('click');
-    };
-
-    // Override moment.js Django-incompatible locales formatting used by bootstrap datetimepicker.
-    // Locale 'ru' moment.js is compatible to Django thus does not require override, for example.
-    DatetimeWidget.formatFixes = {
-        'en-us': {
-            'date': 'YYYY-MM-DD',
-            'datetime': 'YYYY-MM-DD HH:mm:ss'
-        }
     };
 
     DatetimeWidget.init = function() {

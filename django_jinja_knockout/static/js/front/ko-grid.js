@@ -52,7 +52,7 @@ App.ko.GridColumnOrder = function(options) {
         this.ownerGrid = options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
-        // true means 'asc', false means 'desc', null means unsorted.
+        // '+' means 'asc', '-' means 'desc', null means unsorted.
         this.order = ko.observable(options.order);
         this.isSortedColumn = ko.observable(options.isSorted);
         this.orderCss = ko.computed(this.getOrderCss, this);
@@ -62,8 +62,8 @@ App.ko.GridColumnOrder = function(options) {
     GridColumnOrder.getOrderCss = function() {
         return {
             'sort-inactive': this.order() === null,
-            'sort-asc': this.order() === true,
-            'sort-desc': this.order() === false
+            'sort-asc': this.order() === '+',
+            'sort-desc': this.order() === '-'
         };
     };
 
@@ -90,10 +90,11 @@ App.ko.GridColumnOrder = function(options) {
 
     GridColumnOrder.onSwitchOrder = function() {
         this.ownerGrid.deactivateAllSorting(this);
-        if (this.order() === null) {
-            this.order(true);
+        if (this.order() === '+') {
+            this.order('-');
         } else {
-            this.order(!this.order());
+            // this.order() === null || this.order() === '-'
+            this.order('+');
         }
         var orderBy = {};
         orderBy[this.field] = this.order();
@@ -1433,7 +1434,7 @@ App.ko.Grid = function(options) {
         _.each(orderBy, function(direction, fieldName) {
             var prefixedOrder = '';
             // Django specific implementation.
-            if (!direction) {
+            if (direction === '-') {
                 prefixedOrder += '-';
             }
             prefixedOrder += fieldName;

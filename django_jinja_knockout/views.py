@@ -1392,7 +1392,10 @@ class GridActionsMixin:
             'gridFields': self.vm_get_grid_fields(),
             'filters': self.get_filters()
         }
-        ordering = [{ordering.lstrip('-'):not ordering.startswith('-')} for ordering in self.get_model_meta('ordering')]
+        ordering = [
+            {ordering.lstrip('-'): '-' if ordering.startswith('-') else '+'}
+            for ordering in self.get_model_meta('ordering')
+        ]
         # todo: support multiple order_by.
         if len(ordering) == 1 and list(ordering[0].keys())[0] in self.allowed_sort_orders:
             vm['meta']['orderBy'] = ordering[0]
