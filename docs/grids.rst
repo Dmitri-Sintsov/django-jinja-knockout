@@ -1885,8 +1885,8 @@ be specified as::
         form_with_inline_formsets = Model1FormWithInlineFormsets
         # ... skipped ...
 
-Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
-`'create_inline' action`_ new row and `'edit_inline' action`_ existing grid row (Django model)::
+Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` derived classes
+to `'create_inline' action`_ new row and `'edit_inline' action`_ existing grid row (Django model)::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1902,12 +1902,11 @@ Alternatively, one may define factory methods, which allows to bind different ``
         def get_edit_form_with_inline_formsets(self):
             return Model1EditFormWithInlineFormsets
 
-* These methods should return classes derived from `forms.FormWithInlineFormsets`_ built-in class (see :doc:`forms`).
-* Server-side part of this action sets AJAX response viewmodel ``last_action`` key to ``save_inline`` value, to override
-  current action of BoostrapDialog modal button.
+* Server-side part of this action overrides the name of last execuded action by setting AJAX response viewmodel
+  ``last_action`` key to ``save_inline`` value, which specifies the action of BoostrapDialog form modal button.
+  See `'create_form' action`_ description for more info about ``last_action`` key.
 * `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of ``template_name``
   class property poitning to Jinja2 template which includes `formsets.js`_ by default.
-* See `'create_form' action`_ description for more info about ``last_action`` key.
 * See `club_app.views_ajax`_ for fullly featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
 
 Action type 'click'
@@ -1915,32 +1914,31 @@ Action type 'click'
 These actions are designed to process already displayed grid row, associated to existing Django model.
 
 * By default there is no active click actions, so clicking grid row does nothing.
-* When there is only one click action enabled, it will be executed immediately after end-user clicking target row.
+* When there is only one click action enabled, it will be executed immediately after end-user clicking of target row.
 * When there is more than one click actions enabled, ``App.ko.Grid`` will use special version of BootstrapDialog
   wrapper ``App.ActionsMenuDialog`` to display menu with clickable buttons to select one action from the list of
   available ones.
 
 'edit_form' action
 ~~~~~~~~~~~~~~~~~~
-This action is enabled when current Django grid class inherited from ``KoGridView`` class has defined class property
-``form`` set to specified Django ``ModelForm`` class used to edit grid row associated Django model::
+This action is enabled when current Django grid class inherited from `views.KoGridView`_ class has class property
+``form`` set to specified Django ``ModelForm`` class used to edit grid row via associated Django model::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
     from .forms import Model1Form
-
 
     class Model1Grid(KoGridView):
 
         model = Model1
         form = Model1Form
 
-Alternatively, one may define ``get_edit_form()`` Django grid method to return ``ModelForm`` class dynamically or to
-have separate ``ModelForm`` for `'create_form' action`_ and `'edit_form' action`_.
+Alternatively, one may define ``get_edit_form()`` Django grid method to return ``ModelForm`` class dynamically.
 
-Server-side of this action is implemented in ``views.GridActionsMixin.action_edit_form()``. It returns AJAX
-response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance and overrides
-``last_action`` viewmodel property to `'save_form' action`_.
+Server-side of this action is implemented via `views.GridActionsMixin`_ class ``action_edit_form()`` method.
+It returns AJAX response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance
+and set ``last_action`` viewmodel property to ``'save_form'`` value, to override ``App.GridActions`` class
+``lastActionName`` property.
 
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``ModelForm`` html and to submit AJAX form
 to `'save_form' action`_.
@@ -1948,8 +1946,8 @@ to `'save_form' action`_.
 'edit_inline' action
 ~~~~~~~~~~~~~~~~~~~~
 This action is enabled when current Django grid class has defined class property ``form_with_inline_formsets`` set to
-specified ``django_jinja_knockout.forms.FormWithInlineFormsets`` class used to edit grid row and it's foreign
-relationships via Django inline formsets (see :doc:`forms`)::
+`forms.FormWithInlineFormsets`_ derived class used to edit grid row and it's foreign relationships via Django inline
+formsets (see :doc:`forms`)::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1961,12 +1959,12 @@ relationships via Django inline formsets (see :doc:`forms`)::
         form_with_inline_formsets = Model1FormWithInlineFormsets
 
 Alternatively, one may define ``get_edit_form_with_inline_formsets()`` Django grid method to return
-``FormWithInlineFormsets`` based class dynamically or separately for `'create_inline' action`_ and
-`'edit_inline' action`_.
+``FormWithInlineFormsets`` derived class dynamically.
 
-Server-side of this action is implemented in ``views.GridActionsMixin.action_edit_inline()``. It returns AJAX
-response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django model instance and
-overrides ``last_action`` viewmodel property to `'save_inline' action`_.
+Server-side of this action is implemented in `views.GridActionsMixin`_ class ``action_edit_inline()`` method.
+It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django
+model instance and set ``last_action`` viewmodel property to ``'save_inline'`` value, to override ``App.GridActions``
+class ``lastActionName`` property.
 
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
