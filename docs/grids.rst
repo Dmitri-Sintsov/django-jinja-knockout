@@ -15,6 +15,7 @@ Grids
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/club-grid.js
+.. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/formsets.js
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
@@ -24,8 +25,10 @@ Grids
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
+.. _forms.FormWithInlineFormsets: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms.py
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
+.. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
@@ -1597,7 +1600,7 @@ When one supplies custom initial ordering of rows that does not match default Dj
     {{ ko_grid(
         grid_options={
             'pageRoute': 'club_grid_with_action_logging',
-            'defaultOrderBy': {'foundation_date': False},
+            'defaultOrderBy': {'foundation_date': '-'},
         },
         dom_attrs={
             'id': 'club_grid'
@@ -1657,6 +1660,10 @@ which will either create new grid row or edit an existing grid row.
 Each grid row represents an instance of associated Django model. Form rows are bound to specified Django ``ModelForm``
 automatically, one has to set value of grid class ``form`` static property::
 
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1Form
+
     class Model1Grid(KoGridView):
 
         model = Model1
@@ -1666,6 +1673,10 @@ automatically, one has to set value of grid class ``form`` static property::
 Alternatively, one may define factory methods, which would bind different Django ``ModelForm`` classes to
 `'create_form' action`_ and `'edit_form' action`_. That allows to have different set of bound model fields when creating
 and editing grid row Django models::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1CreateForm, Model1EditForm
 
     class Model1Grid(KoGridView):
 
@@ -1677,42 +1688,47 @@ and editing grid row Django models::
         def get_edit_form(self):
             return Model1EditForm
 
-``'save_form'`` action will display AJAX form errors in case there are ``ModelForm`` validation errors, or will add new
-row to grid when invoked via `'create_form' action`_ / update existing grid row, when invoked via `'edit_form' action`_.
+``'save_form'`` action will:
+
+* Display AJAX form errors in case there are ``ModelForm`` validation errors.
+* Create new model instance / add new row to grid when invoked via `'create_form' action`_.
+* Update existing model instance / grid row, when invoked via `'edit_form' action`_.
 
 App.ko.Grid.updatePage() method
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To automatize grid update after AJAX submitted action, the following optional JSON properties could be set in AJAX
+To automatize grid update for AJAX submitted action, the following optional JSON properties could be set in AJAX
 viewmodel response:
 
 * ``'append_rows'``: list of rows which should be appended to current grid page to the bottom;
 * ``'prepend_rows'``: list of rows which should be prepended to current grid page from the top;
 * ``'update_rows'``: list of rows that are updated, so their display needs to be refreshed;
-* ``'deleted_pks'``: list of primary key values of rows (Django models) that were deleted in the database thus need to
-  be visually removed from current grid page;
+* ``'deleted_pks'``: list of primary key values of Django models that were deleted in the database thus their rows have
+  to be visually removed from current grid page;
 
 .. highlight:: javascript
 
 Standard grid action handlers (as well as custom action handlers) may return AJAX viewmodel responses with these JSON
-keys to client-side action viewmodel response handler (``App.GridActions`` class ``callback_save_form()`` method),
-issuing multiple CRUD operations at once::
+keys to client-side action viewmodel response handler, issuing multiple CRUD operations at once. For example
+``App.GridActions`` class ``callback_save_form()`` method::
 
     GridActions.callback_save_form = function(viewModel) {
         this.grid.updatePage(viewModel);
     };
 
 See also `views.GridActionsMixin`_ class ``action_delete_confirmed()`` / ``action_save_form()`` methods for server-side
-part example. Client-side part of multiple CRUD operations is implemented in `ko_grid.js`_ ``App.ko.Grid`` class
-``updatePage()`` method.
+part example.
+
+Client-side part of multiple CRUD operation is implemented in `ko_grid.js`_ ``App.ko.Grid`` class ``updatePage()``
+method.
 
 'save_inline' action
 ~~~~~~~~~~~~~~~~~~~~
 .. highlight:: python
 
 Similar to `'save_form' action`_ described above, this action is an AJAX form submit handler for `'create_inline' action`_
-/ `'edit_inline' action`_. These actions generate AJAX submittable BootstrapDialog with ``FormWithInlineFormsets`` class
-instance bound to current grid row via grid class ``form_with_inline_formsets`` static property::
+/ `'edit_inline' action`_. These actions generate BootstrapDialog with ``FormWithInlineFormsets`` AJAX submittable form
+instance bound to current grid row via `views.KoGridView`_ class ``form_with_inline_formsets`` static property::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1726,6 +1742,10 @@ instance bound to current grid row via grid class ``form_with_inline_formsets`` 
 
 Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
 `'create_inline' action`_ / `'edit_inline' action`_ target grid row (Django model)::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1CreateFormWithInlineFormsets, Model1EditFormWithInlineFormsets
 
     class Model1Grid(KoGridView):
 
@@ -1745,31 +1765,42 @@ class (see :doc:`forms`).
 Deletes one or more grid rows via their pk values previously submitted by `'delete' action`_. To selectively disable
 deletion of some grid rows, one may implement custom ``action_delete_is_allowed`` method in the Django grid class::
 
-    class ClubMemberGrid(KoGridView):
+    class MemberGridTabs(MemberGrid):
 
-        model = ClubMember
+        template_name = 'member_grid_tabs.htm'
+        enable_deletion = True
 
-        # ... skipped ...
+        allowed_filter_fields = OrderedDict([
+            ('profile', None),
+            ('last_visit', None),
+            # Next choices of 'plays' field filter will be set when grid loads.
+            ('plays', {'active_choices': [Member.SPORT_BADMINTON, Member.SPORT_SQUASH]}),
+            ('role', None),
+            ('is_endorsed', None),
+        ])
 
-        # Do not allow to delete ClubMember instances with role=ClubMember.ROLE_FOUNDER:
+        # Do not allow to delete Member instances with role=Member.ROLE_FOUNDER:
         def action_delete_is_allowed(self, objects):
             # ._clone() is required because original pagination queryset is passed as objects argument.
             qs = objects._clone()
-            return not qs.filter(role__in=ClubMember.ROLE_FOUNDER).exists()
+            return not qs.filter(role=Member.ROLE_FOUNDER).exists()
+
+See `club_app.views_ajax`_ for full-featured example.
 
 Action type 'button'
 --------------------
 
 These actions are visually displayed as buttons and manually invoked via button click. With default underscore.js
 templates these buttons will be located at top navbar of the grid. Usually type ``'button'`` actions are not targeted to
-existing grid rows but are supposed either create new rows or to process the whole queryset / list of rows. However,
-when client-side ``App.ko.Grid`` derived class instance has visible row selection enabled via ``App.ko.Grid.init()``
-options ``showSelection: true`` and / or ``selectMultipleRows: true``, then the button action could be applied to the
-selected row(s) as well.
+existing grid rows but are supposed either to create new rows or to process the whole queryset / list of rows.
 
-New actions of ``button`` type may be added by overriding ``get_actions`` method of Django grid class and extending grid
-client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see `Client-side actions`_ for
-more info).
+However, when ``App.ko.Grid`` -derived class instance has visible row selection enabled via ``init()`` method
+``options.showSelection`` = ``true`` and / or ``options.selectMultipleRows`` = ``true``, the button action could be
+applied to the selected row(s) as well.
+
+New actions of ``button`` type may be added by overriding ``get_actions`` method of `views.KoGridView`_ derived class
+and extending client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see
+`Client-side actions`_ for more info).
 
 'create_form' action
 ~~~~~~~~~~~~~~~~~~~~
@@ -1782,6 +1813,10 @@ instances).
 This action is enabled (and thus UI button will be displayed in grid component navbar) when Django grid class-based view
 has assigned ``ModelForm`` class specified as::
 
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1Form
+
     class Model1Grid(KoGridView):
 
         model = Model1
@@ -1791,6 +1826,10 @@ has assigned ``ModelForm`` class specified as::
 Alternatively, one may define factory methods, which would bind different Django ``ModelForm`` classes to
 `'create_form' action`_ and `'edit_form' action`_. That allows to have different set of bound model fields when creating
 and editing grid row Django models::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1CreateForm, Model1EditForm
 
     class Model1Grid(KoGridView):
 
@@ -1802,10 +1841,8 @@ and editing grid row Django models::
         def get_edit_form(self):
             return Model1EditForm
 
-.. highlight:: python
-
-When one would look at server-side part of ``views.GridActionsMixin.action_create_form()`` action implementation, there
-is ``'last_action'`` key set to value ``'save_form'`` in the returned AJAX viewmodel::
+When one would look at server-side part of ``views.GridActionsMixin`` class ``action_create_form()`` method source code,
+there is ``'last_action'`` viewmodel key with value ``'save_form'`` returned to Javascript client-side::
 
         # ... skipped ...
         return vm_list({
@@ -1818,23 +1855,24 @@ is ``'last_action'`` key set to value ``'save_form'`` in the returned AJAX viewm
             'message': form_html
         })
 
-Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions.respond()`` method to override the
-name of last executed action from current ``'create_form'`` to ``'save_form'``. It is then used in client-side Javascript
-``App.ModelFormDialog.getButtons()`` method ``submit`` button event handler to perform ``'save_form'`` action when that
-button is clicked by end-user, instead of already executed ``'create_form'`` action, which generated AJAX model form and
-displayed it via ``App.ModelFormDialog`` instance.
+Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions`` class ``respond()`` method to
+override the name of last executed action from current ``'create_form'`` to ``'save_form'``.
+
+It is then used in client-side Javascript ``App.ModelFormDialog`` class ``getButtons()`` method ``submit`` button event
+handler to perform `'save_form' action`_ when that button is clicked by end-user, instead of already executed
+`'create_form' action`_, which already generated AJAX model form and displayed it using ``App.ModelFormDialog`` instance.
 
 'create_inline' action
 ~~~~~~~~~~~~~~~~~~~~~~
-Server-side part of this action renders AJAX-powered ``django_jinja_knockout`` ``forms.FormWithInlineFormsets`` instance
-bound to new Django grid model.
+Server-side part of this action renders AJAX-powered `forms.FormWithInlineFormsets`_ instance bound to new Django grid
+model.
 
-Client-side part of this action displays rendered ``FormWithInlineFormsets`` as ``BootstrapDialog`` modal dialog.
-Together with `'save_form' action`_, which serves as callback for this action, it allows to create new grid rows (new
-Django model instances) while also adding one to many related models via inline formsets.
+Client-side part of this action displays rendered ``FormWithInlineFormsets`` as ``BootstrapDialog`` modal.
+Together with `'save_inline' action`_, which serves as callback for this action, it allows to create new grid rows (new
+Django model instances) while also adding one to many related models instances via one or multiple inline formsets.
 
 This action is enabled (and thus UI button will be displayed in grid component navbar) when Django grid class-based view
-has assigned ``forms.FormWithInlineFormsets`` derived class (see :doc:`forms` for more info about that class). It should
+has assigned `forms.FormWithInlineFormsets`_ derived class (see :doc:`forms` for more info about that class). It should
 be specified as::
 
     from django_jinja_knockout.views import KoGridView
@@ -1848,7 +1886,11 @@ be specified as::
         # ... skipped ...
 
 Alternatively, one may define factory methods, which allows to bind different ``FormWithInlineFormsets`` classes to
-`'create_inline' action`_ / `'edit_inline' action`_ target grid row (Django model)::
+`'create_inline' action`_ new row and `'edit_inline' action`_ existing grid row (Django model)::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Model1
+    from .forms import Model1CreateFormWithInlineFormsets, Model1EditFormWithInlineFormsets
 
     class Model1Grid(KoGridView):
 
@@ -1860,11 +1902,13 @@ Alternatively, one may define factory methods, which allows to bind different ``
         def get_edit_form_with_inline_formsets(self):
             return Model1EditFormWithInlineFormsets
 
-These methods should return classes derived from ``forms.FormWithInlineFormsets`` built-in class (see :doc:`forms`).
-
-Server-side part of this action sets AJAX response viewmodel ``last_action`` key to ``save_inline`` value, to override
-current action of BoostrapDialog modal button. See `'create_form' action`_ description for more info about
-``last_action`` key.
+* These methods should return classes derived from `forms.FormWithInlineFormsets`_ built-in class (see :doc:`forms`).
+* Server-side part of this action sets AJAX response viewmodel ``last_action`` key to ``save_inline`` value, to override
+  current action of BoostrapDialog modal button.
+* `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of ``template_name``
+  class property poitning to Jinja2 template which includes `formsets.js`_ by default.
+* See `'create_form' action`_ description for more info about ``last_action`` key.
+* See `club_app.views_ajax`_ for fullly featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
 
 Action type 'click'
 -------------------
@@ -2135,7 +2179,7 @@ class::
                     #    }
                     # },
                     # Specify initial ordering, overriding default Django model Meta.ordering value (optional):
-                    'defaultOrderBy': 'field3',
+                    'defaultOrderBy': {'field3', '+'},
                     # Override default search field label (optional):
                     'searchPlaceholder': 'Search by field3'
                 })
