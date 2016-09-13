@@ -374,10 +374,22 @@ $.fn.linkPreview = function(method) {
 
     (function(scaledPreview) {
 
+        scaledPreview.disabledHrefs = [
+            // These extensions are known to cause glitches during preview.
+            /\.(docx|dwg|xslx|zip)$/i
+        ];
+
         scaledPreview.create = function($anchor) {
             var self = this;
             this.$anchor = $anchor;
             this.$anchor.addInstance('scaledPreview', this);
+            this.href = this.$anchor.prop('href')
+            for (var i = 0; i < this.disabledHrefs.length; i++) {
+                if (this.href.match(this.disabledHrefs[i])) {
+                    this.popover = null;
+                    return;
+                }
+            }
             this.isObject = false;
             this.scale = 1;
             this.id = 'iframe_' + $.randomHash();
@@ -396,6 +408,9 @@ $.fn.linkPreview = function(method) {
         };
 
         scaledPreview.destroy = function() {
+            if (this.popover === null) {
+                return;
+            }
             this.popover.unbind('shown.bs.popover');
             // https://github.com/twbs/bootstrap/issues/475
             this.$anchor.popover('disable').popover('hide');
@@ -410,12 +425,12 @@ $.fn.linkPreview = function(method) {
             if (this.isObject) {
                 result =
                     '<object id="' + this.id + '" style="overflow:hidden; margin:0; padding:0;" data="' +
-                    this.$anchor.prop('href') + '"></object'
+                    this.href + '"></object'
             } else {
                 result =
                     '<iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" id="' + this.id +
                     '"frameborder="0" scrolling="no" src="' +
-                    $.htmlEncode(this.$anchor.prop('href')) +
+                    $.htmlEncode(this.href) +
                     '" class="transform-origin-0"></iframe>' +
                     '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>';
             }
