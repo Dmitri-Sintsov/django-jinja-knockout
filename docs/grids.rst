@@ -2117,22 +2117,23 @@ Implementing custom grid row actions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. highlight:: python
 
-First step to add new action is to override ``get_actions`` method in Django grid class. Let's create new action
+First step to add new action is to override ``get_actions()`` method in Django grid class. Let's create new action
 ``'ask_user'`` of ``'click'`` type::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    from .models import Profile
     from django.utils.translation import ugettext as _
 
-    class Model1Grid(KoGridView):
+    class ProfileGrid(KoGridView):
 
+        model = Profile
         # ... skipped ...
 
         def get_actions(self):
             actions = super().get_actions()
             action_type = 'click'
             actions[action_type]['ask_user'] = {
-                'localName': _('Add funds'),
+                'localName': _('Ask user'),
                 'class': 'btn-warning',
                 'enabled': True
             }
@@ -2141,59 +2142,72 @@ First step to add new action is to override ``get_actions`` method in Django gri
 To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    from .models import Profile
     from django.utils.translation import ugettext as _
 
-    class Model1Grid(KoGridView):
+    class ProfileGrid(KoGridView):
 
+        model = Profile
         # ... skipped ...
 
         def get_actions(self):
             actions = super().get_actions()
             action_type = 'glyphicon'
             actions[action_type]['ask_user'] = {
-                'localName': _('Add funds'),
-                'class': 'glyphicon-cloud-upload',
+                'localName': _('Ask user'),
+                'class': 'glyphicon-user',
                 'enabled': True
             }
             return actions
 
-Next step is to implement newly defined action server-side and / or client-side parts.
+Next step is to implement newly defined action server-side and / or it's client-side parts.
 
-If one wants to add custom action via Django ``ModelForm`` class, then the server-side of the action might be
-implemented like this::
+If one wants to bind multiple different Django ``ModelForm`` edit actions to grid, the server-side of the custom action
+might be implemented like this::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
-    from .forms import Model1Form, Model1AskUserForm
+    from .models import Profile
+    from .forms import ProfileForm, ProfileAskUserForm
 
-    class Model1Grid(KoGridView):
+    class ProfileGrid(KoGridView):
 
+        model = Profile
+        # This form will be used for actions 'create_form' / 'edit_form' / 'save_form'.
+        form = ProfileForm
         # ... skipped ...
 
         # Based on GridActionsMixin.action_edit_form() implementation.
         def action_ask_user(self):
-            pk_val = self.request_get('pk_val')
-            obj = self.__class__.model.objects.filter(pk=pk_val).first()
-            form = Model1AskUserForm(instance=obj)
+            # Works with single row, thus we are getting single model instance.
+            obj = self.get_object_for_action()
+            # This form will be used for actions 'ask_user' / 'save_form'.
+            form = ProfileAskUserForm(instance=obj)
             return self.vm_form(
-                form, self.render_object_desc(obj), {'pk_val': pk_val}
+                form, self.render_object_desc(obj), {'pk_val': obj.pk}
             )
+
+* Actions which work with single objects (single row) should use ``get_object_for_action()`` method to obtain Django
+  model object instance of target grid row.
+* Actions which work with lists / querysets of objects (multiple rows) should use ``get_queryset_for_action()`` method
+  to obtain the whole queryset of selected grid rows. See ``action_delete()`` / ``action_delete_confirmed()`` methods
+  code in `views.GridActionsMixin`_ class for example.
 
 .. highlight:: javascript
 
 ``App.ModelFormDialog`` class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
-inherit ``App.Model1GridActions`` from ``App.GridActions`` and define it's own ``callback_NAME`` (see
-`Action AJAX response handler`_ for more info)::
+inherit ``App.ProfileGridActions`` from ``App.GridActions`` and define custom action's own ``callback_NAME``::
 
-    Model1GridActions.callback_ask_user = function(viewModel) {
+    ProfileGridActions.callback_ask_user = function(viewModel) {
         viewModel.grid = this.grid;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
 
-Completely separate way of generating form with pure client-side underscore.js / Knockout.js templates for ``ask_user``
-action (no AJAX callback is required)  is implemented in `Client-side actions`_ section of the documentation.
+* see `Action AJAX response handler`_ for more info on action client-side AJAX callbacks.
+
+Completely different way of generating form with pure client-side underscore.js / Knockout.js templates for custom
+action (no AJAX callback is required to generate form HTML) is implemented in `Client-side actions`_ section of the
+documentation.
 
 ====================
 ForeignKeyGridWidget
