@@ -5,8 +5,11 @@ Grids
 .. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
 
+.. _base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
 .. _base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
+.. _cbv_grid_inline.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid_inline.htm
+.. _club_grid.html: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/templates/club_grid.html
 .. _club_grid_with_action_logging.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_grid_with_action_logging.htm
 .. _ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
@@ -21,6 +24,7 @@ Grids
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
 .. _underscore.js template: http://underscorejs.org/#template
 
+.. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
@@ -31,6 +35,7 @@ Grids
 .. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
+.. _widgets.ForeignKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/widgets.py
 
 
 Introduction
@@ -2212,137 +2217,165 @@ documentation.
 ====================
 ForeignKeyGridWidget
 ====================
-``django_jinja_knockout.widgets.ForeignKeyGridWidget`` is similar to ``django.admin`` ``ForeignKeyRawIdWidget``, but
-is easier to integrate into non-admin views. It provides built-in sorting / filters (and potentially even custom edit
-actions) because it is based on the same code of ``KoGridView`` and ``App.ko.Grid``.
+`widgets.ForeignKeyGridWidget`_ is similar to ``ForeignKeyRawIdWidget`` implemented in `django.contrib.admin.widgets`_,
+but is easier to integrate into non-admin views. It provides built-in sorting / filters and even optional related model
+CRUD actions because it is based on the code of `views.KoGridView`_ and `ko_grid.js`_.
 
 .. highlight:: python
 
-To use ``ForeignKeyGridWidget`` in your form, import the widget and add it to your app ``forms.py`` ``ModelForm``
-class::
+Let's imagine we have two Django models with one to many relationships::
 
-    from django_jinja_knockout.forms import BootstrapModelForm
+    from django.db import models
+
+    class Profile(models.Model):
+        first_name = models.CharField(max_length=30, verbose_name='First name')
+        last_name = models.CharField(max_length=30, verbose_name='Last name')
+        birth_date = models.DateField(db_index=True, verbose_name='Birth date')
+        # ... skipped ...
+
+    class Member(models.Model):
+        profile = models.ForeignKey(Profile, verbose_name='Sportsman')
+        # ... skipped ...
+
+* See `club_app.models`_ for complete definitions of models.
+
+Now we will define ``MemberForm`` bound to ``Member`` model::
+
+    from django import forms
     from django_jinja_knockout.widgets import ForeignKeyGridWidget
-    from .models import Model1
+    from django_jinja_knockout.forms BootstrapModelForm
+    from .models import Member
 
-    # One also may inherit directly from forms.ModelForm, but bootstrap css classes
-    # will not be applied automatically to the fields.
-    class Model1Form(BootstrapModelForm):
+    class MemberForm(BootstrapModelForm):
 
         class Meta:
-            model = Model1
+            model = Member
+            fields = '__all__'
             widgets = {
-                'model2_fk': ForeignKeyGridWidget(grid_options={
-                    'pageRoute': 'model2_fk_widget_grid',
+                'profile': ForeignKeyGridWidget(model=Profile, grid_options={
+                    'pageRoute': 'profile_fk_widget_grid',
                     'dialogOptions': {'size': 'size-wide'},
                     # Could have nested foreign key filter options defined, if required:
                     # 'fkGridOptions': {
-                    #    'model3': {
-                    #        'pageRoute': 'model3_grid'
+                    #    'user': {
+                    #        'pageRoute': 'user_grid'
                     #    }
                     # },
-                    # Specify initial ordering, overriding default Django model Meta.ordering value (optional):
-                    'defaultOrderBy': {'field3', '+'},
                     # Override default search field label (optional):
-                    'searchPlaceholder': 'Search by field3'
-                })
+                    'searchPlaceholder': 'Search user profiles'
+                }),
+                'plays': forms.RadioSelect(),
+                'role': forms.RadioSelect()
             }
 
-Note that the value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
-``'fkGridOptions'`` value in `Foreign key filter`_ example of Django grid method ``get_default_grid_options()``.
+Any valid ``App.ko.Grid`` constructor option can be specified as ``grid_options`` argument of ``ForeignKeyGridWidget``,
+including nested foreign key widgets and filters (see commented ``fkGridOptions`` section).
 
-It is because grid's foreign key filter is quite similar to ``ForeignKeyGridWidget``, with the difference that the first
-one limits grid queryset, while second one is used to set foreign key value, to be later submitted via ``ModelForm``
-(including both traditional HTML response and AJAX ones).
+* See `club_app.forms`_ for complete definitions of forms.
 
-Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
-component class instead of ``App.ko.Grid`` component class.
+To bind ``MemberForm`` ``profile`` field widget to actual ``Profile`` model grid, we have specified class-based view url
+name (route) of our widget as ``'pageRoute'`` argument value ``'profile_fk_widget_grid'``.
 
-Next step is to define Django grid class which will control server-side part of our foreign key widget::
+Now we have to implement that class-based grid view just once for any possible ModelForm with ``'profile'`` foreign
+field::
 
-    from django_jinja_knockout.views import KoGridView
-    from .models import Model2
+    from django_jinja_knockout import KoGridWidget
+    from .models import Profile
 
-    class Model2FkWidgetGrid(KoGridView):
+    class ProfileFkWidgetGrid(KoGridWidget):
 
-        model = Model2
-        grid_fields = [
-            'field1', 'field2', 'field3'
-        ]
-        search_fields = [
-            ('field3', 'contains'),
-        ]
+        model = Profile
+        grid_fields = ['first_name', 'last_name']
         allowed_sort_orders = '__all__'
-        allowed_filter_fields = OrderedDict([
-            ('field1', None),
-            ('field2', None),
-        ])
+        search_fields = [
+            ('first_name', 'icontains'),
+            ('last_name', 'icontains'),
+        ]
 
-Now we have to register server-side part of foreign key widget as a url name in ``urls.py``::
+or, even our ``Profile`` foreign key widget can support in-place CRUD AJAX actions, allowing to create new Profiles on
+the fly before ``MemberForm`` is saved::
 
-    from my_app.views import Model2FkWidgetGrid
+    from django_jinja_knockout import KoGridWidget
+    from .models import Profile
+    from .forms import ProfileForm
 
+    class ProfileFkWidgetGrid(KoGridWidget):
+
+        model = Profile
+        form = ProfileForm
+        enable_deletion = True
+        grid_fields = ['first_name', 'last_name']
+        allowed_sort_orders = '__all__'
+        search_fields = [
+            ('first_name', 'icontains'),
+            ('last_name', 'icontains'),
+        ]
+
+and finally to define ``'profile_fk_widget_grid'`` url name in ``urls.py``::
+
+    from club_app.views_ajax import ProfileFkWidgetGrid
     # ... skipped ...
 
-    url(r'^model2-fk-grid(?P<action>/?\w*)/$', Model2FkWidgetGrid.as_view(), name='model2_fk_widget_grid',
-        kwargs={'ajax': True, 'permission_required': 'my_app.change_model2'}),
+    url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+        name='profile_fk_widget_grid',
+        # kwargs={'ajax': True, 'permission_required': 'club_app.change_profile'}),
+        kwargs={'ajax': True}),
 
-    # ... skipped ...
+Typical usage of ModelForm such as ``MemberForm`` is to use it in views (or grids) to perform CRUD actions with Django
+model instances. In such case do not forget to inject url name of ``'profile_fk_widget_grid'`` to client-side for AJAX
+requests to work automatically.
 
-In your class-based view that handlers ``Model1Form`` inject ``'model2_fk_widget_grid'`` url name (route) at client-side
-(see :doc:`viewmodels` for details about injecting url names to client-side)::
+In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widget_grid'`` url name (route) at client-side
+(see :doc:`installation` and :doc:`viewmodels` for details about injecting url names to client-side via
+``client_routes``)::
 
     from django.views.generic.edit import CreateView
-    from .forms import Model2Form
+    from .forms import MemberForm
 
-    class Model2Create(CreateView):
-        # Next line is required for ``Model2FkWidgetGrid`` to be callable from client-side:
-        client_routes = ['model2_fk_widget_grid']
-        form = Model2Form
+    class MemberCreate(CreateView):
+        # Next line is required for ``ProfileFkWidgetGrid`` to be callable from client-side:
+        client_routes = [
+            'profile_fk_widget_grid'
+        ]
+        form = MemberForm
 
-Of course the same widget can be used in ``ModelForm`` related actions of grids like `'create_form' action`_ /
-`'edit_form' action`_ and custom actions with ``ModelForm``.
+* See `club_app.views_ajax`_ and `urls.py`_ code for fully featured example.
 
-When the widget is used in many different views, it's more handy to register client-side route (url name) globally in
-project ``context_processors.py``::
+Of course the same widget can be used in ``MemberForm`` bound to grids via `'create_form' action`_ /
+`'edit_form' action`_ and any custom action, both with AJAX requests and traditional requests.
+
+When widget is used in many different views, it could be more convenient to register client-side route (url name)
+globally in project's ``context_processors.py``, although such client-side routes will be injected into every generated
+page via `base_bottom_scripts.htm`_ by default::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
-
 
     class TemplateContextProcessor(BaseContextProcessor):
 
         CLIENT_ROUTES = (
-            ('model2_fk_widget_grid', True),
+            ('profile_fk_widget_grid', True),
         )
-
 
     def template_context_processor(HttpRequest=None):
         return TemplateContextProcessor(HttpRequest).get_context_data()
 
+ForeignKeyGridWidget implementation notes
+-----------------------------------------
+
+Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`` class
+to browse and to select foreign key field value for displayed ``ModelForm``.
+
+To render chosen visual representation of foreign key, KoGridView should have class property ``row_model_str`` set to
+``True`` (it is ``False`` by default)::
+
+    class KoGridWidget(KoGridView):
+
+        row_model_str = True
+
 .. highlight:: javascript
 
-Client-side part of ``ForeignKeyGridWidget``, located in ``App.FkGridWidget``, uses ``App.GridDialog`` to browse and to
-select foreign key field value for displayed ``ModelForm``. To render chosen visual representation of foreign key,
-``App.GridDialog`` is instantiated with ``gridOptions.ajaxParams.row_model_str = true``::
-
-    FkGridWidget.init = function(options) {
-        var gridOptions = $.extend(options, {
-            ajaxParams: {
-                row_model_str: true
-            },
-            selectMultipleRows: false,
-            showSelection: true
-        });
-        this.gridDialog = new App.GridDialog({
-            ownerComponent: this,
-            filterOptions: gridOptions
-        });
-    };
-
-.. highlight:: python
-
-The ``row_model_str`` parameter of grid is then passed to server-side ``KoGridView``, where it is used to generate
-``str()`` representation for each Django model instance associated to each grid row::
+This parameter is then used by `views.KoGridView`_ class ``postprocess_row()`` method to generate ``str()``
+representation for each Django model instance associated to each grid row::
 
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
@@ -2352,9 +2385,29 @@ The ``row_model_str`` parameter of grid is then passed to server-side ``KoGridVi
             row['__str'] = str(obj)
         return row
 
-Note that widget itself is dependent on ``base_min.htm`` Jinja2 template which includes Javascript files: Knockout.js,
-``app.js``, ``ko-grid.js`` and so on. Either use ``base_min.htm`` as base template for your project, or develop a
-separate templates with these client-side scripts included.
+Note that client-side of widget is dependent either on `cbv_grid.htm`_ or `cbv_grid_inline.htm`_ Jinja2 templates, which
+include library of Javascript files: Knockout.js, `app.js`_, `ko_grid.js`_ and generates grid underscore.js client-side
+templates via `ko_grid_body() macro`_ call.
+
+One has to use these templates in his project, or to develop separate templates with these client-side scripts included.
+Since version 0.2.0 it's possible to include Jinja2 templates from Django templates with custom library::
+
+    {% load %jinja %}
+    {% jinja 'ko_grid_body.htm' with _render_=1 %}
+
+* See `club_grid.html`_ for example of grid templates generation from Django Template Language.
+
+The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
+``'fkGridOptions'`` value for `Foreign key filter`_ example of Django grid method ``get_default_grid_options()``.
+
+It's because both dynamically create grids inside BootstrapDialog, with the following differences:
+
+* ``'fk' filter`` limits grid queryset.
+* ``ForeignKeyGridWidget`` is used to set foreign key value, to be later submitted via ``ModelForm`` (including both
+  traditional HTML response and AJAX ones).
+
+Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
+component class instead of ``App.ko.Grid`` component class.
 
 =================
 Grids interaction
