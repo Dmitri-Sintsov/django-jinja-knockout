@@ -1936,8 +1936,8 @@ This action is enabled when current Django grid class inherited from `views.KoGr
 Alternatively, one may define ``get_edit_form()`` Django grid method to return ``ModelForm`` class dynamically.
 
 Server-side of this action is implemented via `views.GridActionsMixin`_ class ``action_edit_form()`` method.
-It returns AJAX response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance
-and set ``last_action`` viewmodel property to ``'save_form'`` value, to override ``App.GridActions`` class
+It returns AJAX response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance.
+Returned viewmodel ``last_action`` property value is set to ``'save_form'``, to override ``App.GridActions`` class
 ``lastActionName`` property.
 
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``ModelForm`` html and to submit AJAX form
@@ -1963,8 +1963,8 @@ Alternatively, one may define ``get_edit_form_with_inline_formsets()`` Django gr
 
 Server-side of this action is implemented in `views.GridActionsMixin`_ class ``action_edit_inline()`` method.
 It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django
-model instance and set ``last_action`` viewmodel property to ``'save_inline'`` value, to override ``App.GridActions``
-class ``lastActionName`` property.
+model instance. Returned viewmodel ``last_action`` property value is set to ``'save_inline'``, to override
+``App.GridActions`` class ``lastActionName`` property.
 
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
@@ -1975,7 +1975,7 @@ types.
 Action type 'glyphicon'
 -----------------------
 These actions are designed to process already displayed grid row, associated to existing Django model. Their
-implementation is very similar to Action type 'button', but instead of clicking at any place of row, these actions
+implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
 are visually displayed as bootstrap glyphicon links in separate columns of grid.
 
 By default there is no ``glyphicon`` type actions enabled. But there is one standard action of such type implemented
@@ -1984,27 +1984,51 @@ in ``KoGridView``, `'delete' action`_.
 'delete' action
 ~~~~~~~~~~~~~~~
 This action deletes grid row (Django model instance) but is disabled by default. To enable grid row deletion, one has to
-override Django grid ``get_action()`` method like this::
+set Django grid class property ``enable_deletion`` value to ``True``::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1
+    from .models import Manufacturer
+    from .forms import ManufacturerForm
 
-    class Model1Grid(KoGridView):
+    class ManufacturerGrid(KoGridView):
 
-        model = Model1
+        model = Manufacturer
+        form = ManufacturerForm
+        enable_deletion = True
+        grid_fields = '__all__'
+        allowed_sort_orders = '__all__'
+        allowed_filter_fields = OrderedDict([
+            ('direct_shipping', None)
+        ])
+        search_fields = [
+            ('company_name', 'icontains'),
+        ]
 
-        # ... skipped ...
+This grid also specifies ``form`` class property, which enables all CRUD operations with ``Manufacturer`` Django model.
+
+Note that `'delete_confirmed' action`_ is used as success callback for `'delete' action`_ and usually both are enabled
+or disabled per grid class - if one considers to check the user permissions::
+
+    from django_jinja_knockout.views import KoGridView
+    from .models import Manufacturer
+    from .forms import ManufacturerForm
+
+    class ManufacturerGrid(KoGridView):
+
+        model = Manufacturer
+        form = ManufacturerForm
 
         def get_actions(self):
+            enable_deletion = self.request.user.has_perm('club_app.delete_manufacturer')
             actions = super().get_actions()
-            actions['glyphicon']['delete']['enabled'] = True
-            actions['built_in']['delete_confirmed']['enabled'] = True
+            actions['glyphicon']['delete']['enabled'] = enable_deletion
+            actions['built_in']['delete_confirmed']['enabled'] = enable_deletion
             return actions
 
-Note that `'delete_confirmed' action`_ is used as success callback for `'delete' action`_ also should be enabled.
-`'delete_confirmed' action`_ section has the primer of checking delete permissions.
+`views.KoGridView`_ has built-in support of deletion permission checking for selected rows lists / querysets.
+See `'delete_confirmed' action`_ for the primer of checking delete permissions per row / queryset.
 
-The action itself is defined in ``django_jinja_knockout.views.GridActionsMixin`` like this::
+The action itself is defined in ``django_jinja_knockout.views`` module ``GridActionsMixin`` class::
 
         OrderedDict([
             # Delete one or many model object.
@@ -2018,49 +2042,76 @@ The action itself is defined in ``django_jinja_knockout.views.GridActionsMixin``
 See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
 types.
 
-.. highlight:: javascript
+.. highlight:: python
+
+Imagine one grid having custom glyphicon action defined like this::
+
+    class MemberGrid(KoGridView):
+        model = Member
+        form = MemberFormForGrid
+
+        def get_actions(self):
+            actions = super().get_actions()
+            actions['glyphicon']['quick_endorse'] = {
+                'localName': _('Quick endorsement'),
+                'class': 'glyphicon-cloud-upload',
+                'enabled': True
+            }
+            return actions
+
 
 Grid rows may selectively enable / disable their actions on the fly with visual updates. It is especially important to
-actions of type ``'glyphicon'``, because these are always visible in grid columns. To implement online update of
-grid row actions one should override client-side ``App.ko.GridRow.hasEnabledAction()`` method like this::
+actions of type ``'glyphicon'``, because these are always visible in grid columns.
 
-    App.ko.Model1GridRow = function(options) {
+.. highlight:: javascript
+
+To implement online visibility update of grid row actions one should override client-side ``App.ko.GridRow`` class
+``hasEnabledAction()`` method like this::
+
+    App.ko.MemberGridRow = function(options) {
         $.inherit(App.ko.GridRow.prototype, this);
         this.init(options);
     };
 
-    (function(Model1GridRow) {
+    (function(MemberGridRow) {
 
-        Model1GridRow.hasEnabledAction = function(action) {
-            if (action.name === 'ask_user') {
-                return this.values['field2'] === 'APPROVED';
-            } else {
-                return true;
+        // .. skipped ...
+
+        MemberGridRow.hasEnabledAction = function(action) {
+            if (action.name === 'quick_endorse' && this.values['is_endorsed'] === true) {
+                return false;
             }
+            return true;
         };
 
-    })(App.ko.Model1GridRow.prototype);
+    })(App.ko.MemberGridRow.prototype);
 
-    App.ko.Model1Grid = function(options) {
+    App.ko.MemberGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
-    (function(Model1Grid) {
+    (function(MemberGrid) {
 
-        Model1Grid.iocRow = function(options) {
-            return new App.ko.Model1GridRow(options);
+        // .. skipped ...
+
+        MemberGrid.iocRow = function(options) {
+            return new App.ko.MemberGridRow(options);
         };
 
-    })(App.ko.Model1Grid.prototype);
+    })(App.ko.MemberGrid.prototype);
 
-This way ``glyphicon`` action with name ``'ask_user'`` link will be displayed only when associated Django model instance
-field name ``field2`` has value ``'APPROVED'``. Updating grid rows with ``App.ko.Grid.updatePage()`` will cause refresh
-of available grid rows actions display (see `'save_form' action`_ documentation).
+This way action of ``glyphicon`` type with ``'quick_endorse'`` name will be displayed as link only when associated
+Django model instance field name ``is_endorsed`` has value ``true``. Otherwise the link to action will be hidden.
+Updating grid rows via ``App.ko.Grid`` class ``updatePage()`` method will cause visual re-draw of available grid rows
+actions display.
 
-Of course if action is not pure client-side (has ``callback_NAME``) then additional permission check also should be
-performed in server-side Django grid ``action_NAME`` method, see `Action AJAX response handler`_ for explanation of
-server-side actions vs pure client-side actions.
+In case action is not purely client-side (has ``callback_NAME``), additional permission check should also be performed
+with server-side Django grid ``action_NAME`` method.
+
+* See `'save_form' action`_ and `App.ko.Grid.updatePage() method`_ how to use ``updatePage()`` in your grids.
+* See `Action AJAX response handler`_ for explanation of server-side actions vs pure client-side actions.
+* See fully-featured example in `member-grid.js`_ / `club_app.views_ajax`_.
 
 Implementing custom grid row actions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
