@@ -2365,8 +2365,8 @@ ForeignKeyGridWidget implementation notes
 Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`` class
 to browse and to select foreign key field value for displayed ``ModelForm``.
 
-To render chosen visual representation of foreign key, KoGridView should have class property ``row_model_str`` set to
-``True`` (it is ``False`` by default)::
+To render chosen visual representation of foreign key, ``KoGridView`` derived class should have class property
+``row_model_str`` set to ``True`` (it is ``False`` by default)::
 
     class KoGridWidget(KoGridView):
 
@@ -2390,21 +2390,20 @@ include library of Javascript files: Knockout.js, `app.js`_, `ko_grid.js`_ and g
 templates via `ko_grid_body() macro`_ call.
 
 One has to use these templates in his project, or to develop separate templates with these client-side scripts included.
-Since version 0.2.0 it's possible to include Jinja2 templates from Django templates with custom library::
+Since version 0.2.0 it's possible to include Jinja2 templates from Django templates with custom template tags library::
 
     {% load %jinja %}
     {% jinja 'ko_grid_body.htm' with _render_=1 %}
 
-* See `club_grid.html`_ for example of grid templates generation from Django Template Language.
+* See `club_grid.html`_ for example of grid templates generation in Django Template Language.
 
 The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
-``'fkGridOptions'`` value for `Foreign key filter`_ example of Django grid method ``get_default_grid_options()``.
-
-It's because both dynamically create grids inside BootstrapDialog, with the following differences:
+``'fkGridOptions'`` value for `Foreign key filter`_ that uses `views.KoGridView`_ method ``get_default_grid_options()``.
+Both embed grids inside BootstrapDialog, with the following differences:
 
 * ``'fk' filter`` limits grid queryset.
-* ``ForeignKeyGridWidget`` is used to set foreign key value, to be later submitted via ``ModelForm`` (including both
-  traditional HTML response and AJAX ones).
+* ``ForeignKeyGridWidget`` is used to set foreign key value, to be later submitted via ``ModelForm``, including
+  traditional HTML request / response and AJAX request / :doc:`viewmodels`.
 
 Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
 component class instead of ``App.ko.Grid`` component class.
@@ -2412,8 +2411,8 @@ component class instead of ``App.ko.Grid`` component class.
 =================
 Grids interaction
 =================
-Multiple grid components can be rendered at one html page. Each grid will have it's own sorting, filters, pagination and
-actions. Sometimes it's desirable to update one grid state depending on action performed in another grid.
+Multiple grid components can be rendered at single html page. Each grid will have it's own sorting, filters, pagination and
+actions. Sometimes it's desirable to update one grid state depending on results of action performed in another grid.
 
 Server-side interaction between grids
 -------------------------------------
