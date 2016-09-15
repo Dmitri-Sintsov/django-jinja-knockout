@@ -54,12 +54,12 @@ Each grid row represents an instance of associated Django model which can be bro
 
 There are key advantages of using AJAX calls to render Django Model grids:
 
-* Reduction of HTTP traffic.
+* Minimization of HTTP traffic.
 * Possibility of displaying multiple grids at the same web page and interact between them (for example update another
-  grid when current grid is updated).
-* Custom filters / form widgets that may utilize nested AJAX grids.
+  grid when current grid is updated). See `Grids interaction`_.
+* Custom filters / form widgets that may utilize nested AJAX grids. See `Grid fields`_, `Filter fields`_.
 * In-place display and update of grid rows with associated ``ModelForm`` and inline formsets with AJAX submission
-  directly via BootstrapDialog.
+  directly via BootstrapDialog. See `Standard grid actions`_, `ForeignKeyGridWidget`_.
 
 Besides pagination of model data rows, default actions such as CRUD are supported and can be easily enabled for grids.
 Custom grid actions both for the whole grid as well as for specific columns can be implemented by inheriting / extending
@@ -241,7 +241,8 @@ ko_grid() macro
 
 .. highlight:: html
 
-First macro ``ko_grid()`` generates html code of client-side component which looks like this in the generated page html::
+Jinja2 macro ``ko_grid()`` generates html code of client-side component which looks like this in the generated page
+html::
 
     <div class="component" id="club_grid" data-component-options='{"pageRoute": "club_grid", "classPath": "App.ko.Grid"}'>
     <a name="club_grid"></a>
@@ -272,7 +273,8 @@ of underscore.js template with name ``ko_grid_body`` by ``App.loadTemplates()`` 
 ``App.initClientHooks``, then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via
 ``App.components.add()`` to make grid "alive".
 
-See `app.js`_ code for the details of client-side components implementation.
+* See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
+* See `app.js`_ ``App.Components`` class for the details of client-side components implementation.
 
 ko_grid_body() macro
 ~~~~~~~~~~~~~~~~~~~~
@@ -2411,132 +2413,156 @@ component class instead of ``App.ko.Grid`` component class.
 =================
 Grids interaction
 =================
-Multiple grid components can be rendered at single html page. Each grid will have it's own sorting, filters, pagination and
-actions. Sometimes it's desirable to update one grid state depending on results of action performed in another grid.
+Multiple grid components can be rendered at single html page via multiple Jinja2 `ko_grid() macro`_ calls. Each grid
+will have it's own sorting, filters, pagination and actions. Sometimes it's desirable to update one grid state depending
+on the results of action performed in another grid.
 
 Server-side interaction between grids
 -------------------------------------
-Imagine that ``my_app.views`` has ``Model1Grid`` and ``Model2Grid`` class-based views.
+Imagine that ``my_app.views`` has ``ClubManagementGrid`` and ``MemberGrid`` class-based views defined for ``Club`` and
+``Member``
+models, respectively.
 
-``Model1Grid`` has custom action ``'ask_user'`` implemented as::
+``ClubGrid`` has custom action ``'endorse_'`` implemented as::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Model1, Model2
+    from .models import Club, Member
 
-    class Model1Grid(KoGridView):
+    class ClubManagementGrid(KoGridView):
 
-        model = Model1
-
+        model = Club
+        template_name = 'club_manage.htm'
         grid_fields = [
-            'field1',
-            'field2',
-            'field3',
-            'model2_fk__field1',
+            'title',
+            'category',
+            'foundation_date',
+        ]
+        search_fields = [
+            ('title', 'icontains')
         ]
         allowed_filter_fields = OrderedDict([
-            ('field1', None),
-            ('field2', {
-                'type': 'choices', 'choices': Model1.FIELD2_CHOICES, 'multiple_choices': False
-            }),
-            ('field3', Model3.FIELD3_CHOICES),
-            ('model2_fk__field1', None)
+            ('title', None),
+            ('category', None),
+            ('foundation_date', None),
         ])
 
-        def action_ask_user(self):
-            obj = Model1.objects.filter(pk=self.request_get('pk_val')).first()
-            if operation_request is None:
+        def get_actions(self):
+            actions = super().get_actions()
+            actions['glyphicon']['endorse_all_members'] = {
+                'localName': _('Endorse all members'),
+                'class': 'glyphicon-user',
+                'enabled': True
+            }
+            return actions
+
+        def action_endorse_all_members(self):
+            obj = get_object_for_action
+            if obj is None:
                 return vm_list({
                     'view': 'alert_error',
                     'title': 'Error',
-                    'message': 'Unknown instance of Model1'
+                    'message': 'Unknown instance of Club'
                 })
-            # Perform custom method of Model1, which returns Model2 queryset or Python list of Model2 instances:
-            model2_qs = obj.confirm_ask_user()
-            # Instantiate Model2Grid to update it.
-            model2_grid = Model2Grid()
-            model2_grid.request = self.request
-            model2_grid.init_class(model2_grid)
-            # Postprocess Model2Grid rows for client-side App.ko.Model2Grid.updatePage():
-            model2_grid_rows = model2_grid.postprocess_qs(model2_qs)
+            # Get all non-endorsed members of Club.
+            non_endorsed_member_qs = Club.objects.filter(member__is_endorsed=False)
+            # Endorse all non-endorsed members of Club.
+            non_endorsed_member_qs._clone().update('member__is_endorsed'=True)
+            # Instantiate MemberGrid to display updated members.
+            member_grid = MemberGrid()
+            member_grid.request = self.request
+            member_grid.init_class(member_grid)
+            # Postprocess MemberGrid rows for client-side App.ko.MemberGrid.updatePage():
+            member_grid_rows = member_grid.postprocess_qs(non_endorsed_member_qs)
             return vm_list({
                 'view': self.__class__.viewmodel_name,
                 'update_rows': self.postprocess_qs([obj]),
-                # return grid rows for client-side App.ko.Model2Grid.updatePage():
-                'model2_grid_view': {
-                    'update_rows': model2_grid_rows
+                # return grid rows for client-side App.ko.MemberGrid.updatePage():
+                'member_grid_view': {
+                    'update_rows': member_grid_rows
                 }
             })
 
-    class Model2Grid(KoGridView):
+    class MemberGrid(KoGridView):
 
-        model = Model2
-
+        model = Member
         grid_fields = [
-            'field1',
-            'field2',
-            'field3'
+            'profile',
+            'club',
+            # Will join 'category' field from related 'Club' table automatically via Django ORM.
+            'club__category',
+            'last_visit',
+            'plays',
+            'role',
+            'note',
+            'is_endorsed'
         ]
 
-Note that grid viewmodel returned by ``Model1Grid.action_ask_user()`` method has ``'model2_grid_view'`` subproperty
-which will be used to update rows of ``Model2Grid``. Two lists of rows will be returned to be updated by
+        def get_field_verbose_name(self, field_name):
+            if field_name == 'club__category':
+                return 'Club category'
+            else:
+                return super().get_field_verbose_name(field_name)
+
+Note that grid viewmodel returned by ``ClubGrid.action_endorse_all_members()`` method has ``'member_grid_view'`` subproperty
+which will be used to update rows of ``MemberGrid``. Two lists of rows will be returned to be updated by
 `App.ko.Grid.updatePage() method`_:
 
-* vm_list ``'update_rows': self.postprocess_qs([obj])`` list of rows to be updated for ``Model1Grid``
-* vm_list ``'model2_grid_view': {'update_rows': model2_grid_rows}`` list of rows to be updated for ``Model2Grid``
+* vm_list ``'update_rows': self.postprocess_qs([obj])`` list of rows to be updated for ``ClubGrid``
+* vm_list ``'member_grid_view': {'update_rows': member_grid_rows}`` list of rows to be updated for ``MemberGrid``
 
 
 Client-side interaction between grids
 -------------------------------------
 .. highlight:: javascript
 
-At client-side ``Model1Grid`` has to implement custom ``App.GridActions`` derived class with custom callback for
-``'ask_user'`` action::
+At client-side ``ClubGrid`` has to implement custom ``App.GridActions`` derived class with custom callback for
+``'endorse_all_members'`` action::
 
-    App.Model1GridActions = function(options) {
+    App.ClubGridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
         this.init(options);
     };
 
-    (function(Model1GridActions) {
+    (function(ClubGridActions) {
 
-        Model1GridActions.callback_ask_user = function(viewModel) {
-            var model2GridView = viewModel.model2_grid_view;
-            delete viewModel.model2_grid_view;
+        ClubGridActions.callback_endorse_all_members = function(viewModel) {
+            var memberGridView = viewModel.member_grid_view;
+            delete viewModel.member_grid_view;
 
             this.grid.updatePage(viewModel);
-            // Get client-side class of Model2Grid component by id (instance of App.ko.Grid or derived class).
-            var model2Grid = $('#model2_grid').component();
-            if (model2Grid !== null) {
-                // Update rows of Model2Grid component (instance of App.ko.Grid or derived class).
-                model2Grid.updatePage(model2GridView);
+            // Get client-side class of MemberGrid component by id (instance of App.ko.Grid or derived class).
+            var memberGrid = $('#member_grid').component();
+            if (memberGrid !== null) {
+                // Update rows of MemberGrid component (instance of App.ko.Grid or derived class).
+                memberGrid.updatePage(memberGridView);
             }
         };
 
-    })(App.Model1GridActions.prototype);
+    })(App.ClubGridActions.prototype);
 
-    App.ko.Model1Grid = function(options) {
+    App.ko.ClubGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
-    (function(Model1Grid) {
+    (function(ClubGrid) {
 
-        Model1Grid.iocGridActions = function(options) {
-            return new App.Model1GridActions(options);
+        ClubGrid.iocGridActions = function(options) {
+            return new App.ClubGridActions(options);
         };
 
-    })(App.ko.Model1Grid.prototype);
+    })(App.ko.ClubGrid.prototype);
 
-Let's explain ``callback_ask_user()`` code flow:
+Let's explain ``callback_endorse_all_members()`` code flow:
 
-* ``this.grid`` stores an instance of ``App.ko.Grid`` for ``Model1Grid``. We call ``.updatePage(viewModel)`` on that
+* ``this.grid`` stores an instance of ``App.ko.Grid`` for ``ClubGrid``. We call ``.updatePage(viewModel)`` on that
   instance to update rows of current grid.
-* jQuery selector ``$('#model2_grid')`` finds root DOM element for ``Model2Grid`` component. It's ``App.ko.Grid``
+* jQuery selector ``$('#member_grid')`` finds root DOM element for ``MemberGrid`` component. It's ``App.ko.Grid``
   instance is retrieved with ``.component()`` call on that jQuery selector. When grid class instance is stored in
-  local ``model2Grid`` variable, it's rows are updated by callling ``.updatePage(model2GridView)`` method of that grid.
+  local ``memberGrid`` variable, it's rows are updated by callling ``.updatePage(MemberGridView)`` method of that grid.
 
 See also ``dom_attrs`` argument of `ko_grid() macro`_ to understand how to set grid component DOM id like
-``'#model2_grid'`` in the example above.
+``'#member_grid'`` in the example above.
 
 ========================
 Grid custom action types
