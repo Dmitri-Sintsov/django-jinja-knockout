@@ -2374,8 +2374,6 @@ To render chosen visual representation of foreign key, ``KoGridView`` derived cl
 
         row_model_str = True
 
-.. highlight:: javascript
-
 This parameter is then used by `views.KoGridView`_ class ``postprocess_row()`` method to generate ``str()``
 representation for each Django model instance associated to each grid row::
 
