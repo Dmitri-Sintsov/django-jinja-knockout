@@ -6,16 +6,19 @@ import json
 KEY = 'onloadViewModels'
 
 
-def has_vm_list(dict):
-    return KEY in dict
+def has_vm_list(dct):
+    return KEY in dct
 
 
-def to_vm_list(dict):
-    if type(dict.get(KEY)) is vm_list:
-        return dict[KEY]
+def to_vm_list(dct, new_value=None):
+    if new_value is not None:
+        dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(new_value)
+        return dct[KEY]
+    if type(dct.get(KEY)) is vm_list:
+        return dct[KEY]
     else:
-        dict[KEY] = vm_list(*dict.get(KEY, []))
-        return dict[KEY]
+        dct[KEY] = vm_list(*dct.get(KEY, []))
+        return dct[KEY]
 
 
 # List of client-side viewmodels, which can be serialized to json
@@ -58,8 +61,7 @@ def find_by_keys(self, *match_vm_keys):
     match_keys = set(match_vm_keys)
     for idx, vm in enumerate(self):
         if match_keys.issubset(set(vm.keys())):
-            return (idx, vm)
-    return (False, None)
+            yield (idx, vm)
 vm_list.find_by_keys = find_by_keys
 
 
@@ -73,8 +75,7 @@ def find_by_kw(self, **partial_vm):
                 found = False
                 break
         if found:
-            return (idx, vm)
-    return (False, None)
+            yield (idx, vm)
 vm_list.find_by_kw = find_by_kw
 
 

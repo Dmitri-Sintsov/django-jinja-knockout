@@ -1175,17 +1175,17 @@ class GridActionsMixin:
             pks = [self.request_get('pk_val')]
         return self.__class__.model.objects.filter(pk__in=pks)
 
-    def vm_form(self, form, verbose_name, action_query={}):
+    def vm_form(self, form, verbose_name, form_action='save_form', action_query={}):
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_': True,
             'form': form,
-            'action': self.get_action_url('save_form', query=action_query),
+            'action': self.get_action_url(form_action, query=action_query),
             'opts': self.get_bs_form_opts()
         })
         return vm_list({
             'view': self.__class__.viewmodel_name,
-            'last_action': 'save_form',
+            'last_action': form_action,
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
                 verbose_name
@@ -1203,21 +1203,21 @@ class GridActionsMixin:
         obj = self.get_object_for_action()
         form = self.get_edit_form()(instance=obj)
         return self.vm_form(
-            form, self.render_object_desc(obj), {'pk_val': obj.pk}
+            form, self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
-    def vm_inline(self, ff, verbose_name, action_query={}):
+    def vm_inline(self, ff, verbose_name, form_action='save_inline', action_query={}):
         t = tpl_loader.get_template('bs_inline_formsets.htm')
         ff_html = t.render(request=self.request, context={
             '_render_': True,
             'form': ff.form,
             'formsets': ff.formsets,
-            'action': self.get_action_url('save_inline', query=action_query),
+            'action': self.get_action_url(form_action, query=action_query),
             'html': self.get_bs_form_opts()
         })
         return vm_list({
             'view': self.__class__.viewmodel_name,
-            'last_action': 'save_inline',
+            'last_action': form_action,
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
                 verbose_name
@@ -1237,7 +1237,7 @@ class GridActionsMixin:
         ff = self.get_edit_form_with_inline_formsets()(self.request)
         ff.get(instance=obj)
         return self.vm_inline(
-            ff, self.render_object_desc(obj), {'pk_val': obj.pk}
+            ff, self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
     def get_object_desc(self, obj):
@@ -1312,9 +1312,9 @@ class GridActionsMixin:
                     vm['update_rows'] = [row]
             return vm_list(vm)
         else:
-            ff_vms = vm_list()
-            self.add_form_viewmodels(form, ff_vms)
-            return ff_vms
+            form_vms = vm_list()
+            self.add_form_viewmodels(form, form_vms)
+            return form_vms
 
     # Supports both 'create_inline' and 'edit_inline' actions.
     def action_save_inline(self):
