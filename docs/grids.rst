@@ -10,6 +10,7 @@ Grids
 .. _cbv_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid.htm
 .. _cbv_grid_inline.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid_inline.htm
 .. _club_grid.html: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/templates/club_grid.html
+.. _club_equipment.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_equipment.htm
 .. _club_grid_with_action_logging.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_grid_with_action_logging.htm
 .. _ko_grid.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
@@ -2424,18 +2425,16 @@ pagination and optional search / filtering - not having to load the whole querys
 
 ``ClubEquipmentGrid`` has two custom actions ``'add_equipment'`` / ``'save_equipment'`` implemented as::
 
-    from django_jinja_knockout.views import KoGridView
-    from .models import Club, Equipment
-    from .forms import ClubEquipmentForm
-
-    # ... skipped ...
     class ClubEquipmentGrid(EditableClubGrid):
 
         client_routes = [
             'equipment_grid',
+            'club_grid_simple',
             'manufacturer_fk_widget_grid',
         ]
         template_name = 'club_equipment.htm'
+        form = ClubForm
+        form_with_inline_formsets = None
 
         def get_actions(self):
             actions = super().get_actions()
@@ -2449,6 +2448,7 @@ pagination and optional search / filtering - not having to load the whole querys
             }
             return actions
 
+        # Creates AJAX ClubEquipmentForm bound to particular Club instance.
         def action_add_equipment(self):
             club = self.get_object_for_action()
             if club is None:
@@ -2458,11 +2458,13 @@ pagination and optional search / filtering - not having to load the whole querys
                     'message': 'Unknown instance of Club'
                 })
             equipment_form = ClubEquipmentForm(initial={'club': club.pk})
+            # Generate equipment_form viewmodel
             vms = self.vm_form(
-                equipment_form, get_meta(Equipment, 'verbose_name'), form_action='save_equipment'
+                equipment_form, form_action='save_equipment'
             )
             return vms
 
+        # Validates and saves the Equipment model instance via bound ClubEquipmentForm.
         def action_save_equipment(self):
             form = ClubEquipmentForm(self.request.POST)
             if not form.is_valid():
@@ -2473,102 +2475,151 @@ pagination and optional search / filtering - not having to load the whole querys
             club = equipment.club
             club.last_update = timezone.now()
             club.save()
+            # Instantiate related EquipmentGrid to use it's .postprocess_qs() method
+            # to update it's row via grid viewmodel 'prepend_rows' key value.
             equipment_grid = EquipmentGrid()
             equipment_grid.request = self.request
             equipment_grid.init_class(equipment_grid)
             return vm_list({
                 'view': self.__class__.viewmodel_name,
                 'update_rows': self.postprocess_qs([club]),
-                # return grid rows for client-side App.ko.MemberGrid.updatePage():
+                # return grid rows for client-side EquipmentGrid component .updatePage(),
                 'equipment_grid_view': {
                     'prepend_rows': equipment_grid.postprocess_qs([equipment])
                 }
             })
 
-There are two actions, because ``'add_equipment'`` creates ``ClubEquipmentForm`` bound to paricular ``Club`` foreign key
-instance.
+* ``'add_equipment' action`` creates ``ClubEquipmentForm`` bound to paricular ``Club`` foreign key instance.
+* ``'save_equipment' action`` validates and saves ``Equipment`` model instance related to target row ``Club``
+  instance via bound ``ClubEquipmentForm``.
+* Because both ``ClubEquipmentGrid`` and ``EquipmentGrid`` are sharing single `club_equipment.htm`_ template,
+  ``ClubEquipmentGrid`` defines all client-side url names (client routes), required for ``EquipmentGrid`` and it's
+  foreign key filters to work as ``client_routes`` class property.
 
-    class MemberGrid(KoGridView):
+Note that grid viewmodel returned by ``ClubEquipmentGrid`` class ``action_save_equipment()`` method has
+``'equipment_grid_view'`` subproperty which will be used to update rows of ``EquipmentGrid`` at client-side (see below).
+Two lists of rows are returned to be updated via `App.ko.Grid.updatePage() method`_:
 
-        model = Member
+* vm_list ``'update_rows': self.postprocess_qs([club])`` list of rows to be updated for ``ClubEquipmentGrid``
+* vm_list ``'equipment_grid_view': {'prepend_rows': ...}`` list of rows to be updated for ``EquipmentGrid``
+
+``EquipmentGrid`` is much simiplier because it does not define custom actions. It's just used to display both already
+existing and newly added values of particular ``Club`` related ``Equipment`` model instances::
+
+    class EquipmentGrid(KoGridView):
+        model = Equipment
         grid_fields = [
-            'profile',
             'club',
-            # Will join 'category' field from related 'Club' table automatically via Django ORM.
-            'club__category',
-            'last_visit',
-            'plays',
-            'role',
-            'note',
-            'is_endorsed'
+            'manufacturer',
+            'inventory_name',
+            'category',
         ]
+        search_fields = [
+            ('inventory_name', 'icontains')
+        ]
+        allowed_filter_fields = OrderedDict([
+            ('club', None),
+            ('manufacturer', None),
+            ('category', None)
+        ])
+        @classmethod
+        def get_default_grid_options(cls):
+            return {
+                'searchPlaceholder': 'Search inventory name',
+                'fkGridOptions': {
+                    'club': {
+                        'pageRoute': 'club_grid_simple',
+                        # Optional setting for BootstrapDialog:
+                        'dialogOptions': {'size': 'size-wide'},
+                    },
+                    'manufacturer': {
+                        'pageRoute': 'manufacturer_fk_widget_grid'
+                    },
+                }
+            }
 
-        def get_field_verbose_name(self, field_name):
-            if field_name == 'club__category':
-                return 'Club category'
-            else:
-                return super().get_field_verbose_name(field_name)
+To see full-size example:
 
-Note that grid viewmodel returned by ``ClubGrid.action_endorse_all_members()`` method has ``'member_grid_view'`` subproperty
-which will be used to update rows of ``MemberGrid``. Two lists of rows will be returned to be updated by
-`App.ko.Grid.updatePage() method`_:
-
-* vm_list ``'update_rows': self.postprocess_qs([obj])`` list of rows to be updated for ``ClubGrid``
-* vm_list ``'member_grid_view': {'update_rows': member_grid_rows}`` list of rows to be updated for ``MemberGrid``
-
+* Jinja2 template `club_equipment.htm`_ for these grids
+* `club_app.views_ajax`_ class-based views
+* `club-grid.js`_ client-side part, which implements ``App.ko.ClubGrid`` and ``App.ClubGridActions`` classes, shared
+  between `club_equipment.htm`_ and `club_grid_with_action_logging.htm`_ templates.
 
 Client-side interaction between grids
 -------------------------------------
 .. highlight:: javascript
 
-At client-side ``ClubGrid`` has to implement custom ``App.GridActions`` derived class with custom callback for
-``'endorse_all_members'`` action::
+At client-side ``ClubEquipmentGrid`` is instantiated as ``App.ko.ClubGrid`` via `club-grid.js`_ script.
+It implements custom ``callback_*`` methods via ``App.ClubGridActions`` class for the following actions:
 
-    App.ClubGridActions = function(options) {
-        $.inherit(App.GridActions.prototype, this);
-        this.init(options);
-    };
+* ``callback_save_form`` / ``callback_save_inline`` / ``callback_delete_confirmed`` updates related grid(s) via
+  looking up for their ``.component()`` then performing ``.perform('update')`` on component class, when available.
+* ``callback_add_equipment`` displays BootstrapDialog with AJAX-submittable ``ClubEqupmentForm`` via
+  ``.callback_create_form(viewModel)`` built-in method call.
+* ``callback_save_equipment`` updates row(s) of both ``App.ko.ClubGrid``, which is bound to ``ClubEquipmentGrid``
+  class-based view in `club_equipment.htm`_ and ``EquipmentGrid``, which does not define custom client-side grid class.
+
+Here is the code of grid AJAX callbacks::
 
     (function(ClubGridActions) {
 
-        ClubGridActions.callback_endorse_all_members = function(viewModel) {
-            var memberGridView = viewModel.member_grid_view;
-            delete viewModel.member_grid_view;
+        ClubGridActions.updateDependentGrid = function(selector) {
+            // Get instance of dependent grid.
+            var grid = $(selector).component();
+            if (grid !== null) {
+                // Update dependent grid.
+                grid.gridActions.perform('update');
+            }
+        };
 
+        // Used in club_app.views_ajax.ClubGridWithActionLogging.
+        ClubGridActions.callback_save_inline = function(viewModel) {
+            this._super._call('callback_save_form', viewModel);
+            this.updateDependentGrid('#action_grid');
+            this.updateDependentGrid('#equipment_grid');
+        };
+
+        // Used in club_app.views_ajax.ClubEquipmentGrid.
+        ClubGridActions.callback_save_form = function(viewModel) {
+            this._super._call('callback_save_form', viewModel);
+            this.updateDependentGrid('#action_grid');
+            this.updateDependentGrid('#equipment_grid');
+        };
+
+        ClubGridActions.callback_delete_confirmed = function(viewModel) {
+            this._super._call('callback_delete_confirmed', viewModel);
+            this.updateDependentGrid('#action_grid');
+            this.updateDependentGrid('#equipment_grid');
+        };
+
+        ClubGridActions.callback_add_equipment = function(viewModel) {
+            this.callback_create_form(viewModel);
+        };
+
+        ClubGridActions.callback_save_equipment = function(viewModel) {
+            var equipmentGridView = viewModel.equipment_grid_view;
+            delete viewModel.equipment_grid_view;
             this.grid.updatePage(viewModel);
-            // Get client-side class of MemberGrid component by id (instance of App.ko.Grid or derived class).
-            var memberGrid = $('#member_grid').component();
-            if (memberGrid !== null) {
+            // Get client-side class of EquipmentGrid component by id (instance of App.ko.Grid or derived class).
+            var equipmentGrid = $('#equipment_grid').component();
+            if (equipmentGrid !== null) {
                 // Update rows of MemberGrid component (instance of App.ko.Grid or derived class).
-                memberGrid.updatePage(memberGridView);
+                equipmentGrid.updatePage(equipmentGridView);
             }
         };
 
     })(App.ClubGridActions.prototype);
 
-    App.ko.ClubGrid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
-        this.init(options);
-    };
+* ``callback_save_equipment`` uses jQuery selector ``$('#equipment_grid')`` to find root DOM element for
+  ``EquipmentGrid`` component.
+* Because there is no custom client-side grid class for ``EquipmentGrid`` defined in `club_equipment.htm`_ Jinja2
+  template, it uses built-in ``App.ko.Grid`` instance from `ko_grid.js`_ which is retrieved with ``.component()`` call
+  on ``$('#equipment_grid')`` jQuery selector.
+* When grid class instance is available in local ``equipmentGrid`` variable, it's rows are updated by calling
+  ``equipmentGrid`` instance ``.updatePage(equipmentGridView)`` method.
 
-    (function(ClubGrid) {
-
-        ClubGrid.iocGridActions = function(options) {
-            return new App.ClubGridActions(options);
-        };
-
-    })(App.ko.ClubGrid.prototype);
-
-Let's explain ``callback_endorse_all_members()`` code flow:
-
-* ``this.grid`` stores an instance of ``App.ko.Grid`` for ``ClubGrid``. We call ``.updatePage(viewModel)`` on that
-  instance to update rows of current grid.
-* jQuery selector ``$('#member_grid')`` finds root DOM element for ``MemberGrid`` component. It's ``App.ko.Grid``
-  instance is retrieved with ``.component()`` call on that jQuery selector. When grid class instance is stored in
-  local ``memberGrid`` variable, it's rows are updated by callling ``.updatePage(MemberGridView)`` method of that grid.
-
-See also ``dom_attrs`` argument of `ko_grid() macro`_ to understand how to set grid component DOM id like
-``'#member_grid'`` in the example above.
+* Full code of client-side part is available in `club-grid.js`_ script.
+* See also ``dom_attrs`` argument of `ko_grid() macro`_ for explanation how grid component DOM id is set.
 
 ========================
 Grid custom action types
