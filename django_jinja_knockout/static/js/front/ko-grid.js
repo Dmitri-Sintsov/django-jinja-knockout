@@ -607,7 +607,9 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.is = function(gridRow) {
-        return _.isEqual(this.values, gridRow.values);
+        // .strFields has to be compared because when foreignkey field has modified values of .get_str_fields()
+        // such grids should be highlighted as changed.
+        return _.isEqual(this.values, gridRow.values) && _.isEqual(this.strFields, gridRow.strFields);
     };
 
     GridRow.afterRender = function() {
