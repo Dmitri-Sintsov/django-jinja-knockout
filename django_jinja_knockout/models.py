@@ -49,7 +49,7 @@ def get_related_field(obj, fieldname):
                 related_obj = curr_field.rel.to
             else:
                 related_obj = curr_field.related_model
-    return related_obj._meta.get_field_by_name(fieldname)[0]
+    return related_obj._meta.get_field(fieldname)
 
 
 def get_meta(obj, meta_attr, fieldname=None):

@@ -4,7 +4,13 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe, escape
 from django.db import models
-from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
+try:
+    from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE as empty_value_display
+except ImportError:
+    # Django > 1.8
+    from django.contrib.admin import site
+    empty_value_display = site.empty_value_display
+
 from django.contrib.admin.actions import delete_selected
 
 
@@ -71,7 +77,7 @@ def get_admin_url(model: models.Model, action='change'):
 @ensure_annotations
 def get_model_change_link(model, modelattrs: list=[]):
     if model is None:
-        return EMPTY_CHANGELIST_VALUE
+        return empty_value_display
     change_url = get_admin_url(model)
     display_text = model
     for attr in modelattrs:
