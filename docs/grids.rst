@@ -2417,68 +2417,76 @@ on the results of action performed in another grid.
 
 Server-side interaction between grids
 -------------------------------------
-Imagine that ``my_app.views`` has ``ClubManagementGrid`` and ``MemberGrid`` class-based views defined for ``Club`` and
-``Member``
-models, respectively.
+Let's see ``ClubEquipmentGrid`` which allows to add instances of ``Equipment`` model to particular instance of ``Club``
+model. It's quite similar to inline formsets but saves the relation during each related form / model adding. Such way
+it provides a kind of "quick save" feature and also allows to edit large set of related ``Equipment`` models with
+pagination and optional search / filtering - not having to load the whole queryset as inline formset.
 
-``ClubGrid`` has custom action ``'endorse_'`` implemented as::
+``ClubEquipmentGrid`` has two custom actions ``'add_equipment'`` / ``'save_equipment'`` implemented as::
 
     from django_jinja_knockout.views import KoGridView
-    from .models import Club, Member
+    from .models import Club, Equipment
+    from .forms import ClubEquipmentForm
 
-    class ClubManagementGrid(KoGridView):
+    # ... skipped ...
+    class ClubEquipmentGrid(EditableClubGrid):
 
-        model = Club
-        template_name = 'club_manage.htm'
-        grid_fields = [
-            'title',
-            'category',
-            'foundation_date',
+        client_routes = [
+            'equipment_grid',
+            'manufacturer_fk_widget_grid',
         ]
-        search_fields = [
-            ('title', 'icontains')
-        ]
-        allowed_filter_fields = OrderedDict([
-            ('title', None),
-            ('category', None),
-            ('foundation_date', None),
-        ])
+        template_name = 'club_equipment.htm'
 
         def get_actions(self):
             actions = super().get_actions()
-            actions['glyphicon']['endorse_all_members'] = {
-                'localName': _('Endorse all members'),
-                'class': 'glyphicon-user',
+            actions['built_in']['save_equipment'] = {
+                'enabled': True
+            }
+            actions['glyphicon']['add_equipment'] = {
+                'localName': _('Add club equipment'),
+                'class': 'glyphicon-wrench',
                 'enabled': True
             }
             return actions
 
-        def action_endorse_all_members(self):
-            obj = get_object_for_action
-            if obj is None:
+        def action_add_equipment(self):
+            club = self.get_object_for_action()
+            if club is None:
                 return vm_list({
                     'view': 'alert_error',
                     'title': 'Error',
                     'message': 'Unknown instance of Club'
                 })
-            # Get all non-endorsed members of Club.
-            non_endorsed_member_qs = Club.objects.filter(member__is_endorsed=False)
-            # Endorse all non-endorsed members of Club.
-            non_endorsed_member_qs._clone().update('member__is_endorsed'=True)
-            # Instantiate MemberGrid to display updated members.
-            member_grid = MemberGrid()
-            member_grid.request = self.request
-            member_grid.init_class(member_grid)
-            # Postprocess MemberGrid rows for client-side App.ko.MemberGrid.updatePage():
-            member_grid_rows = member_grid.postprocess_qs(non_endorsed_member_qs)
+            equipment_form = ClubEquipmentForm(initial={'club': club.pk})
+            vms = self.vm_form(
+                equipment_form, get_meta(Equipment, 'verbose_name'), form_action='save_equipment'
+            )
+            return vms
+
+        def action_save_equipment(self):
+            form = ClubEquipmentForm(self.request.POST)
+            if not form.is_valid():
+                form_vms = vm_list()
+                self.add_form_viewmodels(form, form_vms)
+                return form_vms
+            equipment = form.save()
+            club = equipment.club
+            club.last_update = timezone.now()
+            club.save()
+            equipment_grid = EquipmentGrid()
+            equipment_grid.request = self.request
+            equipment_grid.init_class(equipment_grid)
             return vm_list({
                 'view': self.__class__.viewmodel_name,
-                'update_rows': self.postprocess_qs([obj]),
+                'update_rows': self.postprocess_qs([club]),
                 # return grid rows for client-side App.ko.MemberGrid.updatePage():
-                'member_grid_view': {
-                    'update_rows': member_grid_rows
+                'equipment_grid_view': {
+                    'prepend_rows': equipment_grid.postprocess_qs([equipment])
                 }
             })
+
+There are two actions, because ``'add_equipment'`` creates ``ClubEquipmentForm`` bound to paricular ``Club`` foreign key
+instance.
 
     class MemberGrid(KoGridView):
 

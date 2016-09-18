@@ -1175,7 +1175,7 @@ class GridActionsMixin:
             pks = [self.request_get('pk_val')]
         return self.__class__.model.objects.filter(pk__in=pks)
 
-    def vm_form(self, form, verbose_name, form_action='save_form', action_query={}):
+    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
         t = tpl_loader.get_template('bs_form.htm')
         form_html = t.render(request=self.request, context={
             '_render_': True,
@@ -1183,6 +1183,8 @@ class GridActionsMixin:
             'action': self.get_action_url(form_action, query=action_query),
             'opts': self.get_bs_form_opts()
         })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(form.Meta.model)
         return vm_list({
             'view': self.__class__.viewmodel_name,
             'last_action': form_action,
@@ -1195,18 +1197,16 @@ class GridActionsMixin:
 
     def action_create_form(self):
         form = self.get_create_form()()
-        return self.vm_form(
-            form, self.get_model_meta('verbose_name')
-        )
+        return self.vm_form(form)
 
     def action_edit_form(self):
         obj = self.get_object_for_action()
         form = self.get_edit_form()(instance=obj)
         return self.vm_form(
-            form, self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+            form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
-    def vm_inline(self, ff, verbose_name, form_action='save_inline', action_query={}):
+    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
         t = tpl_loader.get_template('bs_inline_formsets.htm')
         ff_html = t.render(request=self.request, context={
             '_render_': True,
@@ -1215,6 +1215,8 @@ class GridActionsMixin:
             'action': self.get_action_url(form_action, query=action_query),
             'html': self.get_bs_form_opts()
         })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(ff.__class__.FormClass.Meta.model)
         return vm_list({
             'view': self.__class__.viewmodel_name,
             'last_action': form_action,
@@ -1228,16 +1230,14 @@ class GridActionsMixin:
     def action_create_inline(self):
         ff = self.get_create_form_with_inline_formsets()(self.request)
         ff.get()
-        return self.vm_inline(
-            ff, self.get_model_meta('verbose_name')
-        )
+        return self.vm_inline(ff)
 
     def action_edit_inline(self):
         obj = self.get_object_for_action()
         ff = self.get_edit_form_with_inline_formsets()(self.request)
         ff.get(instance=obj)
         return self.vm_inline(
-            ff, self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+            ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
     def get_object_desc(self, obj):
