@@ -2632,7 +2632,7 @@ which is explained in `Modifying visual layout of grid`_ section.
 Let's define new action type ``'button_bottom'``, which will be displayed as grid action buttons below the grid rows,
 not above as standard ``'button'`` action type actions.
 
-First step is to override your Django grid class ``get_actions()`` method to return new grid action type with action
+First step is to override ``KoGridView`` class ``get_actions()`` method to return new grid action type with action
 definition(s)::
 
     class Model1Grid(KoGridView):
@@ -2675,7 +2675,7 @@ definition(s)::
             return vm_list({
                 'view': self.__class__.viewmodel_name,
                 'title': format_html('User was approved {0}', self.user.username),
-                'message': 'Congratulations!!!',
+                'message': 'Congratulations, you were approved!',
                 'meta': self.get_custom_meta(),
                 'update_rows': [self.user]
             })
@@ -2683,7 +2683,11 @@ definition(s)::
 .. highlight:: javascript
 
 Second step is to override ``uiActionTypes`` property of client-side ``App.ko.Grid`` class to add ``'button_bottom'`` to
-the list of interactive action types::
+the list of interactive action types.
+
+One also has to implement client-side handling methods for newly defined ``approve_user`` action. The following example
+assumes that the action will be perofmed as AJAX query / response with ``Model1Grid`` class ``action_approve_user()``
+method::
 
     App.ko.Model1Grid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
@@ -2704,9 +2708,10 @@ the list of interactive action types::
 
     })(App.ko.Model1Grid.prototype);
 
-One also has to implement client-side handling methods for newly defined ``approve_user`` action. The following example
-assumes that the action will be perofmed as AJAX query / response with ``Model1Grid.action_approve_user()`` defined
-above::
+
+Of course mandatory (for server-side AJAX actions only) ``callback_approve_user`` method and optional
+``queryargs_approve_user`` methods are implemented for custom action (see `Action AJAX response handler`_,
+`Action queryargs`_)::
 
     App.Model1GridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
@@ -2770,7 +2775,8 @@ And the final step is to generate client-side component in Jinja2 template with 
                 template_ids={
                     'ko_grid_nav': 'model1_ko_grid_nav',
                     'ko_grid_table': 'model1_ko_grid_table'
-                }
+                },
+                has_full_body=True
             )
         }}
 
@@ -2797,15 +2803,18 @@ And the final step is to generate client-side component in Jinja2 template with 
     {% endblock bottom_scripts %}
 
 Knockout.js ``<!-- ko foreach: actionTypes['button_bottom'] -->`` binding is very similar to standard ``'button'`` type
-actions binding with the exception that buttons are placed below the grid table, not above.
+actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below the grid table,
+not above.
 
-App.FilterDialog
-App.GridDialog
-App.ModelFormDialog
-App.ActionsMenuDialog
-App.ActionTemplateDialog
-row_model_str
-ioc
-methods to get actions / filters / rows / row field values
-Grid init options.
-action permissions
+Grids API
+---------
+Todo: implement. See `Grids`_ documentation and sample project at https://github.com/Dmitri-Sintsov/djk-sample/
+
+* App.FilterDialog
+* App.GridDialog
+* App.ModelFormDialog
+* App.ActionsMenuDialog
+* App.ActionTemplateDialog
+* ioc
+* methods to get actions / filters / rows / row field values
+* Grid init options.
