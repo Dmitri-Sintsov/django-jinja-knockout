@@ -1,10 +1,8 @@
 # Additional requirements go here
-django>=1.8.0,<1.9
+django>=1.8.0
 django-jinja>=1.4.1
-html5lib==0.9999999
-bleach==1.4.2
+bleach>=1.4.2
 lxml>=3.4.4
 ensure>=0.3.2
-wheel>=0.24.0
 pytz
 
