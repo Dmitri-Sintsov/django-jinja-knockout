@@ -42,6 +42,11 @@
             {% endif %}
             {% block main %}
             {% endblock main %}
+            {# content / extra_body blocks are used by django-allauth #}
+            {% block content %}
+            {% endblock content %}
+            {% block extra_body %}
+            {% endblock extra_body %}
         </div>
     </main>
     {% endblock body %}
