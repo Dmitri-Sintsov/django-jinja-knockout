@@ -2,12 +2,15 @@
 Installation
 =============
 
+.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
+.. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
+
 Virtual environment
 -------------------
 
 .. highlight:: bash
 
-Inside virtualenv of your Django 1.8 project, install `django-jinja-knockout`::
+Inside virtualenv of your Django 1.8 / 1.9 / 1.10 project, install `django-jinja-knockout`::
 
     python3 -m pip install django-jinja-knockout
 
@@ -18,6 +21,9 @@ To install latest master from repository::
 To install specific commit::
 
     python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
+
+One may use existing example of `settings.py`_ to copy / paste required parts from it or as the base to develop your own
+``settings.py``.
 
 Pluggable applications
 ----------------------
@@ -38,7 +44,7 @@ Add django_jinja_knockout to INSTALLED_APPS in ``settings.py``::
         'django_jinja_knockout',
     )
 
-If you want to use built-in allauth support, also add::
+If you want to use built-in Jinja2 allauth templates support, also add::
 
     INSTALLED_APPS = (
         # ...
@@ -50,6 +56,18 @@ If you want to use built-in allauth support, also add::
         'django_jinja_knockout',
         'django_jinja_knockout._allauth',
     )
+
+Built-in allauth DTL templates are supported in such case ``_allauth`` module is not required.
+
+The example of `urls.py`_ for Jinja2 ``_allauth`` templates::
+
+    # More pretty-looking but possibly not compatible with arbitrary allauth version:
+    url(r'^accounts/', include('django_jinja_knockout._allauth.urls')),
+
+The example of `urls.py`_ for DTL ``allauth`` templates::
+
+    # Standard allauth DTL templates working together with Jinja2 templates via {% load jinja %}
+    url(r'^accounts/', include('allauth.urls')),
 
 Context processors
 ------------------

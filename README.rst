@@ -19,12 +19,13 @@ Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 Key features
 ------------
 
+* Django 1.8, 1.9. 1.10 support. Python 3.4+ support.
 * Bootstrap / Jinja2 / Knockout.js integration into Django projects.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
-* Possibility to include Jinja2 templates directly from DTL Django templates via custom template tag::
+* Jinja2 templates can be integrated into existing Django templates via custom template library tag::
 
     {% extends 'base_min.html' %}
     {% load jinja %}
