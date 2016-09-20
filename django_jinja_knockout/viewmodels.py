@@ -12,7 +12,7 @@ def has_vm_list(dct):
 
 def to_vm_list(dct, new_value=None):
     if new_value is not None:
-        dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(new_value)
+        dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
         return dct[KEY]
     if type(dct.get(KEY)) is vm_list:
         return dct[KEY]
