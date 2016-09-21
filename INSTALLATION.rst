@@ -8,10 +8,16 @@ Installation
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _ContextMiddleware: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/middleware.py
+.. _django-allauth: https://github.com/pennersr/django-allauth
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _djk_sample.TemplateContextProcessor: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/context_processors.py
 .. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
+.. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
+.. _jinja2/base_head.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_head.htm
+.. _jinja2/base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
+.. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko_grid.js
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
+.. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
@@ -86,7 +92,8 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
         'allauth.socialaccount',
     )
 
-``allauth`` support is not mandatory but optional; just remove the following apps in case you do not need allauth::
+`django-allauth`_ support is not mandatory but optional; just remove the following apps from ``INSTALLED_APPS`` in case
+you do not need it::
 
     # The Django sites framework is required for 'allauth'
     'django.contrib.sites',
@@ -242,15 +249,19 @@ Install ``django_jinja_knockout.middleware`` into ``settings.py``::
 
 Then use it in a project::
 
-    import django_jinja_knockout
+    from django_jinja_knockout.middleware import ContextMiddleware
 
+For example to get current request in non-view functions and methods, one may use::
 
-To import only required names (for example)::
+    ContextMiddleware.get_request()
 
-    from django_jinja_knockout.forms import (
-        BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin,
-        set_knockout_template, set_empty_template, FormWithInlineFormsets
-    )
+and to get current request user::
+
+    ContextMiddleware.get_request().user
+
+* Do not forget that request might be unavailable when running in console, for example in management jobs.
+* It's possible to extend functionality of `ContextMiddleware`_. See `djk_sample.ContextMiddleware`_ for example.
+  In such case ``MIDDLEWARE_CLASSES`` in `settings.py`_ should contain full name of the extended class.
 
 urls.py
 -------
@@ -270,31 +281,29 @@ Templates
 
 .. highlight:: jinja
 
-Inherit your base template from ``jinja2/base_min.htm`` template::
+If your project base template uses Jinja2 templating language:
 
-    {% extends 'base_min.htm' %}
+* extend your ``base.htm`` template from `jinja2/base_min.htm`_ template
+* include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts required to run client-side of
+  `django-jinja-knockout` scripts like `app.js`_ and `ko_grid.js`_ to build up completely different page layout.
 
-    {% block top_styles %}
-    {# request.view_title is provided by urls.py and middleware.py #}
-    <title>{{ request.view_title }}</title>
-    {% endblock top_styles %}
+If your project base template uses Djanto Template Language (DTL):
 
-    {% block mainmenu %}
-        <li><a href=""</li>
-    {% if client_conf.userId != 0 %}
-        {# registered user allauth links #}
-        <li><a href="{{ url('account_email') }}">{{ _('Change E-mail') }}</a></li>
-        <li><a href="{{ url('account_logout') }}">{{ _('Sign Out') }}</a></li>
-    {% else %}
-        {# anonymous user allauth links #}
-        <li><a href="{{ url('account_login') }}">{{ _('Sign In') }}</a></li>
-        <li><a href="{{ url('account_signup') }}">{{ _('Sign Up') }}</a></li>
+* extend your ``base.html`` template from `templates/base_min.html`_ template
+* include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts via {% load jinja %} template tag
+  library, but do not forget that Jinja2 does not support extending included templates::
+
+    {% load jinja %}
+    {% jinja 'base_head.htm' %}
+    {% if messages %}
+        {% jinja 'base_messages.htm' %}
     {% endif %}
-    {% endblock mainmenu %}
+    {% jinja 'base_bottom_scripts.htm' %}
 
-    {% block main %}
+Template engines can be mixed with inclusion of Jinja2 template from DTL template like this::
 
-    {% endblock main %}
-
-or look for included scripts in ``base_min.htm`` to develop your own Jinja2 base template from scratch, if you need a
-completely different layout.
+    {% jinja 'bs_navs.htm' with _render_=1 navs=main_navs %}
+    {% jinja 'bs_inline_formsets.htm' with _render_=1 related_form=form formsets=formsets action=view.get_form_action_url html=view.get_bs_form_opts %}
+    {% jinja 'ko_grid.htm' with _render_=1 grid_options=club_grid_options %}
+    {% jinja 'ko_grid_body.htm' with _render_=1 %}
+    {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
