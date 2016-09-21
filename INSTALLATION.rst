@@ -10,8 +10,10 @@ Installation
 .. _ContextMiddleware: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/middleware.py
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _djk_sample.TemplateContextProcessor: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/context_processors.py
+.. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
+.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 Virtual environment
@@ -31,10 +33,11 @@ To install specific commit::
 
     python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@c97a696b1ee40c5a795cc821e7b05ff35e394288
 
-One may use existing example of `settings.py`_ as the base to develop your own ``settings.py``.
 
 settings.py
 -----------
+
+One may use existing example of `settings.py`_ as the base to develop your own ``settings.py``.
 
 Pluggable applications
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -46,7 +49,7 @@ processed by built-in `ContextMiddleware`_ class ``process_view()`` method via c
 .. highlight:: python
 
 To apply `django-jinja-knockout` `ContextMiddleware`_ to the views of project apps, define ``DJK_APPS`` tuple with the
-list of Django project's applications like that::
+list of Django project's own applications like that::
 
     DJK_APPS = (
         'djk_sample',
@@ -92,7 +95,7 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
     'allauth.socialaccount',
     'django_jinja_knockout._allauth',
 
-Built-in allauth DTL templates are supported. In such case next module is not required::
+Built-in allauth DTL templates are supported without any modification. In such case next module is not required::
 
     'django_jinja_knockout._allauth',
 
@@ -142,9 +145,9 @@ If you want to use built-in server-side to client-side global route mapping, cre
 Define project context processor
 --------------------------------
 
-If you want to use built-in ``App.get()`` / ``App.post()`` functionality, which dispatches AJAX requests according to
-Django ``urls.py`` url names, create ``context_processors.py`` in your main project application with the following
-code::
+If you want to use built-in client-side url name mapping available in `app.js`_, which dispatches AJAX requests
+according to Django ``urls.py`` urls, create ``context_processors.py`` in your main project application with the
+following code::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
 
@@ -156,14 +159,20 @@ code::
             # This is a good idea if some client-side route is frequently used.
             # Alternatively one can specify client route url names per view.
             # Second element of each tuple defines whether client-side route should be available to anonymous users.
-            ('my_url_name', True),
+            ('blog_feed', True),
         )
 
 
     def template_context_processor(HttpRequest=None):
         return TemplateContextProcessor(HttpRequest).get_context_data()
 
-and register your context processor in ``settings.py``::
+while ``urls.py`` has url name defined as::
+
+    url(r'^blog-(?P<blog_id>\d+)/$', 'my_blog.views.feed_view', name='blog_feed',
+        kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
+
+and register your context processor in ``settings.py`` as the value of ``TEMPLATES`` ``['OPTIONS']``
+``['context_processors']`` list::
 
     'my_project.context_processors.template_context_processor'
 
@@ -173,20 +182,31 @@ instead of default one::
 
 .. highlight:: javascript
 
-Then you will be able to perform the following shortcuts in your Javascript code::
+Then current url generated for ``'blog_feed'`` url name will be available at client-side Javascript as::
 
-    App.post('my_url_name', {'postvar1': 1, 'postvar2': 2});
-    App.get('my_url_name');
+    App.routeUrl('blog_feed', {'blog_id': 1});
 
-where AJAX response will be treated as the list of ``viewmodels`` (see documentation section for detailed explanation)
-and automatically routed by `app.js`_. Django exceptions and AJAX errors also are handled gracefully, displayed in
+You will be able to call Django view via AJAX request in your Javascript code like this::
+
+    App.post('blog_feed', {'postvar1': 1, 'postvar2': 2}, {
+        kwargs: {'blog_id': 1}
+    });
+    App.get('blog_feed', {}, {
+        kwargs: {'blog_id': 1}
+    });
+
+where AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `app.js`_ to
+appropriate viewmodel handler. Django exceptions and AJAX errors also are handled gracefully, displayed in
 ``BootstrapDialog`` window by default.
+
+* See `djk_sample.TemplateContextProcessor`_ source code for the example of extending `django-jinja-knockout`
+  `TemplateContextProcessor`_.
 
 Since version 0.2.0, it is possible to specify client-side routes per view::
 
-    def my_view(request):
+    def feed_view(request):
         request.client_routes.extend([
-            'my_url_name'
+            'blog_feed'
         ])
 
 and per class-based view::
@@ -197,8 +217,9 @@ and per class-based view::
             'my_grid_url_name'
         ]
 
-* See `djk_sample.TemplateContextProcessor`_ source code for the example of extending `django-jinja-knockout`
-  `TemplateContextProcessor`_.
+* In such case extending built-in `TemplateContextProcessor`_ is not necessary, but one has to specity required
+  client-side url names in every view which includes Javascript that accesses these url names (for example foreign key
+  widgets of `grids`_).
 
 Middleware
 ----------
