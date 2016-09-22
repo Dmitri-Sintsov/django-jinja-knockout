@@ -1,6 +1,6 @@
 from .utils import sdv
 from django.conf import settings
-from django.utils.html import format_html, force_text, escape, mark_safe
+from django.utils.html import format_html
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
@@ -68,7 +68,9 @@ class TemplateContextProcessor():
             'userId': self.user_id,
             'url': {}
         }
-
+        file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
+        if file_max_size is not None:
+            client_conf['fileMaxSize'] = file_max_size
         for url_name, is_anon in self.yield_client_routes():
             if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
                 client_conf['url'][url_name] = get_formatted_url(url_name)
@@ -79,15 +81,12 @@ class TemplateContextProcessor():
             'client_conf': client_conf,
             'ContentTypeLinker': ContentTypeLinker,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
-            'escape': escape,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
-            'force_text': force_text,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
-            'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
             'raise': raise_helper,

@@ -849,8 +849,42 @@ App.AjaxForm = function($selector) {
         this.$forms.ajaxFormUnbind();
     };
 
+    AjaxForm.checkFiles = function($form, maxSize) {
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            var $formFiles = $form.find('input[type="file"]');
+            for (var i = 0; i < $formFiles.length; i++) {
+                var files = $formFiles[i].files;
+                for (var j = 0; j < files.length; j++) {
+                    var file = files[j];
+                    if (file.size > App.conf.fileMaxSize) {
+                        var message = App.trans('Too big file size=%s, max_size=%s', file.size, maxSize)
+                        if (typeof $formFiles[i].id === 'string') {
+                            App.showView({
+                                'view': 'form_error',
+                                'id': $formFiles[i].id,
+                                'messages': [message]
+                            });
+                        } else {
+                            new App.Dialog({
+                                'title': file.name,
+                                'message': message,
+                                'type': BootstrapDialog.TYPE_DANGER,
+                            }).alert();
+                        }
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    };
+
     // @call static
     AjaxForm.submit = function($form, $btn, callbacks) {
+        if (typeof App.conf.fileMaxSize !== 'undefined' &&
+                !AjaxForm.checkFiles($form, App.conf.fileMaxSize)) {
+            return;
+        }
         var url = App.getDataUrl($btn);
         if (typeof callbacks !== 'object') {
             callbacks = {};

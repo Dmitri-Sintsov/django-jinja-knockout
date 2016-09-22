@@ -86,3 +86,5 @@ msgstr "Отмена"
 msgid "Choose action"
 msgstr "Выберите действие"
 
+msgid "Too big file size=%s, max_size=%s"
+msgstr "Слишком большой размер файла %s, максимальный размер %s"
