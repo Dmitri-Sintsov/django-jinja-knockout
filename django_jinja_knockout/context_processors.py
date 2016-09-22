@@ -1,15 +1,13 @@
-from inspect import trace
 from .utils import sdv
 from django.conf import settings
 from django.utils.html import format_html, force_text, escape, mark_safe
-from django.core.urlresolvers import reverse, NoReverseMatch
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 from .models import get_verbose_name, ContentTypeLinker
-from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq
+from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq, get_formatted_url
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
@@ -39,10 +37,9 @@ class TemplateContextProcessor():
     def skip_request(self):
         """
         Will be called for application response() views.
-        Currently is used only with jinja2 templates to do not interfere with django.admin.
         """
         return self.HttpRequest is None or \
-               not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
+            not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
 
     def get_user_id(self):
         return self.HttpRequest.user.pk \
@@ -72,25 +69,9 @@ class TemplateContextProcessor():
             'url': {}
         }
 
-        for url, is_anon in self.yield_client_routes():
-            if (is_anon or self.user_id != 0) and url not in client_conf['url']:
-                try:
-                    client_conf['url'][url] = reverse(url)
-                except NoReverseMatch as e:
-                    # Current pattern has named parameters. Translate these to Python str.format() / Javascript
-                    # sprintf() library format.
-                    # todo: Find a cleaner, faster way to find pattern result not using trace frames.
-                    caller = trace()[-1:]
-                    f_locals = sdv.get_nested(caller, [0, 0, 'f_locals'])
-                    if type(f_locals) is dict and 'result' in f_locals:
-                        if 'prefix_norm' in f_locals:
-                            # Django 1.8
-                            prefix = f_locals['prefix_norm']
-                        else:
-                            # Django 1.10
-                            prefix = f_locals['_prefix']
-                        client_conf['url'][url] = '{}{}'.format(prefix, f_locals['result'])
-
+        for url_name, is_anon in self.yield_client_routes():
+            if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
+                client_conf['url'][url_name] = get_formatted_url(url_name)
         return {
             'add_css_classes': add_css_classes,
             'add_css_classes_to_dict': add_css_classes_to_dict,

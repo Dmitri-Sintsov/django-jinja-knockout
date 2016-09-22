@@ -1,14 +1,15 @@
+from inspect import trace
 import lxml.html
 from lxml import etree
 from ensure import ensure_annotations
 from datetime import date, datetime
 from urllib.parse import urlencode
 
-from django.utils import formats, timezone
+from django.utils import formats
 from django.utils.html import escape, mark_safe
-from django.core.urlresolvers import resolve, reverse
+from django.core.urlresolvers import resolve, reverse, NoReverseMatch
 
-from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values
+from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values, get_nested
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -156,3 +157,25 @@ def resolve_cbv(url_name, kwargs):
     if not hasattr(view_fn, '__wrapped__'):
         return view_fn
     return get_cbv_from_dispatch_wrapper(view_fn)
+
+
+# reverse url via supplied url_name with kwargs formatted as print %s named args, not regexp capture patterns.
+def get_formatted_url(url_name):
+    try:
+        return reverse(url_name)
+    except NoReverseMatch as e:
+        # Current pattern has named parameters. Translate these to Python str.format() / Javascript
+        # sprintf() library format.
+        # todo: Find a cleaner, faster way to find pattern result not using trace frames.
+        caller = trace()[-1:]
+        f_locals = get_nested(caller, [0, 0, 'f_locals'])
+        if type(f_locals) is dict and 'result' in f_locals:
+            if 'prefix_norm' in f_locals:
+                # Django 1.8
+                prefix = f_locals['prefix_norm']
+            else:
+                # Django 1.10
+                prefix = f_locals['_prefix']
+            return '{}{}'.format(prefix, f_locals['result'])
+        else:
+            raise ValueError('Unable to get formatted url for url name %s'.format(url_name))

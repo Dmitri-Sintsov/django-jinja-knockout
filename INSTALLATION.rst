@@ -7,6 +7,8 @@ Installation
   supported as well.
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
+.. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
+.. _content types framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _ContextMiddleware: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/middleware.py
 .. _django-allauth: https://github.com/pennersr/django-allauth
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
@@ -149,10 +151,32 @@ Add `django_jinja_knockout` `TemplateContextProcessor`_ to `settings.py`_::
 If you want to use built-in server-side to client-side global route mapping, create your own project
 ``context_processors.py`` (see below).
 
-Define project context processor
---------------------------------
+Context processor
+-----------------
 
-If you want to use built-in client-side url name mapping available in `app.js`_, which dispatches AJAX requests
+Since version 0.2.0, it is possible to specify client-side routes per view::
+
+    def feed_view(request):
+        request.client_routes.extend([
+            'blog_feed'
+        ])
+
+and per class-based view::
+
+    class MyGrid(KoGridView):
+
+        client_routes = [
+            'my_grid_url_name'
+        ]
+
+In such case extending built-in `TemplateContextProcessor`_ is not necessary, but one has to specity required
+client-side url names in every view which includes Javascript that accesses these url names (for example foreign key
+widgets of `grids`_).
+
+Extending context processor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to use `global` client-side url name mapping available in `app.js`_, which dispatches AJAX requests
 according to Django ``urls.py`` urls, create ``context_processors.py`` in your main project application with the
 following code::
 
@@ -206,34 +230,56 @@ where AJAX response will be treated as the list of `viewmodels`_ and will be aut
 appropriate viewmodel handler. Django exceptions and AJAX errors also are handled gracefully, displayed in
 ``BootstrapDialog`` window by default.
 
+.. highlight:: python
+
+Extending context processor is also useful when templates should receive additional arguments by default::
+
+    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
+    from my_project.tpl import format_currency, static_hash
+
+    class TemplateContextProcessor(BaseContextProcessor):
+
+        def get_context_data(self):
+            context_data = super().get_context_data()
+            # Add two custom function to template context.
+            context_data.update({
+                'format_currency': format_currency,
+                'static_hash': static_hash,
+            })
+            return context_data
+
 * See `djk_sample.TemplateContextProcessor`_ source code for the example of extending `django-jinja-knockout`
-  `TemplateContextProcessor`_.
-
-Since version 0.2.0, it is possible to specify client-side routes per view::
-
-    def feed_view(request):
-        request.client_routes.extend([
-            'blog_feed'
-        ])
-
-and per class-based view::
-
-    class MyGrid(KoGridView):
-
-        client_routes = [
-            'my_grid_url_name'
-        ]
-
-* In such case extending built-in `TemplateContextProcessor`_ is not necessary, but one has to specity required
-  client-side url names in every view which includes Javascript that accesses these url names (for example foreign key
-  widgets of `grids`_).
+  `TemplateContextProcessor`_ to define Django ``url_name`` as global client-side route, to make it accessible in
+  client-side Javascript.
 
 Middleware
 ----------
 
+Key functionality of `django-jinja-knockout` middleware:
+
+.. highlight:: jinja
+
+* IE9 AJAX file upload via iframe emulation support for jQuery.ajaxForm().
+* Setting current Django timezone via browser current timezone.
+* Getting current request in non-view functions and methods.
+* Checking ``DJK_APPS`` applications views for the permissions defined as values of kwargs argument keys in ``urls.py``
+  url():
+
+ * ``'ajax' key`` - ``True`` when view is required to be processed in AJAX request, ``False`` - required to be non-AJAX
+ * ``'allow_anonymous' key`` - ``True`` when view is allowed to anonymous user (``False`` by default)
+ * ``'allow_inactive' key`` - ``True`` when view is allowed to inactive user (``False`` by default)
+ * ``'permission_required' key`` - value is the name of Django app / model permission required for this view to be called
+ * ``'view_title' key`` - string value of view verbose name, that is displayed by default in `jinja2/base_head.htm`_ as::
+
+    {% if request.view_title %}
+        <title>{{ request.view_title }}</title>
+    {% endif %}
+
+All of the keys are optional but some have mandatory restricted default values.
+
 .. highlight:: python
 
-Install ``django_jinja_knockout.middleware`` into ``settings.py``::
+Install ``django_jinja_knockout.middleware`` into `settings.py`_::
 
     MIDDLEWARE_CLASSES = (
         'django.contrib.sessions.middleware.SessionMiddleware',
@@ -260,8 +306,13 @@ and to get current request user::
     ContextMiddleware.get_request().user
 
 * Do not forget that request might be unavailable when running in console, for example in management jobs.
-* It's possible to extend functionality of `ContextMiddleware`_. See `djk_sample.ContextMiddleware`_ for example.
-  In such case ``MIDDLEWARE_CLASSES`` in `settings.py`_ should contain full name of the extended class.
+
+Extending middleware
+~~~~~~~~~~~~~~~~~~~~
+
+It's possible to extend built-in `ContextMiddleware`_. In such case ``MIDDLEWARE_CLASSES`` in `settings.py`_ should
+contain full name of the extended class. See `djk_sample.ContextMiddleware`_ for the example of extending middleware to
+enable logging of Django model performed actions via `content types framework`_.
 
 urls.py
 -------
@@ -276,6 +327,14 @@ The example of `urls.py`_ for DTL ``allauth`` templates::
     # Standard allauth DTL templates working together with Jinja2 templates via {% load jinja %}
     url(r'^accounts/', include('allauth.urls')),
 
+The example of `urls.py`_ with view title and permission checking::
+
+    url(r'^equipment-grid(?P<action>/?\w*)/$', EquipmentGrid.as_view(), name='equipment_grid', kwargs={
+        'view_title': 'Grid with the available equipment',
+        'ajax': True,
+        'permission_required': 'club_app.change_manufacturer'
+    }),
+
 Templates
 ---------
 
@@ -283,14 +342,14 @@ Templates
 
 If your project base template uses Jinja2 templating language:
 
-* extend your ``base.htm`` template from `jinja2/base_min.htm`_ template
-* include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts required to run client-side of
+* Extend your ``base.htm`` template from `jinja2/base_min.htm`_ template
+* Or, include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts required to run client-side of
   `django-jinja-knockout` scripts like `app.js`_ and `ko_grid.js`_ to build up completely different page layout.
 
 If your project base template uses Djanto Template Language (DTL):
 
-* extend your ``base.html`` template from `templates/base_min.html`_ template
-* include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts via {% load jinja %} template tag
+* Extend your ``base.html`` template from `templates/base_min.html`_ template
+* Or, include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts via {% load jinja %} template tag
   library, but do not forget that Jinja2 does not support extending included templates::
 
     {% load jinja %}
@@ -300,10 +359,12 @@ If your project base template uses Djanto Template Language (DTL):
     {% endif %}
     {% jinja 'base_bottom_scripts.htm' %}
 
-Template engines can be mixed with inclusion of Jinja2 template from DTL template like this::
+Template engines can be mixed with inclusion of Jinja2 templates from DTL templates like this::
 
     {% jinja 'bs_navs.htm' with _render_=1 navs=main_navs %}
     {% jinja 'bs_inline_formsets.htm' with _render_=1 related_form=form formsets=formsets action=view.get_form_action_url html=view.get_bs_form_opts %}
+    {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
     {% jinja 'ko_grid.htm' with _render_=1 grid_options=club_grid_options %}
     {% jinja 'ko_grid_body.htm' with _render_=1 %}
-    {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
+
+See `club_app/templates`_ for full-size examples of inclusing Jinja2 templates from DTL templates.
