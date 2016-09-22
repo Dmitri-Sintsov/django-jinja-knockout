@@ -376,7 +376,7 @@ $.fn.linkPreview = function(method) {
 
         scaledPreview.disabledHrefs = [
             // These extensions are known to cause glitches during preview.
-            /\.(docx|dwg|xslx|zip)$/i
+            /\.(docx|dwg|xslx|zip|rar)$/i
         ];
 
         scaledPreview.create = function($anchor) {
