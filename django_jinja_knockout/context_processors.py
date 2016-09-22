@@ -1,6 +1,6 @@
 from .utils import sdv
 from django.conf import settings
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from django.templatetags.static import static
 from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
@@ -87,6 +87,7 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
+            'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
             'raise': raise_helper,
