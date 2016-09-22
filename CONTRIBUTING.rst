@@ -2,16 +2,27 @@
 Contributing
 ============
 
+.. _`Django`: https://www.djangoproject.com/
+.. _`djk-sample`: https://github.com/Dmitri-Sintsov/djk-sample
+
 ``django_jinja_knockout`` is an open source project originally written by very poor guy from Russia so feel free
 to support it either by contributing new features / fixes / unit tests or by hiring me remotely to develop additional
 required features.
 
 Any non-trivial contribution will be recorded in authors list.
 
+* This reusable Django application supports Django 1.8 / 1.9 / 1.10 and Python 3.4 / 3.5. I do not have enough time
+  to backport it to support Python 2.7.
+* Unit tests are planned - at least I hope to find enough time to write some of these. Currently `djk-sample`_ project
+  is used for manual testing under different versions of Python / Django. It implements most of the available features.
+* The app is used in large enough project which is tested via actual manual work by real end-users.
+
 You can contribute in many ways:
 
 Types of Contributions
 ----------------------
+
+Any good quality contribution is welcome.
 
 Report Bugs
 ~~~~~~~~~~~
@@ -21,11 +32,6 @@ Report bugs at https://github.com/Dmitri-Sintsov/django-jinja-knockout/issues
 If you are reporting a bug, please include:
 
 * Your operating system name and Python / Django version used.
-* Currently this reusable app supports only Python 3.4+ and Django 1.8 LTS, because I do not have enough time and
-  resources to write unit tests and to check it througly against newer versions of Python / Django.
-* While there is no automated tests, the app is used in large enough project which is tested via manual test cases.
-* If I'll have the chance, I'd write unit tests and expand version usage, or you may help with that if this reusable app
-  is useful to you.
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
 * Feel free to fix bug or to suggest / implement a feature at github.
@@ -46,10 +52,12 @@ Get Started!
 
 Ready to contribute? Here's how to set up ``django_jinja_knockout`` for local development.
 
-
 Fork the ``django_jinja_knockout`` repo on GitHub.
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+.. highlight:: bash
+
+3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your
+fork for local development::
 
     $ apt-get install python3-pip
     $ python3 -m venv django-jinja-knockout
@@ -61,9 +69,10 @@ Fork the ``django_jinja_knockout`` repo on GitHub.
     $ cd django-jinja-knockout
     $ python3 -m pip install -U -r requirements.txt
 
-See the following link, if you are using Ubuntu 14.04 https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
+See also the following link, if you are using Ubuntu 14.04:
+https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
 
-Note that without ``Django`` installed, there is not much of usage in this pluggable app.
+Note that without `Django`_ installed, there is not much of usage for this pluggable app.
 
 4. Create a branch for local development::
 
@@ -94,7 +103,7 @@ To get flake8 and tox::
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-``django_jinja_knockout`` reusable app could always use more documentation, whether as part of the
+``django_jinja_knockout`` reusable application could always use more documentation, whether as part of the
 official docs, in docstrings (but please not very long bloated ones).
 
 Especially because I am not native English speaker, though I try my best to avoid mistakes.
@@ -117,7 +126,7 @@ Before you submit a pull request, check that it meets these guidelines:
 1. It would be great if the pull request included automated tests, but that is not required yet.
 2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function
    with a docstring, and add the feature to the list in README.rst.
-3. The pull request should work for Python 3.4 / Django 1.8 at least.
+3. The pull request should work for Python 3.4 / 3.5 Django 1.8 / 1.9 / 1.10 at least.
 
 Tips
 ----
