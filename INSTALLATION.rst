@@ -9,6 +9,7 @@ Installation
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
 .. _content types framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
+.. _context_processors.py: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _ContextMiddleware: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/middleware.py
 .. _django-allauth: https://github.com/pennersr/django-allauth
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
@@ -17,11 +18,14 @@ Installation
 .. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _jinja2/base_head.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_head.htm
 .. _jinja2/base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
+.. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
+.. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko_grid.js
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
+.. _views.py: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 Virtual environment
@@ -47,8 +51,8 @@ settings.py
 
 One may use existing example of `settings.py`_ as the base to develop your own ``settings.py``.
 
-Pluggable applications
-~~~~~~~~~~~~~~~~~~~~~~
+DJK_APPS
+~~~~~~~~
 
 ``DJK_APPS`` tuple is the subset of ``INSTALLED_APPS`` tuple that defines project applications which views will be
 processed by built-in `ContextMiddleware`_ class ``process_view()`` method via checking the result of
@@ -110,6 +114,36 @@ Built-in allauth DTL templates are supported without any modification. In such c
 
 * It is possible to extend `django-jinja-knockout` `ContextMiddleware`_ to add new functionality. See
   `djk_sample.ContextMiddleware`_ code for example.
+
+FILE_MAX_SIZE
+~~~~~~~~~~~~~
+
+This optional setting allows to specify maximal allowed file size to upload with `app.js`_ ``App.AjaxForm()`` class::
+
+    FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.TemporaryFileUploadHandler",)
+    FILE_MAX_SIZE = 100 * 1024 * 1024
+
+LAYOUT_CLASSES
+~~~~~~~~~~~~~~
+
+This optional setting allows to override default Bootstrap 3 grid layout classes for `bs_form()`_ and
+`bs_inline_formsets()`_ Jinja2 macros used to display ``ModelForm`` and inline formsets in the `django-jinja-knockout`
+code. The default value is specified in `context_processors.py`_ but can be overriden in `settings.py`_::
+
+    LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
+
+OBJECTS_PER_PAGE
+~~~~~~~~~~~~~~~~
+Allows to specify default limit for Django paginated querysets for ``ListSortingView`` / ``KoGridView`` (see `views.py`_
+code)::
+
+    # Pagination settings.
+    OBJECTS_PER_PAGE = 3 if DEBUG else 10
+
+USE_JS_TIMEZONE
+~~~~~~~~~~~~~~~
+Optional boolean value (by default is ``False``). When ``True``, `ContextMiddleware`_ class ``process_request()`` method
+will autodetect Django timezone from current browser session timezone.
 
 Context processors
 ~~~~~~~~~~~~~~~~~~

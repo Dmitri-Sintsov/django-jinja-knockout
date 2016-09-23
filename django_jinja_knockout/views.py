@@ -793,6 +793,7 @@ class BaseFilterView(View):
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 class ListSortingView(BaseFilterView, ListView):
 
+    paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     template_name = 'cbv_list.htm'
 
     def get_heading(self):
