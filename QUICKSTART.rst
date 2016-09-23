@@ -2,6 +2,9 @@
 Quickstart
 ===========
 
+.. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
+.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
+
 Key features overview
 
 app.js / tooltips.js
@@ -10,6 +13,7 @@ app.js / tooltips.js
 
 Viewmodels (client-side response routing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See `viewmodels`_ for detailed explanation.
 
 * Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
   attributes without defining DOM event handler and implicit callback.
@@ -146,7 +150,7 @@ Functions to manipulate css classes in Jinja2 templates
 
 * ``add_css_classes()`` - similar to jQuery ``$.addClass()`` function;
 * ``add_css_classes_to_dict()`` - similar to previous one but automatically uses 'class' key value of supplied dict
-  by default, which is handy to use processed dictionary as argument of Django ``flat_att()`` call.
+  by default, which is handy to use processed dictionary as argument of Django ``flatatt()`` call.
 
 Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,7 +195,7 @@ Meta and formatting
 
 * ``get_verbose_name()`` allows to get verbose_name of Django model field, including related (foreign) and reverse
   related fields.
-* Django functions to format html content: ``flat_att()`` / ``format_html()`` / ``force_text()``.
+* Django functions to format html content: ``flatatt()`` / ``format_html()`` / ``force_text()``.
 * Possibility to raise exceptions in Jinja2 templates via ``{{ raise('Error message') }}``
 
 Advanced url resolution, both forward and reverse
@@ -320,31 +324,28 @@ views.py
   CREATE and for VIEW actions, last case via ``ModelForm`` with ``metaclass=DisplayModelMetaclass``.
 * ``ListSortingView`` - ListView with built-in support of sorting and field filtering::
 
-    from django_jinja_knockout.views import ContextDataMixin, ListSortingView
+    from django_jinja_knockout.views import ListSortingView
 
-    from my_app.models import UserFile
+    from .models import Club
 
-    class UserFiles(ContextDataMixin, ListSortingView):
+    class ClubList(ListSortingView):
 
-        model = UserFile
-        template_name = 'files_list.htm'
-        context_object_name = 'files'
-        extra_context_data = {
-            'filesizeformat': filesizeformat,
-        }
-        allowed_sort_orders = [
-            'category',
-            'basename',
-            'latest_date',
-            # Multiple key sorting.
-            ['latest_date', 'basename',]
-        ]
+        model = Club
+        allowed_sort_orders = '__all__'
         allowed_filter_fields = {
-            'category': UserFile.CATEGORIES
+            'category': None,
         }
+        grid_fields = [
+            'title',
+            'category',
+            'foundation_date',
+        ]
+
 
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
   class-based view.
+* ``KoGridView`` - together with ``ko_grid.js`` allows to create AJAX powered django.admin-like grids with filtering,
+  sorting, search, CRUD actions and custom actions. See `grids documentation`_ for more details.
 
 widgets.py
 ----------
