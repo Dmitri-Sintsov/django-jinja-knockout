@@ -1,6 +1,7 @@
 class AutomationCommands:
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.last_result = None
 
     def exec(self, *args):
