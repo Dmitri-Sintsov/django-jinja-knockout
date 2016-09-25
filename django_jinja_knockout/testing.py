@@ -1,4 +1,5 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.utils.html import format_html
 
 from .automation import AutomationCommands
 from .tpl import reverseq
@@ -38,7 +39,7 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         url = '{}{}'.format(
             self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
-        print('get_reverse_url: {}'.format(url))
+        print('do_reverse_url: {}'.format(url))
         return self.selenium.get(url)
 
     def do_keys_by_id(self, id, keys):
@@ -51,3 +52,11 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     def do_click(self):
         return self.last_result.click()
+
+    def do_find_submit_by_viewname(self, viewname, kwargs=None, query=None):
+        return self.selenium.find_element_by_xpath(
+            format_html(
+                '//form[@action="{action}"]//button[@type="submit"]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
