@@ -1,16 +1,25 @@
-{% macro bs_filters(filter_title, filter_display, init_str='', end_str='') -%}
-{% if filter_display|length > 0 %}
-    {{ init_str }}
-{% endif %}
-{% for filter_field, filters in filter_display.items() -%}
-    {% if filters|length > 0 %}
-        <span class="badge">{{ filter_title[filter_field] }}</span>
-        {% for filter_name in filters %}
-            <span class="label label-info">{{ filter_name }}</span>
-        {% endfor %}
-    {% endif %}
-{%- endfor %}
-{% if filter_display|length > 0 %}
-    {{ end_str }}
-{% endif %}
-{%- endmacro %}
+{% macro bs_filters(
+    filter_title,
+    filter_display,
+    heading,
+    format_str='There is no "%(heading)s" to display.',
+    format_str_filters='There is no "%(heading)s" with %(filters_str)s to display.') -%}
+
+{% set filters_str -%}
+    {% for filter_field, filters in filter_display.items() -%}
+        {% if filters|length > 0 -%}
+            <span class="badge">{{ filter_title[filter_field] }}</span>
+            {% for filter_name in filters -%}
+                <span class="label label-info">{{ filter_name }}</span>
+            {% endfor -%}
+        {% endif -%}
+    {% endfor -%}
+{% endset -%}
+
+{% if filters_str != '' -%}
+        {{ _(format_str_filters, heading=heading, filters_str=mark_safe(filters_str)) }}
+{% else %}
+    {{ _(format_str, heading=heading) }}
+{% endif -%}
+
+{% endmacro -%}

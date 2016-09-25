@@ -40,11 +40,15 @@
     {% endfor -%}
     </table>
 {% else -%}
-<div class="jumbotron">
-    <div class="default-padding">
-        {{ bs_filters(filter_title, filter_display, _('There is no'), _('to display')) }}
+    <div class="jumbotron">
+        <div class="default-padding">
+            {{ bs_filters(
+                filter_title,
+                filter_display,
+                heading=view.get_heading()
+            ) }}
+        </div>
     </div>
-</div>
 {% endif -%}
 
 {% if object_list and is_paginated -%}
