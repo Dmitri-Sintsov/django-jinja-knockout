@@ -71,3 +71,9 @@ msgstr "Действие \"{}\" не реализовано"
 msgid "Action \"%(action)s\" is not allowed"
 msgstr "Действие \"%(action)s\" не разрешено"
 
+msgid "There is no \"%(heading)s\" to display."
+msgstr "\"%(heading)s\" в настоящее время отсутствуют."
+
+msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
+msgstr "\"%(heading)s\" с фильтрами %(filters_str)s в настоящее время отсутствуют."
+
