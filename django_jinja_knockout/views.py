@@ -4,6 +4,7 @@ import json
 from math import ceil
 import traceback
 from ensure import ensure_annotations
+
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils.encoding import force_text
@@ -21,6 +22,7 @@ from django.views.generic import TemplateView, DetailView, ListView, UpdateView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
+
 from . import tpl as qtpl
 from .models import (
     normalize_fk_fieldname, get_meta, get_verbose_name, get_related_field,
@@ -103,6 +105,52 @@ def prepare_bs_navs(navs, request):
         if nav['url'] == request.path:
             nav['atts']['class'] += ' active'
         nav['atts']['class'].strip()
+
+
+class FoldingPaginationMixin:
+
+    delta_visible_pages = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        page_obj = context_data['page_obj']
+
+        selected_pages = []
+        starting_page = page_obj.number - self.__class__.delta_visible_pages
+        if starting_page < 1:
+            starting_page = 1
+
+        ending_page = starting_page + self.__class__.delta_visible_pages * 2
+        back_shift = ending_page - page_obj.paginator.num_pages
+        if back_shift > 0:
+            starting_page -= back_shift
+            ending_page -= back_shift
+
+        if page_obj.number != 1:
+            selected_pages.append((1, False, _('First page')))
+        if page_obj.has_previous():
+            selected_pages.append((page_obj.previous_page_number(), False, _('Previous')))
+
+        for i in range(starting_page, ending_page + 1):
+            if i == starting_page and starting_page != 1:
+                link_text = '...'
+            elif i == ending_page and ending_page != page_obj.paginator.num_pages:
+                link_text = '...'
+            else:
+                link_text = str(i)
+            selected_pages.append((i, i == page_obj.number, link_text))
+
+        if page_obj.has_next():
+            selected_pages.append((page_obj.next_page_number(), False, _('Next')))
+
+        if page_obj.number != page_obj.paginator.num_pages:
+            selected_pages.append((page_obj.paginator.num_pages, False, _('Last page')))
+
+        page_obj.selected_pages = selected_pages
+        return context_data
 
 
 # Supports both ancestors of DetailView and KoGridView.
@@ -791,7 +839,7 @@ class BaseFilterView(View):
 
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
-class ListSortingView(BaseFilterView, ListView):
+class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     template_name = 'cbv_list.htm'

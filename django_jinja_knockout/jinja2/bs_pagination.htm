@@ -1,40 +1,61 @@
 {% macro bs_pagination(url_name=None, kwargs=None, query={}, cbv=None, page_obj=None) -%}
-{% if url_name is none %}
-    {% set url_name = request.url_name %}
-{% endif %}
-{% if kwargs is none %}
-    {% set kwargs = request.view_kwargs %}
-{% endif %}
-{% if cbv is not none %}
-    {% set query = cbv.get_current_querypart() %}
-{% endif %}
+{% if url_name is none -%}
+    {% set url_name = request.url_name -%}
+{% endif -%}
+{% if kwargs is none -%}
+    {% set kwargs = request.view_kwargs -%}
+{% endif -%}
+{% if cbv is not none -%}
+    {% set query = cbv.get_current_querypart() -%}
+{% endif -%}
+
 <ul class="pagination">
-    {% if page_obj.number - 1 > 1 %}
+{% if page_obj.selected_pages -%}
+    {% for page_num, is_active, link_text in page_obj.selected_pages -%}
+    {% do sdv.dbg('page_num', page_num) -%}
+    {% do sdv.dbg('is_active', is_active) -%}
+    {% do sdv.dbg('link_text', link_text) -%}
+    {% set li_atts = {} -%}
+    {% if is_active -%}
+        {% do add_css_classes_to_dict(li_atts, 'active') -%}
+    {% endif -%}
+    <li{{ flatatt(li_atts) }}>
+        {% do query.update({'page': page_num}) -%}
+        {% if is_active -%}
+            <a href="#">{{ link_text }}</a>
+        {% else -%}
+            <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ link_text }}</a>
+        {% endif -%}
+    </li>
+    {% endfor -%}
+{% else -%}
+    {% if page_obj.number - 1 > 1 -%}
     <li>
-        {% do query.update({'page' : 1}) %}
+        {% do query.update({'page' : 1}) -%}
         <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
     </li>
-    {% endif %}
-    {% if page_obj.has_previous() %}
+    {% endif -%}
+    {% if page_obj.has_previous() -%}
     <li>
-        {% do query.update({'page' : page_obj.previous_page_number()}) %}
+        {% do query.update({'page' : page_obj.previous_page_number()}) -%}
         <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
     </li>
-    {% endif %}
+    {% endif -%}
     <li class="active">
         <a href="#">{{ _('Page %(number)d of %(numpages)d', number=page_obj.number, numpages=page_obj.paginator.num_pages) }}</a>
     </li>
-    {% if page_obj.has_next() %}
+    {% if page_obj.has_next() -%}
     <li>
-        {% do query.update({'page' : page_obj.next_page_number()}) %}
+        {% do query.update({'page' : page_obj.next_page_number()}) -%}
         <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
     </li>
-    {% endif %}
-    {% if page_obj.number + 1 < page_obj.paginator.num_pages %}
+    {% endif -%}
+    {% if page_obj.number + 1 < page_obj.paginator.num_pages -%}
     <li>
-        {% do query.update({'page' : page_obj.paginator.num_pages}) %}
+        {% do query.update({'page' : page_obj.paginator.num_pages}) -%}
         <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
     </li>
-    {% endif %}
+    {% endif -%}
+{% endif -%}
 </ul>
-{%- endmacro %}
+{%- endmacro -%}
