@@ -10,11 +10,8 @@
 {% endif -%}
 
 <ul class="pagination">
-{% if page_obj.selected_pages -%}
-    {% for page_num, is_active, link_text in page_obj.selected_pages -%}
-    {% do sdv.dbg('page_num', page_num) -%}
-    {% do sdv.dbg('is_active', is_active) -%}
-    {% do sdv.dbg('link_text', link_text) -%}
+{% if view is defined and view.selected_pages -%}
+    {% for page_num, is_active, link_text in view.selected_pages -%}
     {% set li_atts = {} -%}
     {% if is_active -%}
         {% do add_css_classes_to_dict(li_atts, 'active') -%}

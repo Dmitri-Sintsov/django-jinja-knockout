@@ -109,16 +109,25 @@ def prepare_bs_navs(navs, request):
 
 class FoldingPaginationMixin:
 
+    always_visible_links = False
     delta_visible_pages = 3
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.selected_pages = []
+
+    def add_page(self, page_num, is_active, link_text):
+        self.selected_pages.append((page_num, is_active, link_text))
+
+    # is_active = True means page is selected (current or meaningless to click) thus is not clickable.
+    def add_clickable_page(self, page_num, is_active, link_text):
+        if self.__class__.always_visible_links or not is_active:
+            self.selected_pages.append((page_num, is_active, link_text))
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         page_obj = context_data['page_obj']
 
-        selected_pages = []
         starting_page = page_obj.number - self.__class__.delta_visible_pages
         if starting_page < 1:
             starting_page = 1
@@ -128,11 +137,12 @@ class FoldingPaginationMixin:
         if back_shift > 0:
             starting_page -= back_shift
             ending_page -= back_shift
+            if starting_page < 1:
+                starting_page = 1
 
-        if page_obj.number != 1:
-            selected_pages.append((1, False, _('First page')))
-        if page_obj.has_previous():
-            selected_pages.append((page_obj.previous_page_number(), False, _('Previous')))
+        self.add_clickable_page(1, page_obj.number == 1, _('First page'))
+        prev_page_number = page_obj.previous_page_number() if page_obj.has_previous() else 1
+        self.add_clickable_page(prev_page_number, not page_obj.has_previous(), _('Previous'))
 
         for i in range(starting_page, ending_page + 1):
             if i == starting_page and starting_page != 1:
@@ -141,15 +151,12 @@ class FoldingPaginationMixin:
                 link_text = '...'
             else:
                 link_text = str(i)
-            selected_pages.append((i, i == page_obj.number, link_text))
+            self.add_page(i, i == page_obj.number, link_text)
 
-        if page_obj.has_next():
-            selected_pages.append((page_obj.next_page_number(), False, _('Next')))
+        next_page_number = page_obj.next_page_number() if page_obj.has_next() else page_obj.paginator.num_pages
+        self.add_clickable_page(next_page_number, not page_obj.has_next(), _('Next'))
+        self.add_clickable_page(page_obj.paginator.num_pages, page_obj.number == page_obj.paginator.num_pages, _('Last page'))
 
-        if page_obj.number != page_obj.paginator.num_pages:
-            selected_pages.append((page_obj.paginator.num_pages, False, _('Last page')))
-
-        page_obj.selected_pages = selected_pages
         return context_data
 
 
