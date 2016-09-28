@@ -14,12 +14,9 @@
     heading=view.get_heading(),
 ) %}
 
-{% call(kwargs)
-bs_inline_formsets(
+{{ bs_inline_formsets(
     related_form=form, formsets=formsets, action=view.get_form_action_url(), html=view.get_bs_form_opts()
-) %}
-
-{% endcall %}
+) }}
 
 {% endcall %}
 

@@ -51,7 +51,9 @@
             {% else %}
                 {% do html.update({'inline_title': formset.model._meta.verbose_name}) %}
             {% endif %}
-            {{ caller({'formset_begin': formset, 'html': html}) }}
+            {% if caller %}
+                {{ caller({'formset_begin': formset, 'html': html}) }}
+            {% endif %}
             <div class="formset default-padding">
                 <div class="management-form">
                     {{ formset.management_form }}
@@ -71,7 +73,9 @@
                         </colgroup>
                 {% endif %}
                 {% for form in formset %}
-                    {{ caller({'form_begin': form, 'html': html}) }}
+                    {% if caller %}
+                        {{ caller({'form_begin': form, 'html': html}) }}
+                    {% endif %}
                     {% set formset_index = loop.index0 %}
                     {% if formset.can_delete %}
                         {% if formset_index < formset.min_num %}
@@ -81,7 +85,9 @@
                         {% endif %}
                     {% endif %}
                     {% include 'bs_formset_form.htm' %}
-                    {{ caller({'form_end': form, 'html': html}) }}
+                    {% if caller %}
+                        {{ caller({'form_end': form, 'html': html}) }}
+                    {% endif %}
                 {% endfor %}
                 {% if action == '' %}
                     </table>
@@ -95,7 +101,9 @@
                 </button>
                 {% endif %}
             </div>
-            {{ caller({'formset_end': formset, 'html': html}) }}
+            {% if caller %}
+                {{ caller({'formset_end': formset, 'html': html}) }}
+            {% endif %}
         {% endfor %}
         {% if html.submit_text is defined %}
         <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>
