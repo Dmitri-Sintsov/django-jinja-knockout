@@ -976,7 +976,7 @@ arguments to ``ko_grid_body()`` Jinja2 macro with keys as template names and val
 * Optional ``'template_ids' argument`` is used to override DOM ids of ``underscore.js`` templates bodies. That allows
   to generate standard built-in underscore.js template but with a different DOM id, to "copy the same template with
   different DOM id". It is required sometimes to allow both standard and visually customized grids at one web page.
-* Optional ``'override_template' argument`` is used to enable Jinja2 caller section.
+* Jinja2 caller is automatically detected and will be used to override component template.
 
 Here is the example of overriding visual display of ``App.ko.GridFilter`` that is used to select filter field from
 the list of specified choices. Also ``ko_grid_body`` template is overriden to ``member_ko_grid_body`` template with
@@ -997,8 +997,7 @@ button inserted that has knockout.js ``"click: onChangeEndorsementButtonClick.bi
             },
             dom_attrs={
                 'id': 'member_grid'
-            },
-            override_template=True,
+            }
         ) %}
 
         <div{{ flatatt(kwargs.dom_attrs) }} data-component-options='{{ kwargs._grid_options|escapejs }}'>

@@ -1,4 +1,4 @@
-{% macro ko_grid(grid_options, template_options={}, dom_attrs={}, body_call_id=none, override_template=False) -%}
+{% macro ko_grid(grid_options, template_options={}, dom_attrs={}, body_call_id=none) -%}
 {%- set _template_options = {
     'show_title': True,
     'show_pagination': True,
@@ -52,7 +52,7 @@ Setup dom_attrs.
 Optional caller support.
 
 -#}
-{% if override_template -%}
+{% if caller -%}
 {{ caller({
     'dom_attrs': dom_attrs,
     '_grid_options': _grid_options,
@@ -80,14 +80,10 @@ Optional caller support.
     {% if not body_call_id is defined -%}
         {% set body_call_id = none -%}
     {% endif -%}
-    {% if not override_template is defined -%}
-        {% set override_template = False -%}
-    {% endif -%}
     {{ ko_grid(
         grid_options,
         template_options=template_options,
         dom_attrs=dom_attrs,
-        body_call_id=body_call_id,
-        override_template=override_template
+        body_call_id=body_call_id
     ) }}
 {% endif -%}

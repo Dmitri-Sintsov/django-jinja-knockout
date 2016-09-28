@@ -2,12 +2,17 @@
 Jinja2 macros
 ==============
 
+.. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
+.. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
+.. _bs_form_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form_body.htm
+.. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
+
 .. highlight:: jinja
 
 ModelForms
 ----------
 
-``bs_form()`` macro allows to generate html representation of ``ModelForm``::
+`bs_form()`_ macro allows to generate html representation of ``ModelForm``::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_form.htm' import bs_form with context %}
@@ -22,15 +27,15 @@ ModelForms
 
     {% endblock main %}
 
-Note that the ``bs_form()`` macro also generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
-with the heading / body. If you want to generate form body only (usual Django approach), use ``bs_form_body()`` macro
+Note that the `bs_form()`_ macro also generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
+with the heading / body. If you want to generate form body only (usual Django approach), use `bs_form_body()`_ macro
 instead::
 
     {{ bs_form_body(form) }}
 
 .. highlight:: python
 
-Note that to have Bootstrap3 attributes to be applied to form fields it's also advisable to inherit ModelForm class from
+To have Bootstrap3 attributes to be applied to form fields it's also advisable to inherit ``ModelForm`` class from
 ``BootstrapModelForm``::
 
     from django_jinja_knockout.forms import BootstrapModelForm
@@ -44,11 +49,11 @@ Note that to have Bootstrap3 attributes to be applied to form fields it's also a
 
 Inline formsets
 ---------------
-``bs_inline_formsets()`` is a macro that supports html rendering of one or zero ``ModelForm`` with one or multiple one
-to many related inline formsets. It also supports two types of rendering layouts:
+`bs_inline_formsets()`_ is a macro that supports html rendering of one or zero Django ``ModelForm`` with one or multiple
+related inline formsets. It also supports two types of rendering layouts:
 
-#. ``<div>`` layout for real changable submittable forms.
-#. html ``<table>`` layout primarily used to display read-only "forms" (see :doc:`forms`).
+* ``<div>`` layout for real changeable submittable forms.
+* ``<table>`` layout primarily used to display read-only "forms" (see :doc:`forms`).
 
 Also it has support for inserting custom content between individual forms of formsets.
 
@@ -56,29 +61,30 @@ Also it has support for inserting custom content between individual forms of for
 
 Example of form with inline formsets rendering::
 
-    {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), html={
+    {{
+    bs_inline_formsets(related_form=form, formsets=formsets, action=url('add_project', project_id=project.pk), html={
         'class': 'project',
         'is_ajax': True,
         'title': request.view_title,
-        'submit_text': 'Add candidate'
-    }) %}
+        'submit_text': 'Add new project'
+    }) }}
 
-Note that in this case form with formsets will be submitted and processed via AJAX POST request / response. Also note
-unused ``call(kwargs)`` argument. Due to structure of ``bs_inline_formsets()`` it's required but is unused in this
-simplified example.
+* In this case form with formsets will be submitted and processed via AJAX POST request / response due to ``is_ajax`` =
+  ``True`` argument.
+* `bs_inline_formsets()`_ also supports ``{% call() bs_inline_formsets() %}`` syntax for complex formatting of formsets
+  which is unused in this simplified example.
 
 Changing bootstrap grid layout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 One may use ``'layout_classes'`` key of the following macros ``highlighted`` arguments:
 
-#. bs_inline_formsets( related_form, formsets, action, ``html`` )
-#. bs_form_body( form, ``field_classes`` )
-#. bs_field( field, ``classes`` = {} )
+* bs_inline_formsets( related_form, formsets, action, ``html`` )
+* bs_form_body( form, ``field_classes`` )
+* bs_field( field, ``classes`` = {} )
 
 to alter default Bootstrap 3 inline form grid width, for example::
 
-    {% call(kwargs)
+    {{
     bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), html={
         'class': 'project',
         'is_ajax': True,
@@ -87,19 +93,19 @@ to alter default Bootstrap 3 inline form grid width, for example::
         'layout_classes': {
             'label': 'col-md-4', 'field': 'col-md-4'
         }
-    }) %}
+    }) }}
 
-Default value of Bootstrap inline grid layout classes, defined in ``bs_field()`` macro, is::
+Default value of Bootstrap inline grid layout classes, defined in `bs_field()`_ macro, is::
 
     {'label': 'col-md-2', 'field': 'col-md-6'}
 
 Inserting custom content
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Calling ``bs_inline_formsets`` macro with ``kwargs`` argument allows to insert custom blocks of html at the following
+Calling `bs_inline_formsets()`_ macro with ``kwargs`` argument allows to insert custom blocks of html at the following
 points of form with related formsets rendering:
 
-Begin of formset, formset_begin will hold instance of formset, such way you could distinguish one fromset from another
+Begin of formset. ``formset_begin`` will hold the instance of formset, allowing to distinguish one formset from another
 one::
 
     {{ caller({'formset_begin': formset, 'html': html}) }}
@@ -112,17 +118,17 @@ End of formset form::
 
     {{ caller({'form_end': form, 'html': html}) }}
 
-End of formset, formset_end will hold instance of formset, such way you could distinguish one fromset from another
-one, see example below::
+End of formset. ``formset_end`` will hold the instance of formset, allowing to distinguish one formset from another one
+(see the example below)::
 
     {{ caller({'formset_end': formset, 'html': html}) }}
 
-Adding custom buttons (for example many different AJAX POST buttons each with ``data-url`` or ``data-route`` html5
-attributes)::
+Adding custom buttons, for example many AJAX POST buttons each with different ``data-url`` or ``data-route`` html5
+attributes. That allows to submit the same AJAX form to different Django views::
 
     {{ caller({'buttons': True}) }}
 
-The following example inserts custom submit button, which is supported when the ``'is_ajax': True parameter`` is
+The following example inserts custom submit button, which is supported when the ``'is_ajax': True`` parameter is
 specified::
 
     {% extends 'base_min.htm' %}
@@ -144,9 +150,13 @@ specified::
 
     {% endcall %}
 
-Resulting html will have two form submit buttons, one is automatically generated with submit
-``url('project_update', ...)``, another is manually inserted with submit ``url('project_postpone', ...)``. Different
-Django views may be called from the same form with inline formsets, depending on which html button is pressed.
+Resulting html will have two form submit buttons:
+
+* one is automatically generated with submit ``url('project_update', ...)``
+* another is manually inserted with submit ``url('project_postpone', ...)``
+
+Different views may be called from the same Django AJAX form with inline formsets, depending on which html button is
+pressed.
 
 The following example will insert total project read-only "form" (see :doc:`forms`) extra cost columns after the end of
 rendering related ``projectmember_set`` inline formset::
@@ -158,7 +168,7 @@ rendering related ``projectmember_set`` inline formset::
     bs_inline_formsets(related_form=form, formsets=formsets, action='', html={
         'class': 'project',
         'title': form.instance,
-        'submit_text': 'My submit button'
+        'submit_text': 'Review project'
     }) %}
 
     {% if 'formset_end' in kwargs and kwargs.formset_end.prefix == 'projectmember_set' %}
