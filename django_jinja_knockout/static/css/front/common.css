@@ -36,7 +36,7 @@ body {
 }
 
 .well-condensed {
-	margin-bottom: 0;
+	margin: 5px;
 }
 
 .href-target:target {
