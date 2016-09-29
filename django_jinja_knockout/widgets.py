@@ -138,7 +138,7 @@ class ForeignKeyGridWidget(DisplayText):
         return format_html(
             '<div {wrapper_attrs}>'
                 '<input {final_attrs}/>'
-                '<div class="fk-display badge preformatted">{display_value}</div>'
+                '<div class="fk-display preformatted">{display_value}</div>'
                 '<button class="fk-choose btn btn-info default-margin">{change}</button>'
             '</div>',
             wrapper_attrs=flatatt({
