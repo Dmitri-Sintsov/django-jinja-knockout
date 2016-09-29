@@ -807,7 +807,17 @@ App.ko.GridRow = function(options) {
         } else if (this.str !== null) {
             return [this.str];
         }
-        return [];
+        // Last resort.
+        return [this.getValue(this.meta.pkField)];
+    };
+
+    GridRow.renderDesc = function(blockTags) {
+        var descParts = this.getDescParts();
+        if (_.size(descParts) === 0) {
+            return '';
+        }
+        var $content = $('<span>');
+        return App.renderNestedList($content, descParts, blockTags);
     };
 
     /**
@@ -2541,18 +2551,16 @@ App.FkGridWidget = function(options) {
     };
 
     FkGridWidget.setDisplayValue = function(displayValue) {
-        this.$element.find('.fk-display')
-            .text(displayValue);
+        var $content = $('<span>');
+        App.renderNestedList($content, displayValue, App.ActionsMenuDialog.prototype.blockTags);
+        this.$element.find('.fk-display').empty().append($content);
         return this;
     };
 
     FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
-        if (koRow.str === null) {
-            throw "Set views.KoGridView static property row_model_str = true";
-        }
         this.setInputValue(options.pkVal)
-            .setDisplayValue(koRow.str);
+            .setDisplayValue(koRow.getDescParts());
     };
 
     FkGridWidget.onGridDialogUnselectAllRows = function(options) {
@@ -2596,12 +2604,7 @@ App.ActionsMenuDialog = function(options) {
     ];
 
     ActionsMenuDialog.renderRow = function() {
-        var descParts = this.grid.lastClickedKoRow.getDescParts();
-        if (_.size(descParts) === 0) {
-            return '';
-        }
-        var $title = $('<span>');
-        return App.renderNestedList($title, descParts, this.blockTags);
+        return this.grid.lastClickedKoRow.renderDesc(this.blockTags);
     };
 
     ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';

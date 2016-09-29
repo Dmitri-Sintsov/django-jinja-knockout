@@ -1497,7 +1497,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     # query all fields by default.
     query_fields = None
     current_page = 1
-    row_model_str = False
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 
     # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
@@ -1549,10 +1548,10 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
-        if str_fields is not None:
-            row['__str_fields'] = str_fields
-        if self.__class__.row_model_str:
+        if str_fields is None:
             row['__str'] = str(obj)
+        else:
+            row['__str_fields'] = str_fields
         return row
 
     def get_rows(self):
@@ -1615,11 +1614,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     def get_base_queryset(self):
         return self.__class__.model.objects.all()
-
-
-class KoGridWidget(KoGridView):
-
-    row_model_str = True
 
 
 class KoGridInline(KoGridView):
