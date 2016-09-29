@@ -9,20 +9,20 @@
                 </button>
                 {% if header is not none -%}
                     {{ header }}
-                {% else %}
+                {% else -%}
                     {{ caller('header') }}
-                {%- endif %}
+                {% endif -%}
             </h4>
         </div>
         <div style="" aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
             <div class="panel-body">
             {% if header is not none -%}
                 {{ caller() }}
-            {% else %}
+            {% else -%}
                 {{ caller('body') }}
-            {%- endif %}
+            {% endif -%}
             </div>
         </div>
     </div>
 </div>
-{%- endmacro %}
+{% endmacro -%}

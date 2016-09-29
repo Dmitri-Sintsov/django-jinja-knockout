@@ -1,18 +1,18 @@
 {% macro bs_form_body(form, field_classes={}) -%}
-{% from 'bs_field.htm' import bs_field with context %}
+{% from 'bs_field.htm' import bs_field with context -%}
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    {% if form.non_field_errors() %}
+    {% if form.non_field_errors() -%}
     <div class="alert alert-danger">
         <a class="close" data-dismiss="alert">&times;</a>
-        {% for non_field_error in form.non_field_errors() %}
+        {% for non_field_error in form.non_field_errors() -%}
             {{ non_field_error }}
-        {% endfor %}
+        {% endfor -%}
     </div>
-    {% endif %}
-    {% for field in form.hidden_fields() %}
+    {% endif -%}
+    {% for field in form.hidden_fields() -%}
         {{ field|safe }}
-    {% endfor %}
-    {% for field in form.visible_fields() %}
+    {% endfor -%}
+    {% for field in form.visible_fields() -%}
         {{ bs_field(field, field_classes) }}
-    {% endfor %}
-{%- endmacro %}
+    {% endfor -%}
+{% endmacro -%}

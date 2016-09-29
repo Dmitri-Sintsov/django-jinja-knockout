@@ -18,7 +18,7 @@
 
 {% if filters_str != '' -%}
         {{ _(format_str_filters, heading=heading, filters_str=mark_safe(filters_str)) }}
-{% else %}
+{% else -%}
     {{ _(format_str, heading=heading) }}
 {% endif -%}
 

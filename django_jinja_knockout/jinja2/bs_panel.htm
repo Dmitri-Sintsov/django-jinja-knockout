@@ -5,16 +5,16 @@
     <div class="panel-heading">
     {% if heading is not none -%}
         {{ heading }}
-    {% else %}
+    {% else -%}
         {{ caller('heading') }}
-    {%- endif %}
+    {% endif -%}
     </div>
     <div class="panel-body">
     {% if heading is not none -%}
         {{ caller() }}
-    {% else %}
+    {% else -%}
         {{ caller('body') }}
-    {%- endif %}
+    {% endif -%}
     </div>
 </div>
-{%- endmacro %}
+{% endmacro -%}

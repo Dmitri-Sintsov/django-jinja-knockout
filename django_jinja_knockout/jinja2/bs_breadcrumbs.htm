@@ -1,14 +1,14 @@
 {% macro bs_breadcrumbs(title=None, navs={}) -%}
 <ol class="breadcrumb">
-    {% if title is not none %}
+    {% if title is not none -%}
     <li class="bold">{{ title }}:</li>
-    {% endif %}
-    {% for nav in navs %}
+    {% endif -%}
+    {% for nav in navs -%}
     <li {{ flatatt(nav.atts) }}>
-        {% if nav.atts.class != 'active' %}<a href="{{ nav.url }}">{% endif %}
+        {% if nav.atts.class != 'active' -%}<a href="{{ nav.url }}">{% endif -%}
         {{ nav.text }}
-        {% if nav.atts.class != 'active' %}</a>{% endif %}
+        {% if nav.atts.class != 'active' -%}</a>{% endif -%}
     </li>
-    {% endfor %}
+    {% endfor -%}
 </ol>
-{%- endmacro %}
+{% endmacro -%}
