@@ -102,20 +102,7 @@ App.ko.GridColumnOrder = function(options) {
         this.ownerGrid.listAction();
     };
 
-    GridColumnOrder.blockTags = [
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item preformatted'
-        },
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item list-group-item-warning preformatted'
-        },
-    ];
+    GridColumnOrder.blockTags = App.blockTags.list;
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
@@ -123,7 +110,7 @@ App.ko.GridColumnOrder = function(options) {
             $(element).empty().append(value);
         } else if (typeof value === 'object') {
             $(element).empty();
-            App.renderNestedList(element, value, this.blockTags);
+            App.renderNestedList(element, value, {blockTags: this.blockTags});
         } else {
             // Warning: make sure string is escaped!
             // Primarily use is to display server-side formatted strings (Djano local date / currency format).
@@ -811,13 +798,13 @@ App.ko.GridRow = function(options) {
         return [this.getValue(this.meta.pkField)];
     };
 
-    GridRow.renderDesc = function(blockTags) {
+    GridRow.renderDesc = function(renderOptions) {
         var descParts = this.getDescParts();
         if (_.size(descParts) === 0) {
             return '';
         }
         var $content = $('<span>');
-        return App.renderNestedList($content, descParts, blockTags);
+        return App.renderNestedList($content, descParts, renderOptions);
     };
 
     /**
@@ -1030,18 +1017,11 @@ App.GridActions = function(options) {
         this.callback_create_form(viewModel);
     };
 
-    GridActions.blockTags = [
-        {
-            enclosureTag: '<div>',
-            enclosureClasses: 'well well-sm',
-            itemTag: '<span>',
-                itemClasses: 'badge'
-        }
-    ];
+    GridActions.blockTags = App.blockTags.badges;
 
     GridActions.renderDescription = function(viewModel, dialogType) {
         viewModel.message = $('<div>');
-        App.renderNestedList(viewModel.message, viewModel.description, this.blockTags);
+        App.renderNestedList(viewModel.message, viewModel.description, {blockTags: this.blockTags});
         if (typeof dialogType === 'undefined') {
             dialogType = BootstrapDialog.TYPE_DANGER;
         }
@@ -2534,6 +2514,8 @@ App.FkGridWidget = function(options) {
         });
     };
 
+    FkGridWidget.blockTags = App.blockTags.badges;
+
     FkGridWidget.getQueryFilter = function() {
         var pkVal = this.getInputValue();
         var koRow = this.gridDialog.grid.findKoRowByPkVal(pkVal);
@@ -2552,7 +2534,7 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.setDisplayValue = function(displayValue) {
         var $content = $('<span>');
-        App.renderNestedList($content, displayValue, App.ActionsMenuDialog.prototype.blockTags);
+        App.renderNestedList($content, displayValue, {blockTags: this.blockTags});
         this.$element.find('.fk-display').empty().append($content);
         return this;
     };
@@ -2594,17 +2576,10 @@ App.ActionsMenuDialog = function(options) {
         }];
     };
 
-    ActionsMenuDialog.blockTags = [
-        {
-            enclosureTag: '<div>',
-            enclosureClasses: 'well well-sm',
-            itemTag: '<span>',
-                itemClasses: 'badge'
-        }
-    ];
+    ActionsMenuDialog.blockTags = App.blockTags.badges;
 
     ActionsMenuDialog.renderRow = function() {
-        return this.grid.lastClickedKoRow.renderDesc(this.blockTags);
+        return this.grid.lastClickedKoRow.renderDesc({blockTags: this.blockTags});
     };
 
     ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';

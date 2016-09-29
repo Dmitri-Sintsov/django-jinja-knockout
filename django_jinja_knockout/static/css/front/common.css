@@ -35,6 +35,10 @@ body {
 	padding: 0.2em;
 }
 
+.well-condensed {
+	margin-bottom: 0;
+}
+
 .href-target:target {
 	border: 2px solid Aquamarine;
 	background-color: Aquamarine;

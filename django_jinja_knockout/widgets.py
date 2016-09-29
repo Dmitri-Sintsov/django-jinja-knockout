@@ -7,7 +7,7 @@ from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
 from .utils import sdv
-from .tpl import print_list, add_css_classes_to_dict, remove_css_classes_from_dict, format_local_date
+from .tpl import print_list, print_bs_well, add_css_classes_to_dict, remove_css_classes_from_dict, format_local_date
 from .viewmodels import to_json
 
 
@@ -156,5 +156,8 @@ class ForeignKeyGridWidget(DisplayText):
         if self.model is not None:
             obj = self.model.objects.filter(pk=value).first()
             if obj is not None:
-                return str(obj)
+                if hasattr(self.model, 'get_str_fields'):
+                    return print_bs_well(obj.get_str_fields())
+                else:
+                    return str(obj)
         return value

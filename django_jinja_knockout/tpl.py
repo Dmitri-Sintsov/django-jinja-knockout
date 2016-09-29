@@ -69,6 +69,19 @@ def print_bs_badges(row, cb=escape):
     )
 
 
+def print_bs_well(row, cb=escape):
+    # See app.css how .conditional-display can be displayed as block element or inline element
+    # via outer .display-block / .display-inline classes.
+    return mark_safe(
+        print_list(
+            row,
+            elem_tpl='<span class="badge preformatted">{0}</span><span class="conditional-display"></span>',
+            top_tpl='<div class="well well-condensed well-sm">{0}</div>',
+            cb=cb
+        )
+    )
+
+
 def print_list_group(row, cb=escape):
     return mark_safe(
         print_list(

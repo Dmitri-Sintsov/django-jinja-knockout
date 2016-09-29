@@ -48,36 +48,41 @@ App.queryString = new QueryString();
 /**
  * Render scalar element as plain html or as nested list of specified block tags.
  */
-App.renderNestedList = function(element, value, blockTags, level) {
+App.renderNestedList = function(element, value, options) {
     var $element = $(element);
+    if (typeof options !== 'object') {
+        options = {};
+    }
+    var fn = (typeof options.fn === 'undefined') ? 'text' : options.fn; // 'html'
     if (typeof value !== 'object') {
-        $element.html(value);
+        $element[fn](value);
         return;
     }
-    if (typeof blockTags === 'undefined') {
-        blockTags = [
+    var blockTags = (typeof options.blockTags === 'undefined') ?
+        [
             {
                 enclosureTag: '<ul>',
                 enclosureClasses: 'list-group',
                 itemTag: '<li>',
                 itemClasses: 'list-group-item preformatted'
             }
-        ];
-    }
-    if (typeof level === 'undefined') {
-        level = 0;
-    }
+        ] : options.blockTags;
+    var level = (typeof options.level === 'undefined') ? 0 : options.level;
     if (_.size(value) > 0) {
         var $ul = $(blockTags[level].enclosureTag)
             .addClass(blockTags[level].enclosureClasses);
         $.each(value, function(k, v) {
             if (typeof v === 'object') {
                 var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
-                App.renderNestedList($ul, v, blockTags, nextLevel);
+                App.renderNestedList($ul, v, {
+                    fn: fn,
+                    blockTags: blockTags,
+                    level: nextLevel
+                });
             } else {
                 var $li = $(blockTags[level].itemTag)
                     .addClass(blockTags[level].itemClasses)
-                    .html(v);
+                    [fn](v);
                 $ul.append($li);
             }
         });
@@ -86,6 +91,30 @@ App.renderNestedList = function(element, value, blockTags, level) {
     return $element;
 };
 
+App.blockTags = {
+    list: [
+        {
+            enclosureTag: '<ul>',
+            enclosureClasses: 'list-group',
+            itemTag: '<li>',
+            itemClasses: 'condensed list-group-item preformatted'
+        },
+        {
+            enclosureTag: '<ul>',
+            enclosureClasses: 'list-group',
+            itemTag: '<li>',
+            itemClasses: 'condensed list-group-item list-group-item-warning preformatted'
+        },
+    ],
+    badges: [
+        {
+            enclosureTag: '<div>',
+            enclosureClasses: 'well well-condensed well-sm',
+            itemTag: '<span>',
+                itemClasses: 'badge'
+        }
+    ]
+};
 
 /**
  * BootstrapDialog wrapper.
