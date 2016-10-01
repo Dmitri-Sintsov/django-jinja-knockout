@@ -48,8 +48,8 @@
         </div>
         {% endif -%}
         {% for formset in formsets -%}
-            {% if formset.model._meta.inline_title is defined -%}
-                {% do html.update({'inline_title': formset.model._meta.inline_title}) -%}
+            {% if formset.inline_title is defined -%}
+                {% do html.update({'inline_title': formset.inline_title}) -%}
             {% else -%}
                 {% do html.update({'inline_title': formset.model._meta.verbose_name}) -%}
             {% endif -%}
