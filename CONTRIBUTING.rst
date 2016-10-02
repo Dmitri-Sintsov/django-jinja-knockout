@@ -60,7 +60,7 @@ Fork the `django_jinja_knockout`_ repo on GitHub.
 .. highlight:: bash
 
 * Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your
-fork for local development::
+  fork for local development::
 
     $ apt-get install python3-pip
     $ python3 -m venv django-jinja-knockout
@@ -84,7 +84,7 @@ Note that without `Django`_ installed, there is not much of usage for this plugg
 Now you can make your changes locally.
 
 * There is no no continuous integration yet. Automated tests are partially implemented in `djk-sample unit tests`_.
-Check that your changes passes flake8::
+  Check that your changes passes flake8::
 
     $ pip3 install flake8
     $ flake8 django_jinja_knockout tests
@@ -128,6 +128,6 @@ Pull Request Guidelines
 Tips
 ----
 
-To run a subset of tests for `djk_sample`_::
+To run a subset of tests for `djk-sample`_::
 
     $ python manage.py test club_app.tests.ClubAppTests
