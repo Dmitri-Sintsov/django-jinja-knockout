@@ -68,6 +68,22 @@ def nested_update(d, u):
     return d
 
 
+# Get selected choice str from the list of defined choices for Django model field choices.
+def get_choice_str(choices, selected_choice):
+    selected_choice_str = None
+    for choice, choice_str in choices:
+        if choice == selected_choice:
+            selected_choice_str = choice_str
+            break
+    return selected_choice_str
+
+
+@ensure_annotations
+def join_dict_values(ch: str, d: dict, keys: list):
+    for key in keys:
+        d[key] = ch.join([str(val) for val in d[key].values()])
+
+
 def dbg(name, value=None):
     logdir = os.path.join(*LOGPATH)
     try:
@@ -85,12 +101,6 @@ def dbg(name, value=None):
     # http://stackoverflow.com/questions/192109/is-there-a-function-in-python-to-print-all-the-current-properties-and-values-of
     pprint(value, f)
     f.close()
-
-
-@ensure_annotations
-def join_dict_values(ch: str, d: dict, keys: list):
-    for key in keys:
-        d[key] = ch.join([str(val) for val in d[key].values()])
 
 
 def get_object_members(obj):
