@@ -715,18 +715,13 @@ class BaseFilterView(View):
         return vm_filter
 
     def get_filters(self):
-
-        vm_filters = []
-
-        for fieldname in self.allowed_filter_fields:
-            vm_filters.append(self.get_filter(fieldname))
-
+        vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
 
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
             self.report_error('List of filters must be dictionary: {0}', list_filter)
-        self.current_list_filter = {}
+        current_list_filter = {}
         for fieldname, values in list_filter.items():
             if fieldname not in self.allowed_filter_fields:
                 self.report_error('Non-allowed filter field: {0}', fieldname)
@@ -737,7 +732,7 @@ class BaseFilterView(View):
                 cleaned_value, is_blank = field_validator.clean(values)
                 if is_blank:
                     continue
-                self.current_list_filter[fieldname] = cleaned_value
+                current_list_filter[fieldname] = cleaned_value
             else:
                 # Multiple lookups and / or multiple values.
                 for lookup, value in values.items():
@@ -758,13 +753,14 @@ class BaseFilterView(View):
                     if lookup == 'in':
                         if isinstance(lookup_filter, list):
                             if len(lookup_filter) == 1:
-                                self.current_list_filter[fieldname] = lookup_filter[0]
+                                current_list_filter[fieldname] = lookup_filter[0]
                             else:
-                                self.current_list_filter[field_lookup] = lookup_filter
+                                current_list_filter[field_lookup] = lookup_filter
                         else:
-                            self.current_list_filter[fieldname] = lookup_filter
+                            current_list_filter[fieldname] = lookup_filter
                     else:
-                        self.current_list_filter[field_lookup] = lookup_filter
+                        current_list_filter[field_lookup] = lookup_filter
+        return current_list_filter
 
     def get_current_query(self):
         sort_order = self.request_get(self.__class__.order_key)
@@ -777,7 +773,7 @@ class BaseFilterView(View):
 
         list_filter = self.request_get(self.__class__.filter_key)
         if list_filter is not None:
-            self.get_current_list_filter(json.loads(list_filter))
+            self.current_list_filter = self.get_current_list_filter(json.loads(list_filter))
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -1431,6 +1427,7 @@ class GridActionsMixin:
         for field in self.__class__.model._meta.fields:
             if field.primary_key:
                 pk_field = field.attname
+                break
         vm = {
             'view': self.__class__.viewmodel_name,
             'action_kwarg': self.__class__.action_kwarg,
