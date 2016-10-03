@@ -789,6 +789,9 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.getDescParts = function() {
+        if (this.ownerGrid.meta.strDesc && this.str !== null) {
+            return [this.str];
+        }
         if (_.size(this.strFields) > 0) {
             return this.strFields;
         } else if (this.str !== null) {
@@ -1265,6 +1268,7 @@ App.ko.Grid = function(options) {
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
+            strDesc: false,
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };

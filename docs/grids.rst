@@ -454,7 +454,7 @@ of values:
 
 * jQuery objects, whose set of elements will be added to cell DOM
 
-.. _get_str_fields:
+.. _get_str_fields():
 
 * Nested list of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
   Django model has ``get_str_fields()`` method implemented. This method returns str() representation of some or all
@@ -750,7 +750,7 @@ Foreign key filter
   ``raw_id_fields`` django.admin class option. Because it completely relies on AJAX calls, one should create grid class
   for the foreign key field, for example::
 
-    class ProfileFkWidgetGrid(KoGridWidget):
+    class ProfileFkWidgetGrid(KoGridView):
 
         model = Profile
         form = ProfileForm
@@ -1011,7 +1011,7 @@ button inserted that has knockout.js ``"click: onChangeEndorsementButtonClick.bi
     {% endblock main %}
 
     {% block bottom_scripts %}
-        {# Generate standard grid templates for KoGridWidget #}
+        {# Generate standard grid templates for KoGridView #}
         {{ ko_grid_body() }}
 
         {#
@@ -1259,7 +1259,6 @@ For the reverse url of ``Model1Grid`` class-based view action ``'list'``::
 it will generate AJAX request queryargs similar to these::
 
     page: 2
-    row_model_str: false
     list_search: test
     list_filter: {"role": 2}
     csrfmiddlewaretoken: JqkaCTUzwpl7katgKiKnYCjcMpNYfjQc
@@ -1514,9 +1513,7 @@ fields in one grid cell).
 method and converted to client-side ``display values`` in ``App.ko.GridRow`` class ``toDisplayValue()`` method.
 
 Both methods can be customized by overriding these in ancestor classes. When associated Django model has
-``get_str_fields()`` method defined, it will be used to get ``str_fields`` for each row.
-
-See also get_str_fields_.
+`get_str_fields()`_ method defined, it will be used to get ``str_fields`` for each row.
 
 'meta_list' action
 ~~~~~~~~~~~~~~~~~~
@@ -2281,10 +2278,10 @@ name (route) of our widget as ``'pageRoute'`` argument value ``'profile_fk_widge
 Now we have to implement that class-based grid view just once for any possible ModelForm with ``'profile'`` foreign
 field::
 
-    from django_jinja_knockout import KoGridWidget
+    from django_jinja_knockout import KoGridView
     from .models import Profile
 
-    class ProfileFkWidgetGrid(KoGridWidget):
+    class ProfileFkWidgetGrid(KoGridView):
 
         model = Profile
         grid_fields = ['first_name', 'last_name']
@@ -2297,11 +2294,11 @@ field::
 or, even our ``Profile`` foreign key widget can support in-place CRUD AJAX actions, allowing to create new Profiles on
 the fly before ``MemberForm`` is saved::
 
-    from django_jinja_knockout import KoGridWidget
+    from django_jinja_knockout import KoGridView
     from .models import Profile
     from .forms import ProfileForm
 
-    class ProfileFkWidgetGrid(KoGridWidget):
+    class ProfileFkWidgetGrid(KoGridView):
 
         model = Profile
         form = ProfileForm
@@ -2367,26 +2364,38 @@ ForeignKeyGridWidget implementation notes
 Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`` class
 to browse and to select foreign key field value for displayed ``ModelForm``.
 
-To render chosen visual representation of foreign key, ``KoGridView`` derived class should have class property
-``row_model_str`` set to ``True`` (it is ``False`` by default)::
-
-    class KoGridWidget(KoGridView):
-
-        row_model_str = True
-
-This parameter is then used by `views.KoGridView`_ class ``postprocess_row()`` method to generate ``str()``
-representation for each Django model instance associated to each grid row::
+`views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
+model instance associated to each grid row, in case there is neither Django model `get_str_fields()`_ method nor grid
+class custom method ``get_row_str_fields()`` is defined::
 
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
+        if str_fields is None or self.__class__.force_str_desc:
+            row['__str'] = str(obj)
         if str_fields is not None:
             row['__str_fields'] = str_fields
-        if getattr(self ,'row_model_str', True):
-            row['__str'] = str(obj)
         return row
 
-Note that client-side of widget is dependent either on `cbv_grid.htm`_ or `cbv_grid_inline.htm`_ Jinja2 templates, which
-include library of Javascript files: Knockout.js, `app.js`_, `ko_grid.js`_ and generates grid underscore.js client-side
+In case ``str_fields`` representation of row is too verbose for ``ForeignKeyGridWidget`` display value, one may define
+grid class property ``force_str_desc`` = ``True`` to always use ``str()`` representation instead::
+
+    class ProfileFkWidgetGrid(KoGridView):
+
+        model = Profile
+        form = ProfileForm
+        enable_deletion = True
+        force_str_desc = True
+        grid_fields = ['first_name', 'last_name']
+        allowed_sort_orders = '__all__'
+        search_fields = [
+            ('first_name', 'icontains'),
+            ('last_name', 'icontains'),
+        ]
+
+``str_fields`` still will be used to automatically format or localize row field values in grid, when available.
+
+Client-side of widget is dependent either on `cbv_grid.htm`_ or `cbv_grid_inline.htm`_ Jinja2 templates, which include
+library of Javascript files: Knockout.js, `app.js`_, `ko_grid.js`_ and generates grid underscore.js client-side
 templates via `ko_grid_body() macro`_ call.
 
 One has to use these templates in his project, or to develop separate templates with these client-side scripts included.

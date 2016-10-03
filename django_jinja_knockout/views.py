@@ -1454,6 +1454,8 @@ class GridActionsMixin:
         # todo: support multiple order_by.
         if len(ordering) == 1 and list(ordering[0].keys())[0] in self.allowed_sort_orders:
             vm['meta']['orderBy'] = ordering[0]
+        if self.__class__.force_str_desc:
+            vm['meta']['strDesc'] = self.__class__.force_str_desc
         if self.__class__.mark_safe_fields is not None:
             vm['markSafe'] = self.__class__.mark_safe_fields
         return vm
@@ -1498,6 +1500,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     query_fields = None
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
+    force_str_desc = False
 
     # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
@@ -1548,9 +1551,9 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     # the keys are field names while the values are Django-formatted display values (not raw values).
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
-        if str_fields is None:
+        if str_fields is None or self.__class__.force_str_desc:
             row['__str'] = str(obj)
-        else:
+        if str_fields is not None:
             row['__str_fields'] = str_fields
         return row
 
