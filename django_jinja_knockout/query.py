@@ -1,49 +1,37 @@
 from copy import copy
 
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.models.sql import RawQuery
 from django.db.models.query import RawQuerySet, QuerySet
 
 
-class FilteredRawQuerySet(RawQuerySet):
+class FilteredRawQuery(RawQuery):
+
+    def __init__(self, sql, using, params=None, context=None):
+        super().__init__(sql, using, params, context)
+        self.filtered_query = None
 
     @classmethod
-    def clone_raw(cls, raw_qs, qs=None):
-        if not isinstance(raw_qs, RawQuerySet):
-            raise ValueError('raw_qs must be an instance of RawQuerySet')
+    def clone_raw_query(cls, raw_query=None, filtered_query=None):
+        if not isinstance(raw_query, RawQuery):
+            raise ValueError('raw_query must be an instance of RawQuery')
         self = cls(
-            raw_query=raw_qs.raw_query,
-            model=raw_qs.model,
-            query=raw_qs.query,
-            params=raw_qs.params,
-            translations=raw_qs.translations,
-            using=raw_qs._db,
-            hints=raw_qs._hints
+            sql=raw_query.sql,
+            using=raw_query.using,
+            params=raw_query.params,
+            context=raw_query.context.copy()
         )
-        self.qs = raw_qs.model.objects.all() if qs is None else qs
+        self.filtered_query = filtered_query
+        for prop in ('cursor', 'low_mark', 'high_mark', 'extra_select', 'annotation_select'):
+            setattr(self, prop, getattr(raw_query, prop))
         return self
-
-    def filter(self, *args, **kwargs):
-        return self.qs.filter(*args, **kwargs)
-
-    def exclude(self, *args, **kwargs):
-        return self.qs.exclude(*args, **kwargs)
-
-    def order_by(self, *field_names):
-        return self.qs.order_by(*field_names)
-
-    def distinct(self, *field_names):
-        return self.qs.distinct(*field_names)
-
-    def _clone(self):
-        c = self.__class__.clone_raw(self, qs=self.qs._clone())
-        return c
 
     def _execute_query(self):
         result = [self.sql]
         params = copy(self.params)
 
         try:
-            compiler = self.qs.query.get_compiler(DEFAULT_DB_ALIAS)
+            compiler = self.filtered_query.get_compiler(DEFAULT_DB_ALIAS)
             extra_select, order_by, group_by = compiler.pre_sql_setup()
 
             distinct_fields = compiler.get_distinct()
@@ -99,3 +87,47 @@ class FilteredRawQuerySet(RawQuerySet):
 
         self.cursor = connections[self.using].cursor()
         self.cursor.execute(' '.join(result), params)
+
+
+class FilteredRawQuerySet(RawQuerySet):
+
+    @classmethod
+    def clone_raw_queryset(cls, raw_qs, qs=None):
+        filtered_qs = raw_qs.model.objects.all() if qs is None else qs
+        if not isinstance(raw_qs, RawQuerySet):
+            raise ValueError('raw_qs must be an instance of RawQuerySet')
+        query = raw_qs.query if isinstance(raw_qs.query, FilteredRawQuery) else FilteredRawQuery.clone_raw_query(
+            raw_query=raw_qs.query,
+            filtered_query=filtered_qs.query
+        )
+        self = cls(
+            raw_query=raw_qs.raw_query,
+            model=raw_qs.model,
+            query=query,
+            params=raw_qs.params,
+            translations=raw_qs.translations,
+            using=raw_qs._db,
+            hints=raw_qs._hints
+        )
+        self.qs = filtered_qs
+        return self
+
+    def filter(self, *args, **kwargs):
+        self.qs = self.qs.filter(*args, **kwargs)
+        return self
+
+    def exclude(self, *args, **kwargs):
+        self.qs = self.qs.exclude(*args, **kwargs)
+        return self
+
+    def order_by(self, *field_names):
+        self.qs = self.qs.order_by(*field_names)
+        return self
+
+    def distinct(self, *field_names):
+        self.qs = self.qs.distinct(*field_names)
+        return self
+
+    def _clone(self):
+        c = self.__class__.clone_raw_queryset(self, qs=self.qs._clone())
+        return c
