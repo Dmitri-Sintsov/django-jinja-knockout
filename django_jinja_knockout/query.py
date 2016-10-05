@@ -1,9 +1,77 @@
+import types
 from copy import copy
 
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
-from django.db.models.query import RawQuerySet, QuerySet
+from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet
 
+
+class RawSqlCompiler(SQLCompiler):
+
+    def __init__(self, query, connection, using):
+        super().__init__(query, connection, using)
+        self.raw_query = None
+
+    def as_sql(self):
+        refcounts_before = self.query.alias_refcount.copy()
+        try:
+            result = [self.raw_query.sql]
+            params = list(self.raw_query.params)
+            extra_select, order_by, group_by = self.pre_sql_setup()
+
+            distinct_fields = self.get_distinct()
+
+            where, w_params = self.compile(self.query.where)
+            if where:
+                result.append('WHERE %s' % where)
+                params.extend(w_params)
+
+            having, h_params = self.compile(self.query.having)
+            if having:
+                result.append('HAVING %s' % having)
+                params.extend(h_params)
+
+            if self.query.distinct:
+                distinct_result = self.connection.ops.distinct_sql(distinct_fields)
+
+            grouping = []
+            for g_sql, g_params in group_by:
+                grouping.append(g_sql)
+                params.extend(g_params)
+            if grouping:
+                if distinct_fields:
+                    raise NotImplementedError(
+                        "annotate() + distinct(fields) is not implemented.")
+                if not order_by:
+                    order_by = self.connection.ops.force_no_ordering()
+                result.append('GROUP BY %s' % ', '.join(grouping))
+
+            if having:
+                result.append('HAVING %s' % having)
+                params.extend(h_params)
+
+            if order_by:
+                ordering = []
+                for _, (o_sql, o_params, _) in order_by:
+                    ordering.append(o_sql)
+                    params.extend(o_params)
+                result.append('ORDER BY %s' % ', '.join(ordering))
+
+            if self.query.low_mark != self.query.high_mark:
+                if self.query.high_mark is not None:
+                    result.append('LIMIT %d' % (self.query.high_mark - self.query.low_mark))
+                if self.query.low_mark:
+                    if self.query.high_mark is None:
+                        val = self.connection.ops.no_limit_value()
+                        if val:
+                            result.append('LIMIT %d' % val)
+                    result.append('OFFSET %d' % self.query.low_mark)
+            # return result, params
+            return ' '.join(result), tuple(params)
+        finally:
+            # Finally do cleanup - get rid of the joins we created above.
+            self.query.reset_refcounts(refcounts_before)
 
 class FilteredRawQuery(RawQuery):
 
@@ -26,68 +94,18 @@ class FilteredRawQuery(RawQuery):
             setattr(self, prop, getattr(raw_query, prop))
         return self
 
+    def get_compiler(self, using=None, connection=None):
+        compiler = self.filtered_query.get_compiler(using, connection)
+        compiler.as_sql = types.MethodType(RawSqlCompiler.as_sql, compiler)
+        compiler.raw_query = self
+        return compiler
+
     def _execute_query(self):
-        result = [self.sql]
-        params = list(copy(self.params))
-        refcounts_before = self.filtered_query.alias_refcount.copy()
-
-        try:
-            compiler = self.filtered_query.get_compiler(DEFAULT_DB_ALIAS)
-            extra_select, order_by, group_by = compiler.pre_sql_setup()
-
-            distinct_fields = compiler.get_distinct()
-
-            where, w_params = compiler.compile(compiler.query.where)
-            if where:
-                result.append('WHERE %s' % where)
-                params.extend(w_params)
-
-            having, h_params = compiler.compile(compiler.query.having)
-            if having:
-                result.append('HAVING %s' % having)
-                params.extend(h_params)
-
-            if compiler.query.distinct:
-                distinct_result = compiler.connection.ops.distinct_sql(distinct_fields)
-
-            grouping = []
-            for g_sql, g_params in group_by:
-                grouping.append(g_sql)
-                params.extend(g_params)
-            if grouping:
-                if distinct_fields:
-                    raise NotImplementedError(
-                        "annotate() + distinct(fields) is not implemented.")
-                if not order_by:
-                    order_by = compiler.connection.ops.force_no_ordering()
-                result.append('GROUP BY %s' % ', '.join(grouping))
-
-            if having:
-                result.append('HAVING %s' % having)
-                params.extend(h_params)
-
-            if order_by:
-                ordering = []
-                for _, (o_sql, o_params, _) in order_by:
-                    ordering.append(o_sql)
-                    params.extend(o_params)
-                result.append('ORDER BY %s' % ', '.join(ordering))
-
-            if compiler.query.low_mark != compiler.query.high_mark:
-                if compiler.query.high_mark is not None:
-                    result.append('LIMIT %d' % (compiler.query.high_mark - compiler.query.low_mark))
-                if compiler.query.low_mark:
-                    if compiler.query.high_mark is None:
-                        val = self.connection.ops.no_limit_value()
-                        if val:
-                            result.append('LIMIT %d' % val)
-                    result.append('OFFSET %d' % compiler.query.low_mark)
-        finally:
-            # Finally do cleanup - get rid of the joins we created above.
-            compiler.query.reset_refcounts(refcounts_before)
+        compiler = self.get_compiler(DEFAULT_DB_ALIAS)
+        result, params = compiler.as_sql()
 
         self.cursor = connections[self.using].cursor()
-        self.cursor.execute(' '.join(result), params)
+        self.cursor.execute(result, params)
 
 
 class FilteredRawQuerySet(RawQuerySet):
@@ -138,3 +156,27 @@ class FilteredRawQuerySet(RawQuerySet):
     def _clone(self):
         c = self.__class__.clone_raw_queryset(self, qs=self.filtered_qs._clone())
         return c
+
+    def values(self, *fields):
+        values_query_set = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
+        values_query_set.raw_queryset = self
+        return values_query_set
+
+
+class RawValuesQuerySet(ValuesQuerySet):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.raw_queryset = None
+
+    def iterator(self):
+        # Purge any extra columns that haven't been explicitly asked for
+        extra_names = list(self.query.extra_select)
+        field_names = self.field_names
+        annotation_names = list(self.query.annotation_select)
+        model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
+
+        names = extra_names + field_names + [field for field, idx in annotation_fields]
+
+        for row in self.raw_queryset.query.get_compiler(self.db).results_iter():
+            yield dict(zip(names, row))
