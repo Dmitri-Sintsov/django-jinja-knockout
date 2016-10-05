@@ -28,7 +28,8 @@ class FilteredRawQuery(RawQuery):
 
     def _execute_query(self):
         result = [self.sql]
-        params = copy(self.params)
+        params = list(copy(self.params))
+        refcounts_before = self.filtered_query.alias_refcount.copy()
 
         try:
             compiler = self.filtered_query.get_compiler(DEFAULT_DB_ALIAS)
@@ -93,9 +94,11 @@ class FilteredRawQuerySet(RawQuerySet):
 
     @classmethod
     def clone_raw_queryset(cls, raw_qs, qs=None):
-        filtered_qs = raw_qs.model.objects.all() if qs is None else qs
         if not isinstance(raw_qs, RawQuerySet):
             raise ValueError('raw_qs must be an instance of RawQuerySet')
+        filtered_qs = raw_qs.model.objects.all() if qs is None else qs
+        if not isinstance(filtered_qs, QuerySet):
+            raise ValueError('filtered_qs must be an instance of QuerySet')
         query = raw_qs.query if isinstance(raw_qs.query, FilteredRawQuery) else FilteredRawQuery.clone_raw_query(
             raw_query=raw_qs.query,
             filtered_query=filtered_qs.query
@@ -109,25 +112,29 @@ class FilteredRawQuerySet(RawQuerySet):
             using=raw_qs._db,
             hints=raw_qs._hints
         )
-        self.qs = filtered_qs
+        self.filtered_qs = filtered_qs
         return self
 
     def filter(self, *args, **kwargs):
-        self.qs = self.qs.filter(*args, **kwargs)
+        self.filtered_qs = self.filtered_qs.filter(*args, **kwargs)
+        self.query.filtered_query = self.filtered_qs.query
         return self
 
     def exclude(self, *args, **kwargs):
-        self.qs = self.qs.exclude(*args, **kwargs)
+        self.filtered_qs = self.filtered_qs.exclude(*args, **kwargs)
+        self.query.filtered_query = self.filtered_qs.query
         return self
 
     def order_by(self, *field_names):
-        self.qs = self.qs.order_by(*field_names)
+        self.filtered_qs = self.filtered_qs.order_by(*field_names)
+        self.query.filtered_query = self.filtered_qs.query
         return self
 
     def distinct(self, *field_names):
-        self.qs = self.qs.distinct(*field_names)
+        self.filtered_qs = self.filtered_qs.distinct(*field_names)
+        self.query.filtered_query = self.filtered_qs.query
         return self
 
     def _clone(self):
-        c = self.__class__.clone_raw_queryset(self, qs=self.qs._clone())
+        c = self.__class__.clone_raw_queryset(self, qs=self.filtered_qs._clone())
         return c
