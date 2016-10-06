@@ -76,14 +76,20 @@ class RawSqlCompiler(SQLCompiler):
             # Finally do cleanup - get rid of the joins we created above.
             self.query.reset_refcounts(refcounts_before)
 
+    def results_iter(self, results=None):
+        for row in self.raw_query:
+            yield row
+
+
 class FilteredRawQuery(RawQuery):
 
     def __init__(self, sql, using, params=None, context=None):
         super().__init__(sql, using, params, context)
         self.filtered_query = None
+        self.annotation_select = {}
 
     @classmethod
-    def clone_raw_query(cls, raw_query=None, filtered_query=None):
+    def clone_raw_query(cls, raw_query, filtered_query, is_filtered=True):
         if not isinstance(raw_query, RawQuery):
             raise ValueError('raw_query must be an instance of RawQuery')
         self = cls(
@@ -92,14 +98,25 @@ class FilteredRawQuery(RawQuery):
             params=raw_query.params,
             context=raw_query.context.copy()
         )
-        self.filtered_query = filtered_query
-        for prop in ('cursor', 'low_mark', 'high_mark', 'extra_select', 'annotation_select'):
-            setattr(self, prop, getattr(raw_query, prop))
+        self.filtered_query = filtered_query if is_filtered else filtered_query.clone()
+        if isinstance(raw_query, self.__class__):
+            raw_query.copy_props(self)
         return self
+
+    def copy_props(self, another):
+        for prop in ('cursor', 'low_mark', 'high_mark', 'extra_select', 'annotation_select'):
+            setattr(another, prop, copy(getattr(self, prop)))
+
+    def clone(self, using):
+        c = super().clone(using)
+        c.filtered_query = self.filtered_query.clone()
+        self.copy_props(c)
+        return c
 
     def get_compiler(self, using=None, connection=None):
         compiler = self.filtered_query.get_compiler(using, connection)
-        compiler.as_sql = types.MethodType(RawSqlCompiler.as_sql, compiler)
+        for method_name in ('as_sql', 'results_iter'):
+            setattr(compiler, method_name, types.MethodType(getattr(RawSqlCompiler, method_name), compiler))
         compiler.raw_query = self
         return compiler
 
@@ -114,15 +131,15 @@ class FilteredRawQuery(RawQuery):
 class FilteredRawQuerySet(RawQuerySet):
 
     @classmethod
-    def clone_raw_queryset(cls, raw_qs, qs=None):
+    def clone_raw_queryset(cls, raw_qs, filtered_qs=None):
         if not isinstance(raw_qs, RawQuerySet):
             raise ValueError('raw_qs must be an instance of RawQuerySet')
-        filtered_qs = raw_qs.model.objects.all() if qs is None else qs
-        if not isinstance(filtered_qs, QuerySet):
+        fqs = raw_qs.model.objects.all() if filtered_qs is None else filtered_qs
+        if not isinstance(fqs, QuerySet):
             raise ValueError('filtered_qs must be an instance of QuerySet')
         query = raw_qs.query if isinstance(raw_qs.query, FilteredRawQuery) else FilteredRawQuery.clone_raw_query(
             raw_query=raw_qs.query,
-            filtered_query=filtered_qs.query
+            filtered_query=fqs.query
         )
         self = cls(
             raw_query=raw_qs.raw_query,
@@ -133,13 +150,17 @@ class FilteredRawQuerySet(RawQuerySet):
             using=raw_qs._db,
             hints=raw_qs._hints
         )
-        self.filtered_qs = filtered_qs
-        return self
-
-    def filter(self, *args, **kwargs):
-        self.filtered_qs = self.filtered_qs.filter(*args, **kwargs)
+        self.filtered_qs = fqs
         self.query.filtered_query = self.filtered_qs.query
         return self
+
+    def _clone(self):
+        c = self.__class__.clone_raw_queryset(self, filtered_qs=self.filtered_qs._clone())
+        return c
+
+    def filter(self, *args, **kwargs):
+        c = self.__class__.clone_raw_queryset(self, filtered_qs=self.filtered_qs.filter(*args, **kwargs))
+        return c
 
     def exclude(self, *args, **kwargs):
         self.filtered_qs = self.filtered_qs.exclude(*args, **kwargs)
@@ -155,10 +176,6 @@ class FilteredRawQuerySet(RawQuerySet):
         self.filtered_qs = self.filtered_qs.distinct(*field_names)
         self.query.filtered_query = self.filtered_qs.query
         return self
-
-    def _clone(self):
-        c = self.__class__.clone_raw_queryset(self, qs=self.filtered_qs._clone())
-        return c
 
     def values(self, *fields):
         values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
@@ -178,32 +195,35 @@ class FilteredRawQuerySet(RawQuerySet):
         return values_list_queryset
 
 
-
-class RawValuesQuerySet(ValuesQuerySet):
+class RawQuerySetMixin():
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.raw_queryset = None
 
-    def iterator(self):
-        model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
+    def _clone(self, klass=None, setup=False, **kwargs):
+        c = super()._clone(klass, setup, **kwargs)
+        c.raw_queryset = self.raw_queryset
+        return c
 
-        names = model_init_names + [field for field, idx in annotation_fields]
-
+    def _values_iterator(self):
         for row in self.raw_queryset.__iter__():
-            value = {attr:getattr(row, attr) for attr in names}
+            value = {attr: getattr(row, attr) for attr in self.raw_queryset.columns}
             yield value
 
 
-class RawValuesListQuerySet(ValuesListQuerySet):
+class RawValuesQuerySet(RawQuerySetMixin, ValuesQuerySet):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raw_queryset = None
+    def iterator(self):
+        yield from self._values_iterator()
+
+
+class RawValuesListQuerySet(RawQuerySetMixin, ValuesListQuerySet):
 
     def iterator(self):
         model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
         annotation_select = {field: pos for field, pos in annotation_fields}
         self.query = self.raw_queryset.query
         self.query.annotation_select = annotation_select
+        self.query._fields = self._fields
         yield from super().iterator()
