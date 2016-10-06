@@ -4,7 +4,7 @@ from copy import copy
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
-from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet
+from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet, ValuesListQuerySet
 
 
 class RawSqlCompiler(SQLCompiler):
@@ -13,13 +13,15 @@ class RawSqlCompiler(SQLCompiler):
         super().__init__(query, connection, using)
         self.raw_query = None
 
-    def as_sql(self):
+    def as_sql(self, with_limits=True):
         refcounts_before = self.query.alias_refcount.copy()
         try:
             result = [self.raw_query.sql]
             params = list(self.raw_query.params)
-            extra_select, order_by, group_by = self.pre_sql_setup()
 
+            extra_select, order_by, group_by = self.pre_sql_setup()
+            if with_limits and self.query.low_mark == self.query.high_mark:
+                return '', ()
             distinct_fields = self.get_distinct()
 
             where, w_params = self.compile(self.query.where)
@@ -58,16 +60,17 @@ class RawSqlCompiler(SQLCompiler):
                     params.extend(o_params)
                 result.append('ORDER BY %s' % ', '.join(ordering))
 
-            if self.query.low_mark != self.query.high_mark:
-                if self.query.high_mark is not None:
-                    result.append('LIMIT %d' % (self.query.high_mark - self.query.low_mark))
-                if self.query.low_mark:
-                    if self.query.high_mark is None:
-                        val = self.connection.ops.no_limit_value()
-                        if val:
-                            result.append('LIMIT %d' % val)
-                    result.append('OFFSET %d' % self.query.low_mark)
-            # return result, params
+            if with_limits:
+                if self.query.low_mark != self.query.high_mark:
+                    if self.query.high_mark is not None:
+                        result.append('LIMIT %d' % (self.query.high_mark - self.query.low_mark))
+                    if self.query.low_mark:
+                        if self.query.high_mark is None:
+                            val = self.connection.ops.no_limit_value()
+                            if val:
+                                result.append('LIMIT %d' % val)
+                        result.append('OFFSET %d' % self.query.low_mark)
+
             return ' '.join(result), tuple(params)
         finally:
             # Finally do cleanup - get rid of the joins we created above.
@@ -158,9 +161,22 @@ class FilteredRawQuerySet(RawQuerySet):
         return c
 
     def values(self, *fields):
-        values_query_set = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
-        values_query_set.raw_queryset = self
-        return values_query_set
+        values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
+        values_queryset.raw_queryset = self
+        return values_queryset
+
+    def values_list(self, *fields, **kwargs):
+        flat = kwargs.pop('flat', False)
+        if kwargs:
+            raise TypeError('Unexpected keyword arguments to values_list: %s'
+                    % (list(kwargs),))
+        if flat and len(fields) > 1:
+            raise TypeError("'flat' is not valid when values_list is called with more than one field.")
+        values_list_queryset = self.filtered_qs._clone(klass=RawValuesListQuerySet, setup=True, flat=flat,
+                           _fields=fields)
+        values_list_queryset.raw_queryset = self
+        return values_list_queryset
+
 
 
 class RawValuesQuerySet(ValuesQuerySet):
@@ -170,13 +186,24 @@ class RawValuesQuerySet(ValuesQuerySet):
         self.raw_queryset = None
 
     def iterator(self):
-        # Purge any extra columns that haven't been explicitly asked for
-        extra_names = list(self.query.extra_select)
-        field_names = self.field_names
-        annotation_names = list(self.query.annotation_select)
         model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
 
-        names = extra_names + field_names + [field for field, idx in annotation_fields]
+        names = model_init_names + [field for field, idx in annotation_fields]
 
-        for row in self.raw_queryset.query.get_compiler(self.db).results_iter():
-            yield dict(zip(names, row))
+        for row in self.raw_queryset.__iter__():
+            value = {attr:getattr(row, attr) for attr in names}
+            yield value
+
+
+class RawValuesListQuerySet(ValuesListQuerySet):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.raw_queryset = None
+
+    def iterator(self):
+        model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
+        annotation_select = {field: pos for field, pos in annotation_fields}
+        self.query = self.raw_queryset.query
+        self.query.annotation_select = annotation_select
+        yield from super().iterator()
