@@ -224,8 +224,10 @@ class FilteredRawQuerySet(RawQuerySet):
                     % (list(kwargs),))
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
+        # Do not pass _fields=fields because it will raise errors for raw query annotated fields.
         values_list_queryset = self.filtered_qs._clone(klass=RawValuesListQuerySet, setup=True, flat=flat,
-                           _fields=fields)
+                           _fields=())
+        values_list_queryset.values_fields = fields if len(fields) > 0 else self.columns
         values_list_queryset.raw_queryset = self
         return values_list_queryset
 
@@ -255,9 +257,9 @@ class RawValuesQuerySet(RawQuerySetMixin, ValuesQuerySet):
 class RawValuesListQuerySet(RawQuerySetMixin, ValuesListQuerySet):
 
     def iterator(self):
-        model_init_names, model_init_pos, annotation_fields = self.raw_queryset.resolve_model_init_order()
-        annotation_select = {field: pos for field, pos in annotation_fields}
-        self.query = self.raw_queryset.query
-        self.query.annotation_select = annotation_select
-        self.query._fields = self._fields
-        yield from super().iterator()
+        for row in self.raw_queryset.__iter__():
+            if self.flat:
+                yield getattr(row, self.values_fields[0])
+            else:
+                value = [getattr(row, attr) for attr in self.values_fields]
+                yield value
