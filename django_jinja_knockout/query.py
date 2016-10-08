@@ -211,9 +211,9 @@ class FilteredRawQuerySet(RawQuerySet):
         )
 
     def values(self, *fields):
-        model_init_names, model_init_pos, annotation_fields = self.resolve_model_init_order()
-        self.filtered_qs.query._annotations = {field:pos for field, pos in annotation_fields}
-        values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
+        # Do not pass _fields=fields because it will raise errors for raw query annotated fields.
+        values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=())
+        values_queryset.values_fields = fields if len(fields) > 0 else self.columns
         values_queryset.raw_queryset = self
         return values_queryset
 
@@ -235,22 +235,21 @@ class RawQuerySetMixin():
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.raw_queryset = None
+        self.values_fields = None
 
     def _clone(self, klass=None, setup=False, **kwargs):
         c = super()._clone(klass, setup, **kwargs)
         c.raw_queryset = self.raw_queryset
+        c.values_fields = self.values_fields[:]
         return c
-
-    def _values_iterator(self):
-        for row in self.raw_queryset.__iter__():
-            value = {attr: getattr(row, attr) for attr in self.raw_queryset.columns}
-            yield value
 
 
 class RawValuesQuerySet(RawQuerySetMixin, ValuesQuerySet):
 
     def iterator(self):
-        yield from self._values_iterator()
+        for row in self.raw_queryset.__iter__():
+            value = {attr: getattr(row, attr) for attr in self.values_fields}
+            yield value
 
 
 class RawValuesListQuerySet(RawQuerySetMixin, ValuesListQuerySet):
