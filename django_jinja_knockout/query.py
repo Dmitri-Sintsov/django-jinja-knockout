@@ -3,8 +3,14 @@ from copy import copy
 
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models.sql.compiler import SQLCompiler
-from django.db.models.sql import RawQuery
+from django.db.models.sql import Query, RawQuery
 from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet, ValuesListQuerySet
+
+
+class FilteredQuery(Query):
+
+    def _setup_query(self):
+        super()._setup_query()
 
 
 class RawSqlCompiler(SQLCompiler):
@@ -114,7 +120,8 @@ class FilteredRawQuery(RawQuery):
             context=super_c.context
         )
         c.filtered_query = self.filtered_query if is_already_filtered else self.filtered_query.clone()
-        for prop in ('cursor', 'low_mark', 'high_mark', 'extra_select', 'annotation_select'):
+        # Do not copy 'cursor', it may cause infitite recursion.
+        for prop in ('low_mark', 'high_mark', 'extra_select', 'annotation_select'):
             setattr(c, prop, copy(getattr(self, prop)))
         return c
 
@@ -180,26 +187,32 @@ class FilteredRawQuerySet(RawQuerySet):
         return c
 
     def filter(self, *args, **kwargs):
-        filtered_qs = self.filtered_qs.filter(*args, **kwargs)
-        c = self.__class__.clone_raw_queryset(raw_qs=self, filtered_qs=filtered_qs)
-        return c
+        return self.__class__.clone_raw_queryset(
+            raw_qs=self,
+            filtered_qs=self.filtered_qs.filter(*args, **kwargs)
+        )
 
     def exclude(self, *args, **kwargs):
-        self.filtered_qs = self.filtered_qs.exclude(*args, **kwargs)
-        self.query.filtered_query = self.filtered_qs.query
-        return self
+        return self.__class__.clone_raw_queryset(
+            raw_qs=self,
+            filtered_qs=self.filtered_qs.exclude(*args, **kwargs)
+        )
 
     def order_by(self, *field_names):
-        self.filtered_qs = self.filtered_qs.order_by(*field_names)
-        self.query.filtered_query = self.filtered_qs.query
-        return self
+        return self.__class__.clone_raw_queryset(
+            raw_qs=self,
+            filtered_qs=self.filtered_qs.order_by(*field_names)
+        )
 
     def distinct(self, *field_names):
-        self.filtered_qs = self.filtered_qs.distinct(*field_names)
-        self.query.filtered_query = self.filtered_qs.query
-        return self
+        return self.__class__.clone_raw_queryset(
+            raw_qs=self,
+            filtered_qs=self.filtered_qs.distinct(*field_names)
+        )
 
     def values(self, *fields):
+        model_init_names, model_init_pos, annotation_fields = self.resolve_model_init_order()
+        self.filtered_qs.query._annotations = {field:pos for field, pos in annotation_fields}
         values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=fields)
         values_queryset.raw_queryset = self
         return values_queryset
