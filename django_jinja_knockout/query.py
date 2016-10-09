@@ -7,12 +7,6 @@ from django.db.models.sql import Query, RawQuery
 from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet, ValuesListQuerySet
 
 
-class FilteredQuery(Query):
-
-    def _setup_query(self):
-        super()._setup_query()
-
-
 class RawSqlCompiler(SQLCompiler):
 
     def __init__(self, query, connection, using):
@@ -209,6 +203,11 @@ class FilteredRawQuerySet(RawQuerySet):
             raw_qs=self,
             filtered_qs=self.filtered_qs.distinct(*field_names)
         )
+
+    # Warning: might return incorrect number for raw query with non-LEFT JOIN of another table(s).
+    # todo: Implement as annotation: see sql.Query.get_count().
+    def count(self):
+        return self.filtered_qs.count()
 
     def values(self, *fields):
         # Do not pass _fields=fields because it will raise errors for raw query annotated fields.
