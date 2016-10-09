@@ -1,6 +1,7 @@
 import types
 from copy import copy
 
+from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import Query, RawQuery
@@ -126,6 +127,9 @@ class FilteredRawQuery(RawQuery):
         compiler.raw_query = self
         return compiler
 
+    def set_limits(self, low=None, high=None):
+        self.filtered_query.set_limits(low, high)
+
     def _execute_query(self):
         compiler = self.get_compiler(DEFAULT_DB_ALIAS)
         result, params = compiler.as_sql()
@@ -229,6 +233,33 @@ class FilteredRawQuerySet(RawQuerySet):
         values_list_queryset.values_fields = fields if len(fields) > 0 else self.columns
         values_list_queryset.raw_queryset = self
         return values_list_queryset
+
+    def __getitem__(self, k):
+        """
+        Retrieves an item or slice from the set of results.
+        """
+        if not isinstance(k, (slice,) + six.integer_types):
+            raise TypeError
+        assert ((not isinstance(k, slice) and (k >= 0)) or
+                (isinstance(k, slice) and (k.start is None or k.start >= 0) and
+                 (k.stop is None or k.stop >= 0))), \
+            "Negative indexing is not supported."
+
+        qs = self._clone()
+        if isinstance(k, slice):
+            if k.start is not None:
+                start = int(k.start)
+            else:
+                start = None
+            if k.stop is not None:
+                stop = int(k.stop)
+            else:
+                stop = None
+            qs.query.set_limits(start, stop)
+            return list(qs)[::k.step] if k.step else qs
+
+        qs.query.set_limits(k, k+1)
+        return list(qs)[0]
 
 
 class RawQuerySetMixin():
