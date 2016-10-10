@@ -404,9 +404,9 @@ class FieldValidator:
         ('DecimalField', None)
     )
 
-    def __init__(self, view, fieldname):
+    def __init__(self, view, fieldname, model_class=None):
         self.view = view
-        self.model_field = get_related_field(view.model, fieldname)
+        self.model_field = get_related_field(view.model if model_class is None else model_class, fieldname)
         self.form_field, self.field_filter_type = self.get_form_field()
 
     def get_form_field(self):
