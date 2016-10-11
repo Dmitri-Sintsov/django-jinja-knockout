@@ -612,11 +612,11 @@ App.ko.GridRow = function(options) {
     };
 
     // Descendant could skip html encoding selected fields to preserve html formatting.
-    GridRow.htmlEncode = function(displayValue, field) {
-        if (typeof displayValue === 'object') {
-            return _.mapObject(displayValue, _.bind(this.htmlEncode, this));
+    GridRow.htmlEncode = function(displayValue, field, markSafe) {
+        if (markSafe) {
+            return displayValue;
         } else {
-            return $.htmlEncode(displayValue);
+            return App.recursiveMap(displayValue, $.htmlEncode);
         }
     };
 
@@ -644,9 +644,7 @@ App.ko.GridRow = function(options) {
         } else {
             displayValue = value;
         }
-        if (!markSafe) {
-            displayValue = this.htmlEncode(displayValue);
-        }
+        displayValue = this.htmlEncode(displayValue, field, markSafe);
         return displayValue;
     };
 

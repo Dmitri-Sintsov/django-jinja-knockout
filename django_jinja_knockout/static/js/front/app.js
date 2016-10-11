@@ -116,6 +116,16 @@ App.blockTags = {
     ]
 };
 
+
+App.recursiveMap = function(value, fn) {
+    if (typeof value === 'object') {
+        return _.mapObject(value, fn);
+    } else {
+        return fn(value);
+    }
+};
+
+
 /**
  * BootstrapDialog wrapper.
  */
