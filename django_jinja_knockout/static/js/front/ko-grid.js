@@ -110,7 +110,12 @@ App.ko.GridColumnOrder = function(options) {
             $(element).empty().append(value);
         } else if (typeof value === 'object') {
             $(element).empty();
-            App.renderNestedList(element, value, {blockTags: this.blockTags});
+            /**
+             * Do not escape nested list because it's escaped by default in App.ko.GridRow.htmlEncode().
+             * This allows to have both escaped and unescaped nested lists in row cells
+             * via App.ko.Grid.isMarkSafeField()
+             */
+            App.renderNestedList(element, value, {blockTags: this.blockTags, fn: 'html'});
         } else {
             // Warning: make sure string is escaped!
             // Primarily use is to display server-side formatted strings (Djano local date / currency format).
