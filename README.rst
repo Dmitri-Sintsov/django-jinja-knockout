@@ -26,6 +26,8 @@ Key features
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
+* Django raw queries with ``filter()`` / ``exclude()`` / ``order()`` / ``values()`` / ``values_list()`` and SQL slicing
+  support via ``FilteredRawQuerySet``, suitable for ``ListView`` / ``ListSortingView`` / ``KoGridView``.
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.

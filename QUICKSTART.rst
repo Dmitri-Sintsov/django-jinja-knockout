@@ -3,6 +3,8 @@ Quickstart
 ===========
 
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
+.. _FilteredRawQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/query.py
+.. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
@@ -273,6 +275,20 @@ models.py
   fields::
 
     {{ get_verbose_name(profile, 'user__username') }}
+
+query.py
+--------
+`FilteredRawQuerySet`_ inherits Django ``RawQuerySet`` class whose instances are returned by Django model object manager
+``.raw()`` calls.
+
+It supports ``.filter()`` / ``.exclude()`` / ``.order_by()`` / ``values()`` / ``values_list()``
+queryset methods and also SQL-level slicing which is much more efficient than Python slicing of ``RawQuerySet``.
+
+These methods are required to use filtering / ordering capabilities of ``ListSortingView`` and ``KoGridView``
+class-based views defined in `views.py`_.
+
+See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
+raw query which has ``LEFT JOIN`` statement.
 
 tpl.py
 ------
