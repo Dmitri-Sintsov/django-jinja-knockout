@@ -5,8 +5,7 @@ from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import Query, RawQuery
-from django.db.models.query import RawQuerySet, QuerySet, ValuesQuerySet, ValuesListQuerySet
-
+from django.db.models.query import RawQuerySet, QuerySet
 
 class RawSqlCompiler(SQLCompiler):
 
@@ -25,12 +24,18 @@ class RawSqlCompiler(SQLCompiler):
                 return '', ()
             distinct_fields = self.get_distinct()
 
-            where, w_params = self.compile(self.query.where)
+            # Django 1.8 uses self.query.where.
+            # Django 1.9, 1.10 uses self.where.
+            query_where = getattr(self, 'where', self.query.where)
+            where, w_params = self.compile(query_where) if query_where is not None else ("", [])
             if where:
                 result.append('WHERE %s' % where)
                 params.extend(w_params)
 
-            having, h_params = self.compile(self.query.having)
+            # Django 1.8 uses self.query.having.
+            # Django 1.9, 1.10 uses self.having.
+            query_having = getattr(self, 'having', getattr(self.query, 'having', None))
+            having, h_params = self.compile(query_having) if query_having is not None else ("", [])
             if having:
                 result.append('HAVING %s' % having)
                 params.extend(h_params)
@@ -235,11 +240,11 @@ class FilteredRawQuerySet(RawQuerySet):
         return self.filtered_qs.count()
 
     def values(self, *fields):
-        # Do not pass _fields=fields because it will raise errors for raw query annotated fields.
-        values_queryset = self.filtered_qs._clone(klass=RawValuesQuerySet, setup=True, _fields=())
-        values_queryset.values_fields = fields if len(fields) > 0 else self.columns
-        values_queryset.raw_queryset = self
-        return values_queryset
+        values_fields = fields if len(fields) > 0 else self.columns
+        c = self._clone()
+        for row in c.__iter__():
+            value = {attr: getattr(row, attr) for attr in values_fields}
+            yield value
 
     def values_list(self, *fields, **kwargs):
         flat = kwargs.pop('flat', False)
@@ -248,12 +253,14 @@ class FilteredRawQuerySet(RawQuerySet):
                     % (list(kwargs),))
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
-        # Do not pass _fields=fields because it will raise errors for raw query annotated fields.
-        values_list_queryset = self.filtered_qs._clone(klass=RawValuesListQuerySet, setup=True, flat=flat,
-                           _fields=())
-        values_list_queryset.values_fields = fields if len(fields) > 0 else self.columns
-        values_list_queryset.raw_queryset = self
-        return values_list_queryset
+        values_fields = fields if len(fields) > 0 else self.columns
+        c = self._clone()
+        for row in c.__iter__():
+            if self.flat:
+                yield getattr(row, values_fields[0])
+            else:
+                value = [getattr(row, attr) for attr in values_fields]
+                yield value
 
     def __getitem__(self, k):
         """
@@ -281,36 +288,3 @@ class FilteredRawQuerySet(RawQuerySet):
 
         qs.query.set_limits(k, k+1)
         return list(qs)[0]
-
-
-class RawQuerySetMixin():
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raw_queryset = None
-        self.values_fields = None
-
-    def _clone(self, klass=None, setup=False, **kwargs):
-        c = super()._clone(klass, setup, **kwargs)
-        c.raw_queryset = self.raw_queryset
-        c.values_fields = self.values_fields[:]
-        return c
-
-
-class RawValuesQuerySet(RawQuerySetMixin, ValuesQuerySet):
-
-    def iterator(self):
-        for row in self.raw_queryset.__iter__():
-            value = {attr: getattr(row, attr) for attr in self.values_fields}
-            yield value
-
-
-class RawValuesListQuerySet(RawQuerySetMixin, ValuesListQuerySet):
-
-    def iterator(self):
-        for row in self.raw_queryset.__iter__():
-            if self.flat:
-                yield getattr(row, self.values_fields[0])
-            else:
-                value = [getattr(row, attr) for attr in self.values_fields]
-                yield value
