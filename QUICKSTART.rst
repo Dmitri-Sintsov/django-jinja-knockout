@@ -397,9 +397,9 @@ widgets.py
 utils/mail.py
 -------------
 
-``class SendmailQueue``, which instance is available globally as ``EmailQueue``, may be used to send multiple HTML
-emails with attachments. In case sendmail error is occured, error message might be transferred to form non-field
-errors (works both with AJAX and non-AJAX forms)::
+class ``SendmailQueue``, which instance is available globally as ``EmailQueue``, allows to send multiple HTML
+emails with attachments. In case sendmail error is occured, error message can be converted to form non-field errors with
+``form`` named argument of ``.flush()`` method (works with AJAX and non-AJAX forms)::
 
     from django_jinja_knockout.utils.mail import EmailQueue
 
@@ -411,9 +411,10 @@ errors (works both with AJAX and non-AJAX forms)::
         form=self.form
     )
 
-When there is no form or it 's undesirable to add form's non-field error, ``request`` kwarg may be supplied.
-It also works both with AJAX and non-AJAX views. AJAX views use client-side viewmodels, displaying error messages in
-BootstrapDialog window (AJAX views). Non-AJAX views use Django messaging framework to display sendmail errors::
+When there is no form submitted or it's undesirable to add form's non-field error, ``request`` named argument of
+``.flush()`` may be supplied instead. It also works with both AJAX and non-AJAX views. AJAX views would use client-side
+`viewmodels`_, displaying error messages in BootstrapDialog window. Non-AJAX views would use Django messaging framework
+to display sendmail errors::
 
     from django_jinja_knockout.utils.mail import EmailQueue
 
