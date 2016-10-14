@@ -2,9 +2,15 @@
 Quickstart
 ===========
 
+.. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
+.. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
+.. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _FilteredRawQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/query.py
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
+.. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
+.. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
+.. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
@@ -366,8 +372,8 @@ views.py
 widgets.py
 ----------
 * ``OptionalWidget`` - A two-component ``MultiField``: a checkbox that indicates optional value and a field itself
-  (``widget_class=Textarea`` by default) which is toggled via client-side ``plugins.js`` ``jQuery.optionalInput``
-  plugin, when the checkbox is unchecked::
+  (``widget_class`` = ``Textarea`` by default). The field itself is enabled / disabled accrording to the checkbox state
+  via client-side `$.optionalInput`_ plugin, implemented in `plugins.js`_::
 
     from django_jinja_knockout.widgets import OptionalWidget
 
@@ -375,12 +381,18 @@ widgets.py
 
 * ``DisplayText`` - Read-only widget for existing ``ModelForm`` bound objects. Assign to ``ModelForm.widgets`` or to
   ``ModelForm.fields.widget`` to make selected form fields displayed as read-only text.
+
   Use ``DisplayModelMetaclass`` from ``django_jinja_knockout.forms`` to set all field widgets of form as
   ``DisplayText``, making the whole form read-only.
-  In last case form will have special table rendering in Jinja2 ``bs_field()`` macro.
+
+  In last case the form will have special table rendering in Jinja2 `bs_field()`_ macro.
+
   Widget allows to specify custom formatting callback to display complex fields, including foreign relationships,
-  pre-defined string mapping for scalar ``True`` / ``False`` / ``None`` and layout override for ``bs_form()`` /
-  ``bs_inline_formsets()`` macros.
+  pre-defined string mapping for scalar ``True`` / ``False`` / ``None`` and layout override for `bs_form()`_ /
+  `bs_inline_formsets()`_ Jinja2 `macros`_. Note that it's possible to call these macros from Django language
+  templates like this::
+
+    {% jinja 'bs_form.htm' with _render_=1 form=form action=view_action opts=opts %}
 
 utils/mail.py
 -------------
