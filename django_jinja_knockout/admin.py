@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe, escape
 from django.db import models
 try:
+    # Django 1.8
     from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE as empty_value_display
 except ImportError:
     # Django > 1.8
@@ -43,7 +44,7 @@ class ProtectMixin(object):
             return True
         return not self.is_protected(obj)
 
-    """ https://docs.djangoproject.com/en/1.8/ref/contrib/admin/actions/ """
+    """ https://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/ """
     # Delete multiple objects.
     def delete_empty(self, request, queryset):
         # Do not allow to delete built-in specializations.

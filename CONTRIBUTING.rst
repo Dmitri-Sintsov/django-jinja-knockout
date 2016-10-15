@@ -121,6 +121,8 @@ Pull Request Guidelines
 -----------------------
 
 1. It would be great if the pull request included automated tests for `djk-sample`_.
-2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function
-   with a docstring, and add the feature to the list in README.rst.
+2. If the pull request adds functionality, the docs should be updated. Implement new functionality into a function /
+   class / method with a docstring. Major and important features should be briefly described in README.rst /
+   QUICKSTART.rst. Detailed documentation is not required but is welcomed and should be implemented in separate rst
+   file.
 3. The pull request should work for Python 3.4 / 3.5 Django 1.8 / 1.9 / 1.10 at least.
