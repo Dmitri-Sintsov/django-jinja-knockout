@@ -5,6 +5,8 @@ Quickstart
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
+.. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
+.. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _FilteredRawQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/query.py
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
@@ -146,7 +148,7 @@ scripts:
 admin.py
 --------
 * ``ProtectMixin`` - allow only some model instances to be deleted in django.admin.
-* ``get_admin_url`` - make readonly foreignkey field to be rendered as link to target model change view.
+* ``get_admin_url`` - make readonly foreignkey field to be rendered as link to the target model admin change view.
 
 context_processors.py
 ---------------------
@@ -312,11 +314,11 @@ Jinja2 templates and ``DisplayText`` widgets.
 
  * ``add_css_classes()`` - similar to client-side ``jQuery.addClass()``;
  * ``remove_css_classes()`` - similar to client-side ``jQuery.removeClass()``;
- * ``add_css_classes_to_dict()`` - optimized for usage as argument of ``django.forms.utils.flatatt``;
- * ``remove_css_classes_from_dict()`` - optimized for usage as argument of ``django.forms.utils.flatatt``;
+ * ``add_css_classes_to_dict()`` - optimized for usage as argument of ``django.forms.utils`` ``flatatt()``;
+ * ``remove_css_classes_from_dict()`` - optimized for usage as argument of ``django.forms.utils`` ``flatatt()``;
 
 * ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
-  ``utils.mail.SendmailQueue`` to convert HTML body of email message to text-only body.
+  `utils/mail.py`_ ``SendmailQueue`` to convert HTML body of email message to text-only body.
 * ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
 
 viewmodels.py
@@ -425,3 +427,75 @@ to display sendmail errors::
     ).flush(
         request=self.request
     )
+
+utils/sdv.py
+------------
+Contains many helper functions internally used by django-jinja-knockout. Some of these might be useful in Django project
+modules.
+
+``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
+instance of particular Django model object. For example::
+
+    class Member(models.Model):
+
+        # ... skipped ...
+        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
+
+    from .models import Member
+    from django_jinja_knockout.utils import sdv
+
+    # ... skipped ...
+    role_str = sdv.get_choice_str(Member.ROLES, role_val)
+
+``join_dict_values()`` - Some of Django models define `get_str_fields()`_ method which map model instance field values
+to their formatted string values, similar to ``Model`` ``__str()__`` method, but for separate fields.
+
+If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
+``join_dict_values()`` is used to convert nested dict `get_str_fields()`_ to flat strings::
+
+    class Member(models.Model):
+
+        # ... skipped ...
+
+        def get_str_fields(self):
+            parts = OrderedDict([
+                ('profile', self.profile.get_str_fields()),
+                ('club', self.club.get_str_fields()),
+                ('last_visit', format_local_date(timezone.localtime(self.last_visit))),
+                ('plays', self.get_plays_display()),
+                ('role', self.get_role_display()),
+                ('is_endorsed', 'endorsed' if self.is_endorsed else 'unofficial')
+            ])
+            return parts
+
+        def __str__(self):
+            str_fields = self.get_str_fields()
+            join_dict_values(' / ', str_fields, ['profile', 'club'])
+            return ' › '.join(str_fields.values())
+
+``dbg()`` - dumps ``value`` into text log file `'sdv_out.py3'` under ``name`` label. To setup log file path overwrite
+``LOGPATH`` value in Django project ``settings.py`` like that::
+
+    import os
+    from django_jinja_knockout.utils import sdv
+
+    # create log file inside active virtualenv path
+    sdv.LOGPATH = [os.environ['VIRTUAL_ENV'], 'djk-sample', 'logs']
+
+Then one may use it to log variables in Python code::
+
+    from django_jinja_knockout.utils import sdv
+
+    class Project(models.Model):
+
+      # ... skipped ...
+
+      def save(self, *args, **kwargs):
+          sdv.dbg('self.pk', self.pk)
+          # ... skipped ...
+
+When Project.save() method will be executed, `'sdv_out.py3'` log file will contain lines like this::
+
+    # /home/user/work/djk_sample/djk-sample/club-app/models.py::save()::251
+    # self.pk
+    9
