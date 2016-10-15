@@ -187,7 +187,7 @@ def get_formatted_url(url_name):
                 # Django 1.8
                 prefix = f_locals['prefix_norm']
             else:
-                # Django 1.10
+                # Django 1.9 / 1.10
                 prefix = f_locals['_prefix']
             return '{}{}'.format(prefix, f_locals['result'])
         else:
