@@ -35,7 +35,7 @@ install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt', ses
 setup(
     name='django-jinja-knockout',
     version=version,
-    description="""Bootstrap / Jinja2 / Knockout.js integration into Django projects.""",
+    description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX grids with CRUD and custom actions. Supports DTL.""",
     long_description=readme + '\n\n' + history,
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
@@ -47,7 +47,7 @@ setup(
     install_requires=install_reqs,
     license="BSD",
     zip_safe=False,
-    keywords='django-jinja-knockout',
+    keywords='django, jinja, knockout.js, ajax, forms, grid, datagrid',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
@@ -55,7 +55,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
