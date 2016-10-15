@@ -47,15 +47,15 @@ setup(
     install_requires=install_reqs,
     license="BSD",
     zip_safe=False,
-    keywords='django, jinja, knockout.js, ajax, forms, grid, datagrid',
+    keywords='django jinja knockout.js ajax forms grid datagrid'.split(),
     classifiers=[
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
 )
