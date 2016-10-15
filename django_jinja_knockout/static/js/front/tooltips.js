@@ -18,7 +18,12 @@ App.addViewHandler('popover_error', function(viewModel) {
 App.addViewHandler('form_error', function(viewModel) {
     var $field = $(document.getElementById(viewModel.id));
     if ($field.length == 0) {
-        throw "Unknown field auto_id:" + viewModel.id;
+        var $message = $('<div>');
+        App.renderNestedList($message, viewModel.messages);
+        new App.Dialog({
+            title: "Unknown field auto_id: " + viewModel.id,
+            message: $message
+        }).alert();
     }
     var $inputGroup = $field.parents('.input-group:eq(0)');
     if ($inputGroup.length > 0) {

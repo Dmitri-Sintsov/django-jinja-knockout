@@ -1,7 +1,12 @@
 {% macro render_field_standard(form, field, classes) -%}
+{% set label_att={'class': 'control-label ' + classes.label} -%}
 {% if field.auto_id -%}
-<label class="control-label {{ classes.label }} {% if field.field.required -%}required{% endif -%}" for="{{ field.auto_id }}">{{ field.label }}</label>
+    {% do label_att.update({'for': field.auto_id}) -%}
 {% endif -%}
+{% if field.field.required -%}
+    {% do add_css_classes_to_dict(label_att, 'required') -%}
+{% endif -%}
+<label{{ flatatt(label_att) }}>{{ field.label }}</label>
 
 <div class="field {{ classes.field }}">
     {{ field|safe }}
@@ -18,9 +23,14 @@
 
 {% macro render_field_displaytext(form, field, classes) -%}
 <tr>
+    {% set label_att = {'class': classes.label + ' success'} -%}
     {% if field.auto_id -%}
-    <td class="success {{ classes.label }} {% if field.field.required -%}required{% endif -%}" for="{{ field.auto_id }}">{{ field.label }}</td>
+        {% do label_att.update({'for': field.auto_id}) -%}
     {% endif -%}
+    {% if field.field.required -%}
+        {% do add_css_classes_to_dict(label_att, 'required') -%}
+    {% endif -%}
+    <td{{ flatatt(label_att) }}>{{ field.label }}</td>
 
     <td class="info {{ classes.field }}">
         {{ field|safe }}
@@ -40,11 +50,16 @@
 <div class="{{ classes.label }}"></div>
 <div class="field {{ classes.field }}">
     <div class="checkbox">
+        {% set label_att = {'class': 'control-label'} -%}
         {% if field.auto_id -%}
-        <label class="control-label {% if field.field.required -%}required{% endif -%}">
+            {% do label_att.update({'for': field.auto_id}) -%}
+        {% endif -%}
+        {% if field.field.required -%}
+            {% do add_css_classes_to_dict(label_att, 'required') -%}
+        {% endif -%}
+        <label{{ flatatt(label_att) }}>
             {{ field|safe }} <span>{{ field.label }}</span>
         </label>
-        {% endif -%}
         {% for error in field.errors -%}
         <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
         {% endfor -%}
@@ -58,10 +73,18 @@
 {% endmacro -%}
 
 {% macro render_field_multiple(form, field, classes) -%}
+{% set label_att = {'class': 'control-label ' + classes.label} -%}
+{% set field_att = {} -%}
 {% if field.auto_id -%}
-<label class="control-label {{ classes.label }} {% if field.field.required -%}required{% endif -%}">{{ field.label }}</label>
+    {% do label_att.update({'for': field.auto_id}) -%}
+    {% do field_att.update({'id': field.auto_id}) -%}
 {% endif -%}
+{% if field.field.required -%}
+    {% do add_css_classes_to_dict(label_att, 'required') -%}
+{% endif -%}
+<label{{ flatatt(label_att) }}>{{ field.label }}</label>
 <div class="field {{ classes.field }}">
+    <div{{ flatatt(field_att) }}></div>
     <div class="input-as-select">
         {% for choice in field -%}
         <div class="{{ classes.multiple_type }}">
