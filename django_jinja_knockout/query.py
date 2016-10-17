@@ -238,7 +238,11 @@ class FilteredRawQuerySet(RawQuerySet):
 
     # todo: Implement as annotation: see sql.Query.get_count().
     def count(self):
-        c = self._clone()
+        # Reset .order_by() which is not required for .count() and may cause
+        # 'column "FOO" must appear in the GROUP BY clause or be used in an aggregate function'
+        # error when particular column is in the list of currently applied order_by().
+        # .filter() seems not to be affected.
+        c = self.order_by()
 
         # Rewrite query arguments to 'count(*)' function.
         stmts = tokenize(c.query.sql)
