@@ -5,5 +5,6 @@ django-jinja>=1.4.1
 bleach>=1.4.2
 lxml>=3.4.4
 ensure>=0.3.2
+sqlparse>=0.2.1
 pytz
 

@@ -1,5 +1,7 @@
 import types
 from copy import copy
+from sqlparse.tokens import Token
+from sqlparse.lexer import tokenize
 
 from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
@@ -234,10 +236,36 @@ class FilteredRawQuerySet(RawQuerySet):
             filtered_qs=self.filtered_qs.distinct(*self.get_mapped_filter_args(*field_names))
         )
 
-    # Warning: might return incorrect number for raw query with non-LEFT JOIN of another table(s).
     # todo: Implement as annotation: see sql.Query.get_count().
     def count(self):
-        return self.filtered_qs.count()
+        c = self._clone()
+
+        # Rewrite query arguments to 'count(*)' function.
+        stmts = tokenize(c.query.sql)
+        rewrite_query = []
+        copying = True
+        for token_type, token_value in stmts:
+            if copying:
+                rewrite_query.append(token_value)
+            if token_type == Token.Keyword.DML and token_value.upper() == 'SELECT':
+                copying = False
+                rewrite_query.append(' count(*) ')
+            elif token_type == Token.Keyword and token_value.upper() == 'FROM':
+                copying = True
+                rewrite_query.append(token_value)
+        c.query.sql = ''.join(rewrite_query)
+
+        # If the rewrite was successful, there will be 'count(*)' annotated field in query result.
+        model_init_names, model_init_pos, annotation_fields = c.resolve_model_init_order()
+        for field, pos in annotation_fields:
+            if field == 'count(*)':
+                query = iter(c.query)
+                for values in query:
+                    count = values[pos]
+                    return count
+
+        # Fallback to approximate QuerySet.count() when SQL query rewrite failed.
+        return c.filtered_qs.count()
 
     def values(self, *fields):
         values_fields = fields if len(fields) > 0 else self.columns
