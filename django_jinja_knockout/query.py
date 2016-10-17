@@ -243,28 +243,25 @@ class FilteredRawQuerySet(RawQuerySet):
         # Rewrite query arguments to 'count(*)' function.
         stmts = tokenize(c.query.sql)
         rewrite_query = []
+        is_rewritten = False
         copying = True
         for token_type, token_value in stmts:
             if copying:
                 rewrite_query.append(token_value)
             if token_type == Token.Keyword.DML and token_value.upper() == 'SELECT':
                 copying = False
+                is_rewritten = True
                 rewrite_query.append(' count(*) ')
             elif token_type == Token.Keyword and token_value.upper() == 'FROM':
                 copying = True
                 rewrite_query.append(token_value)
-        c.query.sql = ''.join(rewrite_query)
 
-        # If the rewrite was successful, there will be 'count(*)' annotated field in query result.
-        # note: do not use c.resolve_model_init_order() as it would throw an psycopg2.ProgrammingError
-        # due to missing model fields in the rewritten query.
-        model_init_names, model_init_pos, annotation_fields = self.resolve_model_init_order()
-        for field, pos in annotation_fields:
-            if field == 'count(*)':
-                query = iter(c.query)
-                for values in query:
-                    count = values[pos]
-                    return count
+        if is_rewritten:
+            c.query.sql = ''.join(rewrite_query)
+            query = iter(c.query)
+            for values in query:
+                count = values[0]
+                return count
 
         # Fallback to approximate QuerySet.count() when SQL query rewrite failed.
         return c.filtered_qs.count()
