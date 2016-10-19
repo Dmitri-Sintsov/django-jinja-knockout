@@ -64,7 +64,7 @@ class SendmailQueue:
         self.connection = self.connection or mail.get_connection(**kwargs)
 
         try:
-            raise SMTPDataError(code=123, msg='Test error')
+            # raise SMTPDataError(code=123, msg='Test error')
             result = self.connection.send_messages(self.messages)
             if hasattr(self.ioc, 'success'):
                 self.ioc.success()
@@ -88,8 +88,7 @@ class SendmailQueue:
                     'msg': e.strerror,
                 }
             msg = _(trans_msg) % trans_params
-            if hasattr(self.ioc, 'error'):
-                self.ioc.error(**trans_params)
+            raise_error = self.ioc.error(**trans_params) if hasattr(self.ioc, 'error') else True
             if form is not None:
                 form.add_error(None, msg)
             elif request is not None:
@@ -101,7 +100,8 @@ class SendmailQueue:
                     })
                 else:
                     messages.error(request, msg)
-            else:
+            elif raise_error:
                 raise e
+
 
 EmailQueue = SendmailQueue()
