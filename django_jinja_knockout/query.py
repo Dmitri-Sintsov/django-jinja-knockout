@@ -9,6 +9,7 @@ from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import Query, RawQuery
 from django.db.models.query import RawQuerySet, QuerySet
 
+
 class RawSqlCompiler(SQLCompiler):
 
     def __init__(self, query, connection, using):

@@ -8,10 +8,12 @@ from django.contrib import messages
 from ..tpl import html_to_text
 from ..middleware import ImmediateJsonResponse
 
+
 # @todo: Use Celery to send mass-mails, check whether it is possible to report async mail errors via socket.io.
 class SendmailQueue:
 
     def __init__(self, defaults={}):
+        self.ioc = object()
         self.messages = []
         self.defaults = {
             'subject': '',
@@ -28,6 +30,12 @@ class SendmailQueue:
         self.connection = None
         self.defaults.update(defaults)
 
+    def set_ioc(self, ioc_instance):
+        self.ioc = ioc_instance
+
+    def __getattr__(self, name):
+        return getattr(self.ioc, name)
+
     def add(self, **kwargs):
         if 'html_body' not in kwargs:
             html_body = linebreaks(linkify(kwargs['body']))
@@ -40,6 +48,10 @@ class SendmailQueue:
         self.messages.append(message)
         return self
 
+    def __iter__(self):
+        for message in self.messages:
+            yield message
+
     def flush(self, **kwargs):
         kwargs = dict({
             'request': None,
@@ -50,29 +62,34 @@ class SendmailQueue:
         form = kwargs.pop('form', None)
         self.connection = kwargs.get('connection', self.connection)
         self.connection = self.connection or mail.get_connection(**kwargs)
-        if request is None and form is None:
-            result = self.connection.send_messages(self.messages)
-            self.messages = []
-            return result
 
         try:
-            # raise SMTPDataError(code=123, msg='Big error')
+            raise SMTPDataError(code=123, msg='Test error')
             result = self.connection.send_messages(self.messages)
+            if hasattr(self.ioc, 'success'):
+                self.ioc.success()
             self.messages = []
             return result
         except (SMTPDataError, gaierror) as e:
             if isinstance(e, SMTPDataError):
                 title = e.smtp_code
-                msg = _('Error "%(code)s" "%(msg)s" while sending email.') % {
+                trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while sending email.'
+                trans_params = {
+                    'err_type': 'SMTPDataError',
                     'code': e.smtp_code,
                     'msg': e.smtp_error,
                 }
             else:
                 title = e.errno
-                msg = _('Error "%(code)s" "%(msg)s" while resolving inet address.') % {
+                trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while resolving inet address.'
+                trans_params = {
+                    'err_type': 'gaierror',
                     'code': e.errno,
                     'msg': e.strerror,
                 }
+            msg = _(trans_msg) % trans_params
+            if hasattr(self.ioc, 'error'):
+                self.ioc.error(**trans_params)
             if form is not None:
                 form.add_error(None, msg)
             elif request is not None:
