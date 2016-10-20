@@ -21,74 +21,74 @@ msgstr ""
 "X-Generator: Gtranslator 2.91.6\n"
 
 msgid "No"
-msgstr "Нет"
+msgstr ""
 
 msgid "Yes"
-msgstr "Да"
+msgstr ""
 
 msgid "From"
-msgstr "От"
+msgstr ""
 
 msgid "To"
-msgstr "До"
+msgstr ""
 
 msgid "AJAX request error"
-msgstr "Ошибка ajax запроса"
+msgstr ""
 
 #, javascript-format
 msgid "Undefined response view %s"
-msgstr "Неопределен response.view %s"
+msgstr ""
 
 msgid "Request error"
-msgstr "Ошибка запроса"
+msgstr ""
 
 msgid "Choose year / decade."
-msgstr "Выбор года / десятилетия."
+msgstr ""
 
 #, javascript-format
 msgid "Delete \"%s\""
-msgstr "Удалить \"%s\""
+msgstr ""
 
 #, javascript-format
 msgid "Are you sure you want to delete \"%s\" ?"
-msgstr "Вы уверены что хотите удалить \"%s\" ?"
+msgstr ""
 
 msgid "Required"
-msgstr "Обязательное"
+msgstr ""
 
 msgid "Delete when saved"
-msgstr "Удалить при сохранении"
+msgstr ""
 
 msgid "First page"
-msgstr "В начало"
+msgstr ""
 
 msgid "Last page"
-msgstr "В конец"
+msgstr ""
 
 msgid "All"
-msgstr "Все"
+msgstr ""
 
 msgid "Search"
-msgstr "Поиск"
+msgstr ""
 
 msgid "Remove selection"
-msgstr "Сбросить выделение"
+msgstr ""
 
 msgid "Apply"
-msgstr "Применить"
+msgstr ""
 
 msgid "N/A"
-msgstr "…"
+msgstr ""
 
 msgid "Save"
-msgstr "Сохранить"
+msgstr ""
 
 msgid "Cancel"
-msgstr "Отмена"
+msgstr ""
 
 msgid "Choose action"
-msgstr "Выберите действие"
+msgstr ""
 
 #, javascript-format
 msgid "Too big file size=%s, max_size=%s"
-msgstr "Слишком большой размер файла %s, максимальный размер %s"
+msgstr ""

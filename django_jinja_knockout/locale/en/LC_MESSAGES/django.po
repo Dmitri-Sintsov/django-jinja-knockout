@@ -21,64 +21,64 @@ msgstr ""
 "X-Generator: Gtranslator 2.91.6\n"
 
 msgid "Yes"
-msgstr "Да"
+msgstr ""
 
 msgid "No"
-msgstr "Нет"
+msgstr ""
 
 msgid "Home"
-msgstr "В начало"
+msgstr ""
 
 msgid "First page"
-msgstr "В начало"
+msgstr ""
 
 msgid "Previous"
-msgstr "Предыдущая"
+msgstr ""
 
 #, python-format
 msgid "Page %(number)d of %(numpages)d"
-msgstr "Страница %(number)d из %(numpages)d"
+msgstr ""
 
 msgid "Next"
-msgstr "Следующая"
+msgstr ""
 
 msgid "Last page"
-msgstr "В конец"
+msgstr ""
 
 #, python-format
 msgid "Add \"%(verbose_name)s\""
-msgstr "Добавить \"%(verbose_name)s\""
+msgstr ""
 
 msgid "Close"
-msgstr "Закрыть"
+msgstr ""
 
 msgid "Delete non-builtin records"
-msgstr "Удалить невстроенные записи"
+msgstr ""
 
 msgid "Access to current url is denied"
-msgstr "Вы не имеете доступа к данному url"
+msgstr ""
 
 #, python-format
 msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
-msgstr "Ошибка \"%(code)s\" \"%(msg)s\" при отправке почты."
+msgstr ""
 
 msgid "Move"
-msgstr "Переместить"
+msgstr ""
 
 msgid "Unknown action"
-msgstr "Неопределенное действие"
+msgstr ""
 
 msgid "Action \"{}\" is not implemented"
-msgstr "Действие \"{}\" не реализовано"
+msgstr ""
 
 #, python-format
 msgid "Action \"%(action)s\" is not allowed"
-msgstr "Действие \"%(action)s\" не разрешено"
+msgstr ""
 
 #, python-format
 msgid "There is no \"%(heading)s\" to display."
-msgstr "\"%(heading)s\" в настоящее время отсутствуют."
+msgstr ""
 
 #, python-format
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
-msgstr "Отсутствуют \"%(heading)s\" типа %(filters_str)s"
+msgstr ""
