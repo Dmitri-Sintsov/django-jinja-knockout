@@ -45,7 +45,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=install_reqs,
-    license="BSD",
+    license="GPL-3.0",
     zip_safe=False,
     keywords='django jinja knockout.js ajax forms grid datagrid'.split(),
     classifiers=[
