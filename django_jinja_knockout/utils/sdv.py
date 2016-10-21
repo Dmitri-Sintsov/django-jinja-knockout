@@ -81,7 +81,8 @@ def get_choice_str(choices, selected_choice):
 @ensure_annotations
 def join_dict_values(ch: str, d: dict, keys: list):
     for key in keys:
-        d[key] = ch.join([str(val) for val in d[key].values()])
+        if isinstance(d[key], dict):
+            d[key] = ch.join([str(val) for val in d[key].values()])
 
 
 def dbg(name, value=None):

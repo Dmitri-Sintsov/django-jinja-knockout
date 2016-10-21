@@ -53,6 +53,8 @@ class SendmailQueue:
             yield message
 
     def flush(self, **kwargs):
+        if len(self.messages) == 0:
+            return
         kwargs = dict({
             'request': None,
             'form': None,
