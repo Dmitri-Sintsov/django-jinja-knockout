@@ -7,6 +7,8 @@ Contributing
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _Selenium: http://www.seleniumhq.org/
 .. _djk-sample unit tests: https://github.com/Dmitri-Sintsov/djk-sample#selenium-tests
+.. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
+.. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 
 `django_jinja_knockout`_ is an open source project originally written by very poor guy from Russia so feel free
 to support it either by contributing new features / fixes / unit tests or by hiring me remotely to develop additional
@@ -38,6 +40,16 @@ If you are reporting a bug, please include:
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
 * Feel free to fix bug or to suggest / implement a feature at github.
+
+Translation / Localization
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you know one of the currently available languages, please contribute to localization of the project:
+
+* `django-jinja-knockout python localization`_
+* `django-jinja-knockout javascript localization`_
+
+There are not so many strings to translate so it should not take too much of time. However even incomplete localization
+is better than none.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~

@@ -5,6 +5,8 @@ django-jinja-knockout
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _Bootstrap 3: http://getbootstrap.com/
+.. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
+.. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
     :target: https://badge.fury.io/py/django-jinja-knockout
 
@@ -135,6 +137,11 @@ Quick notes:
 * How to contribute_
 * History_
 * Credits_
+
+If you know one of the currently available languages, please contribute to localization of the project:
+
+* `django-jinja-knockout python localization`_
+* `django-jinja-knockout javascript localization`_
 
 Cookiecutter Tools Used in Making This Package
 ----------------------------------------------
