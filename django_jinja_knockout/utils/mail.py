@@ -34,9 +34,12 @@ class SendmailQueue:
         self.ioc = ioc_instance
 
     def __getattr__(self, name):
-        return getattr(self.ioc, name)
+        if hasattr(self.ioc, name):
+            return getattr(self.ioc, name)
+        else:
+            return getattr(self, '_' + name)
 
-    def add(self, **kwargs):
+    def _add(self, **kwargs):
         if 'html_body' not in kwargs:
             html_body = linebreaks(linkify(kwargs['body']))
         elif 'body' not in kwargs:
@@ -52,7 +55,7 @@ class SendmailQueue:
         for message in self.messages:
             yield message
 
-    def flush(self, **kwargs):
+    def _flush(self, **kwargs):
         if len(self.messages) == 0:
             return
         kwargs = dict({
