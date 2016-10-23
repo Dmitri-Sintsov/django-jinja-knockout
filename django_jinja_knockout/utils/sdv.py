@@ -79,10 +79,15 @@ def get_choice_str(choices, selected_choice):
 
 
 @ensure_annotations
-def join_dict_values(ch: str, d: dict, keys: list):
-    for key in keys:
+def join_dict_values(ch: str, d: dict, only_keys=None, enclosure_fmt='({})'):
+    for key in d:
+        if only_keys is not None and key not in only_keys:
+            break
         if isinstance(d[key], dict):
-            d[key] = ch.join([str(val) for val in d[key].values()])
+            v = ch.join([str(val) for val in d[key].values()])
+            if len(d[key]) > 1 and enclosure_fmt is not None:
+                v = enclosure_fmt.format(v)
+            d[key] = v
 
 
 def dbg(name, value=None):
