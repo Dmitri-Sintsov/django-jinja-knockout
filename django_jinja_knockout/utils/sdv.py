@@ -78,16 +78,31 @@ def get_choice_str(choices, selected_choice):
     return selected_choice_str
 
 
-@ensure_annotations
-def join_dict_values(ch: str, d: dict, only_keys=None, enclosure_fmt='({})'):
+def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
+    r = d.__class__()
     for key in d:
-        if only_keys is not None and key not in only_keys:
-            break
-        if isinstance(d[key], dict):
-            v = ch.join([str(val) for val in d[key].values()])
+        if (only_keys is not None and key not in only_keys) or not isinstance(d[key], dict):
+            r[key] = d[key]
+        else:
+            r[key] = d[key].__class__()
+            for k, v in d[key].items():
+                if isinstance(v, dict):
+                    rkv = str_dict(d[key][k], separator, None, enclosure_fmt)
+                    if len(d[key][k]) > 1 and enclosure_fmt is not None:
+                        rkv = enclosure_fmt.format(rkv)
+                else:
+                    rkv = d[key][k]
+                r[key][k] = rkv
+            kv = separator.join([str(val) for val in r[key].values()])
             if len(d[key]) > 1 and enclosure_fmt is not None:
-                v = enclosure_fmt.format(v)
-            d[key] = v
+                kv = enclosure_fmt.format(kv)
+            r[key] = kv
+    return r
+
+
+def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
+    flat_d = flatten_dict(d, separator, only_keys, enclosure_fmt)
+    return separator.join(flat_d.values())
 
 
 def dbg(name, value=None):
