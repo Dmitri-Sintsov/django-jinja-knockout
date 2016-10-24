@@ -447,11 +447,11 @@ instance of particular Django model object. For example::
     # ... skipped ...
     role_str = sdv.get_choice_str(Member.ROLES, role_val)
 
-``join_dict_values()`` - Some of Django models define `get_str_fields()`_ method which map model instance field values
+``str_dict()`` - Some of Django models define `get_str_fields()`_ method which map model instance field values
 to their formatted string values, similar to ``Model`` ``__str()__`` method, but for separate fields.
 
 If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
-``join_dict_values()`` is used to convert nested dict `get_str_fields()`_ to flat strings::
+``str_dict()`` is used to convert nested dict `get_str_fields()`_ to flat strings::
 
     class Member(models.Model):
 
@@ -469,9 +469,12 @@ If these models have foreign keys pointing to another models which also have `ge
             return parts
 
         def __str__(self):
+            # Will flatten 'profile' and 'club' str_fields dict keys values
+            # and convert the whole str_fields dict values into str.
             str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['profile', 'club'])
-            return ' › '.join(str_fields.values())
+            return str_dict(str_fields)
+
+Internally ``str_dict()`` uses lower level ``flatten_dict()`` which is defined in the same source file.
 
 ``dbg()`` - dumps ``value`` into text log file `'sdv_out.py3'` under ``name`` label. To setup log file path overwrite
 ``LOGPATH`` value in Django project ``settings.py`` like that::

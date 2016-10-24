@@ -152,8 +152,7 @@ This documentation refers to Django models with one to many relationship defined
             verbose_name_plural = 'Sport club members'
 
         def get_canonical_link(self):
-            str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['profile', 'club'])
+            str_fields = flatten_dict(self.get_str_fields(), enclosure_fmt=None)
             return ' / '.join([str_fields['profile'], str_fields['club']]), \
                    reverse('member_detail', kwargs={'member_id': self.pk})
 
@@ -170,8 +169,7 @@ This documentation refers to Django models with one to many relationship defined
 
         def __str__(self):
             str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['profile', 'club'])
-            return ' › '.join(str_fields.values())
+            return str_dict(str_fields)
 
 Simpliest grid
 --------------
@@ -480,8 +478,7 @@ of values:
         # It's preferrable to reconstruct model's str() via get_str_fields() to keep it DRY.
         def __str__(self):
             str_fields = self.get_str_fields()
-            join_dict_values(' / ', str_fields, ['profile', 'club'])
-            return ' › '.join(str_fields.values())
+            return str_dict(str_fields)
 
 Note that ``get_str_fields()`` will also be used for automatic formatting of scalar fields via grid row ``str_fields``
 property. See `'list' action`_ for more info.
@@ -860,7 +857,7 @@ Our ``Action`` model, defined in `event_app.models`_ looks like this::
     from django.contrib.contenttypes.models import ContentType
 
     from django_jinja_knockout.tpl import format_local_date
-    from django_jinja_knockout.utils.sdv import join_dict_values
+    from django_jinja_knockout.utils.sdv import flatten_dict, str_dict
 
     class Action(models.Model):
 
