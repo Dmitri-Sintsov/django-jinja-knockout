@@ -9,7 +9,14 @@ from ..tpl import html_to_text
 from ..middleware import ImmediateJsonResponse
 
 
-# @todo: Use Celery to send mass-mails, check whether it is possible to report async mail errors via socket.io.
+# Celery can be used to send mass-mails in background by creating custom ioc class which extends functionality of
+# add() / flush(), then applying it to EmailQueue instance in your project AppConfig.ready() method like this:
+"""
+        from my_app.models import EmailQueueIoc
+
+        EmailQueueIoc(EmailQueue)
+"""
+
 class SendmailQueue:
 
     def __init__(self, defaults={}):
@@ -40,10 +47,11 @@ class SendmailQueue:
             return getattr(self, '_' + name)
 
     def _add(self, **kwargs):
-        if 'html_body' not in kwargs:
-            html_body = linebreaks(linkify(kwargs['body']))
-        elif 'body' not in kwargs:
+        if 'html_body' in kwargs:
             html_body = kwargs.pop('html_body')
+        else:
+            html_body = linebreaks(linkify(kwargs['body']))
+        if 'body' not in kwargs:
             kwargs['body'] = html_to_text(html_body)
         kwargs = dict(self.defaults, **kwargs)
         message = mail.EmailMultiAlternatives(**kwargs)
@@ -110,3 +118,30 @@ class SendmailQueue:
 
 
 EmailQueue = SendmailQueue()
+
+
+# https://vilimpoc.org/blog/2013/07/18/detailed-error-emails-for-django-in-production-mode/
+# In your project AppConfig.ready() method use the following boilerplate code:
+"""
+# Save uncaught exception handler.
+BaseHandler.original_handle_uncaught_exception = BaseHandler.handle_uncaught_exception
+# Override uncaught exception handler.
+BaseHandler.handle_uncaught_exception = uncaught_exception_email
+BaseHandler.developers_emails = ['your-admin-account@gmail.com']
+BaseHandler.uncaught_exception_subject = 'Django exception stack trace at your-hostname.net'
+"""
+
+def uncaught_exception_email(self, request, resolver, exc_info):
+    from django.conf import settings
+    from django.views.debug import ExceptionReporter
+
+    if settings.DEBUG is False:
+        reporter = ExceptionReporter(request, *exc_info)
+        EmailQueue._add(
+            subject=getattr(self, 'uncaught_exception_subject', 'Django exception stack trace'),
+            body=reporter.get_traceback_text(),
+            html_body=reporter.get_traceback_html(),
+            to=self.developers_emails
+        )._flush()
+
+    return self.original_handle_uncaught_exception(request, resolver, exc_info)
