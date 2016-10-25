@@ -588,7 +588,7 @@ class BaseFilterView(View):
     #   postprocess_row()
     #   get_row_str_fields()
     #
-    def get_row_str_fields(self, obj, row={}):
+    def get_row_str_fields(self, obj, row=None):
         if self.has_get_str_fields:
             str_fields = obj.get_str_fields()
             for fieldname in self.grid_fields:
