@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.utils.html import format_html
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User, Group, Permission
@@ -117,3 +118,13 @@ class ContentTypeLinker(object):
                     self.description, self.url = self.model.get_canonical_link()
                 else:
                     self.description = str(self.model)
+
+    def get_str_field(self):
+        if self.url is not None:
+            return format_html(
+                '<a href="{}" target="_blank">{}</a>',
+                self.url,
+                self.description
+            )
+        else:
+            return self.description
