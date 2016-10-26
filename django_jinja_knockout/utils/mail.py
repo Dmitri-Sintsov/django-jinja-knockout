@@ -9,14 +9,6 @@ from ..tpl import html_to_text
 from ..middleware import ImmediateJsonResponse
 
 
-# Celery can be used to send mass-mails in background by creating custom ioc class which extends functionality of
-# add() / flush(), then applying it to EmailQueue instance in your project AppConfig.ready() method like this:
-"""
-        from my_app.models import EmailQueueIoc
-
-        EmailQueueIoc(EmailQueue)
-"""
-
 class SendmailQueue:
 
     def __init__(self, defaults={}):
@@ -117,6 +109,16 @@ class SendmailQueue:
                 raise e
 
 
+# Project-wide instance of SendmailQueue.
+#
+# Celery can be used to send mass-mails in background by creating custom ioc class which would extend the functionality
+# of EmailQueue.add() / flush() or will add new methods to EmailQueue in your project AppConfig.ready() method like this:
+"""
+        from django_jinja_knockout.utils.mail import EmailQueue
+        from my_email_app.tasks import EmailQueueIoc
+
+        EmailQueueIoc(EmailQueue)
+"""
 EmailQueue = SendmailQueue()
 
 
@@ -137,7 +139,7 @@ def uncaught_exception_email(self, request, resolver, exc_info):
 
     if settings.DEBUG is False:
         reporter = ExceptionReporter(request, *exc_info)
-        EmailQueue._add(
+        SendmailQueue()._add(
             subject=getattr(self, 'uncaught_exception_subject', 'Django exception stack trace'),
             body=reporter.get_traceback_text(),
             html_body=reporter.get_traceback_html(),
