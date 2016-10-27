@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
+from .admin import empty_value_display
 from .utils.sdv import nested_values
 
 
@@ -128,3 +129,6 @@ class ContentTypeLinker(object):
             )
         else:
             return self.description
+
+    def get_str_obj_type(self):
+        return str(empty_value_display if self.obj_type is None else self.obj_type)
