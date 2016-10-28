@@ -120,10 +120,12 @@ class ContentTypeLinker(object):
                 else:
                     self.description = str(self.model)
 
-    def get_str_field(self):
+    def get_html_field(self, template=None):
+        if template is None:
+            template = '<a href="{}" target="_blank">{}</a>'
         if self.url is not None:
             return format_html(
-                '<a href="{}" target="_blank">{}</a>',
+                template,
                 self.url,
                 self.description
             )
