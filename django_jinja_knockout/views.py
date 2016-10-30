@@ -1498,11 +1498,13 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     force_str_desc = False
+    # optional value of ko_grid() Jinja2 macro 'grid_options' argument.
+    grid_options = None
 
-    # Override in child class to set default value of ko_grid() Jinja2 macro 'grid_options' argument.
+    # Override in child class to set value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
-    def get_default_grid_options(cls):
-        return {}
+    def get_grid_options(cls):
+        return {} if cls.grid_options is None else cls.grid_options
 
     # It is possible to get related fields:
     # https://code.djangoproject.com/ticket/5768
