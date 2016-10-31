@@ -1238,7 +1238,6 @@ class GridActionsMixin:
         if verbose_name is None:
             verbose_name = get_verbose_name(form.Meta.model)
         return vm_list({
-            'view': self.__class__.viewmodel_name,
             'last_action': form_action,
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
@@ -1270,7 +1269,6 @@ class GridActionsMixin:
         if verbose_name is None:
             verbose_name = get_verbose_name(ff.__class__.FormClass.Meta.model)
         return vm_list({
-            'view': self.__class__.viewmodel_name,
             'last_action': form_action,
             'title': format_html('{}: {}',
                 self.get_action_local_name(),
@@ -1311,7 +1309,6 @@ class GridActionsMixin:
     def action_delete(self):
         objects = self.get_queryset_for_action()
         viewmodel = {
-            'view': self.__class__.viewmodel_name,
             'description': self.get_objects_descriptions(objects),
         }
         if self.action_delete_is_allowed(objects):
@@ -1334,12 +1331,10 @@ class GridActionsMixin:
         if self.action_delete_is_allowed(objects):
             objects.delete()
             return vm_list({
-                'view': self.__class__.viewmodel_name,
                 'deleted_pks': pks
             })
         else:
             return vm_list({
-                'view': self.__class__.viewmodel_name,
                 'has_errors': True,
                 'title': self.get_title_action_not_allowed(),
                 'description': self.get_objects_descriptions(objects)
@@ -1351,7 +1346,7 @@ class GridActionsMixin:
         form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
         form = form_class(self.request.POST, instance=old_obj)
         if form.is_valid():
-            vm = {'view': self.__class__.viewmodel_name}
+            vm = {}
             if form.has_changed():
                 new_obj = form.save()
                 row = self.postprocess_row(
@@ -1378,7 +1373,7 @@ class GridActionsMixin:
         ff = ff_class(self.request, create=old_obj is None)
         new_obj = ff.save(instance=old_obj)
         if new_obj is not None:
-            vm = {'view': self.__class__.viewmodel_name}
+            vm = {}
             if ff.has_changed():
                 row = self.postprocess_row(
                     self.get_model_row(new_obj),
@@ -1429,7 +1424,6 @@ class GridActionsMixin:
                 pk_field = field.attname
                 break
         vm = {
-            'view': self.__class__.viewmodel_name,
             'action_kwarg': self.__class__.action_kwarg,
             'sortOrders': self.allowed_sort_orders,
             'meta': {
@@ -1460,7 +1454,6 @@ class GridActionsMixin:
     def action_list(self):
         rows = self.get_rows()
         vm = {
-            'view': self.__class__.viewmodel_name,
             'entries': list(rows),
             'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
         }
@@ -1612,7 +1605,16 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
         else:
             handler = self.action_is_denied
-        return handler()
+        result = handler()
+        if result is None:
+            result = vm_list()
+        elif not isinstance(result, list):
+            result = vm_list(result)
+        # Apply default viewmodel name, in case it was not set by action handler.
+        for vm in result:
+            if 'view' not in vm:
+                vm['view'] = self.__class__.viewmodel_name
+        return result
 
     def get_base_queryset(self):
         return self.__class__.model.objects.all()
