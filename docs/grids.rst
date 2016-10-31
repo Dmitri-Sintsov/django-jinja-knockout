@@ -516,11 +516,9 @@ options like this::
     class MemberGrid(KoGridView):
 
         # ... skipped ...
-        @classmethod
-        def get_default_grid_options(cls):
-            return {
-                'classPath': 'App.ko.MemberGrid'
-            }
+        grid_options = {
+            'classPath': 'App.ko.MemberGrid'
+        }
 
 Virtual fields
 ~~~~~~~~~~~~~~
@@ -793,8 +791,9 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-gri
 
         # ... skipped ...
 
+        # Similar to class property grid_options but allows to generate options dynamically and to override them.
         @classmethod
-        def get_default_grid_options(cls):
+        def get_grid_options(cls):
             return {
                 # Note: 'classPath' is not required for standard App.ko.Grid.
                 'classPath': 'App.ko.MemberGrid',
@@ -817,8 +816,8 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-gri
                 }
             }
 
-Also notice that commented section of ``MemberGrid.get_default_grid_options()`` method shows how foreign key filter
-widgets may be nested:
+Also notice that commented section of ``MemberGrid.get_grid_options()`` method shows how foreign key filter widgets may
+be nested:
 
 * Define model ``Specialization``.
 * Add foreignKey field ``specialization = models.ForeignKey(Specialization, verbose_name='Specialization')`` to
@@ -1431,19 +1430,17 @@ options dict::
             ('model2_fk', None),
         ])
 
-        @classmethod
-        def get_default_grid_options(cls):
-            return {
-                # 'classPath': 'App.ko.Model1Grid',
-                'fkGridOptions': {
-                    'model2_fk': {
-                        # 'classPath': 'App.ko.Model2Grid',
-                        'pageRoute': 'model2_fk_grid',
-                        'pageRouteKwargs': {'type': 'custom'},
-                        'searchPlaceholder': 'Search for Model2 values',
-                    },
-                }
+        grid_options = {
+            # 'classPath': 'App.ko.Model1Grid',
+            'fkGridOptions': {
+                'model2_fk': {
+                    # 'classPath': 'App.ko.Model2Grid',
+                    'pageRoute': 'model2_fk_grid',
+                    'pageRouteKwargs': {'type': 'custom'},
+                    'searchPlaceholder': 'Search for Model2 values',
+                },
             }
+        }
 
 =====================
 Standard grid actions
@@ -1558,7 +1555,20 @@ To make sure ``ClubMemberGrid`` action ``'list'`` respects ``allowed_filter_fiel
 
 .. highlight:: python
 
-or by overriding of Django grid ``get_default_grid_options()``::
+
+by setting class property ``grid_options`` of Django grid class::
+
+    class ClubMemberGrid(KoGridView):
+
+        model = ClubMember
+        # ... skipped ...
+
+        grid_options = {
+            'classPath': 'App.ko.ClubMemberGrid',
+            'separateMeta': True,
+        }
+
+by overriding Django grid class ``get_grid_options()`` method::
 
     class ClubMemberGrid(KoGridView):
 
@@ -1566,7 +1576,7 @@ or by overriding of Django grid ``get_default_grid_options()``::
         # ... skipped ...
 
         @classmethod
-        def get_default_grid_options(cls):
+        def get_grid_options(cls):
             return {
                 'classPath': 'App.ko.ClubMemberGrid',
                 'separateMeta': True,
@@ -1574,7 +1584,7 @@ or by overriding of Django grid ``get_default_grid_options()``::
 
 .. highlight:: javascript
 
-or via overloading of client-side ``App.ko.Grid`` by custom class::
+via overloading of client-side ``App.ko.Grid`` by custom class::
 
     App.ko.ClubMemberGrid = function(options) {
         $.inherit(App.ko.Grid.prototype, this);
@@ -2404,7 +2414,7 @@ Since version 0.2.0 it's possible to include Jinja2 templates from Django templa
 * See `club_grid.html`_ for example of grid templates generation in Django Template Language.
 
 The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
-``'fkGridOptions'`` value for `Foreign key filter`_ that uses `views.KoGridView`_ method ``get_default_grid_options()``.
+``'fkGridOptions'`` value for `Foreign key filter`_ that uses `views.KoGridView`_ method ``get_grid_options()``.
 Both embed grids inside BootstrapDialog, with the following differences:
 
 * ``'fk' filter`` limits grid queryset.
@@ -2527,21 +2537,19 @@ existing and newly added values of particular ``Club`` related ``Equipment`` mod
             ('manufacturer', None),
             ('category', None)
         ])
-        @classmethod
-        def get_default_grid_options(cls):
-            return {
-                'searchPlaceholder': 'Search inventory name',
-                'fkGridOptions': {
-                    'club': {
-                        'pageRoute': 'club_grid_simple',
-                        # Optional setting for BootstrapDialog:
-                        'dialogOptions': {'size': 'size-wide'},
-                    },
-                    'manufacturer': {
-                        'pageRoute': 'manufacturer_fk_widget_grid'
-                    },
-                }
+        grid_options = {
+            'searchPlaceholder': 'Search inventory name',
+            'fkGridOptions': {
+                'club': {
+                    'pageRoute': 'club_grid_simple',
+                    # Optional setting for BootstrapDialog:
+                    'dialogOptions': {'size': 'size-wide'},
+                },
+                'manufacturer': {
+                    'pageRoute': 'manufacturer_fk_widget_grid'
+                },
             }
+        }
 
 To see full-size example:
 
