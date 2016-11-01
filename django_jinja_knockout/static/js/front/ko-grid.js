@@ -2397,7 +2397,7 @@ App.GridDialog = function(options) {
             this.grid = this.iocGridOwner();
             this.grid.firstLoad(function() {
                 // Select grid rows when there are filter choices set already.
-                var filterChoices = self.ownerComponent.getQueryFilter();
+                var filterChoices = self.propCall('ownerComponent.getQueryFilter');
                 self.grid.selectKoRowsByPkVals(filterChoices);
             });
         }
