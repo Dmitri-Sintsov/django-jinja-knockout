@@ -620,6 +620,13 @@ class BaseFilterView(View):
         return display_value
 
     @classmethod
+    def init_allowed_filter_fields(cls, self):
+        if cls.allowed_filter_fields is None:
+            self.allowed_filter_fields = self.get_allowed_filter_fields()
+        else:
+            self.allowed_filter_fields = cls.allowed_filter_fields
+
+    @classmethod
     def init_class(cls, self):
 
         if cls.grid_fields is None:
@@ -636,10 +643,7 @@ class BaseFilterView(View):
         else:
             self.allowed_sort_orders = cls.allowed_sort_orders
 
-        if cls.allowed_filter_fields is None:
-            self.allowed_filter_fields = self.get_allowed_filter_fields()
-        else:
-            self.allowed_filter_fields = cls.allowed_filter_fields
+        cls.init_allowed_filter_fields(self)
 
         if cls.search_fields is None:
             self.search_fields = self.get_search_fields()
@@ -1508,6 +1512,36 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
 
     def get_allowed_filter_fields(self):
         return OrderedDict()
+
+    @classmethod
+    def discover_grid_options(cls):
+        grid_options = cls.get_grid_options()
+        if 'fkGridOptions' not in grid_options:
+            # Autodiscover 'fkGridOptions'.
+            # It could fail if related_view.get_allowed_filter_fields() accesses self.kwargs. so please use with care.
+            # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
+            # in case grid has nested relations. Thus this method was introduced.
+            from .middleware import ContextMiddleware
+            view = cls()
+            view.request = ContextMiddleware.get_request()
+            view.init_allowed_filter_fields(view)
+            for filter_field, filter_def in view.allowed_filter_fields.items():
+                if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
+                    # 'type': 'fk' filter field with 'pageRoute' autodiscovery.
+                    pageRouteKwargs = filter_def.get('pageRouteKwargs', {})
+                    pageRouteKwargs['action'] = ''
+                    related_view = qtpl.resolve_cbv(filter_def['pageRoute'], pageRouteKwargs)
+                    if 'fkGridOptions' not in grid_options:
+                        grid_options['fkGridOptions'] = {}
+                    field_fkGridOptions = copy(filter_def)
+                    if 'type' in field_fkGridOptions:
+                        del field_fkGridOptions['type']
+                    # Apply relations to fkGridOptions recursively.
+                    field_fkGridOptions.update(related_view.discover_grid_options())
+                    grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
+            return grid_options
+        else:
+            return grid_options
 
     @classmethod
     def init_class(cls, self):

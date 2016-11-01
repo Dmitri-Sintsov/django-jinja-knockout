@@ -33,7 +33,7 @@ Setup final _grid_options (component options).
 
 -#}
 {% set _grid_options = {'classPath': 'App.ko.Grid'} -%}
-{% do _grid_options.update(view.get_grid_options()) -%}
+{% do _grid_options.update(view.discover_grid_options()) -%}
 {% do _grid_options.update(grid_options) -%}
 {#
 
