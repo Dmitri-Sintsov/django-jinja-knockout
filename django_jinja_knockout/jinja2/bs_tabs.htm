@@ -1,0 +1,36 @@
+{% macro bs_tabs(tabs=[]) -%}
+<ul class="nav nav-tabs" role="tablist">
+{% for tab in tabs -%}
+    {% set li_atts = {'role': 'presentation'} -%}
+    {% if tab.is_active -%}
+        {% do li_atts.update({'class': 'active'}) -%}
+    {% endif -%}
+    {% set a_atts = {
+        'href': '#' + tab.id,
+        'aria-controls': tab.id,
+        'role': 'tab',
+        'data-toggle': 'tab'
+    } -%}
+    <li {{ flatatt(li_atts) }}>
+        <a {{ flatatt(a_atts) }}>{{ tab.title }}</a>
+    </li>
+{% endfor -%}
+</ul>
+
+<div class="tab-content">
+{% for tab in tabs -%}
+    {% set div_atts = {
+        'role': 'tabpanel',
+        'class': 'tab-pane',
+        'id': tab.id
+    } -%}
+    {% if tab.is_active -%}
+        {% do add_css_classes_to_dict(div_atts, 'active') %}
+    {% endif -%}
+    <div {{ flatatt(div_atts) }}>
+        <a name="{{ tab.id }}"></a>
+        {{ tab.html|safe }}
+    </div>
+{% endfor -%}
+</div>
+{% endmacro -%}

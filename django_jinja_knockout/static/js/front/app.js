@@ -128,6 +128,38 @@ App.recursiveMap = function(value, fn) {
 };
 
 
+App.showTabPane = function() {
+    var targetElement = $(window.location.hash);
+    if (targetElement.length === 0) {
+        return;
+    }
+    var parentPane = targetElement.closest('div.tab-pane');
+    if (parentPane.length === 0) {
+        return;
+    }
+    var paneAnchor = $('a[href="#' + parentPane.attr('id') + '"]');
+    if (paneAnchor.length === 0) {
+        return;
+    }
+    paneAnchor.tab('show');
+    // Commented out, because it causes jagged scrolling.
+    // targetElement.get(0).scrollIntoView();
+};
+
+
+// https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
+App.initShowTabPane = function() {
+    App.showTabPane();
+    $(window).on('hashchange', App.showTabPane);
+    // Change hash upon pane activation
+    $('a[role="tab"]').on('click', function() {
+        var href = $(this).attr('href');
+        if (typeof href !== 'undefined' && href.match(/^#/)) {
+            window.location.hash = href;
+        }
+    });
+}
+
 /**
  * BootstrapDialog wrapper.
  */
@@ -1355,6 +1387,7 @@ $(document)
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
     App.initClient(document);
+    App.initShowTabPane();
     if (typeof App.clientData === 'undefined') {
         console.log('@note: client_data middleware is disabled at server side.')
     } else if (typeof App.clientData.onloadViewModels !== 'undefined') {
