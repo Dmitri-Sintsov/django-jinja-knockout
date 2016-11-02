@@ -1,3 +1,4 @@
+{# http://getbootstrap.com/javascript/#tabs #}
 {% macro bs_tabs(tabs=[]) -%}
 <ul class="nav nav-tabs" role="tablist">
 {% for tab in tabs -%}
@@ -25,7 +26,7 @@
         'id': tab.id
     } -%}
     {% if tab.is_active -%}
-        {% do add_css_classes_to_dict(div_atts, 'active') %}
+        {% do add_css_classes_to_dict(div_atts, 'active') -%}
     {% endif -%}
     <div {{ flatatt(div_atts) }}>
         <a name="{{ tab.id }}"></a>
