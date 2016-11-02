@@ -676,7 +676,8 @@ App.ko.GridRow = function(options) {
     GridRow.getSelectionCss = function() {
         return {
             'glyphicon-check': this.isSelectedRow(),
-            'glyphicon-unchecked': !this.isSelectedRow()
+            'glyphicon-unchecked': !this.isSelectedRow(),
+            'pointer': true,
         };
     };
 
@@ -1229,6 +1230,15 @@ App.ko.Grid = function(options) {
         this.gridSearchStr(newValue);
     };
 
+    Grid.onSelectAllRows = function(data, ev) {
+        var selectAllRows = !this.hasSelectAllRows();
+        for (var i = 0; i < this.gridRows().length; i++) {
+            var koRow = this.gridRows()[i];
+            koRow.isSelectedRow(selectAllRows);
+        }
+        return false;
+    };
+
     // this.meta is the list of visual ko bindings which are formatting flags or messages, not model values.
     Grid.updateMeta = function(data) {
         ko.utils.setProps(data, this.meta);
@@ -1284,6 +1294,7 @@ App.ko.Grid = function(options) {
         });
         this.sortOrders = {};
         this.selectedRowsPks = [];
+        this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
         this.totalColumns = ko.computed(function() {
             var totalColumns = this.gridColumns().length + this.actionTypes['glyphicon']().length;
@@ -1300,6 +1311,7 @@ App.ko.Grid = function(options) {
         this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
         this.gridSearchDisplayStr = ko.observable('');
         this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
+        this.selectAllRowsCss = ko.computed(this.getSelectAllRowsCss, this);
         this.highlightMode = ko.observable(this.options.highlightMode);
         this.initAjaxParams();
         this.localize();
@@ -1316,6 +1328,14 @@ App.ko.Grid = function(options) {
 
     Grid.isSortedField = function(field) {
         return typeof this.sortOrders[field] !== 'undefined';
+    };
+
+    Grid.getSelectAllRowsCss = function() {
+        return {
+            'glyphicon-check': this.hasSelectAllRows(),
+            'glyphicon-unchecked': !this.hasSelectAllRows(),
+            'pointer': true,
+        };
     };
 
     Grid.getFieldQueryFilter = function(field) {
@@ -1465,6 +1485,7 @@ App.ko.Grid = function(options) {
         } else {
             this.selectedRowsPks = [pkVal];
         }
+        this.hasSelectAllRows(this.selectedRowsPks.length === this.gridRows().length);
     };
 
     Grid.removeSelectedPkVal = function(pkVal) {
@@ -1474,10 +1495,12 @@ App.ko.Grid = function(options) {
         this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
             return val !== pkVal;
         });
+        this.hasSelectAllRows(this.selectedRowsPks.length === this.gridRows().length);
     };
 
     Grid.removeAllSelectedPkVals = function() {
         this.selectedRowsPks = [];
+        this.hasSelectAllRows(false);
     };
 
     Grid.propCall = App.propCall;

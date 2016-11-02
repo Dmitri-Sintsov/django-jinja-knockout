@@ -157,7 +157,9 @@
                 <thead>
                     <tr>
                         <!-- ko if: options.showSelection -->
-                        <th class="grid-glyph-cell"></th>
+                        <th data-bind="if: options.selectMultipleRows" class="grid-glyph-cell">
+                            <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
+                        </th>
                         <!-- /ko -->
                         <!-- ko foreach: actionTypes['glyphicon'] -->
                         <th class="grid-glyph-cell"></th>
