@@ -103,7 +103,7 @@
 
 {% if include_ids['ko_grid_search'] -%}
 <script type="text/template" id="{{ template_ids['ko_grid_search'] }}">
-    <form class="navbar-form navbar-left">
+    <form data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0" class="navbar-form navbar-left">
         <div data-bind="if: meta.hasSearch()" class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
             <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
