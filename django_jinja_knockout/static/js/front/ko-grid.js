@@ -469,7 +469,7 @@ App.ko.FkGridFilter = function(options) {
 
 /**
  * Range grid filter control. Contains dialog with two scalar fields to select interval of field value.
- * Currently supports DateTimeField, DateField, DecimalField.
+ * Currently supports DateTimeField, DateField, DecimalField, IntegerField.
  */
 
 App.ko.RangeFilter = function(options) {
@@ -1869,7 +1869,7 @@ App.ko.Grid = function(options) {
         return new App.ko.RangeFilter(options);
     };
 
-    Grid.iocKoFilter_decimal = function(filter, options) {
+    Grid.iocKoFilter_number = function(filter, options) {
         options.type = 'number';
         return new App.ko.RangeFilter(options);
     };

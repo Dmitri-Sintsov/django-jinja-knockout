@@ -399,9 +399,10 @@ class FieldValidator:
 
     field_types = (
         # Order is important, because DateTimeField is ancestor of DateField.
-        ('DateTimeField', None),
-        ('DateField', None),
-        ('DecimalField', None)
+        ('DateTimeField', 'datetime', None),
+        ('DateField',     'date',     None),
+        ('DecimalField',  'number',   None),
+        ('IntegerField',  'number',   None),
     )
 
     def __init__(self, view, fieldname, model_class=None):
@@ -410,10 +411,9 @@ class FieldValidator:
         self.form_field, self.field_filter_type = self.get_form_field()
 
     def get_form_field(self):
-        for model_field_type, form_field_type in self.__class__.field_types:
+        for model_field_type, field_filter_type, form_field_type in self.__class__.field_types:
             model_field = getattr(models, model_field_type)
             if isinstance(self.model_field, model_field):
-                field_filter_type = model_field_type.lower().split('field')[0]
                 # Use the same field type from forms by default.
                 if form_field_type is None:
                     return model_field().formfield(localize=True, required=False), field_filter_type
