@@ -1514,16 +1514,16 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         return OrderedDict()
 
     @classmethod
-    def discover_grid_options(cls):
+    def discover_grid_options(cls, request):
         grid_options = cls.get_grid_options()
         if 'fkGridOptions' not in grid_options:
             # Autodiscover 'fkGridOptions'.
-            # It could fail if related_view.get_allowed_filter_fields() accesses self.kwargs. so please use with care.
             # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
             # in case grid has nested relations. Thus this method was introduced.
-            from .middleware import ContextMiddleware
             view = cls()
-            view.request = ContextMiddleware.get_request()
+            view.request = request
+            # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
+            view.kwargs = request.view_kwargs
             view.init_allowed_filter_fields(view)
             for filter_field, filter_def in view.allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
@@ -1537,7 +1537,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
                     if 'type' in field_fkGridOptions:
                         del field_fkGridOptions['type']
                     # Apply relations to fkGridOptions recursively.
-                    field_fkGridOptions.update(related_view.discover_grid_options())
+                    field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
             return grid_options
         else:
