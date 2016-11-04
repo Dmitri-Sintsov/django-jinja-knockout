@@ -1613,6 +1613,7 @@ App.initClientHooks.push({
     init: function($selector) {
         App.loadTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
+        $selector.findSelf('[data-toggle="tooltip"]').tooltip();
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
         new App.AjaxForm($selector).init();

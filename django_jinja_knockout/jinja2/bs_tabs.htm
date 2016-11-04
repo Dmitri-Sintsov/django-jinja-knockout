@@ -12,6 +12,13 @@
         'role': 'tab',
         'data-toggle': 'tab'
     } -%}
+    {% if tab.tooltip -%}
+        {% do li_atts.update({
+            'data-toggle': 'tooltip',
+            'data-placement': 'bottom',
+            'title': tab.tooltip
+        }) -%}
+    {% endif -%}
     <li {{ flatatt(li_atts) }}>
         <a {{ flatatt(a_atts) }}>{{ tab.title }}</a>
     </li>
