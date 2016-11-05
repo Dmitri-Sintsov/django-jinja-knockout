@@ -529,6 +529,20 @@ $.fn.linkPreview = function(method) {
 
 };
 
+$.fn.highlightUrl = function(location) {
+    $.each(this.findSelf('ul.nav > li > a'), function(k, a) {
+        if (a.hash === location.hash &&
+            a.search === location.search &&
+            a.pathname === location.pathname &&
+            a.port === location.port &&
+            a.hostname === location.hostname
+        ) {
+            $(a).parent('li').addClass('active');
+        }
+    });
+};
+
+
 /**
  * Change properties of bootstrap3 popover.
  */

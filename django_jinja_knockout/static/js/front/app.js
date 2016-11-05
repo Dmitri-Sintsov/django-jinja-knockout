@@ -160,6 +160,7 @@ App.initShowTabPane = function() {
     });
 }
 
+
 /**
  * BootstrapDialog wrapper.
  */
@@ -1614,6 +1615,7 @@ App.initClientHooks.push({
         App.loadTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
+        $selector.highlightUrl(window.location);
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
         new App.AjaxForm($selector).init();
