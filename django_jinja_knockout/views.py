@@ -457,7 +457,14 @@ class FieldValidator:
     # Override in child class to add new type of custom filters.
     # Implement "App.ko.Grid.iocKoFilter_custom_type" method at client-side.
     def detect_field_filter(self, filter_def):
-        if self.field_filter_type is not None:
+        # Model.choices should have preference over self.field_filter_type because integer fields
+        # may have choice attribute, which should have preference over 'number' filter.
+        if hasattr(self.model_field, 'choices') and len(self.model_field.choices) > 0:
+            filter_def['choices'] = self.model_field.choices
+            return {
+                'type': 'choices',
+            }
+        elif self.field_filter_type is not None:
             return {
                 'type': self.field_filter_type
             }
@@ -474,11 +481,6 @@ class FieldValidator:
             )
             return {
                 'type': 'choices'
-            }
-        elif hasattr(self.model_field, 'choices'):
-            filter_def['choices'] = self.model_field.choices
-            return {
-                'type': 'choices',
             }
         else:
             self.view.report_error(
@@ -961,7 +963,12 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
     def get_filter_navs(self, filter_field):
         vm_filter = self.get_filter(filter_field)
-        process_method = getattr(self, 'render_filter_{}'.format(vm_filter['type']), None)
+        process_method_name = 'render_filter_{}'.format(vm_filter['type'])
+        process_method = getattr(self, process_method_name, None)
+        if process_method is None:
+            raise NotImplementedError(
+                'There is no "{}" implementation for "{}" filter_field'.format(process_method_name, filter_field)
+            )
         return process_method(filter_field, vm_filter)
 
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
