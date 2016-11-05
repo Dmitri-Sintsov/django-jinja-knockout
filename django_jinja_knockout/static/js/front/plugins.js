@@ -529,8 +529,10 @@ $.fn.linkPreview = function(method) {
 
 };
 
-$.fn.highlightUrl = function(location) {
-    $.each(this.findSelf('ul.nav > li > a'), function(k, a) {
+$.fn.highlightListUrl = function(location) {
+    var $anchors = this.findSelf('ul.auto-highlight > li > a');
+    $anchors.parent('li').removeClass('active');
+    $.each($anchors, function(k, a) {
         if (a.hash === location.hash &&
             a.search === location.search &&
             a.pathname === location.pathname &&

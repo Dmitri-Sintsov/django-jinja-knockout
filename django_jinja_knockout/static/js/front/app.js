@@ -1389,6 +1389,9 @@ $(document)
     Cookies.set('local_tz', parseInt(m.zone() / 60));
     App.initClient(document);
     App.initShowTabPane();
+    $(window).on('hashchange', function() {
+        $(document).highlightListUrl(window.location);
+    });
     if (typeof App.clientData === 'undefined') {
         console.log('@note: client_data middleware is disabled at server side.')
     } else if (typeof App.clientData.onloadViewModels !== 'undefined') {
@@ -1615,7 +1618,7 @@ App.initClientHooks.push({
         App.loadTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
-        $selector.highlightUrl(window.location);
+        $selector.highlightListUrl(window.location);
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
         new App.AjaxForm($selector).init();
