@@ -5,6 +5,7 @@ Quickstart
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
+.. _Celery: https://github.com/celery/celery
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
@@ -427,6 +428,62 @@ to display sendmail errors::
     ).flush(
         request=self.request
     )
+
+Since version 0.3.0, ``SendmailQueue`` class functionality could be extended by injecting ioc class. It allows to use
+database backend or non-SQL store to process emails in background, for example as `Celery`_ task. ``SendmailQueue``
+class ``.add()`` and ``.flush()`` methods could be overriden in ``self.ioc`` and new methods can be added as well.
+
+``uncaught_exception_email`` function can be used to monkey patch Django exception ``BaseHandler`` to use
+``SendmailQueue`` to send the uncaught exception reports to selected email address.
+
+Here is the example of extending ``EmailQueue`` instance of ``SendmailQueue`` via custom ioc class (``EmailQueueIoc``)
+and monkey patching Django exception ``BaseHandler`` (in ``apps.py``)::
+
+    class MyAppConfig(AppConfig):
+        name = 'my_app'
+        verbose_name = "Verbose name of my application"
+
+        def ready(self):
+            from django_jinja_knockout.utils.mail import EmailQueue
+            # EmailQueueIoc should have custom .add() and / or .flush() methods implemented.
+            # Original .add() / .flush() methods may be called via ._add() / ._flush().
+            from my_app.tasks import EmailQueueIoc
+
+            EmailQueueIoc(EmailQueue)
+
+            # Save uncaught exception handler.
+            BaseHandler.original_handle_uncaught_exception = BaseHandler.handle_uncaught_exception
+            # Override uncaught exception handler.
+            BaseHandler.handle_uncaught_exception = uncaught_exception_email
+            BaseHandler.developers_emails = ['user@host.org']
+            BaseHandler.uncaught_exception_subject = 'Django exception stack trace for my project'
+
+``my_app.tasks.py``::
+
+    class EmailQueueIoc:
+
+        def __init__(self, email_queue):
+            self.queue = email_queue
+            self.instances = []
+            # Maximum count of messages to send in one batch.
+            self.batch_limit = 10
+            self.max_total_errors = 3
+            email_queue.set_ioc(self)
+
+        def add(self, **kwargs):
+            # Insert your code here.
+            return self.queue._add(**kwargs)
+
+        def flush(self, **kwargs):
+            # Insert your code here.
+            return self.queue._flush(**kwargs)
+
+        def celery_task():
+            # Insert your code here.
+
+    @app.task
+    def email_send_batch():
+        EmailQueue.celery_task()
 
 utils/sdv.py
 ------------
