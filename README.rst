@@ -78,6 +78,18 @@ will not work without these scripts.
 Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
 client-side scripts.
 
+Major changes (version 0.3.0)
+-----------------------------
+
+Auto-configuration of nested foreign key filter fields in ``KoGridView`` / ``ForeignKeyGridWidget``.
+
+``FilteredRawQuerySet`` now supports more precise ``.count()`` method.
+
+Bootstrap tabs generation macro ``bs_tabs()`` with client-side support of switching tabs when window.location.hash
+value changes.
+
+``SendmailQueue`` functionality can be extended via injecting ioc class - for example to send email in the background.
+
 Major changes (version 0.2.0)
 -----------------------------
 ``$.inherit()`` Javascript prototype inheritance function now supports multi-level inheritance with nested ``.super``
