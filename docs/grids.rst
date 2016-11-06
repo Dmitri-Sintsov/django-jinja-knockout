@@ -38,6 +38,8 @@ Grids
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 .. _widgets.ForeignKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/widgets.py
 
+.. _discover_grid_options: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=discover_grid_options
+
 
 Introduction
 ------------
@@ -653,7 +655,7 @@ Next types of built-in field filters are available:
 Range filters
 ~~~~~~~~~~~~~
 
-* ``'decimal' filter`` / ``'datetime' filter`` / ``'date' filter``: Uses ``App.ko.RangeFilter`` from `ko_grid.js`_ to
+* ``'number' filter`` / ``'datetime' filter`` / ``'date' filter``: Uses ``App.ko.RangeFilter`` from `ko_grid.js`_ to
   display dialog with range of scalar values. It's applied to the corresponding Django model scalar fields.
 
 Choices filter
@@ -816,15 +818,59 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-gri
                 }
             }
 
-Also notice that commented section of ``MemberGrid.get_grid_options()`` method shows how foreign key filter widgets may
-be nested:
+Explicit definition of ``fkGridOptions`` in ``get_grid_options()`` result is not required since version 0.3.0, but it's
+useful to illustrate how foreign key filter widgets are nested:
 
 * Define model ``Specialization``.
 * Add foreignKey field ``specialization = models.ForeignKey(Specialization, verbose_name='Specialization')`` to
   ``Profile`` model.
 * Create ``SpecializationGrid`` with ``model = Specialization``.
 * Add url for ``SpecializationGrid`` with url name (route) ``'specialization_grid'`` to ``urls.py``.
-* Add ``'specialization_grid'`` entry to ``MemberGrid`` ``client_routes`` list.
+* Append ``'specialization_grid'`` entry to class ``MemberGrid`` attribute ``client_routes`` list.
+
+Since version 0.3.0, ``KoGridView`` is able to autodetect ``fkGridOptions`` of foreign key fields when these are
+specified in ``allowed_fitler_fields`` (see `discover_grid_options`_ for the implementation), making definitions of
+foreign key filters shorter and more DRY::
+
+    class MemberGrid(KoGridView):
+
+        client_routes = [
+            'member_grid',
+            'profile_fk_widget_grid',
+            'club_grid_simple'
+        ]
+        template_name = 'member_grid.htm'
+        model = Member
+        grid_fields = [
+            'profile',
+            'club',
+            'last_visit',
+            'plays',
+            'role',
+            'note',
+            'is_endorsed'
+        ]
+        allowed_filter_fields = OrderedDict([
+            ('profile', {
+                'pageRoute': 'profile_fk_widget_grid'
+            }),
+            # When 'club_grid_simple' grid view has it's own foreign key filter fields, these will be automatically
+            # detected - no need to specify these in .get_grid_options() as nested dict.
+            ('club', {
+                'pageRoute': 'club_grid_simple',
+                # Optional setting for BootstrapDialog:
+                'dialogOptions': {'size': 'size-wide'},
+            }),
+            ('last_visit', None),
+            ('plays', None),
+            ('role', None),
+            ('is_endorsed', None),
+        ])
+        grid_options = {
+            # Note: 'classPath' is not required for standard App.ko.Grid.
+            'classPath': 'App.ko.MemberGrid',
+            'searchPlaceholder': 'Search for club or member profile',
+        }
 
 Dynamic generation of filter fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1419,28 +1465,21 @@ This way grid will have custom list of club members according to ``club_id`` vie
 .. highlight:: python
 
 Because foreign key widgets also utilize ``KoGridView`` and ``App.ko.Grid`` classes, base querysets of foreign key
-widgets may be filtered via supplying ``['pageRouteKwargs']`` ``['fkGridOptions']`` key value of the default grid
-options dict::
+widgets may be filtered as well::
 
     class Model1Grid(KoGridView):
 
         allowed_filter_fields = OrderedDict([
             # Autodetect filter type.
             ('field_1', None),
-            ('model2_fk', None),
+            ('model2_fk', {
+                # optional classPath
+                # 'classPath': 'App.ko.Model2Grid',
+                'pageRoute': 'model2_fk_grid',
+                'pageRouteKwargs': {'type': 'custom'},
+                'searchPlaceholder': 'Search for Model2 values',
+            }),
         ])
-
-        grid_options = {
-            # 'classPath': 'App.ko.Model1Grid',
-            'fkGridOptions': {
-                'model2_fk': {
-                    # 'classPath': 'App.ko.Model2Grid',
-                    'pageRoute': 'model2_fk_grid',
-                    'pageRouteKwargs': {'type': 'custom'},
-                    'searchPlaceholder': 'Search for Model2 values',
-                },
-            }
-        }
 
 =====================
 Standard grid actions
@@ -2261,7 +2300,8 @@ Now we will define ``MemberForm`` bound to ``Member`` model::
                 'profile': ForeignKeyGridWidget(model=Profile, grid_options={
                     'pageRoute': 'profile_fk_widget_grid',
                     'dialogOptions': {'size': 'size-wide'},
-                    # Could have nested foreign key filter options defined, if required:
+                    # Foreign key filter options will be autodetected, but they could
+                    # have been defined explicitly when needed:
                     # 'fkGridOptions': {
                     #    'user': {
                     #        'pageRoute': 'user_grid'
@@ -2533,22 +2573,18 @@ existing and newly added values of particular ``Club`` related ``Equipment`` mod
             ('inventory_name', 'icontains')
         ]
         allowed_filter_fields = OrderedDict([
-            ('club', None),
-            ('manufacturer', None),
+            ('club', {
+                'pageRoute': 'club_grid_simple',
+                # Optional setting for BootstrapDialog:
+                'dialogOptions': {'size': 'size-wide'},
+            }),
+            ('manufacturer', {
+                'pageRoute': 'manufacturer_fk_widget_grid'
+            }),
             ('category', None)
         ])
         grid_options = {
             'searchPlaceholder': 'Search inventory name',
-            'fkGridOptions': {
-                'club': {
-                    'pageRoute': 'club_grid_simple',
-                    # Optional setting for BootstrapDialog:
-                    'dialogOptions': {'size': 'size-wide'},
-                },
-                'manufacturer': {
-                    'pageRoute': 'manufacturer_fk_widget_grid'
-                },
-            }
         }
 
 To see full-size example:

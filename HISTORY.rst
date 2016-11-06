@@ -22,3 +22,32 @@ History
 * Client-side generation of view urls with kwargs in Javascript client-side routes via ``App.routeUrl()``.
 * Nested autocompiled underscore.js client-side templates for Javascript components, primarily used with Knockout.js,
   but is not limited to.
+
+0.3.0
++++++
+* ``ContentTypeLinker`` has method to return html representation of content types framework related object
+  (html link with the description by default).
+* ``FilteredRawQuerySet`` now supports more precise ``.count()`` method to calculate the length of raw queryset.
+* Auto-highlight bootstrap navs which have 'auto-highlight' css class at client-side.
+* ``bs_tabs()`` Jinja2 macro which simplifies generation of bootstrap tabs. Bootstrap tabs now support automatic
+  switching via window.location.hash change.
+* ``KoGridView`` has multiple improvements:
+
+  * ``decimal`` field filter is renamed to ``number`` as now it supports both Django model ``DecimalField`` and
+    ``IntegerField``.
+  * Django model ``IntegerField`` is now bound either to ``choices`` type filter, when it has non-empty ``choices``
+    attribute, or to ``number`` type filter to select range of values, otherwise.
+  * Action handlers do not require to return default viewmodel ``view`` name manually, now it's being done automatically
+    (when viewmodel ``view`` name is not specified).
+  * ``get_default_grid_options()`` method was renamed to shorter ``get_grid_options()`` method.
+  * ``grid_options`` may be defined as class attribute, not having to always define ``get_grid_options()`` method which
+    is longer (but is more flexible).
+  * ``discover_grid_options()`` method was implemented to populate grid ``fkGridOptions`` which are used to setup foreign
+    key filter fields automatically (when possible). That allows to reduce boilerplate data in ``grid_options`` /
+    ``get_grid_options()``, especially when using nested foreign key filters. ``fkGridOptions`` still can be specified
+    manually as the part of ``get_grid_options()`` result, in complex cases.
+  * Enable quick selection / deselection of currently displayed grid rows when ``selectMultipleRows`` is ``true``.
+
+* ``ForeignKeyGridWidget`` also autodetects foreign key filter ``fkGridOptions``.
+* ``SendmailQueue`` supports extension of ``add()`` / ``flush()`` methods via ioc class.
+* ``SendmailQueue`` may be used to send uncaught exception emails when running in production mode.
