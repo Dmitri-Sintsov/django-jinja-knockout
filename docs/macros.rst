@@ -2,10 +2,14 @@
 Jinja2 macros
 ==============
 
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_form_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form_body.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
+.. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
+
+.. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
 
 .. highlight:: jinja
 
@@ -210,3 +214,25 @@ Wrapping each form of formset with div with custom attributes (to process these 
     {% endif %}
 
     {% endcall %}
+
+
+Bootstrap macros
+----------------
+
+`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App`` ``.showTabPane()``
+and ``.initShowTabPane()`` methods, defined in `app.js`_, which enables automatic switching of tab panes upon page load
+and via window.location.hash change. Hash change occurs either from user script, or via clicking anchor which has url
+with matching hash name. djk_sample demo project has `bs_tabs() sample`_ which place grids into bootstrap tabs.
+
+The only argument of `bs_tabs()`_ macro is the list. Each elements of the list should be dict, specifying the following
+mandarory key-value pairs:
+
+* ``id`` - the value of window.location.hash for current tab;
+* ``title`` - title of current tab;
+* ``html`` - html of tab pane. Use Jinja 2.8 ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
+  such as grid, ModelForm, inline formset and so on;
+
+Optional key-value pairs:
+
+* ``is_active`` - set to ``True`` when current tab has to be selected by default;
+* ``tooltip`` - optional tooltip for tab link;
