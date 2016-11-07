@@ -320,3 +320,72 @@ class FilteredRawQuerySet(RawQuerySet):
 
         qs.query.set_limits(k, k+1)
         return list(qs)[0]
+
+
+# To use with Prefetch() objects.
+class ListQueryset:
+
+    def __init__(self, lst):
+        if not isinstance(lst, list):
+            raise ValueError('lst argument should have list type')
+        self.list = lst
+
+    def _clone(self):
+        c = self.__class__(
+            copy(self.list)
+        )
+        return c
+
+    def _match(self, key, query_val, obj):
+        tokens = key.split('__', 1)
+        if len(tokens) == 1:
+            return hasattr(obj, key) and getattr(obj, key) == query_val
+        else:
+            match_method = getattr(self, '_match_{}'.format(tokens[1]))
+            if not hasattr(obj, tokens[0]):
+                return False
+            return match_method(getattr(obj, tokens[0]), query_val)
+
+    def _match_contains(self, field_val, query_val):
+        return query_val in field_val
+
+    def _match_gt(self, field_val, query_val):
+        return field_val > query_val
+
+    def _match_gte(self, field_val, query_val):
+        return field_val >= query_val
+
+    def _match_icontains(self, field_val, query_val):
+        return query_val.lower() in field_val.lower()
+
+    def _match_in(self, field_val, query_val):
+        return field_val in query_val
+
+    def _match_lt(self, field_val, query_val):
+        return field_val < query_val
+
+    def _match_lte(self, field_val, query_val):
+        return field_val <= query_val
+
+    def _filter(self, positive, *args, **kwargs):
+        filtered_list = []
+        for obj in self.list:
+            matches = True
+            for key, val in kwargs.items():
+                if self._match(key, val, obj) is not positive:
+                    matches = False
+                    break
+            if matches:
+                filtered_list.append(obj)
+        return self.__class__(
+            filtered_list
+        )
+
+    def filter(self, *args, **kwargs):
+        return self._filter(True, *args, **kwargs)
+
+    def exclude(self, *args, **kwargs):
+        return self._filter(False, *args, **kwargs)
+
+    def first(self):
+        return None if len(self.list) == 0 else self.list[0]
