@@ -531,17 +531,29 @@ $.fn.linkPreview = function(method) {
 
 $.fn.highlightListUrl = function(location) {
     var $anchors = this.findSelf('ul.auto-highlight > li > a');
+    var exactMatches = [];
+    var approximateMatches = [];
     $anchors.parent('li').removeClass('active');
     $.each($anchors, function(k, a) {
-        if (a.hash === location.hash &&
-            a.search === location.search &&
-            a.pathname === location.pathname &&
+        if (a.pathname === location.pathname &&
             a.port === location.port &&
             a.hostname === location.hostname
         ) {
-            $(a).parent('li').addClass('active');
+            if (a.hash === location.hash &&
+                a.search === location.search) {
+                exactMatches.push(a);
+            } else {
+                approximateMatches.push(a);
+            }
         }
     });
+    if (exactMatches.length > 0) {
+        for (var i = 0; i < exactMatches.length; i++) {
+            $(exactMatches[i]).parent('li').addClass('active');
+        }
+    } else if (approximateMatches.length === 1) {
+        $(approximateMatches[0]).parent('li').addClass('active');
+    }
 };
 
 
