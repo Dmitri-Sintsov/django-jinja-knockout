@@ -1203,9 +1203,13 @@ App.ko.Grid = function(options) {
         this.propCall('ownerCtrl.onChildGridFirstLoad');
     };
 
-    Grid.run = function(element) {
+    Grid.runComponent = function(element) {
         this.applyBindings(element);
         this.firstLoad();
+    };
+
+    Grid.removeComponent = function(element) {
+        // todo: implement
     };
 
     Grid.applyBindings = function(selector) {
@@ -2254,21 +2258,30 @@ App.FilterDialog = function(options) {
 
     FilterDialog.getButtons = function() {
         var self = this;
-        return [{
-            id: 'filter_remove_selection',
-            label: App.trans('Remove selection'),
-            action: function(dialogItself) {
-                self.onRemoveSelection();
-            }
-        },{
-            id: 'filter_apply',
-            label: App.trans('Apply'),
-            action: function(dialogItself) {
-                if (self.onApply()) {
+        if (typeof this.ownerComponent !== 'undefined') {
+            return [{
+                id: 'filter_remove_selection',
+                label: App.trans('Remove selection'),
+                action: function(dialogItself) {
+                    self.onRemoveSelection();
+                }
+            },{
+                id: 'filter_apply',
+                label: App.trans('Apply'),
+                action: function(dialogItself) {
+                    if (self.onApply()) {
+                        dialogItself.close();
+                    }
+                }
+            }];
+        } else {
+            return [{
+                label: App.trans('Close'),
+                action: function(dialogItself) {
                     dialogItself.close();
                 }
-            }
-        }];
+            }];
+        }
     };
 
     FilterDialog.create = function(options) {
@@ -2285,7 +2298,7 @@ App.FilterDialog = function(options) {
         delete dialogOptions.ownerComponent;
         // Filter options.
         this.filterOptions = $.extend({
-                selectMultipleRows: true
+                selectMultipleRows: typeof this.ownerComponent !== 'undefined'
             },
             dialogOptions.filterOptions
         );
@@ -2341,12 +2354,22 @@ App.documentReadyHooks.push(function() {
 App.GridDialog = function(options) {
     $.inherit(App.FilterDialog.prototype, this);
     $.inherit(App.Dialog.prototype, this);
+    this.componentElement = null;
     this.create(options);
 };
 
 (function(GridDialog) {
 
     GridDialog.template = 'ko_grid_body';
+
+    GridDialog.runComponent = function(elem) {
+        this.componentElement = elem;
+        this.show();
+    };
+
+    GridDialog.removeComponent = function(elem) {
+        // todo: implement
+    };
 
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
@@ -2405,6 +2428,12 @@ App.GridDialog = function(options) {
     GridDialog.onHide = function() {
         this.grid.cleanBindings(this.bdialog.getModal());
         this.propCall('ownerComponent.onGridDialogHide');
+        if (this.componentElement !== null) {
+            delete this.grid;
+            delete this.bdialog;
+            App.components.unbind(this.componentElement);
+            App.components.add(this.componentElement, 'click');
+        }
     };
 
     GridDialog.onShow = function() {
@@ -2534,7 +2563,7 @@ App.FkGridWidget = function(options) {
         });
     };
 
-    FkGridWidget.run = function(element) {
+    FkGridWidget.runComponent = function(element) {
         var self = this;
         this.$element = $(element);
         this.$element.find('.fk-choose').on('click', function(ev) {
@@ -2542,6 +2571,10 @@ App.FkGridWidget = function(options) {
             self.gridDialog.show();
             return false;
         });
+    };
+
+    FkGridWidget.removeComponent = function(element) {
+        // todo: implement
     };
 
     FkGridWidget.blockTags = App.blockTags.badges;

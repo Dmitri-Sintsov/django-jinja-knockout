@@ -1549,12 +1549,12 @@ App.Components = function() {
         return cls;
     };
 
-    Components.add = function(elem) {
+    Components.bind = function(elem) {
         var $elem = $(elem);
         if ($elem.data('componentIdx') !== undefined) {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
         }
-        var options = $elem.data('componentOptions');
+        var options = $.extend({}, $elem.data('componentOptions'));
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
             return;
@@ -1566,11 +1566,27 @@ App.Components = function() {
         delete options.classPath;
         var component = new cls(options);
         $elem.data('componentIdx', this.list.length);
-        this.list.push(component);
-        if (typeof component.setElement === 'function') {
-            component.setElement(elem);
+        if (typeof component.setComponentElement === 'function') {
+            component.setComponentElement(elem);
         }
-        component.run(elem);
+        return component;
+    };
+
+    Components.add = function(elem, evt) {
+        var self = this;
+        if (typeof evt === 'undefined') {
+            var desc = {'component': this.bind(elem)};
+            desc.component.runComponent(elem);
+            this.list.push(desc);
+        } else {
+            var desc = {'event': evt};
+            desc.handler = function() {
+                desc.component = self.bind(elem);
+                desc.component.runComponent(elem);
+                self.list.push(desc);
+            };
+            $(elem).on(desc.event, desc.handler);
+        }
     };
 
     Components.get = function(elem) {
@@ -1579,7 +1595,7 @@ App.Components = function() {
         if (componentIdx === undefined) {
             throw 'Supplied element has no bound component.';
         }
-        return this.list[componentIdx];
+        return this.list[componentIdx].component;
     };
 
     Components.getById = function(id) {
@@ -1588,6 +1604,18 @@ App.Components = function() {
             throw sprintf('Unknown id of component element: "%s"', id);
         }
         return this.get(elem);
+    };
+
+    Components.unbind = function(elem) {
+        var component = this.get(elem);
+        var componentIdx = $(elem).data('componentIdx');
+        component.removeComponent(elem);
+        var desc = this.list[componentIdx];
+        if (typeof desc.event !== 'undefined') {
+            $(elem).unbind(desc.event, desc.handler);
+        }
+        this.list[componentIdx] = null;
+        $(elem).removeData('componentIdx');
     };
 
 })(App.Components.prototype);
@@ -1650,6 +1678,7 @@ App.initClientHooks.push({
  */
 App.initClientHooks.push(function($selector) {
     _.each($selector.findSelf('.component'), function(v) {
-        App.components.add(v);
+        var evt = $(v).data('event');
+        App.components.add(v, evt);
     });
 });

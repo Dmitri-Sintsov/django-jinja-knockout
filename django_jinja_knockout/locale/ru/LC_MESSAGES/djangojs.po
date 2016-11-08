@@ -83,6 +83,9 @@ msgstr "…"
 msgid "Save"
 msgstr "Сохранить"
 
+msgid "Close"
+msgstr "Закрыть"
+
 msgid "Cancel"
 msgstr "Отмена"
 
