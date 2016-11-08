@@ -322,8 +322,8 @@ class FilteredRawQuerySet(RawQuerySet):
         return list(qs)[0]
 
 
-# To use with Prefetch() objects.
-class ListQueryset:
+# To use with Prefetch() 'to_attr' keyword argument object results.
+class ListQuerySet:
 
     def __init__(self, lst):
         if not isinstance(lst, list):
@@ -358,6 +358,9 @@ class ListQueryset:
     def _match_icontains(self, field_val, query_val):
         return query_val.lower() in field_val.lower()
 
+    def _match_isnull(self, field_val, query_val):
+        return (field_val is None) is query_val
+
     def _match_in(self, field_val, query_val):
         return field_val in query_val
 
@@ -389,3 +392,35 @@ class ListQueryset:
 
     def first(self):
         return None if len(self.list) == 0 else self.list[0]
+
+    def __repr__(self):
+        return repr(self.list)
+
+    def __iter__(self):
+        return iter(self.list)
+
+    def __getitem__(self, k):
+        """
+        Retrieves an item or slice from the set of results.
+        """
+        if not isinstance(k, (slice,) + six.integer_types):
+            raise TypeError
+        assert ((not isinstance(k, slice) and (k >= 0)) or
+                (isinstance(k, slice) and (k.start is None or k.start >= 0) and
+                 (k.stop is None or k.stop >= 0))), \
+            "Negative indexing is not supported."
+
+        if isinstance(k, slice):
+            if k.start is not None:
+                start = int(k.start)
+            else:
+                start = None
+            if k.stop is not None:
+                stop = int(k.stop)
+            else:
+                stop = None
+            return self.__class__(
+                self.list[start:stop:k.step]
+            )
+
+        return self.list[k]
