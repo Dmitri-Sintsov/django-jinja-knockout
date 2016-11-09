@@ -2407,6 +2407,9 @@ App.GridDialog = function(options) {
         );
         if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(options);
+        } else if (typeof this.dialogOptions.iocGrid === 'string') {
+            var gridClass = App.getClassFromPath(this.dialogOptions.iocGrid);
+            return new gridClass(options);
         } else {
             return new App.ko.Grid(options);
         }

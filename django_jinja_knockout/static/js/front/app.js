@@ -1518,6 +1518,24 @@ ko.bindingHandlers.scroller = {
     }
 };
 
+
+App.getClassFromPath = function(classPath) {
+    var classPathArr = classPath.split(/\./g);
+    var cls = window;
+    for (var i = 0; i < classPathArr.length - 1; i++) {
+        if (typeof cls[classPathArr[i]] !== 'object') {
+            throw sprintf('Skipping unknown classPath: %s', classPath);
+        }
+        cls = cls[classPathArr[i]];
+    }
+    if (typeof cls[classPathArr[i]] !== 'function') {
+        throw sprintf('Skipping unknown classPath: %s', classPath);
+    }
+    cls = cls[classPathArr[i]];
+    return cls;
+};
+
+
 /**
  * Auto-instantiated Javascript classes bound to selected DOM elements.
  * Primarily used with Knockout.js bindings, although is not limited to.
@@ -1533,22 +1551,6 @@ App.Components = function() {
         this.list = [];
     };
 
-    Components.getClassFromPath = function(classPath) {
-        var classPathArr = classPath.split(/\./g);
-        var cls = window;
-        for (var i = 0; i < classPathArr.length - 1; i++) {
-            if (typeof cls[classPathArr[i]] !== 'object') {
-                throw sprintf('Skipping unknown component: %s', classPath);
-            }
-            cls = cls[classPathArr[i]];
-        }
-        if (typeof cls[classPathArr[i]] !== 'function') {
-            throw sprintf('Skipping unknown component: %s', classPath);
-        }
-        cls = cls[classPathArr[i]];
-        return cls;
-    };
-
     Components.bind = function(elem) {
         var $elem = $(elem);
         if ($elem.data('componentIdx') !== undefined) {
@@ -1562,7 +1564,7 @@ App.Components = function() {
         if (typeof options.classPath === 'undefined') {
             throw 'Undefined data-component-options classPath.';
         }
-        var cls = this.getClassFromPath(options.classPath);
+        var cls = App.getClassFromPath(options.classPath);
         delete options.classPath;
         var component = new cls(options);
         $elem.data('componentIdx', this.list.length);

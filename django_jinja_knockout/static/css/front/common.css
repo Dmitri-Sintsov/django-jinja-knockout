@@ -210,6 +210,10 @@ textarea.ko-template {
 	-webkit-transform-origin: 0 0;
 }
 
+.align-center {
+	text-align: center;
+}
+
 .link-preview-spinner {
 	margin: auto;
 	text-align: center;

@@ -543,7 +543,10 @@ $.fn.highlightListUrl = function(location) {
                 a.search === location.search) {
                 exactMatches.push(a);
             } else {
-                approximateMatches.push(a);
+                // Ignore anchors which actually have no 'href' with pathname defined.
+                if (!a.getAttribute('href').match(/^#/)) {
+                    approximateMatches.push(a);
+                }
             }
         }
     });
