@@ -63,6 +63,23 @@ class ContextMiddleware(object):
     def get_request(cls):
         return cls._threadmap[threading.get_ident()]
 
+    @classmethod
+    def get_request_timezone(cls, request):
+        if 'local_tz' in request.COOKIES:
+            try:
+                local_tz = int(request.COOKIES['local_tz'])
+                if -14 <= local_tz <= 12:
+                    if local_tz == 0:
+                        tz_name = 'Etc/GMT'
+                    elif local_tz < 0:
+                        tz_name = 'Etc/GMT{}'.format(local_tz)
+                    else:
+                        tz_name = 'Etc/GMT+{}'.format(local_tz)
+                    return tz_name
+            except ValueError:
+                pass
+        return None
+
     def process_request(self, request):
 
         # Todo: remove when IE9 support will expire.
@@ -74,19 +91,10 @@ class ContextMiddleware(object):
             request.META['HTTP_X_REQUESTED_WITH'] = request.POST['HTTP_X_REQUESTED_WITH']
 
         # Get local timezone from browser and activate it.
-        if getattr(settings, 'USE_JS_TIMEZONE', False) and 'local_tz' in request.COOKIES:
-            try:
-                local_tz = int(request.COOKIES['local_tz'])
-                if -14 <= local_tz <= 12:
-                    if local_tz == 0:
-                        tz_name = 'Etc/GMT'
-                    elif local_tz < 0:
-                        tz_name = 'Etc/GMT{}'.format(local_tz)
-                    else:
-                        tz_name = 'Etc/GMT+{}'.format(local_tz)
-                    timezone.activate(pytz.timezone(tz_name))
-            except ValueError:
-                pass
+        if getattr(settings, 'USE_JS_TIMEZONE', False):
+            tz_name = self.__class__.get_request_timezone(request)
+            if tz_name is not None:
+                timezone.activate(pytz.timezone(tz_name))
 
         self.__class__._threadmap[threading.get_ident()] = request
 

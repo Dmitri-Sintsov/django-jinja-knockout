@@ -1,3 +1,4 @@
+import pytz
 from inspect import trace
 import lxml.html
 from lxml import etree
@@ -5,7 +6,7 @@ from ensure import ensure_annotations
 from datetime import date, datetime
 from urllib.parse import urlencode
 
-from django.utils import formats
+from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import resolve, reverse, NoReverseMatch
 
@@ -143,7 +144,7 @@ def html_to_text(html):
     return doc.text_content()
 
 
-def format_local_date(value, short_format=True, use_l10n=None):
+def format_local_date(value, short_format=True, to_local_time=True, tz_name=None, use_l10n=None):
     if isinstance(value, datetime):
         combined = value
         format = 'SHORT_DATETIME_FORMAT' if short_format else 'DATETIME_FORMAT'
@@ -152,6 +153,11 @@ def format_local_date(value, short_format=True, use_l10n=None):
         format = 'SHORT_DATE_FORMAT' if short_format else 'DATE_FORMAT'
     else:
         raise ValueError('Value must be instance of date or datetime')
+    if timezone.is_aware(combined):
+        if tz_name is not None:
+            combined = combined.astimezone(pytz.timezone(tz_name))
+        elif to_local_time:
+            combined = timezone.localtime(combined)
     return formats.date_format(combined, format, use_l10n)
 
 
