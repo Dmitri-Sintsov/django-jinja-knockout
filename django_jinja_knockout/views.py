@@ -723,7 +723,7 @@ class BaseFilterView(View):
         current_list_filter = {}
         for fieldname, values in list_filter.items():
             if fieldname not in self.allowed_filter_fields:
-                self.report_error('Non-allowed filter field: {0}', fieldname)
+                self.report_error(_('Not allowed filter field: "%(fieldname)s"') % {'fieldname': fieldname})
             field_validator = self.get_field_validator(fieldname)
             if not isinstance(values, dict):
                 # Single value.
@@ -788,7 +788,7 @@ class BaseFilterView(View):
         stripped_order = [order.lstrip('-') for order in sort_order]
         if (stripped_order not in self.allowed_sort_orders) and \
                 (len(stripped_order) == 1 and stripped_order[0] not in self.allowed_sort_orders):
-            self.report_error('Non-allowed sorting order: {0}', stripped_order)
+            self.report_error(_('Not allowed sorting order: "%(sorting_order)s"') % {'sorting_order': stripped_order})
         return stripped_order
 
     def order_queryset(self, queryset):
