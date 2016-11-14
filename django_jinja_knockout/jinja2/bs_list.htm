@@ -10,7 +10,7 @@
 ) -%}
 
 {% for field in view.allowed_filter_fields -%}
-    {{ bs_breadcrumbs(filter_title[field], filter_navs[field]) }}
+    {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
 {% endfor -%}
 
 {% if object_list -%}
@@ -42,11 +42,7 @@
 {% else -%}
     <div class="jumbotron">
         <div class="default-padding">
-            {{ bs_filters(
-                filter_title,
-                filter_display,
-                heading=view.get_heading()
-            ) }}
+            {{ bs_filters(**view.get_no_match_kwargs()) }}
         </div>
     </div>
 {% endif -%}

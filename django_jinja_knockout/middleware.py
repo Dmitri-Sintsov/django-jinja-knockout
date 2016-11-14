@@ -224,6 +224,8 @@ class ContextMiddleware(object):
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
                 return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
+            elif isinstance(e, ImmediateHttpResponse):
+                return e.response
             else:
                 return exception_response(request, e)
 

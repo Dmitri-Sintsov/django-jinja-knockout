@@ -22,6 +22,7 @@ from django.views.generic import TemplateView, DetailView, ListView, UpdateView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
+from django.template.response import TemplateResponse
 
 from . import tpl as qtpl
 from .models import (
@@ -571,10 +572,6 @@ class BaseFilterView(View):
         else:
             return self.request.GET.get(key, default)
 
-    # Respond with exception (non-AJAX mode).
-    def report_error(self, message, *args, **kwargs):
-        raise ValueError(message.format(*args, **kwargs))
-
     def get_all_fieldnames(self):
         return list(yield_model_fieldnames(self.__class__.model))
 
@@ -849,6 +846,33 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     template_name = 'cbv_list.htm'
 
+    def __init__(self):
+        super().__init__()
+        self.reported_error = None
+
+    def reset_query_args(self):
+        self.current_list_filter = {}
+        self.current_sort_order = []
+        self.current_stripped_sort_order = []
+        self.current_search_str = ''
+
+    # Respond with error message (non-AJAX mode).
+    def report_error(self, message, *args, **kwargs):
+        from .middleware import ImmediateHttpResponse
+        self.reset_query_args()
+        self.reported_error = message.format(*args, **kwargs)
+        self.object_list = self.__class__.model.objects.all()[0:0]
+        context = {
+            'view': self,
+        }
+        context.update(self.get_context_data())
+        response = TemplateResponse(
+            self.request,
+            self.__class__.template_name,
+            context
+        )
+        raise ImmediateHttpResponse(response)
+
     def get_heading(self):
         return get_meta(self.__class__.model, 'verbose_name_plural')
 
@@ -999,19 +1023,30 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             force_text(text)
         )
 
-    def get_context_data(self, **kwargs):
-        context_data = super().get_context_data(**kwargs)
-        context_data.update({
-            'filter_title': {},
-            'filter_navs': {},
-            'filter_display': {}
-        })
-        for fieldname in self.allowed_filter_fields:
-            context_data['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
+    def get_filter_args(self, fieldname):
+        if fieldname in self.allowed_filter_fields:
+            filter_title = self.get_field_verbose_name(fieldname)
             navs, display = self.get_filter_navs(fieldname)
-            context_data['filter_navs'][fieldname] = navs
-            context_data['filter_display'][fieldname] = display
-        return context_data
+            return filter_title, navs
+        else:
+            raise ValueError('Not allowed fieldname: {}'.format(fieldname))
+
+    def get_no_match_kwargs(self):
+        kwargs = {
+            'filter_title': {},
+            'filter_display': {},
+            'heading': self.get_heading(),
+        }
+        for fieldname in self.allowed_filter_fields:
+            kwargs['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
+            navs, display = self.get_filter_navs(fieldname)
+            kwargs['filter_display'][fieldname] = display
+        if self.reported_error is not None:
+            kwargs.update({
+                'format_str': self.reported_error,
+                'format_str_filters': self.reported_error
+            })
+        return kwargs
 
 
 class ViewmodelView(TemplateView):
