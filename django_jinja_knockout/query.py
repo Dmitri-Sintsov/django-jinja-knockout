@@ -6,6 +6,7 @@ from sqlparse.lexer import tokenize
 
 from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import Query, RawQuery
 from django.db.models.query import RawQuerySet, QuerySet
@@ -147,7 +148,25 @@ class FilteredRawQuery(RawQuery):
         self.cursor.execute(result, params)
 
 
-class FilteredRawQuerySet(RawQuerySet):
+class ValuesQuerySetMixin:
+
+    def _values(self, values_fields):
+        c = self._clone()
+        for row in c.__iter__():
+            value = {attr: getattr(row, attr) for attr in values_fields}
+            yield value
+
+    def _values_list(self, values_fields, flat):
+        c = self._clone()
+        for row in c.__iter__():
+            if flat:
+                yield getattr(row, values_fields[0])
+            else:
+                value = [getattr(row, attr) for attr in values_fields]
+                yield value
+
+
+class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 
     def __init__(self, *args, **kwargs):
         self.filtered_qs = kwargs.pop('filtered_qs', None)
@@ -274,10 +293,7 @@ class FilteredRawQuerySet(RawQuerySet):
 
     def values(self, *fields):
         values_fields = fields if len(fields) > 0 else self.columns
-        c = self._clone()
-        for row in c.__iter__():
-            value = {attr: getattr(row, attr) for attr in values_fields}
-            yield value
+        yield from self._values(values_fields)
 
     def values_list(self, *fields, **kwargs):
         flat = kwargs.pop('flat', False)
@@ -287,13 +303,7 @@ class FilteredRawQuerySet(RawQuerySet):
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         values_fields = fields if len(fields) > 0 else self.columns
-        c = self._clone()
-        for row in c.__iter__():
-            if self.flat:
-                yield getattr(row, values_fields[0])
-            else:
-                value = [getattr(row, attr) for attr in values_fields]
-                yield value
+        yield from self._values_list(values_fields, flat=flat)
 
     def __getitem__(self, k):
         """
@@ -324,7 +334,7 @@ class FilteredRawQuerySet(RawQuerySet):
 
 
 # To use with Prefetch() 'to_attr' keyword argument object results.
-class ListQuerySet:
+class ListQuerySet(ValuesQuerySetMixin):
 
     def __init__(self, lst):
         if not isinstance(lst, list):
@@ -433,3 +443,25 @@ class ListQuerySet:
             )
 
         return self.list[k]
+
+    def _get_fields(self, fields):
+        if len(self.list) == 0:
+            return None
+        if len(fields) > 0:
+            return fields
+        else:
+            return [field.attname for field in self.list[0]._meta.get_fields() if isinstance(field, Field)]
+
+    def values(self, *fields):
+        values_fields = self._get_fields(fields)
+        yield from self._values(values_fields)
+
+    def values_list(self, *fields, **kwargs):
+        flat = kwargs.pop('flat', False)
+        if kwargs:
+            raise TypeError('Unexpected keyword arguments to values_list: %s'
+                            % (list(kwargs),))
+        if flat and len(fields) > 1:
+            raise TypeError("'flat' is not valid when values_list is called with more than one field.")
+        values_fields = self._get_fields(fields)
+        yield from self._values_list(values_fields, flat=flat)
