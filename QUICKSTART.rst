@@ -252,8 +252,15 @@ middleware.py
 
     ContextMiddleware.get_request()
 
+
+
 * Support optional client-side viewmodels injection from current user session.
 * Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
+  Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
+  the application (for example to pass it to celery task)::
+
+    ContextMiddleware.get_request_timezone()
+
 * Views are secured by default with implicit definition of anonymous / inactive user allowed views, defined as
   ``url()`` extra kwargs per each view in ``urls.py``. Anonymous views require explicit permission::
 
@@ -261,7 +268,7 @@ middleware.py
 * Optional checks for AJAX requests and / or specific Django permission::
 
     url(r'^check-project/$', 'my_app.views.check_project', name='check_project', kwargs={
-        'ajax': True, 'permission_required': 'my_project.project_can_add'
+        'ajax': True, 'permission_required': 'my_app.project_can_add'
     })
 * View title is optionally defined as url kwargs ``'view_title'`` key value::
 
@@ -273,15 +280,24 @@ middleware.py
 
     {{ request.view_title }}
 
-* View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms when needed.
+* View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
 * Middleware is inheritable which allows greater flexibility to implement your own extended features via overloaded
   methods.
 
 models.py
 ---------
-* ``ContentTypeLinker`` class to easily generate contenttypes framework links in Jinja2 templates.
-* ``get_verbose_name()`` allows to get verbose_name of Django model field, including related (foreign) and reverse-related
-  fields::
+* ``ContentTypeLinker`` class to easily generate contenttypes framework object links.
+* ``get_users_with_permission()`` - return the queryset of all users who have specified permission string, including
+  all three possible sources of such users (user permissions, group permissions and superusers).
+* Next functions allow to use bits of queryset functionality on single Django model object instances:
+
+  * ``get_related_field_val()`` / ``get_related_field()`` support quering related field properties from supplied model
+    instance via specified string with double underscore-separated names, just like in Django querysets.
+  * ``model_values()`` - get the dict of model fields name / value pairs like queryset ``values()`` for one model instance
+    supplied.
+
+* ``get_meta()`` / ``get_verbose_name()`` - get meta property of Django model field, including related (foreign) and
+  reverse-related fields::
 
     {{ get_verbose_name(profile, 'user__username') }}
 

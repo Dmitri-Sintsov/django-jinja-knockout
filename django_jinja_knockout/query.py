@@ -1,4 +1,5 @@
 import types
+from operator import attrgetter
 from copy import copy
 from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
@@ -389,6 +390,16 @@ class ListQuerySet:
 
     def exclude(self, *args, **kwargs):
         return self._filter(False, *args, **kwargs)
+
+    def order_by(self, *field_names):
+        sorted_list = self.list
+        for fieldname in reversed(field_names):
+            canon_name = fieldname.lstrip('-')
+            is_desc = fieldname.startswith('-')
+            sorted_list = sorted(sorted_list, key=attrgetter(canon_name), reverse=is_desc)
+        return self.__class__(
+            sorted_list
+        )
 
     def first(self):
         return None if len(self.list) == 0 else self.list[0]

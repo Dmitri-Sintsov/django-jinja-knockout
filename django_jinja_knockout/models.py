@@ -79,7 +79,7 @@ def yield_model_fieldnames(obj, fields=None):
             yield fieldname
 
 
-# Return dict of model fields key / val like queryset values() but for one model supplied.
+# Return dict of model fields name / value pairs like queryset values() for one model instance supplied.
 def model_values(obj, fields=None, strict_related=True):
     row = {}
     for fieldname in yield_model_fieldnames(obj, fields):

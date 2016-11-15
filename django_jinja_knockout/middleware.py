@@ -64,7 +64,9 @@ class ContextMiddleware(object):
         return cls._threadmap[threading.get_ident()]
 
     @classmethod
-    def get_request_timezone(cls, request):
+    def get_request_timezone(cls, request=None):
+        if request is None:
+            request = cls.get_request()
         if 'local_tz' in request.COOKIES:
             try:
                 local_tz = int(request.COOKIES['local_tz'])
