@@ -12,6 +12,7 @@ Quickstart
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
+.. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -75,6 +76,22 @@ Components
 ``App.Components`` class allows to automatically instantiate Javascript classes by their string path specified in
 element's ``data-component-options`` html5 attribute and bind these to that element. Primarily used to provide
 Knockout.js ``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to Knockout.js.
+
+.. highlight:: html
+
+Since version 0.3.0, components can be also instantiated via browser event in addition to default document 'ready' event
+instantiating. That allows to bind component classes to button click, for example::
+
+    <button class="component" data-event="click" data-component-options='{"classPath": "App.GridDialog"}}'>
+        Click to see project list
+    </button>
+
+Would create instance of ``App.GridDialog`` class when target button is clicked.
+
+Of course JSON string value of ``data-component-options`` attribute usually is generated in Jinja2 macro, such as
+`ko_grid()`_::
+
+    <div {{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'></div>
 
 plugins.js
 ----------
