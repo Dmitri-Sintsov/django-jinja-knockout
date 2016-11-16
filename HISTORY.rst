@@ -1,5 +1,7 @@
 .. :changelog:
 
+.. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+
 History
 -------
 
@@ -25,12 +27,21 @@ History
 
 0.3.0
 +++++
-* ``ContentTypeLinker`` has method to return html representation of content types framework related object
-  (html link with the description by default).
+* ``ContentTypeLinker`` - added method to return html representation of content types framework related object (html
+  link with the description by default).
 * ``FilteredRawQuerySet`` now supports more precise ``.count()`` method to calculate the length of raw queryset.
+* ``ListQuerySet`` implements large part of queryset methods for the lists of Django model instances. Such lists are
+  created by Django queryset ``.prefetch_related()`` method.
 * Auto-highlight bootstrap navs which have 'auto-highlight' css class at client-side.
 * ``bs_tabs()`` Jinja2 macro which simplifies generation of bootstrap tabs. Bootstrap tabs now support automatic
   switching via window.location.hash change.
+* ``ListSortingView`` improvements:
+
+  * Supports graceful handling of error reporting, producing in-place messages instead of just rising an exception.
+  * ``.get_filter_args()`` / ``.get_no_match_kwargs()`` methods are implemented to generate macro arguments used in
+    `bs_list.htm`_ Jinja2 template. This allows to override default messages for field filters / no match reports in
+    the child classes.
+
 * ``KoGridView`` has multiple improvements:
 
   * ``decimal`` field filter is renamed to ``number`` as now it supports both Django model ``DecimalField`` and
@@ -41,11 +52,12 @@ History
     (when viewmodel ``view`` name is not specified).
   * ``get_default_grid_options()`` method was renamed to shorter ``get_grid_options()`` method.
   * ``grid_options`` may be defined as class attribute, not having to always define ``get_grid_options()`` method which
-    is longer (but is more flexible).
-  * ``discover_grid_options()`` method was implemented to populate grid ``fkGridOptions`` which are used to setup foreign
-    key filter fields automatically (when possible). That allows to reduce boilerplate data in ``grid_options`` /
-    ``get_grid_options()``, especially when using nested foreign key filters. ``fkGridOptions`` still can be specified
-    manually as the part of ``get_grid_options()`` result, in complex cases.
+    is more verbose (but is more flexible).
+  * ``discover_grid_options()`` method was implemented to populate grid ``fkGridOptions`` which are used to setup
+    foreign key filter fields automatically (when possible). That allows to reduce boilerplate data in ``grid_options``
+    / ``get_grid_options()``, especially when using nested foreign key filters. ``fkGridOptions`` nested dictionary
+    still can be specified manually as the part of ``get_grid_options()`` result, in complex cases (eg. DB or view
+    kwargs based options).
   * Enable quick selection / deselection of currently displayed grid rows when ``selectMultipleRows`` is ``true``.
 
 * ``ForeignKeyGridWidget`` also autodetects foreign key filter ``fkGridOptions``.

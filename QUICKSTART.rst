@@ -2,16 +2,16 @@
 Quickstart
 ===========
 
+.. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _Celery: https://github.com/celery/celery
+.. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
-.. _FilteredRawQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/query.py
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
-.. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -303,7 +303,11 @@ models.py
 
 query.py
 --------
-`FilteredRawQuerySet`_ inherits Django ``RawQuerySet`` class whose instances are returned by Django model object manager
+
+FilteredRawQuerySet
+~~~~~~~~~~~~~~~~~~~
+
+``FilteredRawQuerySet`` inherits Django ``RawQuerySet`` class whose instances are returned by Django model object manager
 ``.raw()`` calls.
 
 It supports ``.filter()`` / ``.exclude()`` / ``.order_by()`` / ``values()`` / ``values_list()``
@@ -314,6 +318,59 @@ class-based views defined in `views.py`_.
 
 See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
 raw query which has ``LEFT JOIN`` statement.
+
+ListQuerySet
+~~~~~~~~~~~~
+``ListQuerySet`` implements large part of Django queryset functionality for Python lists of Django model instances.
+Such lists are returned by Django queryset ``.prefetch_related()`` method.
+
+.. highlight:: python
+
+This allows to have the same logic of processing queries with both ``.prefetch_related()`` applied results and without
+them. For example, imagine one have two querysets::
+
+    from django.db import models
+    from django.db.models import Prefetch
+
+    def process_related():
+        qs1 = Project.objects.all()[:10]
+        qs2 = Project.objects.all()[:10].prefetch_related(
+            Prefetch(
+                'projectmember_set',
+                to_attr='projectmember_list'
+            )
+        )
+        (obj.process_members() for obj in qs1)
+        (obj.process_members() for obj in qs2)
+
+    class Project(models.Model):
+
+        # ... skipped ...
+
+        def process_members(self):
+            # Detect Prefetch().
+            if hasattr(self, 'projectmember_list'):
+                qs = ListQuerySet(self.projectmember_list)
+            else:
+                qs = self.projectmember_set
+            # ... Do .filter() / .order_by() / slice operation with qs
+            qs_subset = qs.filter(is_approved=False)
+            # ... Do some more operations with qs_subset or it's members.
+            for obj in qs_subset:
+                obj.approve()
+
+    class ProjectMember(models.Model):
+
+        project = models.ForeignKey(Project, verbose_name='Project')
+        is_approved = models.BooleanField(default=False, verbose_name='Approved member')
+        # ... skipped ...
+
+        def approve(self):
+            self.is_approved = True
+
+Version 0.3.0 implements ``.filter()`` / ``.exclude()`` / slicing / ``.order_by()`` / ``.first()`` / ``.values()`` /
+``.values_list()`` methods. Many but not all of the `field lookups`_ are supported. Feel free to submit a pull request
+if you need more functionality.
 
 tpl.py
 ------
