@@ -219,13 +219,14 @@ Wrapping each form of formset with div with custom attributes (to process these 
 Bootstrap macros
 ----------------
 
-`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App`` ``.showTabPane()``
-and ``.initShowTabPane()`` methods, defined in `app.js`_, which enables automatic switching of tab panes upon page load
-and via window.location.hash change. Hash change occurs either from user script, or via clicking anchor which has url
-with matching hash name. djk_sample demo project has `bs_tabs() sample`_ which place grids into bootstrap tabs.
+`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App`` class
+``.showTabPane()`` / ``.initShowTabPane()`` methods, defined in `app.js`_, which enables automatic switching of tab
+panes upon page load and via window.location.hash change. Hash change may occur programmatically from user script, or
+via clicking anchor with matching hash name. djk_sample demo project has `bs_tabs() sample`_ which places grids into
+bootstrap tabs.
 
-The only argument of `bs_tabs()`_ macro is the list. Each elements of the list should be dict, specifying the following
-mandarory key-value pairs:
+The only argument of `bs_tabs()`_ macro is the list. Each element of the list should be dict that defines content of
+each tab. The following mandarory key-value pairs are required:
 
 * ``id`` - the value of window.location.hash for current tab;
 * ``title`` - title of current tab;

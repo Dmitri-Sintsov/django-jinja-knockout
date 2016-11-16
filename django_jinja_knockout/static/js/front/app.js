@@ -1551,7 +1551,7 @@ App.Components = function() {
         this.list = [];
     };
 
-    Components.bind = function(elem) {
+    Components.create = function(elem) {
         var $elem = $(elem);
         if ($elem.data('componentIdx') !== undefined) {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
@@ -1567,25 +1567,41 @@ App.Components = function() {
         var cls = App.getClassFromPath(options.classPath);
         delete options.classPath;
         var component = new cls(options);
-        $elem.data('componentIdx', this.list.length);
         if (typeof component.setComponentElement === 'function') {
             component.setComponentElement(elem);
         }
         return component;
     };
 
+    Components.bind = function(desc, elem) {
+        var freeIdx = this.list.indexOf(null);
+        if (freeIdx  === -1) {
+            freeIdx = this.list.length;
+        }
+        $(elem).data('componentIdx', freeIdx);
+        this.list[freeIdx] = desc;
+        return freeIdx;
+    };
+
     Components.add = function(elem, evt) {
         var self = this;
+        var desc;
         if (typeof evt === 'undefined') {
-            var desc = {'component': this.bind(elem)};
+            desc = {'component': this.create(elem)};
+            this.bind(desc, elem)
             desc.component.runComponent(elem);
-            this.list.push(desc);
         } else {
-            var desc = {'event': evt};
+            desc = {'event': evt};
             desc.handler = function() {
-                desc.component = self.bind(elem);
-                desc.component.runComponent(elem);
-                self.list.push(desc);
+                try {
+                    // Re-use already bound component, if any.
+                    var component = self.get(elem);
+                    component.runComponent(elem);
+                } catch (e) {
+                    desc.component = self.create(elem);
+                    self.bind(desc, elem)
+                    desc.component.runComponent(elem);
+                }
             };
             $(elem).on(desc.event, desc.handler);
         }
@@ -1618,6 +1634,7 @@ App.Components = function() {
         }
         this.list[componentIdx] = null;
         $(elem).removeData('componentIdx');
+        return desc;
     };
 
 })(App.Components.prototype);

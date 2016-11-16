@@ -2434,8 +2434,10 @@ App.GridDialog = function(options) {
         if (this.componentElement !== null) {
             delete this.grid;
             delete this.bdialog;
-            App.components.unbind(this.componentElement);
-            App.components.add(this.componentElement, 'click');
+            var desc = App.components.unbind(this.componentElement);
+            if (typeof desc.event !== 'undefined') {
+                App.components.add(this.componentElement, desc.event);
+            }
         }
     };
 

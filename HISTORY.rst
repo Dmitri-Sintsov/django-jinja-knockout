@@ -40,7 +40,7 @@ History
   * Supports graceful handling of error reporting, producing in-place messages instead of just rising an exception.
   * ``.get_filter_args()`` / ``.get_no_match_kwargs()`` methods are implemented to generate macro arguments used in
     `bs_list.htm`_ Jinja2 template. This allows to override default messages for field filters / no match reports in
-    the child classes.
+    the grid classes.
 
 * ``KoGridView`` has multiple improvements:
 
