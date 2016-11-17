@@ -1567,9 +1567,6 @@ App.Components = function() {
         var cls = App.getClassFromPath(options.classPath);
         delete options.classPath;
         var component = new cls(options);
-        if (typeof component.setComponentElement === 'function') {
-            component.setComponentElement(elem);
-        }
         return component;
     };
 

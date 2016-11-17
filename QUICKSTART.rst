@@ -3,10 +3,12 @@ Quickstart
 ===========
 
 .. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
+.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _Celery: https://github.com/celery/celery
+.. _data-component-options: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-options
 .. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
@@ -86,12 +88,48 @@ instantiating. That allows to bind component classes to button click, for exampl
         Click to see project list
     </button>
 
-Would create instance of ``App.GridDialog`` class when target button is clicked.
+Would create an instance of ``App.GridDialog`` class when target button is clicked.
 
-Of course JSON string value of ``data-component-options`` attribute usually is generated in Jinja2 macro, such as
-`ko_grid()`_::
+JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
+is generated in Jinja2 macro, such as `ko_grid()`_::
 
     <div {{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'></div>
+
+.. highlight:: javascript
+
+Version 0.3.0 also brings control over component binding and re-using. By default, current component instance is re-used
+when the same event is fired. To have component re-instantiated, one should save target element in component instance
+like this::
+
+    MyComponent.runComponent = function(elem) {
+        this.componentElement = elem;
+        // Run your initialization code here ...
+        this.doStuff();
+    };
+
+Then in your component shutwodn code call ``App.components`` instance ``.unbind()`` / ``.add()`` methods::
+
+    MyComponent.onHide = function() {
+        // Run your shutdown code ...
+        this.doShutdown();
+        // Detect component, so it will work without component instantiation too.
+        if (this.componentElement !== null) {
+            // Unbind component.
+            var desc = App.components.unbind(this.componentElement);
+            if (typeof desc.event !== 'undefined') {
+                // Re-bind component to the same element with the same event.
+                App.components.add(this.componentElement, desc.event);
+            }
+        }
+    };
+
+See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX grids via click events.
+
+Because ``App.GridDialog`` class constructor has many options, it's preferrable to generate ``data-component-options``
+JSON string value in Python / Jinja2 code.
+
+Search for `data-component-options`_ in djk-sample code for the examples of both document ready and button click
+component binding.
 
 plugins.js
 ----------
