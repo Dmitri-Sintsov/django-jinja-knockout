@@ -12,7 +12,7 @@ django-jinja-knockout
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
-   :alt PyPI package
+   :alt: PyPI package
    :target: https://badge.fury.io/py/django-jinja-knockout
 
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
