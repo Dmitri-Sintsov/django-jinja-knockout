@@ -2,29 +2,37 @@
 django-jinja-knockout
 =====================
 
+.. _celery: http://www.celeryproject.org/
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _Bootstrap 3: http://getbootstrap.com/
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
+.. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
+.. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
     :target: https://badge.fury.io/py/django-jinja-knockout
 
-Screenshot of sample application:
+Screenshot of `sample application`_:
 
 .. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_edit_inline.png
    :width: 740px
 
-More screenshots with description are available at: https://github.com/Dmitri-Sintsov/djk-sample/wiki
-
-Sample application: https://github.com/Dmitri-Sintsov/djk-sample
+More screenshots with descriptions are available at: https://github.com/Dmitri-Sintsov/djk-sample/wiki
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
+
+Please contribute to the localization of the project:
+
+* `django-jinja-knockout python localization`_
+* `django-jinja-knockout javascript localization`_
+
 
 Key features
 ------------
 
 * Django 1.8, 1.9. 1.10 support. Python 3.4 / 3.5 support.
+* `Supports existing Django templates (DTL).`
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
@@ -33,7 +41,7 @@ Key features
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
-* Supports existing Django templates (DTL). Jinja2 templates can be integrated into existing Django templates via custom
+* Jinja2 templates can be integrated into existing Django templates via custom
   template library tag::
 
     {% extends 'base_min.html' %}
@@ -85,10 +93,14 @@ Auto-configuration of nested foreign key filter fields in ``KoGridView`` / ``For
 
 ``FilteredRawQuerySet`` now supports more precise ``.count()`` method.
 
+``ListQuerySet`` supports significant part of Django queryset functionality for the lists of Django model instances,
+returned by `prefetch_related()`_.
+
 Bootstrap tabs generation macro ``bs_tabs()`` with client-side support of switching tabs when window.location.hash
 value changes.
 
-``SendmailQueue`` functionality can be extended via injecting ioc class - for example to send email in the background.
+``SendmailQueue`` functionality can be extended via injecting ioc class - for example to send email in the background
+via `celery`_ task.
 
 Major changes (version 0.2.0)
 -----------------------------
@@ -149,11 +161,6 @@ Quick notes:
 * How to contribute_
 * History_
 * Credits_
-
-If you know one of the currently available languages, please contribute to localization of the project:
-
-* `django-jinja-knockout python localization`_
-* `django-jinja-knockout javascript localization`_
 
 Cookiecutter Tools Used in Making This Package
 ----------------------------------------------
