@@ -125,8 +125,8 @@ Then in your component shutwodn code call ``App.components`` instance ``.unbind(
 
 See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX grids via click events.
 
-Because ``App.GridDialog`` class constructor has many options, it's preferrable to generate ``data-component-options``
-JSON string value in Python / Jinja2 code.
+Because ``App.GridDialog`` class constructor may have many options, including dynamically-generated ones, it's
+preferrable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
 
 Search for `data-component-options`_ in djk-sample code for the examples of both document ready and button click
 component binding.
