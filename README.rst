@@ -14,6 +14,7 @@ django-jinja-knockout
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
    :alt PyPI package
    :target: https://badge.fury.io/py/django-jinja-knockout
+
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
