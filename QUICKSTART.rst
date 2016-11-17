@@ -562,10 +562,10 @@ database backend or non-SQL store to process emails in background, for example a
 class ``.add()`` and ``.flush()`` methods could be overriden in ``self.ioc`` and new methods can be added as well.
 
 ``uncaught_exception_email`` function can be used to monkey patch Django exception ``BaseHandler`` to use
-``SendmailQueue`` to send the uncaught exception reports to selected email address.
+``SendmailQueue`` to send the uncaught exception reports to selected email addresses.
 
 Here is the example of extending ``EmailQueue`` instance of ``SendmailQueue`` via custom ioc class (``EmailQueueIoc``)
-and monkey patching Django exception ``BaseHandler`` (in ``apps.py``)::
+and monkey patching Django exception ``BaseHandler``. This code should be placed in the project's ``apps.py``::
 
     class MyAppConfig(AppConfig):
         name = 'my_app'
@@ -600,10 +600,12 @@ and monkey patching Django exception ``BaseHandler`` (in ``apps.py``)::
 
         def add(self, **kwargs):
             # Insert your code here.
+            # Call original _add():
             return self.queue._add(**kwargs)
 
         def flush(self, **kwargs):
             # Insert your code here.
+            # Call original _flush():
             return self.queue._flush(**kwargs)
 
         def celery_task():
