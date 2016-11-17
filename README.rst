@@ -10,8 +10,13 @@ django-jinja-knockout
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
+
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
-    :target: https://badge.fury.io/py/django-jinja-knockout
+   :alt PyPI package
+   :target: https://badge.fury.io/py/django-jinja-knockout
+.. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
+   :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
+   :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Screenshot of `sample application`_:
 
@@ -167,8 +172,3 @@ Cookiecutter Tools Used in Making This Package
 
 *  cookiecutter
 *  cookiecutter-djangopackage
-
-
-.. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
-   :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
-   :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
