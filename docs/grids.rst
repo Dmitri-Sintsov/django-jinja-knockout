@@ -489,7 +489,7 @@ property. See `'list' action`_ for more info.
 
 * Scalar values will be placed into grid cells via ``jQuery.html()`` WITHOUT XSS protection. Usually these values are
   server-side Django generated strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the
-  implementation in   version 0.2.0 `ko_grid.js`_::
+  implementation in the version 0.2.0 of `ko_grid.js`_::
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
