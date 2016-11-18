@@ -1,3 +1,5 @@
+from selenium.webdriver.common.by import By
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils.html import format_html
 
@@ -42,6 +44,9 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         print('do_reverse_url: {}'.format(url))
         return self.selenium.get(url)
 
+    def do_by_id(self, id):
+        return self.selenium.find_element_by_id(id)
+
     def do_keys_by_id(self, id, keys):
         input = self.selenium.find_element_by_id(id)
         input.send_keys(keys)
@@ -50,13 +55,24 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def do_by_xpath(self, xpath):
         return self.selenium.find_element_by_xpath(xpath)
 
+    def do_element_by_xpath(self, xpath):
+        return self.last_result.find_element(By.XPATH, xpath)
+
     def do_click(self):
         return self.last_result.click()
 
-    def do_find_submit_by_viewname(self, viewname, kwargs=None, query=None):
+    def do_find_submit_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
             format_html(
                 '//form[@action="{action}"]//button[@type="submit"]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
+
+    def do_find_anchor_by_view(self, viewname, kwargs=None, query=None):
+        return self.selenium.find_element_by_xpath(
+            format_html(
+                '//a[@href="{action}"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
