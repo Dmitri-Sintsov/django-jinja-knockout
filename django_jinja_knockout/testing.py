@@ -44,6 +44,10 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         print('do_reverse_url: {}'.format(url))
         return self.selenium.get(url)
 
+    # Get active element, for example currently opened BootstrapDialog.
+    def do_to_active_element(self):
+        return self.selenium.switch_to.active_element
+
     def do_by_id(self, id):
         return self.selenium.find_element_by_id(id)
 
@@ -54,6 +58,12 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     def do_by_xpath(self, xpath):
         return self.selenium.find_element_by_xpath(xpath)
+
+    def do_by_classname(self, classname):
+        return self.selenium.find_element_by_class_name(classname)
+
+    def do_by_css_selector(self, css_selector):
+        return self.selenium.find_elements_by_css_selector(css_selector)
 
     def do_element_by_xpath(self, xpath):
         return self.last_result.find_element(By.XPATH, xpath)
