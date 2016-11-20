@@ -5,7 +5,6 @@ class AutomationCommands:
         self.last_result = None
 
     def exec(self, *args):
-        self.last_result = None
         method = None
         last_opcode = None
         for key, opcode in enumerate(args):
@@ -25,3 +24,4 @@ class AutomationCommands:
                 raise ValueError(
                     'Invalid opcode, should be str (method name), tuple (method args) or dict (method kwagrs)')
             last_opcode = opcode
+        return self.last_result

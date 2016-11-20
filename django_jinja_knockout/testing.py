@@ -46,6 +46,9 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     # Get active element, for example currently opened BootstrapDialog.
     def do_to_active_element(self):
+        # from selenium.webdriver.support.wait import WebDriverWait
+        # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
+        # self.__class__.selenium.implicitly_wait(2)
         return self.selenium.switch_to.active_element
 
     def do_by_id(self, id):
@@ -85,4 +88,56 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
                 '//a[@href="{action}"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
+        )
+
+
+class DjkSeleniumCommands(SeleniumCommands):
+
+    def do_has_messages_success(self):
+        return self.do_by_xpath('//div[@class="messages"]/div[@class="alert alert-danger success"]')
+
+    def do_jumbotron_text(self, text):
+        return self.do_by_xpath(
+            '//div[@class="jumbotron"]/div[@class="default-padding" and contains(text(), "{}")]'.format(text),
+        )
+
+    def do_input_as_select_click(self, id):
+        return self.exec(
+            'by_id', (id,),
+            'element_by_xpath', ('parent::label',),
+            'click',
+        )
+
+    def do_fk_widget_click(self, id):
+        return self.exec(
+            'by_id', (id,),
+            'element_by_xpath', ('following-sibling::button',),
+            'click',
+            'to_active_element',
+        )
+
+    def do_grid_button_action_click(self, action_name):
+        return self.exec(
+            'by_classname', ('grid-controls',),
+            'element_by_xpath', ('//span[text()="{}"]/parent::button'.format(action_name),),
+            'click',
+        )
+
+    def do_dialog_button_click(self, button_title):
+        return self.exec(
+            'to_active_element',
+            'element_by_xpath',
+            ('//div[@class="bootstrap-dialog-footer"]//button[contains(., "{}")]'.format(button_title),),
+            'click'
+        )
+
+    def do_assert_field_error(self, id, text):
+        return self.exec(
+            'by_id', (id,),
+            'element_by_xpath', ('parent::div[@class="has-error"]/div[text()="{}"]'.format(text),),
+        )
+
+    def do_grid_find_data_column(self, caption, value):
+        return self.exec(
+            'element_by_xpath', ('//td[@data-caption="{}" and text()="{}"]'.format(caption, value),),
         )
