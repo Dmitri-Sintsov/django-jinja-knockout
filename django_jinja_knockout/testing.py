@@ -63,9 +63,9 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     def escape_xpath_literal(self, s):
         if "'" not in s:
-            return "'%s'" % s
+            return "'{}'".format(s)
         if '"' not in s:
-            return '"%s"' % s
+            return '"{}"'.format(s)
         delimeters = re.compile(r'\'')
         tokens = finditer_with_separators(delimeters, s)
         for key, token in enumerate(tokens):
