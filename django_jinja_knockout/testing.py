@@ -50,7 +50,8 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def _to_active_element(self):
         # from selenium.webdriver.support.wait import WebDriverWait
         # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
-        # self.__class__.selenium.implicitly_wait(2)
+        # self.__class__.selenium.implicitly_wait(3)
+        # return self.selenium.switch_to_active_element()
         return self.selenium.switch_to.active_element
 
     def _by_id(self, id):
@@ -91,16 +92,18 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def _by_css_selector(self, css_selector):
         return self.selenium.find_elements_by_css_selector(css_selector)
 
-    def _element_by_xpath(self, xpath):
-        return self.last_result.find_element(By.XPATH, xpath)
+    def _relative_by_xpath(self, xpath, *args, **kwargs):
+        return self.last_result.find_element(
+            By.XPATH, self.format_xpath(xpath, *args, **kwargs)
+        )
 
     def _ancestor(self, expr):
-        return self._element_by_xpath(
+        return self._relative_by_xpath(
             'ancestor::{}'.format(expr)
         )
 
     def _ancestor_or_self(self, expr):
-        return self._element_by_xpath(
+        return self._relative_by_xpath(
             'ancestor-or-self::{}'.format(expr)
         )
 
@@ -110,10 +113,7 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def _button_click(self, button_title):
         return self.exec(
             'to_active_element',
-            'element_by_xpath', (self.format_xpath(
-                '//button[contains(., {})]',
-                button_title
-            ),),
+            'relative_by_xpath', ('//button[contains(., {})]', button_title,),
             'click'
         )
 
@@ -151,52 +151,52 @@ class DjkSeleniumCommands(SeleniumCommands):
     def _input_as_select_click(self, id):
         return self.exec(
             'by_id', (id,),
-            'element_by_xpath', ('parent::label',),
+            'relative_by_xpath', ('parent::label',),
             'click',
         )
 
     def _fk_widget_click(self, id):
         return self.exec(
             'by_id', (id,),
-            'element_by_xpath', ('following-sibling::button',),
+            'relative_by_xpath', ('following-sibling::button',),
             'click',
             'to_active_element',
         )
 
     def _grid_button_action_click(self, action_name):
         return self.exec(
-            'by_classname', ('grid-controls',),
-            'element_by_xpath', (self.format_xpath(
-                '//span[text()={}]/parent::button', action_name
-            ),),
+            'relative_by_xpath', (
+                '//div[contains(concat(" ", @class, " "), " grid-controls ")]'
+                '//span[text()={}]/parent::button', action_name,
+            ),
             'click',
         )
 
     def _dialog_button_click(self, button_title):
         return self.exec(
             'to_active_element',
-            'element_by_xpath', (self.format_xpath(
+            'relative_by_xpath', (
                 '//div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
-                button_title
-            ),),
+                button_title,
+            ),
             'click'
         )
 
     def _assert_field_error(self, id, text):
         return self.exec(
             'by_id', (id,),
-            'element_by_xpath', (self.format_xpath(
+            'relative_by_xpath', (
                 'parent::div[@class="has-error"]/div[text()={}]', text
-            ),),
+            ),
         )
 
     def _grid_find_data_column(self, caption, value):
-        return self._element_by_xpath(
-            self.format_xpath('//td[@data-caption={} and text()={}]', caption, value)
+        return self._relative_by_xpath(
+            '//td[@data-caption={} and text()={}]', caption, value
         )
 
     def _grid_select_current_row(self):
         return self.exec(
-            'element_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
+            'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
             'click'
         )
