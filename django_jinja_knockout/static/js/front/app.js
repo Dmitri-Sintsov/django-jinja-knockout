@@ -190,6 +190,7 @@ App.Dialog = function(options) {
             // BootstrapDialog.TYPE_WARNING
             // BootstrapDialog.TYPE_DANGER
             type: this.type,
+            animate: false,
             closable: this.isClosable,
             draggable: true,
             buttonLabel: App.trans('OK'),

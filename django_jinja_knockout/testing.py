@@ -1,9 +1,10 @@
+import re
 from selenium.webdriver.common.by import By
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.utils.html import format_html
 
 from .automation import AutomationCommands
+from .utils.regex import finditer_with_separators
 from .tpl import reverseq
 
 
@@ -22,6 +23,7 @@ Do not forget to update to latest ESR when running the tests.
 """
 
 
+# Generic DOM commands.
 class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     WAIT_SECONDS = 10
@@ -37,78 +39,123 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         # cls.selenium.quit()
         super().tearDownClass()
 
-    def do_reverse_url(self, viewname, kwargs=None, query=None):
+    def _reverse_url(self, viewname, kwargs=None, query=None):
         url = '{}{}'.format(
             self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
-        print('do_reverse_url: {}'.format(url))
+        print('_reverse_url: {}'.format(url))
         return self.selenium.get(url)
 
     # Get active element, for example currently opened BootstrapDialog.
-    def do_to_active_element(self):
+    def _to_active_element(self):
         # from selenium.webdriver.support.wait import WebDriverWait
         # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
         # self.__class__.selenium.implicitly_wait(2)
         return self.selenium.switch_to.active_element
 
-    def do_by_id(self, id):
+    def _by_id(self, id):
         return self.selenium.find_element_by_id(id)
 
-    def do_keys_by_id(self, id, keys):
+    def _keys_by_id(self, id, keys):
         input = self.selenium.find_element_by_id(id)
         input.send_keys(keys)
         return input
 
-    def do_by_xpath(self, xpath):
+    def escape_xpath_literal(self, s):
+        if "'" not in s:
+            return "'%s'" % s
+        if '"' not in s:
+            return '"%s"' % s
+        delimeters = re.compile(r'\'')
+        tokens = finditer_with_separators(delimeters, s)
+        for key, token in enumerate(tokens):
+            if token == '\'':
+                tokens[key] = '"\'"'
+            else:
+                tokens[key] = "'{}'".format(token)
+        result = "concat({})".format(','.join(tokens))
+        return result
+
+    def format_xpath(self, s, *args, **kwargs):
+        return s.format(
+            *tuple(self.escape_xpath_literal(arg) for arg in args),
+            **dict({key: self.escape_xpath_literal(arg) for key, arg in kwargs.items()})
+        )
+
+    def _by_xpath(self, xpath):
         return self.selenium.find_element_by_xpath(xpath)
 
-    def do_by_classname(self, classname):
+    def _by_classname(self, classname):
         return self.selenium.find_element_by_class_name(classname)
 
-    def do_by_css_selector(self, css_selector):
+    def _by_css_selector(self, css_selector):
         return self.selenium.find_elements_by_css_selector(css_selector)
 
-    def do_element_by_xpath(self, xpath):
+    def _element_by_xpath(self, xpath):
         return self.last_result.find_element(By.XPATH, xpath)
 
-    def do_click(self):
+    def _ancestor(self, expr):
+        return self._element_by_xpath(
+            'ancestor::{}'.format(expr)
+        )
+
+    def _ancestor_or_self(self, expr):
+        return self._element_by_xpath(
+            'ancestor-or-self::{}'.format(expr)
+        )
+
+    def _click(self):
         return self.last_result.click()
 
-    def do_find_submit_by_view(self, viewname, kwargs=None, query=None):
+    def _button_click(self, button_title):
+        return self.exec(
+            'to_active_element',
+            'element_by_xpath', (self.format_xpath(
+                '//button[contains(., {})]',
+                button_title
+            ),),
+            'click'
+        )
+
+    def _find_submit_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
-            format_html(
-                '//form[@action="{action}"]//button[@type="submit"]',
+            self.format_xpath(
+                '//form[@action={action}]//button[@type="submit"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
 
-    def do_find_anchor_by_view(self, viewname, kwargs=None, query=None):
+    def _find_anchor_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
-            format_html(
-                '//a[@href="{action}"]',
+            self.format_xpath(
+                '//a[@href={action}]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
 
 
+# BootstrapDialog / AJAX grids specific commands.
 class DjkSeleniumCommands(SeleniumCommands):
 
-    def do_has_messages_success(self):
-        return self.do_by_xpath('//div[@class="messages"]/div[@class="alert alert-danger success"]')
+    def _has_messages_success(self):
+        return self._by_xpath('//div[@class="messages"]/div[@class="alert alert-danger success"]')
 
-    def do_jumbotron_text(self, text):
-        return self.do_by_xpath(
-            '//div[@class="jumbotron"]/div[@class="default-padding" and contains(text(), "{}")]'.format(text),
+    def _jumbotron_text(self, text):
+        return self._by_xpath(
+            self.format_xpath(
+                '//div[@class="jumbotron"]/div[@class="default-padding" and contains(text(), {})]',
+                text
+            )
         )
 
-    def do_input_as_select_click(self, id):
+    def _input_as_select_click(self, id):
         return self.exec(
             'by_id', (id,),
             'element_by_xpath', ('parent::label',),
             'click',
         )
 
-    def do_fk_widget_click(self, id):
+    def _fk_widget_click(self, id):
         return self.exec(
             'by_id', (id,),
             'element_by_xpath', ('following-sibling::button',),
@@ -116,28 +163,40 @@ class DjkSeleniumCommands(SeleniumCommands):
             'to_active_element',
         )
 
-    def do_grid_button_action_click(self, action_name):
+    def _grid_button_action_click(self, action_name):
         return self.exec(
             'by_classname', ('grid-controls',),
-            'element_by_xpath', ('//span[text()="{}"]/parent::button'.format(action_name),),
+            'element_by_xpath', (self.format_xpath(
+                '//span[text()={}]/parent::button', action_name
+            ),),
             'click',
         )
 
-    def do_dialog_button_click(self, button_title):
+    def _dialog_button_click(self, button_title):
         return self.exec(
             'to_active_element',
-            'element_by_xpath',
-            ('//div[@class="bootstrap-dialog-footer"]//button[contains(., "{}")]'.format(button_title),),
+            'element_by_xpath', (self.format_xpath(
+                '//div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
+                button_title
+            ),),
             'click'
         )
 
-    def do_assert_field_error(self, id, text):
+    def _assert_field_error(self, id, text):
         return self.exec(
             'by_id', (id,),
-            'element_by_xpath', ('parent::div[@class="has-error"]/div[text()="{}"]'.format(text),),
+            'element_by_xpath', (self.format_xpath(
+                'parent::div[@class="has-error"]/div[text()={}]', text
+            ),),
         )
 
-    def do_grid_find_data_column(self, caption, value):
+    def _grid_find_data_column(self, caption, value):
+        return self._element_by_xpath(
+            self.format_xpath('//td[@data-caption={} and text()={}]', caption, value)
+        )
+
+    def _grid_select_current_row(self):
         return self.exec(
-            'element_by_xpath', ('//td[@data-caption="{}" and text()="{}"]'.format(caption, value),),
+            'element_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
+            'click'
         )

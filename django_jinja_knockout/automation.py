@@ -9,7 +9,7 @@ class AutomationCommands:
         last_opcode = None
         for key, opcode in enumerate(args):
             if isinstance(opcode, str):
-                method = getattr(self, 'do_{}'.format(opcode))
+                method = getattr(self, '_{}'.format(opcode))
                 if key == len(args) - 1 or isinstance(args[key + 1], str):
                     self.last_result = method()
             elif isinstance(opcode, (tuple, list)):
