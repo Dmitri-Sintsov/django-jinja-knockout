@@ -32,7 +32,7 @@ Do not forget to update to latest ESR when running the tests.
 # Generic DOM commands.
 class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
-    WAIT_SECONDS = 10
+    WAIT_SECONDS = 20
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,11 +61,11 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
                     f.write(scr)
                     f.close()
                 log_filename = 'selenium_error_html_{}.htm'.format(now_str)
-                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), 'w') as f:
+                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                     f.write(self.get_outer_html())
                     f.close()
                 log_filename = 'selenium_error_log_{}.txt'.format(now_str)
-                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), 'w') as f:
+                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                     print(
                         'Error description:{}\n\nError element rect:\n\n{}'.format(
                             str(e), repr(self.last_result.rect)),
