@@ -1,6 +1,11 @@
 import re
+import os
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.remote.webelement import WebElement
 
+from django.conf import settings
+from django.utils import timezone
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from .automation import AutomationCommands
@@ -29,6 +34,10 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     WAIT_SECONDS = 10
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logged_error = False
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -39,6 +48,31 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def tearDownClass(cls):
         # cls.selenium.quit()
         super().tearDownClass()
+
+    def exec(self, *args):
+        try:
+            return super().exec(*args)
+        except WebDriverException as e:
+            if self.logged_error is False and isinstance(self.last_result, WebElement):
+                now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
+                scr = self.selenium.get_screenshot_as_png()
+                scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
+                with open(os.path.join(settings.BASE_DIR, 'logs', scr_filename), 'wb') as f:
+                    f.write(scr)
+                    f.close()
+                log_filename = 'selenium_error_html_{}.htm'.format(now_str)
+                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), 'w') as f:
+                    f.write(self.get_outer_html())
+                    f.close()
+                log_filename = 'selenium_error_log_{}.txt'.format(now_str)
+                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), 'w') as f:
+                    print(
+                        'Error description:{}\n\nError element rect:\n\n{}'.format(
+                            str(e), repr(self.last_result.rect)),
+                        file=f
+                    )
+                self.logged_error = True
+            raise e
 
     def _reverse_url(self, viewname, kwargs=None, query=None):
         url = '{}{}'.format(
@@ -62,6 +96,18 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         input = self.selenium.find_element_by_id(id)
         input.send_keys(keys)
         return input
+
+    def get_attr(self, attr):
+        return self.last_result.get_attribute(attr)
+
+    def get_outer_html(self):
+        return self.get_attr('outerHTML')
+
+    def relative_is_displayed(self):
+        return self.last_result.is_displayed()
+
+    def relative_is_enabled(self):
+        return self.last_result.is_enabled()
 
     def parse_css_styles(self, element=None, style_str=None):
         if element is not None:
@@ -109,8 +155,11 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         return self.selenium.find_elements_by_css_selector(css_selector)
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
+        xpath = self.format_xpath(xpath, *args, **kwargs)
+        if xpath.startswith('//'):
+            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath))
         return self.last_result.find_element(
-            By.XPATH, self.format_xpath(xpath, *args, **kwargs)
+            By.XPATH, xpath
         )
 
     def _ancestor(self, expr):
@@ -129,7 +178,7 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
     def _button_click(self, button_title):
         return self.exec(
             'to_active_element',
-            'relative_by_xpath', ('//button[contains(., {})]', button_title,),
+            'relative_by_xpath', ('.//button[contains(., {})]', button_title,),
             'click'
         )
 
@@ -176,9 +225,9 @@ class DjkSeleniumCommands(SeleniumCommands):
         top_key = None
         styles_list = []
         for key, dialog in enumerate(dialogs):
-            styles = self.parse_css_styles(dialog)
-            styles_list.append(styles)
-            if styles.get('display', None) == 'block':
+            if dialog.is_displayed():
+                styles = self.parse_css_styles(dialog)
+                styles_list.append(styles)
                 if top_key is None:
                     top_key = key
                 else:
@@ -201,20 +250,22 @@ class DjkSeleniumCommands(SeleniumCommands):
     def _grid_button_action_click(self, action_name):
         return self.exec(
             'relative_by_xpath', (
-                '//div[contains(concat(" ", @class, " "), " grid-controls ")]'
-                '//span[text()={}]/parent::button', action_name,
+                './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
+                '//span[text()={}]/parent::button',
+                action_name,
             ),
             'click',
         )
 
     def _dialog_button_click(self, button_title):
         return self.exec(
-            'to_active_element',
+            # 'to_active_element',
+            'to_top_bootstrap_dialog',
             'relative_by_xpath', (
-                '//div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
+                './/div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
                 button_title,
             ),
-            'click'
+            'click',
         )
 
     def _assert_field_error(self, id, text):
@@ -227,7 +278,7 @@ class DjkSeleniumCommands(SeleniumCommands):
 
     def _grid_find_data_column(self, caption, value):
         return self._relative_by_xpath(
-            '//td[@data-caption={} and text()={}]', caption, value
+            './/td[@data-caption={} and text()={}]', caption, value
         )
 
     def _grid_select_current_row(self):
