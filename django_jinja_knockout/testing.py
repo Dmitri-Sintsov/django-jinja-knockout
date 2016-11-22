@@ -5,6 +5,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from .automation import AutomationCommands
 from .utils.regex import finditer_with_separators
+from .utils.sdv import str_to_numeric
 from .tpl import reverseq
 
 
@@ -61,6 +62,21 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         input = self.selenium.find_element_by_id(id)
         input.send_keys(keys)
         return input
+
+    def parse_css_styles(self, element=None, style_str=None):
+        if element is not None:
+            style_str = element.get_attribute('style')
+        styles = {}
+        for style_def in style_str.split(';'):
+            style_def = style_def.strip()
+            if style_def != '':
+                parts = list(part.strip() for part in style_def.split(':'))
+                val = None
+                if len(parts) > 1:
+                    val = str_to_numeric(parts[1])
+                styles[parts[0]] = val
+        return styles
+
 
     def escape_xpath_literal(self, s):
         if "'" not in s:
@@ -155,12 +171,31 @@ class DjkSeleniumCommands(SeleniumCommands):
             'click',
         )
 
+    def _to_top_bootstrap_dialog(self):
+        dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
+        top_key = None
+        styles_list = []
+        for key, dialog in enumerate(dialogs):
+            styles = self.parse_css_styles(dialog)
+            styles_list.append(styles)
+            if styles.get('display', None) == 'block':
+                if top_key is None:
+                    top_key = key
+                else:
+                    if styles.get('z-index') > styles_list[top_key].get('z-index'):
+                        top_key = key
+        if top_key is None:
+            raise ValueError('Cannot find top bootstrap dialog')
+        else:
+            return dialogs[top_key]
+
     def _fk_widget_click(self, id):
         return self.exec(
             'by_id', (id,),
             'relative_by_xpath', ('following-sibling::button',),
             'click',
-            'to_active_element',
+            'to_top_bootstrap_dialog',
+            # 'to_active_element',
         )
 
     def _grid_button_action_click(self, action_name):

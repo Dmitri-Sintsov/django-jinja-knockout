@@ -7,6 +7,20 @@ from ensure import ensure_annotations
 LOGPATH = ['logs']
 
 
+def str_to_numeric(val):
+    try:
+        int_val = int(val)
+        if str(int_val) == val:
+            return int_val
+    except ValueError:
+        pass
+    try:
+        float_val = float(val)
+    except ValueError:
+        return val
+    return float_val
+
+
 def yield_ordered(iterable):
     if isinstance(iterable, OrderedDict):
         for key, val in iterable.items():
