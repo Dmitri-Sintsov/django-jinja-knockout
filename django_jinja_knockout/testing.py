@@ -29,8 +29,8 @@ Do not forget to update to latest ESR when running the tests.
 """
 
 
-# Generic DOM commands.
-class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
+# Test case with errors logging and automation commands support.
+class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 
     WAIT_SECONDS = 20
 
@@ -74,30 +74,6 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
                 self.logged_error = True
             raise e
 
-    def _reverse_url(self, viewname, kwargs=None, query=None):
-        url = '{}{}'.format(
-            self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
-        )
-        print('_reverse_url: {}'.format(url))
-        return self.selenium.get(url)
-
-    # Get active element, for example currently opened BootstrapDialog.
-    def _to_active_element(self):
-        # from selenium.webdriver.support.wait import WebDriverWait
-        # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
-        # self.__class__.selenium.implicitly_wait(3)
-        # return self.selenium.switch_to_active_element()
-        return self.selenium.switch_to.active_element
-
-    def _by_id(self, id):
-        return self.selenium.find_element_by_id(id)
-
-    def _keys_by_id(self, id, keys):
-        input = self.selenium.find_element_by_id(id)
-        input.clear()
-        input.send_keys(keys)
-        return input
-
     def get_attr(self, attr):
         return self.last_result.get_attribute(attr)
 
@@ -124,7 +100,6 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
                 styles[parts[0]] = val
         return styles
 
-
     def escape_xpath_literal(self, s):
         if "'" not in s:
             return "'{}'".format(s)
@@ -145,6 +120,34 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
             *tuple(self.escape_xpath_literal(arg) for arg in args),
             **dict({key: self.escape_xpath_literal(arg) for key, arg in kwargs.items()})
         )
+
+
+# Generic DOM commands.
+class SeleniumCommands(SeleniumTestCase):
+
+    def _reverse_url(self, viewname, kwargs=None, query=None):
+        url = '{}{}'.format(
+            self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
+        )
+        print('_reverse_url: {}'.format(url))
+        return self.selenium.get(url)
+
+    # Get active element, for example currently opened BootstrapDialog.
+    def _to_active_element(self):
+        # from selenium.webdriver.support.wait import WebDriverWait
+        # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
+        # self.__class__.selenium.implicitly_wait(3)
+        # return self.selenium.switch_to_active_element()
+        return self.selenium.switch_to.active_element
+
+    def _by_id(self, id):
+        return self.selenium.find_element_by_id(id)
+
+    def _keys_by_id(self, id, keys):
+        input = self.selenium.find_element_by_id(id)
+        input.clear()
+        input.send_keys(keys)
+        return input
 
     def _by_xpath(self, xpath):
         return self.selenium.find_element_by_xpath(xpath)
