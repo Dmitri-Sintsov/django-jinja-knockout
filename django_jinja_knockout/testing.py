@@ -290,3 +290,19 @@ class DjkSeleniumCommands(SeleniumCommands):
             'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
             'click'
         )
+
+    def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
+        commands = \
+            (
+                'fk_widget_click', (fk_id,),
+                'grid_button_action_click', ('Add',),
+            ) + add_commands + \
+            (
+                'dialog_button_click', ('Save',),
+                'to_top_bootstrap_dialog',
+            ) + select_commands + \
+            (
+                'grid_select_current_row',
+                'dialog_button_click', ('Apply',),
+            )
+        return self.exec(*commands)
