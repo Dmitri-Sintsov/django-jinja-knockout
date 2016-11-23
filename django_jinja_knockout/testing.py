@@ -94,6 +94,7 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
 
     def _keys_by_id(self, id, keys):
         input = self.selenium.find_element_by_id(id)
+        input.clear()
         input.send_keys(keys)
         return input
 
@@ -173,12 +174,12 @@ class SeleniumCommands(AutomationCommands, StaticLiveServerTestCase):
         )
 
     def _click(self):
-        return self.last_result.click()
+        self.last_result.click()
+        return self.last_result
 
-    def _button_click(self, button_title):
+    def _relative_form_button_click(self, button_title):
         return self.exec(
-            'to_active_element',
-            'relative_by_xpath', ('.//button[contains(., {})]', button_title,),
+            'relative_by_xpath', ('ancestor-or-self::form//button[contains(., {})]', button_title,),
             'click'
         )
 
@@ -223,15 +224,15 @@ class DjkSeleniumCommands(SeleniumCommands):
     def _to_top_bootstrap_dialog(self):
         dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
         top_key = None
-        styles_list = []
+        z_indexes = []
         for key, dialog in enumerate(dialogs):
+            styles = self.parse_css_styles(dialog)
+            z_indexes.append(styles.get('z-index', 0))
             if dialog.is_displayed():
-                styles = self.parse_css_styles(dialog)
-                styles_list.append(styles)
                 if top_key is None:
                     top_key = key
                 else:
-                    if styles.get('z-index') > styles_list[top_key].get('z-index'):
+                    if z_indexes[key] > z_indexes[top_key]:
                         top_key = key
         if top_key is None:
             raise ValueError('Cannot find top bootstrap dialog')
