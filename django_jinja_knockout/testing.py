@@ -1,5 +1,6 @@
 import re
 import os
+import time
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
@@ -125,6 +126,13 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 # Generic DOM commands.
 class SeleniumCommands(SeleniumTestCase):
 
+    def _sleep(self, secs):
+        time.sleep(secs)
+        return self.last_result
+
+    def _relative_url(self, rel_url):
+        return self.selenium.get('{}{}'.format(self.live_server_url, rel_url))
+
     def _reverse_url(self, viewname, kwargs=None, query=None):
         url = '{}{}'.format(
             self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
@@ -180,19 +188,12 @@ class SeleniumCommands(SeleniumTestCase):
         self.last_result.click()
         return self.last_result
 
-    def _relative_form_button_click(self, button_title):
-        return self.exec(
-            'relative_by_xpath', ('ancestor-or-self::form//button[contains(., {})]', button_title,),
-            'click'
+    def _button_click(self, button_title):
+        last_result = self.selenium.find_element_by_xpath(
+            self.format_xpath('//button[contains(., {})]', button_title)
         )
-
-    def _find_submit_by_view(self, viewname, kwargs=None, query=None):
-        return self.selenium.find_element_by_xpath(
-            self.format_xpath(
-                '//form[@action={action}]//button[@type="submit"]',
-                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
-            )
-        )
+        last_result.click()
+        return last_result
 
     def _find_anchor_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
@@ -201,6 +202,35 @@ class SeleniumCommands(SeleniumTestCase):
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
+
+    def _click_anchor_by_view(self, viewname, kwargs=None, query=None):
+        last_result = self._find_anchor_by_view(viewname, kwargs, query)
+        last_result.click()
+        return last_result
+
+    def _form_by_view(self, viewname, kwargs=None, query=None):
+        return self.selenium.find_element_by_xpath(
+            self.format_xpath(
+                '//form[@action={action}]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
+
+    def _relative_form_button_click(self, button_title):
+        return self.exec(
+            'relative_by_xpath', ('ancestor-or-self::form//button[contains(., {})]', button_title,),
+            'click'
+        )
+
+    def _click_submit_by_view(self, viewname, kwargs=None, query=None):
+        last_result = self.selenium.find_element_by_xpath(
+            self.format_xpath(
+                '//form[@action={action}]//button[@type="submit"]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
+        last_result.click()
+        return last_result
 
 
 # BootstrapDialog / AJAX grids specific commands.
