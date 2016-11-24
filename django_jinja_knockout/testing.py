@@ -130,6 +130,9 @@ class SeleniumCommands(SeleniumTestCase):
         time.sleep(secs)
         return self.last_result
 
+    def _default_sleep(self):
+        return self._sleep(3)
+
     def _relative_url(self, rel_url):
         return self.selenium.get('{}{}'.format(self.live_server_url, rel_url))
 
@@ -326,6 +329,7 @@ class DjkSeleniumCommands(SeleniumCommands):
             (
                 'fk_widget_click', (fk_id,),
                 'grid_button_action_click', ('Add',),
+                'default_sleep',
             ) + add_commands + \
             (
                 'dialog_button_click', ('Save',),
