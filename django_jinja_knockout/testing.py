@@ -33,11 +33,14 @@ Do not forget to update to latest ESR when running the tests.
 # Test case with errors logging and automation commands support.
 class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 
-    WAIT_SECONDS = 20
+    WAIT_SECONDS = 5
+
+    sync_commands_list = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logged_error = False
+        self.history = []
 
     @classmethod
     def setUpClass(cls):
@@ -50,30 +53,52 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
         # cls.selenium.quit()
         super().tearDownClass()
 
-    def exec(self, *args):
+    def exec_command(self, operation, *args, **kwargs):
         try:
-            return super().exec(*args)
+            self.history.append([operation, args, kwargs])
+            return super().exec_command(operation, *args, **kwargs)
         except WebDriverException as e:
-            if self.logged_error is False and isinstance(self.last_result, WebElement):
-                now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
-                scr = self.selenium.get_screenshot_as_png()
-                scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
-                with open(os.path.join(settings.BASE_DIR, 'logs', scr_filename), 'wb') as f:
-                    f.write(scr)
-                    f.close()
-                log_filename = 'selenium_error_html_{}.htm'.format(now_str)
-                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
-                    f.write(self.get_outer_html())
-                    f.close()
-                log_filename = 'selenium_error_log_{}.txt'.format(now_str)
-                with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
-                    print(
-                        'Error description:{}\n\nError element rect:\n\n{}'.format(
-                            str(e), repr(self.last_result.rect)),
-                        file=f
-                    )
-                self.logged_error = True
+            if len(self.history) > 1:
+                # Try to redo last commands that were out of sync, if there is any.
+                # That should prevent slow clients from not finding DOM elements after opening / closing BootstrapDialog
+                # and / or anchor clicking while current page is just loaded.
+                has_sync_command = False
+                for command in self.history[-2:]:
+                    if not has_sync_command:
+                        has_sync_command = command[0] in self.__class__.sync_commands_list
+                        if has_sync_command:
+                            time.sleep(3)
+                    if has_sync_command:
+                        try:
+                            self.last_result = super().exec_command(command[0], *command[1], **command[2])
+                        except WebDriverException as e:
+                            self.log_error(e)
+                            raise e
+                if has_sync_command:
+                    return self.last_result
+            self.log_error(e)
             raise e
+
+    def log_error(self, e):
+        if self.logged_error is False and isinstance(self.last_result, WebElement):
+            now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
+            scr = self.selenium.get_screenshot_as_png()
+            scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
+            with open(os.path.join(settings.BASE_DIR, 'logs', scr_filename), 'wb') as f:
+                f.write(scr)
+                f.close()
+            log_filename = 'selenium_error_html_{}.htm'.format(now_str)
+            with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
+                f.write(self.get_outer_html())
+                f.close()
+            log_filename = 'selenium_error_log_{}.txt'.format(now_str)
+            with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
+                print(
+                    'Error description:{}\n\nError element rect:\n\n{}'.format(
+                        str(e), repr(self.last_result.rect)),
+                    file=f
+                )
+            self.logged_error = True
 
     def get_attr(self, attr):
         return self.last_result.get_attribute(attr)
@@ -239,6 +264,11 @@ class SeleniumCommands(SeleniumTestCase):
 # BootstrapDialog / AJAX grids specific commands.
 class DjkSeleniumCommands(SeleniumCommands):
 
+    sync_commands_list = [
+        'click_anchor_by_view',
+        'to_top_bootstrap_dialog',
+    ]
+
     def _has_messages_success(self):
         return self._by_xpath('//div[@class="messages"]/div[@class="alert alert-danger success"]')
 
@@ -271,7 +301,7 @@ class DjkSeleniumCommands(SeleniumCommands):
                     if z_indexes[key] > z_indexes[top_key]:
                         top_key = key
         if top_key is None:
-            raise ValueError('Cannot find top bootstrap dialog')
+            raise WebDriverException('Cannot find top bootstrap dialog')
         else:
             return dialogs[top_key]
 
@@ -329,7 +359,6 @@ class DjkSeleniumCommands(SeleniumCommands):
             (
                 'fk_widget_click', (fk_id,),
                 'grid_button_action_click', ('Add',),
-                'default_sleep',
             ) + add_commands + \
             (
                 'dialog_button_click', ('Save',),
