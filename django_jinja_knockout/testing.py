@@ -11,7 +11,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from .automation import AutomationCommands
 from .utils.regex import finditer_with_separators
-from .utils.sdv import str_to_numeric
+from .utils.sdv import str_to_numeric, reverse_enumerate
 from .tpl import reverseq
 
 
@@ -41,6 +41,7 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
         super().__init__(*args, **kwargs)
         self.logged_error = False
         self.history = []
+        self.last_sync_command_key = -1
 
     @classmethod
     def setUpClass(cls):
@@ -53,29 +54,50 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
         # cls.selenium.quit()
         super().tearDownClass()
 
+    def _sleep(self, secs):
+        time.sleep(secs)
+        return self.last_result
+
+    def _default_sleep(self):
+        return self._sleep(3)
+
+    def log_command(self, operation, args, kwargs):
+        print('Operation: {}'.format(operation), end='')
+        if len(args) > 0:
+            print(' args: {}'.format(repr(args)), end='')
+        if len(kwargs) > 0:
+            print(' kwargs: {}'.format(repr(kwargs)), end='')
+        print()
+
     def exec_command(self, operation, *args, **kwargs):
         try:
             self.history.append([operation, args, kwargs])
+            self.log_command(operation, args, kwargs)
             return super().exec_command(operation, *args, **kwargs)
         except WebDriverException as e:
-            if len(self.history) > 1:
-                # Try to redo last commands that were out of sync, if there is any.
-                # That should prevent slow clients from not finding DOM elements after opening / closing BootstrapDialog
-                # and / or anchor clicking while current page is just loaded.
-                has_sync_command = False
-                for command in self.history[-2:]:
-                    if not has_sync_command:
-                        has_sync_command = command[0] in self.__class__.sync_commands_list
-                        if has_sync_command:
-                            time.sleep(3)
-                    if has_sync_command:
-                        try:
-                            self.last_result = super().exec_command(command[0], *command[1], **command[2])
-                        except WebDriverException as e:
-                            self.log_error(e)
-                            raise e
-                if has_sync_command:
-                    return self.last_result
+            # Try to redo last commands that were out of sync, if there is any.
+            # That should prevent slow clients from not finding DOM elements after opening / closing BootstrapDialog
+            # and / or anchor clicking while current page is just loaded.
+            sync_command_key = None
+            for key, command in reverse_enumerate(self.history):
+                if key == self.last_sync_command_key:
+                    break
+                if command[0] in self.__class__.sync_commands_list:
+                    sync_command_key = key
+                    break
+            if sync_command_key is not None:
+                self.last_sync_command_key = sync_command_key
+                # Do not store self.last_result.
+                self._default_sleep()
+                for command in self.history[sync_command_key:]:
+                    try:
+                        print('Retrying: ')
+                        self.log_command(*command)
+                        self.last_result = super().exec_command(command[0], *command[1], **command[2])
+                    except WebDriverException as e:
+                        self.log_error(e)
+                        raise e
+                return self.last_result
             self.log_error(e)
             raise e
 
@@ -151,13 +173,6 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 # Generic DOM commands.
 class SeleniumCommands(SeleniumTestCase):
 
-    def _sleep(self, secs):
-        time.sleep(secs)
-        return self.last_result
-
-    def _default_sleep(self):
-        return self._sleep(3)
-
     def _relative_url(self, rel_url):
         return self.selenium.get('{}{}'.format(self.live_server_url, rel_url))
 
@@ -165,7 +180,7 @@ class SeleniumCommands(SeleniumTestCase):
         url = '{}{}'.format(
             self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
-        print('_reverse_url: {}'.format(url))
+        # print('_reverse_url: {}'.format(url))
         return self.selenium.get(url)
 
     # Get active element, for example currently opened BootstrapDialog.
@@ -266,6 +281,7 @@ class DjkSeleniumCommands(SeleniumCommands):
 
     sync_commands_list = [
         'click_anchor_by_view',
+        'form_by_view',
         'to_top_bootstrap_dialog',
     ]
 

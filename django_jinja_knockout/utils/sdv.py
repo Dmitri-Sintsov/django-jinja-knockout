@@ -21,6 +21,10 @@ def str_to_numeric(val):
     return float_val
 
 
+def reverse_enumerate(iterable):
+    yield from zip(reversed(range(len(iterable))), reversed(iterable))
+
+
 def yield_ordered(iterable):
     if isinstance(iterable, OrderedDict):
         for key, val in iterable.items():
