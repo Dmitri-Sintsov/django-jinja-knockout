@@ -47,3 +47,6 @@ class AutomationCommands:
             self.last_result = self.exec_command(operation, *args, **kwargs
             )
         return self.last_result
+
+    def exec_class(self, cls):
+        self.exec(*cls.get_commands())

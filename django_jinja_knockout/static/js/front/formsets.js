@@ -74,6 +74,8 @@ App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
                 'callback': function(result) {
                     if (result) {
                         self.forms.splice(koFormIndex, 1);
+                        // Update DOM node for forms total count.
+                        self.$formsTotalCount.val(self.getTotalFormsCount());
                     } else {
                         $input.prop('checked', false);
                         $elements.removeClass('alert alert-danger');
