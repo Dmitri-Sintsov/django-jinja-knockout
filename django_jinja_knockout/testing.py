@@ -232,11 +232,10 @@ class SeleniumCommands(SeleniumTestCase):
         return self.last_result
 
     def _button_click(self, button_title):
-        last_result = self.selenium.find_element_by_xpath(
+        self.last_result = self.selenium.find_element_by_xpath(
             self.format_xpath('//button[contains(., {})]', button_title)
         )
-        last_result.click()
-        return last_result
+        return self._click()
 
     def _find_anchor_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
@@ -247,9 +246,10 @@ class SeleniumCommands(SeleniumTestCase):
         )
 
     def _click_anchor_by_view(self, viewname, kwargs=None, query=None):
-        last_result = self._find_anchor_by_view(viewname, kwargs, query)
-        last_result.click()
-        return last_result
+        return self.exec(
+            'find_anchor_by_view', (viewname, kwargs, query),
+            'click',
+        )
 
     def _form_by_view(self, viewname, kwargs=None, query=None):
         return self.selenium.find_element_by_xpath(
@@ -266,22 +266,20 @@ class SeleniumCommands(SeleniumTestCase):
         )
 
     def _click_submit_by_view(self, viewname, kwargs=None, query=None):
-        last_result = self.selenium.find_element_by_xpath(
+        self.last_result = self.selenium.find_element_by_xpath(
             self.format_xpath(
                 '//form[@action={action}]//button[@type="submit"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
-        last_result.click()
-        return last_result
+        return self._click()
 
 
 # BootstrapDialog / AJAX grids specific commands.
 class DjkSeleniumCommands(SeleniumCommands):
 
     sync_commands_list = [
-        'click_anchor_by_view',
-        'form_by_view',
+        'click',
         'to_top_bootstrap_dialog',
     ]
 
