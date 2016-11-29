@@ -965,7 +965,7 @@ App.GridActions = function(options) {
         var responseOptions = {'after': {}};
         responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
-            var method = 'callback_' + action;
+            var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
             // Override last action, when suggested by AJAX view response.
             // Use with care, due to asynchronous execution.
             if (typeof viewModel.last_action !== 'undefined') {
