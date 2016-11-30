@@ -1144,7 +1144,7 @@ App.domTemplate = function(tplId, tplArgs) {
 
 /**
  * Recursive underscore.js template autoloading.
- * Does not use html5 <template> tag because IE lower than Edge do not support it.
+ * Does not use html5 <template> tag because IE lower than Edge does not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
 App.loadTemplates = function($selector, contextArgs) {

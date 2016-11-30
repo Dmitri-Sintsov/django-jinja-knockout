@@ -25,6 +25,12 @@ Grids
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
 .. _underscore.js template: http://underscorejs.org/#template
 
+.. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
+.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
+.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
+.. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
+.. _App.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.loadTemplates&utf8=%E2%9C%93
+
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
@@ -247,7 +253,7 @@ html::
 
     <div class="component" id="club_grid" data-component-options='{"pageRoute": "club_grid", "classPath": "App.ko.Grid"}'>
     <a name="club_grid"></a>
-        <div data-template-id="ko_grid_body" data-template-args='{"show_pagination": true, "vscroll": true, "show_title": true, "show_action_buttons": true}'>
+        <div data-template-id="ko_grid_body" data-template-args='{"show_pagination": true, "vscroll": true, "show_title": true}'>
         </div>
     </div>
 
@@ -255,24 +261,54 @@ The code is inserted into web page body block.
 
 ``ko_grid()`` macro accepts the following kwargs:
 
+.. highlight:: python
+
 * Mandatory ``grid_options`` are client-side component options of current grid. It's a dict with the following keys:
 
   * Mandatory key ``'pageRoute'`` is used to get Python grid class in ``ko_grid()`` macro to autoconfigure client-side
     options of grid (see the macro code in `ko_grid.htm`_ for details).
   * Optional key ``classPath`` overrides client-side class used for instantiation of grid. Usually that should be
     ancestor of ``App.ko.Grid`` class inserted via custom ``<script>`` tag to ``bottom_scripts`` Jinja2 template block.
+  * The rest of the keys are optional and are passed to the constructor of ``App.ko.Grid`` class. They could be used to
+    modify grid appearance / behavior. See ``App.ko.Grid`` class ``.init()`` method  ``.options`` property for the
+    current list of possible options. Some of these are:
+
+    * ``alwaysShowPagination`` - set to ``False`` to show pagination controls only when there is more than one page
+      of model instances are available.
+    * ``defaultOrderBy`` - override initial order_by field name (by default Django model ``Meta.ordering`` is used).
+    * ``highlightMode`` - Currently available modes:
+
+      * 0 - do not highlight,
+      * 1 - highlight columns,
+      * 2 - highlight rows.
+
+    * ``searchPlaceholder`` - text to display when search field is empty.
+    * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
+    * ``showSelection`` - enable selection of single rows (one model instance of grid).
+    * ``ownerCtrl`` - used internally to embed client-side parts of grids into another classes, for example
+      `ForeignKeyGridWidget`_ dialogs and `Foreign key filter`_. This option value should be another Javascript class
+      instance, thus is meaningless in ``ko_grid()`` macro and should be used via inherited client-side class.
+
+      * See `Customizing visual display of grid fields at client-side`_ for a simple example of grid inheritance.
+      * See `App.GridDialog`_ code for the example of ``ownerCtrl`` usage.
+
+    * ``selectMultipleRows`` - set to ``True`` to enable multiple rows selection. Can be used to perform action with
+      querysets of models, not just one Model instance. Use ``objects = self.get_queryset_for_action()`` in Django
+      ``KoGridView`` derived CBV action handler to get the queryset with selected model instances. See `action_delete`_
+      implementation for example.
 
 * Optional ``template_options`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
   which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
-  visually long enough so we turn on vertical scrolling for these (which is off by default).
+  visually long enough so we turn on vertical scrolling for these via ``"vscroll":`` ``true`` (which is off by default).
 * Optional ``dom_attrs`` argument is used to set extra DOM attributes of component template. It passes the value of
   component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid`` class).
-  It is especially useful in pages which define multiple grids that interact to each other.
+  It is especially useful in pages which define multiple grids that interact to each other. See `Grids interaction`_
+  for more details.
 
-Of course this HTML is not the full DOM subtree of grid but a stub. It will be automatically expanded with the content
-of underscore.js template with name ``ko_grid_body`` by ``App.loadTemplates()`` call defined in
-``App.initClientHooks``, then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via
-``App.components.add()`` to make grid "alive".
+Of course this HTML is not the full DOM subtree of grid but an initional stub. It will be automatically expanded with
+the content of `underscore.js template`_ with name ``ko_grid_body`` by `App.loadTemplates`_ call defined in
+`App.initClientHooks`_, then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via
+`App.components`_ class instance `.add()` method to make grid "alive".
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
 * See `app.js`_ ``App.Components`` class for the details of client-side components implementation.
@@ -294,8 +330,6 @@ a lot of HTTP traffic for grid pagination and grid actions.
 ==================
 Grid configuration
 ==================
-
-.. highlight:: python
 
 Let's see some more advanced grid sample for the ``club_app.models.Member``, Django view part::
 
