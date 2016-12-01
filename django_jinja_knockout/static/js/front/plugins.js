@@ -374,22 +374,45 @@ $.fn.linkPreview = function(method) {
 
     (function(scaledPreview) {
 
-        scaledPreview.disabledHrefs = [
-            // These extensions are known to cause glitches during preview.
-            /\.(docx|dwg|xslx|zip|rar)$/i
+        scaledPreview.enabledLocalHrefs = [
+            // These extensions should be previewed locally.
+            /\.(jpg|jpeg|gif|png|pdf)$/i
         ];
+
+        scaledPreview.disabledRemoteHrefs = [
+            // These remote extensions are known to cause glitches during preview.
+            /\.(docx|dwg|xslx|zip|rar|gz|tgz)$/i
+        ];
+
+        scaledPreview.shouldEnable = function() {
+            var anchor = this.$anchor.get(0);
+            var isLocalDomain = anchor.hostname === window.location.hostname &&
+                anchor.port === window.location.port;
+            var patterns = (isLocalDomain) ? this.enabledLocalHrefs : this.disabledRemoteHrefs;
+            for (var i = 0; i < patterns.length; i++) {
+                var match = anchor.pathname.match(patterns[i]) !== null;
+                if (isLocalDomain) {
+                    if (match) {
+                        return true;
+                    }
+                } else {
+                    if (match) {
+                        return false;
+                    }
+                }
+            }
+            return !isLocalDomain;
+        };
 
         scaledPreview.create = function($anchor) {
             var self = this;
             this.$anchor = $anchor;
-            this.$anchor.addInstance('scaledPreview', this);
-            this.href = this.$anchor.prop('href')
-            for (var i = 0; i < this.disabledHrefs.length; i++) {
-                if (this.href.match(this.disabledHrefs[i])) {
-                    this.popover = null;
-                    return;
-                }
+            this.popover = null;
+            if (!this.shouldEnable()) {
+                return;
             }
+            this.href = this.$anchor.prop('href');
+            this.$anchor.addInstance('scaledPreview', this);
             this.isObject = false;
             this.scale = 1;
             this.id = 'iframe_' + $.randomHash();
@@ -520,7 +543,9 @@ $.fn.linkPreview = function(method) {
                 } else {
                     $.each($elem.find('a'), function(k, anchor) {
                         var scaledPreview = $(anchor).popInstance('scaledPreview');
-                        scaledPreview.destroy();
+                        if (scaledPreview !== undefined) {
+                            scaledPreview.destroy();
+                        }
                     });
                 }
             });
