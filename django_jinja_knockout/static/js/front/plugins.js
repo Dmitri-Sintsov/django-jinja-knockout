@@ -539,7 +539,9 @@ $.fn.linkPreview = function(method) {
                 var $elem = $(this);
                 if ($elem.prop('href') !== undefined) {
                     var scaledPreview = $elem.popInstance('scaledPreview');
-                    scaledPreview.destroy();
+                    if (scaledPreview !== undefined) {
+                        scaledPreview.destroy();
+                    }
                 } else {
                     $.each($elem.find('a'), function(k, anchor) {
                         var scaledPreview = $(anchor).popInstance('scaledPreview');
