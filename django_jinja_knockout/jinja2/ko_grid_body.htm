@@ -2,7 +2,7 @@
 
 {%- set include_ids = {} -%}
 
-{% for template_id in [
+{%- set builtin_ids = [
     'ko_range_filter',
     'ko_grid_row_click_menu',
     'ko_action_form',
@@ -15,14 +15,21 @@
     'ko_grid_body',
     'ko_grid_pagination'
 ] -%}
-    {% if template_id not in template_ids -%}
-        {% do template_ids.update({template_id: template_id}) -%}
+
+{% for builtin_id in builtin_ids -%}
+    {% if builtin_id not in template_ids -%}
+        {# Set built-in builtin_id name when there is no custom template in template_ids. -#}
+        {% do template_ids.update({builtin_id: builtin_id}) -%}
     {% endif -%}
-    {% do include_ids.update({template_id: template_id not in call_ids}) -%}
-    {% if template_id not in call_ids -%}
-        {% do call_ids.update({template_id: template_id}) -%}
-        {% if has_full_body and template_ids[template_id] == template_id -%}
-            {% do include_ids.update({template_id: False}) -%}
+    {% set include_builtin = builtin_id not in call_ids or template_ids[builtin_id] != builtin_id -%}
+    {# Include the source of template, when there is no another template in call_ids. -#}
+    {% do include_ids.update({builtin_id: include_builtin}) -%}
+    {% if builtin_id not in call_ids -%}
+        {# Standard template should be called. -#}
+        {% do call_ids.update({builtin_id: builtin_id}) -%}
+        {% if has_full_body and template_ids[builtin_id] == builtin_id -%}
+            {# Do not include standard template when has_full_body is True -#}
+            {% do include_ids.update({builtin_id: False}) -%}
         {% endif -%}
     {% endif -%}
 {% endfor -%}
@@ -137,7 +144,7 @@
 {% endif -%}
 
 {% if include_ids['ko_grid_no_results'] -%}
-<script language="text.template" id="{{ template_ids['ko_grid_no_results'] }}">
+<script language="text/template" id="{{ template_ids['ko_grid_no_results'] }}">
     <div class="panel panel-default">
         <div class="panel-heading">
             {{ _(
@@ -236,7 +243,7 @@
             <!-- /ko -->
             <div data-template-id="{{ call_ids['ko_grid_table'] }}"></div>
         <% if (self.get(self, 'show_pagination')) { %>
-            <div data-template-id="ko_grid_pagination"></div>
+            <div data-template-id="{{ call_ids['ko_grid_pagination'] }}"></div>
         </div>
         <% } %>
     </div>
