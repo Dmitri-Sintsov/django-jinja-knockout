@@ -33,6 +33,7 @@ Do not forget to update to latest ESR when running the tests.
 # Test case with errors logging and automation commands support.
 class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 
+    DEFAULT_SLEEP_TIME = 3
     WAIT_SECONDS = 5
 
     sync_commands_list = []
@@ -42,6 +43,8 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
         self.logged_error = False
         self.history = []
         self.last_sync_command_key = -1
+        # self.sleep_between_commands = 1.2
+        self.sleep_between_commands = 0
 
     @classmethod
     def setUpClass(cls):
@@ -59,22 +62,30 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
         return self.last_result
 
     def _default_sleep(self):
-        return self._sleep(3)
+        return self._sleep(self.__class__.DEFAULT_SLEEP_TIME)
 
     def log_command(self, operation, args, kwargs):
         print('Operation: {}'.format(operation), end='')
         if len(args) > 0:
-            print(' args: {}'.format(repr(args)), end='')
+            print(' \\ args: {}'.format(repr(args)), end='')
         if len(kwargs) > 0:
-            print(' kwargs: {}'.format(repr(kwargs)), end='')
-        print()
+            print(' \\ kwargs: {}'.format(repr(kwargs)), end='')
+        print(' \\ Nesting level: {}'.format(self.nesting_level))
 
     def exec_command(self, operation, *args, **kwargs):
         try:
             self.history.append([operation, args, kwargs])
             self.log_command(operation, args, kwargs)
-            return super().exec_command(operation, *args, **kwargs)
+            result, exec_time = super().exec_command(operation, *args, **kwargs)
+            if isinstance(self.last_result, tuple):
+                pass
+            unsleep_time = self.sleep_between_commands - exec_time
+            if unsleep_time > 0:
+                time.sleep(unsleep_time)
+                print( 'Unsleep time: {}'.format(unsleep_time))
+            return result, exec_time
         except WebDriverException as e:
+            batch_exec_time = e.exec_time
             # Try to redo last commands that were out of sync, if there is any.
             # That should prevent slow clients from not finding DOM elements after opening / closing BootstrapDialog
             # and / or anchor clicking while current page is just loaded.
@@ -88,16 +99,21 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
             if sync_command_key is not None:
                 self.last_sync_command_key = sync_command_key
                 # Do not store self.last_result.
+                # Wait until slow browser DOM updates.
                 self._default_sleep()
+                if self.sleep_between_commands > 0:
+                    batch_exec_time += self.__class__.DEFAULT_SLEEP_TIME
+                # Redo last commands from the last global command.
                 for command in self.history[sync_command_key:]:
                     try:
                         print('Retrying: ')
                         self.log_command(*command)
-                        self.last_result = super().exec_command(command[0], *command[1], **command[2])
+                        self.last_result, exec_time = super().exec_command(command[0], *command[1], **command[2])
+                        batch_exec_time += exec_time
                     except WebDriverException as e:
                         self.log_error(e)
                         raise e
-                return self.last_result
+                return self.last_result, batch_exec_time
             self.log_error(e)
             raise e
 
@@ -172,6 +188,10 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 
 # Generic DOM commands.
 class SeleniumCommands(SeleniumTestCase):
+
+    def _maximize_window(self):
+        self.selenium.maximize_window()
+        return self.last_result
 
     def _relative_url(self, rel_url):
         return self.selenium.get('{}{}'.format(self.live_server_url, rel_url))

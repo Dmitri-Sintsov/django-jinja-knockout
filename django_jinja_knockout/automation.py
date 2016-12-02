@@ -1,8 +1,11 @@
+import time
+
 class AutomationCommands:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_result = None
+        self.nesting_level = 0
 
     def yield_commands(self, *args):
         operation = None
@@ -40,13 +43,24 @@ class AutomationCommands:
         return method
 
     def exec_command(self, operation, *args, **kwargs):
-        return self.get_command(operation)(*args, **kwargs)
+        self.nesting_level += 1
+        try:
+            start_time = time.process_time()
+            result = self.get_command(operation)(*args, **kwargs)
+            exec_time = time.process_time() - start_time
+        except Exception as e:
+            e.exec_time = time.process_time() - start_time
+            self.nesting_level -= 1
+            raise e
+        self.nesting_level -= 1
+        return result, exec_time
 
     def exec(self, *args):
+        batch_exec_time = 0
         for operation, args, kwargs in self.yield_commands(*args):
-            self.last_result = self.exec_command(operation, *args, **kwargs
-            )
+            self.last_result, exec_time = self.exec_command(operation, *args, **kwargs)
+            batch_exec_time += exec_time
         return self.last_result
 
     def exec_class(self, cls):
-        self.exec(*cls.get_commands())
+        return self.exec(*cls.get_commands())
