@@ -6,6 +6,7 @@ class AutomationCommands:
         super().__init__(*args, **kwargs)
         self.last_result = None
         self.nesting_level = 0
+        self.prev_nesting_level = 0
 
     def yield_commands(self, *args):
         operation = None
@@ -43,6 +44,7 @@ class AutomationCommands:
         return method
 
     def exec_command(self, operation, *args, **kwargs):
+        self.prev_nesting_level = self.nesting_level
         self.nesting_level += 1
         try:
             start_time = time.process_time()

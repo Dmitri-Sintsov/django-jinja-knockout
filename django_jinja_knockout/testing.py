@@ -70,19 +70,22 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
             print(' \\ args: {}'.format(repr(args)), end='')
         if len(kwargs) > 0:
             print(' \\ kwargs: {}'.format(repr(kwargs)), end='')
-        print(' \\ Nesting level: {}'.format(self.nesting_level))
+        print(' \\ Nesting level, current = {}, previous = {}'.format(
+            self.nesting_level, self.prev_nesting_level
+        ))
 
     def exec_command(self, operation, *args, **kwargs):
         try:
             self.history.append([operation, args, kwargs])
             self.log_command(operation, args, kwargs)
             result, exec_time = super().exec_command(operation, *args, **kwargs)
-            if isinstance(self.last_result, tuple):
-                pass
-            unsleep_time = self.sleep_between_commands - exec_time
-            if unsleep_time > 0:
-                time.sleep(unsleep_time)
-                print( 'Unsleep time: {}'.format(unsleep_time))
+            # Do not execute extra sleep when returning from upper level of recursion,
+            # otherwise extra sleep would incorrectly accumulate.
+            if self.nesting_level >= self.prev_nesting_level:
+                unsleep_time = self.sleep_between_commands - exec_time
+                if unsleep_time > 0:
+                    time.sleep(unsleep_time)
+                    print( 'Unsleep time: {}'.format(unsleep_time))
             return result, exec_time
         except WebDriverException as e:
             batch_exec_time = e.exec_time
