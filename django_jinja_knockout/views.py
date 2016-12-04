@@ -731,7 +731,10 @@ class BaseFilterView(View):
                 cleaned_value, is_blank = field_validator.clean(values)
                 if is_blank:
                     continue
-                current_list_filter[fieldname] = cleaned_value
+                if cleaned_value is None:
+                    current_list_filter['{}__isnull'.format(fieldname)] = True
+                else:
+                    current_list_filter[fieldname] = cleaned_value
             else:
                 # Multiple lookups and / or multiple values.
                 for lookup, value in values.items():

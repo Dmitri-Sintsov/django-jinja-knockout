@@ -2,6 +2,11 @@
 
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
+$.isScalar = function(v) {
+    var nonScalarTypes = ['object', 'undefined', 'function'];
+    return (nonScalarTypes.indexOf(typeof(v)) === -1) || v === null;
+};
+
 $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };

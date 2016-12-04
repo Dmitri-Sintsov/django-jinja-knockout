@@ -137,7 +137,8 @@ App.ko.GridFilterChoice = function(options) {
 (function (GridFilterChoice) {
 
     GridFilterChoice.updateQueryFilter = function(newValue) {
-        if (this.value === null) {
+        // undefined is used instead of null because null can be valid choice vaule.
+        if (this.value === undefined) {
             return;
         }
         if (newValue) {
@@ -198,7 +199,7 @@ App.ko.AbstractGridFilter = function(options) {
         this.choices = [];
         this.current_name = ko.observable('');
         // One of this.choices, special 'reset all choice'.
-        this.resetFilter = null;
+        this.resetFilter = undefined;
         this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
     };
 
@@ -264,13 +265,13 @@ App.ko.GridFilter = function(options) {
         this._super._call('init', options);
     };
 
-    // Return the count of active filter choices except for special 'reset all choice' (choice.value === null).
+    // Return the count of active filter choices except for special 'reset all choice' (choice.value === undefined).
     // Also initialized this.resetFilter.
     GridFilter.getTotalActive = function() {
         var totalActive = 0;
-        this.resetFilter = null;
+        this.resetFilter = undefined;
         for (var i = 0; i < this.choices.length; i++) {
-            if (this.choices[i].value === null) {
+            if (this.choices[i].value === undefined) {
                 this.resetFilter = this.choices[i];
             } else if (this.choices[i].is_active()) {
                 totalActive++;
@@ -281,12 +282,12 @@ App.ko.GridFilter = function(options) {
 
     GridFilter.resetFilterLogic = function() {
         var totalActive = this.getTotalActive();
-        if (this.resetFilter !== null) {
+        if (this.resetFilter !== undefined) {
             // Check whether all filter choices are active except for 'reset all choice'.
             if (totalActive === this.choices.length - 1) {
                 // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
                 for (var i = 0; i < this.choices.length; i++) {
-                    if (this.choices[i].value !== null) {
+                    if (this.choices[i].value !== undefined) {
                         this.choices[i].is_active(false);
                     }
                 }
@@ -302,7 +303,7 @@ App.ko.GridFilter = function(options) {
     };
 
     GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
-        if (currentChoice.value === null) {
+        if (currentChoice.value === undefined) {
             // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
                 this.choices[i].is_active(false);
@@ -311,7 +312,7 @@ App.ko.GridFilter = function(options) {
         } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
             // Allow to select none choices (reset) only if there is reset choice in menu.
-            if (this.resetFilter !== null || !currentChoice.is_active()) {
+            if (this.resetFilter !== undefined || !currentChoice.is_active()) {
                 currentChoice.is_active(!currentChoice.is_active());
             }
             // Turn off all another filter choices.
@@ -330,7 +331,7 @@ App.ko.GridFilter = function(options) {
             currentChoice.is_active(!currentChoice.is_active());
             this.resetFilterLogic();
         }
-        var resetFilterIsActive = (this.resetFilter !== null) ?
+        var resetFilterIsActive = (this.resetFilter !== undefined) ?
             this.resetFilter.is_active() : false;
         this.hasActiveChoices(!resetFilterIsActive);
     };
@@ -342,7 +343,7 @@ App.ko.GridFilter = function(options) {
                 return filterChoice;
             }
         };
-        return null;
+        return undefined;
     };
 
     GridFilter.getActiveChoices = function() {
@@ -363,7 +364,7 @@ App.ko.GridFilter = function(options) {
         this.resetFilterLogic();
         for (var i = 0; i < values.length; i++) {
             var koFilterChoice = this.getKoFilterChoice(values[i]);
-            if (koFilterChoice !== null) {
+            if (koFilterChoice !== undefined) {
                 this.switchKoFilterChoices(koFilterChoice);
             }
         }
@@ -409,7 +410,7 @@ App.ko.FkGridFilter = function(options) {
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
         this._super._call('init', options);
-        this.choices = null;
+        this.choices = undefined;
     };
 
     FkGridFilter.onDropdownClick = function(ev) {
@@ -482,7 +483,7 @@ App.ko.RangeFilter = function(options) {
     RangeFilter.init = function(options) {
         this.type = options.type;
         this._super._call('init', options);
-        this.choices = null;
+        this.choices = undefined;
         this.meta = {
             from: App.trans('From'),
             to: App.trans('To'),
@@ -1374,7 +1375,7 @@ App.ko.Grid = function(options) {
                     // Already added single 'in' value.
                     return;
                 }
-                if (typeof this.queryFilters[field] !== 'object') {
+                if ($.isScalar(this.queryFilters[field])) {
                     // Convert single value into array of values with 'in' lookup.
                     this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
@@ -1383,7 +1384,7 @@ App.ko.Grid = function(options) {
                     this.queryFilters[field]['in'].push(value);
                 }
             } else {
-                if (typeof this.queryFilters[field] !== 'object') {
+                if ($.isScalar(this.queryFilters[field])) {
                     // Convert single value into array of values with 'in' lookup.
                     this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
@@ -1412,7 +1413,7 @@ App.ko.Grid = function(options) {
         }
         if (options.lookup === 'in') {
             // Special case of 'in' lookup that may have multiple filter values.
-            if (typeof this.queryFilters[field] !== 'object') {
+            if ($.isScalar(this.queryFilters[field])) {
                 if (hasValue) {
                     if (this.queryFilters[field] === options.value) {
                         delete this.queryFilters[field];
@@ -1435,7 +1436,7 @@ App.ko.Grid = function(options) {
                 }
             }
         } else {
-            if (typeof this.queryFilters[field] === 'object' &&
+            if (!$.isScalar(this.queryFilters[field]) &&
                     typeof this.queryFilters[field][options.lookup] !== 'undefined') {
                 if (hasValue) {
                     if (this.queryFilters[field][options.lookup] === options.value) {
@@ -1889,7 +1890,7 @@ App.ko.Grid = function(options) {
                 value: choice.value,
                 is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
             })
-            if (koFilterChoice.value === null) {
+            if (koFilterChoice.value === undefined) {
                 filterModel.resetFilter = koFilterChoice;
             }
             filterModel.choices.push(koFilterChoice);
