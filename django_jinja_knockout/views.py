@@ -678,7 +678,9 @@ class BaseFilterView(View):
         vm_choices = []
         if filter_def['add_reset_choice']:
             vm_choices.append({
-                'value': None,
+                # Do not pass 'value': None because since version 0.3.1 None can be valid value of field filter.
+                # A choice without value is converted to Javascript undefined value at client-side instead.
+                # 'value': None,
                 'name': _('All'),
                 'is_active': len(filter_def['active_choices']) == 0
             })
@@ -938,7 +940,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         navs = []
         display = []
         for choice_def in vm_filter['choices']:
-            if choice_def['value'] is None:
+            if 'value' not in choice_def:
                 # Reset filter.
                 link = {'atts': {}}
                 if self.current_list_filter is None:
@@ -975,9 +977,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                     'text': choice_def['name'],
                     'atts': {}
                 }
-            if self.has_current_filter(filter_field, choice_def['value']):
-                display.append(choice_def['name'])
-                link['atts']['class'] = 'active'
+                if self.has_current_filter(filter_field, choice_def['value']):
+                    display.append(choice_def['name'])
+                    link['atts']['class'] = 'active'
             navs.append(link)
         return navs, display
 

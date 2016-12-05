@@ -137,7 +137,7 @@ App.ko.GridFilterChoice = function(options) {
 (function (GridFilterChoice) {
 
     GridFilterChoice.updateQueryFilter = function(newValue) {
-        // undefined is used instead of null because null can be valid choice vaule.
+        // undefined value is used to reset filter because null can be valid choice value.
         if (this.value === undefined) {
             return;
         }
@@ -196,10 +196,11 @@ App.ko.AbstractGridFilter = function(options) {
         this.field = options.field;
         this.name = options.name;
         this.hasActiveChoices = ko.observable(false);
+        // List of instances of current filter choices.
         this.choices = [];
         this.current_name = ko.observable('');
         // One of this.choices, special 'reset all choice'.
-        this.resetFilter = undefined;
+        this.resetFilter = null;
         this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
     };
 
@@ -269,7 +270,7 @@ App.ko.GridFilter = function(options) {
     // Also initialized this.resetFilter.
     GridFilter.getTotalActive = function() {
         var totalActive = 0;
-        this.resetFilter = undefined;
+        this.resetFilter = null;
         for (var i = 0; i < this.choices.length; i++) {
             if (this.choices[i].value === undefined) {
                 this.resetFilter = this.choices[i];
@@ -280,9 +281,9 @@ App.ko.GridFilter = function(options) {
         return totalActive;
     };
 
-    GridFilter.resetFilterLogic = function() {
+    GridFilter.activateResetFilter = function() {
         var totalActive = this.getTotalActive();
-        if (this.resetFilter !== undefined) {
+        if (this.resetFilter !== null) {
             // Check whether all filter choices are active except for 'reset all choice'.
             if (totalActive === this.choices.length - 1) {
                 // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
@@ -312,7 +313,7 @@ App.ko.GridFilter = function(options) {
         } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
             // Allow to select none choices (reset) only if there is reset choice in menu.
-            if (this.resetFilter !== undefined || !currentChoice.is_active()) {
+            if (this.resetFilter !== null || !currentChoice.is_active()) {
                 currentChoice.is_active(!currentChoice.is_active());
             }
             // Turn off all another filter choices.
@@ -321,7 +322,7 @@ App.ko.GridFilter = function(options) {
                     this.choices[i].is_active(false);
                 }
             }
-            this.resetFilterLogic();
+            this.activateResetFilter();
         } else {
             // Do not close dropdown for multiple filter choices.
             if (typeof ev !== 'undefined') {
@@ -329,9 +330,9 @@ App.ko.GridFilter = function(options) {
             }
             // Switch current filter choice.
             currentChoice.is_active(!currentChoice.is_active());
-            this.resetFilterLogic();
+            this.activateResetFilter();
         }
-        var resetFilterIsActive = (this.resetFilter !== undefined) ?
+        var resetFilterIsActive = (this.resetFilter !== null) ?
             this.resetFilter.is_active() : false;
         this.hasActiveChoices(!resetFilterIsActive);
     };
@@ -361,7 +362,7 @@ App.ko.GridFilter = function(options) {
      * Programmatically set specified values list of filter choices for current filter.
      */
     GridFilter.setChoices = function(values) {
-        this.resetFilterLogic();
+        this.activateResetFilter();
         for (var i = 0; i < values.length; i++) {
             var koFilterChoice = this.getKoFilterChoice(values[i]);
             if (koFilterChoice !== undefined) {
@@ -410,6 +411,7 @@ App.ko.FkGridFilter = function(options) {
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
         this._super._call('init', options);
+        // Reset filter choice.
         this.choices = undefined;
     };
 
@@ -483,6 +485,7 @@ App.ko.RangeFilter = function(options) {
     RangeFilter.init = function(options) {
         this.type = options.type;
         this._super._call('init', options);
+        // Reset filter choice.
         this.choices = undefined;
         this.meta = {
             from: App.trans('From'),
@@ -1887,7 +1890,7 @@ App.ko.Grid = function(options) {
             var koFilterChoice = this.iocKoFilterChoice({
                 ownerFilter: filterModel,
                 name: choice.name,
-                value: choice.value,
+                value: App.propGet(choice, 'value'),
                 is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
             })
             if (koFilterChoice.value === undefined) {
