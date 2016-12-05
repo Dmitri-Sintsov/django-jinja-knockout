@@ -304,6 +304,10 @@ App.ko.GridFilter = function(options) {
     };
 
     GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
+        if (typeof currentChoice === 'undefined') {
+            // Reset filter by default.
+            currentChoice = this.resetFilter;
+        }
         if (currentChoice.value === undefined) {
             // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
