@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
-from django.core.urlresolvers import resolve, reverse, NoReverseMatch
+from django.core.urlresolvers import resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
 
 from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values, get_nested
 
@@ -176,23 +176,13 @@ def resolve_cbv(url_name, kwargs):
     return get_cbv_from_dispatch_wrapper(view_fn)
 
 
-# reverse url via supplied url_name with kwargs formatted as print %s named args, not regexp capture patterns.
+# Convert url matching supplied url_name from regex named parameters (?P<arg>\w+) to sprintf named formatters %(arg)s.
 def get_formatted_url(url_name):
     try:
         return reverse(url_name)
     except NoReverseMatch as e:
-        # Current pattern has named parameters. Translate these to Python str.format() / Javascript
-        # sprintf() library format.
-        # todo: Find a cleaner, faster way to find pattern result not using trace frames.
-        caller = trace()[-1:]
-        f_locals = get_nested(caller, [0, 0, 'f_locals'])
-        if type(f_locals) is dict and 'result' in f_locals:
-            if 'prefix_norm' in f_locals:
-                # Django 1.8
-                prefix = f_locals['prefix_norm']
-            else:
-                # Django 1.9 / 1.10
-                prefix = f_locals['_prefix']
-            return '{}{}'.format(prefix, f_locals['result'])
-        else:
-            raise ValueError('Unable to get formatted url for url name %s'.format(url_name))
+        # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
+        urlresolver = get_resolver(None)
+        for matches, pat, defaults in urlresolver.reverse_dict.getlist(url_name):
+            for sprintf_url, named_parameters in matches:
+                return '{}{}'.format(get_script_prefix(), sprintf_url)
