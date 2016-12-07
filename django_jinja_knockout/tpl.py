@@ -162,10 +162,12 @@ def format_local_date(value, short_format=True, to_local_time=True, tz_name=None
 
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
-def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None):
+def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None, request=None):
     # https://docs.djangoproject.com/en/1.8/ref/urlresolvers/#reverse
     url = reverse(viewname, urlconf, args, kwargs, current_app)
-    return url if query is None else url + '?' + urlencode(query)
+    if query is not None:
+        url += '?' + urlencode(query)
+    return url if request is None else request.build_absolute_uri(url)
 
 
 def resolve_cbv(url_name, kwargs):
