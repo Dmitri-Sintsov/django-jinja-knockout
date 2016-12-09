@@ -1,5 +1,4 @@
 import pytz
-from inspect import trace
 import lxml.html
 from lxml import etree
 from ensure import ensure_annotations
@@ -10,22 +9,36 @@ from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
 from django.core.urlresolvers import resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
 
-from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values, get_nested
+from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values
 
 
 def limitstr(value, maxlen=50, suffix='...'):
     return '{0}{1}'.format(value[:maxlen - len(suffix)], suffix) if len(value) > maxlen else value
 
+
 # Insert separator to s between each specified left to right.
 @ensure_annotations
-def repeat_insert(s:str, separator:str=' ', each:int=3):
-    return ' '.join(s[i:i+each] for i in range(0, len(s), each))
+def repeat_insert(s: str, separator: str=' ', each: int=3):
+    return ' '.join(s[i:i + each] for i in range(0, len(s), each))
+
 
 # Insert separator to s between each specified right to left.
 @ensure_annotations
-def repeat_insert_rtl(s:str, separator:str=' ', each:int=3):
+def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
     reversed_insert = repeat_insert(s[::-1], separator, each)
     return reversed_insert[::-1]
+
+
+# Join nested list. Can be used together with TplStr or it's descendants.
+def join_list(row):
+    result = []
+    for elem in yield_ordered_values(row):
+        if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
+            result.append(join_list(elem))
+        else:
+            result.append(elem)
+    return ''.join(result)
+
 
 # Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
@@ -97,7 +110,7 @@ def print_list_group(row, cb=escape):
 def add_css_classes(existing_classes=None, new_classes=''):
     existing_list = [] if existing_classes is None else existing_classes.split(' ')
     new_list = new_classes.split(' ')
-    result_dict = {css_class:False for css_class in set(existing_list) | set(new_list)}
+    result_dict = {css_class: False for css_class in set(existing_list) | set(new_list)}
     result_list = []
     for css_class in existing_list + new_list:
         if result_dict[css_class] is False:
@@ -188,3 +201,4 @@ def get_formatted_url(url_name):
         for matches, pat, defaults in urlresolver.reverse_dict.getlist(url_name):
             for sprintf_url, named_parameters in matches:
                 return '{}{}'.format(get_script_prefix(), sprintf_url)
+        raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
