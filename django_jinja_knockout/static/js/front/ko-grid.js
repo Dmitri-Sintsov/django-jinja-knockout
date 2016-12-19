@@ -593,8 +593,9 @@ App.ko.GridRow = function(options) {
 
 (function(GridRow) {
 
-    // Turned off by default for performance reasons (not required for some grids).
+    // By default do not use App.initClient() for performance reasons.
     GridRow.useInitClient = false;
+
     // todo: turn off by default and update saved row at whole.
     GridRow.observeDisplayValue = true;
 
@@ -708,6 +709,9 @@ App.ko.GridRow = function(options) {
     GridRow.init = function(options) {
         var self = this;
         this.ownerGrid = options.ownerGrid;
+        if (this.ownerGrid.options.useInitClient !== null) {
+            this.useInitClient = this.ownerGrid.options.useInitClient;
+        }
         this.index = options.index;
         this.isSelectedRow = ko.observable(options.isSelectedRow);
         this.selectionCss = ko.computed(this.getSelectionCss, this);
@@ -1278,6 +1282,8 @@ App.ko.Grid = function(options) {
             ownerCtrl: null,
             pageRoute: null,
             pageRouteKwargs: {},
+            // By default will use App.ko.GridRow.useInitClient = false value:
+            useInitClient : null,
         }, options);
         if (this.options.defaultOrderBy !== null) {
             // Requires  separate 'meta' action to properly show initial overriden ordering.
