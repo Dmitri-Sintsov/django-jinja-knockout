@@ -1701,6 +1701,10 @@ App.ko.Grid = function(options) {
      */
     Grid.updatePage = function(viewModel) {
         this.markUpdated(false);
+        // Delete first, because append / prepend may add rows with the same keys (refresh the same rows).
+        if (typeof viewModel.deleted_pks !== 'undefined') {
+            this.deleteKoRows(viewModel.deleted_pks);
+        }
         if (typeof viewModel.append_rows !== 'undefined') {
             this.addKoRows(viewModel.append_rows);
         }
@@ -1709,9 +1713,6 @@ App.ko.Grid = function(options) {
         }
         if (typeof viewModel.update_rows !== 'undefined') {
             this.updateKoRows(viewModel.update_rows);
-        }
-        if (typeof viewModel.deleted_pks !== 'undefined') {
-            this.deleteKoRows(viewModel.deleted_pks);
         }
     };
 
