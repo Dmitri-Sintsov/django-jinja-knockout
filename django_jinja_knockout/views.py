@@ -30,6 +30,7 @@ from .models import (
     yield_model_fieldnames, model_values, get_object_description
 )
 from .viewmodels import vm_list
+from .admin import empty_value_display
 from .utils.sdv import yield_ordered, get_object_members, get_nested
 
 
@@ -471,11 +472,15 @@ class FieldValidator:
                 'type': 'fk',
                 'multiple_choices': True
             }
-        elif isinstance(self.model_field, models.BooleanField):
-            filter_def['choices'] = (
+        elif isinstance(self.model_field, (models.BooleanField, models.NullBooleanField)):
+            filter_def['choices'] = [
                 (True, _('Yes')),
                 (False, _('No'))
-            )
+            ]
+            if isinstance(self.model_field, models.NullBooleanField):
+                filter_def['choices'].append(
+                    (None, str(empty_value_display))
+                )
             return {
                 'type': 'choices'
             }

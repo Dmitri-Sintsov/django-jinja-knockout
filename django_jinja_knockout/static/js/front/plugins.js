@@ -412,8 +412,8 @@ $.fn.linkPreview = function(method) {
         scaledPreview.create = function($anchor) {
             var self = this;
             this.$anchor = $anchor;
-            this.popover = null;
-            if (!this.shouldEnable()) {
+            this.hasPopover = this.shouldEnable();
+            if (!this.hasPopover) {
                 return;
             }
             this.href = this.$anchor.prop('href');
@@ -422,7 +422,7 @@ $.fn.linkPreview = function(method) {
             this.scale = 1;
             this.id = 'iframe_' + $.randomHash();
             var content = this.getPopoverContent();
-            this.popover = $anchor.popover({
+            $anchor.popover({
                 // non-default container is required for block elements which has overflow.
                 container: 'body',
                 html: true,
@@ -430,22 +430,24 @@ $.fn.linkPreview = function(method) {
                 placement: 'auto',
                 content: this.getPopoverContent(),
             });
-            this.popover.on('shown.bs.popover', function(ev) {
+            $anchor.on('shown.bs.popover', function(ev) {
                 return self.show(ev);
             });
         };
 
         scaledPreview.destroy = function() {
-            if (this.popover === null) {
+            if (!this.hasPopover) {
                 return;
             }
-            this.popover.unbind('shown.bs.popover');
+            this.$anchor.unbind('shown.bs.popover');
             // https://github.com/twbs/bootstrap/issues/475
-            this.$anchor.popover('disable').popover('hide');
+            this.$anchor.popover('hide');
+            this.$anchor.popover('disable');
             var iframe = document.getElementById(this.id);
             if (iframe !== null) {
                 $(iframe).remove();
             }
+            this.hasPopover = false;
         };
 
         scaledPreview.getPopoverContent = function() {
