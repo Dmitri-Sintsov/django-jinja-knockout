@@ -63,6 +63,7 @@ class ContextMiddleware(object):
     def get_request(cls):
         return cls._threadmap[threading.get_ident()]
 
+    # Mostly to store contenttypes framework http session logs and to store modified / added objects of inline formsets.
     @classmethod
     def add_instance(cls, group_key, obj, obj_key=None):
         request = cls.get_request()
