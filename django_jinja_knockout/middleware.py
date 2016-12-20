@@ -64,6 +64,32 @@ class ContextMiddleware(object):
         return cls._threadmap[threading.get_ident()]
 
     @classmethod
+    def add_instance(cls, group_key, obj, obj_key=None):
+        request = cls.get_request()
+        if request is None:
+            return
+        instances = getattr(request, group_key, [] if obj_key is None else {})
+        if obj_key is None:
+            instances.append(obj)
+        else:
+            instances[obj_key] = obj
+        setattr(request, group_key, instances)
+
+    @classmethod
+    def yield_out_instances(cls, group_key):
+        request = cls.get_request()
+        if request is None or not hasattr(request, group_key):
+            return
+        instances = getattr(request, group_key)
+        delattr(request, group_key)
+        if isinstance(instances, dict):
+            for key, obj in instances.items():
+                yield key, obj
+        else:
+            for obj in instances:
+                yield obj
+
+    @classmethod
     def get_request_timezone(cls, request=None):
         if request is None:
             request = cls.get_request()
