@@ -19,6 +19,10 @@ body {
 	display: none;
 }
 
+.over-dialog {
+	z-index: 1200;
+}
+
 .relative {
 	position: relative;
 }
