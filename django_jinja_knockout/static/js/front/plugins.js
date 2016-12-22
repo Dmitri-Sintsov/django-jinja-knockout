@@ -431,6 +431,14 @@ $.fn.linkPreview = function(method) {
                 content: this.getPopoverContent(),
             });
             $anchor.on('shown.bs.popover', function(ev) {
+                /**
+                 * Set your .link-preview DOM element html5 data attribute 'tipCSS' to modify popover css, for example
+                 * to override popover z-index originally hidden by BootstrapDialog with higher z-index.
+                 */
+                var tipCSS = self.$anchor.data('tipCSS');
+                if (tipCSS !== undefined) {
+                    self.$anchor.data('bs.popover').$tip.css(tipCSS);
+                }
                 return self.show(ev);
             });
         };
