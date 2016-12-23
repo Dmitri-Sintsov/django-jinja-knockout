@@ -97,14 +97,19 @@ def model_values(obj, fields=None, strict_related=True):
     return row
 
 
-def get_object_description(object):
-    if hasattr(object, 'get_str_fields'):
-        return nested_values(object.get_str_fields())
+def get_object_description(obj):
+    if hasattr(obj, 'get_str_fields'):
+        return nested_values(obj.get_str_fields())
     else:
-        return [str(object)]
+        return [str(obj)]
 
 
-class ContentTypeLinker(object):
+# Check whether actual file of FileField exists (is not deleted / moved out).
+def file_exists(obj):
+    return obj.storage.exists(obj.name)
+
+
+class ContentTypeLinker:
 
     def __init__(self, obj, typefield, idfield):
         self.model = None

@@ -13,7 +13,7 @@ from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
 
-def raise_helper(msg):
+def raise_exception(msg):
     raise Exception(msg)
 
 
@@ -90,7 +90,7 @@ class TemplateContextProcessor():
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,
-            'raise': raise_helper,
+            'raise': raise_exception,
             'resolve_cbv': resolve_cbv,
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
