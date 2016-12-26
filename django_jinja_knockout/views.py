@@ -709,7 +709,7 @@ class BaseFilterView(View):
         }
         if isinstance(filter_def, (list, tuple)):
             canon_filter_def['choices'] = filter_def
-        if isinstance(filter_def, dict):
+        elif isinstance(filter_def, dict):
             canon_filter_def.update(filter_def)
         # Autodetect widget.
         vm_filter = self.get_field_filter(fieldname, canon_filter_def)
