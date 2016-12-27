@@ -51,6 +51,7 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 class ContextMiddleware(object):
 
     _threadmap = {}
+    _mock_request = None
 
     def __init__(self):
         self.request = None
@@ -58,10 +59,29 @@ class ContextMiddleware(object):
         self.view_args = None
         self.view_kwargs = None
 
+    @classmethod
+    def is_active(cls):
+        return threading.get_ident() in cls._threadmap
+
+    # todo: complete url resolution and middleware / mock view.
+    # As mocks are more often used with forms, uses 'post' method by default.
+    # Call in child class before calling .get_request() with custom arguments, when needed.
+    @classmethod
+    def mock_request(cls, factory_method='post', path='/', *args, **kwargs):
+        if cls._mock_request is None:
+            from django.test.client import RequestFactory
+            factory = RequestFactory()
+            method = getattr(factory, factory_method)
+            cls._mock_request = method(path, *args, **kwargs)
+        return cls._mock_request
+
     # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
     @classmethod
     def get_request(cls):
-        return cls._threadmap[threading.get_ident()]
+        if cls.is_active():
+            return cls._threadmap[threading.get_ident()]
+        else:
+            return cls.mock_request()
 
     # Mostly to store contenttypes framework http session logs and to store modified / added objects of inline formsets.
     @classmethod

@@ -2,12 +2,15 @@ from .utils import sdv
 from io import StringIO
 import lxml.html
 from lxml.etree import tostring
+
 from django.conf import settings
-from .context_processors import LAYOUT_CLASSES
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.template import loader as tpl_loader
+
+from .apps import DjkAppConfig
+from .context_processors import LAYOUT_CLASSES
 from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
 from .viewmodels import to_json
@@ -25,6 +28,9 @@ class BootstrapModelForm(forms.ModelForm):
                 Meta.widgets[field] = forms.TextInput(attrs={'class': 'form-control'})
         """
         super().__init__(*args, **kwargs)
+        # Automatically make current http request available as .request attribute of form instance.
+        ContextMiddleware = DjkAppConfig.get_context_middleware()
+        self.request = ContextMiddleware.get_request()
         for fieldname, field in self.fields.items():
             if hasattr(self.Meta, 'fields'):
                 if self.Meta.fields == '__all__' or fieldname in self.Meta.fields:
@@ -62,15 +68,13 @@ class DisplayModelMetaclass(ModelFormMetaclass):
 
 class WidgetInstancesMixin(forms.ModelForm):
 
-    def set_request(self, request):
-        for name, field in self.fields.items():
-            field.widget.request = request
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if hasattr(self, 'instance'):
-            for name, field in self.fields.items():
+        for name, field in self.fields.items():
+            if hasattr(self, 'instance'):
                 field.widget.instance = self.instance
+            if hasattr(self, 'request'):
+                field.widget.request = self.request
 
 
 # Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #

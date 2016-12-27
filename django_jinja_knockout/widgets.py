@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
 
-from .utils import sdv
+from .apps import DjkAppConfig
 from .tpl import (
     print_list, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
@@ -16,7 +16,6 @@ from .tpl import (
     resolve_cbv
 )
 from .viewmodels import to_json
-from .middleware import ContextMiddleware
 
 
 class OptionalWidget(MultiWidget):
@@ -148,6 +147,7 @@ class ForeignKeyGridWidget(DisplayText):
         pageRouteKwargs = self.grid_options.get('pageRouteKwargs', {})
         pageRouteKwargs['action'] = ''
         widget_view = resolve_cbv(self.grid_options['pageRoute'], pageRouteKwargs)
+        ContextMiddleware = DjkAppConfig.get_context_middleware()
         foreign_key_grid_options = widget_view.discover_grid_options(ContextMiddleware.get_request())
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
