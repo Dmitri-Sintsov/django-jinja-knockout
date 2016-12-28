@@ -29,17 +29,6 @@ def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
     return reversed_insert[::-1]
 
 
-# Join nested list. Can be used together with TplStr or it's descendants.
-def join_list(row):
-    result = []
-    for elem in yield_ordered_values(row):
-        if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
-            result.append(join_list(elem))
-        else:
-            result.append(elem)
-    return ''.join(result)
-
-
 # Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape):
     result = []
@@ -105,6 +94,33 @@ def print_list_group(row, cb=escape):
             cb=cb
         )
     )
+
+
+def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
+    r = d.__class__()
+    for key in d:
+        if (only_keys is not None and key not in only_keys) or not isinstance(d[key], dict):
+            r[key] = d[key]
+        else:
+            r[key] = d[key].__class__()
+            for k, v in d[key].items():
+                if isinstance(v, dict):
+                    rkv = str_dict(d[key][k], separator, None, enclosure_fmt)
+                    if len(d[key][k]) > 1 and enclosure_fmt is not None:
+                        rkv = enclosure_fmt.format(rkv)
+                else:
+                    rkv = d[key][k]
+                r[key][k] = rkv
+            kv = separator.join([str(val) for val in r[key].values()])
+            if len(d[key]) > 1 and enclosure_fmt is not None:
+                kv = enclosure_fmt.format(kv)
+            r[key] = kv
+    return r
+
+
+def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
+    flat_d = flatten_dict(d, separator, only_keys, enclosure_fmt)
+    return separator.join(flat_d.values())
 
 
 def add_css_classes(existing_classes=None, new_classes=''):
