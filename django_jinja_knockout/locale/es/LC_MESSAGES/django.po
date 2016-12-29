@@ -83,11 +83,9 @@ msgstr ""
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
 msgstr ""
 
-#, python-format
-msgid "Not allowed filter field: \"%(fieldname)s\""
+msgid "Not allowed filter field: \"{}\""
 msgstr ""
 
-#, python-format
-msgid "Not allowed sorting order: \"%(sorting_order)s\""
+msgid "Not allowed sorting order: \"{}\""
 msgstr ""
 
