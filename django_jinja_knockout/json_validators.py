@@ -16,7 +16,7 @@ def lim_str(stri, minmsg, maxmsg, minlen=1, maxlen=255):
     if _len > maxlen:
         raise ImmediateJsonResponse({
             'view': 'alert_error',
-            'message':  maxmsg.format(**locals())
+            'message': maxmsg.format(**locals())
         })
 
 

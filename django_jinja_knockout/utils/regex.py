@@ -1,6 +1,3 @@
-import re
-
-
 # regex can be without capturing group.
 def finditer_with_separators(regex, s):
     matches = []

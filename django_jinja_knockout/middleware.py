@@ -11,15 +11,17 @@ from django.contrib.auth import get_backends, logout as auth_logout
 from .utils import sdv
 from .utils.modules import get_fqn
 from .views import auth_redirect, error_response, exception_response
-from .viewmodels import vm_list, to_vm_list, has_vm_list
+from .viewmodels import to_vm_list, has_vm_list
 
 
 class JsonResponse(HttpResponse):
 
     def __init__(self, data, encoder=DjangoJSONEncoder, safe=True, content_type='application/json', **kwargs):
         if safe and not isinstance(data, dict):
-            raise TypeError('In order to allow non-dict objects to be '
-                'serialized set the safe parameter to False')
+            raise TypeError(
+                'In order to allow non-dict objects to be '
+                'serialized set the safe parameter to False'
+            )
         kwargs.setdefault('content_type', content_type)
         data = json.dumps(data, ensure_ascii=False, cls=encoder)
         super(JsonResponse, self).__init__(content=data, **kwargs)
@@ -133,8 +135,8 @@ class ContextMiddleware(object):
 
         # Todo: remove when IE9 support will expire.
         request.ie_ajax_iframe = request.method == 'POST' and \
-                 'HTTP_X_REQUESTED_WITH' not in request.META and \
-                'HTTP_X_REQUESTED_WITH' in request.POST
+            'HTTP_X_REQUESTED_WITH' not in request.META and \
+            'HTTP_X_REQUESTED_WITH' in request.POST
         if request.ie_ajax_iframe:
             # Fix IE9 not being able to post $.ajaxForm() with proper HTTP headers due to iframe emulation.
             request.META['HTTP_X_REQUESTED_WITH'] = request.POST['HTTP_X_REQUESTED_WITH']
@@ -156,10 +158,10 @@ class ContextMiddleware(object):
             ]
         """
         request.client_routes = []
-        vm_list = to_vm_list(request.client_data)
+        viewmodels = to_vm_list(request.client_data)
         if has_vm_list(request.session):
             vm_session = to_vm_list(request.session)
-            vm_list.extend(vm_session)
+            viewmodels.extend(vm_session)
 
     def process_exception(self, request, exception):
         self.__class__._threadmap.pop(threading.get_ident(), None)
@@ -278,16 +280,16 @@ class ContextMiddleware(object):
             else:
                 return exception_response(request, e)
 
-    """ Will be called for built-in django views (not jinja2 views), such as
-        url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.htm'}, name='login')
     """
-    """
+    # http://stackoverflow.com/questions/5334176/help-with-process-template-response-django-middleware
+    # Will be called for built-in django views (not jinja2 views), such as
+    # url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.htm'}, name='login')
     def process_template_response(self, request, response):
-        # http://stackoverflow.com/questions/5334176/help-with-process-template-response-django-middleware
         context_data = .context_processors.template_context_processor(request)
         response.context_data.update(context_data)
         return response
     """
+
 
 """
 session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)

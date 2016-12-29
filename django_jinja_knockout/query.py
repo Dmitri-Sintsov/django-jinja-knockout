@@ -8,7 +8,7 @@ from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
-from django.db.models.sql import Query, RawQuery
+from django.db.models.sql import RawQuery
 from django.db.models.query import RawQuerySet, QuerySet
 
 
@@ -298,8 +298,9 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
     def values_list(self, *fields, **kwargs):
         flat = kwargs.pop('flat', False)
         if kwargs:
-            raise TypeError('Unexpected keyword arguments to values_list: %s'
-                    % (list(kwargs),))
+            raise TypeError(
+                'Unexpected keyword arguments to values_list: %s' % (list(kwargs),)
+            )
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         values_fields = fields if len(fields) > 0 else self.columns
@@ -329,7 +330,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
             qs.query.set_limits(start, stop)
             return list(qs)[::k.step] if k.step else qs
 
-        qs.query.set_limits(k, k+1)
+        qs.query.set_limits(k, k + 1)
         return list(qs)[0]
 
 

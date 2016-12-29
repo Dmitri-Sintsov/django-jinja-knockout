@@ -2,7 +2,6 @@ from collections import OrderedDict, ValuesView, Mapping
 import os
 import inspect
 from pprint import pprint
-from ensure import ensure_annotations
 
 LOGPATH = ['logs']
 
@@ -113,15 +112,17 @@ def get_object_members(obj):
 def get_class_that_defined_method(meth):
     if inspect.ismethod(meth):
         for cls in inspect.getmro(meth.__self__.__class__):
-           if cls.__dict__.get(meth.__name__) is meth:
+            if cls.__dict__.get(meth.__name__) is meth:
                 return cls
-        meth = meth.__func__ # fallback to __qualname__ parsing
+        # fallback to __qualname__ parsing
+        meth = meth.__func__
     if inspect.isfunction(meth):
         cls = getattr(inspect.getmodule(meth),
                       meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
         if isinstance(cls, type):
             return cls
-    return None # not required since None would have been implicitly returned
+    # not required since None would have been implicitly returned
+    return None
 
 
 def get_cbv_from_dispatch_wrapper(meth):

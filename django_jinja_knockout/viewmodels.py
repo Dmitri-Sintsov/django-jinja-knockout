@@ -62,6 +62,8 @@ def find_by_keys(self, *match_vm_keys):
     for idx, vm in enumerate(self):
         if match_keys.issubset(set(vm.keys())):
             yield (idx, vm)
+
+
 vm_list.find_by_keys = find_by_keys
 
 
@@ -71,11 +73,13 @@ def find_by_kw(self, **partial_vm):
     for idx, vm in enumerate(self):
         found = True
         for key in partial_vm:
-            if not key in vm or vm[key] != partial_vm[key]:
+            if key not in vm or vm[key] != partial_vm[key]:
                 found = False
                 break
         if found:
             yield (idx, vm)
+
+
 vm_list.find_by_kw = find_by_kw
 
 
@@ -83,9 +87,13 @@ def find_by_vm(self, partial_vm):
     if not isinstance(self, list):
         raise ValueError('Self is not the list of viewmodels')
     return self.find_by_kw(**partial_vm)
+
+
 vm_list.find_by_vm = find_by_vm
 
 
 def to_json(self):
     return json.dumps(self, ensure_ascii=False)
+
+
 vm_list.to_json = to_json

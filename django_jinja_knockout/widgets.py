@@ -154,9 +154,9 @@ class ForeignKeyGridWidget(DisplayText):
         self.grid_options.update(foreign_key_grid_options)
         return format_html(
             '<div {wrapper_attrs}>'
-                '<input {final_attrs}/>'
-                '<div class="fk-display preformatted">{display_value}</div>'
-                '<button class="fk-choose btn btn-info default-margin">{change}</button>'
+            '<input {final_attrs}/>'
+            '<div class="fk-display preformatted">{display_value}</div>'
+            '<button class="fk-choose btn btn-info default-margin">{change}</button>'
             '</div>',
             wrapper_attrs=flatatt({
                 'class': 'component',

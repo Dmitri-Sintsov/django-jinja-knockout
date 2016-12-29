@@ -75,20 +75,24 @@ def do_jinja(parser, token):
     while remaining_tokens:
         option = remaining_tokens.pop(0)
         if option in options:
-            raise template.TemplateSyntaxError('The %r option was specified more '
-                    'than once.' % option)
+            raise template.TemplateSyntaxError(
+                'The %r option was specified more than once.' % option
+            )
         if option == 'with':
             value = token_kwargs(remaining_tokens, parser, support_legacy=False)
             if not value:
-                raise template.TemplateSyntaxError('"with" in %r tag needs at least '
-                        'one keyword argument.' % tokens[0])
+                raise template.TemplateSyntaxError(
+                    '"with" in %r tag needs at least one keyword argument.' % tokens[0]
+                )
         elif option == 'only':
             value = True
         else:
-            raise template.TemplateSyntaxError('Unknown argument for %r tag: %r.' %
-                    (tokens[0], option))
+            raise template.TemplateSyntaxError(
+                'Unknown argument for %r tag: %r.' % (tokens[0], option)
+            )
         options[option] = value
     isolated_context = options.get('only', False)
     namemap = options.get('with', {})
-    return JinjaNode(parser.compile_filter(tokens[1]), extra_context=namemap,
-                       isolated_context=isolated_context)
+    return JinjaNode(
+        parser.compile_filter(tokens[1]), extra_context=namemap, isolated_context=isolated_context
+    )

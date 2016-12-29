@@ -1,5 +1,6 @@
 import time
 
+
 class AutomationCommands:
 
     def __init__(self, *args, **kwargs):

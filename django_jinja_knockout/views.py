@@ -444,7 +444,8 @@ class FieldValidator:
                 self.view.report_error(str(e))
             else:
                 self.form_field.errors = e.messages
-                self.view.error({
+                self.view.error(
+                    {
                         'view': self.view.__class__.viewmodel_name,
                         'has_errors': True,
                     },
@@ -910,7 +911,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_negate_sort_order_querypart(self, sort_order, query={}):
         if sort_order is None:
             return query
-        stripped_sort_order = self.strip_sort_order(sort_order)
+        # stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
                 sort_order = [self.negate_sort_order_key(order_key) for order_key in sort_order]
@@ -1062,22 +1063,22 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 class ViewmodelView(TemplateView):
 
     @ensure_annotations
-    def process_error_viewmodel(self, viewmodel:dict):
+    def process_error_viewmodel(self, viewmodel: dict):
         if 'view' not in viewmodel:
             viewmodel['view'] = 'alert_error'
 
     @ensure_annotations
-    def process_error_vm_list(self, vms:vm_list):
+    def process_error_vm_list(self, vms: vm_list):
         for vm in vms:
             self.process_error_viewmodel(vm)
 
     @ensure_annotations
-    def process_success_viewmodel(self, viewmodel:dict):
+    def process_success_viewmodel(self, viewmodel: dict):
         if 'view' not in viewmodel:
             viewmodel['view'] = 'alert'
 
     @ensure_annotations
-    def process_success_vm_list(self, vms:vm_list):
+    def process_success_vm_list(self, vms: vm_list):
         for vm in vms:
             self.process_success_viewmodel(vm)
 
@@ -1291,7 +1292,8 @@ class GridActionsMixin:
             verbose_name = get_verbose_name(form.Meta.model)
         return vm_list({
             'last_action': form_action,
-            'title': format_html('{}: {}',
+            'title': format_html(
+                '{}: {}',
                 self.get_action_local_name(),
                 verbose_name
             ),
@@ -1322,7 +1324,8 @@ class GridActionsMixin:
             verbose_name = get_verbose_name(ff.__class__.FormClass.Meta.model)
         return vm_list({
             'last_action': form_action,
-            'title': format_html('{}: {}',
+            'title': format_html(
+                '{}: {}',
                 self.get_action_local_name(),
                 verbose_name
             ),
@@ -1353,7 +1356,7 @@ class GridActionsMixin:
 
     def get_title_action_not_allowed(self):
         return _('Action "%(action)s" is not allowed') % \
-               {'action': self.get_action_local_name()}
+            {'action': self.get_action_local_name()}
 
     def action_delete_is_allowed(self, objects):
         return True
@@ -1365,9 +1368,7 @@ class GridActionsMixin:
         }
         if self.action_delete_is_allowed(objects):
             viewmodel.update({
-                'title': format_html('{}',
-                     self.get_action_local_name()
-                ),
+                'title': format_html('{}', self.get_action_local_name()),
                 'pkVals': list(objects.values_list('pk', flat=True))
             })
         else:

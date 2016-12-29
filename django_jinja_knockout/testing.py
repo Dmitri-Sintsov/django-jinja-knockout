@@ -85,7 +85,7 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
                 unsleep_time = self.sleep_between_commands - exec_time
                 if unsleep_time > 0:
                     time.sleep(unsleep_time)
-                    print( 'Unsleep time: {}'.format(unsleep_time))
+                    print('Unsleep time: {}'.format(unsleep_time))
             return result, exec_time
         except WebDriverException as e:
             batch_exec_time = e.exec_time

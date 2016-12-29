@@ -2,8 +2,7 @@ from django.apps import apps
 from django.utils.html import format_html
 from django.db import models
 from django.db.models import Q
-from django.contrib.auth.models import User, Group, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from .admin import empty_value_display
