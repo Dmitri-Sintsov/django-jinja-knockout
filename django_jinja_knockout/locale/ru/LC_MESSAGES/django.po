@@ -83,11 +83,9 @@ msgstr "\"%(heading)s\" в настоящее время отсутствуют.
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
 msgstr "Отсутствуют \"%(heading)s\" типа %(filters_str)s"
 
-#, python-format
-msgid "Not allowed filter field: \"%(fieldname)s\""
-msgstr "Недопустимый фильтр поля: \"%(fieldname)s\""
+msgid "Not allowed filter field: \"{}\""
+msgstr "Недопустимый фильтр поля: \"{}\""
 
-#, python-format
-msgid "Not allowed sorting order: \"%(sorting_order)s\""
-msgstr "Недопустимый порядок сортировки: \"%(sorting_order)s\""
+msgid "Not allowed sorting order: \"{}\""
+msgstr "Недопустимый порядок сортировки: \"{}\""
 

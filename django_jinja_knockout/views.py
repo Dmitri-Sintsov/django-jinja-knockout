@@ -171,7 +171,7 @@ class FormatTitleMixin:
 
     def format_title(self, *args):
         if self.__class__.format_view_title and not self.view_title_is_formatted:
-            self.request.view_title = self.request.view_title.format(*args)
+            self.request.view_title = format_html(self.request.view_title, *args)
             self.view_title_is_formatted = True
 
     # Used when mixed with DetailView ancestors.
@@ -487,7 +487,7 @@ class FieldValidator:
             }
         else:
             self.view.report_error(
-                'Cannot determine filter type of field "{}"'.format(str(self.model_field))
+                'Cannot determine filter type of field "{}"', str(self.model_field)
             )
 
 
@@ -727,11 +727,14 @@ class BaseFilterView(View):
 
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
-            self.report_error('List of filters must be dictionary: {0}', list_filter)
+            self.report_error(
+                'List of filters must be dictionary: {}', list_filter)
         current_list_filter = {}
         for fieldname, values in list_filter.items():
             if fieldname not in self.allowed_filter_fields:
-                self.report_error(_('Not allowed filter field: "%(fieldname)s"') % {'fieldname': fieldname})
+                self.report_error(
+                    'Not allowed filter field: "{}"', fieldname
+                )
             field_validator = self.get_field_validator(fieldname)
             if not isinstance(values, dict):
                 # Single value.
@@ -775,7 +778,12 @@ class BaseFilterView(View):
     def get_current_query(self):
         sort_order = self.request_get(self.__class__.order_key)
         if sort_order is not None:
-            sort_order = json.loads(sort_order)
+            try:
+                sort_order = json.loads(sort_order)
+            except ValueError:
+                self.report_error(
+                    'Invalid value of sort_order: {}', sort_order
+                )
             if not isinstance(sort_order, list):
                 sort_order = [sort_order]
             self.current_stripped_sort_order = self.strip_sort_order(sort_order)
@@ -783,7 +791,13 @@ class BaseFilterView(View):
 
         list_filter = self.request_get(self.__class__.filter_key)
         if list_filter is not None:
-            self.current_list_filter = self.get_current_list_filter(json.loads(list_filter))
+            try:
+                list_filter_kwargs = json.loads(list_filter)
+            except ValueError:
+                self.report_error(
+                    'Invalid value of list_filter: {}', list_filter
+                )
+            self.current_list_filter = self.get_current_list_filter(list_filter_kwargs)
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -799,7 +813,9 @@ class BaseFilterView(View):
         stripped_order = [order.lstrip('-') for order in sort_order]
         if (stripped_order not in self.allowed_sort_orders) and \
                 (len(stripped_order) == 1 and stripped_order[0] not in self.allowed_sort_orders):
-            self.report_error(_('Not allowed sorting order: "%(sorting_order)s"') % {'sorting_order': stripped_order})
+            self.report_error(
+                'Not allowed sorting order: "{}"', stripped_order
+            )
         return stripped_order
 
     def order_queryset(self, queryset):
@@ -871,7 +887,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def report_error(self, message, *args, **kwargs):
         from .middleware import ImmediateHttpResponse
         self.reset_query_args()
-        self.reported_error = message.format(*args, **kwargs)
+        self.reported_error = format_html(_(message), *args, **kwargs)
         self.object_list = self.__class__.model.objects.all()[0:0]
         context = {
             'view': self,
@@ -1101,7 +1117,7 @@ class ViewmodelView(TemplateView):
             # viewmodel name.
             view='alert_error',
             title=title,
-            message=message.format(*args, **kwargs)
+            message=format_html(_(message), *args, **kwargs)
         )
 
     def dispatch(self, request, *args, **kwargs):
