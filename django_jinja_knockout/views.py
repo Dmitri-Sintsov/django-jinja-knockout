@@ -896,7 +896,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         response = TemplateResponse(
             self.request,
             self.__class__.template_name,
-            context
+            context,
+            status=404
         )
         raise ImmediateHttpResponse(response)
 
