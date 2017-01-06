@@ -1,13 +1,21 @@
+from types import SimpleNamespace
 import time
 
 
 class AutomationCommands:
 
     def __init__(self, *args, **kwargs):
+        context = kwargs.pop('context', {})
+        self._ = SimpleNamespace(**context)
         super().__init__(*args, **kwargs)
         self.last_result = None
         self.nesting_level = 0
         self.prev_nesting_level = 0
+
+    # Use self._ in your commands args / kwargs for parametric arguments.
+    def _context(self, context):
+        self._ = SimpleNamespace(**context)
+        return self.last_result
 
     def yield_commands(self, *args):
         operation = None
@@ -65,5 +73,14 @@ class AutomationCommands:
             batch_exec_time += exec_time
         return self.last_result
 
-    def exec_class(self, cls):
-        return self.exec(*cls.get_commands())
+    def get_class_commands(self, *attrs):
+        result = ()
+        for attr_name in attrs:
+            attr = getattr(self, attr_name)
+            result += attr() if callable(attr) else attr
+        return result
+
+    def exec_class(self, cmd_obj, *cmd_attrs):
+        return self.exec(
+            *cmd_obj.get_class_commands(*cmd_attrs)
+        )
