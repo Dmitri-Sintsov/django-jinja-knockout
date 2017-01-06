@@ -5,17 +5,15 @@ import time
 class AutomationCommands:
 
     def __init__(self, *args, **kwargs):
-        context = kwargs.pop('context', {})
-        self._ = SimpleNamespace(**context)
-        super().__init__(*args, **kwargs)
         self.last_result = None
         self.nesting_level = 0
         self.prev_nesting_level = 0
+        self.set_context(kwargs.pop('context', {}))
 
     # Use self._ in your commands args / kwargs for parametric arguments.
-    def _context(self, context):
+    def set_context(self, context):
         self._ = SimpleNamespace(**context)
-        return self.last_result
+        return self
 
     def yield_commands(self, *args):
         operation = None

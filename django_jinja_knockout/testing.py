@@ -7,7 +7,6 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from django.conf import settings
 from django.utils import timezone
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from .automation import AutomationCommands
 from .utils.regex import finditer_with_separators
@@ -30,32 +29,22 @@ Do not forget to update to latest ESR when running the tests.
 """
 
 
-# Test case with errors logging and automation commands support.
-class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
+# Selenium commands with errors logging and automation commands support.
+class BaseSeleniumCommands(AutomationCommands):
 
     DEFAULT_SLEEP_TIME = 3
-    WAIT_SECONDS = 5
 
     sync_commands_list = []
 
     def __init__(self, *args, **kwargs):
+        self.testcase = kwargs.pop('testcase')
+        self.selenium = self.testcase.selenium
         super().__init__(*args, **kwargs)
         self.logged_error = False
         self.history = []
         self.last_sync_command_key = -1
         # self.sleep_between_commands = 1.2
         self.sleep_between_commands = 0
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.selenium = cls.selenium_factory()
-        cls.selenium.implicitly_wait(cls.WAIT_SECONDS)
-
-    @classmethod
-    def tearDownClass(cls):
-        # cls.selenium.quit()
-        super().tearDownClass()
 
     def _sleep(self, secs):
         time.sleep(secs)
@@ -190,18 +179,18 @@ class SeleniumTestCase(AutomationCommands, StaticLiveServerTestCase):
 
 
 # Generic DOM commands.
-class SeleniumCommands(SeleniumTestCase):
+class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _maximize_window(self):
         self.selenium.maximize_window()
         return self.last_result
 
     def _relative_url(self, rel_url):
-        return self.selenium.get('{}{}'.format(self.live_server_url, rel_url))
+        return self.selenium.get('{}{}'.format(self.testcase.live_server_url, rel_url))
 
     def _reverse_url(self, viewname, kwargs=None, query=None):
         url = '{}{}'.format(
-            self.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            self.testcase.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
         # print('_reverse_url: {}'.format(url))
         return self.selenium.get(url)
@@ -299,7 +288,7 @@ class SeleniumCommands(SeleniumTestCase):
 
 
 # BootstrapDialog / AJAX grids specific commands.
-class DjkSeleniumCommands(SeleniumCommands):
+class DjkSeleniumCommands(SeleniumQueryCommands):
 
     sync_commands_list = [
         'click',
