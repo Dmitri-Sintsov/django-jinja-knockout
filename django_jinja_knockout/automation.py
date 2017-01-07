@@ -71,15 +71,15 @@ class AutomationCommands:
             batch_exec_time += exec_time
         return self.last_result
 
-    def yield_class_commands(self, cmd_obj, *attrs):
+    def yield_class_commands(self, *attrs):
         for attr_name in attrs:
-            attr = getattr(cmd_obj, attr_name)
+            attr = getattr(self, attr_name)
             if callable(attr):
                 yield from attr()
             else:
                 yield attr
 
     def exec_class(self, cmd_obj, *attrs):
-        for commands in self.yield_class_commands(cmd_obj, *attrs):
+        for commands in cmd_obj.yield_class_commands(*attrs):
             self.exec(*commands)
         return self
