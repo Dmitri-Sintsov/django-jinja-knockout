@@ -7,6 +7,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from django.conf import settings
 from django.utils import timezone
+from django.core.management import call_command
 
 from .automation import AutomationCommands
 from .utils.regex import finditer_with_separators
@@ -52,6 +53,24 @@ class BaseSeleniumCommands(AutomationCommands):
 
     def _default_sleep(self):
         return self._sleep(self.__class__.DEFAULT_SLEEP_TIME)
+
+    # https://code.djangoproject.com/wiki/Fixtures
+    def _dump_data(self, prefix=''):
+        if prefix != '':
+            prefix += '_'
+        call_command('dumpdata',
+            indent=4,
+            format='json',
+            use_natural_foreign_keys=True,
+            use_natural_primary_keys=True,
+            output=os.path.join(
+                settings.FIXTURE_DIRS[0],
+                '{}{}.json'.format(
+                    prefix,
+                    timezone.now().strftime('%Y-%m-%d_%H-%M-%S-%f')
+                )
+            )
+        )
 
     def log_command(self, operation, args, kwargs):
         print('Operation: {}'.format(operation), end='')
