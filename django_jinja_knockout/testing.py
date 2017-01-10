@@ -1,11 +1,15 @@
 import re
 import os
 import time
+
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
 
 from django.conf import settings
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test.utils import override_settings
 from django.utils import timezone
 from django.core.management import call_command
 
@@ -58,8 +62,14 @@ class BaseSeleniumCommands(AutomationCommands):
     def _dump_data(self, prefix=''):
         if prefix != '':
             prefix += '_'
-        call_command('dumpdata',
+        call_command(
+            'dumpdata',
             indent=4,
+            exclude=[
+                'auth.permission',
+                'contenttypes',
+                'sessions',
+            ],
             format='json',
             use_natural_foreign_keys=True,
             use_natural_primary_keys=True,
@@ -225,6 +235,9 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _by_id(self, id):
         return self.selenium.find_element_by_id(id)
 
+    def _by_link_text(self, link_text):
+        return self.selenium.find_element_by_link_text(link_text)
+
     def _keys_by_id(self, id, keys):
         input = self.selenium.find_element_by_id(id)
         input.clear()
@@ -279,6 +292,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _click_anchor_by_view(self, viewname, kwargs=None, query=None):
         return self.exec(
             'find_anchor_by_view', (viewname, kwargs, query),
+            'click',
+        )
+
+    def _click_by_link_text(self, link_text):
+        return self.exec(
+            'by_link_text', (link_text,),
             'click',
         )
 
@@ -414,3 +433,33 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
                 'dialog_button_click', ('Apply',),
             )
         return self.exec(*commands)
+
+
+@override_settings(DEBUG=True)
+class DjkTestCase(StaticLiveServerTestCase):
+
+    fixtures = []
+    # Will work only when database supports inserting the same pk's (not sqlite).
+    reset_sequences = True
+    WAIT_SECONDS = 5
+
+    def has_fixture_prefix(self, prefix):
+        for fixture in self.fixtures:
+            if fixture.startswith(prefix):
+                return True
+        return False
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.selenium = cls.selenium_factory()
+        cls.selenium.implicitly_wait(cls.WAIT_SECONDS)
+
+    @classmethod
+    def tearDownClass(cls):
+        # cls.selenium.quit()
+        super().tearDownClass()
+
+    @classmethod
+    def selenium_factory(cls):
+        return WebDriver()
