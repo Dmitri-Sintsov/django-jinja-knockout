@@ -3,6 +3,7 @@ from io import StringIO
 import lxml.html
 from lxml.etree import tostring
 
+from django.http import QueryDict
 from django.conf import settings
 from django.db import transaction
 from django import forms
@@ -48,11 +49,32 @@ def display_model_formfield_callback(db_field, **kwargs):
     return db_field.formfield(**defaults)
 
 
-class UnchangableModelMixin():
+class UnchangableModelMixin:
 
     def has_changed(self):
         # Display forms never change.
         return False
+
+
+class StripWhitespaceMixin:
+
+    # override to perform custom field stripping.
+    def strip_whitespace(self, val):
+        return val.strip()
+
+    # http://stackoverflow.com/questions/8320739/django-where-to-clean-extra-whitespace-from-form-field-inputs
+    def full_clean(self):
+        # self.data can be dict (usually empty) or QueryDict here.
+        is_querydict = isinstance(self.data, QueryDict)
+        if is_querydict:
+            # Clone QueryDict to make it writeable.
+            self.data = self.data.copy()
+        for k in self.data:
+            if is_querydict:
+                self.data.setlist(k, [self.strip_whitespace(val) for val in self.data.getlist(k)])
+            else:
+                self.data[k] = self.strip_whitespace(self.data[k])
+        super().full_clean()
 
 
 # Metaclass used to create read-only forms (display models). #
