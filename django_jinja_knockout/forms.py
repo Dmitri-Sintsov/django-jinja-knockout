@@ -56,25 +56,31 @@ class UnchangableModelMixin:
         return False
 
 
-class StripWhitespaceMixin:
+# http://stackoverflow.com/questions/8320739/django-where-to-clean-extra-whitespace-from-form-field-inputs
+class CustomFullClean:
 
-    # override to perform custom field stripping.
-    def strip_whitespace(self, val):
-        return val.strip()
+    # override to perform custom field cleaning.
+    def custom_clean_field(self, key, val):
+        return val
 
-    # http://stackoverflow.com/questions/8320739/django-where-to-clean-extra-whitespace-from-form-field-inputs
     def full_clean(self):
         # self.data can be dict (usually empty) or QueryDict here.
         is_querydict = isinstance(self.data, QueryDict)
         if is_querydict:
             # Clone QueryDict to make it writeable.
             self.data = self.data.copy()
-        for k in self.data:
+        for key in self.data:
             if is_querydict:
-                self.data.setlist(k, [self.strip_whitespace(val) for val in self.data.getlist(k)])
+                self.data.setlist(key, [self.custom_clean_field(key, val) for val in self.data.getlist(key)])
             else:
-                self.data[k] = self.strip_whitespace(self.data[k])
+                self.data[key] = self.custom_clean_field(key, self.data[key])
         super().full_clean()
+
+
+class StripWhitespaceMixin(CustomFullClean):
+
+    def custom_clean_field(self, key, val):
+        return val.strip()
 
 
 # Metaclass used to create read-only forms (display models). #
