@@ -1,3 +1,4 @@
+import string
 from .utils import sdv
 from io import StringIO
 import lxml.html
@@ -79,8 +80,12 @@ class CustomFullClean:
 
 class StripWhitespaceMixin(CustomFullClean):
 
+    nonprintable_map = {
+        ord(character): None for character in set([chr(i) for i in range(128)]).difference(string.printable)
+    }
+
     def custom_clean_field(self, key, val):
-        return val.strip()
+        return val.strip().translate(self.nonprintable_map)
 
 
 # Metaclass used to create read-only forms (display models). #
