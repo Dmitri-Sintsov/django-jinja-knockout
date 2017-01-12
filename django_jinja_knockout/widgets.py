@@ -38,7 +38,7 @@ class OptionalWidget(MultiWidget):
 # Read-only widget for existing models.
 class DisplayText(Widget):
 
-    def __init__(self, attrs=None, scalar_display=None, get_text_cb=None, layout='table'):
+    def __init__(self, attrs=None, scalar_display=None, get_text_fn=None, get_text_method=None, layout='table'):
         self.name = None
         self.scalar_display = {
             None: '',
@@ -47,7 +47,8 @@ class DisplayText(Widget):
         }
         if scalar_display is not None:
             self.scalar_display.update(scalar_display)
-        self.get_text_cb = get_text_cb
+        self.get_text_fn = get_text_fn
+        self.get_text_method = get_text_method
         self.layout = layout
         super().__init__(attrs)
 
@@ -103,14 +104,18 @@ class DisplayText(Widget):
         if name == 'projectmember_set-0-profile':
             sdv.dbg('name', name)
         """
-        # Save self.name so it may be used in get_text_cb callback.
+        # Save self.name so it may be used in get_text callback.
         self.name = name
         is_list = isinstance(values, list)
         display_values = self.get_display_values(values) if is_list else self.get_display_values([values])
         final_attrs = self.build_attrs(attrs, name=name)
         remove_css_classes_from_dict(final_attrs, 'form-control')
-        if callable(self.get_text_cb):
-            self.get_text = types.MethodType(self.get_text_cb, self)
+
+        if self.get_text_method is not None:
+            self.get_text = types.MethodType(self.get_text_method, self)
+        elif self.get_text_fn is not None:
+            self.get_text = self.get_text_fn
+
         if is_list:
             self.add_list_attrs(final_attrs)
             return self.render_list(final_attrs, values, display_values)
