@@ -128,29 +128,61 @@ App.recursiveMap = function(value, fn) {
 };
 
 
-App.showTabPane = function() {
-    var targetElement = $(window.location.hash);
-    if (targetElement.length === 0) {
-        return;
-    }
-    var parentPane = targetElement.closest('div.tab-pane');
-    if (parentPane.length === 0) {
-        return;
-    }
-    var paneAnchor = $('a[href="#' + parentPane.attr('id') + '"]');
-    if (paneAnchor.length === 0) {
-        return;
-    }
-    paneAnchor.tab('show');
-    // Commented out, because it causes jagged scrolling.
-    // targetElement.get(0).scrollIntoView();
+App.TabPane = {
+
+    getAnchor: function(hash) {
+        var targetElement = $(hash);
+        if (targetElement.length > 0) {
+            var parentPane = targetElement.closest('div.tab-pane');
+            if (parentPane.length > 0) {
+                var paneAnchor = $('a[href="#' + parentPane.attr('id') + '"]');
+                if (paneAnchor.length > 0) {
+                    return paneAnchor;
+                }
+            }
+        }
+        return false;
+    },
+
+    show: function() {
+        var paneAnchor = App.TabPane.getAnchor(window.location.hash);
+        if (paneAnchor !== false) {
+            paneAnchor.tab('show');
+            var tab = paneAnchor.closest('li');
+            var highlightClass = tab.data('highlightClass');
+            if (highlightClass !== undefined) {
+                tab.removeData('highlightClass');
+                tab.removeClass(highlightClass);
+            }
+            // Commented out, because it causes jagged scrolling.
+            // targetElement.get(0).scrollIntoView();
+        }
+    },
+
+    highlight: function(hash, bgClass, permanent) {
+        if (typeof hash === 'undefined') {
+            hash = window.location.hash;
+        }
+        if (typeof bgClass !== 'string') {
+            bgClass = 'bg-success';
+        }
+        var paneAnchor = App.TabPane.getAnchor(hash);
+        if (paneAnchor !== false) {
+            var tab = paneAnchor.closest('li');
+            tab.addClass(bgClass);
+            if (permanent !== true) {
+                tab.data('highlightClass', bgClass);
+            }
+        }
+    },
+
 };
 
 
 // https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
-App.initShowTabPane = function() {
-    App.showTabPane();
-    $(window).on('hashchange', App.showTabPane);
+App.initTabPane = function() {
+    App.TabPane.show();
+    $(window).on('hashchange', App.TabPane.show);
     // Change hash upon pane activation
     $('a[role="tab"]').on('click', function() {
         var href = $(this).attr('href');
@@ -1389,7 +1421,7 @@ $(document)
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
     App.initClient(document);
-    App.initShowTabPane();
+    App.initTabPane();
     $(window).on('hashchange', function() {
         $(document).highlightListUrl(window.location);
     });

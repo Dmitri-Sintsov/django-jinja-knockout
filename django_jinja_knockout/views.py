@@ -1580,6 +1580,13 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         return OrderedDict()
 
     @classmethod
+    def process_qs(cls, request, qs):
+        self = cls()
+        self.request = request
+        cls.init_class(self)
+        return self.postprocess_qs(qs)
+
+    @classmethod
     def discover_grid_options(cls, request):
         grid_options = cls.get_grid_options()
         if 'fkGridOptions' not in grid_options:
