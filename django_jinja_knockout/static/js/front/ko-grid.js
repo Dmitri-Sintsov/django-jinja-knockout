@@ -634,29 +634,41 @@ App.ko.GridRow = function(options) {
         }
     };
 
+    GridRow.getDisplayValue = function(field) {
+        if (typeof this.strFields[field] !== 'undefined') {
+            return this.strFields[field];
+        }
+        var related = field.split(/__/).filter(Boolean);
+        if (related.length > 1) {
+            return App.propGet(this.strFields, related);
+        }
+        return undefined;
+    };
+
     // Descendant could format it's own displayValue, including html content.
     GridRow.toDisplayValue = function(value, field) {
         var displayValue;
-        var fieldRelated = field.match(/(.+)_id$/);
-        if (fieldRelated !== null) {
-            fieldRelated = fieldRelated[1];
-        }
         var markSafe = this.ownerGrid.isMarkSafeField(field);
         // Automatic server-side formatting.
-        if (typeof this.strFields[field] !== 'undefined') {
-            displayValue = this.strFields[field];
-        } else if (fieldRelated !== null && typeof this.strFields[fieldRelated] !== 'undefined') {
-            displayValue = this.strFields[fieldRelated];
-        } else if (typeof value === 'boolean') {
-            displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
-        } else if (value === null) {
-            displayValue = App.trans('N/A');
-        } else if (value === '') {
-            // Mark safe. Without converting to &nbsp; rows may have smaller height sometimes.
-            displayValue = '&nbsp;';
-            markSafe = true;
-        } else {
-            displayValue = value;
+        displayValue = this.getDisplayValue(field);
+        if (displayValue === undefined) {
+            var fieldRelated = field.match(/(.+)_id$/);
+            if (fieldRelated !== null) {
+                displayValue = this.getDisplayValue(fieldRelated[1]);
+            }
+            if (displayValue === undefined) {
+                if (typeof value === 'boolean') {
+                    displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
+                } else if (value === null) {
+                    displayValue = App.trans('N/A');
+                } else if (value === '') {
+                    // Mark safe. Without converting to &nbsp; rows may have smaller height sometimes.
+                    displayValue = '&nbsp;';
+                    markSafe = true;
+                } else {
+                    displayValue = value;
+                }
+            }
         }
         displayValue = this.htmlEncode(displayValue, field, markSafe);
         return displayValue;
