@@ -1955,7 +1955,7 @@ App.ko.Grid = function(options) {
     /**
      * Setup filters viewmodels.
      */
-    Grid.setKoFilters = function(filters) {
+    Grid.setupKoFilters = function(filters) {
         var gridFilters = [];
         for (var i = 0; i < filters.length; i++) {
             gridFilters.push(
@@ -1963,6 +1963,23 @@ App.ko.Grid = function(options) {
             );
         }
         this.gridFilters(gridFilters);
+    };
+
+    /**
+     * Setup multiple choices for multiple filters.
+     * Can be used in overloaded .onFirstLoad() method to setup initial filters.
+     */
+    Grid.setFiltersChoices = function(filterChoices) {
+        var self = this;
+        _.each(filterChoices, function(choices, filterName) {
+            var filter = self.getKoFilter(filterName);
+            if (filter !== null) {
+                filter.setChoices(choices);
+            }
+        });
+        if (_.size(filterChoices) > 0) {
+            this.listAction();
+        }
     };
 
     Grid.iocGridPage = function(options) {
@@ -2066,7 +2083,7 @@ App.ko.Grid = function(options) {
             this.setKoGridColumns(data.gridFields);
         }
         if (typeof data.filters !== 'undefined') {
-            this.setKoFilters(data.filters);
+            this.setupKoFilters(data.filters);
         }
         if (typeof data.markSafe !== 'undefined' && _.isArray(data.markSafe)) {
             this.meta.markSafeFields = data.markSafe;
