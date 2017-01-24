@@ -1953,7 +1953,7 @@ App.ko.Grid = function(options) {
     };
 
     /**
-     * Setup filters viewmodels.
+     * Setup filters viewmodels (grid initial loading stage).
      */
     Grid.setupKoFilters = function(filters) {
         var gridFilters = [];
@@ -1966,7 +1966,7 @@ App.ko.Grid = function(options) {
     };
 
     /**
-     * Setup multiple choices for multiple filters.
+     * Setup multiple choices for multiple filters for already loaded grid then list data.
      * Can be used in overloaded .onFirstLoad() method to setup initial filters.
      */
     Grid.setFiltersChoices = function(filterChoices) {
