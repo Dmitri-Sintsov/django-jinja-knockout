@@ -1969,16 +1969,22 @@ App.ko.Grid = function(options) {
      * Setup multiple choices for multiple filters for already loaded grid then list data.
      * Can be used in overloaded .onFirstLoad() method to setup initial filters.
      */
-    Grid.setFiltersChoices = function(filterChoices) {
+    Grid.setFiltersChoices = function(filterChoices, listActionCallback ) {
         var self = this;
+        var foundFilters = 0;
         _.each(filterChoices, function(choices, filterName) {
             var filter = self.getKoFilter(filterName);
             if (filter !== null) {
+                foundFilters++;
                 filter.setChoices(choices);
             }
         });
-        if (_.size(filterChoices) > 0) {
-            this.listAction();
+        if (foundFilters > 0) {
+            var listActionArgs = [];
+            if (typeof listActionCallback === 'function') {
+                listActionArgs.push(listActionCallback);
+            }
+            this.listAction.apply(this, listActionArgs);
         }
     };
 
