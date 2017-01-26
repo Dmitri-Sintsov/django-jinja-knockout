@@ -267,9 +267,12 @@ class ContextMiddleware(object):
                 # http://stackoverflow.com/questions/17701992/ie-iframe-doesnt-handle-application-json-response-properly
                 content_type = 'text/plain; charset = utf-8' if request.ie_ajax_iframe else 'application/json'
                 # @note: safe parameter enables json serializing for lists.
-                return JsonResponse(
-                    result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list), content_type=content_type
-                )
+                if isinstance(result, HttpResponse):
+                    return result
+                else:
+                    return JsonResponse(
+                        result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list), content_type=content_type
+                    )
             else:
                 return result
         except Exception as e:

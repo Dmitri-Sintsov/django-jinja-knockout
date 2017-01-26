@@ -14,7 +14,7 @@ from django import forms
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.template import loader as tpl_loader
 from django.db import models
 from django.views.generic.base import View
@@ -35,6 +35,7 @@ from .utils.sdv import yield_ordered, get_object_members, get_nested
 
 
 def auth_redirect(request):
+    from .middleware import JsonResponse
     if request.is_ajax():
         # Will use viewmodel framework to display client-side alert.
         return JsonResponse({
@@ -56,6 +57,7 @@ def auth_redirect(request):
 
 
 def error_response(request, html):
+    from .middleware import JsonResponse
     if request.is_ajax():
         return JsonResponse({
             'view': 'alert_error',
