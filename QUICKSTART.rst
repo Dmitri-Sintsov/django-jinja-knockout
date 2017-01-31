@@ -287,7 +287,7 @@ forms.py / formsets.js
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
 * ``WidgetInstancesMixin`` - Provides model instances bound to ``ModelForm`` in field widgets. It helps to make custom
-  ``DisplayText`` form widgets ``get_text_cb`` callbacks.
+  ``get_text_fn`` / ``get_text_method`` callbacks for ``DisplayText`` form widgets .
 * ``set_knockout_template`` - Monkey-patching methods for formset to support knockout.js version of ``empty_form``. Allows
   to dynamically add / remove new forms to inline formsets, including third-party custom fields with inline Javascript
   (such as AJAX populated html selects, rich text edit fields).

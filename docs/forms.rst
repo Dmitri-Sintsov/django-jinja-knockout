@@ -168,7 +168,7 @@ Custom rendering of DisplayText form widgets
 
 Sometimes read-only "form" fields contain complex values, such as dates, files and foreign keys. In such case default
 rendering of ``DisplayText`` form widgets, set up by ``DisplayModelMetaclass``, can be customized via manual ModelForm
-field definition with ``get_text_cb`` argument callback::
+field definition with ``get_text_method`` argument callback::
 
     from django_jinja_knockout.forms import BootstrapModelForm, DisplayModelMetaclass, WidgetInstancesMixin
     from django_jinja_knockout.widgets import DisplayText
@@ -191,12 +191,14 @@ field definition with ``get_text_cb`` argument callback::
             model = ProjectMember
             fields = '__all__'
             widgets = {
-                'profile': DisplayText(get_text_cb=get_profile)
+                'profile': DisplayText(get_text_method=get_profile)
             }
 
 ``WidgetInstancesMixin`` is used to make model ``self.instance`` available in ``DisplayText`` widget callbacks.
-It is not required to be used in ``get_text_cb`` callback, but allows to access all fields of current model instance,
-in addition to ``value`` of current field.
+It allows to access all fields of current model instance in ``get_text_method`` callback, in addition to ``value`` of
+current field.
+
+Note that ``get_text_method`` argument will be re-bound from form ``Meta`` class to instance of ``DisplayText`` widget.
 
 Customizing string representation of scalar values is performed via ``scalar_display`` argument of ``DisplayText``
 widget::
@@ -210,7 +212,10 @@ widget::
                 ),
             }
 
-``scalar_display`` and ``get_text_cb`` arguments of ``DisplayText`` widget can be used together.
+Optional ``scalar_display`` and ``get_text_method`` arguments of ``DisplayText`` widget can be used together.
+
+Optional ``get_text_fn`` argument of ``DisplayText`` widget allows to use non-bound functions to generate text of the
+widget. It can be used with ``scalar_display`` argument, but not with ``get_text_method`` argument.
 
 Dynamically adding new related formset forms
 --------------------------------------------
