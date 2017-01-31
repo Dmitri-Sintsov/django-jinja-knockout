@@ -316,15 +316,15 @@ App.ko.GridFilter = function(options) {
             currentChoice.is_active(true);
         } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
-            // Allow to select none choices (reset) only if there is reset choice in menu.
-            if (this.resetFilter !== null || !currentChoice.is_active()) {
-                currentChoice.is_active(!currentChoice.is_active());
-            }
             // Turn off all another filter choices.
             for (var i = 0; i < this.choices.length; i++) {
                 if (!currentChoice.is(this.choices[i])) {
                     this.choices[i].is_active(false);
                 }
+            }
+            // Allow to select none choices (reset) only if there is reset choice in menu.
+            if (this.resetFilter !== null || !currentChoice.is_active()) {
+                currentChoice.is_active(!currentChoice.is_active());
             }
             this.activateResetFilter();
         } else {
@@ -1385,9 +1385,22 @@ App.ko.Grid = function(options) {
         var value = options.value;
         var lookup = (typeof options.lookup === 'undefined') ? 'in' : options.lookup;
         if (typeof this.queryFilters[field] === 'undefined') {
-            // New single value.
+            // New single scalar / single array value.
+            if (_.isArray(value)) {
+                if (lookup !== 'in') {
+                    throw sprintf(
+                        "Array value '%s' requires lookup type 'in', given lookup type='%s'",
+                        JSON.stringify(value),
+                        lookup
+                    );
+                }
+            }
             if (lookup === 'in') {
-                this.queryFilters[field] = value;
+                if (_.isArray(value)) {
+                    this.queryFilters[field] = {'in': value};
+                } else {
+                    this.queryFilters[field] = value;
+                }
             } else {
                 this.queryFilters[field] = {};
                 this.queryFilters[field][lookup] = value;
@@ -1420,12 +1433,21 @@ App.ko.Grid = function(options) {
 
     /**
      * Supports multiple values of the field.
-     * Supports multiple ORM lookups (gt / lt / etc.) of the field.
+     * Supports multiple ORM lookups (gt / lt / etc.) for each field.
      */
     Grid.removeQueryFilter = function(options) {
+        var self = this;
         var field = options.field;
         var hasValue = typeof options.value !== 'undefined';
         var hasLookup = typeof options.lookup !== 'undefined';
+        if (hasValue && _.isArray(options.value)) {
+            var opt = $.extend({}, options);
+            _.each(options.value, function(val) {
+                opt.value = val;
+                self.removeQueryFilter(opt);
+            });
+            return;
+        }
         if (typeof this.queryFilters[field] === 'undefined') {
             return;
         }

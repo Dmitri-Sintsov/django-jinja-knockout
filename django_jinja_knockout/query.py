@@ -6,6 +6,7 @@ from sqlparse.lexer import tokenize
 
 from django.utils import six
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.models import Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
@@ -218,22 +219,36 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 
     def get_mapped_field(self, field):
         stripped_field = field.lstrip('-')
-        mapped_field = '{}__{}'.format(self.relation_map[stripped_field], stripped_field) \
-            if stripped_field in self.relation_map \
-            else stripped_field
+        fieldpath = stripped_field.split('__')
+        fieldname = fieldpath[0]
+        fieldpath[0] = '{}__{}'.format(self.relation_map[fieldname], fieldname) \
+            if fieldname in self.relation_map \
+            else fieldname
+        mapped_field = '__'.join(fieldpath)
         return '-' + mapped_field if field.startswith('-') else mapped_field
 
-    def get_mapped_filter_args(self, *field_names):
-        return [self.get_mapped_field(field) for field in field_names]
+    def get_mapped_filter_args(self, *args):
+        mapped_args = []
+        for q in args:
+            if not isinstance(q, Q):
+                raise ValueError('Only Q objects are supported')
+            for key, child in enumerate(q.children):
+                fieldname, val = child
+                q.children[key] = self.get_mapped_field(fieldname), val
+            mapped_args.append(q)
+        return mapped_args
 
     def get_mapped_filter_kwargs(self, **kwargs):
         mapped_kwargs = {}
-        for field, value in kwargs.items():
-            mapped_kwargs[self.get_mapped_field(field)] = value
+        for fieldname, value in kwargs.items():
+            mapped_kwargs[self.get_mapped_field(fieldname)] = value
         return mapped_kwargs
 
     def filter(self, *args, **kwargs):
-        filtered_qs = self.filtered_qs.filter(*args, **self.get_mapped_filter_kwargs(**kwargs))
+        filtered_qs = self.filtered_qs.filter(
+            *self.get_mapped_filter_args(*args),
+            **self.get_mapped_filter_kwargs(**kwargs)
+        )
         return self.__class__.clone_raw_queryset(
             raw_qs=self,
             filtered_qs=filtered_qs

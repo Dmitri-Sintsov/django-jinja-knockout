@@ -512,8 +512,9 @@ class BaseFilterView(View):
 
     def __init__(self):
         super().__init__()
-        # queryset.filter(**self.current_list_filter)
-        self.current_list_filter = None
+        # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
+        self.current_list_filter_args = None
+        self.current_list_filter_kwargs = None
         # queryset.order_by(*self.current_sort_order)
         self.current_sort_order = None
         self.current_stripped_sort_order = None
@@ -723,6 +724,15 @@ class BaseFilterView(View):
             vm_filter['multiple_choices'] = canon_filter_def['multiple_choices']
         return vm_filter
 
+    def get_q_or(self, q_kwargs):
+        q = None
+        for k, v in q_kwargs.items():
+            if q is None:
+                q = models.Q(**{k: v})
+            else:
+                q |= models.Q(**{k: v})
+        return q
+
     def get_filters(self):
         vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
@@ -731,7 +741,8 @@ class BaseFilterView(View):
         if type(list_filter) is not dict:
             self.report_error(
                 'List of filters must be dictionary: {}', list_filter)
-        current_list_filter = {}
+        current_list_filter_args = []
+        current_list_filter_kwargs = {}
         for fieldname, values in list_filter.items():
             if fieldname not in self.allowed_filter_fields:
                 self.report_error(
@@ -745,37 +756,59 @@ class BaseFilterView(View):
                 if is_blank:
                     continue
                 if cleaned_value is None:
-                    current_list_filter['{}__isnull'.format(fieldname)] = True
+                    current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
                 else:
-                    current_list_filter[fieldname] = cleaned_value
+                    current_list_filter_kwargs[fieldname] = cleaned_value
             else:
                 # Multiple lookups and / or multiple values.
                 for lookup, value in values.items():
                     field_validator.set_auto_id(lookup)
                     field_lookup = fieldname + '__' + lookup
+                    has_in_none = False
                     if isinstance(value, list):
                         lookup_filter = []
                         for v in value:
                             cleaned_value, is_blank = field_validator.clean(v)
-                            if not is_blank:
+                            if cleaned_value is None:
+                                if lookup == 'in':
+                                    has_in_none = True
+                            elif not is_blank:
                                 lookup_filter.append(cleaned_value)
-                        if len(lookup_filter) == 0:
+                        if len(lookup_filter) == 0 and not has_in_none:
                             continue
+                        if lookup == 'in':
+                            if len(lookup_filter) == 0:
+                                # has_in_none == True
+                                current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
+                            # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
+                            elif len(lookup_filter) == 1:
+                                if has_in_none:
+                                    current_list_filter_args.append(
+                                        self.get_q_or({
+                                            '{}__isnull'.format(fieldname): True,
+                                            fieldname: lookup_filter[0],
+                                        })
+                                    )
+                                else:
+                                    current_list_filter_kwargs[fieldname] = lookup_filter[0]
+                            else:
+                                if has_in_none:
+                                    current_list_filter_args.append(
+                                        self.get_q_or({
+                                            '{}__isnull'.format(fieldname): True,
+                                            field_lookup: lookup_filter,
+                                        })
+                                    )
+                                else:
+                                    current_list_filter_kwargs[field_lookup] = lookup_filter
+                        else:
+                            current_list_filter_kwargs[field_lookup] = lookup_filter
                     else:
                         lookup_filter, is_blank = field_validator.clean(value)
                         if is_blank:
                             continue
-                    if lookup == 'in':
-                        if isinstance(lookup_filter, list):
-                            if len(lookup_filter) == 1:
-                                current_list_filter[fieldname] = lookup_filter[0]
-                            else:
-                                current_list_filter[field_lookup] = lookup_filter
-                        else:
-                            current_list_filter[fieldname] = lookup_filter
-                    else:
-                        current_list_filter[field_lookup] = lookup_filter
-        return current_list_filter
+                        current_list_filter_kwargs[field_lookup] = lookup_filter
+        return current_list_filter_args, current_list_filter_kwargs
 
     def get_current_query(self):
         sort_order = self.request_get(self.__class__.order_key)
@@ -791,15 +824,16 @@ class BaseFilterView(View):
             self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        list_filter = self.request_get(self.__class__.filter_key)
-        if list_filter is not None:
+        list_filter_str = self.request_get(self.__class__.filter_key)
+        if list_filter_str is not None:
             try:
-                list_filter_kwargs = json.loads(list_filter)
+                list_filter = json.loads(list_filter_str)
             except ValueError:
                 self.report_error(
-                    'Invalid value of list_filter: {}', list_filter
+                    'Invalid value of list_filter: {}', list_filter_str
                 )
-            self.current_list_filter = self.get_current_list_filter(list_filter_kwargs)
+            self.current_list_filter_args, self.current_list_filter_kwargs = \
+                self.get_current_list_filter(list_filter)
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -826,10 +860,18 @@ class BaseFilterView(View):
         return queryset.order_by(*self.current_sort_order)
 
     def filter_queryset(self, queryset):
-        if self.current_list_filter is None or len(self.current_list_filter) == 0:
-            return queryset
+        has_args = self.current_list_filter_args is not None and len(self.current_list_filter_args) > 0
+        has_kwargs = self.current_list_filter_kwargs is not None and len(self.current_list_filter_kwargs) > 0
+        if has_args:
+            if has_kwargs:
+                return queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
+            else:
+                return queryset.filter(*self.current_list_filter_args)
         else:
-            return queryset.filter(**self.current_list_filter)
+            if has_kwargs:
+                return queryset.filter(**self.current_list_filter_kwargs)
+            else:
+                return queryset
 
     def search_queryset(self, queryset):
         if self.current_search_str == '' or len(self.search_fields) == 0:
@@ -870,6 +912,8 @@ class BaseFilterView(View):
 
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
+# todo: Support multiple choises for filters.
+# todo: Support self.current_list_filter_args Q() or.
 class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -880,7 +924,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.reported_error = None
 
     def reset_query_args(self):
-        self.current_list_filter = {}
+        self.current_list_filter_kwargs = {}
         self.current_sort_order = []
         self.current_stripped_sort_order = []
         self.current_search_str = ''
@@ -946,7 +990,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return result
 
     def get_current_list_filter_querypart(self, query={}):
-        return self.get_list_filter_querypart(self.current_list_filter, query)
+        return self.get_list_filter_querypart(self.current_list_filter_kwargs, query)
 
     def get_current_querypart(self, query={}):
         return self.get_current_list_filter_querypart(
@@ -954,21 +998,21 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         )
 
     def has_current_filter(self, fieldname, fieldval):
-        if self.current_list_filter is None:
+        if self.current_list_filter_kwargs is None:
             return False
-        if fieldname not in self.current_list_filter:
+        if fieldname not in self.current_list_filter_kwargs:
             return False
-        return self.current_list_filter[fieldname] == fieldval
+        return self.current_list_filter_kwargs[fieldname] == fieldval
 
     def render_filter_choices(self, filter_field, vm_filter):
-        curr_list_filter = copy(self.current_list_filter)
+        curr_list_filter = copy(self.current_list_filter_kwargs)
         navs = []
         display = []
         for choice_def in vm_filter['choices']:
             if 'value' not in choice_def:
                 # Reset filter.
                 link = {'atts': {}}
-                if self.current_list_filter is None:
+                if self.current_list_filter_kwargs is None:
                     link['atts']['class'] = 'active'
                     curr_list_filter = {}
                 elif filter_field in curr_list_filter:
