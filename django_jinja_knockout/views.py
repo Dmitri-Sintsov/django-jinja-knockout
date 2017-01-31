@@ -737,6 +737,60 @@ class BaseFilterView(View):
         vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
 
+    def get_current_list_filter_multiple(self, fieldname, values):
+        current_list_filter_args = []
+        current_list_filter_kwargs = {}
+        field_validator = self.get_field_validator(fieldname)
+        field_validator.set_auto_id(None)
+        for lookup, value in values.items():
+            field_validator.set_auto_id(lookup)
+            field_lookup = fieldname + '__' + lookup
+            has_in_none = False
+            if isinstance(value, list):
+                lookup_filter = []
+                for v in value:
+                    cleaned_value, is_blank = field_validator.clean(v)
+                    if cleaned_value is None:
+                        if lookup == 'in':
+                            has_in_none = True
+                    elif not is_blank:
+                        lookup_filter.append(cleaned_value)
+                if len(lookup_filter) == 0 and not has_in_none:
+                    continue
+                if lookup == 'in':
+                    if len(lookup_filter) == 0:
+                        # has_in_none == True
+                        current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
+                    # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
+                    elif len(lookup_filter) == 1:
+                        if has_in_none:
+                            current_list_filter_args.append(
+                                self.get_q_or({
+                                    '{}__isnull'.format(fieldname): True,
+                                    fieldname: lookup_filter[0],
+                                })
+                            )
+                        else:
+                            current_list_filter_kwargs[fieldname] = lookup_filter[0]
+                    else:
+                        if has_in_none:
+                            current_list_filter_args.append(
+                                self.get_q_or({
+                                    '{}__isnull'.format(fieldname): True,
+                                    field_lookup: lookup_filter,
+                                })
+                            )
+                        else:
+                            current_list_filter_kwargs[field_lookup] = lookup_filter
+                else:
+                    current_list_filter_kwargs[field_lookup] = lookup_filter
+            else:
+                lookup_filter, is_blank = field_validator.clean(value)
+                if is_blank:
+                    continue
+                current_list_filter_kwargs[field_lookup] = lookup_filter
+        return current_list_filter_args, current_list_filter_kwargs
+
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
             self.report_error(
@@ -748,9 +802,9 @@ class BaseFilterView(View):
                 self.report_error(
                     'Not allowed filter field: "{}"', fieldname
                 )
-            field_validator = self.get_field_validator(fieldname)
             if not isinstance(values, dict):
                 # Single value.
+                field_validator = self.get_field_validator(fieldname)
                 field_validator.set_auto_id(None)
                 cleaned_value, is_blank = field_validator.clean(values)
                 if is_blank:
@@ -761,53 +815,9 @@ class BaseFilterView(View):
                     current_list_filter_kwargs[fieldname] = cleaned_value
             else:
                 # Multiple lookups and / or multiple values.
-                for lookup, value in values.items():
-                    field_validator.set_auto_id(lookup)
-                    field_lookup = fieldname + '__' + lookup
-                    has_in_none = False
-                    if isinstance(value, list):
-                        lookup_filter = []
-                        for v in value:
-                            cleaned_value, is_blank = field_validator.clean(v)
-                            if cleaned_value is None:
-                                if lookup == 'in':
-                                    has_in_none = True
-                            elif not is_blank:
-                                lookup_filter.append(cleaned_value)
-                        if len(lookup_filter) == 0 and not has_in_none:
-                            continue
-                        if lookup == 'in':
-                            if len(lookup_filter) == 0:
-                                # has_in_none == True
-                                current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
-                            # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
-                            elif len(lookup_filter) == 1:
-                                if has_in_none:
-                                    current_list_filter_args.append(
-                                        self.get_q_or({
-                                            '{}__isnull'.format(fieldname): True,
-                                            fieldname: lookup_filter[0],
-                                        })
-                                    )
-                                else:
-                                    current_list_filter_kwargs[fieldname] = lookup_filter[0]
-                            else:
-                                if has_in_none:
-                                    current_list_filter_args.append(
-                                        self.get_q_or({
-                                            '{}__isnull'.format(fieldname): True,
-                                            field_lookup: lookup_filter,
-                                        })
-                                    )
-                                else:
-                                    current_list_filter_kwargs[field_lookup] = lookup_filter
-                        else:
-                            current_list_filter_kwargs[field_lookup] = lookup_filter
-                    else:
-                        lookup_filter, is_blank = field_validator.clean(value)
-                        if is_blank:
-                            continue
-                        current_list_filter_kwargs[field_lookup] = lookup_filter
+                a, k = self.get_current_list_filter_multiple(fieldname, values)
+                current_list_filter_args.extend(a)
+                current_list_filter_kwargs.update(k)
         return current_list_filter_args, current_list_filter_kwargs
 
     def get_current_query(self):
