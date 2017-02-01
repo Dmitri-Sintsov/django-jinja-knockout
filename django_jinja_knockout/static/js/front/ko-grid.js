@@ -767,13 +767,10 @@ App.ko.GridRow = function(options) {
         this.isSelectedRow(!this.isSelectedRow());
     };
 
-    GridRow.ignoreRowClickTagNames = [
-        'A', 'BUTTON', 'INPUT', 'OPTION', 'SELECT', 'TEXTAREA'
-    ];
+    GridRow.ignoreRowClickClosest = 'A, BUTTON, INPUT, OPTION, SELECT, TEXTAREA';
 
     GridRow.onRowClick = function(data, ev) {
-        var tagName = $(ev.target).prop('tagName');
-        if (this.ignoreRowClickTagNames.indexOf(tagName) >= 0) {
+        if ($(ev.target).closest(this.ignoreRowClickClosest).length > 0) {
             return true;
         }
         this.ownerGrid.rowClick(this);
