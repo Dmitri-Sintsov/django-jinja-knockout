@@ -41,7 +41,6 @@ class BaseSeleniumCommands(AutomationCommands):
     DEFAULT_SLEEP_TIME = 3
 
     sync_commands_list = []
-    dump_data_counter = 0
 
     def __init__(self, *args, **kwargs):
         self.testcase = kwargs.pop('testcase')
@@ -76,12 +75,11 @@ class BaseSeleniumCommands(AutomationCommands):
             output=os.path.join(
                 settings.FIXTURE_DIRS[0],
                 '{:04d}_{}.json'.format(
-                    self.__class__.dump_data_counter,
+                    self.testcase.fixtures_order.index(prefix),
                     prefix
                 )
             )
         )
-        self.__class__.dump_data_counter += 1
 
     def log_command(self, operation, args, kwargs):
         print('Operation: {}'.format(operation), end='')
@@ -443,10 +441,31 @@ OsFixture = namedtuple('OsFixture', 'level, prefix, mtime, is_loaded')
 class DjkTestCase(StaticLiveServerTestCase):
 
     fixtures = []
+    fixtures_order = []
     # Will work only when database supports inserting the same pk's (not sqlite).
     reset_sequences = True
     WAIT_SECONDS = 5
     dump_data_re = re.compile(r'^(\d)+_(.*)\.json')
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.selenium = cls.selenium_factory()
+        cls.selenium.implicitly_wait(cls.WAIT_SECONDS)
+        fixture_dir = settings.FIXTURE_DIRS[0]
+        try:
+            os.mkdir(fixture_dir)
+        except FileExistsError:
+            pass
+
+    @classmethod
+    def tearDownClass(cls):
+        # cls.selenium.quit()
+        super().tearDownClass()
+
+    @classmethod
+    def selenium_factory(cls):
+        return WebDriver()
 
     def get_saved_fixtures(self):
         fixture_dir = settings.FIXTURE_DIRS[0]
@@ -462,7 +481,9 @@ class DjkTestCase(StaticLiveServerTestCase):
                         mtime=os.path.getmtime(fixture_path),
                         is_loaded=saved_fixture in self.fixtures
                     )
-                    saved_fixtures[fix_def.prefix] = fix_def
+                    if fix_def.prefix in self.fixtures_order and \
+                                    self.fixtures_order.index(fix_def.prefix) == fix_def.level:
+                        saved_fixtures[fix_def.prefix] = fix_def
         return saved_fixtures
 
     def has_fixture(self, prefix):
@@ -478,18 +499,3 @@ class DjkTestCase(StaticLiveServerTestCase):
         else:
             return max_loaded_fix_def.mtime >= saved_fixtures[prefix].mtime and \
                    max_loaded_fix_def.level >= saved_fixtures[prefix].level
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.selenium = cls.selenium_factory()
-        cls.selenium.implicitly_wait(cls.WAIT_SECONDS)
-
-    @classmethod
-    def tearDownClass(cls):
-        # cls.selenium.quit()
-        super().tearDownClass()
-
-    @classmethod
-    def selenium_factory(cls):
-        return WebDriver()
