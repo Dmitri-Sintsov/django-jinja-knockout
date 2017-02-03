@@ -1,6 +1,7 @@
 import re
 import os
 import time
+from collections import namedtuple
 
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -40,6 +41,7 @@ class BaseSeleniumCommands(AutomationCommands):
     DEFAULT_SLEEP_TIME = 3
 
     sync_commands_list = []
+    dump_data_counter = 0
 
     def __init__(self, *args, **kwargs):
         self.testcase = kwargs.pop('testcase')
@@ -60,8 +62,6 @@ class BaseSeleniumCommands(AutomationCommands):
 
     # https://code.djangoproject.com/wiki/Fixtures
     def _dump_data(self, prefix=''):
-        if prefix != '':
-            prefix += '_'
         call_command(
             'dumpdata',
             indent=4,
@@ -75,12 +75,13 @@ class BaseSeleniumCommands(AutomationCommands):
             use_natural_primary_keys=True,
             output=os.path.join(
                 settings.FIXTURE_DIRS[0],
-                '{}{}.json'.format(
-                    prefix,
-                    timezone.now().strftime('%Y-%m-%d_%H-%M-%S-%f')
+                '{:04d}_{}.json'.format(
+                    self.__class__.dump_data_counter,
+                    prefix
                 )
             )
         )
+        self.__class__.dump_data_counter += 1
 
     def log_command(self, operation, args, kwargs):
         print('Operation: {}'.format(operation), end='')
@@ -435,6 +436,9 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         return self.exec(*commands)
 
 
+OsFixture = namedtuple('OsFixture', 'level, prefix, mtime, is_loaded')
+
+
 @override_settings(DEBUG=True)
 class DjkTestCase(StaticLiveServerTestCase):
 
@@ -442,12 +446,38 @@ class DjkTestCase(StaticLiveServerTestCase):
     # Will work only when database supports inserting the same pk's (not sqlite).
     reset_sequences = True
     WAIT_SECONDS = 5
+    dump_data_re = re.compile(r'^(\d)+_(.*)\.json')
 
-    def has_fixture_prefix(self, prefix):
-        for fixture in self.fixtures:
-            if fixture.startswith(prefix):
-                return True
-        return False
+    def get_saved_fixtures(self):
+        fixture_dir = settings.FIXTURE_DIRS[0]
+        saved_fixtures = {}
+        for saved_fixture in os.listdir(fixture_dir):
+            fixture_path = os.path.join(fixture_dir, saved_fixture)
+            if os.path.isfile(fixture_path):
+                matches = self.dump_data_re.match(saved_fixture)
+                if matches:
+                    fix_def = OsFixture(
+                        level=int(matches.group(1)),
+                        prefix=matches.group(2),
+                        mtime=os.path.getmtime(fixture_path),
+                        is_loaded=saved_fixture in self.fixtures
+                    )
+                    saved_fixtures[fix_def.prefix] = fix_def
+        return saved_fixtures
+
+    def has_fixture(self, prefix):
+        saved_fixtures = self.get_saved_fixtures()
+        if prefix not in saved_fixtures:
+            return False
+        max_loaded_fix_def = None
+        for fix_def in saved_fixtures.values():
+            if fix_def.is_loaded and (max_loaded_fix_def is None or max_loaded_fix_def.level < fix_def.level):
+                max_loaded_fix_def = fix_def
+        if max_loaded_fix_def is None:
+            return False
+        else:
+            return max_loaded_fix_def.mtime >= saved_fixtures[prefix].mtime and \
+                   max_loaded_fix_def.level >= saved_fixtures[prefix].level
 
     @classmethod
     def setUpClass(cls):

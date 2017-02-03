@@ -7,6 +7,7 @@ Installation
   supported as well.
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
+.. _apps.DjkAppConfig: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/apps.py
 .. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
 .. _content types framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _context_processors.py: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
@@ -14,6 +15,7 @@ Installation
 .. _django-allauth: https://github.com/pennersr/django-allauth
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _djk_sample.TemplateContextProcessor: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/context_processors.py
+.. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
 .. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
 .. _jinja2/base_head.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_head.htm
@@ -114,6 +116,16 @@ Built-in allauth DTL templates are supported without any modification. In such c
 
 * It is possible to extend `django-jinja-knockout` `ContextMiddleware`_ to add new functionality. See
   `djk_sample.ContextMiddleware`_ code for example.
+
+DJK_MIDDLEWARE
+~~~~~~~~~~~~~~
+
+Since version 0.3.1 there is `apps.DjkAppConfig`_ class which has `.get_context_middleware()`_ method that should
+be invoked to get extended middleware class to be used by django-jinja-knockout code and across the project. In case
+one's project has middleware extended from django-jinja-knockout middleware, one should provide import string
+``DJK_MIDDLEWARE`` in ``settings.py`` like that::
+
+    DJK_MIDDLEWARE = 'djk_sample.middleware.ContextMiddleware'
 
 FILE_MAX_SIZE
 ~~~~~~~~~~~~~

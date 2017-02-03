@@ -1,6 +1,8 @@
 .. :changelog:
 
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+.. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
+.. _.has_fixture_prefix(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture_prefix
 
 History
 -------
@@ -63,3 +65,22 @@ History
 * ``ForeignKeyGridWidget`` also autodetects foreign key filter ``fkGridOptions``.
 * ``SendmailQueue`` supports extension of ``add()`` / ``flush()`` methods via ioc class.
 * ``SendmailQueue`` may be used to send uncaught exception emails when running in production mode.
+
+0.3.1
++++++
+* Improvements in testing support:
+
+  * ``AutomationCommands`` now uses yield to generate the sequence of opcodes and their args, resulting in cleaner code.
+  * ``SeleniumCommands`` is reworked into ``BaseSeleniumCommands``. It supports:
+
+    * Saving current database state to fixtures at the particular points of tests via `dump_data`_ command. That allows
+      to skip previously executed parts of tests via `.has_fixture_prefix()`_ method, greatly reducing the time required
+      to develop and debug long running Selenium tests.
+    * Automatical retry of the last Selenium commands when current command is timed out running at slow client due to
+      DOM is not being ready yet.
+
+  * ``SeleniumQueryCommands`` has additional Selenium commands to make test code shorter.
+  * ``DjkSeleniumQueryCommands`` has additional Selenium commands related to django-jinja-knockout client-side
+    functionality.
+
+* ``FilteredRawQuerySet`` supports Q expressions (Q objects) with relation mapping.
