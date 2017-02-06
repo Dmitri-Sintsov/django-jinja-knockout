@@ -9,5 +9,5 @@ def ajax_required(f):
         if not request.is_ajax():
             return HttpResponseBadRequest()
         result = f(request, *args, **kwargs)
-        return JsonResponse(result) if type(result) in (dict, list, tuple) else result
+        return JsonResponse(result) if isinstance(result, (dict, list, tuple)) else result
     return wrapper

@@ -687,7 +687,7 @@ class BaseFilterView(View):
         vm_choices = []
         if filter_def['add_reset_choice']:
             vm_choices.append({
-                # Do not pass 'value': None because since version 0.3.1 None can be valid value of field filter.
+                # Do not pass 'value': None because since version 0.4.0 None can be valid value of field filter.
                 # A choice without value is converted to Javascript undefined value at client-side instead.
                 # 'value': None,
                 'name': _('All'),

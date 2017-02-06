@@ -120,7 +120,7 @@ Built-in allauth DTL templates are supported without any modification. In such c
 DJK_MIDDLEWARE
 ~~~~~~~~~~~~~~
 
-Since version 0.3.1 there is `apps.DjkAppConfig`_ class which has `.get_context_middleware()`_ method that should
+Since version 0.4.0 there is `apps.DjkAppConfig`_ class which has `.get_context_middleware()`_ method that should
 be invoked to get extended middleware class to be used by django-jinja-knockout code and across the project. In case
 one's project has middleware extended from django-jinja-knockout middleware, one should provide import string
 ``DJK_MIDDLEWARE`` in ``settings.py`` like that::
