@@ -487,9 +487,18 @@ class DjkTestCase(StaticLiveServerTestCase):
         return saved_fixtures
 
     def has_fixture(self, prefix):
-        saved_fixtures = self.get_saved_fixtures()
-        if prefix not in saved_fixtures:
+        try:
+            curr_fix_def = OsFixture(
+                level=self.fixtures_order.index(prefix),
+                prefix=prefix,
+                mtime=0.,
+                is_loaded=False,
+            )
+        except ValueError:
             return False
+        saved_fixtures = self.get_saved_fixtures()
+        if prefix in saved_fixtures:
+            curr_fix_def = saved_fixtures[prefix]
         max_loaded_fix_def = None
         for fix_def in saved_fixtures.values():
             if fix_def.is_loaded and (max_loaded_fix_def is None or max_loaded_fix_def.level < fix_def.level):
@@ -497,5 +506,5 @@ class DjkTestCase(StaticLiveServerTestCase):
         if max_loaded_fix_def is None:
             return False
         else:
-            return max_loaded_fix_def.mtime >= saved_fixtures[prefix].mtime and \
-                   max_loaded_fix_def.level >= saved_fixtures[prefix].level
+            return max_loaded_fix_def.mtime >= curr_fix_def.mtime and \
+                   max_loaded_fix_def.level >= curr_fix_def.level
