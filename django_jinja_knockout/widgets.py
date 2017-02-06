@@ -10,7 +10,7 @@ from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
 
 from .apps import DjkAppConfig
 from .tpl import (
-    print_list, print_bs_well,
+    print_list, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
     format_local_date,
     resolve_cbv
@@ -115,6 +115,11 @@ class DisplayText(Widget):
             self.get_text = types.MethodType(self.get_text_method, self)
         elif self.get_text_fn is not None:
             self.get_text = self.get_text_fn
+        elif hasattr(self, 'instance') and hasattr(self.instance, name):
+            field = getattr(self.instance, name)
+            if hasattr(field, 'get_str_fields'):
+                str_fields = field.get_str_fields()
+                return print_list_group(str_fields) if len(str_fields) < 4 else print_bs_well(str_fields)
 
         if is_list:
             self.add_list_attrs(final_attrs)

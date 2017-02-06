@@ -101,4 +101,26 @@ middleware.py
   * Supports request mocking when running not under HTTP server, for example as shell command / celery task.
   * Supports request-time storage of lists / dicts of objects via `add_instance`_ / `yield_out_instances`_ methods.
 
+query.py
+~~~~~~~~
 * ``FilteredRawQuerySet`` supports Q expressions (Q objects) with relation mapping.
+
+views.py
+~~~~~~~~
+* ``BaseFilterView``
+
+  * ``filter_queryset()`` now supports args in addition to kwargs. That allows to use Django ``Q`` objects in grids
+    and lists, although actual generation of ``Q`` objects is still limited to ``None`` value filtering.
+  * ``None`` can be valid value of field filter query. It is mapped to ``is_null`` field lookup, also it uses Django
+    ``Q.__or__`` operation in case ``None`` is presented in the list of field filter values.
+
+widgets.py
+~~~~~~~~~~
+* ``DisplayText`` field widget ``__init__()`` method now supports two types of ``get_text`` callback arguments:
+
+  * ``get_text_method`` which binds passed function to DisplayText widget instance (self as first argument)
+  * ``get_text_fn`` which uses unbound function (no self).
+
+If form that defined widget uses ``WidgetInstancsMixin`` and model field instance has ``get_str_fields()`` method
+implemented, such field will be auto-rendered via ``print_list_group()`` / ``print_bs_well()`` functions of ``tpl``
+modile to produce structured output.

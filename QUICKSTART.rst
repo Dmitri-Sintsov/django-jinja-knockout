@@ -284,7 +284,8 @@ Miscelaneous
 
 forms.py / formsets.js
 ----------------------
-* ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3
+* ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3. Since version 0.4.0 it also always has
+  ``request`` attribute for convenience to be used in ``clean()`` method and so on.
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
 * ``WidgetInstancesMixin`` - Provides model instances bound to ``ModelForm`` in field widgets. It helps to make custom
   ``get_text_fn`` / ``get_text_method`` callbacks for ``DisplayText`` form widgets .
@@ -296,6 +297,8 @@ forms.py / formsets.js
 * ``SeparateInitialFormMixin`` - Mixed to ``BaseInlineFormset`` to use different form classes for already existing model
   objects and for newly added ones (empty_form). May be used with ``DisplayModelMetaclass`` to display existing forms as
   read-only, while making newly added ones editable.
+* ``CustomFullClean`` / ``StripWhilespaceMixin`` mixins for Django forms.
+
 
 middleware.py
 -------------
@@ -341,6 +344,9 @@ middleware.py
 
 models.py
 ---------
+
+.. highlight:: python
+
 * ``ContentTypeLinker`` class to easily generate contenttypes framework object links.
 * ``get_users_with_permission()`` - return the queryset of all users who have specified permission string, including
   all three possible sources of such users (user permissions, group permissions and superusers).
@@ -351,10 +357,26 @@ models.py
   * ``model_values()`` - get the dict of model fields name / value pairs like queryset ``values()`` for one model instance
     supplied.
 
-* ``get_meta()`` / ``get_verbose_name()`` - get meta property of Django model field, including related (foreign) and
-  reverse-related fields::
+* ``get_meta()`` / ``get_verbose_name()`` - get meta property of Django model field by query string, including related
+  (foreign) and reverse-related fields::
 
-    {{ get_verbose_name(profile, 'user__username') }}
+    get_verbose_name(profile, 'user__username')
+
+* ``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
+  instance of particular Django model object. For example::
+
+    class Member(models.Model):
+
+        # ... skipped ...
+        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
+
+    from .models import Member
+    from django_jinja_knockout.models import get_choice_str
+
+    # ... skipped ...
+    role_str = sdv.get_choice_str(Member.ROLES, role_val)
+
+* ``file_exists()`` - checks whether Diango file field object exists in the filesystem.
 
 query.py
 --------
@@ -373,6 +395,8 @@ class-based views defined in `views.py`_.
 
 See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
 raw query which has ``LEFT JOIN`` statement.
+
+Since version 0.4.0 it supports args with Q objects.
 
 ListQuerySet
 ~~~~~~~~~~~~
@@ -438,7 +462,9 @@ Jinja2 templates and ``DisplayText`` widgets.
   widgets.
 * ``print_table()`` - print uniform 2D table (no colspan / rowspan yet).
 * ``print_bs_labels()`` - print HTML list as Boostrap 3 labels.
-* ``reverseq()`` - construct url with query parameters.
+* ``reverseq()`` - construct url with query parameters from url name. Since version 0.4.0, when request instance is
+  supplied, absolute url will be returned.
+
 * Manipulation with css classes:
 
  * ``add_css_classes()`` - similar to client-side ``jQuery.addClass()``;
@@ -449,6 +475,35 @@ Jinja2 templates and ``DisplayText`` widgets.
 * ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
   `utils/mail.py`_ ``SendmailQueue`` to convert HTML body of email message to text-only body.
 * ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
+
+* ``str_dict()`` - Django models could define `get_str_fields()`_ method which maps model instance field values to their
+  formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate fields.
+
+  If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
+  ``str_dict()`` can be used to convert nested dict `get_str_fields()`_ values to flat strings in ``__str__()`` method::
+
+    class Member(models.Model):
+
+        # ... skipped ...
+
+        def get_str_fields(self):
+            parts = OrderedDict([
+                ('profile', self.profile.get_str_fields()),
+                ('club', self.club.get_str_fields()),
+                ('last_visit', format_local_date(timezone.localtime(self.last_visit))),
+                ('plays', self.get_plays_display()),
+                ('role', self.get_role_display()),
+                ('is_endorsed', 'endorsed' if self.is_endorsed else 'unofficial')
+            ])
+            return parts
+
+        def __str__(self):
+            # Will flatten 'profile' and 'club' str_fields dict keys values
+            # and convert the whole str_fields dict values into str.
+            str_fields = self.get_str_fields()
+            return str_dict(str_fields)
+
+Internally ``str_dict()`` uses lower level ``flatten_dict()`` function which is defined in the same source file.
 
 viewmodels.py
 -------------
@@ -617,51 +672,8 @@ and monkey patching Django exception ``BaseHandler``. This code should be placed
 
 utils/sdv.py
 ------------
-Contains many helper functions internally used by django-jinja-knockout. Some of these might be useful in Django project
+Contains helper functions internally used by django-jinja-knockout. Some of these might be useful in Django project
 modules.
-
-``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
-instance of particular Django model object. For example::
-
-    class Member(models.Model):
-
-        # ... skipped ...
-        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
-
-    from .models import Member
-    from django_jinja_knockout.utils import sdv
-
-    # ... skipped ...
-    role_str = sdv.get_choice_str(Member.ROLES, role_val)
-
-``str_dict()`` - Some of Django models define `get_str_fields()`_ method which map model instance field values
-to their formatted string values, similar to ``Model`` ``__str()__`` method, but for separate fields.
-
-If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
-``str_dict()`` is used to convert nested dict `get_str_fields()`_ to flat strings::
-
-    class Member(models.Model):
-
-        # ... skipped ...
-
-        def get_str_fields(self):
-            parts = OrderedDict([
-                ('profile', self.profile.get_str_fields()),
-                ('club', self.club.get_str_fields()),
-                ('last_visit', format_local_date(timezone.localtime(self.last_visit))),
-                ('plays', self.get_plays_display()),
-                ('role', self.get_role_display()),
-                ('is_endorsed', 'endorsed' if self.is_endorsed else 'unofficial')
-            ])
-            return parts
-
-        def __str__(self):
-            # Will flatten 'profile' and 'club' str_fields dict keys values
-            # and convert the whole str_fields dict values into str.
-            str_fields = self.get_str_fields()
-            return str_dict(str_fields)
-
-Internally ``str_dict()`` uses lower level ``flatten_dict()`` which is defined in the same source file.
 
 ``dbg()`` - dumps ``value`` into text log file `'sdv_out.py3'` under ``name`` label. To setup log file path overwrite
 ``LOGPATH`` value in Django project ``settings.py`` like that::
@@ -689,3 +701,5 @@ When Project.save() method will be executed, `'sdv_out.py3'` log file will conta
     # /home/user/work/djk_sample/djk-sample/club-app/models.py::save()::251
     # self.pk
     9
+
+Where ``9`` is the value of ``self.pk``.

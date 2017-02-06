@@ -53,9 +53,9 @@ Client-side `ko_grid.js`_ script and server-side `views.KoGridView`_ Python clas
 AJAX-powered grids for Django models, similar to traditional ``django.contrib.admin`` built-in module which
 implements such functionality with traditional HTML page generation.
 
-``views.KoGridView`` itself is based on common foundation with ``views.ListSortingView`` via ``views.BaseFilterView``,
-which allows to partially share the functionality between AJAX grids and traditional paginated lists, although
-currently grids are more full-featured (for example support wider variety of model field filters).
+``views.KoGridView`` has common ancestor with ``views.ListSortingView`` via ``views.BaseFilterView``, which allows to
+partially share the functionality between AJAX grids and traditional paginated lists, although currently grids are more
+full-featured and support wider variety of model field filters.
 
 `knockout.js`_ viewmodels are used to display / update AJAX grids.
 
@@ -695,7 +695,8 @@ Range filters
 Choices filter
 ~~~~~~~~~~~~~~
 
-* ``'choices' filter`` is used by default when Django model field has ``choices`` property defined, similar to this::
+* ``'choices' filter`` is used by default when Django model field has ``choices`` property defined, like ``plays`` and
+  ``role`` fields in the next example::
 
     from django.utils.translation import ugettext as _
     # ... skipped ...
@@ -729,8 +730,12 @@ Choices filter
         note = models.TextField(max_length=16384, blank=True, default='', verbose_name='Note')
         is_endorsed = models.BooleanField(default=False, verbose_name='Endorsed')
 
-When using field filter autodetection in grid view, instance of ``App.ko.GridFilter`` will be created, representing
-a dropdown with the list of possible choices from the ``Club.CATEGORIES`` tuple above::
+``'choices' filter`` is also automatically populated when the field is an instance of ``BooleanField`` /
+``NullBooleanField``.
+
+When using ``'choices' filter`` for a grid column (Django model field), instance of ``App.ko.GridFilter`` will be
+created at client-side, representing a dropdown with the list of possible choices from the ``Club.CATEGORIES`` tuple
+above::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Member
@@ -752,7 +757,8 @@ a dropdown with the list of possible choices from the ``Club.CATEGORIES`` tuple 
             ('is_endorsed', None),
         ])
 
-The ``'choices' filter`` definition may be customized by supplying a dict with additional keys / values::
+Choices can be customized by supplying a dict with additional keys / values. See ``play`` field filter in the next
+example::
 
     class MemberGrid(KoGridView):
 
@@ -772,6 +778,7 @@ The ``'choices' filter`` definition may be customized by supplying a dict with a
             ('role', None),
             ('is_endorsed', None),
         ])
+
 
 Foreign key filter
 ~~~~~~~~~~~~~~~~~~
