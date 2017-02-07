@@ -1,91 +1,179 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# FULL NAME <EMAIL@ADDRESS>, 2015.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-26 16:10+0300\n"
-"PO-Revision-Date: 2015-10-28 12:09+0300\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: django-jinja-knockout python localization\n"
+"Language: pl\n"
 
+#: 
 msgid "Yes"
-msgstr ""
+msgstr "Tak"
 
+#: 
 msgid "No"
-msgstr ""
+msgstr "Nie"
 
+#: 
 msgid "Home"
-msgstr ""
+msgstr "Home"
 
+#: 
 msgid "First page"
-msgstr ""
+msgstr "Poprzednia strona"
 
+#: 
 msgid "Previous"
-msgstr ""
+msgstr "Poprzednia"
 
-#, python-format
+#: 
 msgid "Page %(number)d of %(numpages)d"
-msgstr ""
+msgstr "Strona %(number)d z %(numpages)d "
 
+#: 
 msgid "Next"
-msgstr ""
+msgstr "Nastepna"
 
+#: 
 msgid "Last page"
-msgstr ""
+msgstr "Ostatnia"
 
-#, python-format
+#: 
 msgid "Add \"%(verbose_name)s\""
-msgstr ""
+msgstr "Dodaj \"%(verbose_name)s\" \n"
+""
 
+#: 
 msgid "Close"
-msgstr ""
+msgstr "Zamknij"
 
+#: 
 msgid "Delete non-builtin records"
-msgstr ""
+msgstr "Usuń wbudowane rekortdy"
 
+#: 
 msgid "Access to current url is denied"
-msgstr ""
+msgstr "Dostęp zabrioniony"
 
-#, python-format
+#: 
 msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
-msgstr ""
+msgstr "Błąd  \"%(code)s\" \"%(msg)s\" podczas wysyłania email"
 
+#: 
 msgid "Move"
-msgstr ""
+msgstr "Przesuń"
 
+#: 
 msgid "Unknown action"
-msgstr ""
+msgstr "Nieznana akcja"
 
+#: 
 msgid "Action \"{}\" is not implemented"
-msgstr ""
+msgstr "Akcja \"{}\" nie zaimplementowana"
 
-#, python-format
+#: 
 msgid "Action \"%(action)s\" is not allowed"
-msgstr ""
+msgstr "Akcja \"%(action)s\" nie dozwolona"
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" to display."
-msgstr ""
+msgstr "Nie ma  \"%(heading)s\" to display. "
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
 msgstr ""
 
-msgid "Not allowed filter field: \"{}\""
+#: 
+msgid "From"
+msgstr "Od"
+
+#: 
+msgid "To"
+msgstr "Do"
+
+#: 
+msgid "AJAX request error"
+msgstr "Błąd AJAX"
+
+#: 
+msgid "Undefined response view %s"
 msgstr ""
 
-msgid "Not allowed sorting order: \"{}\""
+#: 
+msgid "Request error"
+msgstr "Błąd podczas pobierania"
+
+#: 
+msgid "Choose year / decade."
+msgstr "Wybierz rok / dekadę"
+
+#: 
+msgid "Delete \"%s\""
+msgstr "Usuń \"%s\" "
+
+#: 
+msgid "Are you sure you want to delete \"%s\" ?"
+msgstr "Na pewno usunąć \"%s\" ?"
+
+#: 
+msgid "Required"
+msgstr "Wymagane"
+
+#: 
+msgid "Delete when saved"
 msgstr ""
+
+#: 
+msgid "All"
+msgstr "Wszystko"
+
+#: 
+msgid "Search"
+msgstr "Szukaj"
+
+#: 
+msgid "Remove selection"
+msgstr "Usuń zaznaczenie"
+
+#: 
+msgid "Apply"
+msgstr "Zatwierdź"
+
+#: 
+msgid "N/A"
+msgstr ""
+
+#: 
+msgid "Save"
+msgstr "Zapisz"
+
+#: 
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: 
+msgid "Choose action"
+msgstr "Wybierz akcję"
+
+#: 
+msgid "Too big file size=%s, max_size=%s"
+msgstr ""
+
+#: 
+msgid "Not allowed filter field: \"%(fieldname)s\""
+msgstr ""
+
+#: 
+msgid "Not allowed sorting order: \"%(sorting_order)s\""
+msgstr ""
+
+#: 
+msgid "Not allowed filter field: \"{}\""
+msgstr "Nie dozwolone pole: \"{}\" \n"
+""
+
+#: 
+msgid "Not allowed sorting order: \"{}\""
+msgstr "Nie dozwolone sortowanie: \"{}\""
 
