@@ -124,3 +124,8 @@ widgets.py
 If form that defined widget uses ``WidgetInstancsMixin`` and model field instance has ``get_str_fields()`` method
 implemented, such field will be auto-rendered via ``print_list_group()`` / ``print_bs_well()`` functions of ``tpl``
 modile to produce structured output.
+
+ko_grid_body.htm
+~~~~~~~~~~~~~~~~
+*  Fixed ``ko_grid_body()`` macro not including underscore.js templates copied with different ``template_id`` when these
+   templates were called from related underscore.js templates.

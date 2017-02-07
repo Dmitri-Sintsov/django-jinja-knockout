@@ -10,6 +10,7 @@ Jinja2 macros
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
 
 .. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
+.. _App.TabPane sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.TabPane
 
 .. highlight:: jinja
 
@@ -219,11 +220,17 @@ Wrapping each form of formset with div with custom attributes (to process these 
 Bootstrap macros
 ----------------
 
-`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App`` class
-``.showTabPane()`` / ``.initShowTabPane()`` methods, defined in `app.js`_, which enables automatic switching of tab
-panes upon page load and via window.location.hash change. Hash change may occur programmatically from user script, or
-via clicking anchor with matching hash name. djk_sample demo project has `bs_tabs() sample`_ which places grids into
-bootstrap tabs.
+`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App.TabPane`` class,
+defined in `app.js`_:
+
+* ``.show()`` method enables automatic switching of bootstrap tab panes upon page load and via window.location.hash
+  change. Hash change may occur programmatically from user script, or via clicking the anchor with matching hash name.
+* ``.highlight()`` method provides permanent or temporary highlighting of displayed bootstrap tab, to indicate that
+  it's contents was updated / changed. That is particularly useful when `bs_tabs()`_ is used together with AJAX
+  dynamic components, such as grids.
+
+djk_sample demo project has `bs_tabs() sample`_ / `App.TabPane sample`_ which places grids into bootstrap tabs.
+
 
 The only argument of `bs_tabs()`_ macro is the list. Each element of the list should be dict that defines content of
 each tab. The following mandarory key-value pairs are required:
