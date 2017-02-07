@@ -35,7 +35,7 @@ install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt', ses
 setup(
     name='django-jinja-knockout',
     version=version,
-    description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX grids with CRUD and custom actions. Supports DTL.""",
+    description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX grids with CRUD and custom actions. Supports Django Templates.""",
     long_description=readme + '\n\n' + history,
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
@@ -47,7 +47,7 @@ setup(
     install_requires=install_reqs,
     license="GPL-3.0",
     zip_safe=False,
-    keywords='django jinja knockout.js ajax forms grid datagrid'.split(),
+    keywords='django jinja knockout.js ajax forms grid datagrid datatables'.split(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',

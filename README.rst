@@ -33,6 +33,7 @@ Please contribute to the localization of the project:
 * `django-jinja-knockout python localization`_
 * `django-jinja-knockout javascript localization`_
 
+Thanks to ``pawelkoston`` for Polish localization.
 
 Key features
 ------------
