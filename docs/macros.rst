@@ -243,4 +243,4 @@ each tab. The following mandarory key-value pairs are required:
 Optional key-value pairs:
 
 * ``is_active`` - set to ``True`` when current tab has to be selected by default;
-* ``tooltip`` - optional tooltip for tab link;
+* ``tooltip`` - optional tooltip for the tab link;

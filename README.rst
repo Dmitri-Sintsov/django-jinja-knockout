@@ -92,6 +92,23 @@ will not work without these scripts.
 Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
 client-side scripts.
 
+Major changes (version 0.4.0)
+-----------------------------
+Large improvements in Selenium testing support: additional commands are implemented, auto-retry on DOM timeout, fixtures
+loading / saving which allows to skip already debugged parts of tests, saving developer's time.
+
+``ContextMiddleware`` supports request mocking and request-time storage.
+
+``FilteredRawQuerySet`` supports Q expressions (Q objects) with relation mapping.
+
+``BaseFilterView`` / ``KoGridView`` - basic support for Q expressions (currently is used for ``None`` value of field
+filter), support for ``in`` query for ``choice`` filter value via the list of values.
+
+Even better support of optional Django model ``get_str_fields()`` method in ``DisplayText`` widget and in Knockout.js
+grids.
+
+Various bugfixes.
+
 Major changes (version 0.3.0)
 -----------------------------
 

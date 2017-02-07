@@ -482,7 +482,7 @@ class DjkTestCase(StaticLiveServerTestCase):
                         is_loaded=saved_fixture in self.fixtures
                     )
                     if fix_def.prefix in self.fixtures_order and \
-                                    self.fixtures_order.index(fix_def.prefix) == fix_def.level:
+                            self.fixtures_order.index(fix_def.prefix) == fix_def.level:
                         saved_fixtures[fix_def.prefix] = fix_def
         return saved_fixtures
 
@@ -507,4 +507,4 @@ class DjkTestCase(StaticLiveServerTestCase):
             return False
         else:
             return max_loaded_fix_def.mtime >= curr_fix_def.mtime and \
-                   max_loaded_fix_def.level >= curr_fix_def.level
+                max_loaded_fix_def.level >= curr_fix_def.level

@@ -113,6 +113,7 @@ views.py
     and lists, although actual generation of ``Q`` objects is still limited to ``None`` value filtering.
   * ``None`` can be valid value of field filter query. It is mapped to ``is_null`` field lookup, also it uses Django
     ``Q.__or__`` operation in case ``None`` is presented in the list of field filter values.
+  * Query filters now support ``in`` clause for drop-down ``choice`` filter.
 
 widgets.py
 ~~~~~~~~~~
@@ -129,3 +130,24 @@ ko_grid_body.htm
 ~~~~~~~~~~~~~~~~
 *  Fixed ``ko_grid_body()`` macro not including underscore.js templates copied with different ``template_id`` when these
    templates were called from related underscore.js templates.
+
+ko-grid.js
+~~~~~~~~~~
+* Reset filter now uses ``undefined`` value instead of ``null`` value because filtering by ``None`` value is now
+  supported in ``KoGridView``.
+* ``App.ko.GridRow`` class ``toDisplayValue()`` method now automatically picks nested relation value from nested
+  ``strFields`` value, when available. That allows to traverse nested ``get_str_fields()`` values automatically.
+
+  See ``getDisplayValue()`` method for the implementation.
+* Allow to click nested elements of row cells when these are enclosed into anchors.
+* Allow to override grid callback action via viewmodel ``callback_action`` property.
+* Query filters now support multi-value ``in`` clause for values of drop-down ``choice`` filter.
+* Grid viewmodel ``deleted_pks`` key values are processed first in ``App.ko.Grid.updatePage()``. That allows to delete
+  old row and add new row with the same ``pkVal`` at once (forced update).
+* ``App.ko.Grid`` class  ``.setFiltersChoices()`` method simplifies programmatic filtering of grid at client-side, for
+  example from the parsed querystring.
+
+plugins.js
+~~~~~~~~~~
+``$.linkPreview`` now has separate inclusion filter for local urls and exclusion filter for remote urls, which minimizes
+the possibility of preview glitches due to wrong guess of resource type.

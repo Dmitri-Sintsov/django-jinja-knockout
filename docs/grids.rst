@@ -779,6 +779,23 @@ example::
             ('is_endorsed', None),
         ])
 
+Since version 0.4.0 query filters support arrays of choices for filter value::
+
+    class MemberGrid(KoGridView):
+
+        model = Member
+        # ... skipped ...
+
+        allowed_filter_fields = OrderedDict([
+            (
+                'is_endorsed',
+                {
+                    'choices': ((True, 'Active'), ([None, False], 'Candidate')),
+                }
+            )
+        ])
+
+When user will select ``Candidate`` choice from the drop-down list, two filters will be applied: ``None`` or ``False``.
 
 Foreign key filter
 ~~~~~~~~~~~~~~~~~~
