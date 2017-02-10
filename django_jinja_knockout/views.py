@@ -949,7 +949,21 @@ class FilterChoices:
         return link
 
     def get_link(self, choice_def, curr_list_filter):
-        curr_list_filter[self.filter_field] = choice_def['value']
+        if self.filter_field in curr_list_filter:
+            # Convert single value of field filter to the list of values.
+            if not isinstance(curr_list_filter[self.filter_field], list):
+                curr_list_filter[self.filter_field] = [curr_list_filter[self.filter_field]]
+            # Switch value.
+            if choice_def['value'] in curr_list_filter[self.filter_field]:
+                # Remove already existing filter value.
+                curr_list_filter[self.filter_field].remove(choice_def['value'])
+                if len(curr_list_filter[self.filter_field]) == 0:
+                    del curr_list_filter[self.filter_field]
+            else:
+                # Add new filter value.
+                curr_list_filter[self.filter_field].append(choice_def['value'])
+        else:
+            curr_list_filter[self.filter_field] = choice_def['value']
         link = {
             'text': choice_def['name'],
             'atts': {}
@@ -957,15 +971,21 @@ class FilterChoices:
         if self.view.has_current_filter(self.filter_field, choice_def['value']):
             self.display.append(choice_def['name'])
             link['atts']['class'] = 'active'
+            if self.vm_filter['multiple_choices'] is True:
+                qtpl.add_css_classes_to_dict(link['atts'], 'bold')
+                link['url'] = self.view.get_reverse_query(curr_list_filter)
         else:
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link
 
     def render(self):
-        curr_list_filter = copy(self.view.current_list_filter_kwargs)
+        if self.vm_filter['multiple_choices'] is False:
+            curr_list_filter = copy(self.view.current_list_filter_kwargs)
         navs = []
         self.display = []
         for choice_def in self.vm_filter['choices']:
+            if self.vm_filter['multiple_choices'] is True:
+                curr_list_filter = copy(self.view.current_list_filter_kwargs)
             if 'value' not in choice_def:
                 link = self.get_reset_link(curr_list_filter)
             else:
@@ -1061,6 +1081,14 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         )
 
     def get_reverse_query(self, curr_list_filter):
+        """
+        list_filter = {}
+        for field_name, field_val in curr_list_filter.items():
+            if isinstance(field_val, list):
+                list_filter['{}__in'.format(field_name)] = field_val
+            else:
+                list_filter[field_name] = field_val
+        """
         return qtpl.reverseq(
             self.request.url_name,
             kwargs=self.kwargs,
@@ -1076,7 +1104,12 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return False
         if fieldname not in self.current_list_filter_kwargs:
             return False
-        return self.current_list_filter_kwargs[fieldname] == fieldval
+        if self.current_list_filter_kwargs[fieldname] == fieldval:
+            return True
+        if isinstance(self.current_list_filter_kwargs[fieldname], list) and \
+                fieldval in self.current_list_filter_kwargs[fieldname]:
+            return True
+        return False
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
