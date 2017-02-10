@@ -921,6 +921,59 @@ class BaseFilterView(View):
             )
 
 
+class FilterChoices:
+
+    def __init__(self, view, filter_field, vm_filter):
+        self.view = view
+        self.filter_field = filter_field
+        self.vm_filter = vm_filter
+
+    def get_reset_link(self, curr_list_filter):
+        # Reset filter.
+        link = {
+            'atts': {},
+            'text': _('All'),
+        }
+        is_active = False
+        if self.view.current_list_filter_kwargs is None:
+            is_active = True
+            curr_list_filter = {}
+        elif self.filter_field in curr_list_filter:
+            del curr_list_filter[self.filter_field]
+        else:
+            is_active = True
+        if is_active:
+            link['atts']['class'] = 'active'
+        else:
+            link['url'] = self.view.get_reverse_query(curr_list_filter)
+        return link
+
+    def get_link(self, choice_def, curr_list_filter):
+        curr_list_filter[self.filter_field] = choice_def['value']
+        link = {
+            'text': choice_def['name'],
+            'atts': {}
+        }
+        if self.view.has_current_filter(self.filter_field, choice_def['value']):
+            self.display.append(choice_def['name'])
+            link['atts']['class'] = 'active'
+        else:
+            link['url'] = self.view.get_reverse_query(curr_list_filter)
+        return link
+
+    def render(self):
+        curr_list_filter = copy(self.view.current_list_filter_kwargs)
+        navs = []
+        self.display = []
+        for choice_def in self.vm_filter['choices']:
+            if 'value' not in choice_def:
+                link = self.get_reset_link(curr_list_filter)
+            else:
+                link = self.get_link(choice_def, curr_list_filter)
+            navs.append(link)
+        return navs, self.display
+
+
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 # todo: Support multiple choises for filters.
 # todo: Support self.current_list_filter_args Q() or.
@@ -1007,6 +1060,17 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             self.get_current_sort_order_querypart(query)
         )
 
+    def get_reverse_query(self, curr_list_filter):
+        return qtpl.reverseq(
+            self.request.url_name,
+            kwargs=self.kwargs,
+            query=self.get_current_sort_order_querypart(
+                query=self.get_list_filter_querypart(
+                    list_filter=curr_list_filter
+                )
+            )
+        )
+
     def has_current_filter(self, fieldname, fieldval):
         if self.current_list_filter_kwargs is None:
             return False
@@ -1014,66 +1078,18 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return False
         return self.current_list_filter_kwargs[fieldname] == fieldval
 
-    def render_filter_choices(self, filter_field, vm_filter):
-        curr_list_filter = copy(self.current_list_filter_kwargs)
-        navs = []
-        display = []
-        for choice_def in vm_filter['choices']:
-            if 'value' not in choice_def:
-                # Reset filter.
-                link = {'atts': {}}
-                if self.current_list_filter_kwargs is None:
-                    link['atts']['class'] = 'active'
-                    curr_list_filter = {}
-                elif filter_field in curr_list_filter:
-                    del curr_list_filter[filter_field]
-                else:
-                    link['atts']['class'] = 'active'
-                link.update({
-                    'url': qtpl.reverseq(
-                        self.request.url_name,
-                        kwargs=self.kwargs,
-                        query=self.get_current_sort_order_querypart(
-                            query=self.get_list_filter_querypart(
-                                list_filter=curr_list_filter
-                            )
-                        )
-                    ),
-                    'text': _('All')
-                })
-            else:
-                curr_list_filter[filter_field] = choice_def['value']
-                link = {
-                    'url': qtpl.reverseq(
-                        self.request.url_name,
-                        kwargs=self.kwargs,
-                        query=self.get_current_sort_order_querypart(
-                            query=self.get_list_filter_querypart(
-                                list_filter=curr_list_filter
-                            )
-                        )
-                    ),
-                    'text': choice_def['name'],
-                    'atts': {}
-                }
-                if self.has_current_filter(filter_field, choice_def['value']):
-                    display.append(choice_def['name'])
-                    link['atts']['class'] = 'active'
-            navs.append(link)
-        return navs, display
-
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
     def get_filter_navs(self, filter_field):
         vm_filter = self.get_filter(filter_field)
-        process_method_name = 'render_filter_{}'.format(vm_filter['type'])
-        process_method = getattr(self, process_method_name, None)
-        if process_method is None:
+        filter_classname = 'Filter{}'.format(vm_filter['type'].capitalize())
+        if filter_classname not in globals():
             raise NotImplementedError(
-                'There is no "{}" implementation for "{}" filter_field'.format(process_method_name, filter_field)
+                'There is no "{}" class implementation for "{}" filter_field'.format(filter_classname, filter_field)
             )
-        return process_method(filter_field, vm_filter)
+        filter_class = globals()[filter_classname](self, filter_field, vm_filter)
+        return filter_class.render()
 
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if type(sort_order) is str:
