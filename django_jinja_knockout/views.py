@@ -984,19 +984,25 @@ class FilterChoices:
         return is_added
 
     def get_link(self, choice_def, curr_list_filter):
-        is_added = self.switch_choice(curr_list_filter, choice_def['value'])
+        # Toggle choices for multiple choices only.
+        if self.vm_filter['multiple_choices'] is True:
+            is_added = self.switch_choice(curr_list_filter, choice_def['value'])
+        else:
+            is_added = not self.view.has_filter_choice(self.filter_field, choice_def['value'])
+            curr_list_filter[self.filter_field] = choice_def['value']
         link = {
             'text': choice_def['name'],
             'atts': {}
         }
-        if not is_added:
+        if is_added:
+            link['url'] = self.view.get_reverse_query(curr_list_filter)
+        else:
             self.display.append(choice_def['name'])
             link['atts']['class'] = 'active'
+            # Show toggling of choices for multiple choices only.
             if self.vm_filter['multiple_choices'] is True:
                 qtpl.add_css_classes_to_dict(link['atts'], 'bold')
                 link['url'] = self.view.get_reverse_query(curr_list_filter)
-        else:
-            link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link
 
     def yield_choice_values(self):
