@@ -929,6 +929,12 @@ class FilterChoices:
         self.view = view
         self.filter_field = filter_field
         self.vm_filter = vm_filter
+        self.has_all_choices = False
+        if vm_filter['multiple_choices'] is True:
+            self.has_all_choices = all([
+                self.view.has_filter_choice(self.filter_field, choice) for choice in
+                self.yield_choice_values()
+            ])
 
     def get_reset_link(self, curr_list_filter):
         # Reset filter.
@@ -993,14 +999,22 @@ class FilterChoices:
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link
 
+    def yield_choice_values(self):
+        for choice_def in self.vm_filter['choices']:
+            if 'value' in choice_def:
+                yield choice_def['value']
+
+    def get_original_list_filter(self):
+        return {} if self.has_all_choices else self.view.get_request_list_filter()
+
     def render(self):
         if self.vm_filter['multiple_choices'] is False:
-            curr_list_filter = self.view.get_request_list_filter()
+            curr_list_filter = self.get_original_list_filter()
         navs = []
         self.display = []
         for choice_def in self.vm_filter['choices']:
             if self.vm_filter['multiple_choices'] is True:
-                curr_list_filter = self.view.get_request_list_filter()
+                curr_list_filter = self.get_original_list_filter()
             if 'value' not in choice_def:
                 link = self.get_reset_link(curr_list_filter)
             else:
@@ -1110,16 +1124,15 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_request_list_filter(self):
         return deepcopy(self.request_list_filter)
 
-    def has_current_filter(self, fieldname, fieldval):
-        if self.current_list_filter_kwargs is None:
+    def has_filter_choice(self, fieldname, choice):
+        if fieldname not in self.request_list_filter:
             return False
-        if fieldname not in self.current_list_filter_kwargs:
-            return False
-        if self.current_list_filter_kwargs[fieldname] == fieldval:
+        if self.request_list_filter[fieldname] == choice:
             return True
-        if isinstance(self.current_list_filter_kwargs[fieldname], dict) and \
-                fieldval in self.current_list_filter_kwargs[fieldname]['in']:
-            return True
+        if isinstance(self.request_list_filter[fieldname], dict):
+            for field_lookup, choices in self.request_list_filter[fieldname].items():
+                if choice in choices:
+                    return True
         return False
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
