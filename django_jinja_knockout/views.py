@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from copy import copy
+from copy import copy, deepcopy
 import json
 from math import ceil
 import traceback
@@ -512,6 +512,8 @@ class BaseFilterView(View):
 
     def __init__(self):
         super().__init__()
+        # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
+        self.request_list_filter = {}
         # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
         self.current_list_filter_args = None
         self.current_list_filter_kwargs = None
@@ -837,13 +839,13 @@ class BaseFilterView(View):
         list_filter_str = self.request_get(self.__class__.filter_key)
         if list_filter_str is not None:
             try:
-                list_filter = json.loads(list_filter_str)
+                self.request_list_filter = json.loads(list_filter_str)
             except ValueError:
                 self.report_error(
                     'Invalid value of list_filter: {}', list_filter_str
                 )
             self.current_list_filter_args, self.current_list_filter_kwargs = \
-                self.get_current_list_filter(list_filter)
+                self.get_current_list_filter(self.request_list_filter)
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -948,27 +950,40 @@ class FilterChoices:
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link
 
-    def get_link(self, choice_def, curr_list_filter):
+    def switch_choice(self, curr_list_filter, value):
+        is_added = False
         if self.filter_field in curr_list_filter:
-            # Convert single value of field filter to the list of values.
-            if not isinstance(curr_list_filter[self.filter_field], list):
-                curr_list_filter[self.filter_field] = [curr_list_filter[self.filter_field]]
+            if isinstance(curr_list_filter[self.filter_field], dict):
+                in_filter = curr_list_filter[self.filter_field]['in']
+            else:
+                # Convert single value of field filter to the list of values.
+                in_filter = [curr_list_filter[self.filter_field]]
             # Switch value.
-            if choice_def['value'] in curr_list_filter[self.filter_field]:
+            if value in in_filter:
                 # Remove already existing filter value.
-                curr_list_filter[self.filter_field].remove(choice_def['value'])
-                if len(curr_list_filter[self.filter_field]) == 0:
-                    del curr_list_filter[self.filter_field]
+                in_filter.remove(value)
             else:
                 # Add new filter value.
-                curr_list_filter[self.filter_field].append(choice_def['value'])
+                is_added = True
+                in_filter.append(value)
+            if len(in_filter) == 0:
+                del curr_list_filter[self.filter_field]
+            elif len(in_filter) == 1:
+                curr_list_filter[self.filter_field] = in_filter[0]
+            else:
+                curr_list_filter[self.filter_field] = {'in': in_filter}
         else:
-            curr_list_filter[self.filter_field] = choice_def['value']
+            is_added = True
+            curr_list_filter[self.filter_field] = value
+        return is_added
+
+    def get_link(self, choice_def, curr_list_filter):
+        is_added = self.switch_choice(curr_list_filter, choice_def['value'])
         link = {
             'text': choice_def['name'],
             'atts': {}
         }
-        if self.view.has_current_filter(self.filter_field, choice_def['value']):
+        if not is_added:
             self.display.append(choice_def['name'])
             link['atts']['class'] = 'active'
             if self.vm_filter['multiple_choices'] is True:
@@ -980,12 +995,12 @@ class FilterChoices:
 
     def render(self):
         if self.vm_filter['multiple_choices'] is False:
-            curr_list_filter = copy(self.view.current_list_filter_kwargs)
+            curr_list_filter = self.view.get_request_list_filter()
         navs = []
         self.display = []
         for choice_def in self.vm_filter['choices']:
             if self.vm_filter['multiple_choices'] is True:
-                curr_list_filter = copy(self.view.current_list_filter_kwargs)
+                curr_list_filter = self.view.get_request_list_filter()
             if 'value' not in choice_def:
                 link = self.get_reset_link(curr_list_filter)
             else:
@@ -1081,23 +1096,19 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         )
 
     def get_reverse_query(self, curr_list_filter):
-        """
-        list_filter = {}
-        for field_name, field_val in curr_list_filter.items():
-            if isinstance(field_val, list):
-                list_filter['{}__in'.format(field_name)] = field_val
-            else:
-                list_filter[field_name] = field_val
-        """
+        query = self.get_current_sort_order_querypart(
+            query=self.get_list_filter_querypart(
+                list_filter=curr_list_filter
+            )
+        )
         return qtpl.reverseq(
             self.request.url_name,
             kwargs=self.kwargs,
-            query=self.get_current_sort_order_querypart(
-                query=self.get_list_filter_querypart(
-                    list_filter=curr_list_filter
-                )
-            )
+            query=query
         )
+
+    def get_request_list_filter(self):
+        return deepcopy(self.request_list_filter)
 
     def has_current_filter(self, fieldname, fieldval):
         if self.current_list_filter_kwargs is None:
@@ -1106,8 +1117,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return False
         if self.current_list_filter_kwargs[fieldname] == fieldval:
             return True
-        if isinstance(self.current_list_filter_kwargs[fieldname], list) and \
-                fieldval in self.current_list_filter_kwargs[fieldname]:
+        if isinstance(self.current_list_filter_kwargs[fieldname], dict) and \
+                fieldval in self.current_list_filter_kwargs[fieldname]['in']:
             return True
         return False
 
