@@ -27,7 +27,7 @@ Installation
 .. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
-.. _views.py: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views.py
+.. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 Virtual environment
@@ -146,8 +146,8 @@ code. The default value is specified in `context_processors.py`_ but can be over
 
 OBJECTS_PER_PAGE
 ~~~~~~~~~~~~~~~~
-Allows to specify default limit for Django paginated querysets for ``ListSortingView`` / ``KoGridView`` (see `views.py`_
-code)::
+Allows to specify default limit for Django paginated querysets for ``ListSortingView`` / ``KoGridView`` (see `views`_
+submodule)::
 
     # Pagination settings.
     OBJECTS_PER_PAGE = 3 if DEBUG else 10

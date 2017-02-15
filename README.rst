@@ -44,7 +44,8 @@ Key features
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
 * Django raw queries with ``filter()`` / ``exclude()`` / ``order()`` / ``values()`` / ``values_list()`` and SQL slicing
-  support via ``FilteredRawQuerySet``, suitable for ``ListView`` / ``ListSortingView`` / ``KoGridView``.
+  support via ``FilteredRawQuerySet``, suitable for usage in ``ListView`` / ``ListSortingView`` / ``KoGridView`` derived
+  classes.
 * Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
@@ -109,6 +110,14 @@ Even better support of optional Django model ``get_str_fields()`` method in ``Di
 grids.
 
 Various bugfixes.
+
+Minor changes (version 0.4.1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Implemented ``multiple_choices``: ``True`` option of the field filter ``type`` ``choices`` in ``ListSortingView``.
+That allows to perform ``in`` field lookups for the selected field filter.
+
+Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
+convenience and compatibility.
 
 Major changes (version 0.3.0)
 -----------------------------

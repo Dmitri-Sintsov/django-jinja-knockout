@@ -35,7 +35,7 @@ If your class-based views extends one of the following view classes::
 
 .. highlight:: jinja
 
-then, to have the form processed as AJAX form, you have only to add ``'is_ajax': True`` key to ``bs_form()`` /
+then, in order to have the form processed as AJAX form, it's enough to add ``'is_ajax': True`` key to ``bs_form()`` /
 ``bs_inline_formsets()`` Jinja2 macro call::
 
     {{ bs_form(form=form, action=url('my_url_name'), opts={

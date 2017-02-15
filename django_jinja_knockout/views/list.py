@@ -14,6 +14,8 @@ from ..models import get_meta
 from .base import BaseFilterView
 
 
+# Mix this class in ListView / ListSortingView derived class to have advanced pagination in
+# bs_pagination() / bs_list() Jinja2 macros via selected_pages attribute of the instance.
 class FoldingPaginationMixin:
 
     always_visible_links = False
@@ -67,6 +69,11 @@ class FoldingPaginationMixin:
         return context_data
 
 
+# Server-side implementation of filter field 'type': 'choices'.
+# This class should not be exported in __init__.py.
+#
+# For AJAX (client-side) implementation used in conjunction with KoGridView,
+# see App.ko.GridFilterChoice class in ko-grid.js.
 class FilterChoices:
 
     def __init__(self, view, filter_field, vm_filter):
@@ -174,8 +181,8 @@ class FilterChoices:
 
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
-# todo: Support multiple choises for filters.
-# todo: Support self.current_list_filter_args Q() or.
+# todo: Implement more filters ('range', 'fk').
+# todo: Support self.current_list_filter_args Q() __or__.
 class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)

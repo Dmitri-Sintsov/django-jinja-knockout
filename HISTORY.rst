@@ -105,8 +105,8 @@ query.py
 ~~~~~~~~
 * ``FilteredRawQuerySet`` supports Q expressions (Q objects) with relation mapping.
 
-views.py
-~~~~~~~~
+views submodule
+~~~~~~~~~~~~~~~
 * ``BaseFilterView``
 
   * ``filter_queryset()`` now supports args in addition to kwargs. That allows to use Django ``Q`` objects in grids
@@ -151,3 +151,11 @@ plugins.js
 ~~~~~~~~~~
 ``$.linkPreview`` now has separate inclusion filter for local urls and exclusion filter for remote urls, which minimizes
 the possibility of preview glitches due to wrong guess of resource type.
+
+0.4.1
++++++
+Support of field filter of ``type`` ``choices`` option ``multiple_choices``: ``True`` in ``ListSortingView``. That
+allows to perform ``in`` field lookups for the selected field filter.
+
+Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
+convenience and compatibility.

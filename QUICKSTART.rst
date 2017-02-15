@@ -390,8 +390,7 @@ FilteredRawQuerySet
 It supports ``.filter()`` / ``.exclude()`` / ``.order_by()`` / ``values()`` / ``values_list()``
 queryset methods and also SQL-level slicing which is much more efficient than Python slicing of ``RawQuerySet``.
 
-These methods are required to use filtering / ordering capabilities of ``ListSortingView`` and ``KoGridView``
-class-based views defined in `views.py`_.
+These methods are used by filtering / ordering code in ``ListSortingView`` and ``KoGridView`` class-based views.
 
 See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
 raw query which has ``LEFT JOIN`` statement.
@@ -510,8 +509,8 @@ viewmodels.py
 Server-side Python functions and classes to manipulate lists of client-side viewmodels. Mostly are used with AJAX JSON
 responses and in ``app.js`` client-side response routing.
 
-views.py
---------
+views submodule
+---------------
 .. highlight:: python
 
 * ``auth_redirect()`` - authorization required response with redirect to login. Supports next' url query argument.
@@ -541,6 +540,7 @@ views.py
         model = Club
         allowed_sort_orders = '__all__'
         allowed_filter_fields = {
+            # None value will autodetect field filter choices, when possible.
             'category': None,
         }
         grid_fields = [
