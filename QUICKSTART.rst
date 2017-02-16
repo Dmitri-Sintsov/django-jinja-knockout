@@ -302,70 +302,78 @@ forms.py / formsets.js
 
 middleware.py
 -------------
-
-* Access to current HTTP request instance anywhere in form / formset / field widget code::
+Get currently used middleware class::
 
     from django_jinja_knockout.apps import DjkAppConfig
 
-    context_middleware = DjkAppConfig.get_context_middleware()
-    request = context_middleware.get_request()
+    ContextMiddleware = DjkAppConfig.get_context_middleware()
 
-Note that ``DjkAppConfig`` is used to resolve ``ContextMiddleware`` class. Such way extended ``ContextMiddleware`` set
-via ``settings.DJK_MIDDLEWARE`` will be used instead of original version.
+* Middleware is extendable (inheritable), which allows to implement your own features via overloaded methods. That's why
+  ``DjkAppConfig`` is used to resolve ``ContextMiddleware`` class instead of direct import. Such way extended
+  ``ContextMiddleware`` class specified via ``settings.DJK_MIDDLEWARE`` will be used instead of original version.
+* Direct import from ``django_jinja_knockout.middleware`` or from ``my_project.middleware`` is possible but is not
+  encouraged as wrong version of middleware may be used.
+
+Access to current HTTP request instance anywhere in form / formset / field widget code::
+
+    request = ContextMiddleware.get_request()
 
 * Real HTTP request instance will be loaded when running as web server.
 * Fake request will be created when running in console (for example in the management commands). Fake request HTTP GET /
   POST arguments can be initialized via ``ContextMiddleware`` class ``.mock_request()`` method, before calling
   ``.get_request()``.
 
-* Support optional client-side viewmodels injection from current user session.
-* Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
-  Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
-  the application (for example to pass it to celery task)::
+Support optional client-side `viewmodels`_ injection from current user session.
 
-    context_middleware.get_request_timezone()
-* Views are secured by default with implicit declaration of views that allow access to anonymous / inactive users. These
-  are defined as ``url()`` extra kwargs per each view in ``urls.py``. Anonymous views require explicit permission::
+Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
+Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
+the application (for example to pass it to celery task)::
+
+    ContextMiddleware.get_request_timezone()
+
+Views are secured with urls that deny access to anonymous / inactive users by default. Anonymous views require explicit
+permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
 
     url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'allow_anonymous': True})
-* Optional checks for AJAX requests and / or specific Django permission::
+
+Optional checks for AJAX requests and / or specific Django permission::
 
     url(r'^check-project/$', 'my_app.views.check_project', name='check_project', kwargs={
         'ajax': True, 'permission_required': 'my_app.project_can_add'
     })
-* View title is optionally defined as url kwargs ``'view_title'`` key value::
+
+View title is optionally defined as url kwargs ``'view_title'`` key value::
 
     url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'view_title': 'Sign me up', 'allow_anonymous': True})
 
 .. highlight:: jinja
 
-* to be used in generic Jinja2 templates (one template per many views)::
+to be used in generic Jinja2 templates (one template per many views)::
 
     {{ request.view_title }}
 
-* View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
-* Middleware is inheritable which allows greater flexibility to implement your own extended features via overloaded
-  methods.
+View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
 
 models.py
 ---------
 
 .. highlight:: python
 
-* ``ContentTypeLinker`` class to easily generate contenttypes framework object links.
+* ``ContentTypeLinker`` class to simplify generation of contenttypes framework object links.
 * ``get_users_with_permission()`` - return the queryset of all users who have specified permission string, including
   all three possible sources of such users (user permissions, group permissions and superusers).
-* Next functions allow to use bits of queryset functionality on single Django model object instances:
+* Next functions allow to use parts of queryset functionality on single Django model object instances:
 
-  * ``get_related_field_val()`` / ``get_related_field()`` support quering related field properties from supplied model
-    instance via specified string with double underscore-separated names, just like in Django querysets.
-  * ``model_values()`` - get the dict of model fields name / value pairs like queryset ``values()`` for one model instance
-    supplied.
+  * ``get_related_field_val()`` / ``get_related_field()`` support quering of related field properties from supplied
+    model instance via specified string with double underscore-separated names, just like in Django querysets.
+  * ``model_values()`` - get the dict of model fields name / value pairs like queryset ``values()`` for one model
+    instance supplied.
 
 * ``get_meta()`` / ``get_verbose_name()`` - get meta property of Django model field by query string, including related
   (foreign) and reverse-related fields::
 
     get_verbose_name(profile, 'user__username')
+    get_meta(profile, 'verbose_name_plural', 'user__username')
 
 * ``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
   instance of particular Django model object. For example::
