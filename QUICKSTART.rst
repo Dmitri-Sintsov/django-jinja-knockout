@@ -303,24 +303,29 @@ forms.py / formsets.js
 middleware.py
 -------------
 
-* Access current request instance anywhere in form / formset / field widget code - but please do not abuse this feature
-  by using request in models code which might be executed without HTTP request (eg. in the management commands)::
+* Access to current HTTP request instance anywhere in form / formset / field widget code::
 
-    from django_jinja_knockout.middleware import ContextMiddleware
+    from django_jinja_knockout.apps import DjkAppConfig
 
-    ContextMiddleware.get_request()
+    context_middleware = DjkAppConfig.get_context_middleware()
+    request = context_middleware.get_request()
 
+Note that ``DjkAppConfig`` is used to resolve ``ContextMiddleware`` class. Such way extended ``ContextMiddleware`` set
+via ``settings.DJK_MIDDLEWARE`` will be used instead of original version.
 
+* Real HTTP request instance will be loaded when running as web server.
+* Fake request will be created when running in console (for example in the management commands). Fake request HTTP GET /
+  POST arguments can be initialized via ``ContextMiddleware`` class ``.mock_request()`` method, before calling
+  ``.get_request()``.
 
 * Support optional client-side viewmodels injection from current user session.
 * Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
   Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
   the application (for example to pass it to celery task)::
 
-    ContextMiddleware.get_request_timezone()
-
-* Views are secured by default with implicit definition of anonymous / inactive user allowed views, defined as
-  ``url()`` extra kwargs per each view in ``urls.py``. Anonymous views require explicit permission::
+    context_middleware.get_request_timezone()
+* Views are secured by default with implicit declaration of views that allow access to anonymous / inactive users. These
+  are defined as ``url()`` extra kwargs per each view in ``urls.py``. Anonymous views require explicit permission::
 
     url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'allow_anonymous': True})
 * Optional checks for AJAX requests and / or specific Django permission::
@@ -521,6 +526,8 @@ views submodule
 * ``prepare_bs_navs()`` - used to highlight current url in Bootstrap 3 navbars.
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
   ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
+* ``FoldingPaginationMixin`` - ``ListView`` / ``ListSortingView`` mixin that enables advanced pagination in
+  ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
 * ``FormWithInlineFormsetsMixin`` - CBV mixin with built-in support of ``django_jinja_knockout.forms``
   ``FormWithInlineFormsets``.
   There is one ``ModelForm`` and one or many related ``BaseInlineFormset``. ``ModelForm`` also is optional (can be
@@ -529,7 +536,7 @@ views submodule
 * ``InlineCreateView`` - CBV view to create new models with one to many related models.
 * ``InlineDetailView`` - CBV view to display or to update models with one to many related models. Suitable both for
   CREATE and for VIEW actions, last case via ``ModelForm`` with ``metaclass=DisplayModelMetaclass``.
-* ``ListSortingView`` - ListView with built-in support of sorting and field filtering::
+* ``ListSortingView`` - ``ListView`` with built-in support of sorting and field filtering::
 
     from django_jinja_knockout.views import ListSortingView
 

@@ -2,7 +2,7 @@
 Installation
 =============
 
-* `django-jinja-knockout` 0.4.0 supports Python 3.4 / 3.5, Django 1.8 / 1.9 / 1.10.
+* `django-jinja-knockout` 0.4.1 supports Python 3.4 / 3.5, Django 1.8 / 1.9 / 1.10.
 * Django template language is supported via including Jinja2 templates from DTL templates. Pure Jinja2 projects are
   supported as well.
 
@@ -45,7 +45,7 @@ To install latest master from repository::
 
 To install specific commit::
 
-    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@c97a696b1ee40c5a795cc821e7b05ff35e394288
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@51404eaba34f53a319333f52e8a47bd37f496d63
 
 
 settings.py
@@ -301,7 +301,7 @@ Extending context processor is also useful when templates should receive additio
 Middleware
 ----------
 
-Key functionality of `django-jinja-knockout` middleware is:
+Key functionality of ``django-jinja-knockout`` middleware is:
 
 .. highlight:: jinja
 

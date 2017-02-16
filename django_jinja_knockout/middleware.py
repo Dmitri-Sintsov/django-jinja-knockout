@@ -67,7 +67,7 @@ class ContextMiddleware(object):
 
     # todo: complete url resolution and middleware / mock view.
     # As mocks are more often used with forms, uses 'post' method by default.
-    # Call in child class before calling .get_request() with custom arguments, when needed.
+    # Call this method in child class with custom arguments before calling .get_request(), when needed.
     @classmethod
     def mock_request(cls, factory_method='post', path='/', *args, **kwargs):
         if cls._mock_request is None:

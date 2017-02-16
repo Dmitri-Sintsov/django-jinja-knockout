@@ -154,8 +154,9 @@ the possibility of preview glitches due to wrong guess of resource type.
 
 0.4.1
 +++++
-Support of field filter of ``type`` ``choices`` option ``multiple_choices``: ``True`` in ``ListSortingView``. That
-allows to perform ``in`` field lookups for the selected field filter.
+Support of the ``'choices' filter`` option ``multiple_choices``: ``True`` in  non-AJAX ``ListSortingView``. That allows
+to perform ``in`` field lookups for the selected field filter which was previously available only in AJAX
+``KoGridView``.
 
 Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
 convenience and compatibility.

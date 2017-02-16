@@ -38,9 +38,12 @@ Grids
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _forms.FormWithInlineFormsets: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms.py
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
-.. _views.ajax.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
-.. _views.ajax.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
+.. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
+.. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
+.. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.ajax.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
+.. _views.base.BaseFilterView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/base.py
+.. _views.list.ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/list.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 .. _widgets.ForeignKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/widgets.py
 
@@ -51,11 +54,12 @@ Introduction
 ------------
 Client-side `ko_grid.js`_ script and server-side `views.ajax.KoGridView`_ Python class provide possibility to create
 AJAX-powered grids for Django models, similar to traditional ``django.contrib.admin`` built-in module which
-implements such functionality with traditional HTML page generation.
+implements such functionality with traditional server-side HTML generation, using underscore.js / knockout.js
+client-side templates instead. As both libraries are small-size and are cached by browsers, HTTP traffic is minimized.
 
-``views.ajax.KoGridView`` has common ancestor with ``views.list.ListSortingView`` via ``views.base.BaseFilterView``,
+`views.ajax.KoGridView`_ and `views.list.ListSortingView`_ have common ancestor class `views.base.BaseFilterView`_,
 which allows to partially share the functionality between AJAX grids and traditional paginated lists, although currently
-grids are more full-featured and support wider variety of model field filters.
+grids are more featured and support wider variety of model field filters.
 
 `knockout.js`_ viewmodels are used to display / update AJAX grids.
 
@@ -67,12 +71,12 @@ There are key advantages of using AJAX calls to render Django Model grids:
 * Possibility of displaying multiple grids at the same web page and interact between them (for example update another
   grid when current grid is updated). See `Grids interaction`_.
 * Custom filters / form widgets that may utilize nested AJAX grids. See `Grid fields`_, `Filter fields`_.
-* In-place display and update of grid rows with associated ``ModelForm`` and inline formsets with AJAX submission
+* In-place CRUD actions for grid rows via associated ``ModelForm`` and / or inline formsets with AJAX submission
   directly via BootstrapDialog. See `Standard grid actions`_, `ForeignKeyGridWidget`_.
 
 Besides pagination of model data rows, default actions such as CRUD are supported and can be easily enabled for grids.
 Custom grid actions both for the whole grid as well as for specific columns can be implemented by inheriting / extending
-``App.ko.Grid`` Javascript class and / or ``views.ajax.KoGridView`` Python class.
+``App.ko.Grid`` Javascript class and / or `views.ajax.KoGridView`_ Python class.
 
 Possible ways of grid usage
 ---------------------------
@@ -561,7 +565,7 @@ Virtual fields
 
 .. highlight:: python
 
-``views.ajax.KoGridView`` also supports virtual fields, which are not real database table fields, but a calculated
+`views.KoGridView`_ also supports virtual fields, which are not real database table fields, but a calculated
 values. It supports both SQL calculated fields via Django ORM annotations and virtual fields calculated in Python code.
 To implement virtual field(s), one has to override the following methods in the grid child class::
 
@@ -1211,7 +1215,7 @@ changed via Django grid class static property ``action_kwarg``::
 Server-side action routing
 --------------------------
 
-Django class-based view derived from `views.ajax.KoGridView`_ defines the list of available actions via ``get_actions()``
+Django class-based view derived from `views.KoGridView`_ defines the list of available actions via ``get_actions()``
 method. Defined actions are implemented via grid ``action_NAME`` method, where ``NAME`` is actual name of defined
 action, for example built-in action ``'list'`` is mapped to ``GridActionsMixin.action_list()`` method.
 
@@ -1547,7 +1551,7 @@ By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be
 one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive.
 Actions can be executed as one or multiple AJAX requests or be partially / purely client-side.
 
-``views.ajax.GridActionsMixin`` class ``get_actions()`` method returns dict defining built-in actions available.
+`views.GridActionsMixin`_ class ``get_actions()`` method returns dict defining built-in actions available.
 Top level of that dict is ``action type``.
 
 Let's see which action types are available and their associated actions.
@@ -1600,7 +1604,7 @@ generated at server-side.
 ``str_fields`` also are used for nested representation of fields (displaying foreign related models as the list of it's
 fields in one grid cell).
 
-``str_fields`` are populated at server-side for each grid row via ``views.ajax.KoGridView`` class
+``str_fields`` are populated at server-side for each grid row via `views.KoGridView`_ class
 ``.get_row_str_fields()`` method and are converted to client-side ``display values`` in ``App.ko.GridRow`` class
 ``toDisplayValue()`` method.
 
@@ -1825,7 +1829,7 @@ keys to client-side action viewmodel response handler, issuing multiple CRUD ope
         this.grid.updatePage(viewModel);
     };
 
-See also `views.ajax.GridActionsMixin`_ class ``action_delete_confirmed()`` / ``action_save_form()`` methods for
+See also `views.GridActionsMixin`_ class ``action_delete_confirmed()`` / ``action_save_form()`` methods for
 server-side part example.
 
 Client-side part of multiple CRUD operation is implemented in `ko_grid.js`_ ``App.ko.Grid`` class ``updatePage()``
@@ -1837,7 +1841,7 @@ method.
 
 Similar to `'save_form' action`_ described above, this action is an AJAX form submit handler for `'create_inline' action`_
 / `'edit_inline' action`_. These actions generate BootstrapDialog with ``FormWithInlineFormsets`` AJAX submittable form
-instance bound to current grid row via `views.ajax.KoGridView`_ class ``form_with_inline_formsets`` static property::
+instance bound to current grid row via `views.KoGridView`_ class ``form_with_inline_formsets`` static property::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Model1
@@ -1907,7 +1911,7 @@ However, when ``App.ko.Grid`` -derived class instance has visible row selection 
 ``options.showSelection`` = ``true`` and / or ``options.selectMultipleRows`` = ``true``, the button action could be
 applied to the selected row(s) as well.
 
-New actions of ``button`` type may be added by overriding ``get_actions`` method of `views.ajax.KoGridView`_ derived
+New actions of ``button`` type may be added by overriding ``get_actions`` method of `views.KoGridView`_ derived
 class and extending client-side ``App.GridActions`` class to implement custom ``'callback_'`` method (see
 `Client-side actions`_ for more info).
 
@@ -1950,7 +1954,7 @@ and editing grid row Django models::
         def get_edit_form(self):
             return Model1EditForm
 
-When one would look at server-side part of ``views.ajax.GridActionsMixin`` class ``action_create_form()`` method source
+When one would look at server-side part of `views.GridActionsMixin`_ class ``action_create_form()`` method source
 code, there is ``'last_action'`` viewmodel key with value ``'save_form'`` returned to Javascript client-side::
 
         # ... skipped ...
@@ -2014,7 +2018,7 @@ to `'create_inline' action`_ new row and `'edit_inline' action`_ existing grid r
 * Server-side part of this action overrides the name of last execuded action by setting AJAX response viewmodel
   ``last_action`` key to ``save_inline`` value, which specifies the action of BoostrapDialog form modal button.
   See `'create_form' action`_ description for more info about ``last_action`` key.
-* `views.ajax.KoGridInline`_ class is the same `views.ajax.KoGridView`_ class only using different value of
+* `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of
   ``template_name`` class property poitning to Jinja2 template which includes `formsets.js`_ by default.
 * See `club_app.views_ajax`_ for fullly featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
 
@@ -2030,7 +2034,7 @@ These actions are designed to process already displayed grid row, associated to 
 
 'edit_form' action
 ~~~~~~~~~~~~~~~~~~
-This action is enabled when current Django grid class inherited from `views.ajax.KoGridView`_ class has class property
+This action is enabled when current Django grid class inherited from `views.KoGridView`_ class has class property
 ``form`` set to specified Django ``ModelForm`` class used to edit grid row via associated Django model::
 
     from django_jinja_knockout.views import KoGridView
@@ -2044,7 +2048,7 @@ This action is enabled when current Django grid class inherited from `views.ajax
 
 Alternatively, one may define ``get_edit_form()`` Django grid method to return ``ModelForm`` class dynamically.
 
-Server-side of this action is implemented via `views.ajax.GridActionsMixin`_ class ``action_edit_form()`` method.
+Server-side of this action is implemented via `views.GridActionsMixin`_ class ``action_edit_form()`` method.
 It returns AJAX response with generated HTML of ``ModelForm`` instance bound to target grid row Django model instance.
 Returned viewmodel ``last_action`` property value is set to ``'save_form'``, to override ``App.GridActions`` class
 ``lastActionName`` property.
@@ -2070,7 +2074,7 @@ formsets (see :doc:`forms`)::
 Alternatively, one may define ``get_edit_form_with_inline_formsets()`` Django grid method to return
 ``FormWithInlineFormsets`` derived class dynamically.
 
-Server-side of this action is implemented in `views.ajax.GridActionsMixin`_ class ``action_edit_inline()`` method.
+Server-side of this action is implemented in `views.GridActionsMixin`_ class ``action_edit_inline()`` method.
 It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django
 model instance. Returned viewmodel ``last_action`` property value is set to ``'save_inline'``, to override
 ``App.GridActions`` class ``lastActionName`` property.
@@ -2134,7 +2138,7 @@ or disabled per grid class - if one considers to check the user permissions::
             actions['built_in']['delete_confirmed']['enabled'] = enable_deletion
             return actions
 
-`views.ajax.KoGridView`_ has built-in support permission checking of deletion rights for selected rows lists / querysets.
+`views.KoGridView`_ has built-in support permission checking of deletion rights for selected rows lists / querysets.
 See `'delete_confirmed' action`_ for the primer of checking delete permissions per row / queryset.
 
 The action itself is defined in ``django_jinja_knockout.views`` module ``GridActionsMixin`` class::
@@ -2299,7 +2303,7 @@ might be implemented like this::
   model object instance of target grid row.
 * Actions which work with lists / querysets of objects (multiple rows) should use ``get_queryset_for_action()`` method
   to obtain the whole queryset of selected grid rows. See ``action_delete()`` / ``action_delete_confirmed()`` methods
-  code in `views.ajax.GridActionsMixin`_ class for example.
+  code in `views.GridActionsMixin`_ class for example.
 
 .. highlight:: javascript
 
@@ -2323,7 +2327,7 @@ ForeignKeyGridWidget
 ====================
 `widgets.ForeignKeyGridWidget`_ is similar to ``ForeignKeyRawIdWidget`` implemented in `django.contrib.admin.widgets`_,
 but is easier to integrate into non-admin views. It provides built-in sorting / filters and even optional related model
-CRUD actions because it is based on the code of `views.ajax.KoGridView`_ and `ko_grid.js`_.
+CRUD actions because it is based on the code of `views.KoGridView`_ and `ko_grid.js`_.
 
 .. highlight:: python
 
@@ -2470,7 +2474,7 @@ ForeignKeyGridWidget implementation notes
 Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`` class
 to browse and to select foreign key field value for displayed ``ModelForm``.
 
-`views.ajax.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
+`views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
 model instance associated to each grid row, in case there is neither Django model `get_str_fields()`_ method nor grid
 class custom method ``get_row_str_fields()`` is defined::
 
@@ -2513,7 +2517,7 @@ Since version 0.2.0 it's possible to include Jinja2 templates from Django templa
 * See `club_grid.html`_ for example of grid templates generation in Django Template Language.
 
 The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to definition of
-``'fkGridOptions'`` value for `Foreign key filter`_ that uses `views.ajax.KoGridView`_ method ``get_grid_options()``.
+``'fkGridOptions'`` value for `Foreign key filter`_ that uses `views.KoGridView`_ method ``get_grid_options()``.
 Both embed grids inside BootstrapDialog, with the following differences:
 
 * ``'fk' filter`` limits grid queryset.
@@ -2766,13 +2770,13 @@ definition(s)::
 
         def get_custom_meta(self):
             return {
-                'user_name': str(self.user)
+                'user_name': str(self.user),
             }
 
-        def action_meta(self):
-            vm = super().action_meta()
-            vm['meta'].update(self.get_custom_meta())
-            return vm
+        def get_ko_meta(self):
+            meta = super().get_ko_meta()
+            meta.update(self.get_custom_meta())
+            return meta
 
         def action_approve_user(self):
             role = self.request.POST.get('role_str')
@@ -2790,6 +2794,10 @@ definition(s)::
 
 .. highlight:: javascript
 
+Note that we override ``get_ko_meta()`` method (available since version 0.4.1), to automatically set the value of
+``meta.user_name`` observable in ``App.ko.Model1Grid`` Knockout.js bindings via ``App.ko.Grid`` class built-in
+``.loadMetaCallback()`` method.
+
 Second step is to override ``uiActionTypes`` property of client-side ``App.ko.Grid`` class to add ``'button_bottom'`` to
 the list of interactive action types.
 
@@ -2804,6 +2812,11 @@ method::
 
     (function(Model1Grid) {
 
+        Model1Grid.init = function(options) {
+            this._super._call('init', options);
+            this.meta.user_name = ko.observable();
+        };
+
         Model1Grid.uiActionTypes = ['button', 'click', 'glyphicon', 'button_bottom'];
 
         Model1Grid.iocGridActions = function(options) {
@@ -2817,9 +2830,8 @@ method::
     })(App.ko.Model1Grid.prototype);
 
 
-Of course mandatory (for server-side AJAX actions only) ``callback_approve_user`` method and optional
-``queryargs_approve_user`` methods are implemented for custom action (see `Action AJAX response handler`_,
-`Action queryargs`_)::
+Mandatory (for server-side AJAX actions only) ``callback_approve_user`` method and optional ``queryargs_approve_user``
+method are implemented to perform custom action (see `Action AJAX response handler`_, `Action queryargs`_)::
 
     App.Model1GridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
