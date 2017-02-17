@@ -578,7 +578,7 @@ $.fn.highlightListUrl = function(location) {
     $anchors.parent('li').removeClass('active');
     $.each($anchors, function(k, a) {
         var a_pathname = a.pathname;
-        if (a_pathname.match(/$[\/]/) === null) {
+        if (a_pathname.match(/^[\/]/) === null) {
             // IE9 fix. Remove when IE9 support becomes obsolete.
             a_pathname = '/' + a_pathname;
         }
