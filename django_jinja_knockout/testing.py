@@ -3,10 +3,10 @@ import os
 import time
 from collections import namedtuple
 
-from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.keys import Keys
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -239,8 +239,11 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _keys_by_id(self, id, keys):
         input = self.selenium.find_element_by_id(id)
-        input.clear()
-        input.send_keys(keys)
+        # Clear is replaced to "Select All" / "Delete" because it has bugs in IE webdriver.
+        # input.clear()
+        input.send_keys(Keys.CONTROL, 'a')
+        input.send_keys(Keys.DELETE)
+        input.send_keys(keys);
         return input
 
     def _by_xpath(self, xpath):
@@ -465,6 +468,8 @@ class DjkTestCase(StaticLiveServerTestCase):
 
     @classmethod
     def selenium_factory(cls):
+        from selenium.webdriver.firefox.webdriver import WebDriver
+        # from selenium.webdriver.ie.webdriver import WebDriver
         return WebDriver()
 
     def get_saved_fixtures(self):

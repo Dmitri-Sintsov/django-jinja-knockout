@@ -577,7 +577,12 @@ $.fn.highlightListUrl = function(location) {
     var approximateMatches = [];
     $anchors.parent('li').removeClass('active');
     $.each($anchors, function(k, a) {
-        if (a.pathname === location.pathname &&
+        var a_pathname = a.pathname;
+        if (a_pathname.match(/$[\/]/) === null) {
+            // IE9 fix. Remove when IE9 support becomes obsolete.
+            a_pathname = '/' + a_pathname;
+        }
+        if (a_pathname === location.pathname &&
             a.port === location.port &&
             a.hostname === location.hostname
         ) {
