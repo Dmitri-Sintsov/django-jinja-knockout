@@ -1,6 +1,7 @@
 from copy import deepcopy
 import json
 
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html
@@ -118,7 +119,12 @@ class FilterChoices:
                 try:
                     in_filter = curr_list_filter[self.filter_field]['in']
                 except KeyError:
-                    self.view.report_error("'in' is the only supported field lookup for FilterChoices.")
+                    # self.view.report_error() will not work as this code path is called from partially rendered page
+                    # in progress, usually via bs_breadcrumbs() filter field rendering Jinja2 macro,
+                    # thus we have to use it to display the error.
+                    raise ValidationError(
+                        "'in' is the only supported field lookup for filter field '{}'".format(self.filter_field)
+                    )
             else:
                 # Convert single value of field filter to the list of values.
                 in_filter = [curr_list_filter[self.filter_field]]
@@ -176,14 +182,22 @@ class FilterChoices:
             curr_list_filter = self.get_curr_list_filter()
         navs = []
         self.display = []
-        for choice_def in self.vm_filter['choices']:
-            if self.vm_filter['multiple_choices'] is True:
-                curr_list_filter = self.get_curr_list_filter()
-            if 'value' not in choice_def:
-                link = self.get_reset_link(curr_list_filter)
-            else:
-                link = self.get_link(choice_def, curr_list_filter)
-            navs.append(link)
+        try:
+            for choice_def in self.vm_filter['choices']:
+                if self.vm_filter['multiple_choices'] is True:
+                    curr_list_filter = self.get_curr_list_filter()
+                if 'value' not in choice_def:
+                    link = self.get_reset_link(curr_list_filter)
+                else:
+                    link = self.get_link(choice_def, curr_list_filter)
+                navs.append(link)
+        except ValidationError as e:
+            # Use filter field rendering Jinja2 macro bs_breadcrumbs() or similar, to display the error.
+            return [{
+                'text': str(e),
+                'atts': {'class': 'active'},
+                'url': '',
+            }]
         return navs
 
 

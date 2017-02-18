@@ -1,7 +1,7 @@
 import json
 import traceback
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
 from django.utils.html import format_html, escape
 from django import forms
@@ -731,13 +731,16 @@ class BaseFilterView(View):
         return super().get_queryset()
 
     def get_queryset(self):
-        return \
-            self.distinct_queryset(
-                self.order_queryset(
-                    self.filter_queryset(
-                        self.search_queryset(
-                            self.get_base_queryset()
+        try:
+            return \
+                self.distinct_queryset(
+                    self.order_queryset(
+                        self.filter_queryset(
+                            self.search_queryset(
+                                self.get_base_queryset()
+                            )
                         )
                     )
                 )
-            )
+        except FieldError as e:
+            self.report_error(str(e))
