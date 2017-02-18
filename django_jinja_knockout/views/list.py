@@ -76,7 +76,7 @@ class FoldingPaginationMixin:
 # see App.ko.GridFilterChoice class in ko-grid.js.
 class FilterChoices:
 
-    def __init__(self, view, filter_field, vm_filter):
+    def __init__(self, view, filter_field, vm_filter, curr_list_filter=None):
         self.view = view
         self.filter_field = filter_field
         self.vm_filter = vm_filter
@@ -86,6 +86,10 @@ class FilterChoices:
                 self.view.has_filter_choice(self.filter_field, choice) for choice in
                 self.yield_choice_values()
             ])
+        if curr_list_filter is None:
+            self.curr_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
+        else:
+            self.curr_list_filter = curr_list_filter
 
     def get_reset_link(self, curr_list_filter):
         # Reset filter.
@@ -164,17 +168,17 @@ class FilterChoices:
             if 'value' in choice_def:
                 yield choice_def['value']
 
-    def get_original_list_filter(self):
-        return {} if self.has_all_choices else self.view.get_request_list_filter()
+    def get_curr_list_filter(self):
+        return deepcopy(self.curr_list_filter)
 
     def get_template_args(self):
         if self.vm_filter['multiple_choices'] is False:
-            curr_list_filter = self.get_original_list_filter()
+            curr_list_filter = self.get_curr_list_filter()
         navs = []
         self.display = []
         for choice_def in self.vm_filter['choices']:
             if self.vm_filter['multiple_choices'] is True:
-                curr_list_filter = self.get_original_list_filter()
+                curr_list_filter = self.get_curr_list_filter()
             if 'value' not in choice_def:
                 link = self.get_reset_link(curr_list_filter)
             else:
