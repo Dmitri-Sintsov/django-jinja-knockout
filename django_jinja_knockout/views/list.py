@@ -111,7 +111,10 @@ class FilterChoices:
         is_added = False
         if self.filter_field in curr_list_filter:
             if isinstance(curr_list_filter[self.filter_field], dict):
-                in_filter = curr_list_filter[self.filter_field]['in']
+                try:
+                    in_filter = curr_list_filter[self.filter_field]['in']
+                except KeyError:
+                    self.view.report_error("'in' is the only supported field lookup for FilterChoices.")
             else:
                 # Convert single value of field filter to the list of values.
                 in_filter = [curr_list_filter[self.filter_field]]
@@ -164,7 +167,7 @@ class FilterChoices:
     def get_original_list_filter(self):
         return {} if self.has_all_choices else self.view.get_request_list_filter()
 
-    def render(self):
+    def get_template_args(self):
         if self.vm_filter['multiple_choices'] is False:
             curr_list_filter = self.get_original_list_filter()
         navs = []
@@ -177,7 +180,7 @@ class FilterChoices:
             else:
                 link = self.get_link(choice_def, curr_list_filter)
             navs.append(link)
-        return navs, self.display
+        return navs
 
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
@@ -191,6 +194,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def __init__(self):
         super().__init__()
         self.reported_error = None
+        self.filter_display = {}
 
     def reset_query_args(self):
         self.current_list_filter_kwargs = {}
@@ -295,7 +299,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
-    def get_filter_navs(self, filter_field):
+    def get_field_filter(self, filter_field):
         vm_filter = self.get_filter(filter_field)
         filter_classname = 'Filter{}'.format(vm_filter['type'].capitalize())
         if filter_classname not in globals():
@@ -303,7 +307,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 'There is no "{}" class implementation for "{}" filter_field'.format(filter_classname, filter_field)
             )
         filter_class = globals()[filter_classname](self, filter_field, vm_filter)
-        return filter_class.render()
+        return filter_class
 
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if type(sort_order) is str:
@@ -340,7 +344,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_filter_args(self, fieldname):
         if fieldname in self.allowed_filter_fields:
             filter_title = self.get_field_verbose_name(fieldname)
-            navs, display = self.get_filter_navs(fieldname)
+            field_filter = self.get_field_filter(fieldname)
+            navs = field_filter.get_template_args()
+            # Store parsed field_filter display args for future reference, when needed.
+            self.filter_display[fieldname] = field_filter.display
             return filter_title, navs
         else:
             raise ValueError('Not allowed fieldname: {}'.format(fieldname))
@@ -353,8 +360,15 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         }
         for fieldname in self.allowed_filter_fields:
             kwargs['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
-            navs, display = self.get_filter_navs(fieldname)
-            kwargs['filter_display'][fieldname] = display
+            if fieldname in self.filter_display:
+                # Field filter was already parsed.
+                kwargs['filter_display'][fieldname] = self.filter_display[fieldname]
+            else:
+                # Parse field filter to get it's current display args.
+                field_filter = self.get_field_filter(fieldname)
+                # Next call is required to populate field_filter.display.
+                field_filter.get_template_args()
+                kwargs['filter_display'][fieldname] = field_filter.display
         if self.reported_error is not None:
             kwargs.update({
                 'format_str': self.reported_error,

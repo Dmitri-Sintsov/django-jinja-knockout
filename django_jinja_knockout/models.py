@@ -116,6 +116,14 @@ def file_exists(obj):
     return obj.storage.exists(obj.name)
 
 
+def wakeup_user(user):
+    if hasattr(user, '_wrapped') and hasattr(user, '_setup'):
+        if user._wrapped.__class__ == object:
+            user._setup()
+        user = user._wrapped
+    return user
+
+
 class ContentTypeLinker:
 
     def __init__(self, obj, typefield, idfield):

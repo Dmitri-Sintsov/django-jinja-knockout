@@ -483,7 +483,7 @@ class BaseFilterView(View):
         # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
         return str(get_verbose_name(self.__class__.model, field_name))
 
-    def get_field_filter(self, fieldname, filter_def):
+    def get_vm_filter(self, fieldname, filter_def):
         vm_filter = {
             'field': fieldname,
             'name': self.get_field_verbose_name(fieldname),
@@ -538,7 +538,7 @@ class BaseFilterView(View):
         elif isinstance(filter_def, dict):
             canon_filter_def.update(filter_def)
         # Autodetect widget.
-        vm_filter = self.get_field_filter(fieldname, canon_filter_def)
+        vm_filter = self.get_vm_filter(fieldname, canon_filter_def)
         process_method = getattr(self, 'process_field_filter_{}'.format(vm_filter['type']), None)
         if callable(process_method):
             process_method(vm_filter, canon_filter_def)
