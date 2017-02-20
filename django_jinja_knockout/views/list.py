@@ -77,20 +77,13 @@ class FoldingPaginationMixin:
 # see App.ko.GridFilterChoice class in ko-grid.js.
 class FilterChoices:
 
-    def __init__(self, view, filter_field, vm_filter, curr_list_filter=None):
+    def __init__(self, view, filter_field, vm_filter, request_list_filter=None):
         self.view = view
         self.filter_field = filter_field
         self.vm_filter = vm_filter
-        self.has_all_choices = False
-        if vm_filter['multiple_choices'] is True:
-            self.has_all_choices = all([
-                self.view.has_filter_choice(self.filter_field, choice) for choice in
-                self.yield_choice_values()
-            ])
-        if curr_list_filter is None:
-            self.curr_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
-        else:
-            self.curr_list_filter = curr_list_filter
+        self.request_list_filter = request_list_filter
+        # Text names of the currently selected filters.
+        self.display = []
 
     def get_reset_link(self, curr_list_filter):
         # Reset filter.
@@ -116,15 +109,15 @@ class FilterChoices:
         is_added = False
         if self.filter_field in curr_list_filter:
             if isinstance(curr_list_filter[self.filter_field], dict):
-                try:
-                    in_filter = curr_list_filter[self.filter_field]['in']
-                except KeyError:
+                if 'in' not in curr_list_filter[self.filter_field] or len(curr_list_filter[self.filter_field]) > 1:
                     # self.view.report_error() will not work as this code path is called from partially rendered page
                     # in progress, usually via bs_breadcrumbs() filter field rendering Jinja2 macro,
                     # thus we have to use it to display the error.
+                    self.view.remove_query_filter(self.filter_field)
                     raise ValidationError(
                         "'in' is the only supported field lookup for filter field '{}'".format(self.filter_field)
                     )
+                in_filter = curr_list_filter[self.filter_field]['in']
             else:
                 # Convert single value of field filter to the list of values.
                 in_filter = [curr_list_filter[self.filter_field]]
@@ -174,23 +167,40 @@ class FilterChoices:
             if 'value' in choice_def:
                 yield choice_def['value']
 
-    def get_curr_list_filter(self):
-        return deepcopy(self.curr_list_filter)
+    def setup_request_list_filter(self):
+        self.has_all_choices = False
+        if self.vm_filter['multiple_choices'] is True:
+            self.has_all_choices = all([
+                self.view.has_filter_choice(self.filter_field, choice) for choice in
+                self.yield_choice_values()
+            ])
+        self.request_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
+
+    def get_request_list_filter(self):
+        return deepcopy(self.request_list_filter)
 
     def get_template_args(self):
-        if self.vm_filter['multiple_choices'] is False:
-            curr_list_filter = self.get_curr_list_filter()
-        navs = []
-        self.display = []
         try:
+            if self.request_list_filter is None:
+                self.setup_request_list_filter()
+
+            if not isinstance(self.request_list_filter, dict):
+                raise ValidationError('request list_filter query argument JSON value must be a dict')
+
+            if self.vm_filter['multiple_choices'] is False:
+                curr_list_filter = self.get_request_list_filter()
+            navs = []
+            self.display = []
+
             for choice_def in self.vm_filter['choices']:
                 if self.vm_filter['multiple_choices'] is True:
-                    curr_list_filter = self.get_curr_list_filter()
+                    curr_list_filter = self.get_request_list_filter()
                 if 'value' not in choice_def:
                     link = self.get_reset_link(curr_list_filter)
                 else:
                     link = self.get_link(choice_def, curr_list_filter)
                 navs.append(link)
+
         except ValidationError as e:
             # Use filter field rendering Jinja2 macro bs_breadcrumbs() or similar, to display the error.
             return [{
@@ -304,6 +314,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return deepcopy(self.request_list_filter)
 
     def has_filter_choice(self, fieldname, choice):
+        if not isinstance(self.request_list_filter, dict):
+            raise ValidationError('request list_filter query argument JSON value must be a dict')
         if fieldname not in self.request_list_filter:
             return False
         if self.request_list_filter[fieldname] == choice:
@@ -313,6 +325,20 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 if choice in choices:
                     return True
         return False
+
+    # todo: support self.current_list_filter_args Q lookups removal.
+    def remove_query_filter(self, filter_field):
+        field_lookups = set([filter_field])
+        if isinstance(self.request_list_filter, dict) and filter_field in self.request_list_filter:
+            if isinstance(self.request_list_filter[filter_field], dict):
+                field_lookups.update([
+                    '{}__{}'.format(filter_field, lookup) for lookup in self.request_list_filter[filter_field]
+                ])
+            # del self.request_list_filter[filter_field]
+        if isinstance(self.current_list_filter_kwargs, dict):
+            for field_lookup in field_lookups:
+                if field_lookup in self.current_list_filter_kwargs:
+                    del self.current_list_filter_kwargs[field_lookup]
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
@@ -393,3 +419,11 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 'format_str_filters': self.reported_error
             })
         return kwargs
+
+    def get_base_queryset(self):
+        # Validate all filters by calling .get_template_args() which would remove invalid lookups from
+        # via .remove_query_filter() method so these will not be queried.
+        for filter_field in self.allowed_filter_fields:
+            field_filter = self.get_field_filter(filter_field)
+            field_filter.get_template_args()
+        return super().get_base_queryset()

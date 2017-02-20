@@ -660,6 +660,8 @@ class BaseFilterView(View):
         if list_filter_str is not None:
             try:
                 self.request_list_filter = json.loads(list_filter_str)
+                if not isinstance(self.request_list_filter, dict):
+                    raise ValueError('request list_filter query argument JSON value must be a dict')
             except ValueError:
                 self.report_error(
                     'Invalid value of list_filter: {}', list_filter_str
