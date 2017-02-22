@@ -429,14 +429,9 @@ class GridActionsMixin:
 
     # meta is used in Knockout.js templates for visual data binding such as model-related strings / numbers.
     def get_ko_meta(self):
-        pk_field = ''
-        for field in self.__class__.model._meta.fields:
-            if field.primary_key:
-                pk_field = field.attname
-                break
         meta = {
             'hasSearch': len(self.search_fields) > 0,
-            'pkField': pk_field,
+            'pkField': self.pk_field,
             # str() is used because django.contrib.auth.models.User uses instances of
             # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
             'verboseName': str(self.get_model_meta('verbose_name')),

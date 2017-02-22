@@ -320,11 +320,18 @@ class BaseFilterView(View):
     order_key = 'list_order_by'
     search_key = 'list_search'
     field_validator = FieldValidator
+
     # List / grid columns. Use '__all__' value to display all model fields as grid columns,
     # or specify the list of field names, where each value is str.
     # Tuple value ('field', 'Column name') may be used instead of str value to override field names displayed
     # in grid column.
     grid_fields = None
+
+    # None value of hide_fields means that only raw values of model fields that are defined as grid_fields will be
+    # returned to client-side grid to increase security.
+    # Use empty list value to include all row values of model fields to have pre version 0.4.1 behavior.
+    hide_fields = None
+
     allowed_sort_orders = None
     allowed_filter_fields = None
     search_fields = None
@@ -332,6 +339,7 @@ class BaseFilterView(View):
 
     def __init__(self):
         super().__init__()
+        self.pk_field = None
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = {}
         # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
@@ -367,6 +375,15 @@ class BaseFilterView(View):
     # It is used to automatically include related query fields / sort orders.
     def get_all_related_fields(self):
         query_fields = self.get_all_fieldnames()
+        if self.__class__.hide_fields is None:
+            # Hide model fields that are not specified as grid fields by default.
+            hide_fields = set(query_fields) - set(self.get_grid_fields_attnames())
+            if self.pk_field in hide_fields:
+                hide_fields.remove(self.pk_field)
+            query_fields = list(set(query_fields) - hide_fields)
+        else:
+            # Hide only model fields specified by self.__class__.hide_fields list. Set to [] to hide none.
+            query_fields = list(set(query_fields) - set(self.__class__.hide_fields))
         related_fields = self.get_related_fields(query_fields)
         query_fields.extend(related_fields)
         return query_fields
@@ -454,6 +471,11 @@ class BaseFilterView(View):
 
     @classmethod
     def init_class(cls, self):
+
+        for field in self.__class__.model._meta.fields:
+            if field.primary_key:
+                self.pk_field = field.attname
+                break
 
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
