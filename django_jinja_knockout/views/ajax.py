@@ -556,6 +556,17 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         else:
             return grid_options
 
+    def get_hide_field_values(self):
+        if self.__class__.hide_field_values is None:
+            # Hide model fields that are not specified as grid fields by default.
+            hide_field_values = set(self.get_all_fieldnames()) - set(self.get_grid_fields_attnames())
+            if self.pk_field in hide_field_values:
+                hide_field_values.remove(self.pk_field)
+        else:
+            # Hide only model fields specified by self.__class__.hide_field_values list. Set to [] to hide none.
+            hide_field_values = self.__class__.hide_field_values
+        return hide_field_values
+
     @classmethod
     def init_class(cls, self):
         super(KoGridView, cls).init_class(self)
@@ -564,6 +575,8 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             self.query_fields = self.get_query_fields()
         else:
             self.query_fields = cls.query_fields
+
+        self.hide_field_values = self.get_hide_field_values()
 
     def get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -594,6 +607,9 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             row['__str'] = str(obj)
         if str_fields is not None:
             row['__str_fields'] = str_fields
+        # Do not return hidden field values to client-side response for better security.
+        for hide_field in self.hide_field_values:
+            del row[hide_field]
         return row
 
     def get_rows(self):

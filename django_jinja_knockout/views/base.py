@@ -327,10 +327,10 @@ class BaseFilterView(View):
     # in grid column.
     grid_fields = None
 
-    # None value of hide_fields means that only raw values of model fields that are defined as grid_fields will be
+    # None value of hide_field_values means that only raw values of model fields that are defined as grid_fields will be
     # returned to client-side grid to increase security.
     # Use empty list value to include all row values of model fields to have pre version 0.4.1 behavior.
-    hide_fields = None
+    hide_field_values = None
 
     allowed_sort_orders = None
     allowed_filter_fields = None
@@ -340,6 +340,7 @@ class BaseFilterView(View):
     def __init__(self):
         super().__init__()
         self.pk_field = None
+        self.hide_field_values = None
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = {}
         # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
@@ -375,15 +376,6 @@ class BaseFilterView(View):
     # It is used to automatically include related query fields / sort orders.
     def get_all_related_fields(self):
         query_fields = self.get_all_fieldnames()
-        if self.__class__.hide_fields is None:
-            # Hide model fields that are not specified as grid fields by default.
-            hide_fields = set(query_fields) - set(self.get_grid_fields_attnames())
-            if self.pk_field in hide_fields:
-                hide_fields.remove(self.pk_field)
-            query_fields = list(set(query_fields) - hide_fields)
-        else:
-            # Hide only model fields specified by self.__class__.hide_fields list. Set to [] to hide none.
-            query_fields = list(set(query_fields) - set(self.__class__.hide_fields))
         related_fields = self.get_related_fields(query_fields)
         query_fields.extend(related_fields)
         return query_fields
