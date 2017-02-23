@@ -227,6 +227,9 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         mapped_field = '__'.join(fieldpath)
         return '-' + mapped_field if field.startswith('-') else mapped_field
 
+    def get_mapped_fields(self, *field_names):
+        return [self.get_mapped_field(field) for field in field_names]
+
     def get_mapped_filter_args(self, *args):
         mapped_args = []
         for q in args:
@@ -257,19 +260,22 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
     def exclude(self, *args, **kwargs):
         return self.__class__.clone_raw_queryset(
             raw_qs=self,
-            filtered_qs=self.filtered_qs.exclude(*args, **self.get_mapped_filter_kwargs(**kwargs))
+            filtered_qs=self.filtered_qs.exclude(
+                *self.get_mapped_filter_args(*args),
+                **self.get_mapped_filter_kwargs(**kwargs)
+            )
         )
 
     def order_by(self, *field_names):
         return self.__class__.clone_raw_queryset(
             raw_qs=self,
-            filtered_qs=self.filtered_qs.order_by(*self.get_mapped_filter_args(*field_names))
+            filtered_qs=self.filtered_qs.order_by(*self.get_mapped_fields(*field_names))
         )
 
     def distinct(self, *field_names):
         return self.__class__.clone_raw_queryset(
             raw_qs=self,
-            filtered_qs=self.filtered_qs.distinct(*self.get_mapped_filter_args(*field_names))
+            filtered_qs=self.filtered_qs.distinct(*self.get_mapped_fields(*field_names))
         )
 
     # todo: Implement as annotation: see sql.Query.get_count().
