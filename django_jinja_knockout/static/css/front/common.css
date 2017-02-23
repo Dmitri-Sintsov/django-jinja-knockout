@@ -234,6 +234,11 @@ a[name="#"] {
 	cursor: pointer;
 }
 
+.grid-breadcrumb {
+	padding: 10px;
+	margin: 10px;
+}
+
 .grid-glyph-cell {
 	width: 2em;
 }

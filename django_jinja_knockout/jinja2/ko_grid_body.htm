@@ -85,7 +85,7 @@
 <script type="text/template" id="{{ template_ids['ko_grid_filter_choices'] }}">
 {% if template_ids['ko_grid_filter_choices'] == 'ko_grid_breadcrumb_filter_choices' -%}
     <li data-bind="grid_filter">
-        <ol class="breadcrumb">
+        <ol class="breadcrumb grid-breadcrumb">
             <li class="bold" data-bind="text: name"></li>
             <!-- ko foreach: choices -->
             <li data-bind="css: {active: is_active()}">
@@ -114,7 +114,7 @@
 <script type="text/template" id="{{ template_ids['ko_grid_filter_popup'] }}">
 {% if template_ids['ko_grid_filter_popup'] == 'ko_grid_breadcrumb_filter_popup' -%}
     <li data-bind="grid_filter">
-        <ol class="breadcrumb">
+        <ol class="breadcrumb grid-breadcrumb">
             <li>
                 <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
                     <span data-bind="text: name"></span> <b class="caret"></b>
