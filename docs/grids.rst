@@ -363,6 +363,8 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
             'note',
             'is_endorsed'
         ]
+        # Will include all model field raw values to JSON response.
+        exclude_fields = []
         search_fields = [
             ('club__title', 'icontains'),
             ('profile__first_name', 'icontains'),
@@ -388,6 +390,12 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
         ])
 
 See `club_app.views_ajax`_ for the full sample.
+
+Since version 0.4.1, client-side response of ``KoGridView`` `'list' action`_ returns only raw values of ``grid_fields``
+by default.
+
+* To include all field values, set class-level attribute ``exclude_fields`` of ``KoGridView`` ancestor to empty list.
+* To exclude some sensitive field values from client-side exposure, add these to ``exclude_fields`` list.
 
 Grid fields
 -----------
@@ -1596,7 +1604,7 @@ See `Modifying visual layout of grid`_ how to override client-side underscore.js
 'list' action
 ~~~~~~~~~~~~~
 
-Returns AJAX response data with the list of currently paginated grid rows, both "raw" database field values list and
+Returns AJAX response data with the list of currently paginated grid rows, both "raw" database field ``values`` list and
 their optional ``str_fields`` formatted list counterparts. While some grids may do not use ``str_fields`` at all,
 complex formatting of local date / time / financial currency Django model field values requires ``str_fields`` to be
 generated at server-side.

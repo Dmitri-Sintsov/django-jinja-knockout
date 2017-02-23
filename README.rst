@@ -119,6 +119,8 @@ That allows to perform ``in`` field lookups for the selected field filter.
 Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
 convenience and compatibility.
 
+Bugfixes and security fixes in query / views modules.
+
 Major changes (version 0.3.0)
 -----------------------------
 
