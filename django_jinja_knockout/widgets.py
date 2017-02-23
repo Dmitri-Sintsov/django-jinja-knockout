@@ -106,10 +106,6 @@ class DisplayText(Widget):
         """
         # Save self.name so it may be used in get_text callback.
         self.name = name
-        is_list = isinstance(values, list)
-        display_values = self.get_display_values(values) if is_list else self.get_display_values([values])
-        final_attrs = self.build_attrs(attrs, name=name)
-        remove_css_classes_from_dict(final_attrs, 'form-control')
 
         if self.get_text_method is not None:
             self.get_text = types.MethodType(self.get_text_method, self)
@@ -120,6 +116,11 @@ class DisplayText(Widget):
             if hasattr(field, 'get_str_fields'):
                 str_fields = field.get_str_fields()
                 return print_list_group(str_fields) if len(str_fields) < 4 else print_bs_well(str_fields)
+
+        is_list = isinstance(values, list)
+        display_values = self.get_display_values(values) if is_list else self.get_display_values([values])
+        final_attrs = self.build_attrs(attrs, name=name)
+        remove_css_classes_from_dict(final_attrs, 'form-control')
 
         if is_list:
             self.add_list_attrs(final_attrs)
