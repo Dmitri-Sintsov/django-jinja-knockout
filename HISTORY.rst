@@ -160,3 +160,5 @@ to perform ``in`` field lookups for the selected field filter which was previous
 
 Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
 convenience and compatibility.
+
+Alternative breadcrumbs layout of field filters widgets.

@@ -357,8 +357,8 @@ Since version 0.4.1, ``ko_grid_body()`` macro includes two versions of filter fi
 
   If there's already was a call to ``ko_grid_body()``, do not forget to add ``has_full_body`` = ``True`` keyword
   argument to call, to avoid duplicate generation of grid templates. There is `cbv_grid_breadcrumbs.htm`_ Jinja2
-  macro that could be used as ``template_name`` value of ``KoGridView`` derived grid class attribute, see
-  sample project for the example.
+  macro that could be used as ``template_name`` value of ``KoGridView`` derived grid class attribute. See sample project
+  `club_app.views_ajax`_ for the example.
 
 ==================
 Grid configuration
