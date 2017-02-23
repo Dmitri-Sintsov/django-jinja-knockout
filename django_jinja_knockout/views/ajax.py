@@ -496,8 +496,15 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     context_object_name = 'model'
     template_name = 'cbv_grid.htm'
     model = None
+
     # query all fields by default.
     query_fields = None
+
+    # None value of exclude_fields means that only raw values of model fields that are defined as grid_fields will be
+    # returned to client-side grid to increase security.
+    # Use empty list value to include all raw values of model fields to have pre version 0.4.1 behavior.
+    exclude_fields = None
+
     current_page = 1
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     force_str_desc = False
@@ -556,16 +563,17 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         else:
             return grid_options
 
-    def get_hide_field_values(self):
-        if self.__class__.hide_field_values is None:
-            # Hide model fields that are not specified as grid fields by default.
-            hide_field_values = set(self.get_all_fieldnames()) - set(self.get_grid_fields_attnames())
-            if self.pk_field in hide_field_values:
-                hide_field_values.remove(self.pk_field)
+    def get_exclude_fields(self):
+        if self.__class__.exclude_fields is None:
+            # Exclude model field values that are not specified as grid fields by default.
+            exclude_fields = set(self.get_all_fieldnames()) - set(self.get_grid_fields_attnames())
+            if self.pk_field in exclude_fields:
+                exclude_fields.remove(self.pk_field)
         else:
-            # Hide only model fields specified by self.__class__.hide_field_values list. Set to [] to hide none.
-            hide_field_values = self.__class__.hide_field_values
-        return hide_field_values
+            # Exclude only model fields specified by self.__class__.exclude_fields list.
+            # Set to [] to include all fields.
+            exclude_fields = self.__class__.exclude_fields
+        return exclude_fields
 
     @classmethod
     def init_class(cls, self):
@@ -576,7 +584,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         else:
             self.query_fields = cls.query_fields
 
-        self.hide_field_values = self.get_hide_field_values()
+        self.exclude_fields = self.get_exclude_fields()
 
     def get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -608,8 +616,8 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         if str_fields is not None:
             row['__str_fields'] = str_fields
         # Do not return hidden field values to client-side response for better security.
-        for hide_field in self.hide_field_values:
-            del row[hide_field]
+        for exclude_field in self.exclude_fields:
+            del row[exclude_field]
         return row
 
     def get_rows(self):

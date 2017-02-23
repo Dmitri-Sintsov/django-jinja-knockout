@@ -327,11 +327,6 @@ class BaseFilterView(View):
     # in grid column.
     grid_fields = None
 
-    # None value of hide_field_values means that only raw values of model fields that are defined as grid_fields will be
-    # returned to client-side grid to increase security.
-    # Use empty list value to include all row values of model fields to have pre version 0.4.1 behavior.
-    hide_field_values = None
-
     allowed_sort_orders = None
     allowed_filter_fields = None
     search_fields = None
@@ -340,7 +335,6 @@ class BaseFilterView(View):
     def __init__(self):
         super().__init__()
         self.pk_field = None
-        self.hide_field_values = None
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = {}
         # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
