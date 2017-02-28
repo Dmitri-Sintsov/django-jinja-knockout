@@ -236,6 +236,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.reset_query_args()
         self.reported_error = format_html(_(message), *args, **kwargs)
         self.object_list = self.__class__.model.objects.all()[0:0]
+        # Reset page number otherwise there could be re-raised Http404() in genetic.list.MultipleObjectMixin.paginate_queryset().
+        # Unfortunately there is no abstraction to reset current page number, that's why self.page_kwarg is altered instead.
+        self.page_kwarg = ''
         context = {
             'view': self,
         }
@@ -283,16 +286,41 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         result.update(query)
         return result
 
+    # Convert current Django queryset list_filter to current HTTP request list filter querypart.
     def get_list_filter_querypart(self, list_filter, query={}):
         if list_filter is None:
             return query
-        result = {self.__class__.filter_key: json.dumps(list_filter)}
+
+        list_filter_querypart = {}
+
+        if self.allowed_filter_fields is None:
+            self.allowed_filter_fields = self.get_allowed_filter_fields()
+
+        for field_expr, values in list_filter.items():
+            if field_expr in self.allowed_filter_fields:
+                list_filter_querypart[field_expr] = values
+            else:
+                rel_path = field_expr.split('__')
+                if len(rel_path) > 1:
+                    field_name = '__'.join(rel_path[0:-1])
+                    field_lookup = rel_path[-1]
+                    if field_name not in list_filter_querypart:
+                        list_filter_querypart[field_name] = {}
+                    list_filter_querypart[field_name][field_lookup] = values
+                else:
+                    raise ValidationError(
+                        'Invalid field lookup: {}'.format(field_expr)
+                    )
+
+        result = {self.__class__.filter_key: json.dumps(list_filter_querypart)}
         result.update(query)
         return result
 
     def get_current_list_filter_querypart(self, query={}):
         return self.get_list_filter_querypart(self.current_list_filter_kwargs, query)
 
+    # Methods with _querypart suffix are used to parse and return HTTP request querypart for current view state
+    # of filtering / sorting, used in navigation and pagination.
     def get_current_querypart(self, query={}):
         return self.get_current_list_filter_querypart(
             self.get_current_sort_order_querypart(query)

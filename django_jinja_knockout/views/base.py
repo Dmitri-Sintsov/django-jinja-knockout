@@ -450,10 +450,11 @@ class BaseFilterView(View):
 
     @classmethod
     def init_allowed_filter_fields(cls, self):
-        if cls.allowed_filter_fields is None:
-            self.allowed_filter_fields = self.get_allowed_filter_fields()
-        else:
-            self.allowed_filter_fields = cls.allowed_filter_fields
+        if self.allowed_filter_fields is None:
+            if cls.allowed_filter_fields is None:
+                self.allowed_filter_fields = self.get_allowed_filter_fields()
+            else:
+                self.allowed_filter_fields = cls.allowed_filter_fields
 
     @classmethod
     def init_class(cls, self):
