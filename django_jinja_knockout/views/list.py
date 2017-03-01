@@ -115,7 +115,8 @@ class FilterChoices:
                     # thus we have to use it to display the error.
                     self.view.remove_query_filter(self.filter_field)
                     raise ValidationError(
-                        "'in' is the only supported field lookup for filter field '{}'".format(self.filter_field)
+                        _("'in' is the only supported field lookup for filter field '%(field)s'"),
+                        params={'field': self.filter_field}
                     )
                 in_filter = curr_list_filter[self.filter_field]['in']
             else:
@@ -309,7 +310,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                     list_filter_querypart[field_name][field_lookup] = values
                 else:
                     raise ValidationError(
-                        'Invalid field lookup: {}'.format(field_expr)
+                        _("Invalid field lookup: '%(field_expr)s'"),
+                        params={'field_expr': field_expr}
                     )
 
         result = {self.__class__.filter_key: json.dumps(list_filter_querypart)}
