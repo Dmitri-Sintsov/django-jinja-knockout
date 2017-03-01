@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    from .utils.deprecation import MiddlewareMixin
 
 from .utils import sdv
 from .utils.modules import get_fqn
@@ -50,12 +54,13 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
         )
 
 
-class ContextMiddleware(object):
+class ContextMiddleware(MiddlewareMixin):
 
     _threadmap = {}
     _mock_request = None
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.request = None
         self.view_func = None
         self.view_args = None
