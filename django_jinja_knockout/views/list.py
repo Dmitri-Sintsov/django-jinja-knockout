@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html
+from django.db import models
 from django.forms.utils import flatatt
 from django.utils.translation import gettext as _
 from django.views.generic import ListView
@@ -287,51 +288,29 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         result.update(query)
         return result
 
-    # Convert current Django queryset list_filter to current HTTP request list filter querypart.
-    def get_list_filter_querypart(self, list_filter, query={}):
-        if list_filter is None:
+    def get_current_list_filter_querypart(self):
+        return self.request_list_filter
+
+    def get_list_filter_querypart(self, list_filter_querypart=None, query={}):
+        if list_filter_querypart is None or len(list_filter_querypart) == 0:
             return query
-
-        list_filter_querypart = {}
-
-        if self.allowed_filter_fields is None:
-            self.allowed_filter_fields = self.get_allowed_filter_fields()
-
-        for field_expr, values in list_filter.items():
-            if field_expr in self.allowed_filter_fields:
-                list_filter_querypart[field_expr] = values
-            else:
-                rel_path = field_expr.split('__')
-                if len(rel_path) > 1:
-                    field_name = '__'.join(rel_path[0:-1])
-                    field_lookup = rel_path[-1]
-                    if field_name not in list_filter_querypart:
-                        list_filter_querypart[field_name] = {}
-                    list_filter_querypart[field_name][field_lookup] = values
-                else:
-                    raise ValidationError(
-                        _("Invalid field lookup: '%(field_expr)s'"),
-                        params={'field_expr': field_expr}
-                    )
-
-        result = {self.__class__.filter_key: json.dumps(list_filter_querypart)}
-        result.update(query)
-        return result
-
-    def get_current_list_filter_querypart(self, query={}):
-        return self.get_list_filter_querypart(self.current_list_filter_kwargs, query)
+        else:
+            result = {self.__class__.filter_key: json.dumps(list_filter_querypart)}
+            result.update(query)
+            return result
 
     # Methods with _querypart suffix are used to parse and return HTTP request querypart for current view state
     # of filtering / sorting, used in navigation and pagination.
     def get_current_querypart(self, query={}):
-        return self.get_current_list_filter_querypart(
-            self.get_current_sort_order_querypart(query)
+        return self.get_list_filter_querypart(
+            list_filter_querypart=self.get_current_list_filter_querypart(),
+            query=self.get_current_sort_order_querypart(query)
         )
 
-    def get_reverse_query(self, curr_list_filter):
+    def get_reverse_query(self, list_filter_querypart):
         query = self.get_current_sort_order_querypart(
             query=self.get_list_filter_querypart(
-                list_filter=curr_list_filter
+                list_filter_querypart=list_filter_querypart
             )
         )
         return qtpl.reverseq(
@@ -399,7 +378,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 kwargs=kwargs,
                 query=self.get_negate_sort_order_querypart(
                     sort_order=sort_order,
-                    query=self.get_current_list_filter_querypart(query)
+                    query=self.get_list_filter_querypart(
+                        list_filter_querypart=self.get_current_list_filter_querypart(),
+                        query=query
+                    )
                 )
             )
         }
