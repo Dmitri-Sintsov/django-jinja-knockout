@@ -7,16 +7,17 @@
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
 .. _yield_out_instances: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=yield_out_instances
 
+=======
 History
--------
+=======
 
 0.1.0
-+++++
+-----
 
 * To be released on PyPI.
 
 0.2.0
-+++++
+-----
 * Django 1.8 / 1.9 / 1.10, Python 3.4 / 3.5 support.
 * ``djk-sample`` demo / automated testing project.
 * "django.admin-like" AJAX functionality implemented via ``KoGridView`` class-based view.
@@ -31,7 +32,7 @@ History
   but is not limited to.
 
 0.3.0
-+++++
+-----
 * ``ContentTypeLinker`` - added method to return html representation of content types framework related object (html
   link with the description by default).
 * ``FilteredRawQuerySet`` now supports more precise ``.count()`` method to calculate the length of raw queryset.
@@ -70,7 +71,7 @@ History
 * ``SendmailQueue`` may be used to send uncaught exception emails when running in production mode.
 
 0.4.0
-+++++
+-----
 * Improvements in testing support:
 
   * ``AutomationCommands`` now uses yield to generate the sequence of opcodes and their args, resulting in cleaner code.
@@ -153,7 +154,7 @@ plugins.js
 the possibility of preview glitches due to wrong guess of resource type.
 
 0.4.1
-+++++
+-----
 Support of the ``'choices' filter`` option ``multiple_choices``: ``True`` in  non-AJAX ``ListSortingView``. That allows
 to perform ``in`` field lookups for the selected field filter which was previously available only in AJAX
 ``KoGridView``.
@@ -164,6 +165,6 @@ convenience and compatibility.
 Alternative breadcrumbs layout of field filters widgets.
 
 0.4.2
-+++++
+-----
 * Compatibility to 1.10+ new-style middleware (thanks to Melvyn Sopacua).
 * Fixed pagination when multiple filter field choices are seiected in views.ListSortingView.
