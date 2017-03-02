@@ -1,91 +1,177 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# FULL NAME <EMAIL@ADDRESS>, 2015.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-26 16:10+0300\n"
-"PO-Revision-Date: 2015-10-28 12:09+0300\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: django-jinja-knockout python localization\n"
+"Language: nl\n"
 
+#: 
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
+#: 
 msgid "No"
-msgstr ""
+msgstr "Nee"
 
+#: 
 msgid "Home"
-msgstr ""
+msgstr "Home"
 
+#: 
 msgid "First page"
-msgstr ""
+msgstr "Eerste Pagina"
 
+#: 
 msgid "Previous"
-msgstr ""
+msgstr "Vorige"
 
-#, python-format
+#: 
 msgid "Page %(number)d of %(numpages)d"
-msgstr ""
+msgstr "Pagina %(number)d van %(numpages)d"
 
+#: 
 msgid "Next"
-msgstr ""
+msgstr "Volgende"
 
+#: 
 msgid "Last page"
-msgstr ""
+msgstr "Laatste pagina"
 
-#, python-format
+#: 
 msgid "Add \"%(verbose_name)s\""
-msgstr ""
+msgstr "\"%(verbose_name)s\" Toevoegen"
 
+#: 
 msgid "Close"
-msgstr ""
+msgstr "Sluiten"
 
+#: 
 msgid "Delete non-builtin records"
-msgstr ""
+msgstr "Verwijder gegevens (behoudens ingebouwd)"
 
+#: 
 msgid "Access to current url is denied"
-msgstr ""
+msgstr "Toegang tot de huidige URL is geweigerd"
 
-#, python-format
+#: 
 msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
-msgstr ""
+msgstr "Foutmelding \"(%code)s\" \"%msg)s\" bij het versturen van e-mail."
 
+#: 
 msgid "Move"
-msgstr ""
+msgstr "Verplaats"
 
+#: 
 msgid "Unknown action"
-msgstr ""
+msgstr "Niet ondersteunde actie"
 
+#: 
 msgid "Action \"{}\" is not implemented"
-msgstr ""
+msgstr "Actie \"{}\" is niet geïmplementeerd"
 
-#, python-format
+#: 
 msgid "Action \"%(action)s\" is not allowed"
-msgstr ""
+msgstr "Actie \"%(action)s\" is niet toegestaan"
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" to display."
-msgstr ""
+msgstr "Er is geen \"%(heading)s\" beschikbaar."
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
+msgstr "Er is geen \"%heading)s\" met %(filter_str)s beschikbaar."
+
+#: 
+msgid "From"
+msgstr "Vanaf"
+
+#: 
+msgid "To"
+msgstr "Tot"
+
+#: 
+msgid "AJAX request error"
 msgstr ""
 
+#: 
+msgid "Undefined response view %s"
+msgstr ""
+
+#: 
+msgid "Request error"
+msgstr ""
+
+#: 
+msgid "Choose year / decade."
+msgstr "Kies jaar / decennium"
+
+#: 
+msgid "Delete \"%s\""
+msgstr "Verwijder \"%s\""
+
+#: 
+msgid "Are you sure you want to delete \"%s\" ?"
+msgstr "Weet u zeker dat u \"%s\" wilt verwijderen?"
+
+#: 
+msgid "Required"
+msgstr "Verplicht"
+
+#: 
+msgid "Delete when saved"
+msgstr "Verwijder na opslaan"
+
+#: 
+msgid "All"
+msgstr "Alles"
+
+#: 
+msgid "Search"
+msgstr "Zoek"
+
+#: 
+msgid "Remove selection"
+msgstr "Verwijder selectie"
+
+#: 
+msgid "Apply"
+msgstr "Toepassen"
+
+#: 
+msgid "N/A"
+msgstr "N.v.t."
+
+#: 
+msgid "Save"
+msgstr "Opslaan"
+
+#: 
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: 
+msgid "Choose action"
+msgstr "Kies actie"
+
+#: 
+msgid "Too big file size=%s, max_size=%s"
+msgstr "Bestand is te groot, grootte=%s, toegestaan=%s"
+
+#: 
+msgid "Not allowed filter field: \"%(fieldname)s\""
+msgstr "Filteren op basis van veld \"%(fieldname)s\" is niet toegestaan"
+
+#: 
+msgid "Not allowed sorting order: \"%(sorting_order)s\""
+msgstr "Sorteer methode \"%(sorting_order)s\" is niet toegestaan."
+
+#: 
 msgid "Not allowed filter field: \"{}\""
-msgstr ""
+msgstr "Filteren met behulp van veld \"{}\" is niet toegestaan"
 
+#: 
 msgid "Not allowed sorting order: \"{}\""
-msgstr ""
+msgstr "Sorteer volgorde \"{}\" niet toegestaan"
 
