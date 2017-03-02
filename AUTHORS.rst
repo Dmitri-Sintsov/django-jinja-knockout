@@ -11,4 +11,4 @@ Contributors
 ------------
 
 * ``pawelkoston``: Polish localization.
-* ``Melvyn Sopacua``: compatibility to 1.10+ new-style middleware.
+* ``Melvyn Sopacua``: Compatibility to 1.10+ new-style middleware; Dutch localization.
