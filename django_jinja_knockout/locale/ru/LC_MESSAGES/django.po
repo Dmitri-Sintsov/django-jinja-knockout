@@ -89,3 +89,20 @@ msgstr "Недопустимый фильтр поля: \"{}\""
 msgid "Not allowed sorting order: \"{}\""
 msgstr "Недопустимый порядок сортировки: \"{}\""
 
+msgid "Invalid value of sorting order: {}"
+msgstr "Недопустимое значение порядка сортировки: {}"
+
+msgid "Invalid value of list filter: {}"
+msgstr "Недопустимое значение фильтра списка: {}"
+
+msgid "Invalid type of sorting order"
+msgstr "Недопустимый тип порядка сортировки"
+
+msgid "Invalid type of list filter"
+msgstr "Недопустимый тип фильтра списка"
+
+msgid "Cannot determine the type of filter for the field \"{}\""
+msgstr "Невозможно определить тип фильтра для поля \"{}\""
+
+msgid "'in' is the only supported field lookup for filter field '%(field)s'"
+msgstr "'in' является единственным допустимым типом поиска для фильтра поля '%(field)s'"

@@ -177,3 +177,20 @@ msgstr "Nie dozwolone pole: \"{}\" \n"
 msgid "Not allowed sorting order: \"{}\""
 msgstr "Nie dozwolone sortowanie: \"{}\""
 
+msgid "Invalid value of sorting order: {}"
+msgstr ""
+
+msgid "Invalid value of list filter: {}"
+msgstr ""
+
+msgid "Invalid type of sorting order"
+msgstr ""
+
+msgid "Invalid type of list filter"
+msgstr ""
+
+msgid "Cannot determine the type of filter for the field \"{}\""
+msgstr ""
+
+msgid "'in' is the only supported field lookup for filter field '%(field)s'"
+msgstr ""

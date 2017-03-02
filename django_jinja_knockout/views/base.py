@@ -309,7 +309,7 @@ class FieldValidator:
             }
         else:
             self.view.report_error(
-                'Cannot determine filter type of field "{}"', str(self.model_field)
+                'Cannot determine the type of filter for the field "{}"', str(self.model_field)
             )
 
 
@@ -624,8 +624,7 @@ class BaseFilterView(View):
 
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
-            self.report_error(
-                'List of filters must be dictionary: {}', list_filter)
+            self.report_error('Invalid type of list filter')
         current_list_filter_args = []
         current_list_filter_kwargs = {}
         for fieldname, values in list_filter.items():
@@ -658,7 +657,7 @@ class BaseFilterView(View):
                 sort_order = json.loads(sort_order)
             except ValueError:
                 self.report_error(
-                    'Invalid value of sort_order: {}', sort_order
+                    'Invalid value of sorting order: {}', sort_order
                 )
             if not isinstance(sort_order, list):
                 sort_order = [sort_order]
@@ -673,7 +672,7 @@ class BaseFilterView(View):
                     raise ValueError('request list_filter query argument JSON value must be a dict')
             except ValueError:
                 self.report_error(
-                    'Invalid value of list_filter: {}', list_filter_str
+                    'Invalid value of list filter: {}', list_filter_str
                 )
             self.current_list_filter_args, self.current_list_filter_kwargs = \
                 self.get_current_list_filter(self.request_list_filter)
