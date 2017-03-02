@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import format_html
-from django.db import models
 from django.forms.utils import flatatt
 from django.utils.translation import gettext as _
 from django.views.generic import ListView
@@ -288,8 +287,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         result.update(query)
         return result
 
+    # See utils.QueryFieldParserMixin.get_current_list_filter_querypart() for alternative implementation.
     def get_current_list_filter_querypart(self):
-        return self.request_list_filter
+        return self.get_request_list_filter()
 
     def get_list_filter_querypart(self, list_filter_querypart=None, query={}):
         if list_filter_querypart is None or len(list_filter_querypart) == 0:

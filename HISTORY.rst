@@ -162,3 +162,8 @@ Large monolithic ``views.py`` split into smaller parts with symbols exported via
 convenience and compatibility.
 
 Alternative breadcrumbs layout of field filters widgets.
+
+0.4.2
++++++
+* Compatibility to 1.10+ new-style middleware (thanks to Melvyn Sopacua).
+* Fixed pagination when multiple filter field choices are seiected in views.ListSortingView.

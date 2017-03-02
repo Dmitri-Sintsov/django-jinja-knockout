@@ -1,3 +1,8 @@
+from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
+
+
 class FieldLookupDict(dict):
 
     def add_lookup(self, field_lookup, values):

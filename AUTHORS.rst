@@ -10,4 +10,5 @@ Development Lead
 Contributors
 ------------
 
-Thanks to ``pawelkoston`` for Polish localization.
+* ``pawelkoston``: Polish localization.
+* ``Melvyn Sopacua``: compatibility to 1.10+ new-style middleware.
