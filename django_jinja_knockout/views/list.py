@@ -186,7 +186,9 @@ class FilterChoices:
                 self.setup_request_list_filter()
 
             if not isinstance(self.request_list_filter, dict):
-                raise ValidationError('Invalid type of list filter')
+                raise ValidationError(
+                    _('Invalid type of list filter')
+                )
 
             if self.vm_filter['multiple_choices'] is False:
                 curr_list_filter = self.get_request_list_filter()
@@ -324,7 +326,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     def has_filter_choice(self, fieldname, choice):
         if not isinstance(self.request_list_filter, dict):
-            raise ValidationError('Invalid type of list filter')
+            raise ValidationError(
+                _('Invalid type of list filter')
+            )
         if fieldname not in self.request_list_filter:
             return False
         if self.request_list_filter[fieldname] == choice:
