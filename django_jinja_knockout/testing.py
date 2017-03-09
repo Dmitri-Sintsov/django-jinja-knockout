@@ -2,6 +2,7 @@ import re
 import os
 import time
 from collections import namedtuple
+from importlib import import_module
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
@@ -449,6 +450,7 @@ class DjkTestCase(StaticLiveServerTestCase):
     reset_sequences = True
     WAIT_SECONDS = 5
     dump_data_re = re.compile(r'^(\d)+_(.*)\.json')
+    DEFAULT_WEBDRIVER = 'selenium.webdriver.firefox.webdriver'
 
     @classmethod
     def setUpClass(cls):
@@ -468,9 +470,12 @@ class DjkTestCase(StaticLiveServerTestCase):
 
     @classmethod
     def selenium_factory(cls):
-        from selenium.webdriver.firefox.webdriver import WebDriver
-        # from selenium.webdriver.ie.webdriver import WebDriver
-        return WebDriver()
+        # DJK_WEBDRIVER='selenium.webdriver.firefox.webdriver' ./manage.py test
+        # DJK_WEBDRIVER='selenium.webdriver.ie.webdriver' ./manage.py test
+        # DJK_WEBDRIVER='selenium.webdriver.phantomjs.webdriver' ./manage.py test
+        webdriver = os.environ.get('DJK_WEBDRIVER', cls.DEFAULT_WEBDRIVER)
+        webdriver_module = import_module(webdriver)
+        return webdriver_module.WebDriver()
 
     def get_saved_fixtures(self):
         fixture_dir = settings.FIXTURE_DIRS[0]
