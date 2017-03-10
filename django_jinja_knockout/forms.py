@@ -173,12 +173,16 @@ def ko_inlineformset_factory(parent_model, model, form, **kwargs):
 
 # Layer on top of related form and it's many to one multiple formsets.
 # GET / CREATE / UPDATE.
-class FormWithInlineFormsets(object):
+class FormWithInlineFormsets:
 
     FormClass = None
     FormsetClasses = None
 
-    def __init__(self, request, create=False):
+    def __init__(self, request, form_class=None, formset_classes=None, create=False):
+        if self.__class__.FormClass is None:
+            self.__class__.FormClass = form_class
+        if self.__class__.FormsetClasses is None:
+            self.__class__.FormsetClasses = [] if formset_classes is None else formset_classes
         self.model = None
         self.form = None
         self.formsets = None

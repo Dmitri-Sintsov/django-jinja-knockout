@@ -12,7 +12,12 @@ class FormDetailView(FormatTitleMixin, UpdateView):
 
 # See also https://github.com/AndrewIngram/django-extra-views
 class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
-    # @note: Required to define ONLY when form_with_inline_formsets has FormClass is None
+
+    # Only related form without formsets.
+    form = None
+
+    # Related form with inline formsets or inline formsets without related form.
+    # Required to define ONLY when form_with_inline_formsets has FormClass = None
     # ("edit many related formsets without master form" mode).
     form_with_inline_formsets = None
 
@@ -33,9 +38,15 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         }
         """
 
-    def get_form_with_inline_formsets(self, request):
+    def get_form_with_inline_formsets(self, request, create=False):
         # UPDATE mode by default (UPDATE / VIEW).
-        return self.__class__.form_with_inline_formsets(request)
+        if self.__class__.form is None:
+            return self.__class__.form_with_inline_formsets(request, create=create)
+        else:
+            if self.__class__.form_with_inline_formsets is not None:
+                raise ValueError('Ambiguous .form and .form_with_inline_formsets class attributes')
+            from ..forms import FormWithInlineFormsets
+            return FormWithInlineFormsets(request, form_class=self.__class__.form, create=create)
 
     def get_model(self):
         return getattr(self.__class__, 'model', None)
@@ -111,7 +122,7 @@ class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, TemplateVi
     template_name = 'cbv_edit_inline.htm'
 
     def get_form_with_inline_formsets(self, request):
-        return self.__class__.form_with_inline_formsets(request, create=True)
+        return super().get_form_with_inline_formsets(request, create=True)
 
     def get_object_from_url(self):
         return None
