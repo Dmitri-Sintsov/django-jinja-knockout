@@ -1,5 +1,10 @@
 from ensure import ensure_annotations
-from django.core.urlresolvers import reverse
+try:
+    # Django 1.11.
+    from django.urls import reverse
+except ImportError:
+    # Django 1.8..1.10.
+    from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe, escape
 from django.db import models

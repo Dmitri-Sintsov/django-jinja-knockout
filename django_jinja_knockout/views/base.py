@@ -138,7 +138,7 @@ class BsTabsMixin(object):
     def get_main_navs(self, request, object_id=None):
         main_navs = []
         """
-        from django.core.urlresolvers import reverse
+        from django.urls import reverse
         main_navs.append({
             'url': reverse('list_objects_url_name'), 'text': 'List'
         })

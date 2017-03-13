@@ -1,5 +1,6 @@
 from copy import copy
 import types
+import inspect
 from datetime import date, datetime
 
 from django.utils.translation import gettext as _
@@ -96,7 +97,8 @@ class DisplayText(Widget):
             display_values[value_key] = display_value
         return display_values
 
-    def render(self, name, values, attrs=None):
+    # todo: Support Django 1.11 renderer.
+    def render(self, name, value, attrs=None, renderer=None):
         """
         if hasattr(self, 'instance'):
             sdv.dbg('instance', self.instance)
@@ -117,17 +119,23 @@ class DisplayText(Widget):
                 str_fields = field.get_str_fields()
                 return print_list_group(str_fields) if len(str_fields) < 4 else print_bs_well(str_fields)
 
-        is_list = isinstance(values, list)
-        display_values = self.get_display_values(values) if is_list else self.get_display_values([values])
-        final_attrs = self.build_attrs(attrs, name=name)
+        is_list = isinstance(value, list)
+        display_values = self.get_display_values(value) if is_list else self.get_display_values([value])
+        build_attrs_args = inspect.getargspec(self.build_attrs)
+        if 'extra_attrs' in build_attrs_args.args:
+            # Django 1.11
+            final_attrs = self.build_attrs(attrs, {'name': name})
+        else:
+            # Django 1.8..1.10
+            final_attrs = self.build_attrs(attrs, name=name)
         remove_css_classes_from_dict(final_attrs, 'form-control')
 
         if is_list:
             self.add_list_attrs(final_attrs)
-            return self.render_list(final_attrs, values, display_values)
+            return self.render_list(final_attrs, value, display_values)
         else:
             self.add_scalar_attrs(final_attrs)
-            return self.render_scalar(final_attrs, values, display_values[0])
+            return self.render_scalar(final_attrs, value, display_values[0])
 
 
 class ForeignKeyGridWidget(DisplayText):

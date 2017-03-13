@@ -7,7 +7,14 @@ from urllib.parse import urlencode
 
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
-from django.core.urlresolvers import resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
+try:
+    # Django 1.11.
+    import django.urls as urls
+except ImportError:
+    # Django 1.8..1.10.
+    import django.core.urlresolvers as urls
+for attr in ('resolve', 'reverse', 'NoReverseMatch', 'get_resolver', 'get_script_prefix'):
+    globals()[attr] = getattr(urls, attr)
 
 from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered_values
 
