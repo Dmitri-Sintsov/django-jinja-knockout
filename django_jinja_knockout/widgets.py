@@ -121,8 +121,7 @@ class DisplayText(Widget):
 
         is_list = isinstance(value, list)
         display_values = self.get_display_values(value) if is_list else self.get_display_values([value])
-        build_attrs_args = inspect.getargspec(self.build_attrs)
-        if 'extra_attrs' in build_attrs_args.args:
+        if 'extra_attrs' in inspect.signature(self.build_attrs).parameters:
             # Django 1.11
             final_attrs = self.build_attrs(attrs, {'name': name})
         else:

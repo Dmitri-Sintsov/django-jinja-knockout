@@ -47,8 +47,10 @@ def get_related_field(obj, fieldname):
         for _fieldname in fieldpath:
             curr_field = related_obj._meta.get_field(_fieldname)
             if hasattr(curr_field, 'rel'):
+                # Django 1.8
                 related_obj = curr_field.rel.to
             else:
+                # Django 1.9..1.11
                 related_obj = curr_field.related_model
     return related_obj._meta.get_field(fieldname)
 

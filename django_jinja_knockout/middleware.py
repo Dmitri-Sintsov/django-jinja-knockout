@@ -2,6 +2,7 @@ import json
 import pytz
 import threading
 
+import django
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.conf import settings
@@ -54,14 +55,26 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
         )
 
 
-class ContextMiddleware(MiddlewareMixin):
+class ContextMiddlewareCompat:
+
+    def __init__(self, **kwargs):
+        self.request = kwargs.pop('request', None)
+
+    def is_authenticated(self):
+        user = self.request.user
+        return user.is_authenticated() if django.VERSION < (1, 10) else user.is_authenticated
+
+    def get_user_id(self):
+        return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
+
+
+class ContextMiddleware(ContextMiddlewareCompat, MiddlewareMixin):
 
     _threadmap = {}
     _mock_request = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.request = None
         self.view_func = None
         self.view_args = None
         self.view_kwargs = None
@@ -194,7 +207,7 @@ class ContextMiddleware(MiddlewareMixin):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['allow_anonymous']
         else:
-            if not request.user.is_authenticated():
+            if not self.is_authenticated():
                 return auth_redirect(request)
 
         # Logout inactive user for all but selected views.
@@ -202,7 +215,7 @@ class ContextMiddleware(MiddlewareMixin):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['allow_inactive']
         else:
-            if request.user.is_authenticated() and not request.user.is_active:
+            if self.is_authenticated() and not request.user.is_active:
                 auth_logout(request)
                 return auth_redirect(request)
 

@@ -1,4 +1,5 @@
 from .utils import sdv
+
 from django.conf import settings
 from django.utils.html import format_html, mark_safe
 from django.templatetags.static import static
@@ -6,7 +7,9 @@ from django.forms.utils import flatatt
 from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
+
 from .models import get_verbose_name, ContentTypeLinker
+from .middleware import ContextMiddlewareCompat
 from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq, get_formatted_url
 
 
@@ -42,9 +45,7 @@ class TemplateContextProcessor():
             not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
 
     def get_user_id(self):
-        return self.HttpRequest.user.pk \
-            if self.HttpRequest.user.is_authenticated() and self.HttpRequest.user.is_active \
-            else 0
+        return ContextMiddlewareCompat(request=self.HttpRequest).get_user_id()
 
     def yield_client_routes(self):
         # Per-view client routes.
