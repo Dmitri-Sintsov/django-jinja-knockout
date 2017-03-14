@@ -2,7 +2,7 @@
 Installation
 =============
 
-* `django-jinja-knockout` 0.4.2 supports Python 3.4 / 3.5, Django 1.8 / 1.9 / 1.10.
+* `django-jinja-knockout` 0.4.3 supports Python 3.4 / 3.5 / 3.6, Django 1.8 / 1.9 / 1.10 / 1.11.
 * Django template language is supported via including Jinja2 templates from DTL templates. Pure Jinja2 projects are
   supported as well.
 

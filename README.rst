@@ -33,12 +33,15 @@ Please contribute to the localization of the project:
 * `django-jinja-knockout python localization`_
 * `django-jinja-knockout javascript localization`_
 
-Thanks to ``pawelkoston`` for Polish localization.
+Localization contributors:
+
+* Dutch: ``Melvyn Sopacua``
+* Polish: ``pawelkoston``
 
 Key features
 ------------
 
-* Django 1.8, 1.9. 1.10 support. Python 3.4 / 3.5 support.
+* Django 1.8, 1.9, 1.10, 1.11 support. Python 3.4 / 3.5 / 3.6 support.
 * `Supports existing Django templates (DTL).`
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.

@@ -168,3 +168,7 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * Compatibility to 1.10+ new-style middleware (thanks to Melvyn Sopacua).
 * Fixed pagination when multiple filter field choices are seiected in views.ListSortingView.
+
+0.4.3
+-----
+* Django 1.11 / Python 3.6 support.
