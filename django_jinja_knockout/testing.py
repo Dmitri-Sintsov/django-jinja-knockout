@@ -8,6 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -40,6 +42,7 @@ Do not forget to update to latest ESR when running the tests.
 class BaseSeleniumCommands(AutomationCommands):
 
     DEFAULT_SLEEP_TIME = 3
+    USE_WAIT = True
 
     sync_commands_list = []
 
@@ -54,7 +57,8 @@ class BaseSeleniumCommands(AutomationCommands):
         self.sleep_between_commands = 0
 
     def _sleep(self, secs):
-        time.sleep(secs)
+        # time.sleep(secs)
+        self.selenium.implicitly_wait(secs)
         return self.last_result
 
     def _default_sleep(self):
@@ -138,14 +142,17 @@ class BaseSeleniumCommands(AutomationCommands):
             self.log_error(e)
             raise e
 
+    def upload_screenshot(self, scr, scr_filename):
+        with open(os.path.join(settings.BASE_DIR, 'logs', scr_filename), 'wb') as f:
+            f.write(scr)
+            f.close()
+
     def log_error(self, e):
         if self.logged_error is False and isinstance(self.last_result, WebElement):
             now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
             scr = self.selenium.get_screenshot_as_png()
             scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
-            with open(os.path.join(settings.BASE_DIR, 'logs', scr_filename), 'wb') as f:
-                f.write(scr)
-                f.close()
+            self.upload_screenshot(scr, scr_filename)
             log_filename = 'selenium_error_html_{}.htm'.format(now_str)
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 f.write(self.get_outer_html())
@@ -232,28 +239,54 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # return self.selenium.switch_to_active_element()
         return self.selenium.switch_to.active_element
 
+    def _by_wait(self, by, key):
+        try:
+            element = WebDriverWait(self.selenium, self.__class__.DEFAULT_SLEEP_TIME).until(
+                EC.element_to_be_clickable((by, key))
+            )
+        except WebDriverException as e:
+            element = WebDriverWait(self.selenium, self.__class__.DEFAULT_SLEEP_TIME).until(
+                EC.presence_of_element_located((by, key))
+            )
+        return element
+
     def _by_id(self, id):
-        return self.selenium.find_element_by_id(id)
+        if self.USE_WAIT:
+            return self._by_wait(By.ID, id)
+        else:
+            return self.selenium.find_element_by_id(id)
 
     def _by_link_text(self, link_text):
-        return self.selenium.find_element_by_link_text(link_text)
+        if self.USE_WAIT:
+            return self._by_wait(By.LINK_TEXT, link_text)
+        else:
+            return self.selenium.find_element_by_link_text(link_text)
 
     def _keys_by_id(self, id, keys):
-        input = self.selenium.find_element_by_id(id)
+        input = self._by_id(id)
         # Clear is replaced to "Select All" / "Delete" because it has bugs in IE webdriver.
         # input.clear()
         input.send_keys(Keys.CONTROL, 'a')
         input.send_keys(Keys.DELETE)
-        input.send_keys(keys);
+        input.send_keys(keys)
         return input
 
     def _by_xpath(self, xpath):
-        return self.selenium.find_element_by_xpath(xpath)
+        if self.USE_WAIT:
+            return self._by_wait(By.XPATH, xpath)
+        else:
+            return self.selenium.find_element_by_xpath(xpath)
 
     def _by_classname(self, classname):
-        return self.selenium.find_element_by_class_name(classname)
+        if self.USE_WAIT:
+            return self._by_wait(By.CLASS_NAME, classname)
+        else:
+            return self.selenium.find_element_by_class_name(classname)
 
     def _by_css_selector(self, css_selector):
+        # Commented out, will not work for multiple elements (no iteration).
+        # if self.USE_WAIT:
+            # return self._by_wait(By.CSS_SELECTOR, css_selector)
         return self.selenium.find_elements_by_css_selector(css_selector)
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
@@ -279,13 +312,13 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.last_result
 
     def _button_click(self, button_title):
-        self.last_result = self.selenium.find_element_by_xpath(
+        self.last_result = self._by_xpath(
             self.format_xpath('//button[contains(., {})]', button_title)
         )
         return self._click()
 
     def _find_anchor_by_view(self, viewname, kwargs=None, query=None):
-        return self.selenium.find_element_by_xpath(
+        return self._by_xpath(
             self.format_xpath(
                 '//a[@href={action}]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
@@ -305,7 +338,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     def _form_by_view(self, viewname, kwargs=None, query=None):
-        return self.selenium.find_element_by_xpath(
+        return self._by_xpath(
             self.format_xpath(
                 '//form[@action={action}]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
@@ -319,7 +352,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     def _click_submit_by_view(self, viewname, kwargs=None, query=None):
-        self.last_result = self.selenium.find_element_by_xpath(
+        self.last_result = self._by_xpath(
             self.format_xpath(
                 '//form[@action={action}]//button[@type="submit"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
@@ -355,7 +388,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         )
 
     def _to_top_bootstrap_dialog(self):
-        dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
+        dialogs = self._by_css_selector('.bootstrap-dialog')
         top_key = None
         z_indexes = []
         for key, dialog in enumerate(dialogs):
