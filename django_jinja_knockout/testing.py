@@ -42,7 +42,6 @@ Do not forget to update to latest ESR when running the tests.
 class BaseSeleniumCommands(AutomationCommands):
 
     DEFAULT_SLEEP_TIME = 3
-    USE_WAIT = True
 
     sync_commands_list = []
 
@@ -251,16 +250,16 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return element
 
     def _by_id(self, id):
-        if self.USE_WAIT:
-            return self._by_wait(By.ID, id)
-        else:
+        try:
             return self.selenium.find_element_by_id(id)
+        except WebDriverException as e:
+            return self._by_wait(By.ID, id)
 
     def _by_link_text(self, link_text):
-        if self.USE_WAIT:
-            return self._by_wait(By.LINK_TEXT, link_text)
-        else:
+        try:
             return self.selenium.find_element_by_link_text(link_text)
+        except WebDriverException as e:
+            return self._by_wait(By.LINK_TEXT, link_text)
 
     def _keys_by_id(self, id, keys):
         input = self._by_id(id)
@@ -272,21 +271,20 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return input
 
     def _by_xpath(self, xpath):
-        if self.USE_WAIT:
-            return self._by_wait(By.XPATH, xpath)
-        else:
+        try:
             return self.selenium.find_element_by_xpath(xpath)
+        except WebDriverException as e:
+            return self._by_wait(By.XPATH, xpath)
 
     def _by_classname(self, classname):
-        if self.USE_WAIT:
-            return self._by_wait(By.CLASS_NAME, classname)
-        else:
+        try:
             return self.selenium.find_element_by_class_name(classname)
+        except WebDriverException as e:
+            return self._by_wait(By.CLASS_NAME, classname)
 
     def _by_css_selector(self, css_selector):
         # Commented out, will not work for multiple elements (no iteration).
-        # if self.USE_WAIT:
-            # return self._by_wait(By.CSS_SELECTOR, css_selector)
+        # return self._by_wait(By.CSS_SELECTOR, css_selector)
         return self.selenium.find_elements_by_css_selector(css_selector)
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
