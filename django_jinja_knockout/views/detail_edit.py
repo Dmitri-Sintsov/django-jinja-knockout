@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView
 
+from ..utils.sdv import str_to_numeric
 from ..viewmodels import vm_list
 from .base import FormatTitleMixin, FormViewmodelsMixin
 
@@ -132,3 +133,10 @@ class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, TemplateVi
 class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
+
+    def get_object(self):
+        pk = str_to_numeric(self.kwargs.get(self.pk_url_kwarg, None))
+        if pk == 0 or pk is None:
+            return self.model()
+        else:
+            return super().get_object()

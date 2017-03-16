@@ -179,10 +179,10 @@ class FormWithInlineFormsets:
     FormsetClasses = None
 
     def __init__(self, request, form_class=None, formset_classes=None, create=False):
-        if self.__class__.FormClass is None:
-            self.__class__.FormClass = form_class
-        if self.__class__.FormsetClasses is None:
-            self.__class__.FormsetClasses = [] if formset_classes is None else formset_classes
+        if self.FormClass is None:
+            self.FormClass = form_class
+        if self.FormsetClasses is None:
+            self.FormsetClasses = [] if formset_classes is None else formset_classes
         self.model = None
         self.form = None
         self.formsets = None
@@ -191,10 +191,10 @@ class FormWithInlineFormsets:
         self.create = create
 
     def get_form_class(self):
-        return self.__class__.FormClass
+        return self.FormClass
 
     def get_formset_classes(self):
-        return self.__class__.FormsetClasses
+        return self.FormsetClasses
 
     def get_formset_initial(self, formset_class):
         return None
@@ -324,7 +324,7 @@ class InlineFormSet(BaseInlineFormSet):
         self.form = self.get_form
 
     def get_form(self, **defaults):
-        return self.__class__.FormClass(**defaults)
+        return self.FormClass(**defaults)
 
 
 # Mixed to BaseInlineFormset to use different form classes for already existing model objects
@@ -345,14 +345,14 @@ class SeparateInitialFormMixin(object):
     def get_form(self, **defaults):
         if self.form_index is None:
             raise ValueError('Invalid form index')
-        return self.__class__.InitialForm(**defaults) \
+        return self.InitialForm(**defaults) \
             if self.form_index < self.initial_form_count() \
-            else self.__class__.EmptyForm(**defaults)
+            else self.EmptyForm(**defaults)
 
     # Used during GET at client-side.
     @property
     def empty_form(self):
-        form = self.__class__.EmptyForm(
+        form = self.EmptyForm(
             auto_id=self.auto_id,
             prefix=self.add_prefix('__prefix__'),
             empty_permitted=True,

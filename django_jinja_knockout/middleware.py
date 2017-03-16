@@ -22,9 +22,9 @@ from .viewmodels import to_vm_list, has_vm_list
 class JsonResponse(HttpResponse):
 
     def __init__(self, data, encoder=DjangoJSONEncoder, safe=True, content_type='application/json', **kwargs):
-        if safe and not isinstance(data, dict):
+        if safe and not isinstance(data, (list, dict)):
             raise TypeError(
-                'In order to allow non-dict objects to be '
+                'In order to allow non-list / non-dict objects to be '
                 'serialized set the safe parameter to False'
             )
         kwargs.setdefault('content_type', content_type)

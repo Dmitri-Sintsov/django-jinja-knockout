@@ -256,6 +256,11 @@ App.Dialog = function(options) {
         // Do not forget to escape from XSS.
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
+        } else if (typeof this.dialogOptions.message === 'object') {
+            var $content = $('<div>');
+            this.dialogOptions.message = App.renderNestedList(
+                $content, this.dialogOptions.message, {blockTags: App.blockTags.badges}
+            );
         } else if (!(this.dialogOptions.message instanceof jQuery)) {
             this.dialogOptions.message = $.contents(this.dialogOptions.message);
         }
