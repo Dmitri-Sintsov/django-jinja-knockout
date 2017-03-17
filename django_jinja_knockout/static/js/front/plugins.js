@@ -19,6 +19,11 @@ $.htmlDecode = function(value) {
 	return $('<div>').html(value).text();
 };
 
+// note: $.camelCase() is built-in function.
+$.camelCaseToDash = function(value) {
+    return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
+};
+
 // Create jQuery DOM nodes from arbitrary text contents.
 // Do not use $(contents) as $() is supposed to accept only top-level tags or jQuery selectors, not arbitrary text.
 $.contents = function(contents) {

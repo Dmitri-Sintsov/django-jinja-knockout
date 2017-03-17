@@ -474,7 +474,23 @@ App.viewHandlers = {
     },
     'replaceWith': function(response) {
         $(response.selector).replaceWith(response.html);
-    }
+    },
+    // Can be used to resubmit the same forms with different urls.
+    // Replaces 'data-url' attribute values globally.
+    // To replace selectively, implement your own custom handler.
+    'replace_data_url': function(response) {
+        if (response.fromUrl === response.toUrl) {
+            return;
+        }
+        var $submits = $(App.AjaxForm.prototype.formSubmitSelector);
+        $.each($submits, function(k, v) {
+            var $submit = $(v);
+            if ($submit.data('url') === response.fromUrl || $submit.prop('data-url') === response.fromUrl) {
+                $submit.prop('data-url', response.toUrl);
+                $submit.data('url', response.toUrl);
+            }
+        });
+    },
 };
 
 
@@ -901,7 +917,9 @@ App.AjaxForm = function($selector) {
 
 (function(AjaxForm) {
 
+    AjaxForm.formSelector = 'form.ajax-form';
     AjaxForm.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
+    AjaxForm.formSubmitSelector = AjaxForm.formSelector + ', ' + AjaxForm.submitSelector;
 
     AjaxForm.has = function() {
         var result = (typeof $.fn.ajaxForm !== 'undefined');
@@ -912,7 +930,7 @@ App.AjaxForm = function($selector) {
     };
 
     AjaxForm.create = function($selector) {
-        this.$forms = $selector.findSelf('form.ajax-form');
+        this.$forms = $selector.findSelf(AjaxForm.formSelector);
         this.$cancelButtons = this.$forms.find('.btn-cancel-compose');
         this.$submitButtons = this.$forms.find(AjaxForm.submitSelector);
     };
