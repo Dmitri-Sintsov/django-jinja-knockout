@@ -4,9 +4,10 @@ import time
 from collections import namedtuple
 from importlib import import_module
 
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
+# from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -306,6 +307,24 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     def _click(self):
+        # A workaround for "Element is not clickable at point" error.
+        # http://stackoverflow.com/questions/11908249/debugging-element-is-not-clickable-at-point-error
+        # https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/2766
+        # https://github.com/SeleniumHQ/selenium/issues/1867
+        # https://github.com/SeleniumHQ/selenium/issues/2077
+        # https://jkotests.wordpress.com/2015/03/20/element-is-not-clickable-due-to-another-element-that-would-receive-the-click/
+        # http://learn-automation.com/how-to-solve-element-is-not-clickable-at-pointxy-in-selenium/
+        self.selenium.execute_script(
+            'window.scrollTo(0, ' + str(self.last_result.location['x']) + ')'
+        )
+        # ActionChains(self.selenium).move_to_element(self.last_result)
+        # http://stackoverflow.com/questions/29377730/executing-a-script-in-selenium-python
+        # http://stackoverflow.com/questions/34562061/webdriver-click-vs-javascript-click
+        """
+        self.selenium.execute_script(
+            'arguments[0].click();', self.last_result
+        )
+        """
         self.last_result.click()
         return self.last_result
 
