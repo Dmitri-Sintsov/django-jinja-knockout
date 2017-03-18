@@ -219,6 +219,9 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _maximize_window(self):
         self.selenium.maximize_window()
+        # Should prevent "Element is not clickable at point" error in phantomjs driver due to small window size.
+        if self.testcase.webdriver_name == 'selenium.webdriver.phantomjs.webdriver':
+           self.selenium.set_window_size(1920, 1080)
         return self.last_result
 
     def _relative_url(self, rel_url):
@@ -523,8 +526,8 @@ class DjkTestCase(StaticLiveServerTestCase):
         # DJK_WEBDRIVER='selenium.webdriver.firefox.webdriver' ./manage.py test
         # DJK_WEBDRIVER='selenium.webdriver.ie.webdriver' ./manage.py test
         # DJK_WEBDRIVER='selenium.webdriver.phantomjs.webdriver' ./manage.py test
-        webdriver = os.environ.get('DJK_WEBDRIVER', cls.DEFAULT_WEBDRIVER)
-        webdriver_module = import_module(webdriver)
+        cls.webdriver_name = os.environ.get('DJK_WEBDRIVER', cls.DEFAULT_WEBDRIVER)
+        webdriver_module = import_module(cls.webdriver_name)
         return webdriver_module.WebDriver()
 
     def get_saved_fixtures(self):
