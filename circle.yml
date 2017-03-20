@@ -2,7 +2,7 @@ dependencies:
   override:
     # - pyenv local 3.4.3 3.5.2 3.6.0
     - pyenv local 3.6.0
-    # - python3 -m pip install -U pip wheel tox tox-pyenv setuptools
+    - python3 -m pip install -U pip wheel tox tox-pyenv setuptools
 test:
   override:
     - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
