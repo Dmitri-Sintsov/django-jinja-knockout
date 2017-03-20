@@ -1,7 +1,5 @@
 dependencies:
   override:
-    # Uninstall Python 2.7 tox.
-    - /usr/bin/yes | pip uninstall tox
     # - pyenv local 3.4.3 3.5.2 3.6.0
     - pyenv local 3.6.0
     - python3 -m pip install -U pip wheel tox tox-pyenv setuptools
@@ -9,4 +7,5 @@ test:
   override:
     - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
     - cd djk-sample
-    - tox -r -e py36-django-111
+    - ls
+    - python3 -m tox -r -e py36-django-111
