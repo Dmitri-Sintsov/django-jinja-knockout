@@ -16,7 +16,7 @@ install:
     - python3 -m venv djk_sample
     - cd djk_sample
     - source bin/activate
-    - pip3 install -U pip wheel setuptools tox
+    - pip3 install wheel setuptools tox
     - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
     - cd djk-sample
 script:
