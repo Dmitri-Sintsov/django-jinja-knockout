@@ -1,0 +1,23 @@
+language: python
+python:
+  - '3.5'
+env:
+  matrix:
+    - TOXENV=py35-django-18
+    - TOXENV=py35-django-19
+    - TOXENV=py35-django-110
+    - TOXENV=py35-django-111
+branches:
+  only:
+  - master
+before_script:
+  - pip freeze
+install:
+    - python3 -m venv djk_sample
+    - cd djk_sample
+    - source bin/activate
+    - pip3 install -U pip wheel setuptools tox
+    - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
+    - cd djk-sample
+script:
+  - tox -e $TOXENV
