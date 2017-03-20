@@ -13,10 +13,8 @@ branches:
 before_script:
   - pip freeze
 install:
-    - python3 -m venv djk_sample
-    - cd djk_sample
-    - source bin/activate
-    - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
-    - cd djk-sample
+  - pip install tox
+  - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
+  - cd djk-sample
 script:
   - tox -e $TOXENV
