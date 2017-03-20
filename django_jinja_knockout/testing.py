@@ -221,7 +221,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.selenium.maximize_window()
         # Should prevent "Element is not clickable at point" error in phantomjs driver due to small window size.
         if self.testcase.webdriver_name == 'selenium.webdriver.phantomjs.webdriver':
-           self.selenium.set_window_size(1920, 1080)
+            self.selenium.set_window_size(1920, 1080)
         return self.last_result
 
     def _relative_url(self, rel_url):

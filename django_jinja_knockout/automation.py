@@ -1,5 +1,6 @@
-from types import SimpleNamespace
+import inspect
 import time
+from types import SimpleNamespace
 
 
 class AutomationCommands:
@@ -14,6 +15,12 @@ class AutomationCommands:
     def set_context(self, context):
         self._ = SimpleNamespace(**context)
         return self
+
+    @classmethod
+    def yield_command_names(cls):
+        for name, value in inspect.getmembers(cls):
+            if callable(getattr(cls, name)) and name.startswith('_') and not name.startswith('__'):
+                yield name[1:]
 
     def yield_commands(self, *args):
         operation = None
