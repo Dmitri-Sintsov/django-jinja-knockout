@@ -1,5 +1,6 @@
 dependencies:
   override:
+    # Uninstall Python 2.7 tox.
     - pip uninstall tox
     # - pyenv local 3.4.3 3.5.2 3.6.0
     - pyenv local 3.6.0
