@@ -15,6 +15,12 @@ django-jinja-knockout
    :alt: PyPI package
    :target: https://badge.fury.io/py/django-jinja-knockout
 
+.. image:: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout.svg?style=shield
+    :target: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout
+
+.. image:: https://img.shields.io/travis/Dmitri-Sintsov/django-jinja-knockout.svg?style=flat
+    :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
+
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
