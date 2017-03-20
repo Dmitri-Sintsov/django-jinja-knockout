@@ -62,7 +62,7 @@ class BaseSeleniumCommands(AutomationCommands):
         return self.last_result
 
     def _default_sleep(self):
-        return self._sleep(self.__class__.DEFAULT_SLEEP_TIME)
+        return self._sleep(self.DEFAULT_SLEEP_TIME)
 
     # https://code.djangoproject.com/wiki/Fixtures
     def _dump_data(self, prefix=''):
@@ -127,7 +127,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 # Wait until slow browser DOM updates.
                 self._default_sleep()
                 if self.sleep_between_commands > 0:
-                    batch_exec_time += self.__class__.DEFAULT_SLEEP_TIME
+                    batch_exec_time += self.DEFAULT_SLEEP_TIME
                 # Redo last commands from the last global command.
                 for command in self.history[sync_command_key:]:
                     try:
@@ -244,11 +244,11 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _by_wait(self, by, key):
         try:
-            element = WebDriverWait(self.selenium, self.__class__.DEFAULT_SLEEP_TIME).until(
+            element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.element_to_be_clickable((by, key))
             )
         except WebDriverException as e:
-            element = WebDriverWait(self.selenium, self.__class__.DEFAULT_SLEEP_TIME).until(
+            element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.presence_of_element_located((by, key))
             )
         return element
@@ -317,9 +317,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # https://github.com/SeleniumHQ/selenium/issues/2077
         # https://jkotests.wordpress.com/2015/03/20/element-is-not-clickable-due-to-another-element-that-would-receive-the-click/
         # http://learn-automation.com/how-to-solve-element-is-not-clickable-at-pointxy-in-selenium/
+
+        # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
         self.selenium.execute_script(
-            'window.scrollTo(0, ' + str(self.last_result.location['x']) + ')'
+            'window.scrollTo(' + str(self.last_result.location['x']) + ', ' + str(self.last_result.location['y']) + ')'
         )
+
         # ActionChains(self.selenium).move_to_element(self.last_result)
         # http://stackoverflow.com/questions/29377730/executing-a-script-in-selenium-python
         # http://stackoverflow.com/questions/34562061/webdriver-click-vs-javascript-click
@@ -329,6 +332,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
         """
         self.last_result.click()
+
         return self.last_result
 
     def _button_click(self, button_title):
@@ -408,6 +412,9 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         )
 
     def _to_top_bootstrap_dialog(self):
+        WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '.bootstrap-dialog'))
+        )
         dialogs = self._by_css_selector('.bootstrap-dialog')
         top_key = None
         z_indexes = []
@@ -424,6 +431,16 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             raise WebDriverException('Cannot find top bootstrap dialog')
         else:
             return dialogs[top_key]
+
+    def _wait_until_dialog_closes(self):
+        try:
+            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
+                EC.presence_of_element_located((By.XPATH, '//div[@class="modal-backdrop fade"]'))
+            )
+        except WebDriverException:
+            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
+                EC.presence_of_element_located((By.XPATH, '//div[@class="modal-header bootstrap-dialog-draggable"]'))
+            )
 
     def _fk_widget_click(self, id):
         return self.exec(
