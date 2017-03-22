@@ -172,3 +172,4 @@ Alternative breadcrumbs layout of field filters widgets.
 0.4.3
 -----
 * Django 1.11 / Python 3.6 support.
+* Selenium testing commands fixes.
