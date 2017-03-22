@@ -369,8 +369,8 @@ App.Dialog = function(options) {
         }
     };
 
-    Dialog.getTemplateArgs = function() {
-        return {};
+    Dialog.getTemplateSelf = function() {
+        return new App._self();
     };
 
     Dialog.createDialogContent = function() {
@@ -379,7 +379,7 @@ App.Dialog = function(options) {
             template = App.propGet(this, 'template');
         }
         if (template !== undefined) {
-            return App.domTemplate(template, this.getTemplateArgs());
+            return App.domTemplate(template, this.getTemplateSelf());
         } else {
             return $.contents('sample content');
         }
@@ -1148,50 +1148,61 @@ App.compileTemplate = function(tplId) {
     return App.bag._templates[tplId];
 };
 
+
+// underscore.js templates default processor (default class binding).
+App._self = function() {
+};
+
+(function(_self) {
+
+    _self.templates = {};
+
+    _self.template = function(templateId) {
+        return (typeof this.templates[templateId] === 'undefined') ? templateId : this.templates[templateId];
+    };
+
+    _self.get = function(varName, defaultValue) {
+        if (typeof varName !== 'string') {
+            throw 'varName must be string';
+        }
+        /*
+        if (typeof defaultValue === 'undefined') {
+            defaultValue = false;
+        }
+        */
+        return (typeof this[varName] === 'undefined') ? defaultValue : this[varName];
+    };
+
+})(App._self.prototype);
+
 /**
  * Expand underscore.js template to string.
  */
-App.expandTemplate = function(tplId, tplArgs) {
+App.expandTemplate = function(tplId, self) {
     var compiled = App.compileTemplate(tplId);
-    if (typeof tplArgs === 'undefined') {
-        tplArgs = {};
+    if (typeof self === 'undefined') {
+        self = new App._self();
     }
-    if (typeof tplArgs.get !== 'undefined') {
-        throw 'tplArgs conflicting key: get';
-    }
-    var expandArgs = $.extend(
-        {
-            get: function(self, varName, defaultValue) {
-                if (typeof varName !== 'string') {
-                    throw 'varName must be string';
-                }
-                if (typeof defaultValue === 'undefined') {
-                    defaultValue = false;
-                }
-                return (typeof self[varName] === 'undefined') ? defaultValue : self[varName];
-            }
-        }, tplArgs
-    );
     // todo: Add self.flatatt() to easily manipulate DOM attrs in templates.
     // Add self.get() function to helper context.
-    return compiled(expandArgs);
+    return compiled(self);
 };
 
 /**
- * Manually loads one template (by it's DOM id) and expands it with specified tplArgs into jQuery DOM nodes.
+ * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
  * Template will be processed recursively.
  */
-App.domTemplate = function(tplId, tplArgs) {
-    if (typeof tplArgs !== 'object') {
-        tplArgs = {};
+App.domTemplate = function(tplId, self) {
+    if (typeof self !== 'object') {
+        self = new App._self();
     }
-    var contents = App.expandTemplate(tplId, tplArgs);
+    var contents = App.expandTemplate(tplId, self);
     var $result = $.contents(contents);
     // Load recursive nested templates, if any.
     $.each($result, function(k, v) {
         var $node = $(v);
         if ($node.prop('nodeType') === 1) {
-            App.loadTemplates($node, tplArgs);
+            App.loadTemplates($node, self);
         }
     });
     return $result;
@@ -1202,9 +1213,9 @@ App.domTemplate = function(tplId, tplArgs) {
  * Does not use html5 <template> tag because IE lower than Edge does not support it.
  * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
  */
-App.loadTemplates = function($selector, contextArgs) {
-    if (typeof contextArgs === 'undefined') {
-        contextArgs = {};
+App.loadTemplates = function($selector, self) {
+    if (typeof self === 'undefined') {
+        self = new App._self();
     }
     var $targets = $selector.findSelf('[data-template-id]');
     // Build the list of parent templates for each template available.
@@ -1218,8 +1229,8 @@ App.loadTemplates = function($selector, contextArgs) {
     // Expand innermost templates first, outermost last.
     for (var k = $ancestors.length - 1; k >= 0; k--) {
         var $target = $targets.eq($ancestors[k]._targetKey);
-        var tplName = $target.attr('data-template-id');
-        var tplArgs = $.extend({}, contextArgs);
+        var tplName = self.template($target.attr('data-template-id'));
+        var tplSelf = $.extend(true, {}, self);
         if ($target.data('templateArgsNesting') !== false) {
             // Search for template args in parent templates.
             // Accumulate all ancestors template args from up to bottom.
@@ -1228,15 +1239,15 @@ App.loadTemplates = function($selector, contextArgs) {
                 var ancestorTplArgs = $ancestor.data('templateArgs');
                 if (ancestorTplArgs !== undefined &&
                         $ancestor.data('templateArgsNesting') !== false) {
-                    tplArgs = $.extend(tplArgs, ancestorTplArgs);
+                    tplSelf = $.extend(true, tplSelf, ancestorTplArgs);
                 }
             }
         }
         var ownTplArgs = $target.data('templateArgs');
         if (ownTplArgs !== undefined) {
-            tplArgs = $.extend(tplArgs, ownTplArgs);
+            tplSelf = $.extend(true, tplSelf, ownTplArgs);
         }
-        var $result = App.domTemplate(tplName, tplArgs);
+        var $result = App.domTemplate(tplName, tplSelf);
         var topNodeCount = 0;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
         $.each($result, function(k, v) {
@@ -1251,6 +1262,25 @@ App.loadTemplates = function($selector, contextArgs) {
     $.each($targets, function(k, currentTarget) {
         $(currentTarget).contents().unwrap();
     });
+};
+
+/**
+ * Recursive underscore.js template autoloading with template self instance binding.
+ */
+App.bindTemplates = function($selector, self) {
+    if (typeof self === 'undefined') {
+        // There is no instance supplied. Load from classPath.
+        var classPath = $selector.data('classPath');
+        if (classPath === undefined) {
+            classPath = 'App._self';
+        }
+        var classPathArgs = $selector.data('classPathArgs');
+        if (classPathArgs === undefined) {
+            classPathArgs = [];
+        }
+        self = App.newClassFromPath(classPath, classPathArgs);
+    }
+    App.loadTemplates($selector, self);
 };
 
 App.initClientHooks = [];
@@ -1591,6 +1621,13 @@ App.getClassFromPath = function(classPath) {
     return cls;
 };
 
+// http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+App.newClassFromPath = function(classPath, classPathArgs) {
+    var cls = App.getClassFromPath(classPath);
+    var self = Object.create(cls.prototype);
+    cls.apply(self, classPathArgs);
+    return self
+};
 
 /**
  * Auto-instantiated Javascript classes bound to selected DOM elements.
@@ -1612,7 +1649,7 @@ App.Components = function() {
         if ($elem.data('componentIdx') !== undefined) {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
         }
-        var options = $.extend({}, $elem.data('componentOptions'));
+        var options = $.extend(true, {}, $elem.data('componentOptions'));
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
             return;
@@ -1715,7 +1752,7 @@ $.fn.component = function() {
 
 App.initClientHooks.push({
     init: function($selector) {
-        App.loadTemplates($selector);
+        App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
         $selector.highlightListUrl(window.location);
