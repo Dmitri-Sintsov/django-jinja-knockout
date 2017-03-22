@@ -379,7 +379,7 @@ App.Dialog = function(options) {
             template = App.propGet(this, 'template');
         }
         if (template !== undefined) {
-            return App.domTemplate(template, this.getTemplateSelf());
+            return this.getTemplateSelf().domTemplate(template);
         } else {
             return $.contents('sample content');
         }
@@ -1150,11 +1150,13 @@ App.compileTemplate = function(tplId) {
 
 
 // underscore.js templates default processor (default class binding).
+// todo: Add .flatatt() to easily manipulate DOM attrs in templates.
 App._self = function() {
 };
 
 (function(_self) {
 
+    _self.data = {};
     _self.templates = {};
 
     _self.template = function(templateId) {
@@ -1170,99 +1172,90 @@ App._self = function() {
             defaultValue = false;
         }
         */
-        return (typeof this[varName] === 'undefined') ? defaultValue : this[varName];
+        return (typeof this.data[varName] === 'undefined') ? defaultValue : this.data[varName];
+    };
+
+    /**
+     * Expand underscore.js template to string.
+     */
+    _self.expandTemplate = function(tplId) {
+        var compiled = App.compileTemplate(tplId);
+        return compiled(this);
+    };
+
+    /**
+     * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
+     * Template will be processed recursively.
+     */
+    _self.domTemplate = function(tplId) {
+        var self = this;
+        var contents = self.expandTemplate(tplId);
+        var $result = $.contents(contents);
+        // Load recursive nested templates, if any.
+        $.each($result, function(k, v) {
+            var $node = $(v);
+            if ($node.prop('nodeType') === 1) {
+                self.loadTemplates($node);
+            }
+        });
+        return $result;
+    };
+
+    /**
+     * Recursive underscore.js template autoloading.
+     * Does not use html5 <template> tag because IE lower than Edge does not support it.
+     * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
+     */
+    _self.loadTemplates = function($selector) {
+        var self = this;
+        var $targets = $selector.findSelf('[data-template-id]');
+        // Build the list of parent templates for each template available.
+        var $ancestors = [];
+        $.each($targets, function(k, currentTarget) {
+            $ancestors[k] = $(currentTarget).parents('[data-template-id]');
+            $ancestors[k]._targetKey = k;
+        });
+        // Sort the list of parent templates from outer to inner nodes of the tree.
+        $ancestors = _.sortBy($ancestors, 'length');
+        // Expand innermost templates first, outermost last.
+        for (var k = $ancestors.length - 1; k >= 0; k--) {
+            var $target = $targets.eq($ancestors[k]._targetKey);
+            var tplName = self.template($target.attr('data-template-id'));
+            var tplSelf = $.extend({}, self);
+            if ($target.data('templateArgsNesting') !== false) {
+                // Search for template args in parent templates.
+                // Accumulate all ancestors template args from up to bottom.
+                for (var i = $ancestors[k].length - 1; i >= 0; i--) {
+                    var $ancestor = $ancestors[k].eq(i);
+                    var ancestorTplArgs = $ancestor.data('templateArgs');
+                    if (ancestorTplArgs !== undefined &&
+                            $ancestor.data('templateArgsNesting') !== false) {
+                        tplSelf.data = $.extend(tplSelf.data, ancestorTplArgs);
+                    }
+                }
+            }
+            var ownTplArgs = $target.data('templateArgs');
+            if (ownTplArgs !== undefined) {
+                tplSelf.data = $.extend(tplSelf.data, ownTplArgs);
+            }
+            var $result = tplSelf.domTemplate(tplName);
+            var topNodeCount = 0;
+            // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
+            $.each($result, function(k, v) {
+                if ($(v).prop('nodeType') === 1) {
+                    if (++topNodeCount > 1) {
+                        throw "Template '" + tplName + "' expanded contents should have only one top DOM tag.";
+                    }
+                }
+            });
+            $target.prepend($result);
+        };
+        $.each($targets, function(k, currentTarget) {
+            $(currentTarget).contents().unwrap();
+        });
     };
 
 })(App._self.prototype);
-
-/**
- * Expand underscore.js template to string.
- */
-App.expandTemplate = function(tplId, self) {
-    var compiled = App.compileTemplate(tplId);
-    if (typeof self === 'undefined') {
-        self = new App._self();
-    }
-    // todo: Add self.flatatt() to easily manipulate DOM attrs in templates.
-    // Add self.get() function to helper context.
-    return compiled(self);
-};
-
-/**
- * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
- * Template will be processed recursively.
- */
-App.domTemplate = function(tplId, self) {
-    if (typeof self !== 'object') {
-        self = new App._self();
-    }
-    var contents = App.expandTemplate(tplId, self);
-    var $result = $.contents(contents);
-    // Load recursive nested templates, if any.
-    $.each($result, function(k, v) {
-        var $node = $(v);
-        if ($node.prop('nodeType') === 1) {
-            App.loadTemplates($node, self);
-        }
-    });
-    return $result;
-};
-
-/**
- * Recursive underscore.js template autoloading.
- * Does not use html5 <template> tag because IE lower than Edge does not support it.
- * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
- */
-App.loadTemplates = function($selector, self) {
-    if (typeof self === 'undefined') {
-        self = new App._self();
-    }
-    var $targets = $selector.findSelf('[data-template-id]');
-    // Build the list of parent templates for each template available.
-    var $ancestors = [];
-    $.each($targets, function(k, currentTarget) {
-        $ancestors[k] = $(currentTarget).parents('[data-template-id]');
-        $ancestors[k]._targetKey = k;
-    });
-    // Sort the list of parent templates from outer to inner nodes of the tree.
-    $ancestors = _.sortBy($ancestors, 'length');
-    // Expand innermost templates first, outermost last.
-    for (var k = $ancestors.length - 1; k >= 0; k--) {
-        var $target = $targets.eq($ancestors[k]._targetKey);
-        var tplName = self.template($target.attr('data-template-id'));
-        var tplSelf = $.extend(true, {}, self);
-        if ($target.data('templateArgsNesting') !== false) {
-            // Search for template args in parent templates.
-            // Accumulate all ancestors template args from up to bottom.
-            for (var i = $ancestors[k].length - 1; i >= 0; i--) {
-                var $ancestor = $ancestors[k].eq(i);
-                var ancestorTplArgs = $ancestor.data('templateArgs');
-                if (ancestorTplArgs !== undefined &&
-                        $ancestor.data('templateArgsNesting') !== false) {
-                    tplSelf = $.extend(true, tplSelf, ancestorTplArgs);
-                }
-            }
-        }
-        var ownTplArgs = $target.data('templateArgs');
-        if (ownTplArgs !== undefined) {
-            tplSelf = $.extend(true, tplSelf, ownTplArgs);
-        }
-        var $result = App.domTemplate(tplName, tplSelf);
-        var topNodeCount = 0;
-        // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
-        $.each($result, function(k, v) {
-            if ($(v).prop('nodeType') === 1) {
-                if (++topNodeCount > 1) {
-                    throw "Template '" + tplName + "' expanded contents should have only one top DOM tag.";
-                }
-            }
-        });
-        $target.prepend($result);
-    };
-    $.each($targets, function(k, currentTarget) {
-        $(currentTarget).contents().unwrap();
-    });
-};
 
 /**
  * Recursive underscore.js template autoloading with template self instance binding.
@@ -1280,7 +1273,7 @@ App.bindTemplates = function($selector, self) {
         }
         self = App.newClassFromPath(classPath, classPathArgs);
     }
-    App.loadTemplates($selector, self);
+    self.loadTemplates($selector);
 };
 
 App.initClientHooks = [];
@@ -1649,7 +1642,7 @@ App.Components = function() {
         if ($elem.data('componentIdx') !== undefined) {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
         }
-        var options = $.extend(true, {}, $elem.data('componentOptions'));
+        var options = $.extend({}, $elem.data('componentOptions'));
         if (typeof options !== 'object') {
             console.log('Skipping .component with unset data-component-options');
             return;
