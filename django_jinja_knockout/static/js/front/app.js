@@ -1159,7 +1159,24 @@ App._self = function() {
 
 (function(_self) {
 
-    _self.clone = function() {
+    _self.createProcessor = function($selector, clone) {
+        var self;
+        // There is no instance supplied. Load from classPath.
+        var classPath = $selector.data('templateClass');
+        if (classPath === undefined) {
+            if (clone === false) {
+                self = this;
+            } else {
+                self = this.cloneProcessor();
+            }
+        } else {
+            var options = $.extend({}, $selector.data('templateOptions'));
+            self = App.newClassFromPath(classPath, [options]);
+        }
+        return self;
+    };
+
+    _self.cloneProcessor = function() {
         return $.extend({}, this);
     };
 
@@ -1274,7 +1291,7 @@ App._self = function() {
         // Expand innermost templates first, outermost last.
         for (var k = $ancestors.length - 1; k >= 0; k--) {
             var $target = $targets.eq($ancestors[k]._targetKey);
-            var tplSelf = this.clone();
+            var tplSelf = this.createProcessor($target);
             tplSelf.prependTemplates($target, $ancestors[k]);
         };
         $.each($targets, function(k, currentTarget) {
@@ -1289,16 +1306,7 @@ App._self = function() {
  */
 App.bindTemplates = function($selector, self) {
     if (typeof self === 'undefined') {
-        // There is no instance supplied. Load from classPath.
-        var classPath = $selector.data('classPath');
-        if (classPath === undefined) {
-            classPath = 'App._self';
-        }
-        var classPathArgs = $selector.data('classPathArgs');
-        if (classPathArgs === undefined) {
-            classPathArgs = [];
-        }
-        self = App.newClassFromPath(classPath, classPathArgs);
+        self = new App._self().createProcessor($selector, false);
     }
     self.loadTemplates($selector);
 };
@@ -1669,16 +1677,16 @@ App.Components = function() {
         if ($elem.data('componentIdx') !== undefined) {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
         }
+        var classPath = $elem.data('componentClass');
         var options = $.extend({}, $elem.data('componentOptions'));
         if (typeof options !== 'object') {
-            console.log('Skipping .component with unset data-component-options');
+            console.log('Skipping .component with invalid data-component-options');
             return;
         }
-        if (typeof options.classPath === 'undefined') {
-            throw 'Undefined data-component-options classPath.';
+        if (classPath === undefined) {
+            throw 'Undefined data-component-class classPath.';
         }
-        var cls = App.getClassFromPath(options.classPath);
-        delete options.classPath;
+        var cls = App.getClassFromPath(classPath);
         var component = new cls(options);
         return component;
     };

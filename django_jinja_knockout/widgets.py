@@ -170,6 +170,10 @@ class ForeignKeyGridWidget(DisplayText):
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
         self.grid_options.update(foreign_key_grid_options)
+        if 'classPath' in self.grid_options:
+            js_class_path = self.grid_options.pop('classPath')
+        else:
+            js_class_path = 'App.ko.Grid'
         return format_html(
             '<div {wrapper_attrs}>'
             '<input {final_attrs}/>'
@@ -178,11 +182,12 @@ class ForeignKeyGridWidget(DisplayText):
             '</div>',
             wrapper_attrs=flatatt({
                 'class': 'component',
+                'data-component-class': js_class_path,
                 'data-component-options': to_json(self.grid_options),
             }),
-            change=_('Change'),
+            final_attrs=flatatt(final_attrs),
             display_value=self.get_text(display_value),
-            final_attrs=flatatt(final_attrs)
+            change=_('Change')
         )
 
     def to_display_value(self, value):

@@ -40,6 +40,12 @@ Setup dom_attrs.
 
 -#}
 {% do add_css_classes_to_dict(dom_attrs, 'component') -%}
+{% if 'classPath' in _grid_options -%}
+    {% do dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
+    {% do _grid_options.pop('classPath') -%}
+{% else -%}
+    {% do dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
+{% endif -%}
 {% if 'name' in dom_attrs -%}
     {% set fragment_name = dom_attrs['name'] -%}
     {% do dom_attrs.pop('name') -%}
