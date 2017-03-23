@@ -173,7 +173,7 @@ class ForeignKeyGridWidget(DisplayText):
         if 'classPath' in self.grid_options:
             js_class_path = self.grid_options.pop('classPath')
         else:
-            js_class_path = 'App.ko.Grid'
+            js_class_path = 'App.FkGridWidget'
         return format_html(
             '<div {wrapper_attrs}>'
             '<input {final_attrs}/>'
