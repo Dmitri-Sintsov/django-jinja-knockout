@@ -1152,32 +1152,56 @@ App.compileTemplate = function(tplId) {
 
 // underscore.js templates default processor (default class binding).
 // todo: Add .flatatt() to easily manipulate DOM attrs in templates.
-App._self = function() {
-    this.data = {};
-    this.templates = {};
+App._self = function(options) {
+    this.init(options);
 };
 
 (function(_self) {
 
-    _self.createProcessor = function($selector, clone) {
-        var self;
+    _self.parentProps = ['data', 'templates'];
+
+    _self.init = function(options) {
+        var defOptions = {}
+        _.each(this.parentProps, function(propName) {
+            defOptions[propName] = {};
+        });
+        var _options = $.extend(defOptions, options);
+        this.data = _options.data;
+        this.templates = _options.templates;
+    };
+
+    _self.inheritProcessor = function($selector, clone) {
+        var child;
         // There is no instance supplied. Load from classPath.
         var classPath = $selector.data('templateClass');
-        if (classPath === undefined) {
-            if (clone === false) {
-                self = this;
+        var templateOptions = $selector.data('templateOptions');
+        if (classPath === undefined && templateOptions === undefined) {
+            if (clone === true) {
+                child = this.cloneProcessor();
             } else {
-                self = this.cloneProcessor();
+                child = this;
             }
         } else {
-            var options = $.extend({}, $selector.data('templateOptions'));
-            self = App.newClassFromPath(classPath, [options]);
+            if (classPath === undefined) {
+                classPath = 'App._self';
+            }
+            var options = $.extend({}, templateOptions);
+            child = App.newClassFromPath(classPath, [options]);
+            child.inheritProps(this);
         }
-        return self;
+        return child;
     };
 
     _self.cloneProcessor = function() {
-        return $.extend({}, this);
+        return $.extend(true, {}, this);
+    };
+
+    // Override for custom inheritance.
+    _self.inheritProps = function(parent) {
+        var child = this;
+        _.each(this.parentProps, function(propName) {
+            $.inheritProps(parent[propName], child[propName]);
+        });
     };
 
     _self.extendData = function(data) {
@@ -1291,7 +1315,7 @@ App._self = function() {
         // Expand innermost templates first, outermost last.
         for (var k = $ancestors.length - 1; k >= 0; k--) {
             var $target = $targets.eq($ancestors[k]._targetKey);
-            var tplSelf = this.createProcessor($target);
+            var tplSelf = this.inheritProcessor($target);
             tplSelf.prependTemplates($target, $ancestors[k]);
         };
         $.each($targets, function(k, currentTarget) {
@@ -1306,7 +1330,7 @@ App._self = function() {
  */
 App.bindTemplates = function($selector, self) {
     if (typeof self === 'undefined') {
-        self = new App._self().createProcessor($selector, false);
+        self = new App._self().inheritProcessor($selector, false);
     }
     self.loadTemplates($selector);
 };

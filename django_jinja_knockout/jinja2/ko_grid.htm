@@ -1,10 +1,15 @@
-{% macro ko_grid(grid_options, template_options={}, dom_attrs={}, body_call_id=none) -%}
-{%- set _template_options = {
+{% macro ko_grid(grid_options, template_args={}, wrapper_dom_attrs={}, template_dom_attrs={}) -%}
+{#
+
+Setup underscore.js template args (stored to template_dom_attrs as json at later step).
+
+-#}
+{%- set _template_args = {
     'show_title': True,
     'show_pagination': True,
     'vscroll': False
 } -%}
-{% do _template_options.update(template_options) -%}
+{% do _template_args.update(template_args) -%}
 {#
 
 Setup url name kwargs both for resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
@@ -31,27 +36,37 @@ Setup url name kwargs both for resolve_cbv() and as grid_options.pageRoute / .pa
 Setup final _grid_options (component options).
 
 -#}
-{% set _grid_options = {'classPath': 'App.ko.Grid'} -%}
+{% set _grid_options = {} -%}
 {% do _grid_options.update(view.discover_grid_options(request)) -%}
 {% do _grid_options.update(grid_options) -%}
 {#
 
-Setup dom_attrs.
+Setup wrapper dom_attrs.
 
 -#}
-{% do add_css_classes_to_dict(dom_attrs, 'component') -%}
+{% do add_css_classes_to_dict(wrapper_dom_attrs, 'component') -%}
 {% if 'classPath' in _grid_options -%}
-    {% do dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
+    {% do wrapper_dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
     {% do _grid_options.pop('classPath') -%}
 {% else -%}
-    {% do dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
+    {% do wrapper_dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
 {% endif -%}
-{% if 'name' in dom_attrs -%}
-    {% set fragment_name = dom_attrs['name'] -%}
-    {% do dom_attrs.pop('name') -%}
-{% elif 'id' in dom_attrs -%}
-    {% set fragment_name = dom_attrs['id'] -%}
+{% if 'name' in wrapper_dom_attrs -%}
+    {% set fragment_name = wrapper_dom_attrs['name'] -%}
+    {% do wrapper_dom_attrs.pop('name') -%}
+{% elif 'id' in wrapper_dom_attrs -%}
+    {% set fragment_name = wrapper_dom_attrs['id'] -%}
 {% endif -%}
+{#
+
+Setup template dom_attrs.
+
+-#}
+{% set _template_dom_attrs = {
+    'data-template-id': 'ko_grid_body',
+    'data-template-args': to_json(_template_args)
+} -%}
+{% do _template_dom_attrs.update(template_dom_attrs) -%}
 {#
 
 Optional caller support.
@@ -59,36 +74,33 @@ Optional caller support.
 -#}
 {% if caller -%}
 {{ caller({
-    'dom_attrs': dom_attrs,
+    'wrapper_dom_attrs': wrapper_dom_attrs,
     '_grid_options': _grid_options,
     'fragment_name': fragment_name,
-    '_template_options': _template_options
+    '_template_dom_attrs': _template_dom_attrs
 }) }}
 {% else -%}
-{% if body_call_id is none -%}
-    {% set body_call_id = 'ko_grid_body' -%}
-{% endif -%}
-<div{{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
+<div{{ json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
 <a name="{{ fragment_name }}"></a>
-    <div data-template-id="{{ body_call_id }}" data-template-args='{{ _template_options|escapejs(True) }}'>
+    <div{{ json_flatatt(_template_dom_attrs) }}>
     </div>
 </div>
 {% endif -%}
 {% endmacro -%}
 {% if _render_ -%}
-    {% if not template_options is defined -%}
-        {% set template_options = {} -%}
+    {% if not template_args is defined -%}
+        {% set template_args = {} -%}
     {% endif -%}
-    {% if not dom_attrs is defined -%}
-        {% set dom_attrs = {} -%}
+    {% if not wrapper_dom_attrs is defined -%}
+        {% set wrapper_dom_attrs = {} -%}
     {% endif -%}
-    {% if not body_call_id is defined -%}
-        {% set body_call_id = none -%}
+    {% if not template_dom_attrs is defined -%}
+        {% set template_dom_attrs = {} -%}
     {% endif -%}
     {{ ko_grid(
         grid_options,
-        template_options=template_options,
-        dom_attrs=dom_attrs,
-        body_call_id=body_call_id
+        template_args=template_args,
+        wrapper_dom_attrs=wrapper_dom_attrs,
+        template_dom_attrs=template_dom_attrs
     ) }}
 {% endif -%}

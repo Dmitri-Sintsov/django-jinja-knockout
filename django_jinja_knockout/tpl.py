@@ -1,3 +1,4 @@
+import json
 import pytz
 import lxml.html
 from lxml import etree
@@ -7,6 +8,7 @@ from urllib.parse import urlencode
 
 from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe
+from django.forms.utils import flatatt
 try:
     # Django 1.11.
     import django.urls as urls
@@ -229,3 +231,14 @@ def get_formatted_url(url_name):
             for sprintf_url, named_parameters in matches:
                 return '{}{}'.format(get_script_prefix(), sprintf_url)
         raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
+
+
+def to_json(self):
+    return json.dumps(self, ensure_ascii=False)
+
+
+def json_flatatt(atts):
+    for k, v in atts.items():
+        if isinstance(v, (tuple, list, dict)):
+            atts[k] = to_json(v)
+    return flatatt(atts)

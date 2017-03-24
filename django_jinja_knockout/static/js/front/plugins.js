@@ -11,6 +11,14 @@ $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
 
+$.inheritProps = function(parent, child) {
+    for (var prop in parent) {
+        if (parent.hasOwnProperty(prop) && !(prop in child)) {
+            child[prop] = parent[prop];
+        }
+    }
+};
+
 $.htmlEncode = function(value) {
 	return $('<div>').text(value).html();
 };

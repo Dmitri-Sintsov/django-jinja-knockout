@@ -1,5 +1,5 @@
 # from pudb import set_trace
-import json
+from .tpl import to_json
 
 # dict manipulation functions are used on HttpRequest.client_data or HttpRequest.session.
 
@@ -90,10 +90,6 @@ def find_by_vm(self, partial_vm):
 
 
 vm_list.find_by_vm = find_by_vm
-
-
-def to_json(self):
-    return json.dumps(self, ensure_ascii=False)
 
 
 vm_list.to_json = to_json

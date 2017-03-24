@@ -1,8 +1,6 @@
-{% macro ko_grid_body(call_ids={}, template_ids={}, has_full_body=False) -%}
+{% macro ko_grid_body(include_ids=None, exclude_ids=None) -%}
 
-{%- set include_ids = {} -%}
-
-{%- set builtin_ids = [
+{% set _include_ids = set([
     'ko_range_filter',
     'ko_grid_row_click_menu',
     'ko_action_form',
@@ -14,28 +12,18 @@
     'ko_grid_table',
     'ko_grid_body',
     'ko_grid_pagination'
-] -%}
+]) -%}
 
-{% for builtin_id in builtin_ids -%}
-    {% if builtin_id not in template_ids -%}
-        {# Set built-in builtin_id name when there is no custom template in template_ids. -#}
-        {% do template_ids.update({builtin_id: builtin_id}) -%}
-    {% endif -%}
-    {% set include_builtin = builtin_id not in call_ids or template_ids[builtin_id] != builtin_id -%}
-    {# Include the source of template, when there is no another template in call_ids. -#}
-    {% do include_ids.update({builtin_id: include_builtin}) -%}
-    {% if builtin_id not in call_ids -%}
-        {# Standard template should be called. -#}
-        {% do call_ids.update({builtin_id: builtin_id}) -%}
-        {% if has_full_body and template_ids[builtin_id] == builtin_id -%}
-            {# Do not include standard template when has_full_body is True -#}
-            {% do include_ids.update({builtin_id: False}) -%}
-        {% endif -%}
-    {% endif -%}
-{% endfor -%}
+{% if include_ids is not none -%}
+    {% set _include_ids = _include_ids.union(include_ids) -%}
+{% endif -%}
 
-{% if include_ids['ko_range_filter'] -%}
-<script type="text/template" id="{{ template_ids['ko_range_filter'] }}">
+{% if exclude_ids is not none -%}
+    {% set _include_ids = _include_ids.difference(exclude_ids) -%}
+{% endif -%}
+
+{% if 'ko_range_filter' in _include_ids -%}
+<script type="text/template" id="ko_range_filter">
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="row form-group">
@@ -53,8 +41,8 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_row_click_menu'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_row_click_menu'] }}">
+{% if 'ko_grid_row_click_menu' in _include_ids -%}
+<script type="text/template" id="ko_grid_row_click_menu">
     <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
         <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
         </button>
@@ -62,9 +50,9 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_action_form'] -%}
+{% if 'ko_action_form' in _include_ids -%}
 <!-- 'ko_action_form' template is not actual template but a sceleton of action template for App.ActionTemplateDialog class. -->
-<script type="text/template" id="{{ template_ids['ko_action_form'] }}">
+<script type="text/template" id="ko_action_form">
     <div class="panel panel-default">
         <div class="panel-body">
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
@@ -81,20 +69,8 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_filter_choices'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_filter_choices'] }}">
-{% if template_ids['ko_grid_filter_choices'] == 'ko_grid_breadcrumb_filter_choices' -%}
-    <li data-bind="grid_filter">
-        <ol class="breadcrumb grid-breadcrumb">
-            <li class="bold" data-bind="text: name"></li>
-            <!-- ko foreach: choices -->
-            <li data-bind="css: {active: is_active()}">
-                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
-            </li>
-            <!-- /ko -->
-        </ol>
-    </li>
-{% else -%}
+{% if 'ko_grid_filter_choices' in _include_ids -%}
+<script type="text/template" id="ko_grid_filter_choices">
     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
         <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
@@ -106,13 +82,39 @@
             </li>
         </ul>
     </li>
-{% endif -%}
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_filter_popup'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_filter_popup'] }}">
-{% if template_ids['ko_grid_filter_popup'] == 'ko_grid_breadcrumb_filter_popup' -%}
+
+{% if 'ko_grid_breadcrumb_filter_choices' in _include_ids -%}
+<script type="text/template" id="ko_grid_breadcrumb_filter_choices">
+    <li data-bind="grid_filter">
+        <ol class="breadcrumb grid-breadcrumb">
+            <li class="bold" data-bind="text: name"></li>
+            <!-- ko foreach: choices -->
+            <li data-bind="css: {active: is_active()}">
+                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            </li>
+            <!-- /ko -->
+        </ol>
+    </li>
+</script>
+{% endif -%}
+
+
+{% if 'ko_grid_filter_popup' in _include_ids -%}
+<script type="text/template" id="ko_grid_filter_popup">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <span data-bind="text: name"></span> <b class="caret"></b>
+            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+        </a>
+    </li>
+</script>
+{% endif -%}
+
+{% if 'ko_grid_breadcrumb_filter_popup' in _include_ids -%}
+<script type="text/template" id="ko_grid_breadcrumb_filter_popup">
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
             <li>
@@ -123,19 +125,11 @@
             </li>
         </ol>
     </li>
-{% else -%}
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <span data-bind="text: name"></span> <b class="caret"></b>
-            <div data-bind="visible: current_name() != '', text: current_name()"></div>
-        </a>
-    </li>
-{% endif -%}
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_search'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_search'] }}">
+{% if 'ko_grid_search' in _include_ids -%}
+<script type="text/template" id="ko_grid_search">
     <form data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0" class="navbar-form navbar-left">
         <div data-bind="if: meta.hasSearch()" class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
@@ -151,26 +145,26 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_nav'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_nav'] }}">
+{% if 'ko_grid_nav' in _include_ids -%}
+<script type="text/template" id="ko_grid_nav">
     <nav class="nav navbar navbar-default">
         <div class="container-fluid grid-controls">
             <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
                 <!-- ko if: choices === undefined -->
-                <div data-template-id="{{ call_ids['ko_grid_filter_popup'] }}"></div>
+                <div data-template-id="ko_grid_filter_popup"></div>
                 <!-- /ko -->
                 <!-- ko if: choices !== undefined -->
-                <div data-template-id="{{ call_ids['ko_grid_filter_choices'] }}"></div>
+                <div data-template-id="ko_grid_filter_choices"></div>
                 <!-- /ko -->
             </ul>
-            <div data-template-id="{{ call_ids['ko_grid_search'] }}"></div>
+            <div data-template-id="ko_grid_search"></div>
         </div>
     </nav>
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_no_results'] -%}
-<script language="text/template" id="{{ template_ids['ko_grid_no_results'] }}">
+{% if 'ko_grid_no_results' in _include_ids -%}
+<script language="text/template" id="ko_grid_no_results">
     <div class="panel panel-default">
         <div class="panel-heading">
             {{ _(
@@ -182,8 +176,8 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_table'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_table'] }}">
+{% if 'ko_grid_table' in _include_ids -%}
+<script type="text/template" id="ko_grid_table">
     <div data-top="true">
         <div class="table-responsive" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
@@ -247,7 +241,7 @@
                 <tfoot class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
                     <tr>
                         <td data-bind="attr: {colspan: totalColumns()}">
-                            <div data-template-id="{{ call_ids['ko_grid_no_results'] }}"></div>
+                            <div data-template-id="ko_grid_no_results"></div>
                         </td>
                     </tr>
                 </tfoot>
@@ -257,27 +251,27 @@
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_body'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_body'] }}">
+{% if 'ko_grid_body' in _include_ids -%}
+<script type="text/template" id="ko_grid_body">
     <div <% if (self.get('show_title')) { %> class="panel panel-primary" <% } %>>
         <% if (self.get('show_title')) { %>
         <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
         <div class="panel-body">
         <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
-            <div data-template-id="{{ call_ids['ko_grid_nav'] }}"></div>
+            <div data-template-id="ko_grid_nav"></div>
             <!-- /ko -->
-            <div data-template-id="{{ call_ids['ko_grid_table'] }}"></div>
+            <div data-template-id="ko_grid_table"></div>
         <% if (self.get('show_pagination')) { %>
-            <div data-template-id="{{ call_ids['ko_grid_pagination'] }}"></div>
+            <div data-template-id="ko_grid_pagination"></div>
         </div>
         <% } %>
     </div>
 </script>
 {% endif -%}
 
-{% if include_ids['ko_grid_pagination'] -%}
-<script type="text/template" id="{{ template_ids['ko_grid_pagination'] }}">
+{% if 'ko_grid_pagination' in _include_ids -%}
+<script type="text/template" id="ko_grid_pagination">
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
         <ul data-bind="foreach: gridPages" class="pagination">
             <li data-bind="css:{active: isActive}">

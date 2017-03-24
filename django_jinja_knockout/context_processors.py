@@ -10,7 +10,7 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 
 from .models import get_verbose_name, ContentTypeLinker
 from .middleware import ContextMiddlewareCompat
-from .tpl import add_css_classes, add_css_classes_to_dict, resolve_cbv, reverseq, get_formatted_url
+from .tpl import add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
@@ -87,6 +87,7 @@ class TemplateContextProcessor():
             'flatatt': flatatt,
             'format_html': format_html,
             'isinstance': isinstance,
+            'json_flatatt': json_flatatt,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
@@ -96,6 +97,7 @@ class TemplateContextProcessor():
             # Use url() provided by django-jinja for reverse without query args.
             'reverseq': reverseq,
             'sdv': sdv,
+            'set': set,
             'str': str,
         }
 
