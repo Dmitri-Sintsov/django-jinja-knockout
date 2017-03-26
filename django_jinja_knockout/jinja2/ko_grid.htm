@@ -64,7 +64,7 @@ Setup template dom_attrs.
 -#}
 {% set _template_dom_attrs = {
     'data-template-id': 'ko_grid_body',
-    'data-template-args': to_json(_template_args)
+    'data-template-args': _template_args
 } -%}
 {% do _template_dom_attrs.update(template_dom_attrs) -%}
 {#

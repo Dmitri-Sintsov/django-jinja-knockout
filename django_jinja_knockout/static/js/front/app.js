@@ -370,8 +370,8 @@ App.Dialog = function(options) {
         }
     };
 
-    Dialog.getTemplateSelf = function() {
-        return new App._self();
+    Dialog.iocTemplateProcessor = function() {
+        return new App.Tpl();
     };
 
     Dialog.createDialogContent = function() {
@@ -380,7 +380,7 @@ App.Dialog = function(options) {
             template = App.propGet(this, 'template');
         }
         if (template !== undefined) {
-            return this.getTemplateSelf().domTemplate(template);
+            return this.iocTemplateProcessor().domTemplate(template);
         } else {
             return $.contents('sample content');
         }
@@ -1150,27 +1150,41 @@ App.compileTemplate = function(tplId) {
 };
 
 
-// underscore.js templates default processor (default class binding).
-// todo: Add .flatatt() to easily manipulate DOM attrs in templates.
-App._self = function(options) {
+/**
+ * underscore.js templates default processor (default class binding),
+ * available in underscore templates as self.
+ *
+ * Currently used html5 data attributes:
+ *
+ * 'data-template-class' : optional Javascript classpath to template processor class ('App.Tpl' when omitted).
+ * 'data-template-options' : optional options argument of template processor class constructor.
+ * 'data-template-id' : DOM id of underscore.js template to expand recursively.
+ * 'data-template-args' : optional data to be used to control the logic flow of current underscore.js template via
+ *     App.Tpl.get() method available as self.get() in template source code.
+ *
+ * todo: Add .flatatt() to easily manipulate DOM attrs in templates.
+ */
+App.Tpl = function(options) {
     this.init(options);
 };
 
-(function(_self) {
+(function(Tpl) {
 
-    _self.parentProps = ['data', 'templates'];
+    Tpl.parentProps = ['data', 'templates'];
 
-    _self.init = function(options) {
+    Tpl.init = function(options) {
         var defOptions = {}
         _.each(this.parentProps, function(propName) {
             defOptions[propName] = {};
         });
         var _options = $.extend(defOptions, options);
+        // Set of data used to control current template logic via Tpl.get() method.
         this.data = _options.data;
+        // Optionally substitutes templateId to another one to create custom layout.
         this.templates = _options.templates;
     };
 
-    _self.inheritProcessor = function($selector, clone) {
+    Tpl.inheritProcessor = function($selector, clone) {
         var child;
         // There is no instance supplied. Load from classPath.
         var classPath = $selector.data('templateClass');
@@ -1183,7 +1197,7 @@ App._self = function(options) {
             }
         } else {
             if (classPath === undefined) {
-                classPath = 'App._self';
+                classPath = 'App.Tpl';
             }
             var options = $.extend({}, templateOptions);
             child = App.newClassFromPath(classPath, [options]);
@@ -1192,31 +1206,32 @@ App._self = function(options) {
         return child;
     };
 
-    _self.cloneProcessor = function() {
+    Tpl.cloneProcessor = function() {
         return $.extend(true, {}, this);
     };
 
     // Override for custom inheritance.
-    _self.inheritProps = function(parent) {
+    Tpl.inheritProps = function(parent) {
         var child = this;
         _.each(this.parentProps, function(propName) {
             $.inheritProps(parent[propName], child[propName]);
         });
     };
 
-    _self.extendData = function(data) {
+    Tpl.extendData = function(data) {
         this.data = $.extend(this.data, data);
     };
 
-    _self.getTemplateData = function(data) {
+    Tpl.getTemplateData = function(data) {
         return (typeof data === 'undefined') ? {} : data;
     };
 
-    _self.getTemplateName = function(templateId) {
+    // Optionally substitutes templateId to another one to create custom layout.
+    Tpl.getTemplateId = function(templateId) {
         return (typeof this.templates[templateId] === 'undefined') ? templateId : this.templates[templateId];
     };
 
-    _self.get = function(varName, defaultValue) {
+    Tpl.get = function(varName, defaultValue) {
         if (typeof varName !== 'string') {
             throw 'varName must be string';
         }
@@ -1231,8 +1246,10 @@ App._self = function(options) {
     /**
      * Expand underscore.js template to string.
      */
-    _self.expandTemplate = function(tplId) {
-        var compiled = App.compileTemplate(tplId);
+    Tpl.expandTemplate = function(tplId) {
+        var compiled = App.compileTemplate(
+            this.getTemplateId(tplId)
+        );
         return compiled(this);
     };
 
@@ -1240,7 +1257,7 @@ App._self = function(options) {
      * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
      * Template will be processed recursively.
      */
-    _self.domTemplate = function(tplId) {
+    Tpl.domTemplate = function(tplId) {
         var self = this;
         var contents = self.expandTemplate(tplId);
         var $result = $.contents(contents);
@@ -1258,7 +1275,7 @@ App._self = function(options) {
      * Search for template args in parent templates.
      * Accumulate all ancestors template args from up to bottom.
      */
-    _self.addSubArgs = function($ancestors) {
+    Tpl.addSubArgs = function($ancestors) {
         for (var i = $ancestors.length - 1; i >= 0; i--) {
             var $ancestor = $ancestors.eq(i);
             var ancestorTplArgs = $ancestor.data('templateArgs');
@@ -1269,24 +1286,22 @@ App._self = function(options) {
         }
     };
 
-    _self.renderSubTemplates = function() {
-        var $result = this.domTemplate(this.tplName);
+    Tpl.renderSubTemplates = function() {
+        var $result = this.domTemplate(this.tplId);
         var topNodeCount = 0;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
         $.each($result, function(k, v) {
             if ($(v).prop('nodeType') === 1) {
                 if (++topNodeCount > 1) {
-                    throw "Template '" + tplName + "' expanded contents should have only one top DOM tag.";
+                    throw "Template '" + this.tplId + "' expanded contents should have only one top DOM tag.";
                 }
             }
         });
         return $result;
     };
 
-    _self.prependTemplates = function($target, $ancestors) {
-        this.tplName = this.getTemplateName(
-            $target.attr('data-template-id')
-        );
+    Tpl.prependTemplates = function($target, $ancestors) {
+        this.tplId = $target.attr('data-template-id');
         if ($target.data('templateArgsNesting') !== false) {
             this.addSubArgs($ancestors);
         }
@@ -1302,7 +1317,7 @@ App._self = function(options) {
      * Does not use html5 <template> tag because IE lower than Edge does not support it.
      * Make sure loaded template is properly closed XHTML, otherwise jQuery.html() will fail to load it completely.
      */
-    _self.loadTemplates = function($selector) {
+    Tpl.loadTemplates = function($selector) {
         var $targets = $selector.findSelf('[data-template-id]');
         // Build the list of parent templates for each template available.
         var $ancestors = [];
@@ -1315,24 +1330,24 @@ App._self = function(options) {
         // Expand innermost templates first, outermost last.
         for (var k = $ancestors.length - 1; k >= 0; k--) {
             var $target = $targets.eq($ancestors[k]._targetKey);
-            var tplSelf = this.inheritProcessor($target);
-            tplSelf.prependTemplates($target, $ancestors[k]);
+            var ancestorTpl = this.inheritProcessor($target);
+            ancestorTpl.prependTemplates($target, $ancestors[k]);
         };
         $.each($targets, function(k, currentTarget) {
             $(currentTarget).contents().unwrap();
         });
     };
 
-})(App._self.prototype);
+})(App.Tpl.prototype);
 
 /**
  * Recursive underscore.js template autoloading with template self instance binding.
  */
-App.bindTemplates = function($selector, self) {
-    if (typeof self === 'undefined') {
-        self = new App._self().inheritProcessor($selector, false);
+App.bindTemplates = function($selector, tpl) {
+    if (typeof tpl === 'undefined') {
+        tpl = new App.Tpl().inheritProcessor($selector, false);
     }
-    self.loadTemplates($selector);
+    tpl.loadTemplates($selector);
 };
 
 App.initClientHooks = [];

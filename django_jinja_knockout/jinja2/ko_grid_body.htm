@@ -284,14 +284,11 @@
 
 {% endmacro -%}
 {% if _render_ -%}
-    {% if not call_ids is defined -%}
-        {% set call_ids={} -%}
+    {% if not include_ids is defined -%}
+        {% set include_ids={} -%}
     {% endif -%}
-    {% if not template_ids is defined -%}
-        {% set template_ids={} -%}
+    {% if not exclude_ids is defined -%}
+        {% set exclude_ids={} -%}
     {% endif -%}
-    {% if not has_full_body is defined -%}
-        {% set has_full_body = False -%}
-    {% endif -%}
-    {{ ko_grid_body(call_ids=call_ids, template_ids=template_ids, has_full_body=has_full_body) }}
+    {{ ko_grid_body(include_ids=include_ids, exclude_ids=exclude_ids) }}
 {% endif -%}

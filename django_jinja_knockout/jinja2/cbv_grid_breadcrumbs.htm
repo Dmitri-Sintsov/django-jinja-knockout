@@ -8,6 +8,14 @@
 ko_grid(
     grid_options={
         'pageRoute': view.request.url_name,
+    },
+    template_dom_attrs={
+        'data-template-options': {
+            'templates': {
+                'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
+                'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
+            }
+        },
     }
 )
 }}
@@ -17,16 +25,15 @@ ko_grid(
 {% block bottom_scripts %}
     {{
         ko_grid_body(
-            call_ids={
-                'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
-                'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
-            },
-            template_ids={
-                'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
-                'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
-            }
+            include_ids=[
+                'ko_grid_breadcrumb_filter_choices',
+                'ko_grid_breadcrumb_filter_popup'
+            ],
+            exclude_ids=[
+                'ko_grid_filter_choices',
+                'ko_grid_filter_popup'
+            ]
         )
     }}
     <script src="{{ static('js/front/ko-grid.js') }}"></script>
 {% endblock bottom_scripts %}
-
