@@ -13,6 +13,13 @@ if (typeof window.App === 'undefined') {
 };
 App = window.App;
 
+
+App.globalIoc = {
+    'App.Tpl': function(options) {
+        return new App.Tpl(options);
+    },
+};
+
 if (typeof django === 'object' && typeof django.gettext === 'function') {
     App.trans = function() {
         if (arguments.length < 2) {
@@ -370,8 +377,9 @@ App.Dialog = function(options) {
         }
     };
 
-    Dialog.iocTemplateProcessor = function() {
-        return new App.Tpl();
+    Dialog.iocTemplateProcessor = function(options) {
+        var _options = $.extend({'meta_is_dialog': true}, options);
+        return App.globalIoc['App.Tpl'](options);
     };
 
     Dialog.createDialogContent = function() {
@@ -1196,11 +1204,12 @@ App.Tpl = function(options) {
                 child = this;
             }
         } else {
-            if (classPath === undefined) {
-                classPath = 'App.Tpl';
-            }
             var options = $.extend({}, templateOptions);
-            child = App.newClassFromPath(classPath, [options]);
+            if (classPath === undefined) {
+                child = App.globalIoc['App.Tpl'](options);
+            } else {
+                child = App.newClassFromPath(classPath, [options]);
+            }
             child.inheritProps(this);
         }
         return child;
@@ -1345,7 +1354,7 @@ App.Tpl = function(options) {
  */
 App.bindTemplates = function($selector, tpl) {
     if (typeof tpl === 'undefined') {
-        tpl = new App.Tpl().inheritProcessor($selector, false);
+        tpl = App.globalIoc['App.Tpl']().inheritProcessor($selector, false);
     }
     tpl.loadTemplates($selector);
 };

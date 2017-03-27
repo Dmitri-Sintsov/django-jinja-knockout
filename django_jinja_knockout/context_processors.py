@@ -89,6 +89,7 @@ class TemplateContextProcessor():
             'isinstance': isinstance,
             'json_flatatt': json_flatatt,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
+            'list': list,
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
             'request': self.HttpRequest,

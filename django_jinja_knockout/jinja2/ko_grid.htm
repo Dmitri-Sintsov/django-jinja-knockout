@@ -64,9 +64,10 @@ Setup template dom_attrs.
 -#}
 {% set _template_dom_attrs = {
     'data-template-id': 'ko_grid_body',
-    'data-template-args': _template_args
+    'data-template-args': _template_args,
+    'data-template-options': {'meta_is_grid': True},
 } -%}
-{% do _template_dom_attrs.update(template_dom_attrs) -%}
+{% do sdv.nested_update(_template_dom_attrs, template_dom_attrs) -%}
 {#
 
 Optional caller support.
