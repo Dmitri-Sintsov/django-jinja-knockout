@@ -115,7 +115,11 @@ App.ko.GridColumnOrder = function(options) {
              * This allows to have both escaped and unescaped nested lists in row cells
              * via App.ko.Grid.isMarkSafeField()
              */
-            App.renderNestedList(element, value, {blockTags: this.blockTags, fn: 'html'});
+            var nestedListOptions = {blockTags: this.blockTags, fn: 'html'};
+            if (typeof this.ownerGrid.meta.nestedListOptions === 'object') {
+                nestedListOptions = $.extend(nestedListOptions, this.ownerGrid.meta.nestedListOptions);
+            }
+            App.renderNestedList(element, value, nestedListOptions);
         } else {
             // Warning: make sure string is escaped!
             // Primarily use is to display server-side formatted strings (Djano local date / currency format).

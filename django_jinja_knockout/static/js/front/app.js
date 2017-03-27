@@ -61,6 +61,9 @@ App.renderNestedList = function(element, value, options) {
         options = {};
     }
     var fn = (typeof options.fn === 'undefined') ? 'text' : options.fn; // 'html'
+    if (typeof options.keyPath === 'undefined') {
+        options.keyPath = [];
+    }
     if (typeof value !== 'object') {
         $element[fn](value);
         return;
@@ -79,19 +82,40 @@ App.renderNestedList = function(element, value, options) {
         var $ul = $(blockTags[level].enclosureTag)
             .addClass(blockTags[level].enclosureClasses);
         $.each(value, function(k, v) {
+            var localKey;
+            options.keyPath.push(k);
             if (typeof v === 'object') {
                 var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
                 App.renderNestedList($ul, v, {
                     fn: fn,
                     blockTags: blockTags,
-                    level: nextLevel
+                    level: nextLevel,
+                    useKeys: options.useKeys,
+                    i18n: options.i18n,
+                    keyPath: options.keyPath,
                 });
             } else {
+                if (options.useKeys) {
+                    if (typeof options.i18n === 'object') {
+                        var localPath = options.keyPath.join('›')
+                        if (typeof options.i18n[localPath] !== 'undefined') {
+                            localKey = options.i18n[localPath];
+                        } else if (localPath !== k && typeof options.i18n[k] !== 'undefined') {
+                            localKey = options.i18n[k];
+                        } else {
+                            localKey = k;
+                        }
+                    } else {
+                        localKey = k;
+                    }
+                    v = localKey + ': ' + v;
+                }
                 var $li = $(blockTags[level].itemTag)
                     .addClass(blockTags[level].itemClasses)
                     [fn](v);
                 $ul.append($li);
             }
+            options.keyPath.pop();
         });
         $element.append($ul);
     }
