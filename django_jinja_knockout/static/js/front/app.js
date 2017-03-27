@@ -379,7 +379,7 @@ App.Dialog = function(options) {
 
     Dialog.iocTemplateProcessor = function(options) {
         var _options = $.extend({'meta_is_dialog': true}, options);
-        return App.globalIoc['App.Tpl'](options);
+        return App.globalIoc['App.Tpl'](_options);
     };
 
     Dialog.createDialogContent = function() {
