@@ -291,7 +291,7 @@ App.Dialog = function(options) {
             if (typeof this.dialogOptions.message === 'object') {
                 var $content = $('<div>');
                 this.dialogOptions.message = App.renderNestedList(
-                    $content, this.dialogOptions.message, {blockTags: App.blockTags.badges}
+                    $content, this.dialogOptions.message, this.getNestedListOptions()
                 );
             }
             this.dialogOptions.message = $.contents(this.dialogOptions.message);
@@ -424,6 +424,14 @@ App.Dialog = function(options) {
 
     Dialog.getOptions = function() {
         return {};
+    };
+
+    Dialog.getNestedListOptions = function() {
+        var options = {blockTags: App.blockTags.badges};
+        if (this.dialogOptions.nestedListOptions !== 'undefined') {
+            options = $.extend(options, this.dialogOptions.nestedListOptions);
+        }
+        return options;
     };
 
     // @todo: check correctness for messaging.js.

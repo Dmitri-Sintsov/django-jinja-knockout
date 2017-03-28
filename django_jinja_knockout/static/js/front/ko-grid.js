@@ -115,10 +115,13 @@ App.ko.GridColumnOrder = function(options) {
              * This allows to have both escaped and unescaped nested lists in row cells
              * via App.ko.Grid.isMarkSafeField()
              */
-            var nestedListOptions = {blockTags: this.blockTags, fn: 'html'};
-            if (typeof this.ownerGrid.meta.nestedListOptions === 'object') {
-                nestedListOptions = $.extend(nestedListOptions, this.ownerGrid.meta.nestedListOptions);
-            }
+            var nestedListOptions = $.extend(
+                {
+                    blockTags: this.blockTags,
+                    fn: 'html'
+                },
+                this.ownerGrid.meta.nestedListOptions
+            );
             App.renderNestedList(element, value, nestedListOptions);
         } else {
             // Warning: make sure string is escaped!
@@ -1312,6 +1315,7 @@ App.ko.Grid = function(options) {
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
+            nestedListOptions: {},
             strDesc: false,
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
@@ -2675,7 +2679,13 @@ App.FkGridWidget = function(options) {
 
     FkGridWidget.setDisplayValue = function(displayValue) {
         var $content = $('<span>');
-        App.renderNestedList($content, displayValue, {blockTags: this.blockTags});
+        var nestedListOptions = $.extend(
+            {
+                blockTags: this.blockTags,
+            },
+            this.gridDialog.grid.meta.nestedListOptions
+        );
+        App.renderNestedList($content, displayValue, nestedListOptions);
         this.$element.find('.fk-display').empty().append($content);
         return this;
     };

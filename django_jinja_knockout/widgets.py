@@ -81,6 +81,14 @@ class DisplayText(Widget):
             self.get_text(display_value)
         )
 
+    def get_print_list_kwargs(self, model):
+        kwargs = {
+            'show_keys': True,
+        }
+        if hasattr(model, 'get_fields_i18n'):
+            kwargs['i18n'] = model.get_fields_i18n()
+        return kwargs
+
     def to_display_value(self, value):
         if hasattr(self, 'choices'):
             for choice_val, choice_display in self.choices:
@@ -117,7 +125,11 @@ class DisplayText(Widget):
             field = getattr(self.instance, name)
             if hasattr(field, 'get_str_fields'):
                 str_fields = field.get_str_fields()
-                return print_list_group(str_fields) if len(str_fields) < 4 else print_bs_well(str_fields)
+                print_list_kwargs = self.get_print_list_kwargs(field)
+                if len(str_fields) < 4:
+                    return print_list_group(str_fields, **print_list_kwargs)
+                else:
+                    return print_bs_well(str_fields, **print_list_kwargs)
 
         is_list = isinstance(value, list)
         display_values = self.get_display_values(value) if is_list else self.get_display_values([value])
@@ -197,7 +209,7 @@ class ForeignKeyGridWidget(DisplayText):
             obj = self.model.objects.filter(pk=value).first()
             if obj is not None:
                 if hasattr(self.model, 'get_str_fields'):
-                    return print_bs_well(obj.get_str_fields())
+                    return print_bs_well(obj.get_str_fields(), **self.get_print_list_kwargs(obj.__class__))
                 else:
                     return str(obj)
         return value
