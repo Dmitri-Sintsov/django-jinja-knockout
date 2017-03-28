@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
 from django.views.generic import TemplateView
 
+from ..utils import sdv
 from .. import tpl as qtpl
 from ..models import (
     get_meta, get_verbose_name, model_values, get_object_description
@@ -79,6 +80,10 @@ class GridActionsMixin:
     form_with_inline_formsets = None
     enable_deletion = False
     mark_safe_fields = None
+    show_nested_fieldnames = True
+    # Currently is used only for i18n and is not required to be filled.
+    # Relation in queries are followed automatically via Django ORM.
+    related_models_list = None
 
     def get_model_meta(self, key):
         return get_meta(self.__class__.model, key)
@@ -308,6 +313,10 @@ class GridActionsMixin:
     def get_objects_descriptions(self, objects):
         return [self.get_object_desc(obj) for obj in objects]
 
+    # todo: get models directly from related_fields.
+    def get_related_models_list(self):
+        return [] if self.related_models_list is None else self.related_models_list
+
     def render_object_desc(self, obj):
         return qtpl.print_bs_badges(self.get_object_desc(obj))
 
@@ -444,8 +453,20 @@ class GridActionsMixin:
         # todo: support multiple order_by.
         if len(ordering) == 1 and list(ordering[0].keys())[0] in self.allowed_sort_orders:
             meta['orderBy'] = ordering[0]
-        if self.__class__.force_str_desc:
-            meta['strDesc'] = self.__class__.force_str_desc
+        if self.force_str_desc:
+            meta['strDesc'] = self.force_str_desc
+        if self.show_nested_fieldnames:
+            meta['nestedListOptions'] = {
+                'showKeys': True,
+            }
+            # Collect field names i18n from current model class and related model classes, when available.
+            i18n = self.model.get_fields_i18n() if hasattr(self.model, 'get_fields_i18n') else {}
+            for model in self.get_related_models_list():
+                if hasattr(model, 'get_fields_i18n'):
+                    sdv.nested_update(i18n, model.get_fields_i18n())
+            if len(i18n) > 0:
+                meta['nestedListOptions']['i18n'] = i18n
+
         return meta
 
     def action_meta(self):

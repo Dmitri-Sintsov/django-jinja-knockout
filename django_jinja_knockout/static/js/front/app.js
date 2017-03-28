@@ -90,12 +90,12 @@ App.renderNestedList = function(element, value, options) {
                     fn: fn,
                     blockTags: blockTags,
                     level: nextLevel,
-                    useKeys: options.useKeys,
+                    showKeys: options.showKeys,
                     i18n: options.i18n,
                     keyPath: options.keyPath,
                 });
             } else {
-                if (options.useKeys) {
+                if (options.showKeys) {
                     if (typeof options.i18n === 'object') {
                         var localPath = options.keyPath.join('›')
                         if (typeof options.i18n[localPath] !== 'undefined') {
