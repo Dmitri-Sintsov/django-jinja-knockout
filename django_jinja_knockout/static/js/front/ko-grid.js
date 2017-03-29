@@ -118,7 +118,10 @@ App.ko.GridColumnOrder = function(options) {
             var nestedListOptions = $.extend(
                 {
                     blockTags: this.blockTags,
-                    fn: 'html'
+                    fn: 'html',
+                    // Will try to use field name as key prefix first,
+                    // falling back to non-prefixed field names when missing.
+                    keyPrefix: this.field,
                 },
                 this.ownerGrid.meta.nestedListOptions
             );

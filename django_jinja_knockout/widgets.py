@@ -10,6 +10,7 @@ from django.forms.utils import flatatt
 from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
 
 from .apps import DjkAppConfig
+from .models import model_fields_verbose_names
 from .tpl import (
     print_list, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
@@ -84,9 +85,8 @@ class DisplayText(Widget):
     def get_print_list_kwargs(self, model):
         kwargs = {
             'show_keys': True,
+            'i18n': model_fields_verbose_names(model)
         }
-        if hasattr(model, 'get_fields_i18n'):
-            kwargs['i18n'] = model.get_fields_i18n()
         return kwargs
 
     def to_display_value(self, value):

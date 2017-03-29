@@ -59,12 +59,14 @@ def error_response(request, html):
 
 def exception_response(request, e):
     if request.is_ajax() and settings.DEBUG:
+        row = [(str(e), traceback.format_exc())]
         html = qtpl.print_list(
-            row=[str(e), traceback.format_exc()],
+            row=row,
             elem_tpl='<li style="white-space: pre-wrap;">{0}</li>\n'
         )
         return error_response(request, html)
-    raise e
+    else:
+        raise e
 
 
 # @note: Currently is unused, because url permission middleware checks permission_required from urls.py kwargs.

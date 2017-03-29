@@ -12,7 +12,7 @@ from django.views.generic import TemplateView
 from ..utils import sdv
 from .. import tpl as qtpl
 from ..models import (
-    get_meta, get_verbose_name, model_values, get_object_description
+    get_meta, get_verbose_name, model_fields_verbose_names, model_values, get_object_description, yield_related_models
 )
 from ..viewmodels import vm_list
 from .base import BaseFilterView, FormViewmodelsMixin
@@ -81,9 +81,12 @@ class GridActionsMixin:
     enable_deletion = False
     mark_safe_fields = None
     show_nested_fieldnames = True
-    # Currently is used only for i18n and is not required to be filled.
+    # Currently is used only to get verbose / localized foreign key field names and is not required to be filled.
     # Relation in queries are followed automatically via Django ORM.
-    related_models_list = None
+    # Set to dict with key fieldname: value related_model to use prefixed field names,
+    # Set to list of related models to use non-prefixed root field names (eg. genetic relationships).
+    # See also .get_related_model_fields_verbose_names() and App.ko.GridColumnOrder.renderRowValue() implementations.
+    related_models = None
 
     def get_model_meta(self, key):
         return get_meta(self.__class__.model, key)
@@ -313,9 +316,15 @@ class GridActionsMixin:
     def get_objects_descriptions(self, objects):
         return [self.get_object_desc(obj) for obj in objects]
 
-    # todo: get models directly from related_fields.
-    def get_related_models_list(self):
-        return [] if self.related_models_list is None else self.related_models_list
+    # Used to get local verbose names of the foreign fields.
+    def get_related_models(self):
+        if self.related_models is None:
+            related_models = {}
+            for field_name, related_model in yield_related_models(self.model, self.get_all_related_fields()):
+                related_models[field_name] = related_model
+            return related_models
+        else:
+            return self.related_models
 
     def render_object_desc(self, obj):
         return qtpl.print_bs_badges(self.get_object_desc(obj))
@@ -436,6 +445,22 @@ class GridActionsMixin:
                 vm_actions[action_type].append(action)
         return vm_actions
 
+    # Collect field names verbose_name or i18n of field names from related model classes when available.
+    def get_related_model_fields_verbose_names(self):
+        verbose_names = {}
+        # Do not include current model fields verbose names, because it's fields are not rendered as nested fields:
+        # i18n = model_fields_verbose_names(self.model)
+        related_models = self.get_related_models()
+        for field_name, model in sdv.iter_enumerate(related_models):
+            model_verbose_names = model_fields_verbose_names(model)
+            if not isinstance(field_name, int):
+                # Use prefixed field names to disambiguate possible different related models with the same field name.
+                model_verbose_names = {
+                    field_name + '›' + k:v for k, v in model_verbose_names.items()
+                }
+            sdv.nested_update(verbose_names, model_verbose_names)
+        return verbose_names
+
     # meta is used in Knockout.js templates for visual data binding such as model-related strings / numbers.
     def get_ko_meta(self):
         meta = {
@@ -459,11 +484,7 @@ class GridActionsMixin:
             meta['nestedListOptions'] = {
                 'showKeys': True,
             }
-            # Collect field names i18n from current model class and related model classes, when available.
-            i18n = self.model.get_fields_i18n() if hasattr(self.model, 'get_fields_i18n') else {}
-            for model in self.get_related_models_list():
-                if hasattr(model, 'get_fields_i18n'):
-                    sdv.nested_update(i18n, model.get_fields_i18n())
+            i18n = self.get_related_model_fields_verbose_names()
             if len(i18n) > 0:
                 meta['nestedListOptions']['i18n'] = i18n
 

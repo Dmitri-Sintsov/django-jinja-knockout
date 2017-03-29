@@ -64,6 +64,9 @@ App.renderNestedList = function(element, value, options) {
     if (typeof options.keyPath === 'undefined') {
         options.keyPath = [];
     }
+    if (typeof options.keyPrefix === 'undefined') {
+        options.keyPrefix = '';
+    }
     if (typeof value !== 'object') {
         $element[fn](value);
         return;
@@ -93,13 +96,17 @@ App.renderNestedList = function(element, value, options) {
                     showKeys: options.showKeys,
                     i18n: options.i18n,
                     keyPath: options.keyPath,
+                    keyPrefix: options.keyPrefix,
                 });
             } else {
                 if (options.showKeys) {
                     if (typeof options.i18n === 'object') {
-                        var localPath = options.keyPath.join('›')
+                        var localPath = options.keyPath.join('›');
                         if (typeof options.i18n[localPath] !== 'undefined') {
                             localKey = options.i18n[localPath];
+                        } else if (options.keyPrefix !== '' &&
+                                typeof options.i18n[options.keyPrefix + '›' + localPath] !== 'undefined') {
+                            localKey = options.i18n[options.keyPrefix + '›' + localPath];
                         } else if (localPath !== k && typeof options.i18n[k] !== 'undefined') {
                             localKey = options.i18n[k];
                         } else {

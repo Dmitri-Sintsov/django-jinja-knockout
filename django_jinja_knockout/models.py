@@ -1,7 +1,10 @@
+from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.utils.html import format_html
 from django.db import models
 from django.db.models import Q
+from django.db.models.fields.reverse_related import ForeignObjectRel
+from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 
@@ -69,6 +72,28 @@ def get_verbose_name(obj, fieldname=None):
     return get_meta(obj, 'verbose_name', fieldname)
 
 
+def model_fields_meta(model, meta_attr):
+    meta = {}
+    for field in model._meta.get_fields():
+        if isinstance(field, ForeignObjectRel):
+            meta[field.name] = getattr(field.related_model._meta, meta_attr)
+        elif isinstance(field, GenericForeignKey):
+            meta[field.name] = getattr(
+                getattr(model, field.ct_field).field,
+                meta_attr
+            )
+        else:
+            meta[field.name] = getattr(field, meta_attr)
+    return meta
+
+
+def model_fields_verbose_names(model):
+    if hasattr(model, 'get_fields_i18n'):
+        return model.get_fields_i18n()
+    else:
+        return model_fields_meta(model, 'verbose_name')
+
+
 # obj can be model class or an instance of model class.
 # To iterate only some selected fields, specify fields list.
 def yield_model_fieldnames(obj, fields=None):
@@ -78,6 +103,27 @@ def yield_model_fieldnames(obj, fields=None):
     else:
         for fieldname in fields:
             yield fieldname
+
+
+def yield_model_fields(obj, fields=None, skip_virtual=False):
+    if fields is None:
+        for field in obj._meta.fields:
+            yield field.name, field
+    else:
+        for fieldname in fields:
+            try:
+                if '__' in fieldname:
+                    yield fieldname, get_related_field(obj, fieldname)
+                else:
+                    yield fieldname, obj._meta.get_field(fieldname)
+            except FieldDoesNotExist as e:
+                if not skip_virtual:
+                    raise e
+
+def yield_related_models(obj, fields):
+    for fieldname, field in yield_model_fields(obj, fields, skip_virtual=True):
+        if isinstance(field, ForeignObject):
+            yield fieldname, field.related_model
 
 
 # Return dict of model fields name / value pairs like queryset values() for one model instance supplied.
