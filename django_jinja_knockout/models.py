@@ -3,7 +3,10 @@ from django.apps import apps
 from django.utils.html import format_html
 from django.db import models
 from django.db.models import Q
-from django.db.models.fields.reverse_related import ForeignObjectRel
+# Django 1.8+
+from django.db.models.fields.related import ForeignObjectRel
+# Django 1.9+
+# from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
