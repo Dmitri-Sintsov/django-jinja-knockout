@@ -99,7 +99,7 @@ App.renderNestedList = function(element, value, options) {
                     keyPrefix: options.keyPrefix,
                 });
             } else {
-                if (options.showKeys) {
+                if (typeof k === 'string' && options.showKeys) {
                     if (typeof options.i18n === 'object') {
                         var localPath = options.keyPath.join('›');
                         if (typeof options.i18n[localPath] !== 'undefined') {

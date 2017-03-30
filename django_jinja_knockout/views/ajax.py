@@ -445,11 +445,15 @@ class GridActionsMixin:
                 vm_actions[action_type].append(action)
         return vm_actions
 
+    def get_model_fields_verbose_names(self):
+        # Current model fields are not rendered as nested fields in grid, thus are not included into
+        # .get_related_model_fields_verbose_names() result.
+        # However these are used by App.FkGridWidget.setDisplayValue() separately.
+        return model_fields_verbose_names(self.model)
+
     # Collect field names verbose_name or i18n of field names from related model classes when available.
     def get_related_model_fields_verbose_names(self):
         verbose_names = {}
-        # Do not include current model fields verbose names, because it's fields are not rendered as nested fields:
-        # i18n = model_fields_verbose_names(self.model)
         related_models = self.get_related_models()
         for field_name, model in sdv.iter_enumerate(related_models):
             model_verbose_names = model_fields_verbose_names(model)
@@ -481,12 +485,16 @@ class GridActionsMixin:
         if self.force_str_desc:
             meta['strDesc'] = self.force_str_desc
         if self.show_nested_fieldnames:
-            meta['nestedListOptions'] = {
+            meta['fkNestedListOptions'] = {
                 'showKeys': True,
             }
             i18n = self.get_related_model_fields_verbose_names()
             if len(i18n) > 0:
-                meta['nestedListOptions']['i18n'] = i18n
+                meta['fkNestedListOptions']['i18n'] = i18n
+            meta['listOptions'] = {
+                'showKeys': True,
+                'i18n': self.get_model_fields_verbose_names()
+            }
 
         return meta
 

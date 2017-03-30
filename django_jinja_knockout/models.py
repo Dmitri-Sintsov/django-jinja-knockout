@@ -9,7 +9,6 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from .admin import empty_value_display
-from .utils.sdv import nested_values
 
 
 def normalize_fk_fieldname(fieldname):
@@ -120,6 +119,7 @@ def yield_model_fields(obj, fields=None, skip_virtual=False):
                 if not skip_virtual:
                     raise e
 
+
 def yield_related_models(obj, fields):
     for fieldname, field in yield_model_fields(obj, fields, skip_virtual=True):
         if isinstance(field, ForeignObject):
@@ -146,7 +146,7 @@ def model_values(obj, fields=None, strict_related=True):
 
 def get_object_description(obj):
     if hasattr(obj, 'get_str_fields'):
-        return nested_values(obj.get_str_fields())
+        return obj.get_str_fields()
     else:
         return [str(obj)]
 

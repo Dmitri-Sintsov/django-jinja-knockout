@@ -123,7 +123,7 @@ App.ko.GridColumnOrder = function(options) {
                     // falling back to non-prefixed field names when missing.
                     keyPrefix: this.field,
                 },
-                this.ownerGrid.meta.nestedListOptions
+                this.ownerGrid.meta.fkNestedListOptions
             );
             App.renderNestedList(element, value, nestedListOptions);
         } else {
@@ -1057,9 +1057,19 @@ App.GridActions = function(options) {
 
     GridActions.blockTags = App.blockTags.badges;
 
+    /**
+     * Issued as the confirmation dialog for two-stages actions, such as select one or many grid rows
+     * then perform something with these, for example deletion.
+     */
     GridActions.renderDescription = function(viewModel, dialogType) {
         viewModel.message = $('<div>');
-        App.renderNestedList(viewModel.message, viewModel.description, {blockTags: this.blockTags});
+        var options = $.extend(
+            true,
+            {blockTags: this.blockTags},
+            this.grid.meta.fkNestedListOptions,
+            this.grid.meta.listOptions
+        );
+        App.renderNestedList(viewModel.message, viewModel.description, options);
         if (typeof dialogType === 'undefined') {
             dialogType = BootstrapDialog.TYPE_DANGER;
         }
@@ -1313,12 +1323,13 @@ App.ko.Grid = function(options) {
         }
         this.ownerCtrl = this.options.ownerCtrl;
         this.meta = {
+            fkNestedListOptions: {},
+            listOptions: {},
             pkField: '',
             hasSearch: ko.observable(false),
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
-            nestedListOptions: {},
             strDesc: false,
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
@@ -2680,13 +2691,16 @@ App.FkGridWidget = function(options) {
         return this;
     };
 
+    /**
+     * Issued when the user choses grid row to display selected foreign key value in field's widget.
+     */
     FkGridWidget.setDisplayValue = function(displayValue) {
         var $content = $('<span>');
         var nestedListOptions = $.extend(
             {
                 blockTags: this.blockTags,
             },
-            this.gridDialog.grid.meta.nestedListOptions
+            this.gridDialog.grid.meta.listOptions
         );
         App.renderNestedList($content, displayValue, nestedListOptions);
         this.$element.find('.fk-display').empty().append($content);
