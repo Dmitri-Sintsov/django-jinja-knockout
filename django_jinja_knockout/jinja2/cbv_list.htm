@@ -1,6 +1,6 @@
-{% extends 'base.htm' %}
+{% extends 'base.htm' -%}
 
-{% block main %}
-{% from 'bs_list.htm' import bs_list with context %}
+{% block main -%}
+{% from 'bs_list.htm' import bs_list with context -%}
 {{ bs_list(view, object_list, is_paginated, page_obj) }}
-{% endblock main %}
+{% endblock main -%}
