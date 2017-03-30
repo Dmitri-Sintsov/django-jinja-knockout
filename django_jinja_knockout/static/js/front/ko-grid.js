@@ -2746,8 +2746,16 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.blockTags = App.blockTags.badges;
 
+    /**
+     * Issued to render current row object description in multiple actions menu when there are more than one
+     * 'click' type actions for the current grid row.
+     */
     ActionsMenuDialog.renderRow = function() {
-        return this.grid.lastClickedKoRow.renderDesc({blockTags: this.blockTags});
+        var options = $.extend(
+            {blockTags: this.blockTags},
+            this.grid.meta.listOptions
+        );
+        return this.grid.lastClickedKoRow.renderDesc(options);
     };
 
     ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';

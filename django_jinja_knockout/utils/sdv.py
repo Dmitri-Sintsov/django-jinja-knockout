@@ -49,17 +49,6 @@ def yield_ordered(iterable):
         raise ValueError('iterable is not ordered')
 
 
-def yield_ordered_values(iterable):
-    if isinstance(iterable, OrderedDict):
-        for val in iterable.values():
-            yield val
-    elif isinstance(iterable, (list, ValuesView)):
-        for val in iterable:
-            yield val
-    else:
-        raise ValueError('iterable values are not ordered')
-
-
 # http://stackoverflow.com/questions/14692690/access-python-nested-dictionary-items-via-a-list-of-keys
 def get_nested(nested_data, map_list, default_value=None):
     if not isinstance(map_list, (list, tuple)):

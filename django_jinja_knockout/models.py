@@ -78,14 +78,16 @@ def model_fields_meta(model, meta_attr):
     meta = {}
     for field in model._meta.get_fields():
         if isinstance(field, ForeignObjectRel):
-            meta[field.name] = getattr(field.related_model._meta, meta_attr)
+            field_meta = getattr(field.related_model._meta, meta_attr)
         elif isinstance(field, GenericForeignKey):
-            meta[field.name] = getattr(
+            field_meta = getattr(
                 getattr(model, field.ct_field).field,
                 meta_attr
             )
         else:
-            meta[field.name] = getattr(field, meta_attr)
+            field_meta = getattr(field, meta_attr)
+        # Cast to str() to upwrap lazy / proxy wrappers to avoid JSON serialization errors.
+        meta[field.name] = str(field_meta)
     return meta
 
 

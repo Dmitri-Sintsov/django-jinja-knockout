@@ -18,7 +18,7 @@ except ImportError:
 for attr in ('resolve', 'reverse', 'NoReverseMatch', 'get_resolver', 'get_script_prefix'):
     globals()[attr] = getattr(urls, attr)
 
-from .utils.sdv import get_cbv_from_dispatch_wrapper, yield_ordered
+from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -41,7 +41,7 @@ def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
 # Print nested HTML list.
 def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape, show_keys=False, i18n={}):
     result = []
-    for key, elem in yield_ordered(row):
+    for key, elem in iter_enumerate(row):
         if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
             result.append(print_list(elem, elem_tpl, top_tpl, cb, show_keys))
         else:
