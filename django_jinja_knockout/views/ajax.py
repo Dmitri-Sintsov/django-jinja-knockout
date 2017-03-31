@@ -445,25 +445,27 @@ class GridActionsMixin:
                 vm_actions[action_type].append(action)
         return vm_actions
 
-    def get_model_fields_verbose_names(self):
-        # Current model fields are not rendered as nested fields in grid, thus are not included into
-        # .get_related_model_fields_verbose_names() result.
-        # However these are used by App.FkGridWidget.setDisplayValue() separately.
-        return model_fields_verbose_names(self.model)
+    def get_model_fields_verbose_names(self, field_name_prefix=None, model=None):
+        if model is None:
+            model = self.model
+        verbose_names = model_fields_verbose_names(model)
+        if field_name_prefix is not None and not isinstance(field_name_prefix, int):
+            # Use prefixed field names to disambiguate possible different related models with the same field name.
+            verbose_names = {
+                field_name_prefix + '›' + k: v for k, v in verbose_names.items()
+            }
+        return verbose_names
 
     # Collect field names verbose_name or i18n of field names from related model classes when available.
+    # These usually are stored into App.ko.Grid.meta.fkNestedListOptions.i18n
     def get_related_model_fields_verbose_names(self):
-        verbose_names = {}
+        # Grid model fields are not rendered as nested fields in grid, thus are not included into result of this call.
+        related_verbose_names = {}
         related_models = self.get_related_models()
         for field_name, model in sdv.iter_enumerate(related_models):
-            model_verbose_names = model_fields_verbose_names(model)
-            if not isinstance(field_name, int):
-                # Use prefixed field names to disambiguate possible different related models with the same field name.
-                model_verbose_names = {
-                    field_name + '›' + k:v for k, v in model_verbose_names.items()
-                }
-            sdv.nested_update(verbose_names, model_verbose_names)
-        return verbose_names
+            verbose_names = self.get_model_fields_verbose_names(field_name, model)
+            sdv.nested_update(related_verbose_names, verbose_names)
+        return related_verbose_names
 
     # meta is used in Knockout.js templates for visual data binding such as model-related strings / numbers.
     def get_ko_meta(self):
@@ -491,6 +493,7 @@ class GridActionsMixin:
             i18n = self.get_related_model_fields_verbose_names()
             if len(i18n) > 0:
                 meta['fkNestedListOptions']['i18n'] = i18n
+            # Current model verbose / local field names used by client-side App.FkGridWidget.setDisplayValue() call.
             meta['listOptions'] = {
                 'showKeys': True,
                 'i18n': self.get_model_fields_verbose_names()

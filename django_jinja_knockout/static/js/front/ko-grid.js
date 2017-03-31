@@ -119,8 +119,13 @@ App.ko.GridColumnOrder = function(options) {
                 {
                     blockTags: this.blockTags,
                     fn: 'html',
-                    // Will try to use field name as key prefix first,
-                    // falling back to non-prefixed field names when missing.
+                    /**
+                     * Will try to use field name as a key prefix first,
+                     * falling back to non-prefixed field names when missing.
+                     *
+                     * This avoids related fields name clashes when two different related models has the same field name
+                     * (eg. 'category') but a different 'verbose_name'.
+                     */
                     keyPrefix: this.field,
                 },
                 this.ownerGrid.meta.fkNestedListOptions
@@ -1063,6 +1068,7 @@ App.GridActions = function(options) {
      */
     GridActions.renderDescription = function(viewModel, dialogType) {
         viewModel.message = $('<div>');
+        // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
             {blockTags: this.blockTags},
