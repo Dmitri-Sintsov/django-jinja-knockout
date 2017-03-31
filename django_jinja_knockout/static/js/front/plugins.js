@@ -19,6 +19,21 @@ $.inheritProps = function(parent, child) {
     }
 };
 
+_.recursiveMap = function(value, fn) {
+    if (_.isArray(value)) {
+        return _.map(value, function(v) {
+            return _.recursiveMap(v, fn);
+        });
+    } else if (typeof value === 'object') {
+        return _.mapObject(value, function(v) {
+            return _.recursiveMap(v, fn);
+        });
+    } else {
+        return fn(value);
+    }
+};
+
+
 $.htmlEncode = function(value) {
 	return $('<div>').text(value).html();
 };

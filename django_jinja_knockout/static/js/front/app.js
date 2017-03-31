@@ -155,17 +155,6 @@ App.blockTags = {
 };
 
 
-App.recursiveMap = function(value, fn) {
-    if (typeof value === 'object') {
-        return _.mapObject(value, function(v) {
-            return App.recursiveMap(v, fn);
-        });
-    } else {
-        return fn(value);
-    }
-};
-
-
 App.TabPane = {
 
     getAnchor: function(hash) {

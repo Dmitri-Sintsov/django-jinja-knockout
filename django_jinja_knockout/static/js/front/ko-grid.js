@@ -645,7 +645,7 @@ App.ko.GridRow = function(options) {
         if (markSafe) {
             return displayValue;
         } else {
-            return App.recursiveMap(displayValue, $.htmlEncode);
+            return _.recursiveMap(displayValue, $.htmlEncode);
         }
     };
 
