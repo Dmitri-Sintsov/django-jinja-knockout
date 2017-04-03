@@ -9,6 +9,7 @@ from django.conf import settings
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.template import loader as tpl_loader
 
 from .apps import DjkAppConfig
@@ -165,6 +166,19 @@ def ko_inlineformset_factory(parent_model, model, form, **kwargs):
             'can_delete': False
         })
     formset = inlineformset_factory(parent_model, model, form, **kwargs)
+    formset.set_knockout_template = set_empty_template \
+        if isinstance(form, DisplayModelMetaclass) \
+        else set_knockout_template
+    return formset
+
+
+def ko_generic_inlineformset_factory(model, form, **kwargs):
+    if isinstance(form, DisplayModelMetaclass):
+        kwargs.update({
+            'extra': 0,
+            'can_delete': False
+        })
+    formset = generic_inlineformset_factory(model, form, **kwargs)
     formset.set_knockout_template = set_empty_template \
         if isinstance(form, DisplayModelMetaclass) \
         else set_knockout_template
