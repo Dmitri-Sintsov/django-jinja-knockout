@@ -778,6 +778,10 @@ App.ko.GridRow = function(options) {
         return typeof this.values[field] === 'undefined' ? undefined : this.values[field];
     };
 
+    GridRow.getActionOptions = function() {
+        return {'pk_val': this.getValue(this.ownerGrid.meta.pkField)};
+    };
+
     GridRow.inverseSelection = function() {
         this.isSelectedRow(!this.isSelectedRow());
     };
@@ -838,7 +842,7 @@ App.ko.GridRow = function(options) {
             return [this.str];
         }
         // Last resort.
-        return [this.getValue(this.meta.pkField)];
+        return [this.getValue(this.ownerGrid.meta.pkField)];
     };
 
     GridRow.renderDesc = function(renderOptions) {
@@ -2322,7 +2326,7 @@ App.ko.Action = function(options) {
             }
             this.grid.lastClickedKoRow = options.gridRow;
             // Clicked row pk value.
-            actionOptions['pk_val'] = options.gridRow.getValue(this.grid.meta.pkField);
+            actionOptions = $.extend(actionOptions, options.gridRow.getActionOptions());
         }
         if (this.grid.selectedRowsPks.length > 1) {
             // Multiple rows selected. Add all selected rows pk values.
