@@ -5,7 +5,9 @@ from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
 from django.utils import six
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db import models
 from django.db.models import Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
@@ -151,19 +153,47 @@ class FilteredRawQuery(RawQuery):
 
 class ValuesQuerySetMixin:
 
+    def _get_row_attr(self, row, attr):
+        if '__' in attr:
+            value = row
+            keypath = attr.split('__')
+            obj_exists = True
+            # Try to get value from the relation path.
+            for key in keypath:
+                try:
+                    value = getattr(value, key)
+                except ObjectDoesNotExist:
+                    obj_exists = False
+                    value = None
+                    break
+            if not obj_exists:
+                try:
+                    # Try to get raw attribute when there is no relation path.
+                    value = getattr(row, keypath[-1])
+                except (AttributeError, ObjectDoesNotExist):
+                    pass
+        else:
+            try:
+                value = getattr(row, attr)
+            except ObjectDoesNotExist:
+                return None
+            if isinstance(value, models.Model):
+                value = value.pk
+        return value
+
     def _values(self, values_fields):
         c = self._clone()
         for row in c.__iter__():
-            value = {attr: getattr(row, attr) for attr in values_fields}
+            value = {attr:self._get_row_attr(row, attr) for attr in values_fields}
             yield value
 
     def _values_list(self, values_fields, flat):
         c = self._clone()
         for row in c.__iter__():
             if flat:
-                yield getattr(row, values_fields[0])
+                yield self._get_row_attr(row, values_fields[0])
             else:
-                value = [getattr(row, attr) for attr in values_fields]
+                value = [self._get_row_attr(row, attr) for attr in values_fields]
                 yield value
 
 
