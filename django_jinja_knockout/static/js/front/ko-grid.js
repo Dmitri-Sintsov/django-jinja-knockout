@@ -622,10 +622,24 @@ App.ko.GridRow = function(options) {
         App.initClient(this.$row, 'dispose');
     };
 
+    GridRow.getPkVal = function() {
+        return this.getValue(this.ownerGrid.meta.pkField);
+    };
+
     GridRow.is = function(gridRow) {
         // .strFields has to be compared because when foreignkey field has modified values of .get_str_fields()
         // such grids should be highlighted as changed.
         return _.isEqual(this.values, gridRow.values) && _.isEqual(this.strFields, gridRow.strFields);
+    };
+
+    /**
+     * Used by App.ko.Grid.updateKoRows() to find matching rows to update after row saving,
+     * for example in 'save_form' or 'save_inline' actions callbacks.
+     * Some complex grids with LEFT JOIN's may have the same pk value (usually null) which require custom rules
+     * to match which row was modified. In such case override this method in a child class.
+     */
+    GridRow.matchesPk = function(gridRow) {
+        return this.getPkVal() === gridRow.getPkVal();
     };
 
     GridRow.afterRender = function() {
@@ -779,7 +793,7 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.getActionOptions = function() {
-        return {'pk_val': this.getValue(this.ownerGrid.meta.pkField)};
+        return {'pk_val': this.getPkVal()};
     };
 
     GridRow.inverseSelection = function() {
@@ -842,7 +856,7 @@ App.ko.GridRow = function(options) {
             return [this.str];
         }
         // Last resort.
-        return [this.getValue(this.ownerGrid.meta.pkField)];
+        return [this.getPkVal()];
     };
 
     GridRow.renderDesc = function(renderOptions) {
@@ -1590,7 +1604,7 @@ App.ko.Grid = function(options) {
      * Called from child row when the row is selected.
      */
     Grid.onSelectRow = function(koRow) {
-        var pkVal = koRow.getValue(this.meta.pkField);
+        var pkVal = koRow.getPkVal();
         this.addSelectedPkVal(pkVal);
         this.propCall('ownerCtrl.onChildGridSelectRow', pkVal);
     };
@@ -1599,9 +1613,20 @@ App.ko.Grid = function(options) {
      * Called from child row when the row is unselected.
      */
     Grid.onUnselectRow = function(koRow) {
-        var pkVal = koRow.getValue(this.meta.pkField);
+        var pkVal = koRow.getPkVal();
         this.removeSelectedPkVal(pkVal);
         this.propCall('ownerCtrl.onChildGridUnselectRow', pkVal);
+    };
+
+    Grid.findMatchingPkRow = function(savedRow) {
+        var koRow = null;
+        _.each(this.gridRows(), function(v) {
+            if (v.matchesPk(savedRow)) {
+                koRow = v;
+                return false;
+            }
+        });
+        return koRow;
     };
 
     /**
@@ -1621,7 +1646,7 @@ App.ko.Grid = function(options) {
         var koRow = null;
         var key = -1;
         _.each(this.gridRows(), function(v, k) {
-            var val = v.getValue(self.meta.pkField);
+            var val = v.getPkVal();
             if (val === pkVal || val === intPkVal) {
                 koRow = v;
                 key = k;
@@ -1660,7 +1685,7 @@ App.ko.Grid = function(options) {
             }
         }
         _.each(this.gridRows(), function(v) {
-            var val = v.getValue(self.meta.pkField);
+            var val = v.getPkVal();
             var isSelected = _.indexOf(intPkVals, val) !== -1;
             if (isSelected) {
                 self.addSelectedPkVal(val);
@@ -1678,7 +1703,7 @@ App.ko.Grid = function(options) {
             koRow.isSelectedRow(false);
         }
         // Next line is not required, because the action will be done by koRow.isSelectedRow.subscribe() function.
-        // this.removeSelectedPkVal(koRow.getValue(this.meta.pkField));
+        // this.removeSelectedPkVal(koRow.getPkVal());
         return koRow;
     };
 
@@ -1726,7 +1751,6 @@ App.ko.Grid = function(options) {
      * Updates existing grid rows with raw viewmodel rows supplied.
      */
     Grid.updateKoRows = function(savedRows) {
-        var lastClickedKoRowPkVal = this.propCall('lastClickedKoRow.getValue', this.meta.pkField);
         for (var i = 0; i < savedRows.length; i++) {
             var pkVal = savedRows[i][this.meta.pkField];
             var savedGridRow = this.iocRow({
@@ -1735,10 +1759,10 @@ App.ko.Grid = function(options) {
                 isUpdated: true,
                 values: savedRows[i]
             });
-            if (lastClickedKoRowPkVal === pkVal) {
+            if (this.lastClickedKoRow.matchesPk(savedGridRow)) {
                 this.lastClickedKoRow.update(savedGridRow);
             }
-            var rowToUpdate = this.findKoRowByPkVal(pkVal);
+            var rowToUpdate = this.findMatchingPkRow(savedGridRow);
             // When rowToUpdate is null, that means updated row is not among currently displayed ones.
             if (rowToUpdate !== null) {
                 rowToUpdate.update(savedGridRow);
@@ -1813,10 +1837,10 @@ App.ko.Grid = function(options) {
 
     Grid.selectOnlyKoRow = function(currKoRow) {
         var self = this;
-        var currPkVal = currKoRow.getValue(this.meta.pkField);
+        var currPkVal = currKoRow.getPkVal();
         // Unselect all rows except current one.
         _.each(this.gridRows(), function(koRow) {
-            if (koRow.getValue(self.meta.pkField) !== currPkVal) {
+            if (koRow.getPkVal() !== currPkVal) {
                 koRow.isSelectedRow(false);
             }
         });
@@ -2180,7 +2204,7 @@ App.ko.Grid = function(options) {
             for (var i = 0; i < gridRows.length; i++) {
                 var newRow = gridRows[i];
                 var findResult = this.findKoRowByPkVal({
-                    pkVal: newRow.getValue(this.meta.pkField),
+                    pkVal: newRow.getPkVal(),
                     withKey: true
                 });
                 if (findResult.koRow === null) {
@@ -2278,7 +2302,7 @@ App.ko.Grid = function(options) {
 
     // Used in ActionTemplateDialog 'ko_action_form' template.
     Grid.getLastPkVal = function() {
-        return this.lastClickedKoRow.getValue(this.meta.pkField);
+        return this.lastClickedKoRow.getPkVal();
     };
 
 })(App.ko.Grid.prototype);
