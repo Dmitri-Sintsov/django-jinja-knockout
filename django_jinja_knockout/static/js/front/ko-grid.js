@@ -680,12 +680,12 @@ App.ko.GridRow = function(options) {
         var markSafe = this.ownerGrid.isMarkSafeField(field);
         // Automatic server-side formatting.
         displayValue = this.getDisplayValue(field);
-        if (displayValue === undefined) {
+        if (displayValue === undefined || displayValue === null) {
             var fieldRelated = field.match(/(.+)_id$/);
             if (fieldRelated !== null) {
                 displayValue = this.getDisplayValue(fieldRelated[1]);
             }
-            if (displayValue === undefined) {
+            if (displayValue === undefined || displayValue === null) {
                 if (typeof value === 'boolean') {
                     displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
                 } else if (value === null) {
