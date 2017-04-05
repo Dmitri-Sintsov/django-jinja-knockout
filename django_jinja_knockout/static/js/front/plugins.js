@@ -7,6 +7,24 @@ $.isScalar = function(v) {
     return (nonScalarTypes.indexOf(typeof(v)) === -1) || v === null;
 };
 
+$.intVal = function(s) {
+    var i = parseInt(s);
+    return isNaN(i) ? s : i;
+};
+
+$.capitalize = function(s) {
+    if (s.length === 0) {
+        return s;
+    } else {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+};
+
+// note: $.camelCase() is built-in function.
+$.camelCaseToDash = function(value) {
+    return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
+};
+
 $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
@@ -40,11 +58,6 @@ $.htmlEncode = function(value) {
 
 $.htmlDecode = function(value) {
 	return $('<div>').html(value).text();
-};
-
-// note: $.camelCase() is built-in function.
-$.camelCaseToDash = function(value) {
-    return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
 };
 
 // Create jQuery DOM nodes from arbitrary text contents.

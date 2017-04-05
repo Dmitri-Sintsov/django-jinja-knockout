@@ -84,7 +84,8 @@ class GridActionsMixin:
     # Currently is used only to get verbose / localized foreign key field names and is not required to be filled.
     # Relation in queries are followed automatically via Django ORM.
     # Set to dict with key fieldname: value related_model to use prefixed field names,
-    # Set to list of related models to use non-prefixed root field names (eg. genetic relationships).
+    # Set to list of two-element tuples to use duplicate prefixed field names for related models (eg. generic relationships).
+    # Set to list of related models to use non-prefixed root field names.
     # See also .get_related_model_fields_verbose_names() and App.ko.GridColumnOrder.renderRowValue() implementations.
     related_models = None
 
@@ -462,7 +463,10 @@ class GridActionsMixin:
         # Grid model fields are not rendered as nested fields in grid, thus are not included into result of this call.
         related_verbose_names = {}
         related_models = self.get_related_models()
-        for field_name, model in sdv.iter_enumerate(related_models):
+        # See the description of related_models class attribute.
+        # The value of field_name will be used at client-side as App.renderNestedList() options.keyPrefix attribute.
+        # See ko-grid.js for more details.
+        for field_name, model in sdv.iter_enumerate(related_models, repeated_keys=True):
             verbose_names = self.get_model_fields_verbose_names(field_name, model)
             sdv.nested_update(related_verbose_names, verbose_names)
         return related_verbose_names

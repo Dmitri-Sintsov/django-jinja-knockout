@@ -1081,11 +1081,10 @@ App.GridActions = function(options) {
     GridActions.blockTags = App.blockTags.badges;
 
     /**
-     * Issued as the confirmation dialog for two-stages actions, such as select one or many grid rows
-     * then perform something with these, for example deletion.
+     * Get rendering options with localized / verbose model field names, including nested relationships
+     * to use these with current grid row data in actions dialog.
      */
-    GridActions.renderDescription = function(viewModel, dialogType) {
-        viewModel.message = $('<div>');
+    GridActions.getNestedListOptions = function() {
         // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
@@ -1093,7 +1092,18 @@ App.GridActions = function(options) {
             this.grid.meta.fkNestedListOptions,
             this.grid.meta.listOptions
         );
-        App.renderNestedList(viewModel.message, viewModel.description, options);
+        return options;
+    };
+
+    /**
+     * Issued as the confirmation dialog for two-stages actions, such as select one or many grid rows
+     * then perform something with these, for example deletion.
+     */
+    GridActions.renderDescription = function(viewModel, dialogType) {
+        viewModel.message = $('<div>');
+        App.renderNestedList(
+            viewModel.message, viewModel.description, this.getNestedListOptions()
+        );
         if (typeof dialogType === 'undefined') {
             dialogType = BootstrapDialog.TYPE_DANGER;
         }
@@ -1642,7 +1652,7 @@ App.ko.Grid = function(options) {
             pkVal = options;
             withKey = false;
         }
-        var intPkVal = App.intVal(pkVal);
+        var intPkVal = $.intVal(pkVal);
         var koRow = null;
         var key = -1;
         _.each(this.gridRows(), function(v, k) {
@@ -1679,7 +1689,7 @@ App.ko.Grid = function(options) {
         var intPkVals = [];
         for (var i = 0; i < pkVals.length; i++) {
             intPkVals.push(pkVals[i]);
-            var intPkVal = App.intVal(pkVals[i]);
+            var intPkVal = $.intVal(pkVals[i]);
             if (intPkVal !== pkVals[i]) {
                 intPkVals.push(intPkVal);
             }
@@ -1759,7 +1769,8 @@ App.ko.Grid = function(options) {
                 isUpdated: true,
                 values: savedRows[i]
             });
-            if (this.lastClickedKoRow.matchesPk(savedGridRow)) {
+            if (typeof this.lastClickedKoRow !== 'undefined' &&
+                    this.lastClickedKoRow.matchesPk(savedGridRow)) {
                 this.lastClickedKoRow.update(savedGridRow);
             }
             var rowToUpdate = this.findMatchingPkRow(savedGridRow);
@@ -1774,7 +1785,7 @@ App.ko.Grid = function(options) {
 
     Grid.deleteKoRows = function(pks) {
         for (var i = 0; i < pks.length; i++) {
-            var pkVal = App.intVal(pks[i]);
+            var pkVal = $.intVal(pks[i]);
             this.removeSelectedPkVal(pkVal);
             var koRow = this.unselectRow(pkVal);
             if (koRow !== null) {
@@ -2716,7 +2727,7 @@ App.FkGridWidget = function(options) {
     };
 
     FkGridWidget.getInputValue = function() {
-        return App.intVal(this.$element.find('.fk-value').val());
+        return $.intVal(this.$element.find('.fk-value').val());
     };
 
     FkGridWidget.setInputValue = function(value) {
@@ -2778,18 +2789,18 @@ App.ActionsMenuDialog = function(options) {
         }];
     };
 
-    ActionsMenuDialog.blockTags = App.blockTags.badges;
+    ActionsMenuDialog.getNestedListOptions = function() {
+        return this.grid.gridActions.getNestedListOptions();
+    };
 
     /**
      * Issued to render current row object description in multiple actions menu when there are more than one
      * 'click' type actions for the current grid row.
      */
     ActionsMenuDialog.renderRow = function() {
-        var options = $.extend(
-            {blockTags: this.blockTags},
-            this.grid.meta.listOptions
+        return this.grid.lastClickedKoRow.renderDesc(
+            this.getNestedListOptions()
         );
-        return this.grid.lastClickedKoRow.renderDesc(options);
     };
 
     ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';

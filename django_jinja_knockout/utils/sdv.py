@@ -24,13 +24,16 @@ def reverse_enumerate(iterable):
     yield from zip(reversed(range(len(iterable))), reversed(iterable))
 
 
-def iter_enumerate(iterable):
+def iter_enumerate(iterable, repeated_keys=False):
     if isinstance(iterable, dict):
         for key, val in iterable.items():
             yield key, val
     else:
         for key, val in enumerate(iterable):
-            yield key, val
+            if repeated_keys and isinstance(key, int) and isinstance(val, tuple) and len(val) == 2:
+                yield val[0], val[1]
+            else:
+                yield key, val
 
 
 def yield_ordered(iterable):

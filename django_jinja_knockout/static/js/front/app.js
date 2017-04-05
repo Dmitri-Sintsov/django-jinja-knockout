@@ -37,19 +37,6 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
-App.capitalize = function(s) {
-    if (s.length === 0) {
-        return s;
-    } else {
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-};
-
-App.intVal = function(s) {
-    var i = parseInt(s);
-    return isNaN(i) ? s : i;
-};
-
 App.queryString = new QueryString();
 
 /**
@@ -1630,7 +1617,7 @@ ko.switchSubscription = function(self, propName, turnOn, method) {
         self.koSubscriptions = {};
     }
     if (typeof method === 'undefined') {
-        method = 'on' + App.capitalize(propName);
+        method = 'on' + $.capitalize(propName);
     }
     if (typeof self[propName] !== 'function') {
         throw sprintf("%s is not observable", propName);
