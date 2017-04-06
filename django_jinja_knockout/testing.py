@@ -265,14 +265,17 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         except WebDriverException as e:
             return self._by_wait(By.LINK_TEXT, link_text)
 
-    def _keys_by_id(self, id, keys):
-        input = self._by_id(id)
+    def _keys(self, keys):
         # Clear is replaced to "Select All" / "Delete" because it has bugs in IE webdriver.
-        # input.clear()
-        input.send_keys(Keys.CONTROL, 'a')
-        input.send_keys(Keys.DELETE)
-        input.send_keys(keys)
-        return input
+        # self.last_result.clear()
+        self.last_result.send_keys(Keys.CONTROL, 'a')
+        self.last_result.send_keys(Keys.DELETE)
+        self.last_result.send_keys(keys)
+        return self.last_result
+
+    def _keys_by_id(self, id, keys):
+        self.last_result = self._by_id(id)
+        return self._keys(keys)
 
     def _by_xpath(self, xpath):
         try:
@@ -360,6 +363,20 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             'by_link_text', (link_text,),
             'click',
         )
+
+    def _component_by_classpath(self, classpath):
+        return self._by_xpath(
+            self.format_xpath(
+                '//*[@data-component-class={classpath}]', classpath=classpath
+            )
+        )
+
+    def _relative_button_click(self, button_title):
+        self.last_result = self._relative_by_xpath(
+            self.format_xpath('.//button[contains(., {})]', button_title)
+        )
+        return self._click()
+
 
     def _form_by_view(self, viewname, kwargs=None, query=None):
         return self._by_xpath(
@@ -489,6 +506,12 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         return self.exec(
             'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
             'click'
+        )
+
+    def _grid_search_substring(self, substr):
+        return self.exec(
+            'relative_by_xpath', ('.//input[@type="search"]',),
+            'keys', (substr,),
         )
 
     def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
