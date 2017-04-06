@@ -192,6 +192,10 @@ class BaseSeleniumCommands(AutomationCommands):
                 styles[parts[0]] = val
         return styles
 
+    def parse_css_classes(self, element=None):
+        classes_str = element.get_attribute('class')
+        return classes_str.split()
+
     def escape_xpath_literal(self, s):
         if "'" not in s:
             return "'{}'".format(s)
@@ -458,6 +462,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
                 EC.presence_of_element_located((By.XPATH, '//div[@class="modal-header bootstrap-dialog-draggable"]'))
             )
+        return self.last_result
 
     def _fk_widget_click(self, id):
         return self.exec(
@@ -503,10 +508,13 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         )
 
     def _grid_select_current_row(self):
-        return self.exec(
-            'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]',),
-            'click'
+        self.last_result = self.exec(
+            'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]/span',),
         )
+        if 'glyphicon-unchecked' in self.parse_css_classes(self.last_result):
+            return self._click()
+        else:
+            return self.last_result
 
     def _grid_search_substring(self, substr):
         return self.exec(
