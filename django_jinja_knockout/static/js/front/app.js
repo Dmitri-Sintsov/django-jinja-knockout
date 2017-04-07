@@ -136,7 +136,7 @@ App.blockTags = {
             enclosureTag: '<div>',
             enclosureClasses: 'well well-condensed well-sm',
             itemTag: '<span>',
-                itemClasses: 'badge'
+                itemClasses: 'badge preformatted'
         }
     ]
 };
