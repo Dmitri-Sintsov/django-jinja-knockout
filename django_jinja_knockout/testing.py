@@ -57,12 +57,18 @@ class BaseSeleniumCommands(AutomationCommands):
         self.sleep_between_commands = 0
 
     def _sleep(self, secs):
-        # time.sleep(secs)
-        self.selenium.implicitly_wait(secs)
+        time.sleep(secs)
         return self.last_result
 
     def _default_sleep(self):
         return self._sleep(self.DEFAULT_SLEEP_TIME)
+
+    def _wait(self, secs):
+        self.selenium.implicitly_wait(secs)
+        return self.last_result
+
+    def _default_wait(self):
+        return self._wait(self.DEFAULT_SLEEP_TIME)
 
     # https://code.djangoproject.com/wiki/Fixtures
     def _dump_data(self, prefix=''):
@@ -106,7 +112,7 @@ class BaseSeleniumCommands(AutomationCommands):
             if self.nesting_level >= self.prev_nesting_level:
                 unsleep_time = self.sleep_between_commands - exec_time
                 if unsleep_time > 0:
-                    time.sleep(unsleep_time)
+                    self._sleep(unsleep_time)
                     print('Unsleep time: {}'.format(unsleep_time))
             return result, exec_time
         except WebDriverException as e:
@@ -125,7 +131,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 self.last_sync_command_key = sync_command_key
                 # Do not store self.last_result.
                 # Wait until slow browser DOM updates.
-                self._default_sleep()
+                self._default_wait()
                 if self.sleep_between_commands > 0:
                     batch_exec_time += self.DEFAULT_SLEEP_TIME
                 # Redo last commands from the last global command.
@@ -380,7 +386,6 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             self.format_xpath('.//button[contains(., {})]', button_title)
         )
         return self._click()
-
 
     def _form_by_view(self, viewname, kwargs=None, query=None):
         return self._by_xpath(
