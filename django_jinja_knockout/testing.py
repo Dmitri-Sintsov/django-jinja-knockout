@@ -234,6 +234,19 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             self.selenium.set_window_size(1920, 1080)
         return self.last_result
 
+    def _switch_to_last_window(self):
+        self.selenium.switch_to_window(self.selenium.window_handles[-1])
+        return self._maximize_window()
+
+    def _switch_to_window(self, title):
+        self.selenium.switch_to_window(title)
+        return self.last_result
+
+    def _close_current_window(self):
+        # default_handle = self.selenium.current_window_handle
+        self.selenium.close()
+        return self._switch_to_last_window()
+
     def _relative_url(self, rel_url):
         return self.selenium.get('{}{}'.format(self.testcase.live_server_url, rel_url))
 
