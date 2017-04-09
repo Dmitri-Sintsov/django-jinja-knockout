@@ -491,16 +491,6 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             # 'to_active_element',
         )
 
-    def _grid_button_action_click(self, action_name):
-        return self.exec(
-            'relative_by_xpath', (
-                './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
-                '//span[text()={}]/parent::button',
-                action_name,
-            ),
-            'click',
-        )
-
     def _dialog_button_click(self, button_title):
         return self.exec(
             # 'to_active_element',
@@ -518,6 +508,16 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             'relative_by_xpath', (
                 'parent::div[@class="has-error"]/div[text()={}]', text
             ),
+        )
+
+    def _grid_button_action_click(self, action_name):
+        return self.exec(
+            'relative_by_xpath', (
+                './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
+                '//span[text()={}]/parent::button',
+                action_name,
+            ),
+            'click',
         )
 
     def _grid_find_data_column(self, caption, value):
@@ -538,6 +538,26 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         return self.exec(
             'relative_by_xpath', ('.//input[@type="search"]',),
             'keys', (substr,),
+        )
+
+    def _grid_order_by(self, verbose_name):
+        return self.exec(
+            'relative_by_xpath', (
+                './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
+            ),
+            'click',
+            # Return back to the grid top component, otherwise consequitive call will fail.
+            'relative_by_xpath', ('ancestor::*[@class="component"]',),
+        )
+
+    def _grid_goto_page(self, page):
+        return self.exec(
+            'relative_by_xpath', (
+                './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page,
+            ),
+            'click',
+            # Return back to the grid top component, otherwise consequitive call will fail.
+            # 'relative_by_xpath', ('ancestor::*[@class="component"]',),
         )
 
     def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
