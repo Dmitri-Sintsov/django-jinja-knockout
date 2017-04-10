@@ -552,6 +552,15 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         else:
             return self.last_result
 
+    def _grid_row_glyphicon_action(self, action_name):
+        return self.exec(
+            'relative_by_xpath', (
+                'ancestor-or-self::tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
+                action_name,
+            ),
+            'click',
+        )
+
     def _grid_search_substring(self, substr):
         return self.exec(
             'relative_by_xpath', ('.//input[@type="search"]',),
