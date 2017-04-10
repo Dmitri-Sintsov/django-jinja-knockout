@@ -510,6 +510,12 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             ),
         )
 
+    # Returns back to current component top node.
+    def _to_component(self):
+        return self.exec(
+            'relative_by_xpath', ('ancestor::*[@class="component"]',),
+        )
+
     def _grid_button_action_click(self, action_name):
         return self.exec(
             'relative_by_xpath', (
@@ -520,10 +526,22 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             'click',
         )
 
-    def _grid_find_data_column(self, caption, value):
-        return self._relative_by_xpath(
-            './/td[@data-caption={} and text()={}]', caption, value
-        )
+    # $x(".//tr [ .//td[@data-caption='Title' and text()='Yaroslavl Bears'] and .//td[@data-caption='First name' and text()='Ivan'] ]")
+    def _grid_find_data_row(self, columns):
+        xpath_str = './/tr [ '
+        xpath_args = []
+        first_elem = True
+        for caption, value in columns.items():
+            if first_elem:
+                first_elem = False
+            else:
+                xpath_str += ' and '
+            xpath_str += './/td[@data-caption={} and text()={}]'
+            xpath_args.extend([
+                caption, value
+            ])
+        xpath_str += ' ]'
+        return self._relative_by_xpath(xpath_str, *xpath_args)
 
     def _grid_select_current_row(self):
         self.last_result = self.exec(
@@ -547,7 +565,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             ),
             'click',
             # Return back to the grid top component, otherwise consequitive call will fail.
-            'relative_by_xpath', ('ancestor::*[@class="component"]',),
+            'to_component',
         )
 
     def _grid_goto_page(self, page):
