@@ -568,6 +568,21 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             'to_component',
         )
 
+    def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
+        grid_filter = self._relative_by_xpath(
+            './/*[@data-bind="foreach: gridFilters"]//li[@class="bold" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
+            filter_name
+        )
+        for filter_choice in filter_choices:
+            self.last_result = grid_filter
+            self.exec(
+                'relative_by_xpath', (
+                    './/a[text() = {}]', filter_choice,
+                ),
+                'click',
+            )
+        return grid_filter
+
     def _grid_goto_page(self, page):
         return self.exec(
             'relative_by_xpath', (
