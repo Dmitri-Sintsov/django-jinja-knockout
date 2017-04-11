@@ -58,14 +58,14 @@ class BaseSeleniumCommands(AutomationCommands):
 
     def _sleep(self, secs):
         time.sleep(secs)
-        return self.last_result
+        return self.context
 
     def _default_sleep(self):
         return self._sleep(self.DEFAULT_SLEEP_TIME)
 
     def _wait(self, secs):
         self.selenium.implicitly_wait(secs)
-        return self.last_result
+        return self.context
 
     def _default_wait(self):
         return self._wait(self.DEFAULT_SLEEP_TIME)
@@ -91,6 +91,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 )
             )
         )
+        return self.context
 
     def log_command(self, operation, args, kwargs):
         print('Operation: {}'.format(operation), end='')
@@ -129,7 +130,7 @@ class BaseSeleniumCommands(AutomationCommands):
                     break
             if sync_command_key is not None:
                 self.last_sync_command_key = sync_command_key
-                # Do not store self.last_result.
+                # Do not store self.context.
                 # Wait until slow browser DOM updates.
                 self._default_wait()
                 if self.sleep_between_commands > 0:
@@ -139,12 +140,12 @@ class BaseSeleniumCommands(AutomationCommands):
                     try:
                         print('Retrying: ')
                         self.log_command(*command)
-                        self.last_result, exec_time = super().exec_command(command[0], *command[1], **command[2])
+                        self.context, exec_time = super().exec_command(command[0], *command[1], **command[2])
                         batch_exec_time += exec_time
                     except WebDriverException as e:
                         self.log_error(e)
                         raise e
-                return self.last_result, batch_exec_time
+                return self.context, batch_exec_time
             self.log_error(e)
             raise e
 
@@ -154,7 +155,7 @@ class BaseSeleniumCommands(AutomationCommands):
             f.close()
 
     def log_error(self, e):
-        if self.logged_error is False and isinstance(self.last_result, WebElement):
+        if self.logged_error is False and isinstance(self.context.element, WebElement):
             now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
             scr = self.selenium.get_screenshot_as_png()
             scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
@@ -167,22 +168,22 @@ class BaseSeleniumCommands(AutomationCommands):
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 print(
                     'Error description:{}\n\nError element rect:\n\n{}'.format(
-                        str(e), repr(self.last_result.rect)),
+                        str(e), repr(self.context.element.rect)),
                     file=f
                 )
             self.logged_error = True
 
     def get_attr(self, attr):
-        return self.last_result.get_attribute(attr)
+        return self.context.element.get_attribute(attr)
 
     def get_outer_html(self):
         return self.get_attr('outerHTML')
 
     def relative_is_displayed(self):
-        return self.last_result.is_displayed()
+        return self.context.element.is_displayed()
 
     def relative_is_enabled(self):
-        return self.last_result.is_enabled()
+        return self.context.element.is_enabled()
 
     def parse_css_styles(self, element=None, style_str=None):
         if element is not None:
@@ -223,6 +224,15 @@ class BaseSeleniumCommands(AutomationCommands):
             **dict({key: self.escape_xpath_literal(arg) for key, arg in kwargs.items()})
         )
 
+    def relative_by_xpath(self, element, xpath, *args, **kwargs):
+        xpath = self.format_xpath(xpath, *args, **kwargs)
+        if xpath.startswith('//'):
+            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath))
+        return element.find_element(
+            By.XPATH, xpath
+        )
+
+
 
 # Generic DOM commands.
 class SeleniumQueryCommands(BaseSeleniumCommands):
@@ -232,7 +242,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # Should prevent "Element is not clickable at point" error in phantomjs driver due to small window size.
         if self.testcase.webdriver_name == 'selenium.webdriver.phantomjs.webdriver':
             self.selenium.set_window_size(1920, 1080)
-        return self.last_result
+        return self.context
 
     def _switch_to_last_window(self):
         self.selenium.switch_to_window(self.selenium.window_handles[-1])
@@ -240,7 +250,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _switch_to_window(self, title):
         self.selenium.switch_to_window(title)
-        return self.last_result
+        return self.context
 
     def _close_current_window(self):
         # default_handle = self.selenium.current_window_handle
@@ -248,14 +258,16 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self._switch_to_last_window()
 
     def _relative_url(self, rel_url):
-        return self.selenium.get('{}{}'.format(self.testcase.live_server_url, rel_url))
+        self.context.http_get_result = self.selenium.get('{}{}'.format(self.testcase.live_server_url, rel_url))
+        return self.context
 
     def _reverse_url(self, viewname, kwargs=None, query=None):
         url = '{}{}'.format(
             self.testcase.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
         # print('_reverse_url: {}'.format(url))
-        return self.selenium.get(url)
+        self.context.http_get_result = self.selenium.get(url)
+        return self.context
 
     # Get active element, for example currently opened BootstrapDialog.
     def _to_active_element(self):
@@ -263,67 +275,69 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
         # self.__class__.selenium.implicitly_wait(3)
         # return self.selenium.switch_to_active_element()
-        return self.selenium.switch_to.active_element
+        self.context.element = self.selenium.switch_to.active_element
+        return self.context
 
     def _by_wait(self, by, key):
         try:
-            element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
+            self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.element_to_be_clickable((by, key))
             )
         except WebDriverException as e:
-            element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
+            self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.presence_of_element_located((by, key))
             )
-        return element
+        return self.context
 
     def _by_id(self, id):
         try:
-            return self.selenium.find_element_by_id(id)
+            self.context.element = self.selenium.find_element_by_id(id)
+            return self.context
         except WebDriverException as e:
             return self._by_wait(By.ID, id)
 
     def _by_link_text(self, link_text):
         try:
-            return self.selenium.find_element_by_link_text(link_text)
+            self.context.element = self.selenium.find_element_by_link_text(link_text)
+            return self.context
         except WebDriverException as e:
             return self._by_wait(By.LINK_TEXT, link_text)
 
     def _keys(self, keys):
         # Clear is replaced to "Select All" / "Delete" because it has bugs in IE webdriver.
-        # self.last_result.clear()
-        self.last_result.send_keys(Keys.CONTROL, 'a')
-        self.last_result.send_keys(Keys.DELETE)
-        self.last_result.send_keys(keys)
-        return self.last_result
+        # self.context.element.clear()
+        self.context.element.send_keys(Keys.CONTROL, 'a')
+        self.context.element.send_keys(Keys.DELETE)
+        self.context.element.send_keys(keys)
+        return self.context
 
     def _keys_by_id(self, id, keys):
-        self.last_result = self._by_id(id)
+        self.context = self._by_id(id)
         return self._keys(keys)
 
     def _by_xpath(self, xpath):
         try:
-            return self.selenium.find_element_by_xpath(xpath)
+            self.context.element = self.selenium.find_element_by_xpath(xpath)
+            return self.context
         except WebDriverException as e:
             return self._by_wait(By.XPATH, xpath)
 
     def _by_classname(self, classname):
         try:
-            return self.selenium.find_element_by_class_name(classname)
+            self.context.element = self.selenium.find_element_by_class_name(classname)
+            return self.context
         except WebDriverException as e:
             return self._by_wait(By.CLASS_NAME, classname)
 
     def _by_css_selector(self, css_selector):
         # Commented out, will not work for multiple elements (no iteration).
         # return self._by_wait(By.CSS_SELECTOR, css_selector)
-        return self.selenium.find_elements_by_css_selector(css_selector)
+        self.context.element = self.selenium.find_elements_by_css_selector(css_selector)
+        return self.context
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
-        xpath = self.format_xpath(xpath, *args, **kwargs)
-        if xpath.startswith('//'):
-            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath))
-        return self.last_result.find_element(
-            By.XPATH, xpath
-        )
+        self.context.element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
+        return self.context
 
     def _ancestor(self, expr):
         return self._relative_by_xpath(
@@ -346,23 +360,25 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
         # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
         self.selenium.execute_script(
-            'window.scrollTo(' + str(self.last_result.location['x']) + ', ' + str(self.last_result.location['y']) + ')'
+            'window.scrollTo(' +
+            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y'])
+            + ')'
         )
 
-        # ActionChains(self.selenium).move_to_element(self.last_result)
+        # ActionChains(self.selenium).move_to_element(self.context.element)
         # http://stackoverflow.com/questions/29377730/executing-a-script-in-selenium-python
         # http://stackoverflow.com/questions/34562061/webdriver-click-vs-javascript-click
         """
         self.selenium.execute_script(
-            'arguments[0].click();', self.last_result
+            'arguments[0].click();', self.context.element
         )
         """
-        self.last_result.click()
+        self.context.element.click()
 
-        return self.last_result
+        return self.context
 
     def _button_click(self, button_title):
-        self.last_result = self._by_xpath(
+        self.context = self._by_xpath(
             self.format_xpath('//button[contains(., {})]', button_title)
         )
         return self._click()
@@ -388,14 +404,21 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     def _component_by_classpath(self, classpath):
-        return self._by_xpath(
+        self.context = self._by_xpath(
             self.format_xpath(
                 '//*[@data-component-class={classpath}]', classpath=classpath
             )
         )
+        self.context.component = self.context.element
+        return self.context
+
+    def _component_by_id(self, id):
+        self.context = self._by_id(id)
+        self.context.component = self.context.element
+        return self.context
 
     def _relative_button_click(self, button_title):
-        self.last_result = self._relative_by_xpath(
+        self.context = self._relative_by_xpath(
             self.format_xpath('.//button[contains(., {})]', button_title)
         )
         return self._click()
@@ -415,7 +438,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     def _click_submit_by_view(self, viewname, kwargs=None, query=None):
-        self.last_result = self._by_xpath(
+        self.context = self._by_xpath(
             self.format_xpath(
                 '//form[@action={action}]//button[@type="submit"]',
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
@@ -429,6 +452,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
 
     sync_commands_list = [
         'click',
+        'click_anchor_by_view',
         'to_top_bootstrap_dialog',
     ]
 
@@ -454,7 +478,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '.bootstrap-dialog'))
         )
-        dialogs = self._by_css_selector('.bootstrap-dialog')
+        dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
         top_key = None
         z_indexes = []
         for key, dialog in enumerate(dialogs):
@@ -469,7 +493,9 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
         if top_key is None:
             raise WebDriverException('Cannot find top bootstrap dialog')
         else:
-            return dialogs[top_key]
+            self.context.element = dialogs[top_key]
+            self.context.component = self.context.element
+            return self.context
 
     def _wait_until_dialog_closes(self):
         try:
@@ -480,7 +506,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
                 EC.presence_of_element_located((By.XPATH, '//div[@class="modal-header bootstrap-dialog-draggable"]'))
             )
-        return self.last_result
+        return self.context
 
     def _fk_widget_click(self, id):
         return self.exec(
@@ -510,12 +536,6 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             ),
         )
 
-    # Returns back to current component top node.
-    def _to_component(self):
-        return self.exec(
-            'relative_by_xpath', ('ancestor::*[@class="component"]',),
-        )
-
     def _grid_button_action_click(self, action_name):
         return self.exec(
             'relative_by_xpath', (
@@ -541,68 +561,66 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
                 caption, value
             ])
         xpath_str += ' ]'
-        return self._relative_by_xpath(xpath_str, *xpath_args)
+        self.context.element = self.relative_by_xpath(
+            self.context.component, xpath_str, *xpath_args
+        )
+        return self.context
 
     def _grid_select_current_row(self):
-        self.last_result = self.exec(
-            'relative_by_xpath', ('ancestor-or-self::tr//td[@data-bind="click: onSelect"]/span',),
+        self.context.element = self.relative_by_xpath(
+            self.context.component, './/tr//td[@data-bind="click: onSelect"]/span'
         )
-        if 'glyphicon-unchecked' in self.parse_css_classes(self.last_result):
+        if 'glyphicon-unchecked' in self.parse_css_classes(self.context.element):
             return self._click()
         else:
-            return self.last_result
+            return self.context
 
     def _grid_row_glyphicon_action(self, action_name):
+        self.context.element = self.relative_by_xpath(
+            self.context.component,
+            './/tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
+            action_name,
+        )
         return self.exec(
-            'relative_by_xpath', (
-                'ancestor-or-self::tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
-                action_name,
-            ),
             'click',
             'default_sleep',
             'default_wait',
         )
 
     def _grid_search_substring(self, substr):
-        return self.exec(
-            'relative_by_xpath', ('.//input[@type="search"]',),
-            'keys', (substr,),
+        self.context.element = self.relative_by_xpath(
+            self.context.component, './/input[@type="search"]'
         )
+        return self._keys(substr)
 
     def _grid_order_by(self, verbose_name):
-        return self.exec(
-            'relative_by_xpath', (
-                './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
-            ),
-            'click',
-            # Return back to the grid top component, otherwise consequitive call will fail.
-            'to_component',
+        self.context.element = self.relative_by_xpath(
+            self.context.component,
+            './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name
         )
+        return self._click()
 
     def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
-        grid_filter = self._relative_by_xpath(
+        grid_filter = self.relative_by_xpath(
+            self.context.component,
             './/*[@data-bind="foreach: gridFilters"]//li[@class="bold" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
             filter_name
         )
         for filter_choice in filter_choices:
-            self.last_result = grid_filter
-            self.exec(
-                'relative_by_xpath', (
-                    './/a[text() = {}]', filter_choice,
-                ),
-                'click',
+            self.context.element = self.relative_by_xpath(
+                grid_filter,
+                './/a[text() = {}]', filter_choice,
             )
-        return grid_filter
+            self._click()
+        self.context.element = grid_filter
+        return self.context
 
     def _grid_goto_page(self, page):
-        return self.exec(
-            'relative_by_xpath', (
-                './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page,
-            ),
-            'click',
-            # Return back to the grid top component, otherwise consequitive call will fail.
-            # 'relative_by_xpath', ('ancestor::*[@class="component"]',),
+        self.context.element = self.relative_by_xpath(
+            self.context.component,
+            './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page
         )
+        return self._click()
 
     def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
         commands = \

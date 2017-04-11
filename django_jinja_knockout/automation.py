@@ -6,13 +6,13 @@ from types import SimpleNamespace
 class AutomationCommands:
 
     def __init__(self, *args, **kwargs):
-        self.last_result = None
+        self.context = SimpleNamespace()
         self.nesting_level = 0
         self.prev_nesting_level = 0
-        self.set_context(kwargs.pop('context', {}))
+        self.set_parameters(kwargs.pop('context', {}))
 
     # Use self._ in your commands args / kwargs for parametric arguments.
-    def set_context(self, context):
+    def set_parameters(self, context):
         self._ = SimpleNamespace(**context)
         return self
 
@@ -62,21 +62,21 @@ class AutomationCommands:
         self.nesting_level += 1
         try:
             start_time = time.process_time()
-            result = self.get_command(operation)(*args, **kwargs)
+            context = self.get_command(operation)(*args, **kwargs)
             exec_time = time.process_time() - start_time
         except Exception as e:
             e.exec_time = time.process_time() - start_time
             self.nesting_level -= 1
             raise e
         self.nesting_level -= 1
-        return result, exec_time
+        return context, exec_time
 
     def exec(self, *args):
         batch_exec_time = 0
         for operation, args, kwargs in self.yield_commands(*args):
-            self.last_result, exec_time = self.exec_command(operation, *args, **kwargs)
+            self.context, exec_time = self.exec_command(operation, *args, **kwargs)
             batch_exec_time += exec_time
-        return self.last_result
+        return self.context
 
     def yield_class_commands(self, *attrs):
         for attr_name in attrs:
