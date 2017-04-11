@@ -423,6 +423,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
         return self._click()
 
+    def _component_relative_by_xpath(self, xpath, *args, **kwargs):
+        self.context.element = self.relative_by_xpath(
+            self.context.component, xpath, *args, **kwargs
+        )
+        return self.context
+
     def _form_by_view(self, viewname, kwargs=None, query=None):
         return self._by_xpath(
             self.format_xpath(
@@ -538,10 +544,10 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
 
     def _grid_button_action_click(self, action_name):
         return self.exec(
-            'relative_by_xpath', (
+            'component_relative_by_xpath', (
                 './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
                 '//span[text()={}]/parent::button',
-                action_name,
+                action_name
             ),
             'click',
         )
@@ -561,14 +567,11 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
                 caption, value
             ])
         xpath_str += ' ]'
-        self.context.element = self.relative_by_xpath(
-            self.context.component, xpath_str, *xpath_args
-        )
-        return self.context
+        return self._component_relative_by_xpath(xpath_str, *xpath_args)
 
     def _grid_select_current_row(self):
-        self.context.element = self.relative_by_xpath(
-            self.context.component, './/tr//td[@data-bind="click: onSelect"]/span'
+        self.context = self._component_relative_by_xpath(
+            './/tr//td[@data-bind="click: onSelect"]/span'
         )
         if 'glyphicon-unchecked' in self.parse_css_classes(self.context.element):
             return self._click()
@@ -576,29 +579,36 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             return self.context
 
     def _grid_row_glyphicon_action(self, action_name):
-        self.context.element = self.relative_by_xpath(
-            self.context.component,
-            './/tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
-            action_name,
-        )
         return self.exec(
+            'component_relative_by_xpath', (
+                './/tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
+                action_name,
+            ),
             'click',
             'default_sleep',
             'default_wait',
         )
 
     def _grid_search_substring(self, substr):
-        self.context.element = self.relative_by_xpath(
-            self.context.component, './/input[@type="search"]'
+        return self.exec(
+            'component_relative_by_xpath', (
+                './/input[@type="search"]',
+            ),
+            'keys', (substr,),
+            'click',
+            'default_sleep',
+            'default_wait',
         )
-        return self._keys(substr)
 
     def _grid_order_by(self, verbose_name):
-        self.context.element = self.relative_by_xpath(
-            self.context.component,
-            './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name
+        return self.exec(
+            'component_relative_by_xpath', (
+                './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
+            ),
+            'click',
+            'default_sleep',
+            'default_wait',
         )
-        return self._click()
 
     def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
         grid_filter = self.relative_by_xpath(
@@ -613,14 +623,20 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             )
             self._click()
         self.context.element = grid_filter
-        return self.context
+        return self.exec(
+            'default_sleep',
+            'default_wait',
+        )
 
     def _grid_goto_page(self, page):
-        self.context.element = self.relative_by_xpath(
-            self.context.component,
-            './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page
+        return self.exec(
+            'component_relative_by_xpath', (
+                './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page,
+            ),
+            'click',
+            'default_sleep',
+            'default_wait',
         )
-        return self._click()
 
     def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
         commands = \
