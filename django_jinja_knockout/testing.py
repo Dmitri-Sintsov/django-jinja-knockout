@@ -559,6 +559,8 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
                 action_name,
             ),
             'click',
+            'default_sleep',
+            'default_wait',
         )
 
     def _grid_search_substring(self, substr):
