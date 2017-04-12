@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.core.management import call_command
 
 from .automation import AutomationCommands
+from .testing_components import ComponentCommands, DialogCommands, GridCommands
 from .utils.regex import finditer_with_separators
 from .utils.sdv import str_to_numeric, reverse_enumerate
 from .tpl import reverseq
@@ -72,6 +73,8 @@ class BaseSeleniumCommands(AutomationCommands):
 
     # https://code.djangoproject.com/wiki/Fixtures
     def _dump_data(self, prefix=''):
+        self._default_wait()
+        self._default_sleep()
         call_command(
             'dumpdata',
             indent=4,
@@ -154,9 +157,12 @@ class BaseSeleniumCommands(AutomationCommands):
             f.write(scr)
             f.close()
 
+    def get_now_str(self):
+        return timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
+
     def log_error(self, e):
         if self.logged_error is False and isinstance(self.context.element, WebElement):
-            now_str = timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
+            now_str = self.get_now_str()
             scr = self.selenium.get_screenshot_as_png()
             scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
             self.upload_screenshot(scr, scr_filename)
@@ -233,9 +239,15 @@ class BaseSeleniumCommands(AutomationCommands):
         )
 
 
-
 # Generic DOM commands.
 class SeleniumQueryCommands(BaseSeleniumCommands):
+
+    def _screenshot(self, prefix):
+        now_str = self.get_now_str()
+        scr = self.selenium.get_screenshot_as_png()
+        scr_filename = 'selenium_{}_{}.png'.format(prefix, now_str)
+        self.upload_screenshot(scr, scr_filename)
+        return self.context
 
     def _maximize_window(self):
         self.selenium.maximize_window()
@@ -270,6 +282,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.context
 
     # Get active element, for example currently opened BootstrapDialog.
+    # Randomly fails with dialogs thus is not used.
     def _to_active_element(self):
         # from selenium.webdriver.support.wait import WebDriverWait
         # http://stackoverflow.com/questions/23869119/python-selenium-element-is-no-longer-attached-to-the-dom
@@ -361,8 +374,8 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
         self.selenium.execute_script(
             'window.scrollTo(' +
-            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y'])
-            + ')'
+            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y']) +
+            ')'
         )
 
         # ActionChains(self.selenium).move_to_element(self.context.element)
@@ -403,31 +416,11 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             'click',
         )
 
-    def _component_by_classpath(self, classpath):
-        self.context = self._by_xpath(
-            self.format_xpath(
-                '//*[@data-component-class={classpath}]', classpath=classpath
-            )
-        )
-        self.context.component = self.context.element
-        return self.context
-
-    def _component_by_id(self, id):
-        self.context = self._by_id(id)
-        self.context.component = self.context.element
-        return self.context
-
     def _relative_button_click(self, button_title):
         self.context = self._relative_by_xpath(
             self.format_xpath('.//button[contains(., {})]', button_title)
         )
         return self._click()
-
-    def _component_relative_by_xpath(self, xpath, *args, **kwargs):
-        self.context.element = self.relative_by_xpath(
-            self.context.component, xpath, *args, **kwargs
-        )
-        return self.context
 
     def _form_by_view(self, viewname, kwargs=None, query=None):
         return self._by_xpath(
@@ -454,7 +447,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
 
 # BootstrapDialog / AJAX grids specific commands.
-class DjkSeleniumCommands(SeleniumQueryCommands):
+class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, ComponentCommands):
 
     sync_commands_list = [
         'click',
@@ -480,60 +473,6 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             'click',
         )
 
-    def _to_top_bootstrap_dialog(self):
-        WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.bootstrap-dialog'))
-        )
-        dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
-        top_key = None
-        z_indexes = []
-        for key, dialog in enumerate(dialogs):
-            styles = self.parse_css_styles(dialog)
-            z_indexes.append(styles.get('z-index', 0))
-            if dialog.is_displayed():
-                if top_key is None:
-                    top_key = key
-                else:
-                    if z_indexes[key] > z_indexes[top_key]:
-                        top_key = key
-        if top_key is None:
-            raise WebDriverException('Cannot find top bootstrap dialog')
-        else:
-            self.context.element = dialogs[top_key]
-            self.context.component = self.context.element
-            return self.context
-
-    def _wait_until_dialog_closes(self):
-        try:
-            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
-                EC.presence_of_element_located((By.XPATH, '//div[@class="modal-backdrop fade"]'))
-            )
-        except WebDriverException:
-            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
-                EC.presence_of_element_located((By.XPATH, '//div[@class="modal-header bootstrap-dialog-draggable"]'))
-            )
-        return self.context
-
-    def _fk_widget_click(self, id):
-        return self.exec(
-            'by_id', (id,),
-            'relative_by_xpath', ('following-sibling::button',),
-            'click',
-            'to_top_bootstrap_dialog',
-            # 'to_active_element',
-        )
-
-    def _dialog_button_click(self, button_title):
-        return self.exec(
-            # 'to_active_element',
-            'to_top_bootstrap_dialog',
-            'relative_by_xpath', (
-                './/div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
-                button_title,
-            ),
-            'click',
-        )
-
     def _assert_field_error(self, id, text):
         return self.exec(
             'by_id', (id,),
@@ -542,100 +481,14 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
             ),
         )
 
-    def _grid_button_action_click(self, action_name):
+    def _fk_widget_click(self, id):
         return self.exec(
-            'component_relative_by_xpath', (
-                './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
-                '//span[text()={}]/parent::button',
-                action_name
-            ),
+            'by_id', (id,),
+            'relative_by_xpath', ('following-sibling::button',),
             'click',
-        )
-
-    # $x(".//tr [ .//td[@data-caption='Title' and text()='Yaroslavl Bears'] and .//td[@data-caption='First name' and text()='Ivan'] ]")
-    def _grid_find_data_row(self, columns):
-        xpath_str = './/tr [ '
-        xpath_args = []
-        first_elem = True
-        for caption, value in columns.items():
-            if first_elem:
-                first_elem = False
-            else:
-                xpath_str += ' and '
-            xpath_str += './/td[@data-caption={} and text()={}]'
-            xpath_args.extend([
-                caption, value
-            ])
-        xpath_str += ' ]'
-        return self._component_relative_by_xpath(xpath_str, *xpath_args)
-
-    def _grid_select_current_row(self):
-        self.context = self._component_relative_by_xpath(
-            './/tr//td[@data-bind="click: onSelect"]/span'
-        )
-        if 'glyphicon-unchecked' in self.parse_css_classes(self.context.element):
-            return self._click()
-        else:
-            return self.context
-
-    def _grid_row_glyphicon_action(self, action_name):
-        return self.exec(
-            'component_relative_by_xpath', (
-                './/tr//td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
-                action_name,
-            ),
-            'click',
-            'default_sleep',
-            'default_wait',
-        )
-
-    def _grid_search_substring(self, substr):
-        return self.exec(
-            'component_relative_by_xpath', (
-                './/input[@type="search"]',
-            ),
-            'keys', (substr,),
-            'click',
-            'default_sleep',
-            'default_wait',
-        )
-
-    def _grid_order_by(self, verbose_name):
-        return self.exec(
-            'component_relative_by_xpath', (
-                './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
-            ),
-            'click',
-            'default_sleep',
-            'default_wait',
-        )
-
-    def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
-        grid_filter = self.relative_by_xpath(
-            self.context.component,
-            './/*[@data-bind="foreach: gridFilters"]//li[@class="bold" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
-            filter_name
-        )
-        for filter_choice in filter_choices:
-            self.context.element = self.relative_by_xpath(
-                grid_filter,
-                './/a[text() = {}]', filter_choice,
-            )
-            self._click()
-        self.context.element = grid_filter
-        return self.exec(
-            'default_sleep',
-            'default_wait',
-        )
-
-    def _grid_goto_page(self, page):
-        return self.exec(
-            'component_relative_by_xpath', (
-                './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page,
-            ),
-            'click',
-            'default_sleep',
-            'default_wait',
+            'to_top_bootstrap_dialog',
+            'dialog_is_component',
+            # 'to_active_element',
         )
 
     def _fk_widget_add_and_select(self, fk_id, add_commands, select_commands):
@@ -645,12 +498,13 @@ class DjkSeleniumCommands(SeleniumQueryCommands):
                 'grid_button_action_click', ('Add',),
             ) + add_commands + \
             (
-                'dialog_button_click', ('Save',),
+                'dialog_footer_button_click', ('Save',),
                 'to_top_bootstrap_dialog',
+                'dialog_is_component',
             ) + select_commands + \
             (
                 'grid_select_current_row',
-                'dialog_button_click', ('Apply',),
+                'dialog_footer_button_click', ('Apply',),
             )
         return self.exec(*commands)
 
