@@ -1,6 +1,8 @@
 .. :changelog:
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
+.. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
+.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
@@ -173,3 +175,17 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * Django 1.11 / Python 3.6 support.
 * Selenium testing commands fixes.
+
+0.5.0
+-----
+* Reworked recursive underscore.js templating engine as `App.Tpl`_ class. Now it is possible to inherit (extend)
+  templating engine class and to override default method of (sub)templates loading. Currently it is used for client-side
+  overriding of grid templates.
+* Support of rendering localized keys in `App.renderNestedList`_ used to display verbose field names and their values of
+  Django model instances by grid row actions and for related model fields display in grid cells.
+* Client-side components code now uses separate html5 data attribute ``data-component-class`` to bind DOM subtrees to
+  Javascript component classes (for example grids), instead of placing everything into ``data-component-options``
+  attribute as in previous versions.
+* ``App.ko.GridRow`` now uses method ``.matchesPk()`` to check whether two grid rows match the same Django model
+  instance. It is possible to override ``.matchesPk()`` in child class for custom grid rows matching - for example
+  grids with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null``.
