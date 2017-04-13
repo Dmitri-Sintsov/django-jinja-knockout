@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.core.management import call_command
 
 from .automation import AutomationCommands
-from .testing_components import ComponentCommands, DialogCommands, GridCommands
+from .testing_components import FormCommands, ComponentCommands, DialogCommands, GridCommands
 from .utils.regex import finditer_with_separators
 from .utils.sdv import str_to_numeric, reverse_enumerate
 from .tpl import reverseq
@@ -225,6 +225,8 @@ class BaseSeleniumCommands(AutomationCommands):
         return result
 
     def format_xpath(self, s, *args, **kwargs):
+        if len(args) == 0 and len(kwargs) == 0:
+            return s
         return s.format(
             *tuple(self.escape_xpath_literal(arg) for arg in args),
             **dict({key: self.escape_xpath_literal(arg) for key, arg in kwargs.items()})
@@ -352,16 +354,6 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
         return self.context
 
-    def _ancestor(self, expr):
-        return self._relative_by_xpath(
-            'ancestor::{}'.format(expr)
-        )
-
-    def _ancestor_or_self(self, expr):
-        return self._relative_by_xpath(
-            'ancestor-or-self::{}'.format(expr)
-        )
-
     def _click(self):
         # A workaround for "Element is not clickable at point" error.
         # http://stackoverflow.com/questions/11908249/debugging-element-is-not-clickable-at-point-error
@@ -422,32 +414,9 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
         return self._click()
 
-    def _form_by_view(self, viewname, kwargs=None, query=None):
-        return self._by_xpath(
-            self.format_xpath(
-                '//form[@action={action}]',
-                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
-            )
-        )
-
-    def _relative_form_button_click(self, button_title):
-        return self.exec(
-            'relative_by_xpath', ('ancestor-or-self::form//button[contains(., {})]', button_title,),
-            'click'
-        )
-
-    def _click_submit_by_view(self, viewname, kwargs=None, query=None):
-        self.context = self._by_xpath(
-            self.format_xpath(
-                '//form[@action={action}]//button[@type="submit"]',
-                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
-            )
-        )
-        return self._click()
-
 
 # BootstrapDialog / AJAX grids specific commands.
-class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, ComponentCommands):
+class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, ComponentCommands, FormCommands):
 
     sync_commands_list = [
         'click',

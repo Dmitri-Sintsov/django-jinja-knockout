@@ -3,6 +3,34 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
 
+from .tpl import reverseq
+
+
+class FormCommands:
+
+    def _form_by_view(self, viewname, kwargs=None, query=None):
+        return self._by_xpath(
+            self.format_xpath(
+                '//form[@action={action}]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
+
+    def _relative_form_button_click(self, button_title):
+        return self.exec(
+            'relative_by_xpath', ('ancestor-or-self::form//button[contains(., {})]', button_title,),
+            'click'
+        )
+
+    def _click_submit_by_view(self, viewname, kwargs=None, query=None):
+        self.context = self._by_xpath(
+            self.format_xpath(
+                '//form[@action={action}]//button[@type="submit"]',
+                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
+            )
+        )
+        return self._click()
+
 
 class ComponentCommands:
 
