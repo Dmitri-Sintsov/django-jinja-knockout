@@ -1,9 +1,11 @@
 .. :changelog:
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
+.. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+.. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
@@ -179,13 +181,39 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.0
 -----
 * Reworked recursive underscore.js templating engine as `App.Tpl`_ class. Now it is possible to inherit (extend)
-  templating engine class and to override default method of (sub)templates loading. Currently it is used for client-side
-  overriding of grid templates.
-* Support of rendering localized keys in `App.renderNestedList`_ used to display verbose field names and their values of
-  Django model instances by grid row actions and for related model fields display in grid cells.
+  templating engine class by altering `App.globalIoc`_ and then to override default method of (sub)templates loading.
+  Currently it is used for client-side overriding of grid templates.
+* Display verbose field names and their values of Django model instances in the following cases:
+
+  * Grid row actions;
+  * Related model fields display in grid cells;
+  * ``ForeignKeyGridWidget`` display of chosen fk value;
+  * Client-side support of field names (keys i18n) is added into `App.renderNestedList`_.
+  * Server-side support of rendering verbose field names is implemented in:
+
+    * ``tpl`` module ``print_list()`` function now supports optional ``show_keys`` / ``i18n`` arguments.
+    * ``models`` module functions:
+
+      * ``model_fields_meta()``
+      * ``yield_related_models()``
+
+    * ``views.ajax.GridActionsMixin`` class:
+
+      * ``get_related_models()``
+      * ``get_model_fields_verbose_names()``
+      * ``get_related_model_fields_verbose_names()``
+
 * Client-side components code now uses separate html5 data attribute ``data-component-class`` to bind DOM subtrees to
   Javascript component classes (for example grids), instead of placing everything into ``data-component-options``
   attribute as in previous versions.
 * ``App.ko.GridRow`` now uses method ``.matchesPk()`` to check whether two grid rows match the same Django model
   instance. It is possible to override ``.matchesPk()`` in child class for custom grid rows matching - for example
   grids with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null``.
+* Automation commands now uses ``SimpleNamespace`` as chained context, which allows to use different nodes for relative
+  search queries chaining. Currently implemented are relative Selenium queries for form, component, bootstrap dialog and
+  grid. Much better tests coverage in `djk-sample`_ project. Many new Selenium commands are implemented, including
+  ``screenshot`` command.
+* ``ko_generic_inlineformset_factory`` supports dynamic adding / removal of generic inline formsets.
+* ``FilteredRawQuerySet`` / ``ListQuerySet`` queryset classes ``values()`` and ``values_list()`` methods now support
+  model relations in queried field names ``__``.
+* Numerous bugfixes.
