@@ -1,9 +1,7 @@
 .. :changelog:
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
-.. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
-.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
@@ -85,7 +83,7 @@ History
       allows to skip already debugged parts of tests via `.has_fixture()`_ method, greatly reducing the time
       required to develop and debug long running Selenium tests. To make proper order (sequence) of stored / loaded
       fixtures, one has to define `fixtures_order`_ attribute of ``DjkTestCase`` derived class.
-    * Automatical retry of the last Selenium commands execution in case current command is timed out when running at
+    * Automatic retry of the last Selenium commands execution in case current command is timed out when running at
       slow client due to DOM is not being updated in time.
     * css parsing / xpath string escaping.
 
@@ -180,15 +178,14 @@ Alternative breadcrumbs layout of field filters widgets.
 
 0.5.0
 -----
-* Reworked recursive underscore.js templating engine as `App.Tpl`_ class. Now it is possible to inherit (extend)
-  templating engine class by altering `App.globalIoc`_ and then to override default method of (sub)templates loading.
-  Currently it is used for client-side overriding of grid templates.
-* Display verbose field names and their values of Django model instances in the following cases:
+* Reworked recursive underscore.js templating engine as ``App.Tpl`` class.
+* Display verbose field names with their values of Django model instances. Optionally will display related model fields
+  as nested field name / value pairs as well. It is supported in the following cases:
 
   * Grid row actions;
   * Related model fields display in grid cells;
   * ``ForeignKeyGridWidget`` display of chosen fk value;
-  * Client-side support of field names (keys i18n) is added into `App.renderNestedList`_.
+  * Client-side support of field names (keys ``i18n`` mapping) is added into `App.renderNestedList`_.
   * Server-side support of rendering verbose field names is implemented in:
 
     * ``tpl`` module ``print_list()`` function now supports optional ``show_keys`` / ``i18n`` arguments.

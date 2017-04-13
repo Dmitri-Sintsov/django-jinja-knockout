@@ -3,7 +3,9 @@ Quickstart
 ===========
 
 .. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
+.. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
+.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
@@ -64,14 +66,31 @@ Simplifying AJAX calls
 
 Underscore.js templates
 ~~~~~~~~~~~~~~~~~~~~~~~
-Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they may be used in conjunction
-with Knockout.js templates to generate components.
+Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction
+with Knockout.js templates to generate components, for example AJAX grids (datatables).
+
+Since version 0.5.0 templating engine was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
+templating engine class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key with overridden default method of
+(sub)templates loading ``expandTemplate()`` or ``compileTemplate()``. Currently it is used for optional client-side
+overriding of default grid templates, supported via `App.Tpl`_ constructor ``options.templates`` argument.
 
 * ``App.compileTemplate`` provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
   specified DOM id ``tplId``.
-* ``App.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
-* ``App.loadTemplates`` automatically loads existing underscore.js templates by their DOM id into DOM nodes with html5
+* ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
+* ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
+
+The following html5 data attributes are used by App.Tpl templating engine:
+
+* ``data-template-id`` - destination of template expansion, the place where the content of expanded underscore.js
+  template will be inserted. Attribute can be applied recursively.
+* ``data-template-class`` - optional override of default `App.Tpl`_ template processing class. Allows to process
+  different underscore.js templates with different template processing classes.
+* ``data-template-options`` - optional value of template processing class constructor ``options`` argument, which
+  may have the following keys:
+
+    * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow
+    * ``.templates`` - optionally substitutes template names.
 
 Components
 ~~~~~~~~~~
