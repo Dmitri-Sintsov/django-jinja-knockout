@@ -30,7 +30,7 @@ Grids
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
-.. _App.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.loadTemplates&utf8=%E2%9C%93
+.. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&utf8=%E2%9C%93
 
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
@@ -256,13 +256,21 @@ ko_grid() macro
 Jinja2 macro ``ko_grid()`` generates html code of client-side component which looks like this in the generated page
 html::
 
-    <div class="component" id="club_grid" data-component-options='{"pageRoute": "club_grid", "classPath": "App.ko.Grid"}'>
-    <a name="club_grid"></a>
-        <div data-template-id="ko_grid_body" data-template-args='{"show_pagination": true, "vscroll": true, "show_title": true}'>
+    <div class="component" data-component-class="App.ko.ClubGrid" id="club_grid"
+        data-component-options='{"defaultOrderBy": {"foundation_date": "-"}, "pageRoute": "club_grid_with_action_logging"}'>
+        <a name="club_grid"></a>
+        <div data-template-args="{'show_pagination': true, 'show_title': true, 'vscroll': true}"
+            data-template-id="ko_grid_body"
+            data-template-options="{'meta_is_grid': true}">
         </div>
     </div>
 
-The code is inserted into web page body block.
+The code is inserted into web page body block. This HTML is not the full DOM subtree of grid but an initial stub.
+It will be automatically expanded with the content of `underscore.js template`_ with name ``ko_grid_body`` by
+`App.bindTemplates`_ called in `App.initClientHooks`_.
+
+At next step, expanded DOM subtree will be automatically bound to newly created instance of ``App.ko.Grid`` Javascript
+class via `App.components`_ class instance `.add()` method to make grid "alive".
 
 ``ko_grid()`` macro accepts the following kwargs:
 
@@ -272,8 +280,6 @@ The code is inserted into web page body block.
 
   * Mandatory key ``'pageRoute'`` is used to get Python grid class in ``ko_grid()`` macro to autoconfigure client-side
     options of grid (see the macro code in `ko_grid.htm`_ for details).
-  * Optional key ``classPath`` overrides client-side class used for instantiation of grid. Usually that should be
-    ancestor of ``App.ko.Grid`` class inserted via custom ``<script>`` tag to ``bottom_scripts`` Jinja2 template block.
   * The rest of the keys are optional and are passed to the constructor of ``App.ko.Grid`` class. They could be used to
     modify grid appearance / behavior. See ``App.ko.Grid`` class ``.init()`` method  ``.options`` property for the
     current list of possible options. Some of these are:
@@ -302,18 +308,16 @@ The code is inserted into web page body block.
       ``KoGridView`` derived CBV action handler to get the queryset with selected model instances. See `action_delete`_
       implementation for example.
 
-* Optional ``template_options`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
+* Optional ``template_args`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
   which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
   visually long enough so we turn on vertical scrolling for these via ``"vscroll":`` ``true`` (which is off by default).
-* Optional ``dom_attrs`` argument is used to set extra DOM attributes of component template. It passes the value of
-  component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid`` class).
-  It is especially useful in pages which define multiple grids that interact to each other. See `Grids interaction`_
-  for more details.
-
-Of course this HTML is not the full DOM subtree of grid but an initional stub. It will be automatically expanded with
-the content of `underscore.js template`_ with name ``ko_grid_body`` by `App.loadTemplates`_ call defined in
-`App.initClientHooks`_, then automatically bound to newly created instance of ``App.ko.Grid`` Javascript class via
-`App.components`_ class instance `.add()` method to make grid "alive".
+* Optional ``wrapper_dom_attrs`` argument is used to set extra DOM attributes of component template. It passes the value
+  of component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid``
+  class). It is especially useful in pages which define multiple grids that interact to each other. See
+  `Grids interaction`_ for more details.
+* Optional ``template_dom_attrs`` argument allows to pass custom values of template processor ``data-template-id``,
+  ``data-template-args``, ``data-template-options`` attributes. See :doc:`quickstart` Underscore.js templates section
+  for more detail on these attributes usage. See also `member_grid_tabs.htm`_ for the example.
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
 * See `app.js`_ ``App.Components`` class for the details of client-side components implementation.

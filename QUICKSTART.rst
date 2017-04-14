@@ -4,13 +4,13 @@ Quickstart
 
 .. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
-.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
+.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _Celery: https://github.com/celery/celery
-.. _data-component-options: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-options
+.. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
@@ -108,24 +108,31 @@ The following html5 data attributes are used by `App.Tpl`_ template processor:
 Components
 ~~~~~~~~~~
 ``App.Components`` class allows to automatically instantiate Javascript classes by their string path specified in
-element's ``data-component-class`` html5 attribute and bind these to that element. Primarily used to provide
-Knockout.js ``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to Knockout.js.
+element's ``data-component-class`` html5 attribute and bind these to that element. It is used to provide Knockout.js
+``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to that.
 
 .. highlight:: html
 
 Since version 0.3.0, components can be also instantiated via browser event in addition to default document 'ready' event
 instantiating. That allows to bind component classes to button click, for example::
 
-    <button class="component" data-event="click" data-component-options='{"classPath": "App.GridDialog"}}'>
+    <button class="component" data-event="click"
+        data-component-class="App.GridDialog"
+        data-component-options='{"filterOptions": {"pageRoute": "club_member_grid"}}'>
         Click to see project list
     </button>
 
-Would create an instance of ``App.GridDialog`` class when target button is clicked.
+Would create an instance of ``App.GridDialog`` class with ``data-component-options`` value passed as constructor
+argument when target button is clicked.
 
 JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
 is generated in Jinja2 macro, such as `ko_grid()`_::
 
-    <div {{ flatatt(dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'></div>
+    <div{{ json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
+    <a name="{{ fragment_name }}"></a>
+        <div{{ json_flatatt(_template_dom_attrs) }}>
+        </div>
+    </div>
 
 .. highlight:: javascript
 
@@ -139,7 +146,7 @@ like this::
         this.doStuff();
     };
 
-Then in your component shutwodn code call ``App.components`` instance ``.unbind()`` / ``.add()`` methods::
+Then in your component shutdown code call ``App.components`` instance ``.unbind()`` / ``.add()`` methods::
 
     MyComponent.onHide = function() {
         // Run your shutdown code ...
@@ -160,7 +167,7 @@ See `App.GridDialog`_ code for the example of built-in component, which allows t
 Because ``App.GridDialog`` class constructor may have many options, including dynamically-generated ones, it's
 preferrable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
 
-Search for `data-component-options`_ in djk-sample code for the examples of both document ready and button click
+Search for `data-component-class`_ in djk-sample code for the examples of both document ready and button click
 component binding.
 
 plugins.js
