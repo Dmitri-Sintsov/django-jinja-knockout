@@ -17,6 +17,7 @@ Quickstart
 .. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
+.. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -67,35 +68,46 @@ Simplifying AJAX calls
 Underscore.js templates
 ~~~~~~~~~~~~~~~~~~~~~~~
 Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction
-with Knockout.js templates to generate components, for example AJAX grids (datatables).
+with Knockout.js templates to generate components, for example AJAX grids (Django datatables).
 
 Since version 0.5.0 templating engine was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
-templating engine class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key with overridden default method of
-(sub)templates loading ``expandTemplate()`` or ``compileTemplate()``. Currently it is used for optional client-side
-overriding of default grid templates, supported via `App.Tpl`_ constructor ``options.templates`` argument.
+templating engine class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom templating engine class
+should override one of (sub)templates loading methods ``expandTemplate()`` or ``compileTemplate()``.
+
+In the underscore.js template execution context, the instance of `App.Tpl`_ class is available as ``self`` variable.
+Thus calling `App.Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
+templates for the example of ``self.get`` method usage.
+
+Internally templating engine is used for optional client-side overriding of default grid templates, supported via
+`App.Tpl`_ constructor ``options.templates`` argument.
 
 * ``App.compileTemplate`` provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
   specified DOM id ``tplId``.
 * ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
 * ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
+* ``App.bindTemplates`` - templating class factory used by ``App.initClient`` autoinitialization of DOM nodes.
 
 The following html5 data attributes are used by App.Tpl templating engine:
 
 * ``data-template-id`` - destination of template expansion, the place where the content of expanded underscore.js
   template will be inserted. Attribute can be applied recursively.
-* ``data-template-class`` - optional override of default `App.Tpl`_ template processing class. Allows to process
-  different underscore.js templates with different template processing classes.
-* ``data-template-options`` - optional value of template processing class constructor ``options`` argument, which
+* ``data-template-class`` - optional override of default `App.Tpl`_ templating engine class. Allows to process
+  different underscore.js templates with different templating engine classes.
+* ``data-template-args`` - optional values of `App.Tpl`_ class ``.extendData()`` method, appended to ``.data`` property.
+  The values stored in ``.data`` property are used to control template execution flow by ``.get()`` method.
+* ``data-template-args-nesting`` - optionally disables appending of ``.data`` property of the parent templating engine
+  to ``.data`` property of nested child templates.
+* ``data-template-options`` - optional value of templating engine class constructor ``options`` argument, which
   may have the following keys:
 
-    * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow
-    * ``.templates`` - optionally substitutes template names.
+    * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow.
+    * ``.templates`` - key map of template ids to optionally substitute template names.
 
 Components
 ~~~~~~~~~~
 ``App.Components`` class allows to automatically instantiate Javascript classes by their string path specified in
-element's ``data-component-options`` html5 attribute and bind these to that element. Primarily used to provide
+element's ``data-component-class`` html5 attribute and bind these to that element. Primarily used to provide
 Knockout.js ``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to Knockout.js.
 
 .. highlight:: html
