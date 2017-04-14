@@ -329,7 +329,7 @@ as ``ko_grid_body``) that are applied automatically to each grid component DOM n
 Then `cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `ko_grid.js`_. The script
 is not so small, and grids are not always displayed at each Django page, so it is not included in `base_min.htm`_
 ``bottom_scripts`` block by default to make total pages traffic lower. However, it's size is well-justified knowing
-that it is loaded just once for all grids of the side. Usually it's cached at client-side by browser, and reduces quite
+that it is loaded just once for all grids of the site. Usually it's cached at client-side by browser, and reduces quite
 a lot of HTTP traffic for grid pagination and grid actions.
 
 .. highlight:: jinja
@@ -340,26 +340,27 @@ Since version 0.4.1, ``ko_grid_body()`` macro includes two versions of filter fi
   drop-down menus.
 * ``ko_grid_breadcrumb_filter_choices`` / ``ko_grid_breadcrumb_filter_popup``, when filter values are displayed as
   bootstrap breadcrumbs. To activate this version of filter field widgets, one should call ``ko_grid_body()`` macro
-  like this::
+  like this (since version 0.5.0)::
 
     {{
         ko_grid_body(
-            call_ids={
-                'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
-                'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
-            },
-            template_ids={
-                'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
-                'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
-            }
+            include_ids=[
+                'ko_grid_breadcrumb_filter_choices',
+                'ko_grid_breadcrumb_filter_popup'
+            ],
+            exclude_ids=[
+                'ko_grid_filter_choices',
+                'ko_grid_filter_popup'
+            ]
         )
     }}
 
-  If there's already was a call to ``ko_grid_body()``, do not forget to add ``has_full_body`` = ``True`` keyword
-  argument to call, to avoid duplicate generation of grid templates. There is `cbv_grid_breadcrumbs.htm`_ Jinja2
-
-  macro that could be used as ``template_name`` value of ``KoGridView`` derived grid class attribute. See sample project
-  `club_app.views_ajax`_ for the example.
+  ``exclude_ids`` argument saves a bit of html removing unused underscore.js templates from the resulting page.
+  It is also possible to have multiple grids with different styles of filters at the same page, in such case
+  do not use ``exclude_ids`` argument.
+  There is `cbv_grid_breadcrumbs.htm`_ Jinja2 macro that could be used as ``template_name`` value of ``KoGridView``
+  derived grid class attribute to use breadcrumb-style filters. See sample project `club_app.views_ajax`_ for the
+  example.
 
 ==================
 Grid configuration
@@ -1105,76 +1106,70 @@ Modifying visual layout of grid
 .. highlight:: jinja
 .. _modifying_visual_layout_of_grid:
 
-Top DOM nodes of grid component can be overriden by using Jinja2 ``{% call(kwargs) ko_grid() %}`` statement, then
-implementing a caller section with custom DOM nodes. There is the example of using this approach just below.
-See the source code of `ko_grid.htm`_ template for original DOM nodes of ``App.ko.Grid`` component.
+Top DOM nodes of grid component can be overridden by using Jinja2 ``{% call(kwargs) ko_grid() %}`` statement, then
+implementing a caller section with custom DOM nodes. See the source code of `ko_grid.htm`_ template for original DOM
+nodes of ``App.ko.Grid`` component. This feature is rarely used since version 0.5.0 rewritten template processor
+offers more simplier ways to override root ``ko_grid_body`` underscore.js template at client-side.
 
-It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component, by passing
-arguments to ``ko_grid_body()`` Jinja2 macro with keys as template names and values as custom template ids.
+It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component. ``ko_grid()`` macro allows
+to override built-in grid templates with custom ones by providing ``template_dom_attrs`` argument with
+``'data-template-options'`` attribute key / values. In the example just below ``'member_ko_grid_filter_choices'`` and
+``'member_ko_grid_body'`` will be called instead of default templates.
 
-* Optional ``'call_ids' argument`` is used to override expanded nested templates DOM ids. It allows to call (expand)
-  another underscore.js template instead of built-in one, eg. ``'member_ko_grid_filter_choices'`` instead of default
-  ``'ko_grid_filter_choices'`` (see example below).
-* Optional ``'template_ids' argument`` is used to override DOM ids of ``underscore.js`` templates bodies. That allows
-  to generate standard built-in underscore.js template but with a different DOM id, to "copy the same template with
-  different DOM id". It is required sometimes to allow both standard and visually customized grids at one web page.
-* Jinja2 caller is automatically detected and will be used to override component template.
+When custom grid templates are defined, one may wish not to include unused standard grid templates. To include only
+selected standard grid templates, there are optional arguments of ``ko_grid_body()`` Jinja2 macro with the lists of
+template names.
+
+* Optional ``'include_ids' argument`` list of built-in nested templates DOM ids that will be included into generated
+  html page.
+* Optional ``'exclude_ids' argument`` list of built-in nested templates DOM ids to be skipped from generated html page.
 
 Here is the example of overriding visual display of ``App.ko.GridFilter`` that is used to select filter field from
-the list of specified choices. Also ``ko_grid_body`` template is overriden to ``member_ko_grid_body`` template with
-button inserted that has knockout.js ``"click: onChangeEndorsementButtonClick.bind($data)"`` custom binding::
+the list of specified choices. ``ko_grid_body`` underscore.js template is overridden to ``member_ko_grid_body`` template
+with button inserted that has knockout.js custom binding::
+
+    "click: onChangeEndorsementButtonClick.bind($data)"
+
+Full code::
 
     {% from 'ko_grid.htm' import ko_grid with context %}
     {% from 'ko_grid_body.htm' import ko_grid_body with context %}
     {% extends 'base.htm' %}
 
     {% block main %}
-
-        {% call(kwargs) ko_grid(
+        {#
+            'separateMeta' is required because Django grid specifies 'active_choices' field filter value.
+        #}
+        {#
+            Overwrites templates for custom display of MemberGrid.
+        #}
+        {{ ko_grid(
             grid_options={
                 'pageRoute': view.request.url_name,
+                'separateMeta': True,
             },
-            template_options={
+            template_args={
                 'vscroll': True
             },
-            dom_attrs={
+            wrapper_dom_attrs={
                 'id': 'member_grid'
+            },
+            template_dom_attrs={
+                'data-template-options': {
+                    'templates': {
+                        'ko_grid_body': 'member_ko_grid_body',
+                        'member_ko_grid_nav': 'ko_grid_nav',
+                        'ko_grid_filter_choices': 'member_ko_grid_filter_choices',
+                    }
+                },
             }
-        ) %}
-
-        <div{{ flatatt(kwargs.dom_attrs) }} data-component-options='{{ kwargs._grid_options|escapejs }}'>
-        <a name="{{ kwargs.fragment_name }}"></a>
-            <div data-template-id="member_ko_grid_body" data-template-args='{{ kwargs._template_options|escapejs }}'>
-            </div>
-        </div>
-
-    {% endcall %}
+        ) }}
 
     {% endblock main %}
 
     {% block bottom_scripts %}
-        {# Generate standard grid templates for KoGridView #}
+        {# Generate standard grid templates for KoGridWidget #}
         {{ ko_grid_body() }}
-
-        {#
-            Overwrites templates for custom display of MemberGrid.
-            has_full_body=True indicates that ko_grid_body() without arguments was already called, generating
-            standard templates, thus only call_ids / template_ids related templates has to be re-generated.
-            It will work without has_full_body=True as well, but duplicate templates with the same id / content
-            would be generated in such case.
-        #}
-        {{
-            ko_grid_body(
-                call_ids={
-                    'ko_grid_body': 'member_ko_grid_body',
-                    'ko_grid_filter_choices': 'member_ko_grid_filter_choices',
-                },
-                template_ids={
-                    'ko_grid_nav': 'member_ko_grid_nav'
-                },
-                has_full_body=True
-            )
-        }}
 
         <script type="text/template" id="member_ko_grid_body">
             <div class="panel panel-primary">
@@ -1646,7 +1641,7 @@ fields in one grid cell).
 ``.get_row_str_fields()`` method and are converted to client-side ``display values`` in ``App.ko.GridRow`` class
 ``toDisplayValue()`` method.
 
-Both methods can be overriden in ancestor classes to customize field values output. When associated Django model has
+Both methods can be overridden in ancestor classes to customize field values output. When associated Django model has
 `get_str_fields()`_ method defined, it will be used to get ``str_fields`` for each row by default.
 
 'meta_list' action
@@ -2659,7 +2654,7 @@ Two lists of rows are returned to be updated via `App.ko.Grid.updatePage() metho
 * vm_list ``'update_rows': self.postprocess_qs([club])`` list of rows to be updated for ``ClubEquipmentGrid``
 * vm_list ``'equipment_grid_view': {'prepend_rows': ...}`` list of rows to be updated for ``EquipmentGrid``
 
-``EquipmentGrid`` is much simiplier because it does not define custom actions. It's just used to display both already
+``EquipmentGrid`` is much simpler because it does not define custom actions. It's just used to display both already
 existing and newly added values of particular ``Club`` related ``Equipment`` model instances::
 
     class EquipmentGrid(KoGridView):
@@ -2899,7 +2894,7 @@ method are implemented to perform custom action (see `Action AJAX response handl
 
 .. highlight:: jinja
 
-And the final step is to generate client-side component in Jinja2 template with overriden ``ko_grid_body`` template ::
+And the final step is to generate client-side component in Jinja2 template with overridden ``ko_grid_body`` template ::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_navs.htm' import bs_navs with context %}
@@ -2915,28 +2910,22 @@ And the final step is to generate client-side component in Jinja2 template with 
         grid_options={
             'pageRoute': 'model1_grid',
         },
-        dom_attrs={
+        wrapper_dom_attrs={
             'id': 'model1_grid'
         },
-        body_call_id='model1_ko_grid_body'
+        template_dom_attrs={
+            'data-template-options': {
+                'templates': {
+                    'ko_grid_body': 'model1_ko_grid_body',
+                }
+            },
+        }
     ) }}
 
     {% endblock main %}
 
     {% block bottom_scripts %}
         {{ ko_grid_body() }}
-        {{
-            ko_grid_body(
-                call_ids={
-                    'ko_grid_body': 'model1_ko_grid_body',
-                },
-                template_ids={
-                    'ko_grid_nav': 'model1_ko_grid_nav',
-                    'ko_grid_table': 'model1_ko_grid_table'
-                },
-                has_full_body=True
-            )
-        }}
 
         <script type="text/template" id="model1_ko_grid_body">
             <div class="panel panel-primary">

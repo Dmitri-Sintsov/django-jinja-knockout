@@ -70,15 +70,15 @@ Underscore.js templates
 Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction
 with Knockout.js templates to generate components, for example AJAX grids (Django datatables).
 
-Since version 0.5.0 templating engine was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
-templating engine class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom templating engine class
-should override one of (sub)templates loading methods ``expandTemplate()`` or ``compileTemplate()``.
+Since version 0.5.0 template processor was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
+template processor class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom template processor class
+could override one of (sub)templates loading methods ``expandTemplate()`` or ``compileTemplate()``.
 
 In the underscore.js template execution context, the instance of `App.Tpl`_ class is available as ``self`` variable.
 Thus calling `App.Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
 templates for the example of ``self.get`` method usage.
 
-Internally templating engine is used for optional client-side overriding of default grid templates, supported via
+Internally template processor is used for optional client-side overriding of default grid templates, supported via
 `App.Tpl`_ constructor ``options.templates`` argument.
 
 * ``App.compileTemplate`` provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
@@ -86,19 +86,20 @@ Internally templating engine is used for optional client-side overriding of defa
 * ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
 * ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
-* ``App.bindTemplates`` - templating class factory used by ``App.initClient`` autoinitialization of DOM nodes.
+* ``App.bindTemplates`` - templates class factory used by ``App.initClient`` autoinitialization of DOM nodes.
 
-The following html5 data attributes are used by App.Tpl templating engine:
+The following html5 data attributes are used by `App.Tpl`_ template processor:
 
-* ``data-template-id`` - destination of template expansion, the place where the content of expanded underscore.js
-  template will be inserted. Attribute can be applied recursively.
-* ``data-template-class`` - optional override of default `App.Tpl`_ templating engine class. Allows to process
-  different underscore.js templates with different templating engine classes.
-* ``data-template-args`` - optional values of `App.Tpl`_ class ``.extendData()`` method, appended to ``.data`` property.
-  The values stored in ``.data`` property are used to control template execution flow by ``.get()`` method.
-* ``data-template-args-nesting`` - optionally disables appending of ``.data`` property of the parent templating engine
-  to ``.data`` property of nested child templates.
-* ``data-template-options`` - optional value of templating engine class constructor ``options`` argument, which
+* ``data-template-id`` - destination DOM node which will be replaced by expanded underscore.js template with specified
+  template id. Attribute can be applied recursively.
+* ``data-template-class`` - optional override of default `App.Tpl`_ template processor class. Allows to process
+  different underscore.js templates with different template processor classes.
+* ``data-template-args`` - optional values of current template processor instance ``.extendData()`` method argument.
+  This value will be appended to ``.data`` property of template processor instance. The values stored in ``.data``
+  property are used to control template execution flow via ``self.get()`` method calls in template source code.
+* ``data-template-args-nesting`` - optionally disables appending of ``.data`` property of the parent template processor
+  instance to ``.data`` property of current nested child template processor instance.
+* ``data-template-options`` - optional value of template processor class constructor ``options`` argument, which
   may have the following keys:
 
     * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow.

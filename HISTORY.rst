@@ -178,7 +178,7 @@ Alternative breadcrumbs layout of field filters widgets.
 
 0.5.0
 -----
-* Reworked recursive underscore.js templating engine as ``App.Tpl`` class.
+* Reworked recursive underscore.js template processor as ``App.Tpl`` class.
 * Display verbose field names with their values of Django model instances. Optionally will display related model fields
   as nested field name / value pairs as well. It is supported in the following cases:
 

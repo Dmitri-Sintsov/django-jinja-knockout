@@ -93,7 +93,7 @@ In instance of ``FormWithInlineFormsetsMixin``, ``self.forms_vms`` and ``self.fi
 ``vm_list()`` defined in ``viewmodels.py``. These instances accumulate viewmodels (each one is a simple Python dict
 with ``'view'`` key) during ModelForm / inline formsets validation.
 
-Actual AJAX ModelForm response success / error viewmodels can be overriden in child class, if needed.
+Actual AJAX ModelForm response success / error viewmodels can be overridden in child class, if needed.
 
 These examples shows how to generate dynamic lists of client-side viewmodels at server-side. ``viewmodels.py``
 defines methods to alter viewmodels in already existing ``vm_list()`` instances.
