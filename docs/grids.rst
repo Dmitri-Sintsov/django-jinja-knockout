@@ -28,9 +28,10 @@ Grids
 
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
-.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=App.GridDialog
+.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
 .. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&utf8=%E2%9C%93
+.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
@@ -298,7 +299,7 @@ class via `App.components`_ class instance `.add()` method to make grid "alive".
     * ``showSelection`` - enable selection of single rows (one model instance of grid).
     * ``ownerCtrl`` - used internally to embed client-side parts of grids into another classes, for example
       `ForeignKeyGridWidget`_ dialogs and `Foreign key filter`_. This option value should be another Javascript class
-      instance, thus is meaningless in ``ko_grid()`` macro and should be used via inherited client-side class.
+      instance, thus is meaningless in ``ko_grid()`` macro. It should be used via inherited client-side class instead.
 
       * See `Customizing visual display of grid fields at client-side`_ for a simple example of grid inheritance.
       * See `App.GridDialog`_ code for the example of ``ownerCtrl`` usage.
@@ -315,12 +316,14 @@ class via `App.components`_ class instance `.add()` method to make grid "alive".
   of component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid``
   class). It is especially useful in pages which define multiple grids that interact to each other. See
   `Grids interaction`_ for more details.
-* Optional ``template_dom_attrs`` argument allows to pass custom values of template processor ``data-template-id``,
-  ``data-template-args``, ``data-template-options`` attributes. See :doc:`quickstart` Underscore.js templates section
-  for more detail on these attributes usage. See also `member_grid_tabs.htm`_ for the example.
+* Optional ``template_dom_attrs`` argument allows to pass custom values of template ``data-template-id``,
+  ``data-template-args``, ``data-template-options`` html attributes used by template processor ``App.Tpl``.
+  See :doc:`quickstart` Underscore.js templates section for more detail on these attributes usage. See also
+  `member_grid_tabs.htm`_ for the example.
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
-* See `app.js`_ ``App.Components`` class for the details of client-side components implementation.
+* See `app.js`_ `App.components`_ instance for the details of client-side components implementation.
+* See `app.js`_ `App.Tpl`_ class for the details of client-side template processor implementation.
 
 ko_grid_body() macro
 ~~~~~~~~~~~~~~~~~~~~
