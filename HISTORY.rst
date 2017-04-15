@@ -1,7 +1,6 @@
 .. :changelog:
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
-.. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
@@ -179,27 +178,8 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.0
 -----
 * Reworked recursive underscore.js template processor as ``App.Tpl`` class.
-* Display verbose field names with their values of Django model instances. Optionally will display related model fields
-  as nested field name / value pairs as well. It is supported in the following cases:
-
-  * Grid row actions;
-  * Related model fields display in grid cells;
-  * ``ForeignKeyGridWidget`` display of chosen fk value;
-  * Client-side support of field names (keys ``i18n`` mapping) is added into `App.renderNestedList`_.
-  * Server-side support of rendering verbose field names is implemented in:
-
-    * ``tpl`` module ``print_list()`` function now supports optional ``show_keys`` / ``i18n`` arguments.
-    * ``models`` module functions:
-
-      * ``model_fields_meta()``
-      * ``yield_related_models()``
-
-    * ``views.ajax.GridActionsMixin`` class:
-
-      * ``get_related_models()``
-      * ``get_model_fields_verbose_names()``
-      * ``get_related_model_fields_verbose_names()``
-
+* Display Django model instances verbose field names with their values in grid rows, grid row actions and in
+  ``ForeignKeyGridWidget``. Optionally will display related model fields as nested field name / value pairs as well.
 * Client-side components code now uses separate html5 data attribute ``data-component-class`` to bind DOM subtrees to
   Javascript component classes (for example grids), instead of placing everything into ``data-component-options``
   attribute as in previous versions.

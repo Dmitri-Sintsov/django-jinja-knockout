@@ -31,6 +31,7 @@ Grids
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
 .. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&utf8=%E2%9C%93
+.. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
@@ -446,6 +447,96 @@ relationships, which are implemented in Django ORM via ``'__'`` separator betwee
 
 Set Django grid class ``grid_fields`` property value to the list of model fields that will be displayed as grid columns.
 Foreign key relationship spans are supported too.
+
+Nested verbose field names
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: python
+
+Since version 0.5.0, grids and grid-based classes like `ForeignKeyGridWidget`_ support displaying verbose / localized
+field names of Django model instances with their values, including foreign key related model fields. It is supported in
+the following cases:
+
+* Related model fields display in grid cells;
+* Grid row actions;
+* `ForeignKeyGridWidget`_ display of chosen fk value;
+
+* Client-side support of field names display is added into `App.renderNestedList`_ via ``options`` . ``i18n`` mapping.
+* Server-side support of rendering verbose field names is implemented in:
+
+  * ``tpl`` module ``print_list()`` function now supports optional ``show_keys`` / ``i18n`` arguments.
+  * ``models`` module functions used to gather verbose field names of Django model:
+
+    * ``model_fields_meta()`` - get fields verbose names of the selected model;
+    * ``yield_related_models()`` - get related models of the selected model;
+
+  * ``views.ajax.GridActionsMixin`` class:
+
+    * ``get_model_fields_verbose_names()`` - get current grid Django model fields verbose names.
+    * ``get_related_model_fields_verbose_names()`` - get related models fields verbose names.
+    * ``get_related_models()`` returns the list of related models.
+
+The list of current model verbose field names is returned by `'meta' action`_ as value of ``meta`` . ``listOptions``
+property, while the list of related models fields verbose names is returned as value of ``meta`` .
+``fkNestedListOptions`` property.
+
+By default the list of related models fields verbose names is collected automatically, but in case grid model has
+generic relationships, these can be specified manually via class-level ``related_models`` property like this::
+
+    class ActionGrid(KoGridView):
+
+        client_routes = [
+            'user_fk_widget_grid'
+        ]
+        model = Action
+        grid_fields = [
+            'performer',
+            'date',
+            'action_type',
+            'content_type',
+            'content_object'
+        ]
+        # Autodetection of related_models is impossible because Action model has generic relationships.
+        related_models = [Club, Equipment, Manufacturer, Member, Profile]
+
+        # ... skipped ...
+
+Relation prefixes ``club``, ``equipment`` and so on will be automatically prepended to related models verbose names to
+avoid the name clash in case different related models fields having the same field name but a different verbose name.
+
+See `event_app.views_ajax`_ ``ActionGrid`` class for the full example.
+
+It is possible to specify relation prefix manually with ``related_models`` initialized as dict. To use repeated prefix,
+initialize grid ``related_models`` class level property as the list of tuple pairs::
+
+    class EventLogGrid(KoGridView):
+
+        client_routes = [
+            'eventlog_grid',
+        ]
+
+        model = EventLog
+        grid_fields = [
+            'user__username',
+            'content_object',
+            'content_type',
+        ]
+        allowed_sort_orders = [
+            'user__username',
+            'content_type',
+        ]
+        search_fields = [
+            ('user__username', 'icontains'),
+        ]
+        related_models = [
+            ('content_object', Club),
+            ('content_object', Equipment),
+            ('content_object', Member),
+        ]
+        # ... skipped ...
+
+To override automatic collecting of verbose field names, one has to define Django model @classmethod
+``get_fields_i18n``, which should return a dict with keys as field names and values as their verbose / localized names.
 
 Customizing visual display of grid fields at client-side
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1610,6 +1701,8 @@ Returns AJAX response data:
 * the list of allowed sort orders for grid fields (``'sortOrders'``);
 * flag whether search field should be displayed (``'meta.hasSearch'``);
 * verbose name of associated Django model (``'meta.verboseName' / 'meta.verboseNamePlural'``);
+* verbose names of associated Django model fields and related models verbose field names, see
+  `Nested verbose field names`_ (``'meta.listOptions'`` / ``'meta.fkNestedListOptions'``);
 * name of primary key field ``'meta.pkField'`` that is used in different parts of ``App.ko.Grid`` to address grid rows;
 * list of defined grid actions, See `Standard grid actions`_, `Grid action routing`_, `Grid custom action types`_;
 * allowed grid fields (list of grid columns), see `Grid configuration`_;
