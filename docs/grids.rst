@@ -483,6 +483,10 @@ property, while the list of related models fields verbose names is returned as v
 By default the list of related models fields verbose names is collected automatically, but in case grid model has
 generic relationships, these can be specified manually via class-level ``related_models`` property like this::
 
+    from .models import Action, Club, Equipment, Manufactures, Member, Profile
+    from django_jinja_knockout.views import KoGridView
+    # ... skipped ...
+
     class ActionGrid(KoGridView):
 
         client_routes = [
@@ -509,11 +513,11 @@ See `event_app.views_ajax`_ ``ActionGrid`` class for the full example.
 It is possible to specify relation prefix manually with ``related_models`` initialized as dict. To use repeated prefix,
 initialize grid ``related_models`` class level property as the list of tuple pairs::
 
-    class EventLogGrid(KoGridView):
+    from .models import EventLog, Club, Equipment, Member
+    from django_jinja_knockout.views import KoGridView
+    # ... skipped ...
 
-        client_routes = [
-            'eventlog_grid',
-        ]
+    class EventLogGrid(KoGridView):
 
         model = EventLog
         grid_fields = [
@@ -1967,6 +1971,13 @@ server-side part example.
 
 Client-side part of multiple CRUD operation is implemented in `ko_grid.js`_ ``App.ko.Grid`` class ``updatePage()``
 method.
+
+Since version 0.5.0, ``'update_rows'`` response processing internally uses ``App.ko.GridRow`` class ``.matchesPk()``
+method to check whether two grid rows match the same Django model instance, instead of direct ``pkVal`` comparsion.
+
+It is possible to override ``.matchesPk()`` method in child class for custom grid rows matching - for example in
+grids with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null`` but another
+different field values.
 
 'save_inline' action
 ~~~~~~~~~~~~~~~~~~~~

@@ -178,19 +178,18 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.0
 -----
 * Reworked recursive underscore.js template processor as ``App.Tpl`` class.
-* Display Django model instances verbose field names with their values in grid rows, grid row actions and in
-  ``ForeignKeyGridWidget``. Optionally will display related model fields as nested field name / value pairs as well.
+* Grid rows, grid row actions and ``ForeignKeyGridWidget`` placeholder now are displaying Django model instances verbose
+  field names along with their values. Related model fields verbose names are displayed as well.
 * Client-side components code now uses separate html5 data attribute ``data-component-class`` to bind DOM subtrees to
   Javascript component classes (for example grids), instead of placing everything into ``data-component-options``
   attribute as in previous versions.
-* ``App.ko.GridRow`` now uses method ``.matchesPk()`` to check whether two grid rows match the same Django model
-  instance. It is possible to override ``.matchesPk()`` in child class for custom grid rows matching - for example
-  grids with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null``.
+* Overridable method to check whether two grid rows match the same Django model instance, suitable for RAW query
+  grids with LEFT JOIN, which could have multiple rows with the same ``pkVal`` === ``null``.
 * Automation commands now uses ``SimpleNamespace`` as chained context, which allows to use different nodes for relative
   search queries chaining. Currently implemented are relative Selenium queries for form, component, bootstrap dialog and
   grid. Much better tests coverage in `djk-sample`_ project. Many new Selenium commands are implemented, including
   ``screenshot`` command.
 * ``ko_generic_inlineformset_factory`` supports dynamic adding / removal of generic inline formsets.
 * ``FilteredRawQuerySet`` / ``ListQuerySet`` queryset classes ``values()`` and ``values_list()`` methods now support
-  model relations in queried field names ``__``.
+  model relations in queried field names via ``__`` separator, just like usual Django querysets.
 * Numerous bugfixes.
