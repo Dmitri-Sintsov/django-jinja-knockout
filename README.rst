@@ -22,6 +22,11 @@ django-jinja-knockout
 .. image:: https://img.shields.io/travis/Dmitri-Sintsov/django-jinja-knockout.svg?style=flat
     :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
 
+.. image:: https://www.youtube.com/yt/brand/media/image/YouTube-icon-full_color.png
+    :alt: Watch selenium tests recorded videos.
+    :height: 20px
+    :target: https://www.youtube.com/channel/UCZTrByxVSXdyW0z3e3qjTsQ
+
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
