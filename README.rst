@@ -24,7 +24,7 @@ django-jinja-knockout
 
 .. image:: https://www.youtube.com/yt/brand/media/image/YouTube-icon-full_color.png
     :alt: Watch selenium tests recorded videos.
-    :height: 20px
+    :width: 28px
     :target: https://www.youtube.com/channel/UCZTrByxVSXdyW0z3e3qjTsQ
 
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
