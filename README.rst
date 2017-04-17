@@ -23,6 +23,7 @@ django-jinja-knockout
     :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
 
 .. image:: http://www.icoph.org/img/ic-youtube.png
+    :alt: Watch selenium tests recorded videos.
     :target: https://www.youtube.com/channel/UCZTrByxVSXdyW0z3e3qjTsQ
 
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
