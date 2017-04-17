@@ -354,6 +354,15 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
         return self.context
 
+    def _scroll_to_element(self):
+        # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
+        self.selenium.execute_script(
+            'window.scrollTo(' +
+            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y']) +
+            ')'
+        )
+        return self.context
+
     def _click(self):
         # A workaround for "Element is not clickable at point" error.
         # http://stackoverflow.com/questions/11908249/debugging-element-is-not-clickable-at-point-error
@@ -363,12 +372,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # https://jkotests.wordpress.com/2015/03/20/element-is-not-clickable-due-to-another-element-that-would-receive-the-click/
         # http://learn-automation.com/how-to-solve-element-is-not-clickable-at-pointxy-in-selenium/
 
-        # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
-        self.selenium.execute_script(
-            'window.scrollTo(' +
-            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y']) +
-            ')'
-        )
+        self._scroll_to_element()
 
         # ActionChains(self.selenium).move_to_element(self.context.element)
         # http://stackoverflow.com/questions/29377730/executing-a-script-in-selenium-python
@@ -410,7 +414,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _relative_button_click(self, button_title):
         self.context = self._relative_by_xpath(
-            self.format_xpath('.//button[contains(., {})]', button_title)
+            './/button[contains(., {})]', button_title
         )
         return self._click()
 

@@ -204,6 +204,38 @@ class GridCommands:
                 './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
             ),
             'click',
+            # Wait until AJAX result is complete.
+            'default_sleep',
+            'default_wait',
+        )
+
+    def _grid_dropdown_filter_click(self, filter_name):
+        return self.exec(
+            'component_relative_by_xpath', (
+                './/*[@data-bind="foreach: gridFilters"]'
+                '//*[@data-bind="text: name" and text() = {}]'
+                '/ancestor::*[contains(@data-bind, "click: onDropdownClick.bind($data)")]',
+                filter_name
+            ),
+            'click',
+            'relative_by_xpath', (
+                './/ancestor::*[contains(@data-bind, "grid_filter")]',
+                filter_name
+            ),
+        )
+
+    def _grid_dropdown_filter_choices(self, filter_name, filter_choices):
+        self.context = self._grid_dropdown_filter_click(filter_name)
+        grid_filter = self.context.element
+        for filter_choice in filter_choices:
+            self.context.element = self.relative_by_xpath(
+                grid_filter,
+                './/a[text() = {}]', filter_choice,
+            )
+            self._click()
+        self.context.element = grid_filter
+        # Wait until AJAX result is complete.
+        return self.exec(
             'default_sleep',
             'default_wait',
         )
