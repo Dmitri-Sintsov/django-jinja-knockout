@@ -22,9 +22,7 @@ django-jinja-knockout
 .. image:: https://img.shields.io/travis/Dmitri-Sintsov/django-jinja-knockout.svg?style=flat
     :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
 
-.. image:: https://www.youtube.com/yt/brand/media/image/YouTube-icon-full_color.png
-    :width: 28px
-    :height: 20px
+.. image:: http://www.icoph.org/img/ic-youtube.png
     :target: https://www.youtube.com/channel/UCZTrByxVSXdyW0z3e3qjTsQ
 
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
