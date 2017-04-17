@@ -10,6 +10,7 @@ django-jinja-knockout
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
+.. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
    :alt: PyPI package
@@ -102,6 +103,22 @@ will not work without these scripts.
 
 Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
 client-side scripts.
+
+Major changes (version 0.5.0)
+-----------------------------
+Rewritten recursive underscore.js template processor, see `underscore.js templates`_.
+
+Displaying verbose field names in grid rows, grid row actions and in ``ForeignKeyGridWidget`` placeholder.
+
+Clean-up of client-side components code.
+
+Better support for grids that use RAW queries with ``LEFT JOIN``, which may have multiple rows with the same ``pkVal``
+=== ``null``.
+
+Improvenemtns in Selenium automation testing: better handling of automation commands, more of commands implemented,
+much larger test coverage.
+
+* Numerous bugfixes, including related field queries support in ``FilteredRawQuerySet``.
 
 Major changes (version 0.4.0)
 -----------------------------

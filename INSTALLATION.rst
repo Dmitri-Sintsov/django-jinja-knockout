@@ -45,7 +45,7 @@ To install latest master from repository::
 
 To install specific commit::
 
-    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@51404eaba34f53a319333f52e8a47bd37f496d63
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@b1a6a90334beef6c5988f71464d2356e8dee3b26
 
 
 settings.py
@@ -122,8 +122,8 @@ DJK_MIDDLEWARE
 
 Since version 0.4.0 there is `apps.DjkAppConfig`_ class which has `.get_context_middleware()`_ method that should
 be invoked to get extended middleware class to be used by django-jinja-knockout code and across the project. In case
-one's project has middleware extended from django-jinja-knockout middleware, one should provide import string
-``DJK_MIDDLEWARE`` in ``settings.py`` like that::
+one's project has a middleware extended from django-jinja-knockout middleware, one should specify it import string
+as ``DJK_MIDDLEWARE`` variable value in ``settings.py`` like that::
 
     DJK_MIDDLEWARE = 'djk_sample.middleware.ContextMiddleware'
 
@@ -243,12 +243,12 @@ following code::
     def template_context_processor(HttpRequest=None):
         return TemplateContextProcessor(HttpRequest).get_context_data()
 
-while ``urls.py`` has url name defined as::
+while ``urls.py`` should have url name defined as::
 
     url(r'^blog-(?P<blog_id>\d+)/$', 'my_blog.views.feed_view', name='blog_feed',
         kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
 
-and register your context processor in ``settings.py`` as the value of ``TEMPLATES`` list item nested dictionary keys
+and register your context processor in ``settings.py`` as the value of ``TEMPLATES`` list item of nested dictionary keys
 ``['OPTIONS']`` ``['context_processors']``::
 
     'my_project.context_processors.template_context_processor'
@@ -273,7 +273,7 @@ You will be able to call Django view via AJAX request in your Javascript code li
     });
 
 where AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `app.js`_ to
-appropriate viewmodel handler. Django exceptions and AJAX errors also are handled gracefully, displayed in
+appropriate viewmodel handler. Django exceptions and AJAX errors are handled gracefully, displayed in
 ``BootstrapDialog`` window by default.
 
 .. highlight:: python
@@ -295,8 +295,8 @@ Extending context processor is also useful when templates should receive additio
             return context_data
 
 * See `djk_sample.TemplateContextProcessor`_ source code for the example of extending `django-jinja-knockout`
-  `TemplateContextProcessor`_ to define Django ``url_name`` as client-side route, to make it accessible in client-side
-  Javascript from any view.
+  `TemplateContextProcessor`_ to define Django ``url_name`` ``equipment_grid`` as a project-wide client-side route, to
+  make it accessible in client-side Javascript from any project's view.
 
 Middleware
 ----------
@@ -305,27 +305,28 @@ Key functionality of ``django-jinja-knockout`` middleware is:
 
 .. highlight:: jinja
 
-* AJAX file upload via iframe emulation support for jQuery.ajaxForm() plugin for IE9.
+* AJAX file upload via iframe emulation support for jQuery.ajaxForm() plugin in IE9 (minimally supported version of IE).
 * Setting current Django timezone via browser current timezone.
-* Getting current request in non-view functions and methods where no instance of request is available.
+* Getting current request in non-view functions and methods where Django provides no instance of request available.
 * Checking ``DJK_APPS`` applications views for the permissions defined as values of kwargs argument keys in `urls.py`_
   ``url()`` calls:
 
  * ``'ajax' key`` - ``True`` when view is required to be processed in AJAX request, ``False`` - required to be non-AJAX;
 
-   Otherwise the view is allowed to be processed both as AJAX and non-AJAX, which is used by `grids`_ ``KoGridView``
-   to process HTTP GET as Jinja2 template view, while HTTP POST is routed to AJAX methods of the same view.
+   Missing key means that the view is allowed to be processed both as AJAX and non-AJAX. Such feature is used by
+   `grids`_ ``KoGridView`` to share traditional and AJAX requests by single CBV class. HTTP GET is processed as non-AJAX
+   Jinja2 template view, while HTTP POST is routed to AJAX methods of the same view.
  * ``'allow_anonymous' key`` - ``True`` when view is allowed to anonymous user (``False`` by default).
  * ``'allow_inactive' key`` - ``True`` when view is allowed to inactive user (``False`` by default).
- * ``'permission_required' key`` - value is the name of Django app / model permission required for this view to be
-   called.
+ * ``'permission_required' key`` - value is the name of Django app / model permission string required for this view to
+   be called.
  * ``'view_title' key`` - string value of view verbose name, that is displayed by default in `jinja2/base_head.htm`_ as::
 
     {% if request.view_title %}
         <title>{{ request.view_title }}</title>
     {% endif %}
 
-All of the keys are optional but some have mandatory restricted default values.
+All of the keys are optional but some have restricted default values.
 
 .. highlight:: python
 
@@ -355,14 +356,15 @@ and to get current request user::
 
     ContextMiddleware.get_request().user
 
-* Do not forget that request might be unavailable when running in console, for example in management jobs.
+* Do not forget that request is mocked when running in console, for example in management jobs. It is possible to
+  override the middleware class for custom mocking.
 
 Extending middleware
 ~~~~~~~~~~~~~~~~~~~~
 
 It's possible to extend built-in `ContextMiddleware`_. In such case ``MIDDLEWARE_CLASSES`` in `settings.py`_ should
 contain full name of the extended class. See `djk_sample.ContextMiddleware`_ for the example of extending middleware to
-enable logging of Django model performed actions via `content types framework`_.
+enable logging of Django models performed actions via `content types framework`_.
 
 urls.py
 -------
@@ -377,7 +379,11 @@ The example of `urls.py`_ for DTL ``allauth`` templates::
     # Standard allauth DTL templates working together with Jinja2 templates via {% load jinja %}
     url(r'^accounts/', include('allauth.urls')),
 
-The example of `urls.py`_ with view title and permission checking::
+Note that ``accounts`` urls are not processed by ``DJK_MIDDLEWARE`` thus do not require ``is_anonymous`` or
+``permission_required`` kwargs keys to be defined.
+
+The example of ``DJK_MIDDLEWARE`` view `urls.py`_ with AJAX requirement, view title and permission checking (anonymous /
+inactive users are not allowed by default)::
 
     url(r'^equipment-grid(?P<action>/?\w*)/$', EquipmentGrid.as_view(), name='equipment_grid', kwargs={
         'view_title': 'Grid with the available equipment',
@@ -390,17 +396,20 @@ Templates
 
 .. highlight:: jinja
 
-If your project base template uses Jinja2 templating language:
+Integration of django-jinja-knockout into existing Django / Bootstrap 3 project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Extend your ``base.htm`` template from `jinja2/base_min.htm`_ template
-* Or, include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts required to run client-side of
-  `django-jinja-knockout` scripts like `app.js`_ and `ko_grid.js`_ to build up completely different page layout.
+If your project base template uses ``Jinja2`` templating language, there are the following possibilities:
 
-If your project base template uses Djanto Template Language (DTL):
+* Extend your ``base.htm`` template from `jinja2/base_min.htm`_ template.
+* Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_. These are required to
+  run client-side scripts like `app.js`_ and `ko_grid.js`_.
 
-* Extend your ``base.html`` template from `templates/base_min.html`_ template
-* Or, include `jinja2/base_head.htm`_ styles and `jinja2/base_bottom_scripts.htm`_ scripts via ``{% load jinja %}``
-  template tag library::
+If your project base template uses Djanto Template Language (``DTL``), there are the following possibilities:
+
+* Extend your ``base.html`` template from `templates/base_min.html`_ template.
+* Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_ via
+  ``{% load jinja %}`` template tag library to your ``DTL`` template::
 
     {% load jinja %}
     {% jinja 'base_head.htm' %}
