@@ -539,7 +539,7 @@ initialize grid ``related_models`` class level property as the list of tuple pai
         ]
         # ... skipped ...
 
-To override automatic collecting of verbose field names, one has to define Django model @classmethod
+To override automatic collecting of Django model verbose field names, one has to define Django model @classmethod
 ``get_fields_i18n``, which should return a dict with keys as field names and values as their verbose / localized names.
 
 Customizing visual display of grid fields at client-side
