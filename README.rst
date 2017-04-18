@@ -119,7 +119,7 @@ Clean-up of client-side components code.
 Better support for grids that use RAW queries with ``LEFT JOIN``, which may have multiple rows with the same ``pkVal``
 === ``null``.
 
-Improvenemtns in Selenium automation testing: better handling of automation commands, more of commands implemented,
+Improvements in Selenium automation testing: better handling of automation commands, more of commands implemented,
 much larger test coverage.
 
 * Numerous bugfixes, including related field queries support in ``FilteredRawQuerySet``.
