@@ -890,6 +890,15 @@ App.ko.GridRow = function(options) {
         return this.actionsACL[actType][action.name];
     };
 
+    GridRow.executeAction = function(actionName, options) {
+        var action = this.ownerGrid.getKoAction(actionName);
+        if (action === null) {
+            return;
+        }
+        var _options = $.extend({gridRow: this}, options);
+        action.doAction(_options);
+    };
+
 })(App.ko.GridRow.prototype);
 
 /**
@@ -1323,7 +1332,7 @@ App.ko.Grid = function(options) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'click', 'glyphicon'];
+    Grid.uiActionTypes = ['button', 'button_bottom', 'click', 'glyphicon'];
 
     Grid.init = function(options) {
         var self = this;
