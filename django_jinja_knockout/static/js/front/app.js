@@ -73,7 +73,9 @@ App.renderNestedList = function(element, value, options) {
             .addClass(blockTags[level].enclosureClasses);
         $.each(value, function(k, v) {
             var localKey;
-            options.keyPath.push(k);
+            if (typeof k === 'string') {
+                options.keyPath.push(k);
+            }
             if (typeof v === 'object') {
                 var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
                 App.renderNestedList($ul, v, {
@@ -109,7 +111,9 @@ App.renderNestedList = function(element, value, options) {
                     [fn](v);
                 $ul.append($li);
             }
-            options.keyPath.pop();
+            if (typeof k === 'string') {
+                options.keyPath.pop();
+            }
         });
         $element.append($ul);
     }
