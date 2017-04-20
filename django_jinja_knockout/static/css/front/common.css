@@ -192,6 +192,10 @@ textarea.ko-template {
 	visibility: hidden;
 }
 
+.display-block {
+	display: block;
+}
+
 .display-block-condition .conditional-display {
 	display: block;
 	margin: 0.25em 0 0.25em 0;
