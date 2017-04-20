@@ -784,6 +784,9 @@ App.ko.GridRow = function(options) {
             this.str = null;
         }
         this.initDisplayValues();
+        if (this.isSelectedRow()) {
+            this.ownerGrid.addSelectedPkVal(this.getPkVal());
+        }
         this.actionsACL = {};
         this.ownerGrid.setACL(this);
     };
@@ -2369,10 +2372,10 @@ App.ko.Action = function(options) {
                 return;
             }
             this.grid.lastClickedKoRow = options.gridRow;
-            // Clicked row pk value.
+            // Clicked row pk value ('pkVal').
             actionOptions = $.extend(actionOptions, options.gridRow.getActionOptions());
         }
-        if (this.grid.selectedRowsPks.length > 1) {
+        if (this.grid.selectedRowsPks.length > 0) {
             // Multiple rows selected. Add all selected rows pk values.
             actionOptions['pk_vals'] =  this.grid.selectedRowsPks;
         }
