@@ -38,41 +38,66 @@ def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
     return reversed_insert[::-1]
 
 
+PRINT_LIST_NO_KEYS = 0
+PRINT_LIST_KEYS = 1
+PRINT_LIST_REPEATED_KEYS = 2
+
 # Print nested HTML list.
-def print_list(row, elem_tpl='<li>{0}</li>\n', top_tpl='<ul>{0}</ul>\n', cb=escape, show_keys=False, i18n={}):
+def print_list(
+    row,
+    elem_tpl='<li>{}</li>\n',
+    key_tpl='<li><div>{k}</div>{v}</li>',
+    top_tpl='<ul>{}</ul>\n',
+    cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}
+):
     result = []
-    for key, elem in iter_enumerate(row):
+    for key, elem in iter_enumerate(row, show_keys == PRINT_LIST_REPEATED_KEYS):
         if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
-            result.append(print_list(elem, elem_tpl, top_tpl, cb, show_keys))
+            result.append(print_list(elem, elem_tpl, key_tpl, top_tpl, cb, show_keys, i18n))
         else:
-            if show_keys and not isinstance(key, int):
+            if show_keys > PRINT_LIST_NO_KEYS and not isinstance(key, int):
                 key_val = i18n.get(key, key)
-                elem_val = str(key_val) + ': ' + elem
+                result.append(
+                    key_tpl.format(
+                        k=cb(key_val) if callable(cb) else str(key_val),
+                        v=elem
+                    )
+                )
             else:
-                elem_val = elem
-            result.append(elem_tpl.format(cb(elem_val) if callable(cb) else elem_val))
+                result.append(
+                    elem_tpl.format(cb(elem) if callable(cb) else elem)
+                )
     return top_tpl.format(''.join(result))
 
 
 # Print uniform 2D table.
 def print_table(
-        rows, top_tpl='<table>{0}</table>\n', row_tpl='<tr>{0}</tr>\n', elem_tpl='<td>{0}</td>\n',
-        cb=escape, show_keys=False, i18n={}
+        rows,
+        top_tpl='<table>{}</table>\n',
+        row_tpl='<tr>{}</tr>\n',
+        key_tpl='<td><div>{k}</div>{v}</td>\n',
+        elem_tpl='<td>{}</td>\n',
+        cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}
 ):
     rows_str = ''.join([
-        print_list(row, elem_tpl=elem_tpl, top_tpl=row_tpl, cb=cb, show_keys=show_keys, i18n=i18n) for row in rows
+        print_list(
+            row,
+            elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
+            cb=cb, show_keys=show_keys, i18n=i18n
+        ) for row in rows
     ])
     return top_tpl.format(rows_str)
 
 
-def print_bs_labels(row, bs_type='info', cb=escape, show_keys=False, i18n={}):
+def print_bs_labels(row, bs_type='info', cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         print_list(
             row,
-            elem_tpl='<span class="label label-' + bs_type + ' preformatted">{0}</span><span class="conditional-display"></span>',
-            top_tpl='{0}',
+            elem_tpl='<span class="label label-' + bs_type + ' preformatted">{}</span><span class="conditional-display"></span>',
+            key_tpl='<span class="label label-' + bs_type + ' preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            top_tpl='{}',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -80,14 +105,15 @@ def print_bs_labels(row, bs_type='info', cb=escape, show_keys=False, i18n={}):
     )
 
 
-def print_bs_badges(row, cb=escape, show_keys=False, i18n={}):
+def print_bs_badges(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         print_list(
             row,
-            elem_tpl='<span class="badge preformatted">{0}</span><span class="conditional-display"></span>',
-            top_tpl='{0}',
+            elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
+            key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            top_tpl='{}',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -95,14 +121,15 @@ def print_bs_badges(row, cb=escape, show_keys=False, i18n={}):
     )
 
 
-def print_bs_well(row, cb=escape, show_keys=False, i18n={}):
+def print_bs_well(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         print_list(
             row,
-            elem_tpl='<span class="badge preformatted">{0}</span><span class="conditional-display"></span>',
-            top_tpl='<div class="well well-condensed well-sm">{0}</div>',
+            elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
+            key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            top_tpl='<div class="well well-condensed well-sm">{}</div>',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -110,14 +137,15 @@ def print_bs_well(row, cb=escape, show_keys=False, i18n={}):
     )
 
 
-def print_list_group(row, cb=escape, show_keys=False, i18n={}):
+def print_list_group(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
     return mark_safe(
         print_list(
             row,
-            elem_tpl='<li class="list-group-item">{0}</li>\n',
-            top_tpl='<ul class="list-group">{0}</ul>\n',
+            elem_tpl='<li class="list-group-item">{}</li>\n',
+            key_tpl='<ul class="list-group"><div class="list-group-item list-group-item-success">{k}</div><div class="list-group-item list-group-item-info">{v}</div></ul>\n',
+            top_tpl='<ul class="list-group">{}</ul>\n',
             cb=cb,
-            show_keys=False,
+            show_keys=show_keys,
             i18n=i18n
         )
     )
