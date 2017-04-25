@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseBadRequest
 from django.db import models
-from django.views.generic.base import View
+from django.views.generic.base import ContextMixin, View
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
@@ -135,7 +135,7 @@ class FormatTitleMixin:
 
 # Automatic template context processor for bs_navs() jinja2 macro, which is used to group navigation between
 # related CRUD views (see djk-sample for example).
-class BsTabsMixin(object):
+class BsTabsMixin(ContextMixin):
 
     def get_main_navs(self, request, object_id=None):
         main_navs = []
@@ -161,7 +161,7 @@ class BsTabsMixin(object):
         return context_data
 
 
-class ContextDataMixin(object):
+class ContextDataMixin(ContextMixin):
 
     extra_context_data = {}
 

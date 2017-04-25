@@ -345,7 +345,7 @@ class InlineFormSet(BaseInlineFormSet):
 # and for newly added ones (empty_form).
 # May be used with DisplayModelMetaclass to display existing forms as read-only, while
 # making newly added ones editable.
-class SeparateInitialFormMixin(object):
+class SeparateInitialFormMixin:
 
     InitialForm = None
     EmptyForm = None

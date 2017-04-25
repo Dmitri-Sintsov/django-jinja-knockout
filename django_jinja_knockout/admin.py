@@ -20,7 +20,7 @@ from django.contrib.admin.actions import delete_selected
 
 
 # Use to optionally inject app css / scripts into django.admin.
-class AppAdminMixin(object):
+class AppAdminMixin:
     class Media:
         css = {
             'all': ('css/front/common.css',)
@@ -29,7 +29,7 @@ class AppAdminMixin(object):
 
 
 # http://stackoverflow.com/questions/9025624/allowing-only-some-given-instances-of-a-model-to-be-deleted-from-the-admin #
-class ProtectMixin(object):
+class ProtectMixin:
     actions = ['delete_empty']
 
     # Check for deletion of one model.
