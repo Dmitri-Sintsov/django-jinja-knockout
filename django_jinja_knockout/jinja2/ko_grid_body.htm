@@ -167,7 +167,7 @@
 {% if 'ko_grid_bottom_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_bottom_nav">
     <div class="navbar navbar-left">
-        <!-- ko foreach: actionTypes['button_bottom'] -->
+        <!-- ko foreach: actionTypes['button_footer'] -->
         <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction({}); }">
             <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
             <span data-bind="text: $data.localName"></span>
@@ -279,7 +279,7 @@
         <% if (self.get('show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         <% } %>
-            <!-- ko if: actionTypes['button_bottom']().length > 0 -->
+            <!-- ko if: actionTypes['button_footer']().length > 0 -->
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
         <% if (self.get('show_title')) { %>

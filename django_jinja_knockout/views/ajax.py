@@ -287,7 +287,7 @@ class GridActionsMixin:
             'html': self.get_bs_form_opts()
         })
         if verbose_name is None:
-            verbose_name = get_verbose_name(ff.__class__.FormClass.Meta.model)
+            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
         return vm_list({
             'last_action': form_action,
             'title': format_html(
@@ -334,6 +334,11 @@ class GridActionsMixin:
         return _('Action "%(action)s" is not allowed') % \
             {'action': self.get_action_local_name()}
 
+    def event(self, name, **kwargs):
+        handler_name = 'event_{}'.format(name)
+        if callable(getattr(self, handler_name, None)):
+            getattr(self, handler_name)(**kwargs)
+
     def action_delete_is_allowed(self, objects):
         return True
 
@@ -358,6 +363,7 @@ class GridActionsMixin:
         objects = self.get_queryset_for_action()
         pks = list(objects.values_list('pk', flat=True))
         if self.action_delete_is_allowed(objects):
+            self.event('delete_is_allowed', objects=objects)
             objects.delete()
             return vm_list({
                 'deleted_pks': pks
@@ -378,6 +384,7 @@ class GridActionsMixin:
             vm = {}
             if form.has_changed():
                 new_obj = form.save()
+                self.event('save_form_success', obj=new_obj)
                 row = self.postprocess_row(
                     self.get_model_row(new_obj),
                     new_obj
@@ -404,6 +411,7 @@ class GridActionsMixin:
         if new_obj is not None:
             vm = {}
             if ff.has_changed():
+                self.event('save_inline_success', obj=new_obj)
                 row = self.postprocess_row(
                     self.get_model_row(new_obj),
                     new_obj

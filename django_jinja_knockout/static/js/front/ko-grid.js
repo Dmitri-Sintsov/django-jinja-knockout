@@ -1335,7 +1335,7 @@ App.ko.Grid = function(options) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'button_bottom', 'click', 'glyphicon'];
+    Grid.uiActionTypes = ['button', 'button_footer', 'click', 'glyphicon'];
 
     Grid.init = function(options) {
         var self = this;

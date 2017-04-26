@@ -184,7 +184,7 @@ class ValuesQuerySetMixin:
     def _values(self, values_fields):
         c = self._clone()
         for row in c.__iter__():
-            value = {attr:self._get_row_attr(row, attr) for attr in values_fields}
+            value = {attr: self._get_row_attr(row, attr) for attr in values_fields}
             yield value
 
     def _values_list(self, values_fields, flat):
