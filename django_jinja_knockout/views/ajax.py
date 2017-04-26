@@ -160,6 +160,7 @@ class GridActionsMixin:
                     ])
                 })
             ]),
+            'button_footer': OrderedDict(),
             'click': OrderedDict([
                 ('edit_form', {
                     'localName': _('Change'),

@@ -1642,10 +1642,10 @@ App.ko.Grid = function(options) {
 
     Grid.findMatchingPkRow = function(savedRow) {
         var koRow = null;
-        _.each(this.gridRows(), function(v) {
+        _.find(this.gridRows(), function(v) {
             if (v.matchesPk(savedRow)) {
                 koRow = v;
-                return false;
+                return true;
             }
         });
         return koRow;
@@ -1667,7 +1667,7 @@ App.ko.Grid = function(options) {
         var intPkVal = $.intVal(pkVal);
         var koRow = null;
         var key = -1;
-        _.each(this.gridRows(), function(v, k) {
+        $.each(this.gridRows(), function(k, v) {
             var val = v.getPkVal();
             if (val === pkVal || val === intPkVal) {
                 koRow = v;
@@ -1933,10 +1933,10 @@ App.ko.Grid = function(options) {
     // May be used in descendant of App.ko.GridRow() to get metadata of current field.
     Grid.getKoGridColumn = function(fieldName) {
         var result = null;
-        _.each(this.gridColumns(), function(gridColumn) {
+        _.find(this.gridColumns(), function(gridColumn) {
             if (gridColumn.field === fieldName) {
                 result = gridColumn;
-                return false;
+                return true;
             }
         });
         return result;
@@ -2041,10 +2041,10 @@ App.ko.Grid = function(options) {
     // Get filter model by field name.
     Grid.getKoFilter = function(fieldName) {
         var result = null;
-        _.each(this.gridFilters(), function(gridFilter) {
+        _.find(this.gridFilters(), function(gridFilter) {
             if (gridFilter.field === fieldName) {
                 result = gridFilter;
-                return false;
+                return true;
             }
         });
         return result;
@@ -2280,7 +2280,7 @@ App.ko.Grid = function(options) {
      */
     Grid.getKoAction = function(actionName, actionType) {
         var action = null;
-        _.each(this.actionTypes, function(actions, actType) {
+        $.each(this.actionTypes, function(actType, actions) {
             if (typeof actionType === 'undefined' || actType === actionType) {
                 for (var i = 0; i < actions().length; i++) {
                     if (actions()[i].name === actionName) {
