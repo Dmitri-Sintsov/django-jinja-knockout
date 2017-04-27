@@ -19,13 +19,24 @@ except ImportError:
 from django.contrib.admin.actions import delete_selected
 
 
-# Use to optionally inject app css / scripts into django.admin.
-class AppAdminMixin:
+class DjkAdminMixin(object):
+    """
+    Use to optionally inject css / scripts into django.admin.
+    Does not load full stack of client-side scripts.
+    Currently has only the support to display properly instances of widgets.OptionalInput.
+    """
+
     class Media:
         css = {
-            'all': ('css/front/common.css',)
+            'all': (
+                'css/front/common.css',
+            )
         }
-        js = ('js/front/plugins.js', 'js/front/app.js',)
+        js = (
+            'js/underscore-min.js',
+            'js/front/plugins.js',
+            'js/front/admin.js',
+        )
 
 
 # http://stackoverflow.com/questions/9025624/allowing-only-some-given-instances-of-a-model-to-be-deleted-from-the-admin #

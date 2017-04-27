@@ -502,6 +502,7 @@ App.viewHandlers = {
     },
     'replaceWith': function(response) {
         $(response.selector).replaceWith(response.html);
+        App.initClient($(response.selector));
     },
     // Can be used to resubmit the same forms with different urls.
     // Replaces 'data-url' attribute values globally.

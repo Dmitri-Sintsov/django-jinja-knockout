@@ -1,3 +1,4 @@
+from django.template import loader as tpl_loader
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView
 
@@ -16,6 +17,8 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
 
     # Only related form without formsets.
     form = None
+
+    ajax_refresh_selector = None
 
     # Related form with inline formsets or inline formsets without related form.
     # Required to define ONLY when form_with_inline_formsets has FormClass = None
@@ -61,12 +64,27 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_viewmodels(self):
-        # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
-        # after successful submission. Use as callback for view: 'alert' or make your own view.
-        return vm_list({
-            'view': 'redirect_to',
-            'url': self.get_success_url()
-        })
+        if self.ajax_refresh_selector is None:
+            # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
+            # after successful submission. Use as callback for view: 'alert' or make your own view.
+            return vm_list({
+                'view': 'redirect_to',
+                'url': self.get_success_url()
+            })
+        else:
+            t = tpl_loader.get_template('bs_inline_formsets.htm')
+            ff_html = t.render(request=self.request, context={
+                '_render_': True,
+                'form': self.ff.form,
+                'formsets': self.ff.formsets,
+                'action': self.get_form_action_url(),
+                'html': self.get_bs_form_opts()
+            })
+            return vm_list({
+                'view': 'replaceWith',
+                'selector': self.ajax_refresh_selector,
+                'html': ff_html,
+            })
 
     def form_valid(self, form, formsets):
         """
