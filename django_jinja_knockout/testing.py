@@ -22,7 +22,7 @@ from .automation import AutomationCommands
 from .testing_components import FormCommands, ComponentCommands, DialogCommands, GridCommands
 from .utils.regex import finditer_with_separators
 from .utils.sdv import str_to_numeric, reverse_enumerate
-from .tpl import reverseq
+from .tpl import reverseq, escape_css_selector
 
 
 """
@@ -208,6 +208,9 @@ class BaseSeleniumCommands(AutomationCommands):
     def parse_css_classes(self, element=None):
         classes_str = element.get_attribute('class')
         return classes_str.split()
+
+    def escape_css_selector(self, s):
+        return escape_css_selector(s)
 
     def escape_xpath_literal(self, s):
         if "'" not in s:

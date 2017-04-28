@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView
 
 from ..utils.sdv import str_to_numeric
+from ..tpl import escape_css_selector
 from ..viewmodels import vm_list
 from .base import FormatTitleMixin, FormViewmodelsMixin
 
@@ -18,7 +19,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     # Only related form without formsets.
     form = None
 
-    ajax_refresh_selector = None
+    ajax_refresh = False
 
     # Related form with inline formsets or inline formsets without related form.
     # Required to define ONLY when form_with_inline_formsets has FormClass = None
@@ -27,6 +28,9 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
 
     def get_form_action_url(self):
         return ''
+
+    def get_success_url(self):
+        return self.get_form_action_url()
 
     # Do not just remove bs_form() options.
     # BootstrapDialog panel might render with overlapped layout without these options.
@@ -63,15 +67,13 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             self.model = form_class._meta.model
         return super().dispatch(request, *args, **kwargs)
 
+    def get_ajax_refresh_selector(self):
+        return '.formsets.panel:has([data-url="{}"])'.format(
+            escape_css_selector(self.get_form_action_url())
+        )
+
     def get_success_viewmodels(self):
-        if self.ajax_refresh_selector is None:
-            # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
-            # after successful submission. Use as callback for view: 'alert' or make your own view.
-            return vm_list({
-                'view': 'redirect_to',
-                'url': self.get_success_url()
-            })
-        else:
+        if self.ajax_refresh:
             t = tpl_loader.get_template('bs_inline_formsets.htm')
             ff_html = t.render(request=self.request, context={
                 '_render_': True,
@@ -82,8 +84,15 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             })
             return vm_list({
                 'view': 'replaceWith',
-                'selector': self.ajax_refresh_selector,
+                'selector': self.get_ajax_refresh_selector(),
                 'html': ff_html,
+            })
+        else:
+            # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
+            # after successful submission. Use as callback for view: 'alert' or make your own view.
+            return vm_list({
+                'view': 'redirect_to',
+                'url': self.get_success_url()
             })
 
     def form_valid(self, form, formsets):

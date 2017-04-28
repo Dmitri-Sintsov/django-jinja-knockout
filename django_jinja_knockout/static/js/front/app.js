@@ -501,6 +501,7 @@ App.viewHandlers = {
         $(response.selector).html(response.html);
     },
     'replaceWith': function(response) {
+        App.initClient($(response.selector), 'dispose');
         $(response.selector).replaceWith(response.html);
         App.initClient($(response.selector));
     },

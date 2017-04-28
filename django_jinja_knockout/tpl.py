@@ -1,4 +1,5 @@
 import json
+import re
 import pytz
 import lxml.html
 from lxml import etree
@@ -19,6 +20,7 @@ for attr in ('resolve', 'reverse', 'NoReverseMatch', 'get_resolver', 'get_script
     globals()[attr] = getattr(urls, attr)
 
 from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
+from .utils.regex import finditer_with_separators
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -288,3 +290,12 @@ def json_flatatt(atts):
         if isinstance(v, (tuple, list, dict)):
             atts[k] = to_json(v)
     return flatatt(atts)
+
+# https://developer.mozilla.org/en-US/docs/Web/API/CSS/escape
+def escape_css_selector(s):
+    delimiters = re.compile(r'(\'|\[|\]|\.|#|\(|\)|\{|\})')
+    tokens = finditer_with_separators(delimiters, s)
+    for key, token in enumerate(tokens):
+        if delimiters.match(token):
+            tokens[key] = '\\{}'.format(token)
+    return ''.join(tokens)

@@ -10,8 +10,15 @@ from django.db.models.fields.related import ForeignObjectRel
 from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.utils.translation import ugettext_lazy as _
 
 from .admin import empty_value_display
+
+# To be used as CHOICES argument value of NullBooleanField unique key.
+MANY_NONE_SINGLE_TRUE = (
+    (None, _('No')),
+    (True, _('Yes')),
+)
 
 
 def normalize_fk_fieldname(fieldname):
