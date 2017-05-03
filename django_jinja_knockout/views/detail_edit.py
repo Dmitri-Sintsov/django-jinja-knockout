@@ -1,11 +1,14 @@
 from django.template import loader as tpl_loader
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView
+from django.utils.html import format_html
+
+from .base import FormatTitleMixin, FormViewmodelsMixin
 
 from ..utils.sdv import str_to_numeric
-from ..tpl import escape_css_selector
+from ..tpl import escape_css_selector, reverse
+from ..models import get_object_description, model_fields_verbose_names, get_verbose_name
 from ..viewmodels import vm_list
-from .base import FormatTitleMixin, FormViewmodelsMixin
 
 
 class FormDetailView(FormatTitleMixin, UpdateView):
@@ -26,8 +29,15 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     # ("edit many related formsets without master form" mode).
     form_with_inline_formsets = None
 
-    def get_form_action_url(self):
-        return ''
+    def get_form_action_url(self, kwargs=None):
+        if kwargs is None:
+            if hasattr(self, 'pk_url_kwarg'):
+                kwargs = {
+                    self.pk_url_kwarg: self.kwargs[self.pk_url_kwarg]
+                }
+        return reverse(
+            self.request.resolver_match.url_name, kwargs=kwargs
+        )
 
     def get_success_url(self):
         return self.get_form_action_url()
@@ -72,21 +82,50 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             escape_css_selector(self.get_form_action_url())
         )
 
+    def get_alert_title(self):
+        return format_html(
+            '{} <b>-</b> {}',
+            get_verbose_name(self.ff.model),
+            str(self.ff.model)
+        )
+
+    def get_alert_message(self):
+        return get_object_description(self.ff.model)
+
+    def get_alert_verbose_field_names(self):
+        return model_fields_verbose_names(self.ff.model)
+
     def get_success_viewmodels(self):
         if self.ajax_refresh:
             t = tpl_loader.get_template('bs_inline_formsets.htm')
+            # Build the separate form with formset for GET because create=False version could have different forms
+            # comparing to self.ff POST in create=True mode (combined create / update with different forms).
+            ff = self.get_form_with_inline_formsets(self.request)
+            ff.get(instance=self.ff.model)
             ff_html = t.render(request=self.request, context={
                 '_render_': True,
-                'form': self.ff.form,
-                'formsets': self.ff.formsets,
+                'form': ff.form,
+                'formsets': ff.formsets,
                 'action': self.get_form_action_url(),
                 'html': self.get_bs_form_opts()
             })
-            return vm_list({
-                'view': 'replaceWith',
-                'selector': self.get_ajax_refresh_selector(),
-                'html': ff_html,
-            })
+            vms = vm_list(
+                {
+                    'view': 'replaceWith',
+                    'selector': self.get_ajax_refresh_selector(),
+                    'html': ff_html,
+                },
+                {
+                    'view': 'alert',
+                    'title': self.get_alert_title(),
+                    'message': self.get_alert_message(),
+                    'nestedListOptions': {
+                        'showKeys': True,
+                        'i18n': self.get_alert_verbose_field_names(),
+                    }
+                }
+            )
+            return vms
         else:
             # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
             # after successful submission. Use as callback for view: 'alert' or make your own view.

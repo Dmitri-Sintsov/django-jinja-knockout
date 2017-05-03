@@ -501,9 +501,18 @@ App.viewHandlers = {
         $(response.selector).html(response.html);
     },
     'replaceWith': function(response) {
-        App.initClient($(response.selector), 'dispose');
-        $(response.selector).replaceWith(response.html);
-        App.initClient($(response.selector));
+        var $selector = $(response.selector);
+        var $parent = $selector.parent();
+        if ($selector.length === 0) {
+            console.log(
+                sprintf('replaceWith selector not found: "%s"', response.selector)
+            );
+        }
+        App.initClientApply($selector, 'dispose');
+        $selector.replaceWith(
+            App.initClientMark(response.html)
+        );
+        App.initClientApply($parent);
     },
     // Can be used to resubmit the same forms with different urls.
     // Replaces 'data-url' attribute values globally.
@@ -1443,6 +1452,12 @@ App.initClientApply = function(selector, method) {
     }
     var markerBegin = method + '-client-begin';
     var markerEnd = method + '-client-end';
+    if ($selector.findSelf('.' + markerBegin).length === 0) {
+        $selector = $selector.parent();
+        if ($selector.find('.' + markerBegin).length === 0) {
+            return App.initClient(selector, method);
+        }
+    }
     $.each($selector.findSelf('.' + markerBegin), function(k, v) {
         // todo: check unbalanced trees.
         App.initClient($(v).nextUntil('.' + markerEnd), method);

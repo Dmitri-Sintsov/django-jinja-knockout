@@ -177,7 +177,9 @@ def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})
 
 def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
     flat_d = flatten_dict(d, separator, only_keys, enclosure_fmt)
-    return separator.join(flat_d.values())
+    return separator.join([
+        str(value) for value in flat_d.values()
+    ])
 
 
 def add_css_classes(existing_classes=None, new_classes=''):
