@@ -58,15 +58,23 @@ App.renderNestedList = function(element, value, options) {
         $element[fn](value);
         return;
     }
-    var blockTags = (typeof options.blockTags === 'undefined') ?
-        [
+    var blockTags;
+    if (typeof options.blockTags === 'undefined') {
+        blockTags = [
             {
                 enclosureTag: '<ul>',
                 enclosureClasses: 'list-group',
                 itemTag: '<li>',
                 itemClasses: 'list-group-item preformatted'
             }
-        ] : options.blockTags;
+        ];
+    } else if (_.isArray(options.blockTags)) {
+        blockTags = options.blockTags;
+    } else if (typeof options.blockTags === 'string') {
+        blockTags = App.propByPath(options.blockTags);
+    } else {
+        console.log('Invalid type of options.blockTags: ' + typeof(options.blockTags));
+    }
     var level = (typeof options.level === 'undefined') ? 0 : options.level;
     if (_.size(value) > 0) {
         var $ul = $(blockTags[level].enclosureTag)
@@ -1717,19 +1725,24 @@ ko.bindingHandlers.scroller = {
 };
 
 
-App.getClassFromPath = function(classPath) {
-    var classPathArr = classPath.split(/\./g);
-    var cls = window;
-    for (var i = 0; i < classPathArr.length - 1; i++) {
-        if (typeof cls[classPathArr[i]] !== 'object') {
-            throw sprintf('Skipping unknown classPath: %s', classPath);
+App.propByPath = function(path) {
+    var pathArr = path.split(/\./g);
+    var obj = window;
+    for (var i = 0; i < pathArr.length - 1; i++) {
+        if (typeof obj[pathArr[i]] !== 'object') {
+            throw sprintf('Skipping unknown property path: %s', path);
         }
-        cls = cls[classPathArr[i]];
+        obj = obj[pathArr[i]];
     }
-    if (typeof cls[classPathArr[i]] !== 'function') {
+    obj = obj[pathArr[i]];
+    return obj;
+};
+
+App.getClassFromPath = function(classPath) {
+    var cls = App.propByPath(classPath);
+    if (typeof cls !== 'function') {
         throw sprintf('Skipping unknown classPath: %s', classPath);
     }
-    cls = cls[classPathArr[i]];
     return cls;
 };
 
