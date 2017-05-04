@@ -192,18 +192,19 @@ class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, TemplateVi
         return None
 
 
-# @note: Suitable both for CREATE and for VIEW actions (via form metaclass=DisplayModelMetaclass).
 class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
 
     def get_form_action_url(self, kwargs=None):
         # Indicates that the form should be displayed as read-only form (see bs_form() and bs_inline_formsets() macros).
-        # Call super().get_form_action_url() for CREATE / UPDATE action.
         return ''
 
-    def get_success_url(self):
-        return super().get_form_action_url()
+
+# Suitable for CREATE / UPDATE / DETAIL actions (DETAIL via form metaclass=DisplayModelMetaclass).
+class InlineCrudView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
+
+    template_name = 'cbv_edit_inline.htm'
 
     def get_object(self):
         pk = str_to_numeric(self.kwargs.get(self.pk_url_kwarg, None))
