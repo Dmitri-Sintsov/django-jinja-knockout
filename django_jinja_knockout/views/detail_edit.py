@@ -31,10 +31,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
 
     def get_form_action_url(self, kwargs=None):
         if kwargs is None:
-            if hasattr(self, 'pk_url_kwarg'):
-                kwargs = {
-                    self.pk_url_kwarg: self.kwargs[self.pk_url_kwarg]
-                }
+            kwargs = self.kwargs
         return reverse(
             self.request.resolver_match.url_name, kwargs=kwargs
         )
@@ -199,6 +196,14 @@ class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, TemplateVi
 class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
+
+    def get_form_action_url(self, kwargs=None):
+        # Indicates that the form should be displayed as read-only form (see bs_form() and bs_inline_formsets() macros).
+        # Call super().get_form_action_url() for CREATE / UPDATE action.
+        return ''
+
+    def get_success_url(self):
+        return super().get_form_action_url()
 
     def get_object(self):
         pk = str_to_numeric(self.kwargs.get(self.pk_url_kwarg, None))
