@@ -131,15 +131,16 @@ def set_knockout_template(formset, request, html={}):
     })
     # return str(empty_form)
     html = lxml.html.parse(StringIO(empty_form))
-    for element in html.xpath("//*[(@id and @name) or @for]"):
+    for element in html.xpath("//*[@id or @name or @for]"):
         # sdv.dbg('element', element)
         data_bind_args = []
         for attr in ['for', 'id', 'name']:
             if attr in element.attrib:
                 attr_parts = element.attrib[attr].split('__prefix__')
-                attr_parts = to_json(attr_parts[0]) + ' + ($index() + $parent.serversideFormsCount) + ' + to_json(attr_parts[1])
-                data_bind_args.append(to_json(attr) + ': ' + attr_parts)
-                del element.attrib[attr]
+                if len(attr_parts) == 2:
+                    attr_parts = to_json(attr_parts[0]) + ' + ($index() + $parent.serversideFormsCount) + ' + to_json(attr_parts[1])
+                    data_bind_args.append(to_json(attr) + ': ' + attr_parts)
+                    del element.attrib[attr]
         # sdv.dbg('data_bind_args', data_bind_args)
         if len(data_bind_args) > 0:
             data_bind = 'attr: {' + ', '.join(data_bind_args) + '}'
