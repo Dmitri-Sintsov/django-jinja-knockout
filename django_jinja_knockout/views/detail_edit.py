@@ -29,11 +29,13 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     # ("edit many related formsets without master form" mode).
     form_with_inline_formsets = None
 
-    def get_form_action_url(self, kwargs=None):
+    def get_form_action_url(self, url_name=None, kwargs=None):
+        if url_name is None:
+            url_name = self.request.resolver_match.url_name
         if kwargs is None:
             kwargs = self.kwargs
         return reverse(
-            self.request.resolver_match.url_name, kwargs=kwargs
+            url_name, kwargs=kwargs
         )
 
     def get_success_url(self):
@@ -82,15 +84,15 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     def get_alert_title(self):
         return format_html(
             '{} <b>-</b> {}',
-            get_verbose_name(self.ff.model),
-            str(self.ff.model)
+            get_verbose_name(self.ff.instance),
+            str(self.ff.instance)
         )
 
     def get_alert_message(self):
-        return get_object_description(self.ff.model)
+        return get_object_description(self.ff.instance)
 
     def get_alert_verbose_field_names(self):
-        return model_fields_verbose_names(self.ff.model)
+        return model_fields_verbose_names(self.ff.instance)
 
     def get_success_viewmodels(self):
         if self.ajax_refresh:
@@ -98,7 +100,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             # Build the separate form with formset for GET because create=False version could have different forms
             # comparing to self.ff POST in create=True mode (combined create / update with different forms).
             ff = self.get_form_with_inline_formsets(self.request)
-            ff.get(instance=self.ff.model)
+            ff.get(instance=self.ff.instance)
             ff_html = t.render(request=self.request, context={
                 '_render_': True,
                 'form': ff.form,

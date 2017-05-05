@@ -198,7 +198,7 @@ class FormWithInlineFormsets:
             self.FormClass = form_class
         if self.FormsetClasses is None:
             self.FormsetClasses = [] if formset_classes is None else formset_classes
-        self.model = None
+        self.instance = None
         self.form = None
         self.formsets = None
         self.request = request
@@ -237,20 +237,20 @@ class FormWithInlineFormsets:
     def get_form(self):
         form_class = self.get_form_class()
         if form_class is not None:
-            self.form = form_class(instance=self.model)
+            self.form = form_class(instance=self.instance)
             self.prepare_form(self.form)
 
     def post_form(self):
         form_class = self.get_form_class()
         if form_class is not None:
-            form = form_class(self.request.POST, self.request.FILES, instance=self.model)
+            form = form_class(self.request.POST, self.request.FILES, instance=self.instance)
             self.prepare_form(form)
             self.form = form
 
     def get_formsets(self):
         formset_classes = self.get_formset_classes()
         self.formsets = [
-            formset_class(instance=self.model, initial=self.get_formset_initial(formset_class))
+            formset_class(instance=self.instance, initial=self.get_formset_initial(formset_class))
             for formset_class in formset_classes
         ]
         for formset in self.formsets:
@@ -260,14 +260,14 @@ class FormWithInlineFormsets:
         formset_classes = self.get_formset_classes()
         self.formsets = [
             formset_class(
-                self.request.POST, self.request.FILES, instance=self.model
+                self.request.POST, self.request.FILES, instance=self.instance
             ) for formset_class in formset_classes
         ]
         for formset in self.formsets:
             self.prepare_formset(formset)
 
     def save_model(self):
-        self.model = self.form.save()
+        self.instance = self.form.save()
 
     def save_m2m(self):
         if hasattr(self.form, 'save_m2m') and callable(self.form.save_m2m):
@@ -275,9 +275,9 @@ class FormWithInlineFormsets:
 
     def rollback_formsets(self):
         if self.create:
-            if self.model is not None:
+            if self.instance is not None:
                 # Do not create model instance when formsets are invalid.
-                self.model.delete()
+                self.instance.delete()
 
     def save_formset(self, formset):
         formset.save()
@@ -296,11 +296,11 @@ class FormWithInlineFormsets:
 
     @transaction.atomic()
     def save(self, instance=None):
-        self.model = instance
+        self.instance = instance
         self.post_form()
         if self.form is not None:
             if not self.form.is_valid():
-                self.model = self.get_model_when_form_invalid()
+                self.instance = self.get_instance_when_form_invalid()
                 self.post_formsets()
                 return None
             self.save_model()
@@ -321,10 +321,10 @@ class FormWithInlineFormsets:
             """
             self.save_formset(formset)
         self.save_success()
-        return self.model
+        return self.instance
 
     def get(self, instance=None):
-        self.model = instance
+        self.instance = instance
         self.get_form()
         self.get_formsets()
 
