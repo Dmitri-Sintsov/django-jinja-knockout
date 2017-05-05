@@ -198,7 +198,7 @@ class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView
 
     template_name = 'cbv_edit_inline.htm'
 
-    def get_form_action_url(self, kwargs=None):
+    def get_form_action_url(self, url_name=None, kwargs=None):
         # Indicates that the form should be displayed as read-only form (see bs_form() and bs_inline_formsets() macros).
         return ''
 
