@@ -368,6 +368,41 @@ $.fn.inputAsSelect = function(method) {
     }[method].call(this);
 };
 
+$.fn.prefillField = function(method) {
+
+    function getDropdowns(self) {
+        return self.findSelf('.prefill-field');
+    };
+
+    function prefillChoice(ev) {
+        var $selectedChoice = $(ev.target);
+        if ($selectedChoice.prop('tagName') === 'A') {
+            var matches = $selectedChoice.parents('.prefill-field').prop('id').split(/-PREFILL_CHOICES$/g);
+            if (matches.length == 2) {
+                var $fillingInput = $(document.getElementById(matches[0]));
+                if ($fillingInput.prop('tagName') === 'TEXTAREA') {
+                    $fillingInput.text($selectedChoice.text());
+                    if ($fillingInput.hasClass('autogrow')) {
+                        $fillingInput.autogrow('update');
+                    }
+                } else {
+                    $fillingInput.val($selectedChoice.text());
+                }
+            }
+        }
+    };
+
+    return {
+        'init' : function() {
+            getDropdowns(this).on('click', prefillChoice);
+        },
+        'destroy' : function() {
+            getDropdowns(this).off('click', prefillChoice);
+        },
+    }[method].call(this);
+
+};
+
 /**
  * Display submit button enclosed into .submit-group when the length of input.activates-submit-group text > 0.
  */

@@ -49,7 +49,15 @@ body {
 	padding-bottom: 10px;
 }
 
+.dropdown-menu-vscroll li > a {
+	white-space: pre-wrap !important;
+	max-height: 200px;
+	overflow-y: auto;
+	border-bottom: 1px solid lightgray;
+}
+
 .vscroll,
+.dropdown-menu-vscroll,
 .input-as-select,
 .bootstrap-dialog-message {
 	max-height: 500px;

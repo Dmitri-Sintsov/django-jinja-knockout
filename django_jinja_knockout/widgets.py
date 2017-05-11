@@ -7,7 +7,10 @@ from django.utils.translation import gettext as _
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
-from django.forms.widgets import Widget, CheckboxInput, Textarea, MultiWidget
+from django.forms.widgets import (
+    ChoiceInput, CheckboxInput, RadioFieldRenderer,
+    Widget, RadioSelect, Textarea, MultiWidget
+)
 
 from .apps import DjkAppConfig
 from .models import model_fields_verbose_names
@@ -35,6 +38,70 @@ class OptionalWidget(MultiWidget):
         if not value:
             return [False, '']
         return [value != '', value]
+
+
+class PrefillChoice(ChoiceInput):
+
+    def render(self, name=None, value=None, attrs=None, choices=()):
+        attrs = dict(self.attrs, **attrs) if attrs else self.attrs
+        return format_html('{}', self.choice_label)
+
+
+class PrefillFieldRenderer(RadioFieldRenderer):
+    '<span class="icon-bar"></span>'
+    '<span class="icon-bar"></span>'
+
+    choice_input_class = PrefillChoice
+    outer_html = (
+        '<span class="input-group-addon">'
+        '<div class="dropdown-toggle pointer" data-toggle="dropdown" type="button" aria-expanded="false">'
+        '<span class="glyphicon glyphicon-chevron-down"></span>'
+        '</div>'
+        '<ul class="prefill-field dropdown-menu dropdown-menu-right dropdown-menu-vscroll" {id_attr}>{content}</ul>'
+        '</span>'
+    )
+    inner_html = '<li><a name="#">{choice_value}{sub_widgets}</a></li>'
+
+    def __init__(self, name, value, final_attrs, choices):
+        if 'id' in final_attrs:
+            final_attrs['id'] += '-PREFILL_CHOICES'
+        super().__init__(name, value, final_attrs, choices)
+
+    def _render(self):
+        id_ = self.attrs.get('id', None)
+        output = []
+        for i, choice in enumerate(self.choices):
+            choice_value, choice_label = choice
+            if isinstance(choice_label, (tuple, list)):
+                pass
+
+
+class PrefillRadioSelect(RadioSelect):
+
+    renderer = PrefillFieldRenderer
+
+
+class PrefillWidget(Widget):
+
+    def __init__(self, widget_class=Textarea, widget_attrs={}, choices=None, choices_attrs={}):
+        add_css_classes_to_dict(widget_attrs, 'form-control')
+        if widget_class is Textarea:
+            add_css_classes_to_dict(widget_attrs, 'autogrow')
+            if 'rows' not in widget_attrs:
+                widget_attrs['rows'] = '2'
+        self.data_widget = widget_class(widget_attrs)
+        self.choices_widget = PrefillRadioSelect(attrs=choices_attrs, choices=choices)
+        super().__init__(attrs=widget_attrs)
+
+    # todo: Support Django 1.11 renderer.
+    def render(self, name, value, attrs=None, renderer=None):
+        entries = [
+            '<div class="input-group">',
+            self.data_widget.render(name, value, attrs),
+            self.choices_widget.render(name + '-PREFILL_CHOICES', value + '-PREFILL_CHOICES', attrs),
+            '</div>'
+        ]
+        return '\n'.join(entries)
 
 
 # Read-only widget for existing models.
