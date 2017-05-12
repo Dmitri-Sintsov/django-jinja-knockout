@@ -430,7 +430,7 @@ $.fn.prefillField = function(method) {
         'destroy' : function() {
             var $addons = getAddons(this);
             var $toggle = $addons.find('.dropdown-menu').parent();
-            $addons(this).off('click', prefillChoice);
+            $addons.off('click', prefillChoice);
             $toggle.off('show.bs.dropdown', showDropdown)
             .off('hide.bs.dropdown', hideDropdown);
         },
