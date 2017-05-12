@@ -41,11 +41,11 @@ class OptionalWidget(MultiWidget):
 class PrefillDropdown(Widget):
     # todo: convert to template
     outer_html = (
-        '<span class="input-group-addon">'
-        '<div class="dropdown-toggle pointer" data-toggle="dropdown" type="button" aria-expanded="false">'
+        '<span class="prefill-field input-group-addon pointer" {attrs}>'
+        '<div class="dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">'
         '<span class="glyphicon glyphicon-chevron-down"></span>'
         '</div>'
-        '<ul class="prefill-field dropdown-menu dropdown-menu-right dropdown-menu-vscroll" {attrs}>{content}</ul>'
+        '<ul class="dropdown-menu dropdown-menu-right dropdown-menu-vscroll">{content}</ul>'
         '</span>'
     )
     inner_html = '<li><a name="#">{choice_label}</a></li>'
@@ -64,12 +64,15 @@ class PrefillDropdown(Widget):
             output.append(
                 format_html(self.inner_html, choice_value=choice_value, choice_label=choice_label)
             )
-        return format_html(self.outer_html, content=mark_safe('\n'.join(output)), attrs=flatatt(self.attrs))
+        return format_html(
+            self.outer_html, content=mark_safe('\n'.join(output)), attrs=flatatt(self.attrs)
+        )
 
 
 class PrefillWidget(Widget):
 
     def __init__(self, widget_class=Textarea, widget_attrs={}, choices=None, choices_attrs={}):
+        # todo: use templates instead of hardcoding.
         add_css_classes_to_dict(widget_attrs, 'form-control')
         if widget_class is Textarea:
             add_css_classes_to_dict(widget_attrs, 'autogrow')
