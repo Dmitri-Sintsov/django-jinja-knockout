@@ -261,7 +261,13 @@ class FormWithInlineFormsets:
             self.form = form
 
     def get_formset_kwargs(self, formset_class):
-        kwargs = self.get_form_kwargs()
+        kwargs = {
+            'instance': self.instance,
+            'prefix': formset_class.get_default_prefix()
+        }
+        prefix = self.get_prefix()
+        if prefix is not None:
+            kwargs['prefix'] = self.get_prefix() + '-' + kwargs['prefix']
         kwargs['initial'] = self.get_formset_initial(formset_class)
         return kwargs
 
