@@ -218,7 +218,7 @@ class FormWithInlineFormsets:
     def get_prefix(self):
         return self.prefix
 
-    def get_model_when_form_invalid(self):
+    def get_instance_when_form_invalid(self):
         return None
 
     def prepare_form(self, form):
