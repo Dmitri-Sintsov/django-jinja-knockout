@@ -831,7 +831,9 @@ App.DatetimeWidget = function($parent) {
             return;
         }
         this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
-        this.$dateControls.after('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
+        this.$dateControls.after(
+            '<span class="input-group-addon pointer"><span class="glyphicon glyphicon-calendar"></span></span>'
+        );
         var formatFix = App.propGet(DatetimeWidget.formatFixes, App.conf.languageCode);
         // Date field widget.
         var options = {
