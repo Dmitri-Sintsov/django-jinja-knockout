@@ -192,6 +192,7 @@ class FormWithInlineFormsets:
 
     FormClass = None
     FormsetClasses = None
+    prefix = None
 
     def __init__(self, request, form_class=None, formset_classes=None, create=False):
         if self.FormClass is None:
@@ -214,6 +215,9 @@ class FormWithInlineFormsets:
     def get_formset_initial(self, formset_class):
         return None
 
+    def get_prefix(self):
+        return self.prefix
+
     def get_model_when_form_invalid(self):
         return None
 
@@ -234,23 +238,37 @@ class FormWithInlineFormsets:
             if hasattr(form, 'set_request') and callable(form.set_request):
                 form.set_request(self.request)
 
+    def get_form_kwargs(self):
+        kwargs = {
+            'instance': self.instance
+        }
+        prefix = self.get_prefix()
+        if prefix is not None:
+            kwargs['prefix'] = prefix
+        return kwargs
+
     def get_form(self):
         form_class = self.get_form_class()
         if form_class is not None:
-            self.form = form_class(instance=self.instance)
+            self.form = form_class(**self.get_form_kwargs())
             self.prepare_form(self.form)
 
     def post_form(self):
         form_class = self.get_form_class()
         if form_class is not None:
-            form = form_class(self.request.POST, self.request.FILES, instance=self.instance)
+            form = form_class(self.request.POST, self.request.FILES, **self.get_form_kwargs())
             self.prepare_form(form)
             self.form = form
+
+    def get_formset_kwargs(self, formset_class):
+        kwargs = self.get_form_kwargs()
+        kwargs['initial'] = self.get_formset_initial(formset_class)
+        return kwargs
 
     def get_formsets(self):
         formset_classes = self.get_formset_classes()
         self.formsets = [
-            formset_class(instance=self.instance, initial=self.get_formset_initial(formset_class))
+            formset_class(**self.get_formset_kwargs(formset_class))
             for formset_class in formset_classes
         ]
         for formset in self.formsets:
@@ -260,7 +278,7 @@ class FormWithInlineFormsets:
         formset_classes = self.get_formset_classes()
         self.formsets = [
             formset_class(
-                self.request.POST, self.request.FILES, instance=self.instance
+                self.request.POST, self.request.FILES, **self.get_formset_kwargs(formset_class)
             ) for formset_class in formset_classes
         ]
         for formset in self.formsets:
