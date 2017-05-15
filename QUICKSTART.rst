@@ -461,6 +461,7 @@ them. For example, imagine one have two querysets::
 
     from django.db import models
     from django.db.models import Prefetch
+    from django_jinja_knockout.query import ListQuerySet
 
     def process_related():
         qs1 = Project.objects.all()[:10]

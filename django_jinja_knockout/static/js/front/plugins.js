@@ -336,6 +336,10 @@ $.fn.optionalInput = function(method) {
     }[method].call(this);
 };
 
+/**
+ * Client-side support to render_field_multiple() Jinja2 macro (list of checkboxes / radiobuttons).
+ * Used with RadioSelect / CheckboxSelectMultiple Django widgets.
+ */
 $.fn.inputAsSelect = function(method) {
 
     function getInputs(self) {
@@ -480,8 +484,15 @@ $.fn.collapsibleSubmit = function(method) {
             });
         }
     }[method].call(this);
+
 };
 
+/**
+ * Display href link targets in bootstrap popover sandboxed iframe.
+ *
+ * Set .link-preview DOM element html5 data attribute 'tipCSS' to modify popover css, for example
+ * to override popover z-index originally hidden by BootstrapDialog with higher z-index.
+ */
 $.fn.linkPreview = function(method) {
 
     var scaledPreview = function($anchor) {
@@ -542,10 +553,6 @@ $.fn.linkPreview = function(method) {
                 content: this.getPopoverContent(),
             });
             $anchor.on('shown.bs.popover', function(ev) {
-                /**
-                 * Set your .link-preview DOM element html5 data attribute 'tipCSS' to modify popover css, for example
-                 * to override popover z-index originally hidden by BootstrapDialog with higher z-index.
-                 */
                 var tipCSS = self.$anchor.data('tipCSS');
                 if (tipCSS !== undefined) {
                     self.$anchor.data('bs.popover').$tip.css(tipCSS);
