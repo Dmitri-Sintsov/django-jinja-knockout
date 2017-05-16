@@ -267,13 +267,18 @@ class GridActionsMixin:
             'message': form_html
         })
 
+    def get_form_kwargs(self, form_class):
+        return {}
+
     def action_create_form(self):
-        form = self.get_create_form()()
+        form_class = self.get_create_form()
+        form = form_class(**self.get_form_kwargs(form_class))
         return self.vm_form(form)
 
     def action_edit_form(self):
         obj = self.get_object_for_action()
-        form = self.get_edit_form()(instance=obj)
+        form_class = self.get_edit_form()
+        form = form_class(instance=obj, **self.get_form_kwargs(form_class))
         return self.vm_form(
             form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
@@ -299,14 +304,19 @@ class GridActionsMixin:
             'message': ff_html
         })
 
+    def get_form_with_inline_formsets_kwargs(self, ff_class):
+        return {}
+
     def action_create_inline(self):
-        ff = self.get_create_form_with_inline_formsets()(self.request)
+        ff_class = self.get_create_form_with_inline_formsets()
+        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get()
         return self.vm_inline(ff)
 
     def action_edit_inline(self):
         obj = self.get_object_for_action()
-        ff = self.get_edit_form_with_inline_formsets()(self.request)
+        ff_class = self.get_edit_form_with_inline_formsets()
+        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get(instance=obj)
         return self.vm_inline(
             ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
@@ -380,7 +390,7 @@ class GridActionsMixin:
     def action_save_form(self):
         old_obj = self.get_object_for_action()
         form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
-        form = form_class(self.request.POST, instance=old_obj)
+        form = form_class(self.request.POST, instance=old_obj, **self.get_form_kwargs(form_class))
         if form.is_valid():
             vm = {}
             if form.has_changed():
@@ -407,7 +417,7 @@ class GridActionsMixin:
             ff_class = self.get_create_form_with_inline_formsets()
         else:
             ff_class = self.get_edit_form_with_inline_formsets()
-        ff = ff_class(self.request, create=old_obj is None)
+        ff = ff_class(self.request, create=old_obj is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
         new_obj = ff.save(instance=old_obj)
         if new_obj is not None:
             vm = {}

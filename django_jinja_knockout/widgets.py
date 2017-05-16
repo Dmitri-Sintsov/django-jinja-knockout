@@ -87,7 +87,7 @@ class PrefillWidget(Widget):
         entries = [
             '<div class="input-group">',
             self.data_widget.render(name, value, attrs),
-            self.choices_widget.render(name + '-PREFILL_CHOICES', value + '-PREFILL_CHOICES', attrs),
+            self.choices_widget.render(name + '-PREFILL_CHOICES', value, attrs),
             '</div>'
         ]
         return '\n'.join(entries)
