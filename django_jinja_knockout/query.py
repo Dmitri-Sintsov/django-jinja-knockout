@@ -389,9 +389,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 class ListQuerySet(ValuesQuerySetMixin):
 
     def __init__(self, lst):
-        if not isinstance(lst, list):
-            raise ValueError('lst argument should have list type')
-        self.list = lst
+        self.list = lst if isinstance(lst, list) else list(lst)
 
     def _clone(self):
         c = self.__class__(
@@ -460,6 +458,16 @@ class ListQuerySet(ValuesQuerySetMixin):
             is_desc = fieldname.startswith('-')
             c.list.sort(key=attrgetter(canon_name), reverse=is_desc)
         return c
+
+    def distinct(self, *field_names):
+        hashes = set()
+        distinct = []
+        for row in self.list:
+            hash = tuple(self._get_row_attr(row, attr) for attr in field_names)
+            if hash not in hashes:
+                hashes.add(hash)
+                distinct.append(row)
+        return self.__class__(distinct)
 
     def first(self):
         return None if len(self.list) == 0 else self.list[0]

@@ -463,7 +463,7 @@ App.getSelector = function(selector) {
 App.viewHandlers = {
     'redirect_to' : function(viewModel) {
         var href = viewModel.url;
-        var hash = href.match('(#.*)$')
+        var hash = href.match('(#.*)$');
         if (hash !== null) {
             hash = hash.pop();
         }
