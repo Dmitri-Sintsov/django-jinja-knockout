@@ -461,13 +461,18 @@ class ListQuerySet(ValuesQuerySetMixin):
 
     def distinct(self, *field_names):
         hashes = set()
-        distinct = []
-        for row in self.list:
+
+        def is_new_hash(row):
             hash = tuple(self._get_row_attr(row, attr) for attr in field_names)
             if hash not in hashes:
                 hashes.add(hash)
-                distinct.append(row)
-        return self.__class__(distinct)
+                return True
+            else:
+                return False
+
+        return self.__class__(
+            row for row in self.list if is_new_hash(row)
+        )
 
     def first(self):
         return None if len(self.list) == 0 else self.list[0]
