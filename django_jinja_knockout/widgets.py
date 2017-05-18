@@ -34,7 +34,8 @@ class OptionalWidget(MultiWidget):
 
     def render(self, name, value, attrs=None):
         output = super().render(name, value, attrs)
-        return format_html('<div class="optional-input-wrap form-control" {}>{}</div>', flatatt(attrs), output)
+        add_css_classes_to_dict(attrs, 'optional-input-wrap form-control')
+        return format_html('<div {}>{}</div>', flatatt(attrs), output)
 
     def decompress(self, value):
         if not value:
