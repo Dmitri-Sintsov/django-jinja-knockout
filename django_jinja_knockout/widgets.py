@@ -76,14 +76,17 @@ class PrefillDropdown(Widget):
 
 class PrefillWidget(Widget):
 
-    def __init__(self, widget_class=Textarea, attrs={}, choices=None, choices_attrs={}):
+    def __init__(self, data_widget=None, widget_class=Textarea, attrs={}, choices=None, choices_attrs={}):
         # todo: use templates instead of hardcoding.
         add_css_classes_to_dict(attrs, 'form-control')
-        if widget_class is Textarea:
-            add_css_classes_to_dict(attrs, 'autogrow')
-            if 'rows' not in attrs:
-                attrs['rows'] = '2'
-        self.data_widget = widget_class(attrs=attrs)
+        if data_widget is None:
+            if widget_class is Textarea:
+                add_css_classes_to_dict(attrs, 'autogrow')
+                if 'rows' not in attrs:
+                    attrs['rows'] = '2'
+            self.data_widget = widget_class(attrs=attrs)
+        else:
+            self.data_widget = data_widget
         self.choices_widget = PrefillDropdown(attrs=choices_attrs, choices=choices)
         super().__init__(attrs=attrs)
 
