@@ -386,6 +386,13 @@ $.fn.prefillField = function(method) {
         var matches = $selectedChoice.parents('.prefill-field').prop('id').split(/-PREFILL_CHOICES$/g);
         if (matches.length == 2) {
             var $fillingInput = $(document.getElementById(matches[0]));
+            if ($fillingInput.hasClass('optional-input-wrap')) {
+                var $inputs = $fillingInput.find('.optional-input');
+                if (!$inputs.eq(0).prop('checked')) {
+                    $inputs.eq(0).click();
+                }
+                $fillingInput = $inputs.eq(1);
+            }
             $fillingInput.val($selectedChoice.text());
             if ($fillingInput.hasClass('autogrow')) {
                 $fillingInput.autogrow('update');

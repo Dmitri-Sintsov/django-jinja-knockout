@@ -32,6 +32,10 @@ class OptionalWidget(MultiWidget):
         widgets = (CheckboxInput(), widget_class(),)
         super().__init__(widgets, attrs=attrs)
 
+    def render(self, name, value, attrs=None):
+        output = super().render(name, value, attrs)
+        return format_html('<div class="optional-input-wrap form-control" {}>{}</div>', flatatt(attrs), output)
+
     def decompress(self, value):
         if not value:
             return [False, '']
@@ -78,7 +82,7 @@ class PrefillWidget(Widget):
             add_css_classes_to_dict(widget_attrs, 'autogrow')
             if 'rows' not in widget_attrs:
                 widget_attrs['rows'] = '2'
-        self.data_widget = widget_class(widget_attrs)
+        self.data_widget = widget_class(attrs=widget_attrs)
         self.choices_widget = PrefillDropdown(attrs=choices_attrs, choices=choices)
         super().__init__(attrs=widget_attrs)
 

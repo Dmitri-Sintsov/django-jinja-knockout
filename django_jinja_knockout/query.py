@@ -196,6 +196,17 @@ class ValuesQuerySetMixin:
                 value = [self._get_row_attr(row, attr) for attr in values_fields]
                 yield value
 
+    def prefill_choices(self, field):
+        return self.exclude(
+            **{field: ''}
+        ).order_by(
+            field
+        ).distinct(
+            field
+        ).values_list(
+            'pk', field
+        )
+
 
 class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 
