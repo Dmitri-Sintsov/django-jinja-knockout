@@ -76,16 +76,20 @@ class PrefillDropdown(Widget):
 
 class PrefillWidget(Widget):
 
-    def __init__(self, widget_class=Textarea, widget_attrs={}, choices=None, choices_attrs={}):
+    def __init__(self, widget_class=Textarea, attrs={}, choices=None, choices_attrs={}):
         # todo: use templates instead of hardcoding.
-        add_css_classes_to_dict(widget_attrs, 'form-control')
+        add_css_classes_to_dict(attrs, 'form-control')
         if widget_class is Textarea:
-            add_css_classes_to_dict(widget_attrs, 'autogrow')
-            if 'rows' not in widget_attrs:
-                widget_attrs['rows'] = '2'
-        self.data_widget = widget_class(attrs=widget_attrs)
+            add_css_classes_to_dict(attrs, 'autogrow')
+            if 'rows' not in attrs:
+                attrs['rows'] = '2'
+        self.data_widget = widget_class(attrs=attrs)
         self.choices_widget = PrefillDropdown(attrs=choices_attrs, choices=choices)
-        super().__init__(attrs=widget_attrs)
+        super().__init__(attrs=attrs)
+
+    def value_from_datadict(self, data, files, name):
+        value = self.data_widget.value_from_datadict(data, files, name)
+        return value
 
     # todo: Support Django 1.11 renderer.
     def render(self, name, value, attrs=None, renderer=None):

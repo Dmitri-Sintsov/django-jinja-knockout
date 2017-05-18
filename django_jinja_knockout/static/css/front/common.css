@@ -78,6 +78,7 @@ body {
 }
 
 .input-as-select label {
+	cursor: pointer;
 	display: block;
 	padding: 3px;
 	border-radius: 2px;
