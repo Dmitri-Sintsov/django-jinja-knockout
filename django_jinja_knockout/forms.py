@@ -221,14 +221,18 @@ class FormWithInlineFormsets:
     def get_instance_when_form_invalid(self):
         return None
 
-    def prepare_form(self, form):
+    # Note that 'GET' mode form can be generateed in AJAX 'POST' request,
+    # thus method argument value should be hardcoded, not filled from current request.
+    def prepare_form(self, form, method):
         if hasattr(form, 'set_request') and callable(form.set_request):
             form.set_request(self.request)
 
     def get_formset_inline_title(self, formset):
         return None
 
-    def prepare_formset(self, formset):
+    # Note that 'GET' mode formset can be generateed in AJAX 'POST' request,
+    # thus method argument value should be hardcoded, not filled from current request.
+    def prepare_formset(self, formset, method):
         inline_title = self.get_formset_inline_title(formset)
         if inline_title is not None:
             formset.inline_title = inline_title
@@ -251,13 +255,13 @@ class FormWithInlineFormsets:
         form_class = self.get_form_class()
         if form_class is not None:
             self.form = form_class(**self.get_form_kwargs())
-            self.prepare_form(self.form)
+            self.prepare_form(self.form, 'GET')
 
     def post_form(self):
         form_class = self.get_form_class()
         if form_class is not None:
             form = form_class(self.request.POST, self.request.FILES, **self.get_form_kwargs())
-            self.prepare_form(form)
+            self.prepare_form(form, 'POST')
             self.form = form
 
     def get_formset_kwargs(self, formset_class):
@@ -278,7 +282,7 @@ class FormWithInlineFormsets:
             for formset_class in formset_classes
         ]
         for formset in self.formsets:
-            self.prepare_formset(formset)
+            self.prepare_formset(formset, 'GET')
 
     def post_formsets(self):
         formset_classes = self.get_formset_classes()
@@ -288,7 +292,7 @@ class FormWithInlineFormsets:
             ) for formset_class in formset_classes
         ]
         for formset in self.formsets:
-            self.prepare_formset(formset)
+            self.prepare_formset(formset, 'POST')
 
     def save_model(self):
         self.instance = self.form.save()
