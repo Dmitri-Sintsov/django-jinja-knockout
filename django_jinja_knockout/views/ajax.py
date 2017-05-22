@@ -668,16 +668,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             self.report_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
         return super().get_filters()
 
-    def object_from_row(self, row):
-        row_related = {}
-        related_fields = self.get_related_fields()
-        for related_field in related_fields:
-            row_related[related_field] = row.pop(related_field)
-        obj = self.__class__.model(**row)
-        for field, value in row_related.items():
-            row[field] = value
-        return obj
-
     def set_row_related_fields(self, row):
         row_related = {}
         related_fields = self.get_related_fields()
