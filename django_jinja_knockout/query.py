@@ -8,6 +8,7 @@ from django.utils import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
+from django.db.models.fields.files import FieldFile
 from django.db.models import Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
@@ -162,7 +163,7 @@ class ValuesQuerySetMixin:
             for key in keypath:
                 try:
                     value = getattr(value, key)
-                except ObjectDoesNotExist:
+                except (AttributeError, ObjectDoesNotExist):
                     obj_exists = False
                     value = None
                     break
@@ -177,8 +178,10 @@ class ValuesQuerySetMixin:
                 value = getattr(row, attr)
             except ObjectDoesNotExist:
                 return None
-            if isinstance(value, models.Model):
-                value = value.pk
+        if isinstance(value, models.Model):
+            value = value.pk
+        elif isinstance(value, FieldFile):
+            value = value.name
         return value
 
     def _values(self, values_fields):

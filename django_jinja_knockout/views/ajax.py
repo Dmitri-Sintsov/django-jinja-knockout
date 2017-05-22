@@ -14,6 +14,7 @@ from .. import tpl as qtpl
 from ..models import (
     get_meta, get_verbose_name, model_fields_verbose_names, model_values, get_object_description, yield_related_models
 )
+from ..query import ListQuerySet
 from ..viewmodels import vm_list
 from .base import BaseFilterView, FormViewmodelsMixin
 
@@ -677,6 +678,15 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             row[field] = value
         return obj
 
+    def set_row_related_fields(self, row):
+        row_related = {}
+        related_fields = self.get_related_fields()
+        for related_field in related_fields:
+            row_related[related_field] = row.pop(related_field)
+        for field, value in row_related.items():
+            row[field] = value
+        return row
+
     def get_model_fields(self):
         return self.query_fields
 
@@ -712,10 +722,15 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
             first_elem = last_elem = 0
         qs = self.get_queryset()
         self.total_rows = qs.count()
-        return [
-            self.postprocess_row(row, self.object_from_row(row))
-            for row in qs[first_elem:last_elem].values(*self.query_fields)
+        paginated_qs = ListQuerySet(qs[first_elem:last_elem])
+        paginated_qs_iter = paginated_qs.__iter__()
+        result = [
+            self.postprocess_row(
+                self.set_row_related_fields(row), next(paginated_qs_iter)
+            )
+            for row in paginated_qs.values(*self.query_fields)
         ]
+        return result
 
     def postprocess_qs(self, qs):
         return [
