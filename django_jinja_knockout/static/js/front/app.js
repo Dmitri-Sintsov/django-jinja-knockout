@@ -154,61 +154,115 @@ App.blockTags = {
 };
 
 
-App.TabPane = {
+/**
+ * Static class with nested factory which manages bootstrap tabs.
+ */
+App.TabPane = {};
 
-    getAnchor: function(hash) {
-        var targetElement = $(hash);
-        if (targetElement.length > 0) {
-            var parentPane = targetElement.closest('div.tab-pane');
-            if (parentPane.length > 0) {
-                var paneAnchor = $('a[href="#' + parentPane.attr('id') + '"]');
-                if (paneAnchor.length > 0) {
-                    return paneAnchor;
+(function(TabPane) {
+
+    function Paner(hash) {
+        this.cleanHash = hash.split(/^#/g).pop();
+        this.targetElement = $(document.getElementById(this.cleanHash));
+        if (this.targetElement.length > 0) {
+            this.pane = this.targetElement.closest('div.tab-pane');
+            if (this.pane.length > 0 && this.cleanHash === this.pane.attr('id')) {
+                this.anchor = $('a[href="#' + this.pane.attr('id') + '"]');
+                this.tab = this.anchor.parents('li[role="presentation"]:first');
+            }
+        }
+    };
+
+    (function(Paner) {
+
+        Paner.exists = function() {
+            return App.propGet(this, ['anchor', 'length'], 0) > 0;
+        };
+
+        Paner.switchTo = function() {
+            if (this.exists()) {
+                this.anchor.tab('show');
+                var highlightClass = this.tab.data('highlightClass');
+                if (highlightClass !== undefined) {
+                    this.tab.removeData('highlightClass');
+                    this.tab.removeClass(highlightClass);
+                }
+                // Commented out, because it causes jagged scrolling.
+                // this.argetElement.get(0).scrollIntoView();
+            }
+            return this;
+        };
+
+        Paner.hide = function() {
+            if (this.exists()) {
+                this.tab.addClass('hidden');
+                this.pane.addClass('hidden');
+            }
+            return this;
+        };
+
+        Paner.show = function() {
+            if (this.exists()) {
+                this.pane.removeClass('hidden');
+                this.tab.removeClass('hidden');
+            }
+            return this;
+        };
+
+        Paner.highlight = function(bgClass, permanent) {
+            if (typeof bgClass !== 'string') {
+                bgClass = 'bg-success';
+            }
+            if (this.exists()) {
+                this.tab.addClass(bgClass);
+                if (permanent !== true) {
+                    this.tab.data('highlightClass', bgClass);
                 }
             }
-        }
-        return false;
-    },
+            return this;
+        };
 
-    show: function() {
-        var paneAnchor = App.TabPane.getAnchor(window.location.hash);
-        if (paneAnchor !== false) {
-            paneAnchor.tab('show');
-            var tab = paneAnchor.closest('li');
-            var highlightClass = tab.data('highlightClass');
-            if (highlightClass !== undefined) {
-                tab.removeData('highlightClass');
-                tab.removeClass(highlightClass);
-            }
-            // Commented out, because it causes jagged scrolling.
-            // targetElement.get(0).scrollIntoView();
-        }
-    },
+    })(Paner.prototype);
 
-    highlight: function(hash, bgClass, permanent) {
+
+    TabPane.switchTo = function() {
+        var paner = new Paner(window.location.hash);
+        if (paner.exists()) {
+            return paner.switchTo();
+        }
+    };
+
+    TabPane.show = function(hash) {
+        var paner = new Paner(hash);
+        if (paner.exists()) {
+            return paner.show();
+        }
+    };
+
+    TabPane.hide = function(hash) {
+        var paner = new Paner(hash);
+        if (paner.exists()) {
+            return paner.hide();
+        }
+    };
+
+    TabPane.highlight = function(hash, bgClass, permanent) {
         if (typeof hash === 'undefined') {
             hash = window.location.hash;
         }
-        if (typeof bgClass !== 'string') {
-            bgClass = 'bg-success';
+        var paner = new Paner(hash);
+        if (paner.exists()) {
+            paner.highlight(bgClass, permanent);
         }
-        var paneAnchor = App.TabPane.getAnchor(hash);
-        if (paneAnchor !== false) {
-            var tab = paneAnchor.closest('li');
-            tab.addClass(bgClass);
-            if (permanent !== true) {
-                tab.data('highlightClass', bgClass);
-            }
-        }
-    },
+    };
 
-};
+})(App.TabPane);
 
 
 // https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
 App.initTabPane = function() {
-    App.TabPane.show();
-    $(window).on('hashchange', App.TabPane.show);
+    App.TabPane.switchTo();
+    $(window).on('hashchange', App.TabPane.switchTo);
     // Change hash upon pane activation
     $('a[role="tab"]').on('click', function() {
         var href = $(this).attr('href');
