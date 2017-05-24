@@ -8,6 +8,10 @@ if (typeof console !== 'object') {
     };
 }
 
+if (typeof console.dir !== 'function') {
+    console.dir = function(s) { console.log(s) };
+}
+
 if (typeof window.App === 'undefined') {
     window.App = {};
 };
@@ -162,6 +166,9 @@ App.TabPane = {};
 (function(TabPane) {
 
     function Paner(hash) {
+        if (typeof hash === 'undefined') {
+            hash = window.location.hash;
+        }
         this.cleanHash = hash.split(/^#/g).pop();
         this.targetElement = $(document.getElementById(this.cleanHash));
         if (this.targetElement.length > 0) {
@@ -222,11 +229,17 @@ App.TabPane = {};
             return this;
         };
 
+        Paner.load = function(route, data, options) {
+            data.clean_hash = this.cleanHash;
+            App.post(route, data, options);
+            return this;
+        };
+
     })(Paner.prototype);
 
 
     TabPane.switchTo = function() {
-        var paner = new Paner(window.location.hash);
+        var paner = new Paner();
         if (paner.exists()) {
             return paner.switchTo();
         }
@@ -247,12 +260,16 @@ App.TabPane = {};
     };
 
     TabPane.highlight = function(hash, bgClass, permanent) {
-        if (typeof hash === 'undefined') {
-            hash = window.location.hash;
-        }
         var paner = new Paner(hash);
         if (paner.exists()) {
-            paner.highlight(bgClass, permanent);
+            return paner.highlight(bgClass, permanent);
+        }
+    };
+
+    TabPane.load = function(hash, route, data, options) {
+        var paner = new Paner(hash);
+        if (paner.exists()) {
+            return paner.load(route, data, options);
         }
     };
 
@@ -560,14 +577,23 @@ App.viewHandlers = {
         $(response.selector).remove();
     },
     'html': function(response) {
-        $(response.selector).html(response.html);
+        var $selector = $(response.selector);
+        if ($selector.length === 0) {
+            console.log(
+                sprintf('html viewmodel selector not found: "%s"', response.selector)
+            );
+        }
+        App.initClient($selector.find('*'), 'dispose');
+        var $html = $.contents(response.html);
+        App.initClient($html);
+        $selector.empty().append($html);
     },
     'replaceWith': function(response) {
         var $selector = $(response.selector);
         var $parent = $selector.parent();
         if ($selector.length === 0) {
             console.log(
-                sprintf('replaceWith selector not found: "%s"', response.selector)
+                sprintf('replaceWith viewmodel selector not found: "%s"', response.selector)
             );
         }
         App.initClientApply($selector, 'dispose');
@@ -1405,14 +1431,19 @@ App.Tpl = function(options) {
 
     Tpl.prependTemplates = function($target, $ancestors) {
         this.tplId = $target.attr('data-template-id');
-        if ($target.data('templateArgsNesting') !== false) {
-            this.addSubArgs($ancestors);
+        if (this.tplId === undefined) {
+            console.log('skipped undefined data-template-id for $target: ' + $target.prop('outerHTML'));
+            console.dir($target);
+        } else {
+            if ($target.data('templateArgsNesting') !== false) {
+                this.addSubArgs($ancestors);
+            }
+            this.extendData(
+                this.getTemplateData($target.data('templateArgs'))
+            );
+            var $subTemplates = this.renderSubTemplates();
+            $target.prepend($subTemplates);
         }
-        this.extendData(
-            this.getTemplateData($target.data('templateArgs'))
-        );
-        var $subTemplates = this.renderSubTemplates();
-        $target.prepend($subTemplates);
     };
 
     /**
@@ -1831,17 +1862,23 @@ App.Components = function() {
             throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
         }
         var classPath = $elem.data('componentClass');
-        var options = $.extend({}, $elem.data('componentOptions'));
-        if (typeof options !== 'object') {
-            console.log('Skipping .component with invalid data-component-options');
-            return;
-        }
         if (classPath === undefined) {
-            throw 'Undefined data-component-class classPath.';
+            console.log('Current $elem is not component node: ' + $elem.prop('outerHTML'));
+            console.dir($elem);
+            return null;
+        } else {
+            var options = $.extend({}, $elem.data('componentOptions'));
+            if (typeof options !== 'object') {
+                console.log('Skipping .component with invalid data-component-options');
+                return;
+            }
+            if (classPath === undefined) {
+                throw 'Undefined data-component-class classPath.';
+            }
+            var cls = App.getClassFromPath(classPath);
+            var component = new cls(options);
+            return component;
         }
-        var cls = App.getClassFromPath(classPath);
-        var component = new cls(options);
-        return component;
     };
 
     Components.bind = function(desc, elem) {
@@ -1859,8 +1896,10 @@ App.Components = function() {
         var desc;
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
-            this.bind(desc, elem)
-            desc.component.runComponent(elem);
+            if (desc.component !== null) {
+                this.bind(desc, elem)
+                desc.component.runComponent(elem);
+            }
         } else {
             desc = {'event': evt};
             desc.handler = function() {
@@ -1870,11 +1909,15 @@ App.Components = function() {
                     component.runComponent(elem);
                 } catch (e) {
                     desc.component = self.create(elem);
-                    self.bind(desc, elem)
-                    desc.component.runComponent(elem);
+                    if (desc.component !== null) {
+                        self.bind(desc, elem)
+                        desc.component.runComponent(elem);
+                    }
                 }
             };
-            $(elem).on(desc.event, desc.handler);
+            if (desc.component !== null) {
+                $(elem).on(desc.event, desc.handler);
+            }
         }
     };
 
@@ -1970,7 +2013,9 @@ App.initClientHooks.push({
  */
 App.initClientHooks.push(function($selector) {
     _.each($selector.findSelf('.component'), function(v) {
-        var evt = $(v).data('event');
-        App.components.add(v, evt);
+        if ($(v).hasClass('component')) {
+            var evt = $(v).data('event');
+            App.components.add(v, evt);
+        }
     });
 });
