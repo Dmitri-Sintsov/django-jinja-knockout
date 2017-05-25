@@ -2409,12 +2409,14 @@ App.FilterDialog = function(options) {
         if (typeof this.ownerComponent !== 'undefined') {
             return [{
                 id: 'filter_remove_selection',
+                hotkey: 27,
                 label: App.trans('Remove selection'),
                 action: function(dialogItself) {
                     self.onRemoveSelection();
                 }
             },{
                 id: 'filter_apply',
+                hotkey: 13,
                 label: App.trans('Apply'),
                 action: function(dialogItself) {
                     if (self.onApply()) {
@@ -2425,6 +2427,7 @@ App.FilterDialog = function(options) {
         } else {
             return [{
                 label: App.trans('Close'),
+                hotkey: 27,
                 action: function(dialogItself) {
                     dialogItself.close();
                 }
@@ -2643,6 +2646,7 @@ App.ModelFormDialog = function(options) {
             {
                 icon: 'glyphicon glyphicon-ban-circle',
                 label: App.trans('Cancel'),
+                hotkey: 27,
                 cssClass: 'btn-default',
                 action: function(bdialog) {
                     bdialog.close();
@@ -2795,6 +2799,7 @@ App.ActionsMenuDialog = function(options) {
         var self = this;
         return [{
             label: App.trans('Cancel'),
+            hotkey: 27,
             action: function(dialogItself) {
                 dialogItself.close();
             }
