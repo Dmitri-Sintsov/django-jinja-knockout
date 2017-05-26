@@ -159,127 +159,96 @@ App.blockTags = {
 
 
 /**
- * Static class with nested factory which manages bootstrap tabs.
+ * Bootstrap tabs management class.
  */
-App.TabPane = {};
+App.TabPane = function (hash) {
+    if (typeof hash === 'undefined') {
+        hash = window.location.hash;
+    }
+    this.cleanHash = hash.split(/^#/g).pop();
+    this.targetElement = $(document.getElementById(this.cleanHash));
+    if (this.targetElement.length > 0) {
+        this.pane = this.targetElement.closest('div.tab-pane');
+        if (this.pane.length > 0 && this.cleanHash === this.pane.attr('id')) {
+            this.anchor = $('a[href="#' + this.pane.attr('id') + '"]');
+            this.tab = this.anchor.parents('li[role="presentation"]:first');
+        }
+    }
+};
 
 (function(TabPane) {
 
-    function Paner(hash) {
-        if (typeof hash === 'undefined') {
-            hash = window.location.hash;
-        }
-        this.cleanHash = hash.split(/^#/g).pop();
-        this.targetElement = $(document.getElementById(this.cleanHash));
-        if (this.targetElement.length > 0) {
-            this.pane = this.targetElement.closest('div.tab-pane');
-            if (this.pane.length > 0 && this.cleanHash === this.pane.attr('id')) {
-                this.anchor = $('a[href="#' + this.pane.attr('id') + '"]');
-                this.tab = this.anchor.parents('li[role="presentation"]:first');
-            }
-        }
+    TabPane.exists = function() {
+        return App.propGet(this, ['anchor', 'length'], 0) > 0;
     };
 
-    (function(Paner) {
+    TabPane.setLocation = function() {
+        if (this.exists()) {
+            window.location.hash = '#' + this.cleanHash;
+        }
+        return this;
+    };
 
-        Paner.exists = function() {
-            return App.propGet(this, ['anchor', 'length'], 0) > 0;
-        };
-
-        Paner.switchTo = function() {
-            if (this.exists()) {
-                this.anchor.tab('show');
-                var highlightClass = this.tab.data('highlightClass');
-                if (highlightClass !== undefined) {
-                    this.tab.removeData('highlightClass');
-                    this.tab.removeClass(highlightClass);
-                }
-                // Commented out, because it causes jagged scrolling.
-                // this.argetElement.get(0).scrollIntoView();
+    TabPane.switchTo = function() {
+        if (this.exists()) {
+            this.anchor.tab('show');
+            var highlightClass = this.tab.data('highlightClass');
+            if (highlightClass !== undefined) {
+                this.tab.removeData('highlightClass');
+                this.tab.removeClass(highlightClass);
             }
-            return this;
-        };
+            // Commented out, because it causes jagged scrolling.
+            // this.argetElement.get(0).scrollIntoView();
+        }
+        return this;
+    };
 
-        Paner.hide = function() {
-            if (this.exists()) {
-                this.tab.addClass('hidden');
-                this.pane.addClass('hidden');
-            }
-            return this;
-        };
+    TabPane.hide = function() {
+        if (this.exists()) {
+            this.tab.addClass('hidden');
+            this.pane.addClass('hidden');
+        }
+        return this;
+    };
 
-        Paner.show = function() {
-            if (this.exists()) {
-                this.pane.removeClass('hidden');
-                this.tab.removeClass('hidden');
-            }
-            return this;
-        };
+    TabPane.show = function() {
+        if (this.exists()) {
+            this.pane.removeClass('hidden');
+            this.tab.removeClass('hidden');
+        }
+        return this;
+    };
 
-        Paner.highlight = function(bgClass, permanent) {
+    TabPane.highlight = function(bgClass, permanent) {
+        if (this.exists()) {
             if (typeof bgClass !== 'string') {
                 bgClass = 'bg-success';
             }
-            if (this.exists()) {
-                this.tab.addClass(bgClass);
-                if (permanent !== true) {
-                    this.tab.data('highlightClass', bgClass);
-                }
+            this.tab.addClass(bgClass);
+            if (permanent !== true) {
+                this.tab.data('highlightClass', bgClass);
             }
-            return this;
-        };
+        }
+        return this;
+    };
 
-        Paner.load = function(route, data, options) {
+    TabPane.load = function(route, data, options) {
+        if (this.exists()) {
             data.clean_hash = this.cleanHash;
             App.post(route, data, options);
-            return this;
-        };
-
-    })(Paner.prototype);
-
-
-    TabPane.switchTo = function() {
-        var paner = new Paner();
-        if (paner.exists()) {
-            return paner.switchTo();
         }
+        return this;
     };
 
-    TabPane.show = function(hash) {
-        var paner = new Paner(hash);
-        if (paner.exists()) {
-            return paner.show();
-        }
-    };
-
-    TabPane.hide = function(hash) {
-        var paner = new Paner(hash);
-        if (paner.exists()) {
-            return paner.hide();
-        }
-    };
-
-    TabPane.highlight = function(hash, bgClass, permanent) {
-        var paner = new Paner(hash);
-        if (paner.exists()) {
-            return paner.highlight(bgClass, permanent);
-        }
-    };
-
-    TabPane.load = function(hash, route, data, options) {
-        var paner = new Paner(hash);
-        if (paner.exists()) {
-            return paner.load(route, data, options);
-        }
-    };
-
-})(App.TabPane);
+})(App.TabPane.prototype);
 
 
 // https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
 App.initTabPane = function() {
-    App.TabPane.switchTo();
-    $(window).on('hashchange', App.TabPane.switchTo);
+    new App.TabPane().switchTo();
+    $(window).on('hashchange', function() {
+        new App.TabPane().switchTo();
+    });
     // Change hash upon pane activation
     $('a[role="tab"]').on('click', function() {
         var href = $(this).attr('href');
