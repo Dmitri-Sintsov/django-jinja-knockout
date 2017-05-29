@@ -465,6 +465,9 @@ class ListQuerySet(ValuesQuerySetMixin):
     def exclude(self, *args, **kwargs):
         return self._filter(False, *args, **kwargs)
 
+    def all(self):
+        return self.__iter__()
+
     def order_by(self, *field_names):
         c = self._clone()
         for fieldname in reversed(field_names):
