@@ -40,14 +40,15 @@ def get_users_with_permission(permission_str, include_su=True):
 
 def get_related_field_val(obj, fieldname, strict_related=True):
     curr_rel = obj
-    if isinstance(fieldname, str):
-        fieldpath = fieldname.split('__')
+    fieldpath = fieldname.split('__') if isinstance(fieldname, str) else fieldname
+    if strict_related:
+        for _fieldname in fieldpath:
+            curr_rel = getattr(curr_rel, _fieldname)
     else:
-        fieldpath = fieldname
-    for _fieldname in fieldpath:
-        if curr_rel is None and not strict_related:
-            return None
-        curr_rel = getattr(curr_rel, _fieldname)
+        for _fieldname in fieldpath:
+            curr_rel = getattr(curr_rel, _fieldname, None)
+            if curr_rel is None:
+                return None
     return curr_rel
 
 

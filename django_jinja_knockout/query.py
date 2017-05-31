@@ -404,19 +404,12 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 # To use with Prefetch() 'to_attr' keyword argument object results.
 class ListQuerySet(ValuesQuerySetMixin):
 
-    def __init__(self, lst, relation_map={}, relation_path=None):
+    def __init__(self, lst):
         self.list = lst if isinstance(lst, list) else list(lst)
-        if relation_path is None:
-            self.relation_path = {
-                fieldname: relation_path.split('__') for fieldname, relation_path in relation_map.items()
-            }
-        else:
-            self.relation_path = relation_path
 
     def _clone(self):
         c = self.__class__(
-            lst=copy(self.list),
-            relation_path=copy(self.relation_path)
+            copy(self.list)
         )
         return c
 
@@ -425,22 +418,19 @@ class ListQuerySet(ValuesQuerySetMixin):
             tokens = key.split('__')
         else:
             tokens = key
-        # Follows only direct relationships, reverse relationships are not supported yet.
-        if len(self.relation_path) > 0 and len(tokens) > 1:
-            for token_idx, fieldname in enumerate(tokens):
-                if fieldname in self.relation_path:
-                    relation_tokens = self.relation_path[fieldname]
-                    if tokens[:token_idx] == relation_tokens:
-                        _key = tokens[token_idx:]
-                        _obj = get_related_field_val(obj, relation_tokens, strict_related=False)
-                        return self._match(_key, query_val, _obj)
         if len(tokens) == 1:
             return hasattr(obj, tokens[0]) and getattr(obj, tokens[0]) == query_val
         else:
-            match_method = getattr(self, '_match_{}'.format(tokens[1]))
-            if not hasattr(obj, tokens[0]):
+            match_method = getattr(self, '_match_{}'.format(tokens[-1]), None)
+            try:
+                if match_method is None:
+                    field_val = get_related_field_val(obj, tokens)
+                    return field_val == query_val
+                else:
+                    field_val = get_related_field_val(obj, tokens[:-1])
+                    return match_method(field_val, query_val)
+            except AttributeError:
                 return False
-            return match_method(getattr(obj, tokens[0]), query_val)
 
     def _match_contains(self, field_val, query_val):
         return query_val in field_val
