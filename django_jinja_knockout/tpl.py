@@ -299,3 +299,8 @@ def escape_css_selector(s):
         if delimiters.match(token):
             tokens[key] = '\\{}'.format(token)
     return ''.join(tokens)
+
+
+# A string class with attributes. Used in ContentTypesLinker.get_html().
+class Str(str):
+    pass

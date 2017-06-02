@@ -1,6 +1,5 @@
 from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
-from django.utils.html import format_html
 from django.db import models
 from django.db.models import Q
 # Django 1.8+
@@ -12,7 +11,6 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
 
-from .admin import empty_value_display
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
 MANY_NONE_SINGLE_TRUE = (
@@ -186,35 +184,3 @@ def wakeup_user(user):
             user._setup()
         user = user._wrapped
     return user
-
-
-class ContentTypeLinker:
-
-    def __init__(self, obj, typefield, idfield):
-        self.model = None
-        self.url = None
-        self.description = ''
-        self.obj_type = getattr(obj, typefield)
-        if self.obj_type is not None:
-            model_class = self.obj_type.model_class()
-            self.model = model_class.objects.filter(pk=getattr(obj, idfield)).first()
-            if self.model is not None:
-                if hasattr(self.model, 'get_canonical_link') and callable(self.model.get_canonical_link):
-                    self.description, self.url = self.model.get_canonical_link()
-                else:
-                    self.description = str(self.model)
-
-    def get_html_field(self, template=None):
-        if template is None:
-            template = '<a href="{url}" target="_blank">{description}</a>'
-        if self.url is not None:
-            return format_html(
-                template,
-                url=self.url,
-                description=self.description
-            )
-        else:
-            return self.description
-
-    def get_str_obj_type(self):
-        return str(empty_value_display if self.obj_type is None else self.obj_type)

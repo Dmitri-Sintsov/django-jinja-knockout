@@ -8,7 +8,8 @@ from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 
-from .models import get_verbose_name, ContentTypeLinker
+from .models import get_verbose_name
+from .contenttypes import ContentTypeLinker
 from .middleware import ContextMiddlewareCompat
 from .tpl import add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url
 
