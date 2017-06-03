@@ -430,7 +430,7 @@ class BaseFilterView(View):
                         str_fields[fieldname] = rel_str
             return str_fields
         else:
-            return None
+            return {}
 
     # Override in child class to customize output.
     def get_display_value(self, obj, field):
@@ -438,8 +438,8 @@ class BaseFilterView(View):
             obj._display_value = self.get_row_str_fields(obj)
         normalized_field = normalize_fk_fieldname(field)
         field_val = getattr(obj, field)
-        if isinstance(field_val, models.Model) and hasattr(field_val, 'get_canonical_link'):
-            display_value = format_html('<a href="{1}">{0}</a>', *field_val.get_canonical_link())
+        if isinstance(field_val, models.Model) and hasattr(field_val, 'get_absolute_url'):
+            display_value = qtpl.get_instance_url(field_val)
         elif field in obj._display_value:
             display_value = obj._display_value[field]
         elif normalized_field in obj._display_value:

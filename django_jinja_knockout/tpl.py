@@ -8,7 +8,7 @@ from datetime import date, datetime
 from urllib.parse import urlencode
 
 from django.utils import formats, timezone
-from django.utils.html import escape, mark_safe
+from django.utils.html import escape, mark_safe, format_html
 from django.forms.utils import flatatt
 try:
     # Django 1.11.
@@ -304,3 +304,13 @@ def escape_css_selector(s):
 # A string class with attributes. Used in ContentTypesLinker.get_html().
 class Str(str):
     pass
+
+
+# Use Str instance to add .html or .text attribute value to Model.get_absoulte_url() result.
+def get_instance_url(obj):
+    url = obj.get_absolute_url()
+    desc = mark_safe(url.html) if hasattr(url, 'html') else getattr(url, 'text', str(obj))
+    if isinstance(desc, dict):
+        # Use models.model_fields_verbose_names() to populate verbose (localized) list keys.
+        desc = print_list_group(desc, show_keys=PRINT_LIST_KEYS)
+    return format_html('<a href="{url}">{desc}</a>', url=url, desc=desc)
