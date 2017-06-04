@@ -439,7 +439,7 @@ class BaseFilterView(View):
         normalized_field = normalize_fk_fieldname(field)
         field_val = getattr(obj, field)
         if isinstance(field_val, models.Model) and hasattr(field_val, 'get_absolute_url'):
-            display_value = qtpl.get_instance_url(field_val)
+            display_value = qtpl.ModelLinker(field_val).__html__()
         elif field in obj._display_value:
             display_value = obj._display_value[field]
         elif normalized_field in obj._display_value:

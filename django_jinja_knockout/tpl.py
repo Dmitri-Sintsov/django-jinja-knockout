@@ -12,15 +12,18 @@ from django.utils.html import escape, mark_safe, format_html
 from django.forms.utils import flatatt
 try:
     # Django 1.11.
-    import django.urls as urls
+    from django.urls import (
+        resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
+    )
 except ImportError:
     # Django 1.8..1.10.
-    import django.core.urlresolvers as urls
-for attr in ('resolve', 'reverse', 'NoReverseMatch', 'get_resolver', 'get_script_prefix'):
-    globals()[attr] = getattr(urls, attr)
+    from django.core.urlresolvers import (
+        resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
+    )
 
 from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
+from .admin import empty_value_display
 
 
 def limitstr(value, maxlen=50, suffix='...'):
@@ -43,6 +46,7 @@ def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
 PRINT_LIST_NO_KEYS = 0
 PRINT_LIST_KEYS = 1
 PRINT_LIST_REPEATED_KEYS = 2
+
 
 # Print nested HTML list.
 def print_list(
@@ -291,6 +295,7 @@ def json_flatatt(atts):
             atts[k] = to_json(v)
     return flatatt(atts)
 
+
 # https://developer.mozilla.org/en-US/docs/Web/API/CSS/escape
 def escape_css_selector(s):
     delimiters = re.compile(r'(\'|\[|\]|\.|#|\(|\)|\{|\})')
@@ -306,11 +311,47 @@ class Str(str):
     pass
 
 
-# Use Str instance to add .html or .text attribute value to Model.get_absoulte_url() result.
-def get_instance_url(obj):
-    url = obj.get_absolute_url()
-    desc = mark_safe(url.html) if hasattr(url, 'html') else getattr(url, 'text', str(obj))
-    if isinstance(desc, dict):
-        # Use models.model_fields_verbose_names() to populate verbose (localized) list keys.
-        desc = print_list_group(desc, show_keys=PRINT_LIST_KEYS)
-    return format_html('<a href="{url}">{desc}</a>', url=url, desc=desc)
+# Formats canonical links to model instances (model objects).
+class ModelLinker:
+
+    # Use Str instance to add .html or .text attribute value to Model.get_absoulte_url() result.
+    def __init__(self, obj):
+        self.obj = obj
+        if hasattr(self.obj, 'get_absolute_url') and callable(self.obj.get_absolute_url):
+            self.url = self.obj.get_absolute_url()
+            self.desc = mark_safe(self.url.html) if hasattr(self.url, 'html') else getattr(self.url, 'text', None)
+        else:
+            self.url = None
+            self.desc = None
+        if self.desc is None:
+            if hasattr(self.obj, 'get_str_fields'):
+                # Use models.model_fields_verbose_names() to populate verbose (localized) list keys.
+                self.desc = print_list_group(self.obj.get_str_fields())
+            else:
+                if self.obj is not None:
+                    self.desc = str(self.obj)
+
+    def __html__(self, template=None):
+        if self.url is not None:
+            if template is None:
+                template = '<a href="{url}" target="_blank">{description}</a>'
+            return format_html(
+                template,
+                url=self.url,
+                description=self.desc
+            )
+        else:
+            return empty_value_display if self.desc is None else self.desc
+
+
+class ContentTypeLinker(ModelLinker):
+
+    def __init__(self, obj, typefield, idfield):
+        self.obj_type = getattr(obj, typefield)
+        if self.obj_type is not None:
+            model_class = self.obj_type.model_class()
+            obj = model_class.objects.filter(pk=getattr(obj, idfield)).first()
+        super().__init__(obj)
+
+    def get_str_obj_type(self):
+        return str(empty_value_display if self.obj_type is None else self.obj_type)

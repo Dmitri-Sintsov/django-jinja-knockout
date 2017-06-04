@@ -9,9 +9,11 @@ from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 
 from .models import get_verbose_name
-from .contenttypes import ContentTypeLinker
 from .middleware import ContextMiddlewareCompat
-from .tpl import add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url
+from .tpl import (
+    add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url,
+    ModelLinker, ContentTypeLinker
+)
 
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
@@ -93,6 +95,7 @@ class TemplateContextProcessor():
             'list': list,
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
+            'ModelLinker': ModelLinker,
             'request': self.HttpRequest,
             'raise': raise_exception,
             'resolve_cbv': resolve_cbv,
