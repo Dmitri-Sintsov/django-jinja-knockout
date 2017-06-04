@@ -13,7 +13,7 @@ from django.forms.widgets import (CheckboxInput, Widget, Textarea, MultiWidget)
 from .apps import DjkAppConfig
 from .models import model_fields_verbose_names
 from .tpl import (
-    print_list, print_list_group, print_bs_well,
+    PrintList, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
     format_local_date,
     resolve_cbv
@@ -135,13 +135,12 @@ class DisplayText(Widget):
         add_css_classes_to_dict(final_attrs, 'preformatted')
 
     def render_list(self, final_attrs, values, display_values):
-        return print_list(
+        return PrintList(
             # @note: when changing to elem_tpl, one has to set flatatt() name index.
             top_tpl='<ul{0}>{1}</ul>\n'.format(flatatt(final_attrs), '{0}'),
             elem_tpl='<li class="list-group-item preformatted">{0}</li>\n',
-            row=display_values,
             cb=lambda value: self.get_text(value)
-        )
+        ).nested(display_values)
 
     def render_scalar(self, final_attrs, value, display_value):
         return format_html(

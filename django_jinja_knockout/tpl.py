@@ -43,37 +43,46 @@ def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
     return reversed_insert[::-1]
 
 
-PRINT_LIST_NO_KEYS = 0
-PRINT_LIST_KEYS = 1
-PRINT_LIST_REPEATED_KEYS = 2
-
-
 # Print nested HTML list.
-def print_list(
-    row,
-    elem_tpl='<li>{}</li>\n',
-    key_tpl='<li><div>{k}</div>{v}</li>',
-    top_tpl='<ul>{}</ul>\n',
-    cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}
-):
-    result = []
-    for key, elem in iter_enumerate(row, show_keys == PRINT_LIST_REPEATED_KEYS):
-        if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
-            result.append(print_list(elem, elem_tpl, key_tpl, top_tpl, cb, show_keys, i18n))
-        else:
-            if show_keys > PRINT_LIST_NO_KEYS and not isinstance(key, int):
-                key_val = i18n.get(key, key)
-                result.append(
-                    key_tpl.format(
-                        k=cb(key_val) if callable(cb) else str(key_val),
-                        v=elem
-                    )
-                )
+class PrintList:
+
+    PRINT_NO_KEYS = 0
+    PRINT_KEYS = 1
+    PRINT_REPEATED_KEYS = 2
+
+    def __init__(
+        self,
+        elem_tpl='<li>{}</li>\n',
+        key_tpl='<li><div>{k}</div>{v}</li>',
+        top_tpl='<ul>{}</ul>\n',
+        cb=escape, show_keys=None, i18n={}
+    ):
+        self.elem_tpl = elem_tpl
+        self.key_tpl = key_tpl
+        self.top_tpl = top_tpl
+        self.cb = cb
+        self.show_keys = self.PRINT_NO_KEYS if show_keys is None else show_keys
+        self.i18n = i18n
+
+    def nested(self, row):
+        result = []
+        for key, elem in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+            if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
+                result.append(self.nested(elem))
             else:
-                result.append(
-                    elem_tpl.format(cb(elem) if callable(cb) else elem)
-                )
-    return top_tpl.format(''.join(result))
+                if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
+                    key_val = self.i18n.get(key, key)
+                    result.append(
+                        self.key_tpl.format(
+                            k=self.cb(key_val) if callable(self.cb) else str(key_val),
+                            v=elem
+                        )
+                    )
+                else:
+                    result.append(
+                        self.elem_tpl.format(self.cb(elem) if callable(self.cb) else elem)
+                    )
+        return self.top_tpl.format(''.join(result))
 
 
 # Print uniform 2D table.
@@ -83,77 +92,72 @@ def print_table(
         row_tpl='<tr>{}</tr>\n',
         key_tpl='<td><div>{k}</div>{v}</td>\n',
         elem_tpl='<td>{}</td>\n',
-        cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}
+        cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}
 ):
     rows_str = ''.join([
-        print_list(
-            row,
+        PrintList(
             elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
             cb=cb, show_keys=show_keys, i18n=i18n
-        ) for row in rows
+        ).nested(row) for row in rows
     ])
     return top_tpl.format(rows_str)
 
 
-def print_bs_labels(row, bs_type='info', cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
+def print_bs_labels(row, bs_type='info', cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
-        print_list(
-            row,
+        PrintList(
             elem_tpl='<span class="label label-' + bs_type + ' preformatted">{}</span><span class="conditional-display"></span>',
             key_tpl='<span class="label label-' + bs_type + ' preformatted">{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='{}',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
-        )
+        ).nested(row)
     )
 
 
-def print_bs_badges(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
+def print_bs_badges(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
-        print_list(
-            row,
+        PrintList(
             elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
             key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='{}',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
-        )
+        ).nested(row)
     )
 
 
-def print_bs_well(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
+def print_bs_well(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
-        print_list(
-            row,
+        PrintList(
             elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
             key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='<div class="well well-condensed well-sm">{}</div>',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
-        )
+        ).nested(row)
     )
 
 
-def print_list_group(row, cb=escape, show_keys=PRINT_LIST_NO_KEYS, i18n={}):
+def print_list_group(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     return mark_safe(
-        print_list(
-            row,
+        PrintList(
             elem_tpl='<li class="list-group-item">{}</li>\n',
             key_tpl='<ul class="list-group"><div class="list-group-item list-group-item-success">{k}</div><div class="list-group-item list-group-item-info">{v}</div></ul>\n',
             top_tpl='<ul class="list-group">{}</ul>\n',
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
-        )
+        ).nested(row)
     )
 
 
