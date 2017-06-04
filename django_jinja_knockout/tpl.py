@@ -92,18 +92,19 @@ def print_table(
         row_tpl='<tr>{}</tr>\n',
         key_tpl='<td><div>{k}</div>{v}</td>\n',
         elem_tpl='<td>{}</td>\n',
-        cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}
+        cb=escape, show_keys=None, i18n={}
 ):
+    print_list = PrintList(
+        elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
+        cb=cb, show_keys=show_keys, i18n=i18n
+    )
     rows_str = ''.join([
-        PrintList(
-            elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
-            cb=cb, show_keys=show_keys, i18n=i18n
-        ).nested(row) for row in rows
+        print_list.nested(row) for row in rows
     ])
     return top_tpl.format(rows_str)
 
 
-def print_bs_labels(row, bs_type='info', cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
+def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -118,7 +119,7 @@ def print_bs_labels(row, bs_type='info', cb=escape, show_keys=PrintList.PRINT_NO
     )
 
 
-def print_bs_badges(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
+def print_bs_badges(row, cb=escape, show_keys=None, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -133,7 +134,7 @@ def print_bs_badges(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     )
 
 
-def print_bs_well(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
+def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -148,7 +149,7 @@ def print_bs_well(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
     )
 
 
-def print_list_group(row, cb=escape, show_keys=PrintList.PRINT_NO_KEYS, i18n={}):
+def print_list_group(row, cb=escape, show_keys=None, i18n={}):
     return mark_safe(
         PrintList(
             elem_tpl='<li class="list-group-item">{}</li>\n',
@@ -338,7 +339,7 @@ class ModelLinker:
     def __html__(self, template=None):
         if self.url is not None:
             if template is None:
-                template = '<a href="{url}" target="_blank">{description}</a>'
+                template = '<a href="{url}">{description}</a>'
             return format_html(
                 template,
                 url=self.url,
