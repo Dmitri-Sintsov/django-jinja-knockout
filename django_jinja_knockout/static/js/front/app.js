@@ -88,7 +88,7 @@ App.renderNestedList = function(element, value, options) {
             if (typeof k === 'string') {
                 options.keyPath.push(k);
             }
-            if (typeof v === 'object') {
+            if (typeof v === 'object' && !(v instanceof jQuery)) {
                 var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
                 App.renderNestedList($ul, v, {
                     fn: fn,
@@ -100,23 +100,27 @@ App.renderNestedList = function(element, value, options) {
                     keyPrefix: options.keyPrefix,
                 });
             } else {
-                if (typeof k === 'string' && options.showKeys) {
-                    if (typeof options.i18n === 'object') {
-                        var localPath = options.keyPath.join('›');
-                        if (typeof options.i18n[localPath] !== 'undefined') {
-                            localKey = options.i18n[localPath];
-                        } else if (options.keyPrefix !== '' &&
-                                typeof options.i18n[options.keyPrefix + '›' + localPath] !== 'undefined') {
-                            localKey = options.i18n[options.keyPrefix + '›' + localPath];
-                        } else if (localPath !== k && typeof options.i18n[k] !== 'undefined') {
-                            localKey = options.i18n[k];
+                if (v instanceof jQuery) {
+                    fn = 'append';
+                } else {
+                    if (typeof k === 'string' && options.showKeys) {
+                        if (typeof options.i18n === 'object') {
+                            var localPath = options.keyPath.join('›');
+                            if (typeof options.i18n[localPath] !== 'undefined') {
+                                localKey = options.i18n[localPath];
+                            } else if (options.keyPrefix !== '' &&
+                                    typeof options.i18n[options.keyPrefix + '›' + localPath] !== 'undefined') {
+                                localKey = options.i18n[options.keyPrefix + '›' + localPath];
+                            } else if (localPath !== k && typeof options.i18n[k] !== 'undefined') {
+                                localKey = options.i18n[k];
+                            } else {
+                                localKey = k;
+                            }
                         } else {
                             localKey = k;
                         }
-                    } else {
-                        localKey = k;
+                        v = localKey + ': ' + v;
                     }
-                    v = localKey + ': ' + v;
                 }
                 var $li = $(blockTags[level].itemTag)
                     .addClass(blockTags[level].itemClasses)
