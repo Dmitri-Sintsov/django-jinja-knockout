@@ -312,7 +312,7 @@ def escape_css_selector(s):
     return ''.join(tokens)
 
 
-# A string class with attributes. Used in ContentTypesLinker.get_html().
+# A string class with attributes. Used in ModelLinker.__html__().
 class Str(str):
     pass
 
