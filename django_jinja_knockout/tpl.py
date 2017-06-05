@@ -70,19 +70,20 @@ class PrintList:
             if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
                 result.append(self.nested(elem))
             else:
-                if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
-                    key_val = self.i18n.get(key, key)
-                    result.append(
-                        self.key_tpl.format(
-                            k=self.cb(key_val) if callable(self.cb) else str(key_val),
-                            v=elem
-                        )
-                    )
-                else:
-                    result.append(
-                        self.elem_tpl.format(self.cb(elem) if callable(self.cb) else elem)
-                    )
+                result.append(
+                    self.format_val(key, elem)
+                )
         return self.top_tpl.format(''.join(result))
+
+    def format_val(self, key, elem):
+        if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
+            key_val = self.i18n.get(key, key)
+            return self.key_tpl.format(
+                k=self.cb(key_val) if callable(self.cb) else str(key_val),
+                v=elem
+            )
+        else:
+            return self.elem_tpl.format(self.cb(elem) if callable(self.cb) else elem)
 
 
 # Print uniform 2D table.
