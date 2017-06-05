@@ -331,7 +331,7 @@ class ModelLinker:
             self.desc = None
         if self.desc is None:
             if hasattr(self.obj, 'get_str_fields'):
-                # Use models.model_fields_verbose_names() to populate verbose (localized) list keys.
+                # todo: use models.model_fields_verbose_names() to optionally populate verbose (localized) list keys.
                 self.desc = print_list_group(self.obj.get_str_fields())
             else:
                 if self.obj is not None:
