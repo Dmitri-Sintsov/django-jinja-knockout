@@ -320,6 +320,10 @@ App.Dialog = function(options) {
             },
         };
         this.dialogOptions = $.extend(this.dialogOptions, this.getOptions(), options);
+        var buttons = this.getButtons();
+        if (_.isArray(buttons)) {
+            this.dialogOptions.buttons = buttons;
+        }
         if (typeof this.dialogOptions.title === 'undefined') {
             this.dialogOptions.title = this.getDialogTitle();
         }
@@ -459,6 +463,10 @@ App.Dialog = function(options) {
 
     Dialog.recreateContent = function() {
         this.bdialog.getModalBody().empty().append(this.createDialogContent());
+    };
+
+    Dialog.getButtons = function() {
+        return null;
     };
 
     Dialog.getOptions = function() {

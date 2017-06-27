@@ -2420,7 +2420,7 @@ App.FilterDialog = function(options) {
                 label: App.trans('Apply'),
                 action: function(dialogItself) {
                     if (self.onApply()) {
-                        dialogItself.close();
+                        self.close();
                     }
                 }
             }];
@@ -2429,7 +2429,7 @@ App.FilterDialog = function(options) {
                 label: App.trans('Close'),
                 hotkey: 27,
                 action: function(dialogItself) {
-                    dialogItself.close();
+                    self.close();
                 }
             }];
         }
@@ -2442,19 +2442,15 @@ App.FilterDialog = function(options) {
         }
         // Reference to owner component (for example App.ko.FkGridFilter instance).
         this.ownerComponent = options.ownerComponent;
-        var dialogOptions = $.extend({
-                buttons: this.getButtons()
-            }, options
-        );
-        delete dialogOptions.ownerComponent;
+        delete options.ownerComponent;
         // Filter options.
         this.filterOptions = $.extend({
                 selectMultipleRows: typeof this.ownerComponent !== 'undefined'
             },
-            dialogOptions.filterOptions
+            options.filterOptions
         );
-        delete dialogOptions.filterOptions;
-        this._super._call('create', dialogOptions);
+        delete options.filterOptions;
+        this._super._call('create', options);
     };
 
     FilterDialog.onApply = function() {
@@ -2505,13 +2501,17 @@ App.documentReadyHooks.push(function() {
 App.GridDialog = function(options) {
     $.inherit(App.FilterDialog.prototype, this);
     $.inherit(App.Dialog.prototype, this);
-    this.componentElement = null;
     this.create(options);
 };
 
 (function(GridDialog) {
 
     GridDialog.template = 'ko_grid_body';
+
+    GridDialog.create = function(options) {
+        this.componentElement = null;
+        this._super._call('create', options);
+    };
 
     GridDialog.runComponent = function(elem) {
         this.componentElement = elem;
@@ -2649,7 +2649,7 @@ App.ModelFormDialog = function(options) {
                 hotkey: 27,
                 cssClass: 'btn-default',
                 action: function(bdialog) {
-                    bdialog.close();
+                    self.close();
                 }
             },
             {
@@ -2668,7 +2668,7 @@ App.ModelFormDialog = function(options) {
                                 // App.AjaxForm.prototype.submit().
                                 return true;
                             }
-                            bdialog.close();
+                            self.close();
                             self.grid.gridActions.respond(
                                 self.grid.gridActions.lastActionName,
                                 response
@@ -2691,7 +2691,6 @@ App.ModelFormDialog = function(options) {
         delete options.grid;
         var dialogOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
-                buttons: this.getButtons(),
             }, options
         );
         this._super._call('create', dialogOptions);
@@ -2801,7 +2800,7 @@ App.ActionsMenuDialog = function(options) {
             label: App.trans('Cancel'),
             hotkey: 27,
             action: function(dialogItself) {
-                dialogItself.close();
+                self.close();
             }
         }];
     };
@@ -2830,7 +2829,6 @@ App.ActionsMenuDialog = function(options) {
             {
                 template: this.templateId,
                 title: App.trans('Choose action'),
-                buttons: this.getButtons()
             }, options
         );
         this._super._call('create', dialogOptions);
