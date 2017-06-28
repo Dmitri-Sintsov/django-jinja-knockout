@@ -320,9 +320,11 @@ App.Dialog = function(options) {
             },
         };
         this.dialogOptions = $.extend(this.dialogOptions, this.getOptions(), options);
-        var buttons = this.getButtons();
-        if (_.isArray(buttons)) {
-            this.dialogOptions.buttons = buttons;
+        if (typeof this.dialogOptions.buttons === 'undefined') {
+            this.dialogOptions.buttons = this.getButtons();
+            if (!_.isArray(this.dialogOptions.buttons)) {
+                delete this.dialogOptions.buttons;
+            }
         }
         if (typeof this.dialogOptions.title === 'undefined') {
             this.dialogOptions.title = this.getDialogTitle();
