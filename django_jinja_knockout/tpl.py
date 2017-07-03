@@ -1,3 +1,4 @@
+from copy import copy
 import json
 import re
 import pytz
@@ -21,7 +22,7 @@ except ImportError:
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
 
-from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
+from .utils.sdv import iter_enumerate, nested_update, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
 from .admin import empty_value_display
 
@@ -52,38 +53,53 @@ class PrintList:
 
     def __init__(
         self,
-        elem_tpl='<li>{}</li>\n',
-        key_tpl='<li><div>{k}</div>{v}</li>',
+        elem_tpl='<li><div{attrs}>{v}</div></li>\n',
+        key_tpl='<li><div{attrs}><div>{k}</div>{v}</div></li>',
         top_tpl='<ul>{}</ul>\n',
+        tpl_kwargs={},
         cb=escape, show_keys=None, i18n={}
     ):
         self.elem_tpl = elem_tpl
         self.key_tpl = key_tpl
         self.top_tpl = top_tpl
+        self.tpl_kwargs = tpl_kwargs
+        if 'attrs' not in self.tpl_kwargs:
+            self.tpl_kwargs['attrs'] = {}
         self.cb = cb
         self.show_keys = self.PRINT_NO_KEYS if show_keys is None else show_keys
         self.i18n = i18n
 
     def nested(self, row):
         result = []
-        for key, elem in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+        for definition in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+            if len(definition) > 2:
+                key, elem, format_kwargs = definition
+            else:
+                key, elem = definition
+                format_kwargs = {}
             if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
                 result.append(self.nested(elem))
             else:
                 result.append(
-                    self.format_val(key, elem)
+                    self.format_val(key, elem, format_kwargs)
                 )
         return self.top_tpl.format(''.join(result))
 
-    def format_val(self, key, elem):
+    def format_val(self, key, elem, format_kwargs):
+        tpl_kwargs = copy(self.tpl_kwargs)
+        tpl_kwargs.update(format_kwargs)
+        format_kwargs = {
+            'v': self.cb(elem) if callable(self.cb) else elem,
+        }
+        for k, attrs in tpl_kwargs.items():
+            format_kwargs[k] = flatatt(attrs) if isinstance(attrs, dict) else attrs
         if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
             key_val = self.i18n.get(key, key)
-            return self.key_tpl.format(
-                k=self.cb(key_val) if callable(self.cb) else str(key_val),
-                v=elem
-            )
+            format_kwargs['k'] = self.cb(key_val) if callable(self.cb) else str(key_val)
+            tpl = self.key_tpl
         else:
-            return self.elem_tpl.format(self.cb(elem) if callable(self.cb) else elem)
+            tpl = self.elem_tpl
+        return tpl.format(**format_kwargs)
 
 
 # Print uniform 2D table.
@@ -91,8 +107,8 @@ def print_table(
         rows,
         top_tpl='<table>{}</table>\n',
         row_tpl='<tr>{}</tr>\n',
-        key_tpl='<td><div>{k}</div>{v}</td>\n',
-        elem_tpl='<td>{}</td>\n',
+        key_tpl='<td><div{attrs}><div>{k}</div>{v}</div></td>\n',
+        elem_tpl='<td><div{attrs}>{v}</div></td>\n',
         cb=escape, show_keys=None, i18n={}
 ):
     print_list = PrintList(
@@ -110,9 +126,10 @@ def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n={}):
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span class="label label-' + bs_type + ' preformatted">{}</span><span class="conditional-display"></span>',
-            key_tpl='<span class="label label-' + bs_type + ' preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
+            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='{}',
+            tpl_kwargs={'attrs': {'class': 'label label-' + bs_type + ' preformatted'}},
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -125,9 +142,10 @@ def print_bs_badges(row, cb=escape, show_keys=None, i18n={}):
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
-            key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
+            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='{}',
+            tpl_kwargs={'attrs': {'class': "badge preformatted"}},
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -140,9 +158,10 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span class="badge preformatted">{}</span><span class="conditional-display"></span>',
-            key_tpl='<span class="badge preformatted">{k}: {v}</span><span class="conditional-display"></span>',
+            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
+            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
             top_tpl='<div class="well well-condensed well-sm">{}</div>',
+            tpl_kwargs={'attrs': {'class': "badge preformatted"}},
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -153,9 +172,10 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
 def print_list_group(row, cb=escape, show_keys=None, i18n={}):
     return mark_safe(
         PrintList(
-            elem_tpl='<li class="list-group-item">{}</li>\n',
-            key_tpl='<ul class="list-group"><div class="list-group-item list-group-item-success">{k}</div><div class="list-group-item list-group-item-info">{v}</div></ul>\n',
+            elem_tpl='<li{v_attrs}>{v}</li>\n',
+            key_tpl='<ul class="list-group"><div{k_attrs}>{k}</div><div{v_attrs}>{v}</div></ul>\n',
             top_tpl='<ul class="list-group">{}</ul>\n',
+            tpl_kwargs={'v_attrs': {'class': 'list-group-item'}, 'k_attrs': {'class': 'list-group-item'}},
             cb=cb,
             show_keys=show_keys,
             i18n=i18n

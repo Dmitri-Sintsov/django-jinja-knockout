@@ -30,8 +30,8 @@ def iter_enumerate(iterable, repeated_keys=False):
             yield key, val
     else:
         for key, val in enumerate(iterable):
-            if repeated_keys and isinstance(key, int) and isinstance(val, tuple) and len(val) == 2:
-                yield val[0], val[1]
+            if repeated_keys and isinstance(key, int) and isinstance(val, tuple) and len(val) > 1:
+                yield val
             else:
                 yield key, val
 

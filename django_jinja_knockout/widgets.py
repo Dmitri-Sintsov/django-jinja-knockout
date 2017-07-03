@@ -138,7 +138,7 @@ class DisplayText(Widget):
         return PrintList(
             # @note: when changing to elem_tpl, one has to set flatatt() name index.
             top_tpl='<ul{0}>{1}</ul>\n'.format(flatatt(final_attrs), '{0}'),
-            elem_tpl='<li class="list-group-item preformatted">{0}</li>\n',
+            elem_tpl='<li class="list-group-item preformatted">{v}</li>\n',
             cb=lambda value: self.get_text(value)
         ).nested(display_values)
 

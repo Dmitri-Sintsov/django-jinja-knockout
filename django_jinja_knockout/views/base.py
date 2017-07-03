@@ -61,7 +61,7 @@ def exception_response(request, e):
     if request.is_ajax() and settings.DEBUG:
         row = [(str(e), traceback.format_exc())]
         html = qtpl.PrintList(
-            elem_tpl='<li style="white-space: pre-wrap;">{0}</li>\n'
+            elem_tpl='<li style="white-space: pre-wrap;">{v}</li>\n'
         ).nested(row)
         return error_response(request, html)
     else:
