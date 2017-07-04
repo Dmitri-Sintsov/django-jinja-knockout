@@ -33,7 +33,7 @@
         'id': tab.id
     } -%}
     {% if tab.is_active -%}
-        {% do add_css_classes_to_dict(div_atts, 'active') -%}
+        {% do tpl.add_css_classes_to_dict(div_atts, 'active') -%}
     {% endif -%}
     <div {{ flatatt(div_atts) }}>
         <a name="{{ tab.id }}"></a>

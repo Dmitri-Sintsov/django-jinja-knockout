@@ -4,7 +4,7 @@
     {% do label_att.update({'for': field.auto_id}) -%}
 {% endif -%}
 {% if field.field.required -%}
-    {% do add_css_classes_to_dict(label_att, 'required') -%}
+    {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
 {% endif -%}
 <label{{ flatatt(label_att) }}>{{ field.label }}</label>
 
@@ -28,7 +28,7 @@
         {% do label_att.update({'for': field.auto_id}) -%}
     {% endif -%}
     {% if field.field.required -%}
-        {% do add_css_classes_to_dict(label_att, 'required') -%}
+        {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
     {% endif -%}
     <td{{ flatatt(label_att) }}>{{ field.label }}</td>
 
@@ -55,7 +55,7 @@
             {% do label_att.update({'for': field.auto_id}) -%}
         {% endif -%}
         {% if field.field.required -%}
-            {% do add_css_classes_to_dict(label_att, 'required') -%}
+            {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
         {% endif -%}
         <label{{ flatatt(label_att) }}>
             {{ field|safe }} <span>{{ field.label }}</span>
@@ -80,7 +80,7 @@
     {% do field_att.update({'id': field.auto_id}) -%}
 {% endif -%}
 {% if field.field.required -%}
-    {% do add_css_classes_to_dict(label_att, 'required') -%}
+    {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
 {% endif -%}
 <label{{ flatatt(label_att) }}>{{ field.label }}</label>
 <div class="field {{ classes.field }}">

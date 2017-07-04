@@ -92,7 +92,10 @@ class PrintList:
             'v': self.cb(elem) if callable(self.cb) else elem,
         }
         for k, attrs in tpl_kwargs.items():
-            format_kwargs[k] = flatatt(attrs) if isinstance(attrs, dict) else attrs
+            if isinstance(attrs, dict):
+                format_kwargs[k] = to_json(attrs) if k.endswith('_json') else json_flatatt(attrs)
+            else:
+                format_kwargs[k] = attrs
         if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
             key_val = self.i18n.get(key, key)
             format_kwargs['k'] = self.cb(key_val) if callable(self.cb) else str(key_val)

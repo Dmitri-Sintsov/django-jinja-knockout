@@ -14,14 +14,14 @@
     {% for page_num, is_active, link_text in view.selected_pages -%}
     {% set li_atts = {} -%}
     {% if is_active -%}
-        {% do add_css_classes_to_dict(li_atts, 'active') -%}
+        {% do tpl.add_css_classes_to_dict(li_atts, 'active') -%}
     {% endif -%}
     <li{{ flatatt(li_atts) }}>
         {% do query.update({'page': page_num}) -%}
         {% if is_active -%}
             <a href="#">{{ link_text }}</a>
         {% else -%}
-            <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ link_text }}</a>
+            <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ link_text }}</a>
         {% endif -%}
     </li>
     {% endfor -%}
@@ -29,13 +29,13 @@
     {% if page_obj.number - 1 > 1 -%}
     <li>
         {% do query.update({'page' : 1}) -%}
-        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
+        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
     </li>
     {% endif -%}
     {% if page_obj.has_previous() -%}
     <li>
         {% do query.update({'page' : page_obj.previous_page_number()}) -%}
-        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
+        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
     </li>
     {% endif -%}
     <li class="active">
@@ -44,13 +44,13 @@
     {% if page_obj.has_next() -%}
     <li>
         {% do query.update({'page' : page_obj.next_page_number()}) -%}
-        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
+        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
     </li>
     {% endif -%}
     {% if page_obj.number + 1 < page_obj.paginator.num_pages -%}
     <li>
         {% do query.update({'page' : page_obj.paginator.num_pages}) -%}
-        <a href="{{ reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
+        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
     </li>
     {% endif -%}
 {% endif -%}

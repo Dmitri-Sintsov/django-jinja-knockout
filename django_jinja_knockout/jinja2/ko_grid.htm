@@ -12,7 +12,7 @@ Setup underscore.js template args (stored to template_dom_attrs as json at later
 {% do _template_args.update(template_args) -%}
 {#
 
-Setup url name kwargs both for resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
+Setup url name kwargs both for tpl.resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
 
 -#}
 {% set view_kwargs = {} -%}
@@ -30,7 +30,7 @@ Setup url name kwargs both for resolve_cbv() and as grid_options.pageRoute / .pa
     {% do sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs}) -%}
 {% endif -%}
 {% do view_kwargs.update({'action': ''}) -%}
-{% set view = resolve_cbv(grid_options.pageRoute, view_kwargs) -%}
+{% set view = tpl.resolve_cbv(grid_options.pageRoute, view_kwargs) -%}
 {#
 
 Setup final _grid_options (component options).
@@ -44,7 +44,7 @@ Setup final _grid_options (component options).
 Setup wrapper dom_attrs.
 
 -#}
-{% do add_css_classes_to_dict(wrapper_dom_attrs, 'component') -%}
+{% do tpl.add_css_classes_to_dict(wrapper_dom_attrs, 'component') -%}
 {% if 'classPath' in _grid_options -%}
     {% do wrapper_dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
     {% do _grid_options.pop('classPath') -%}
@@ -81,9 +81,9 @@ Optional caller support.
     '_template_dom_attrs': _template_dom_attrs
 }) }}
 {% else -%}
-<div{{ json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
+<div{{ tpl.json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
 <a name="{{ fragment_name }}"></a>
-    <div{{ json_flatatt(_template_dom_attrs) }}>
+    <div{{ tpl.json_flatatt(_template_dom_attrs) }}>
     </div>
 </div>
 {% endif -%}

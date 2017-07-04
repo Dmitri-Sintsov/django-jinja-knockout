@@ -10,11 +10,7 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 
 from .models import get_verbose_name
 from .middleware import ContextMiddlewareCompat
-from .tpl import (
-    add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url,
-    ModelLinker, ContentTypeLinker
-)
-
+from . import tpl
 
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
@@ -77,33 +73,32 @@ class TemplateContextProcessor():
             client_conf['fileMaxSize'] = file_max_size
         for url_name, is_anon in self.yield_client_routes():
             if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
-                client_conf['url'][url_name] = get_formatted_url(url_name)
+                client_conf['url'][url_name] = tpl.get_formatted_url(url_name)
+        """
+        from .tpl import (
+            add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url,
+            ModelLinker, ContentTypeLinker
+        )
+        """
         return {
-            'add_css_classes': add_css_classes,
-            'add_css_classes_to_dict': add_css_classes_to_dict,
             'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
-            'ContentTypeLinker': ContentTypeLinker,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
             'isinstance': isinstance,
-            'json_flatatt': json_flatatt,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
             'list': list,
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),
-            'ModelLinker': ModelLinker,
             'request': self.HttpRequest,
             'raise': raise_exception,
-            'resolve_cbv': resolve_cbv,
-            # Use url() provided by django-jinja for reverse without query args.
-            'reverseq': reverseq,
             'sdv': sdv,
             'set': set,
             'str': str,
+            'tpl': tpl,
         }
 
 
