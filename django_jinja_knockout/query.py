@@ -514,6 +514,9 @@ class ListQuerySet(ValuesQuerySetMixin):
     def first(self):
         return None if len(self.list) == 0 else self.list[0]
 
+    def last(self):
+        return None if len(self.list) == 0 else self.list[-1]
+
     def __repr__(self):
         return repr(self.list)
 
