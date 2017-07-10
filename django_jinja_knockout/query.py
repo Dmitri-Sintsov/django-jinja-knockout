@@ -511,6 +511,9 @@ class ListQuerySet(ValuesQuerySetMixin):
             row for row in self.list if is_new_hash(row)
         )
 
+    def exists(self):
+        return len(self.list) > 0
+
     def first(self):
         return None if len(self.list) == 0 else self.list[0]
 
