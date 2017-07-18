@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from copy import copy
+from copy import deepcopy
 from math import ceil
 from ensure import ensure_annotations
 
@@ -200,7 +200,7 @@ class GridActionsMixin:
 
     # Add extra kwargs here if these are defined in urls.py.
     def get_view_kwargs(self):
-        return copy(self.kwargs)
+        return deepcopy(self.kwargs)
 
     def get_action_url(self, action, query={}):
         kwargs = self.get_view_kwargs()
@@ -591,7 +591,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
     # Override in child class to set value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
     def get_grid_options(cls):
-        return {} if cls.grid_options is None else cls.grid_options
+        return {} if cls.grid_options is None else deepcopy(cls.grid_options)
 
     # It is possible to get related fields:
     # https://code.djangoproject.com/ticket/5768
@@ -630,7 +630,7 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
                     related_view = qtpl.resolve_cbv(filter_def['pageRoute'], pageRouteKwargs)
                     if 'fkGridOptions' not in grid_options:
                         grid_options['fkGridOptions'] = {}
-                    field_fkGridOptions = copy(filter_def)
+                    field_fkGridOptions = deepcopy(filter_def)
                     if 'type' in field_fkGridOptions:
                         del field_fkGridOptions['type']
                     # Apply relations to fkGridOptions recursively.
