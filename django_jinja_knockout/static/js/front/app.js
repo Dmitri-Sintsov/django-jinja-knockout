@@ -1589,10 +1589,12 @@ App.post = function(route, data, options) {
         App.routeUrl(route) :
         App.routeUrl(route, options.kwargs);
     delete options.kwargs;
-    data.csrfmiddlewaretoken = App.conf.csrfToken;
+    if (typeof data.csrfmiddlewaretoken === 'undefined') {
+        data.csrfmiddlewaretoken = App.conf.csrfToken;
+    }
     return $.post(
         url,
-        (typeof data === 'undefined') ? {} : data,
+        data,
         function(response) {
             App.viewResponse(response, options);
         },

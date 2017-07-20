@@ -21,7 +21,7 @@
 </div>
 {% endmacro -%}
 
-{% macro render_field_displaytext(form, field, classes) -%}
+{% macro render_field_displaytext(form, field, field_html, classes) -%}
 <tr>
     {% set label_att = {'class': classes.label + ' success'} -%}
     {% if field.auto_id -%}
@@ -33,7 +33,7 @@
     <td{{ flatatt(label_att) }}>{{ field.label }}</td>
 
     <td class="info {{ classes.field }}">
-        {{ field|safe }}
+        {{ field_html|safe }}
         {% for error in field.errors -%}
         <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
         {% endfor -%}
@@ -110,7 +110,10 @@
 {% set def_classes = {'label': 'col-md-2', 'field': 'col-md-6', 'multiple_type': ''} -%}
 {% do def_classes.update(classes) -%}
 {% if field|get_displaytext_layout == 'table' -%}
-    {{ render_field_displaytext(form, field, def_classes) }}
+    {% set field_html -%}{{ field|safe }}{% endset -%}
+    {% if not field.field.widget.hide_output -%}
+        {{ render_field_displaytext(form, field, field_html, def_classes) }}
+    {% endif -%}
 {% else -%}
 <div class="row form-group{% if field.errors -%} has-error{% endif -%}">
     {% if field|get_displaytext_layout == 'div' -%}

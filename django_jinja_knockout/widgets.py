@@ -110,6 +110,7 @@ class DisplayText(Widget):
 
     def __init__(self, attrs=None, scalar_display=None, get_text_fn=None, get_text_method=None, layout='table'):
         self.name = None
+        self.hide_output = False
         self.scalar_display = {
             None: '',
             True: _('Yes'),
