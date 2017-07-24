@@ -279,6 +279,19 @@ App.ko.GridFilter = function(options) {
 
     GridFilter.init = function(options) {
         this._super._call('init', options);
+        for (var i = 0; i < options.choices.length; i++) {
+            var choice = options.choices[i];
+            var koFilterChoice = this.ownerGrid.iocKoFilterChoice({
+                ownerFilter: this,
+                name: choice.name,
+                value: App.propGet(choice, 'value'),
+                is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
+            });
+            if (koFilterChoice.value === undefined) {
+                this.resetFilter = koFilterChoice;
+            }
+            this.choices.push(koFilterChoice);
+        }
     };
 
     // Return the count of active filter choices except for special 'reset all choice' (choice.value === undefined).
@@ -1983,43 +1996,29 @@ App.ko.Grid = function(options) {
                 showSelection: true
             }
         );
-        var filterModel = new App.ko.FkGridFilter(options);
         // Will use App.ko.FkGridFilter to select filter choices.
-        return filterModel;
+        return {cls: App.ko.FkGridFilter, options: options};
     };
 
     Grid.iocKoFilter_datetime = function(filter, options) {
         options.type = 'datetime';
-        return new App.ko.RangeFilter(options);
+        return {cls: App.ko.RangeFilter, options: options};
     };
 
     Grid.iocKoFilter_date = function(filter, options) {
         options.type = 'date';
-        return new App.ko.RangeFilter(options);
+        return {cls: App.ko.RangeFilter, options:options};
     };
 
     Grid.iocKoFilter_number = function(filter, options) {
         options.type = 'number';
-        return new App.ko.RangeFilter(options);
+        return {cls: App.ko.RangeFilter, options: options};
     };
 
     Grid.iocKoFilter_choices = function(filter, options) {
+        options.choices = filter.choices;
+        return {cls: App.ko.GridFilter, options: options};
         var filterModel = new App.ko.GridFilter(options);
-        var choices = filter.choices;
-        for (var i = 0; i < choices.length; i++) {
-            var choice = choices[i];
-            var koFilterChoice = this.iocKoFilterChoice({
-                ownerFilter: filterModel,
-                name: choice.name,
-                value: App.propGet(choice, 'value'),
-                is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
-            })
-            if (koFilterChoice.value === undefined) {
-                filterModel.resetFilter = koFilterChoice;
-            }
-            filterModel.choices.push(koFilterChoice);
-        }
-        return filterModel;
     };
 
     Grid.createKoFilter = function(filter) {
@@ -2035,7 +2034,8 @@ App.ko.Grid = function(options) {
         if (typeof this[iocMethod] !== 'function') {
             throw sprintf("Undefined method %s for filter type %s", iocMethod, filter.type);
         }
-        return this[iocMethod](filter, options);
+        var iocResult = this[iocMethod](filter, options);
+        return new iocResult.cls(iocResult.options);
     };
 
     // Get filter model by field name.

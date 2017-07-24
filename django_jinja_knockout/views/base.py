@@ -465,6 +465,17 @@ class BaseFilterView(View):
                 self.pk_field = field.attname
                 break
 
+        list_filter_str = self.request_get(self.__class__.filter_key)
+        if list_filter_str is not None:
+            try:
+                self.request_list_filter = json.loads(list_filter_str)
+                if not isinstance(self.request_list_filter, dict):
+                    raise ValueError('request list_filter query argument JSON value must be a dict')
+            except ValueError:
+                self.report_error(
+                    'Invalid value of list filter: {}', list_filter_str
+                )
+
         if cls.grid_fields is None:
             self.grid_fields = self.get_grid_fields()
         elif cls.grid_fields == '__all__':
@@ -665,18 +676,8 @@ class BaseFilterView(View):
             self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        list_filter_str = self.request_get(self.__class__.filter_key)
-        if list_filter_str is not None:
-            try:
-                self.request_list_filter = json.loads(list_filter_str)
-                if not isinstance(self.request_list_filter, dict):
-                    raise ValueError('request list_filter query argument JSON value must be a dict')
-            except ValueError:
-                self.report_error(
-                    'Invalid value of list filter: {}', list_filter_str
-                )
-            self.current_list_filter_args, self.current_list_filter_kwargs = \
-                self.get_current_list_filter(self.request_list_filter)
+        self.current_list_filter_args, self.current_list_filter_kwargs = \
+            self.get_current_list_filter(self.request_list_filter)
 
         self.current_search_str = self.request_get(self.search_key, '')
 
