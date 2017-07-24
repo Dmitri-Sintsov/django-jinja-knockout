@@ -539,6 +539,9 @@ App.viewHandlers = {
         new App.Dialog(viewModel).alert();
     },
     'alert_error' : function(viewModel) {
+        if (typeof viewModel.title === 'undefined') {
+            viewModel.title = App.trans('Error');
+        }
         new App.Dialog(viewModel).alertError();
     },
     'confirm' : function(viewModel) {
