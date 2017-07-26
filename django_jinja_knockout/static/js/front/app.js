@@ -275,7 +275,8 @@ App.Dialog = function(options) {
     Dialog.type = BootstrapDialog.TYPE_WARNING;
     Dialog.size = BootstrapDialog.SIZE_NORMAL;
     Dialog.template = undefined;
-    Dialog.isClosable = false;
+    // Make sure to set .isClosable = false in child class when implementing unconditional confirmation dialogs.
+    Dialog.isClosable = true;
     Dialog.autoEmpty = true;
     Dialog.initClient = false;
 
