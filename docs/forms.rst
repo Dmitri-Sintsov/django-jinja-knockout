@@ -195,10 +195,36 @@ field definition with ``get_text_method`` argument callback::
             }
 
 ``WidgetInstancesMixin`` is used to make model ``self.instance`` available in ``DisplayText`` widget callbacks.
-It allows to access all fields of current model instance in ``get_text_method`` callback, in addition to ``value`` of
-current field.
+It enables access to all fields of current model instance in ``get_text_method`` callback, in addition to ``value`` of
+the current field.
 
 Note that ``get_text_method`` argument will be re-bound from form ``Meta`` class to instance of ``DisplayText`` widget.
+
+Since version 0.5.1 ``DisplayText`` field widget supports selective skipping of table rows rendering via setting
+widget instance property ``skip_output`` to ``True``::
+
+    # ... skipped imports ...
+    class ProjectMemberDisplayForm(WidgetInstancesMixin, BootstrapModelForm, metaclass=DisplayModelMetaclass):
+
+        class Meta:
+
+            def get_profile(self, value):
+                if self.instance.is_active:
+                    return format_html(
+                        '<a {}>{}</a>',
+                        flatatt({'href': reverse('profile_detail', profile_id=self.instance.pk)}),
+                        self.instance.user
+                    )
+                else:
+                    # Do not display inactive user profile link in table form.
+                    self.skip_output = True
+                    return None
+
+            model = ProjectMember
+            fields = '__all__'
+            widgets = {
+                'profile': DisplayText(get_text_method=get_profile)
+            }
 
 Customizing string representation of scalar values is performed via ``scalar_display`` argument of ``DisplayText``
 widget::

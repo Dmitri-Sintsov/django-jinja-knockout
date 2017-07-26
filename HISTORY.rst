@@ -193,3 +193,9 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``FilteredRawQuerySet`` / ``ListQuerySet`` queryset classes ``values()`` and ``values_list()`` methods now support
   model relations in queried field names via ``__`` separator, just like usual Django querysets.
 * Numerous bugfixes.
+
+0.5.1
+-----
+* Selective skipping of ``DisplayText`` field widget rendering via setting ``skip_output`` property in ``get_text_method``
+  callback.
+* knockout grids (datatables) ``'button_footer'`` action type.
