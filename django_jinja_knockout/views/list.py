@@ -228,6 +228,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.filter_display = {}
 
     def reset_query_args(self):
+        self.allowed_filter_fields = self.get_allowed_filter_fields()
         self.current_list_filter_kwargs = {}
         self.current_sort_order = []
         self.current_stripped_sort_order = []
