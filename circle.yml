@@ -1,7 +1,7 @@
 dependencies:
   override:
-    # - pyenv local 3.4.3 3.5.2 3.6.0
-    - pyenv local 3.6.0
+    # - pyenv local 3.4.3 3.5.2 3.6.2
+    - pyenv local 3.6.2
     - python3 -m pip install -U pip wheel tox tox-pyenv setuptools
 test:
   override:
