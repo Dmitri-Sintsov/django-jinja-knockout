@@ -4,6 +4,8 @@ import threading
 
 import django
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.functional import Promise
+from django.utils.encoding import force_text
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -19,9 +21,20 @@ from .views import auth_redirect, error_response, exception_response
 from .viewmodels import to_vm_list, has_vm_list
 
 
+class DjkJSONEncoder(DjangoJSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, Promise):
+            # force_text() is used because django.contrib.auth.models.User incorporates the instances of
+            # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
+            return force_text(o)
+        else:
+            return super().default(o)
+
+
 class JsonResponse(HttpResponse):
 
-    def __init__(self, data, encoder=DjangoJSONEncoder, safe=True, content_type='application/json', **kwargs):
+    def __init__(self, data, encoder=DjkJSONEncoder, safe=True, content_type='application/json', **kwargs):
         if safe and not isinstance(data, (list, dict)):
             raise TypeError(
                 'In order to allow non-list / non-dict objects to be '
@@ -51,7 +64,7 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 
     def __init__(self, response, content_type='application/json'):
         self._response = JsonResponse(
-            response, encoder=DjangoJSONEncoder, safe=not isinstance(response, list), content_type=content_type
+            response, encoder=DjkJSONEncoder, safe=not isinstance(response, list), content_type=content_type
         )
 
 
@@ -289,7 +302,7 @@ class ContextMiddleware(ContextMiddlewareCompat, MiddlewareMixin):
                     return result
                 else:
                     return JsonResponse(
-                        result, encoder=DjangoJSONEncoder, safe=not isinstance(result, list), content_type=content_type
+                        result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type=content_type
                     )
             else:
                 return result

@@ -95,8 +95,7 @@ def model_fields_meta(model, meta_attr):
             )
         else:
             field_meta = getattr(field, meta_attr)
-        # Cast to str() to upwrap lazy / proxy wrappers to avoid JSON serialization errors.
-        meta[field.name] = str(field_meta)
+        meta[field.name] = field_meta
     return meta
 
 
