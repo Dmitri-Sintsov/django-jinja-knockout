@@ -200,3 +200,16 @@ Alternative breadcrumbs layout of field filters widgets.
   callback.
 * knockout grids (datatables) ``'button_footer'`` action type.
 * ``djk_seed`` management command.
+* ``App.renderNestedList`` supports rendering of ``jQuery`` objects values.
+* ``App.TabPane`` supports hiding / dynamic content loading of bootstrap 3 panes.
+* ``App.Dialog`` is now closable by default.
+* ``html`` and ``replaceWith`` viewmodels applies App.initClient hooks, also works correctly with response.html content
+  which is not wrapped into top tags.
+* Implemented ``App.propByPath`` which is now used to find class for ``App.renderNestedList`` ``options.blockTags``
+  string. That allows to pass Javascript path string as options.blockTags from server-side AJAX response.
+  ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels suppports this functionality when ``message`` option
+  has ``object`` type value.
+* ``App.getClassFromPath`` / ``App.newClassFromPath`` used by ``App.Tpl`` class factories.
+* ``App.ko.Grid.iocKoFilter_`` methods now are orthogonal thus easier to override.
+* Grid dialogs hotkeys.
+* ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu.
