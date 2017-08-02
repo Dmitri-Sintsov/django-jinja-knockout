@@ -56,13 +56,13 @@ One may use existing example of `settings.py`_ as the base to develop your own `
 DJK_APPS
 ~~~~~~~~
 
-``DJK_APPS`` tuple is the subset of ``INSTALLED_APPS`` tuple that defines project applications which views will be
+``DJK_APPS`` list is the subset of ``INSTALLED_APPS`` list that defines project applications which views will be
 processed by built-in `ContextMiddleware`_ class ``process_view()`` method via checking the result of
 ``is_our_module()`` method.
 
 .. highlight:: python
 
-To apply `django-jinja-knockout` `ContextMiddleware`_ to the views of project apps, define ``DJK_APPS`` tuple with the
+To apply `django-jinja-knockout` `ContextMiddleware`_ to the views of project apps, define ``DJK_APPS`` list with the
 list of Django project's own applications like that::
 
     DJK_APPS = (
