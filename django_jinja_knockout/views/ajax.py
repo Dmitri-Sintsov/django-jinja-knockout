@@ -19,6 +19,7 @@ from ..viewmodels import vm_list
 from .base import BaseFilterView, FormViewmodelsMixin
 
 
+# GET request usually generates html template, POST - returns AJAX viewmodels.
 class ViewmodelView(TemplateView):
 
     @ensure_annotations
@@ -72,10 +73,177 @@ class ViewmodelView(TemplateView):
         return result
 
 
-class GridActionsMixin:
+# ViewmodelView with actions router.
+class ActionsView(ViewmodelView):
+
+    # Set to valid string in the ancestor class.
+    viewmodel_name = None
+    action_kwarg = 'action'
+    default_action_name = 'meta'
+
+    def get_actions(self):
+        return {
+            'built_in': OrderedDict([
+                (self.default_action_name, {
+                    'enabled': False
+                }),
+            ])
+        }
+
+    def get_current_action_name(self):
+        return self.kwargs.get(self.action_kwarg, '').strip('/')
+
+    # Add extra kwargs here if these are defined in urls.py.
+    def get_view_kwargs(self):
+        return deepcopy(self.kwargs)
+
+    def get_action_url(self, action, query={}):
+        kwargs = self.get_view_kwargs()
+        kwargs[self.action_kwarg] = '/{}'.format(action)
+        return qtpl.reverseq(
+            self.request.url_name,
+            kwargs=kwargs,
+            query=query
+        )
+
+    def get_action(self, action_name):
+        for type, actions_list in self.actions.items():
+            if action_name in actions_list:
+                return actions_list[action_name]
+        return None
+
+    def get_action_local_name(self, action_name=None):
+        if action_name is None:
+            action_name = self.current_action_name
+        action = self.get_action(action_name)
+        return action['localName'] if action is not None and 'localName' in action else action_name
+
+    # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
+    # ordering, to preserve visual ordering of actions.
+    def vm_get_actions(self):
+        vm_actions = {}
+        for action_type, actions_list in self.actions.items():
+            if action_type not in vm_actions:
+                vm_actions[action_type] = []
+            for action_name, action in actions_list.items():
+                action['name'] = action_name
+                vm_actions[action_type].append(action)
+        return vm_actions
+
+    # Do not just remove bs_form() options.
+    # BootstrapDialog panel might render with overlapped layout without these options.
+    def get_bs_form_opts(self):
+        return {
+            'is_ajax': True,
+            'layout_classes': {
+                'label': 'col-md-4',
+                'field': 'col-md-6'
+            }
+        }
+
+    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
+        t = tpl_loader.get_template('bs_form.htm')
+        form_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': form,
+            'action': self.get_action_url(form_action, query=action_query),
+            'opts': self.get_bs_form_opts()
+        })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(form.Meta.model)
+        return vm_list({
+            'last_action': form_action,
+            'title': format_html(
+                '{}: {}',
+                self.get_action_local_name(),
+                verbose_name
+            ),
+            'message': form_html
+        })
+
+    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
+        t = tpl_loader.get_template('bs_inline_formsets.htm')
+        ff_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': ff.form,
+            'formsets': ff.formsets,
+            'action': self.get_action_url(form_action, query=action_query),
+            'html': self.get_bs_form_opts()
+        })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
+        return vm_list({
+            'last_action': form_action,
+            'title': format_html(
+                '{}: {}',
+                self.get_action_local_name(),
+                verbose_name
+            ),
+            'message': ff_html
+        })
+
+    def get_ko_meta(self):
+        return {}
+
+    def action_meta(self):
+        vm = {
+            'action_kwarg': self.action_kwarg,
+            'meta': self.get_ko_meta(),
+            'actions': self.vm_get_actions(),
+        }
+        return vm
+
+    def action_is_denied(self):
+        self.report_error(
+            title=_('Action is denied'),
+            message=format_html(
+                _('Action "{}" is denied'), self.current_action_name
+            )
+        )
+
+    def action_not_implemented(self):
+        self.report_error(
+            title=_('Unknown action'),
+            message=format_html(
+                _('Action "{}" is not implemented'), self.get_action_local_name()
+            )
+        )
+
+    def get(self, request, *args, **kwargs):
+        request.client_routes.append(request.url_name)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.actions = self.get_actions()
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
+        self.current_action_name = self.get_current_action_name()
+        if self.current_action_name == '':
+            self.current_action_name = self.default_action_name
+        current_action = self.get_action(self.current_action_name)
+        if current_action is None:
+            handler = self.action_not_implemented
+        elif current_action['enabled']:
+            handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
+        else:
+            handler = self.action_is_denied
+        result = handler()
+        if result is None:
+            result = vm_list()
+        elif not isinstance(result, list):
+            result = vm_list(result)
+        # Apply default viewmodel name, in case it was not set by action handler.
+        for vm in result:
+            if 'view' not in vm:
+                vm['view'] = self.viewmodel_name
+        return result
+
+
+class GridActionsMixin(ActionsView):
 
     viewmodel_name = 'grid_page'
-    action_kwarg = 'action'
+    default_action_name = 'list'
     form = None
     formset = None
     form_with_inline_formsets = None
@@ -195,50 +363,6 @@ class GridActionsMixin:
             ])
         }
 
-    def get_current_action_name(self):
-        return self.kwargs.get(self.__class__.action_kwarg, '').strip('/')
-
-    # Add extra kwargs here if these are defined in urls.py.
-    def get_view_kwargs(self):
-        return deepcopy(self.kwargs)
-
-    def get_action_url(self, action, query={}):
-        kwargs = self.get_view_kwargs()
-        kwargs[self.__class__.action_kwarg] = '/{}'.format(action)
-        return qtpl.reverseq(
-            self.request.url_name,
-            kwargs=kwargs,
-            query=query
-        )
-
-    def get_action(self, action_name):
-        for type, actions_list in self.actions.items():
-            if action_name in actions_list:
-                return actions_list[action_name]
-        return None
-
-    def get_action_local_name(self, action_name=None):
-        if action_name is None:
-            action_name = self.current_action_name
-        action = self.get_action(action_name)
-        return action['localName'] if action is not None and 'localName' in action else action_name
-
-    def action_is_denied(self):
-        self.report_error(
-            title=_('Action is denied'),
-            message=format_html(
-                _('Action "{}" is denied'), self.current_action_name
-            )
-        )
-
-    def action_not_implemented(self):
-        self.report_error(
-            title=_('Unknown action'),
-            message=format_html(
-                _('Action "{}" is not implemented'), self.get_action_local_name()
-            )
-        )
-
     def get_object_for_action(self):
         return self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
 
@@ -247,26 +371,6 @@ class GridActionsMixin:
         if len(pks) == 0:
             pks = [self.request_get('pk_val')]
         return self.__class__.model.objects.filter(pk__in=pks)
-
-    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
-        t = tpl_loader.get_template('bs_form.htm')
-        form_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': form,
-            'action': self.get_action_url(form_action, query=action_query),
-            'opts': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(form.Meta.model)
-        return vm_list({
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': form_html
-        })
 
     def get_form_kwargs(self, form_class):
         return {}
@@ -283,27 +387,6 @@ class GridActionsMixin:
         return self.vm_form(
             form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
-
-    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
-        t = tpl_loader.get_template('bs_inline_formsets.htm')
-        ff_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': ff.form,
-            'formsets': ff.formsets,
-            'action': self.get_action_url(form_action, query=action_query),
-            'html': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
-        return vm_list({
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': ff_html
-        })
 
     def get_form_with_inline_formsets_kwargs(self, ff_class):
         return {}
@@ -454,18 +537,6 @@ class GridActionsMixin:
             })
         return vm_grid_fields
 
-    # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
-    # ordering, to preserve visual ordering of actions.
-    def vm_get_actions(self):
-        vm_actions = {}
-        for action_type, actions_list in self.actions.items():
-            if action_type not in vm_actions:
-                vm_actions[action_type] = []
-            for action_name, action in actions_list.items():
-                action['name'] = action_name
-                vm_actions[action_type].append(action)
-        return vm_actions
-
     def get_model_fields_verbose_names(self, field_name_prefix=None, model=None):
         if model is None:
             model = self.model
@@ -525,7 +596,7 @@ class GridActionsMixin:
 
     def action_meta(self):
         vm = {
-            'action_kwarg': self.__class__.action_kwarg,
+            'action_kwarg': self.action_kwarg,
             'sortOrders': self.allowed_sort_orders,
             'meta': self.get_ko_meta(),
             'actions': self.vm_get_actions(),
@@ -566,7 +637,7 @@ class GridActionsMixin:
 #
 # HTTP POST response is AJAX JSON for App.ko.Grid / App.FkGridWidget Javascript components.
 #
-class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
+class KoGridView(BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
 
     context_object_name = 'model'
     template_name = 'cbv_grid.htm'
@@ -724,47 +795,6 @@ class KoGridView(ViewmodelView, BaseFilterView, GridActionsMixin, FormViewmodels
         return [
             self.postprocess_row(self.get_model_row(obj), obj) for obj in qs
         ]
-
-    # Do not just remove bs_form() options.
-    # BootstrapDialog panel might render with overlapped layout without these options.
-    def get_bs_form_opts(self):
-        return {
-            'is_ajax': True,
-            'layout_classes': {
-                'label': 'col-md-4',
-                'field': 'col-md-6'
-            }
-        }
-
-    def get(self, request, *args, **kwargs):
-        request.client_routes.append(request.url_name)
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.actions = self.get_actions()
-        self.request = request
-        self.args = args
-        self.kwargs = kwargs
-        self.current_action_name = self.get_current_action_name()
-        if self.current_action_name == '':
-            self.current_action_name = 'list'
-        current_action = self.get_action(self.current_action_name)
-        if current_action is None:
-            handler = self.action_not_implemented
-        elif current_action['enabled']:
-            handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
-        else:
-            handler = self.action_is_denied
-        result = handler()
-        if result is None:
-            result = vm_list()
-        elif not isinstance(result, list):
-            result = vm_list(result)
-        # Apply default viewmodel name, in case it was not set by action handler.
-        for vm in result:
-            if 'view' not in vm:
-                vm['view'] = self.__class__.viewmodel_name
-        return result
 
     def get_base_queryset(self):
         return self.__class__.model.objects.all()
