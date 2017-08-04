@@ -417,7 +417,6 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         kwargs = {
             'filter_title': {},
             'filter_display': {},
-            'heading': self.get_heading(),
         }
         for fieldname in self.allowed_filter_fields:
             kwargs['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
@@ -430,10 +429,13 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 # Next call is required to populate field_filter.display.
                 field_filter.get_template_args()
                 kwargs['filter_display'][fieldname] = field_filter.display
-        if self.reported_error is not None:
+        if self.reported_error is None:
+            kwargs['heading'] = self.get_heading()
+        else:
             kwargs.update({
-                'format_str': self.reported_error,
-                'format_str_filters': self.reported_error
+                'heading': self.reported_error,
+                'format_str': '%(heading)s',
+                'format_str_filters': '%(heading)s',
             })
         return kwargs
 
