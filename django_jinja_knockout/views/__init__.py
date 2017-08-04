@@ -4,7 +4,7 @@ from django_jinja_knockout.views.base import (
 )
 
 from django_jinja_knockout.views.ajax import (
-    ViewmodelView, KoGridView, KoGridInline
+    ViewmodelView, ActionsView, KoGridView, KoGridInline
 )
 
 from django_jinja_knockout.views.detail_edit import (
@@ -19,7 +19,7 @@ from django_jinja_knockout.views.list import (
 __all__ = [
     auth_redirect, error_response, exception_response, prepare_bs_navs,
     FormatTitleMixin, BsTabsMixin, ContextDataMixin, FormViewmodelsMixin, BaseFilterView,
-    ViewmodelView, KoGridView, KoGridInline,
+    ViewmodelView, ActionsView, KoGridView, KoGridInline,
     FormDetailView, FormWithInlineFormsetsMixin, InlineCreateView, InlineDetailView, InlineCrudView,
     FoldingPaginationMixin, ListSortingView
 ]
