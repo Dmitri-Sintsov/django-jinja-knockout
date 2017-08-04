@@ -130,58 +130,6 @@ class ActionsView(ViewmodelView):
                 vm_actions[action_type].append(action)
         return vm_actions
 
-    # Do not just remove bs_form() options.
-    # BootstrapDialog panel might render with overlapped layout without these options.
-    def get_bs_form_opts(self):
-        return {
-            'is_ajax': True,
-            'layout_classes': {
-                'label': 'col-md-4',
-                'field': 'col-md-6'
-            }
-        }
-
-    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
-        t = tpl_loader.get_template('bs_form.htm')
-        form_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': form,
-            'action': self.get_action_url(form_action, query=action_query),
-            'opts': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(form.Meta.model)
-        return vm_list({
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': form_html
-        })
-
-    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
-        t = tpl_loader.get_template('bs_inline_formsets.htm')
-        ff_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': ff.form,
-            'formsets': ff.formsets,
-            'action': self.get_action_url(form_action, query=action_query),
-            'html': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
-        return vm_list({
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': ff_html
-        })
-
     def get_ko_meta(self):
         return {}
 
@@ -240,13 +188,236 @@ class ActionsView(ViewmodelView):
         return result
 
 
-class GridActionsMixin(ActionsView):
+class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
-    viewmodel_name = 'grid_page'
-    default_action_name = 'list'
+    context_object_name = 'model'
+    model = None
+    model_fields_i18n = False
     form = None
     formset = None
     form_with_inline_formsets = None
+
+    def get_actions(self):
+        return {
+            'built_in': OrderedDict([
+                ('meta', {
+                    'enabled': False
+                }),
+                ('save_form', {
+                    'enabled': True
+                }),
+                ('save_inline', {
+                    'enabled': True
+                }),
+                ('create_form', {
+                    'enabled': any([
+                        self.get_create_form()
+                    ])
+                }),
+                ('create_inline', {
+                    'enabled': any([
+                        self.get_create_form_with_inline_formsets()
+                    ])
+                }),
+                ('edit_form', {
+                    'enabled': any([
+                        self.get_edit_form()
+                    ])
+                }),
+                ('edit_inline', {
+                    'enabled': any([
+                        self.get_edit_form_with_inline_formsets()
+                    ])
+                }),
+            ]),
+        }
+
+    def get_model_meta(self, key):
+        return get_meta(self.model, key)
+
+    def get_model_fields_verbose_names(self, field_name_prefix=None, model=None):
+        if model is None:
+            model = self.model
+        verbose_names = model_fields_verbose_names(model)
+        if field_name_prefix is not None and not isinstance(field_name_prefix, int):
+            # Use prefixed field names to disambiguate possible different related models with the same field name.
+            verbose_names = {
+                field_name_prefix + '›' + k: v for k, v in verbose_names.items()
+            }
+        return verbose_names
+
+    def get_object_desc(self, obj):
+        return get_object_description(obj)
+
+    def render_object_desc(self, obj):
+        return qtpl.print_bs_badges(self.get_object_desc(obj))
+
+    # Create one model object.
+    def get_create_form(self):
+        return self.form
+
+    # Edit one model object.
+    def get_edit_form(self):
+        return self.form
+
+    # Create one model object with related objects.
+    def get_create_form_with_inline_formsets(self):
+        return self.form_with_inline_formsets
+
+    # Edit one model object with related objects.
+    def get_edit_form_with_inline_formsets(self):
+        return self.form_with_inline_formsets
+
+    def get_object_for_action(self):
+        return self.model.objects.filter(pk=self.request_get('pk_val')).first()
+
+    def get_queryset_for_action(self):
+        pks = self.request.POST.getlist('pk_vals[]')
+        if len(pks) == 0:
+            pks = [self.request_get('pk_val')]
+        return self.model.objects.filter(pk__in=pks)
+
+    # Do not just remove bs_form() options.
+    # BootstrapDialog panel might render with overlapped layout without these options.
+    def get_bs_form_opts(self):
+        return {
+            'is_ajax': True,
+            'layout_classes': {
+                'label': 'col-md-4',
+                'field': 'col-md-6'
+            }
+        }
+
+    def get_ko_meta(self):
+        ko_meta = super().get_ko_meta()
+        if self.model_fields_i18n:
+            # Can be used with self.vm_save_form() 'message' key result
+            # to display localized verbose field names of newly saved objects.
+            ko_meta['i18n'] = self.get_model_fields_verbose_names()
+        return ko_meta
+
+    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
+        t = tpl_loader.get_template('bs_form.htm')
+        form_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': form,
+            'action': self.get_action_url(form_action, query=action_query),
+            'opts': self.get_bs_form_opts()
+        })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(form.Meta.model)
+        return vm_list({
+            'last_action': form_action,
+            'title': format_html(
+                '{}: {}',
+                self.get_action_local_name(),
+                verbose_name
+            ),
+            'message': form_html
+        })
+
+    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
+        t = tpl_loader.get_template('bs_inline_formsets.htm')
+        ff_html = t.render(request=self.request, context={
+            '_render_': True,
+            'form': ff.form,
+            'formsets': ff.formsets,
+            'action': self.get_action_url(form_action, query=action_query),
+            'html': self.get_bs_form_opts()
+        })
+        if verbose_name is None:
+            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
+        return vm_list({
+            'last_action': form_action,
+            'title': format_html(
+                '{}: {}',
+                self.get_action_local_name(),
+                verbose_name
+            ),
+            'message': ff_html
+        })
+
+    def get_form_kwargs(self, form_class):
+        return {}
+
+    def action_create_form(self):
+        form_class = self.get_create_form()
+        form = form_class(**self.get_form_kwargs(form_class))
+        return self.vm_form(form)
+
+    def action_edit_form(self):
+        obj = self.get_object_for_action()
+        form_class = self.get_edit_form()
+        form = form_class(instance=obj, **self.get_form_kwargs(form_class))
+        return self.vm_form(
+            form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+        )
+
+    def get_form_with_inline_formsets_kwargs(self, ff_class):
+        return {}
+
+    def action_create_inline(self):
+        ff_class = self.get_create_form_with_inline_formsets()
+        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
+        ff.get()
+        return self.vm_inline(ff)
+
+    def action_edit_inline(self):
+        obj = self.get_object_for_action()
+        ff_class = self.get_edit_form_with_inline_formsets()
+        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
+        ff.get(instance=obj)
+        return self.vm_inline(
+            ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+        )
+
+    def vm_save_form(self, old_obj, new_obj):
+        return {
+            'view': 'alert',
+            'title': get_verbose_name(new_obj),
+            'message': self.get_object_desc(new_obj),
+        }
+
+    # Supports both 'create_form' and 'edit_form' actions.
+    def action_save_form(self):
+        old_obj = self.get_object_for_action()
+        form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
+        form = form_class(self.request.POST, instance=old_obj, **self.get_form_kwargs(form_class))
+        if form.is_valid():
+            vm = {}
+            if form.has_changed():
+                new_obj = form.save()
+                self.event('save_form_success', obj=new_obj)
+                vm = self.vm_save_form(old_obj, new_obj)
+            return vm_list(vm)
+        else:
+            form_vms = vm_list()
+            self.add_form_viewmodels(form, form_vms)
+            return form_vms
+
+    # Supports both 'create_inline' and 'edit_inline' actions.
+    def action_save_inline(self):
+        old_obj = self.get_object_for_action()
+        if old_obj is None:
+            ff_class = self.get_create_form_with_inline_formsets()
+        else:
+            ff_class = self.get_edit_form_with_inline_formsets()
+        ff = ff_class(self.request, create=old_obj is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
+        new_obj = ff.save(instance=old_obj)
+        if new_obj is not None:
+            vm = {}
+            if ff.has_changed():
+                self.event('save_inline_success', obj=new_obj)
+                vm = self.vm_save_form(old_obj, new_obj)
+            return vm_list(vm)
+        else:
+            return self.ajax_form_invalid(ff.form, ff.formsets)
+
+
+class GridActionsMixin(ModelFormActionsView):
+
+    viewmodel_name = 'grid_page'
+    default_action_name = 'list'
     enable_deletion = False
     mark_safe_fields = None
     show_nested_fieldnames = True
@@ -257,29 +428,6 @@ class GridActionsMixin(ActionsView):
     # Set to list of related models to use non-prefixed root field names.
     # See also .get_related_model_fields_verbose_names() and App.ko.GridColumnOrder.renderRowValue() implementations.
     related_models = None
-
-    def get_model_meta(self, key):
-        return get_meta(self.__class__.model, key)
-
-    # Create one model object.
-    def get_create_form(self):
-        return self.__class__.form
-
-    # Edit one model object.
-    def get_edit_form(self):
-        return self.__class__.form
-
-    # Edit multiple selected model objects.
-    def get_edit_formset(self):
-        return self.__class__.formset
-
-    # Create one model object with related objects.
-    def get_create_form_with_inline_formsets(self):
-        return self.__class__.form_with_inline_formsets
-
-    # Edit one model object with related objects.
-    def get_edit_form_with_inline_formsets(self):
-        return self.__class__.form_with_inline_formsets
 
     def get_actions(self):
         return {
@@ -363,51 +511,9 @@ class GridActionsMixin(ActionsView):
             ])
         }
 
-    def get_object_for_action(self):
-        return self.__class__.model.objects.filter(pk=self.request_get('pk_val')).first()
-
-    def get_queryset_for_action(self):
-        pks = self.request.POST.getlist('pk_vals[]')
-        if len(pks) == 0:
-            pks = [self.request_get('pk_val')]
-        return self.__class__.model.objects.filter(pk__in=pks)
-
-    def get_form_kwargs(self, form_class):
-        return {}
-
-    def action_create_form(self):
-        form_class = self.get_create_form()
-        form = form_class(**self.get_form_kwargs(form_class))
-        return self.vm_form(form)
-
-    def action_edit_form(self):
-        obj = self.get_object_for_action()
-        form_class = self.get_edit_form()
-        form = form_class(instance=obj, **self.get_form_kwargs(form_class))
-        return self.vm_form(
-            form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
-        )
-
-    def get_form_with_inline_formsets_kwargs(self, ff_class):
-        return {}
-
-    def action_create_inline(self):
-        ff_class = self.get_create_form_with_inline_formsets()
-        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
-        ff.get()
-        return self.vm_inline(ff)
-
-    def action_edit_inline(self):
-        obj = self.get_object_for_action()
-        ff_class = self.get_edit_form_with_inline_formsets()
-        ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
-        ff.get(instance=obj)
-        return self.vm_inline(
-            ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
-        )
-
-    def get_object_desc(self, obj):
-        return get_object_description(obj)
+    # Edit multiple selected model objects.
+    def get_edit_formset(self):
+        return self.formset
 
     def get_objects_descriptions(self, objects):
         return [self.get_object_desc(obj) for obj in objects]
@@ -422,9 +528,6 @@ class GridActionsMixin(ActionsView):
         else:
             return self.related_models
 
-    def render_object_desc(self, obj):
-        return qtpl.print_bs_badges(self.get_object_desc(obj))
-
     def get_title_action_not_allowed(self):
         return _('Action "%(action)s" is not allowed') % \
             {'action': self.get_action_local_name()}
@@ -433,6 +536,18 @@ class GridActionsMixin(ActionsView):
         handler_name = 'event_{}'.format(name)
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
+
+    def vm_save_form(self, old_obj, new_obj):
+        vm = {}
+        row = self.postprocess_row(
+            self.get_model_row(new_obj),
+            new_obj
+        )
+        if old_obj is None:
+            vm['prepend_rows'] = [row]
+        else:
+            vm['update_rows'] = [row]
+        return vm
 
     def action_delete_is_allowed(self, objects):
         return True
@@ -470,55 +585,6 @@ class GridActionsMixin(ActionsView):
                 'description': self.get_objects_descriptions(objects)
             })
 
-    # Supports both 'create_form' and 'edit_form' actions.
-    def action_save_form(self):
-        old_obj = self.get_object_for_action()
-        form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
-        form = form_class(self.request.POST, instance=old_obj, **self.get_form_kwargs(form_class))
-        if form.is_valid():
-            vm = {}
-            if form.has_changed():
-                new_obj = form.save()
-                self.event('save_form_success', obj=new_obj)
-                row = self.postprocess_row(
-                    self.get_model_row(new_obj),
-                    new_obj
-                )
-                if old_obj is None:
-                    vm['prepend_rows'] = [row]
-                else:
-                    vm['update_rows'] = [row]
-            return vm_list(vm)
-        else:
-            form_vms = vm_list()
-            self.add_form_viewmodels(form, form_vms)
-            return form_vms
-
-    # Supports both 'create_inline' and 'edit_inline' actions.
-    def action_save_inline(self):
-        old_obj = self.get_object_for_action()
-        if old_obj is None:
-            ff_class = self.get_create_form_with_inline_formsets()
-        else:
-            ff_class = self.get_edit_form_with_inline_formsets()
-        ff = ff_class(self.request, create=old_obj is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
-        new_obj = ff.save(instance=old_obj)
-        if new_obj is not None:
-            vm = {}
-            if ff.has_changed():
-                self.event('save_inline_success', obj=new_obj)
-                row = self.postprocess_row(
-                    self.get_model_row(new_obj),
-                    new_obj
-                )
-                if old_obj is None:
-                    vm['prepend_rows'] = [row]
-                else:
-                    vm['update_rows'] = [row]
-            return vm_list(vm)
-        else:
-            return self.ajax_form_invalid(ff.form, ff.formsets)
-
     def vm_get_grid_fields(self):
         vm_grid_fields = []
         if not isinstance(self.grid_fields, list):
@@ -536,17 +602,6 @@ class GridActionsMixin(ActionsView):
                 'name': name
             })
         return vm_grid_fields
-
-    def get_model_fields_verbose_names(self, field_name_prefix=None, model=None):
-        if model is None:
-            model = self.model
-        verbose_names = model_fields_verbose_names(model)
-        if field_name_prefix is not None and not isinstance(field_name_prefix, int):
-            # Use prefixed field names to disambiguate possible different related models with the same field name.
-            verbose_names = {
-                field_name_prefix + '›' + k: v for k, v in verbose_names.items()
-            }
-        return verbose_names
 
     # Collect field names verbose_name or i18n of field names from related model classes when available.
     # These usually are stored into App.ko.Grid.meta.fkNestedListOptions.i18n
@@ -637,11 +692,9 @@ class GridActionsMixin(ActionsView):
 #
 # HTTP POST response is AJAX JSON for App.ko.Grid / App.FkGridWidget Javascript components.
 #
-class KoGridView(BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
+class KoGridView(BaseFilterView, GridActionsMixin):
 
-    context_object_name = 'model'
     template_name = 'cbv_grid.htm'
-    model = None
 
     # query all fields by default.
     query_fields = None
@@ -797,7 +850,7 @@ class KoGridView(BaseFilterView, GridActionsMixin, FormViewmodelsMixin):
         ]
 
     def get_base_queryset(self):
-        return self.__class__.model.objects.all()
+        return self.model.objects.all()
 
 
 class KoGridInline(KoGridView):
