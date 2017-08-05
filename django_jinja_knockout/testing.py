@@ -255,10 +255,18 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.context
 
     def _maximize_window(self):
-        self.selenium.maximize_window()
+        window_size = None
+        try:
+            self.selenium.maximize_window()
+        except WebDriverException:
+            # See https://github.com/mozilla/geckodriver/issues/820
+            # Last resort.
+            window_size = 1920, 1080
         # Should prevent "Element is not clickable at point" error in phantomjs driver due to small window size.
         if self.testcase.webdriver_name == 'selenium.webdriver.phantomjs.webdriver':
-            self.selenium.set_window_size(1920, 1080)
+            window_size = 1920, 1080
+        if window_size is not None:
+            self.selenium.set_window_size(*window_size)
         return self.context
 
     def _switch_to_last_window(self):
