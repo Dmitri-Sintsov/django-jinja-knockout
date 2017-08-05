@@ -52,6 +52,16 @@ _.recursiveMap = function(value, fn) {
 };
 
 
+_.moveOptions = function(toObj, fromObj, keys) {
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof fromObj[key] !== 'undefined') {
+            toObj[key] = fromObj[key];
+            delete fromObj[key];
+        }
+    }
+};
+
 $.htmlEncode = function(value) {
 	return $('<div>').text(value).html();
 };

@@ -944,6 +944,7 @@ App.ko.GridPage = function(options) {
  * Mostly are row-click AJAX actions, although not limited to.
  */
 App.GridActions = function(options) {
+    $.inherit(App.Actions.prototype, this);
     this.init(options);
 };
 
@@ -968,111 +969,12 @@ App.GridActions = function(options) {
         this.viewModelName = 'grid_page';
     };
 
-    GridActions.setActions = function(actions) {
-        var self = this;
-        _.each(actions, function(actions, actionType) {
-            for (var i = 0; i < actions.length; i++) {
-                actions[i].type = actionType;
-                self.actions[actions[i].name] = actions[i];
-            }
-        });
+    GridActions.getRoute = function() {
+        return this.grid.options.pageRoute;
     };
 
-    GridActions.setActionKwarg = function(action_kwarg) {
-        this.action_kwarg = action_kwarg;
-    };
-
-    GridActions.has = function(action) {
-        return typeof this.actions[action] !== 'undefined' && this.actions[action].enabled;
-    };
-
-    GridActions.getUrl =  function(action) {
-        if (typeof action === 'undefined') {
-            action = '';
-        } else {
-            action = '/' + action;
-        }
-        var params = $.extend({}, this.grid.options.pageRouteKwargs);
-        params[this.action_kwarg] = action;
-        return App.routeUrl(this.grid.options.pageRoute, params);
-    };
-
-    GridActions.getQueryArgs = function(action, options) {
-        if (typeof options === 'undefined') {
-            options = {};
-        }
-        var method = 'queryargs_' + action;
-        if (typeof this[method] === 'function') {
-            return this[method](options);
-        } else {
-            return options;
-        }
-    };
-
-    GridActions.getOurViewmodel = function(response) {
-        var vms = App.filterViewModels(response, {
-            view: this.viewModelName
-        });
-        // Assuming there is only one viewmodel with view: this.viewModelName, which is currently true.
-        if (vms.length > 1) {
-            throw "Bug check in App.GridActions.getOurViewmodel(), vms.length: " + vms.length;
-        }
-        return (vms.length === 0) ? null : vms[0];
-    };
-
-    GridActions.ajax = function(action, queryArgs, callback) {
-        var self = this;
-        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
-        $.post(this.getUrl(action),
-            queryArgs,
-            function(response) {
-                self.respond(action, response);
-                if (typeof callback === 'function') {
-                    var vm = self.getOurViewmodel(response);
-                    if (vm !== null) {
-                        callback(vm);
-                    }
-                }
-            },
-            'json'
-        )
-        .fail(App.showAjaxError);
-    };
-
-    GridActions.respond = function(action, response) {
-        var self = this;
-        var responseOptions = {'after': {}};
-        responseOptions['after'][this.viewModelName] = function(viewModel) {
-            // console.log('GridActions.perform response: ' + JSON.stringify(viewModel));
-            var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
-            // Override last action, when suggested by AJAX view response.
-            // Use with care, due to asynchronous execution.
-            if (typeof viewModel.last_action !== 'undefined') {
-                self.lastActionName = viewModel.last_action;
-                if (typeof viewModel.last_action_options !== 'undefined') {
-                    self.lastActionOptions = viewModel.last_action_options;
-                } else {
-                    self.lastActionOptions = {};
-                }
-            }
-            if (typeof self[method] === 'function') {
-                return self[method](viewModel);
-            }
-            throw sprintf('Unimplemented %s()', method);
-        };
-        App.viewResponse(response, responseOptions);
-    };
-
-    GridActions.perform = function(action, actionOptions, ajaxCallback) {
-        var queryArgs = this.getQueryArgs(action, actionOptions);
-        var method = 'perform_' + action;
-        if (typeof this[method] === 'function') {
-            // Override default AJAX action. This can be used to create client-side actions.
-            this[method](queryArgs, ajaxCallback);
-        } else {
-            // Call server-side KoGridView handler by default, which should return viewmodel response.
-            this.ajax(action, queryArgs, ajaxCallback);
-        }
+    GridActions.getRouteKwargs = function() {
+        return this.grid.options.pageRouteKwargs;
     };
 
     // Set last action name from the visual action instance supplied.
@@ -1094,7 +996,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_create_form = function(viewModel) {
-        viewModel.grid = this.grid;
+        viewModel.ownerComponent = this.grid;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -2328,6 +2230,24 @@ App.ko.Grid = function(options) {
         return this.lastClickedKoRow.getPkVal();
     };
 
+    Grid.saveForm = function(response) {
+        var vm = this.gridActions.getOurViewmodel(response);
+        if (vm === null) {
+            /**
+             * If response has no our grid viewmodel (this.gridActions.viewModelName), then it's a form viewmodel errors
+             * response which will be processed by App.AjaxForm.prototype.submit().
+             */
+            return true;
+        } else {
+            this.gridActions.respond(
+                this.gridActions.lastActionName,
+                response
+            );
+            // Do not process viewmodel response, because we already processed it here.
+            return false;
+        }
+    };
+
 })(App.ko.Grid.prototype);
 
 /**
@@ -2622,81 +2542,6 @@ App.GridDialog = function(options) {
     };
 
 })(App.GridDialog.prototype);
-
-/**
- * BootstrapDialog that is used to create / edit row model object instance.
- */
-App.ModelFormDialog = function(options) {
-    $.inherit(App.Dialog.prototype, this);
-    this.create(options);
-};
-
-(function(ModelFormDialog) {
-
-    ModelFormDialog.initClient = true;
-    ModelFormDialog.actionCssClass = 'glyphicon-save';
-
-    ModelFormDialog.getActionLabel = function() {
-        return App.trans('Save');
-    };
-
-    ModelFormDialog.getButtons = function() {
-        var self = this;
-        return [
-            {
-                icon: 'glyphicon glyphicon-ban-circle',
-                label: App.trans('Cancel'),
-                hotkey: 27,
-                cssClass: 'btn-default',
-                action: function(bdialog) {
-                    self.close();
-                }
-            },
-            {
-                icon: 'glyphicon ' + this.actionCssClass,
-                label: this.getActionLabel(),
-                cssClass: 'btn-primary submit',
-                action: function(bdialog) {
-                    var $form = bdialog.getModalBody().find('form');
-                    var $button = bdialog.getModalFooter().find('button.submit');
-                    App.AjaxForm.prototype.submit($form, $button, {
-                        success: function(response) {
-                            var vm = self.grid.gridActions.getOurViewmodel(response);
-                            if (vm === null) {
-                                // If response has no our grid viewmodel (self.gridActions.viewModelName), then
-                                // it's a form viewmodel errors response which is processed then by
-                                // App.AjaxForm.prototype.submit().
-                                return true;
-                            }
-                            self.close();
-                            self.grid.gridActions.respond(
-                                self.grid.gridActions.lastActionName,
-                                response
-                            );
-                            // Do not process viewmodel response, because we already processed it here.
-                            return false;
-                        }
-                    });
-                }
-            }
-        ];
-    };
-
-    ModelFormDialog.create = function(options) {
-        if (typeof options !== 'object') {
-            options = {};
-        }
-        delete options.view;
-        this.grid = options.grid;
-        delete options.grid;
-        var dialogOptions = $.extend({
-                type: BootstrapDialog.TYPE_PRIMARY,
-            }, options
-        );
-        this._super._call('create', dialogOptions);
-    };
-
-})(App.ModelFormDialog.prototype);
 
 /**
  * Client-side part of widgets.ForeignKeyGridWidget to select foreign key via App.GridDialog.

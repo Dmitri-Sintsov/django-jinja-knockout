@@ -77,7 +77,7 @@ class ViewmodelView(TemplateView):
 class ActionsView(ViewmodelView):
 
     # Set to valid string in the ancestor class.
-    viewmodel_name = None
+    viewmodel_name = 'action'
     action_kwarg = 'action'
     default_action_name = 'meta'
 

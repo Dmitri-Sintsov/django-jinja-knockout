@@ -503,6 +503,226 @@ App.Dialog = function(options) {
 
 })(App.Dialog.prototype);
 
+
+/**
+ * Client-side helper for server-side ActionsView.
+ */
+App.Actions = function(options) {
+    this.init(options);
+};
+
+(function(Actions) {
+
+    Actions.init = function(options) {
+        this.actions = {
+            'delete': {'enabled': false},
+        };
+        this.action_kwarg = 'action';
+        this.viewModelName = 'action';
+        this.route = options.route;
+        this.routeKwargs = options.routeKwargs;
+    };
+
+    Actions.setActions = function(actions) {
+        var self = this;
+        _.each(actions, function(actions, actionType) {
+            for (var i = 0; i < actions.length; i++) {
+                actions[i].type = actionType;
+                self.actions[actions[i].name] = actions[i];
+            }
+        });
+    };
+
+    Actions.setActionKwarg = function(action_kwarg) {
+        this.action_kwarg = action_kwarg;
+    };
+
+    Actions.has = function(action) {
+        return typeof this.actions[action] !== 'undefined' && this.actions[action].enabled;
+    };
+
+    Actions.getRoute = function() {
+        return this.route;
+    };
+
+    Actions.getRouteKwargs = function() {
+        return this.routeKwargs;
+    };
+
+    Actions.getUrl =  function(action) {
+        if (typeof action === 'undefined') {
+            action = '';
+        } else {
+            action = '/' + action;
+        }
+        var params = $.extend({}, this.getRouteKwargs());
+        params[this.action_kwarg] = action;
+        return App.routeUrl(this.getRoute(), params);
+    };
+
+    Actions.getQueryArgs = function(action, options) {
+        if (typeof options === 'undefined') {
+            options = {};
+        }
+        var method = 'queryargs_' + action;
+        if (typeof this[method] === 'function') {
+            return this[method](options);
+        } else {
+            return options;
+        }
+    };
+
+    Actions.getOurViewmodel = function(response) {
+        var vms = App.filterViewModels(response, {
+            view: this.viewModelName
+        });
+        // Assuming there is only one viewmodel with view: this.viewModelName, which is currently true.
+        if (vms.length > 1) {
+            throw "Bug check in App.Actions.getOurViewmodel(), vms.length: " + vms.length;
+        }
+        return (vms.length === 0) ? null : vms[0];
+    };
+
+    Actions.ajax = function(action, queryArgs, callback) {
+        var self = this;
+        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        $.post(this.getUrl(action),
+            queryArgs,
+            function(response) {
+                self.respond(action, response);
+                if (typeof callback === 'function') {
+                    var vm = self.getOurViewmodel(response);
+                    if (vm !== null) {
+                        callback(vm);
+                    }
+                }
+            },
+            'json'
+        )
+        .fail(App.showAjaxError);
+    };
+
+    Actions.respond = function(action, response) {
+        var self = this;
+        var responseOptions = {'after': {}};
+        responseOptions['after'][this.viewModelName] = function(viewModel) {
+            // console.log('Actions.perform response: ' + JSON.stringify(viewModel));
+            var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
+            // Override last action, when suggested by AJAX view response.
+            // Use with care, due to asynchronous execution.
+            if (typeof viewModel.last_action !== 'undefined') {
+                self.lastActionName = viewModel.last_action;
+                if (typeof viewModel.last_action_options !== 'undefined') {
+                    self.lastActionOptions = viewModel.last_action_options;
+                } else {
+                    self.lastActionOptions = {};
+                }
+            }
+            if (typeof self[method] === 'function') {
+                return self[method](viewModel);
+            }
+            throw sprintf('Unimplemented %s()', method);
+        };
+        App.viewResponse(response, responseOptions);
+    };
+
+    Actions.perform = function(action, actionOptions, ajaxCallback) {
+        var queryArgs = this.getQueryArgs(action, actionOptions);
+        var method = 'perform_' + action;
+        if (typeof this[method] === 'function') {
+            // Override default AJAX action. This can be used to create client-side actions.
+            this[method](queryArgs, ajaxCallback);
+        } else {
+            // Call server-side ActionsView handler by default, which should return viewmodel response.
+            this.ajax(action, queryArgs, ajaxCallback);
+        }
+    };
+
+})(App.Actions.prototype);
+
+
+/**
+ * BootstrapDialog that is used to create / edit row model object instance.
+ */
+App.ModelFormDialog = function(options) {
+    $.inherit(App.Dialog.prototype, this);
+    this.create(options);
+};
+
+(function(ModelFormDialog) {
+
+    ModelFormDialog.initClient = true;
+    ModelFormDialog.actionCssClass = 'glyphicon-save';
+
+    ModelFormDialog.getActionLabel = function() {
+        return App.trans('Save');
+    };
+
+    ModelFormDialog.getButtons = function() {
+        var self = this;
+        return [
+            {
+                icon: 'glyphicon glyphicon-ban-circle',
+                label: App.trans('Cancel'),
+                hotkey: 27,
+                cssClass: 'btn-default',
+                action: function(bdialog) {
+                    self.close();
+                }
+            },
+            {
+                icon: 'glyphicon ' + this.actionCssClass,
+                label: this.getActionLabel(),
+                cssClass: 'btn-primary submit',
+                action: function(bdialog) {
+                    var $form = bdialog.getModalBody().find('form');
+                    var $button = bdialog.getModalFooter().find('button.submit');
+                    App.AjaxForm.prototype.submit($form, $button, {
+                        success: function(response) {
+                            if (typeof self.ownerComponent !== 'undefined') {
+                                var result = self.ownerComponent.saveForm(response);
+                                if (result) {
+                                    // Has form errors.
+                                    return true;
+                                } else {
+                                    // Successfully saved, close the dialog.
+                                    self.close();
+                                    return false;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        ];
+    };
+
+    ModelFormDialog.create = function(options) {
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        delete options.view;
+        _.moveOptions(this, options, ['route', 'ownerComponent']);
+        var dialogOptions = $.extend({
+                type: BootstrapDialog.TYPE_PRIMARY,
+            }, options
+        );
+        this._super._call('create', dialogOptions);
+    };
+
+    ModelFormDialog.runComponent = function(elem) {
+        this.componentElement = elem;
+
+        this.show();
+    };
+
+    ModelFormDialog.removeComponent = function(elem) {
+        // todo: implement
+    };
+
+})(App.ModelFormDialog.prototype);
+
+
 // Runtime script shared objects.
 App.bag = {};
 
