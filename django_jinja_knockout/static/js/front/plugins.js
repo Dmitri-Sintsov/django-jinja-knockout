@@ -37,6 +37,12 @@ $.inheritProps = function(parent, child) {
     }
 };
 
+
+$.id = function(id) {
+    // FF 54 generates warning when empty string is passed.
+    return (typeof id !== 'string' || id === '') ? $() : $(document.getElementById(id));
+};
+
 _.recursiveMap = function(value, fn) {
     if (_.isArray(value)) {
         return _.map(value, function(v) {
@@ -395,7 +401,7 @@ $.fn.prefillField = function(method) {
     function setSelectedChoice($selectedChoice) {
         var matches = $selectedChoice.parents('.prefill-field').prop('id').split(/-PREFILL_CHOICES$/g);
         if (matches.length == 2) {
-            var $fillingInput = $(document.getElementById(matches[0]));
+            var $fillingInput = $.id(matches[0]);
             if ($fillingInput.hasClass('optional-input-wrap')) {
                 var $inputs = $fillingInput.find('.optional-input');
                 if (!$inputs.eq(0).prop('checked')) {
@@ -717,7 +723,8 @@ $.fn.highlightListUrl = function(location) {
             a.port === location.port &&
             a.hostname === location.hostname
         ) {
-            if (a.hash === location.hash &&
+            if (a.hash !=='' &&
+                a.hash === location.hash &&
                 a.search === location.search) {
                 exactMatches.push(a);
             } else {

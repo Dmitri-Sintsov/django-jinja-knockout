@@ -102,7 +102,7 @@ class BaseSeleniumCommands(AutomationCommands):
             print(' \\ args: {}'.format(repr(args)), end='')
         if len(kwargs) > 0:
             print(' \\ kwargs: {}'.format(repr(kwargs)), end='')
-        print(' \\ Nesting level, current = {}, previous = {}'.format(
+        print(' \\ Nesting level: current = {}, previous = {}'.format(
             self.nesting_level, self.prev_nesting_level
         ))
 

@@ -170,7 +170,7 @@ App.TabPane = function (hash) {
         hash = window.location.hash;
     }
     this.cleanHash = hash.split(/^#/g).pop();
-    this.targetElement = $(document.getElementById(this.cleanHash));
+    this.targetElement = $.id(this.cleanHash);
     if (this.targetElement.length > 0) {
         this.pane = this.targetElement.closest('div.tab-pane');
         if (this.pane.length > 0 && this.cleanHash === this.pane.attr('id')) {
