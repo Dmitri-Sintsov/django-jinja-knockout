@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list
-from .base import BaseFilterView, FormViewmodelsMixin
+from .base import BaseFilterView, GetPostMixin, FormViewmodelsMixin
 
 
 # GET request usually generates html template, POST - returns AJAX viewmodels.
@@ -74,7 +74,7 @@ class ViewmodelView(TemplateView):
 
 
 # ViewmodelView with actions router.
-class ActionsView(ViewmodelView):
+class ActionsView(ViewmodelView, GetPostMixin):
 
     # Set to valid string in the ancestor class.
     viewmodel_name = 'action'
@@ -295,6 +295,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             # to display localized verbose field names of newly saved objects.
             ko_meta['i18n'] = self.get_model_fields_verbose_names()
         return ko_meta
+
+    def event(self, name, **kwargs):
+        handler_name = 'event_{}'.format(name)
+        if callable(getattr(self, handler_name, None)):
+            getattr(self, handler_name)(**kwargs)
 
     def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
         t = tpl_loader.get_template('bs_form.htm')
@@ -531,11 +536,6 @@ class GridActionsMixin(ModelFormActionsView):
     def get_title_action_not_allowed(self):
         return _('Action "%(action)s" is not allowed') % \
             {'action': self.get_action_local_name()}
-
-    def event(self, name, **kwargs):
-        handler_name = 'event_{}'.format(name)
-        if callable(getattr(self, handler_name, None)):
-            getattr(self, handler_name)(**kwargs)
 
     def vm_save_form(self, old_obj, new_obj):
         vm = {}

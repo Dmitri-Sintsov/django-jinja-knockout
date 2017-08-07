@@ -2225,7 +2225,7 @@ App.ko.Grid = function(options) {
         return this.lastClickedKoRow.getPkVal();
     };
 
-    Grid.saveForm = function(response) {
+    Grid.modelFormAction = function(response) {
         var vm = this.gridActions.getOurViewmodel(response);
         if (vm === null) {
             /**

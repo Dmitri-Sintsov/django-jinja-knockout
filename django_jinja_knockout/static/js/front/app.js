@@ -519,7 +519,7 @@ App.Actions = function(options) {
     Actions.init = function(options) {
         this.ownerComponent = options.ownerComponent;
         this.route = options.route;
-        this.routeKwargs = options.routeKwargs;
+        this.routeKwargs = App.propGet(options, 'routeKwargs', {});
         this.actions = this.getActions();
     };
 
@@ -637,88 +637,6 @@ App.Actions = function(options) {
     };
 
 })(App.Actions.prototype);
-
-
-/**
- * BootstrapDialog that is used to create / edit row model object instance.
- */
-App.ModelFormDialog = function(options) {
-    $.inherit(App.Dialog.prototype, this);
-    this.create(options);
-};
-
-(function(ModelFormDialog) {
-
-    ModelFormDialog.initClient = true;
-    ModelFormDialog.actionCssClass = 'glyphicon-save';
-
-    ModelFormDialog.getActionLabel = function() {
-        return App.trans('Save');
-    };
-
-    ModelFormDialog.getButtons = function() {
-        var self = this;
-        return [
-            {
-                icon: 'glyphicon glyphicon-ban-circle',
-                label: App.trans('Cancel'),
-                hotkey: 27,
-                cssClass: 'btn-default',
-                action: function(bdialog) {
-                    self.close();
-                }
-            },
-            {
-                icon: 'glyphicon ' + this.actionCssClass,
-                label: this.getActionLabel(),
-                cssClass: 'btn-primary submit',
-                action: function(bdialog) {
-                    var $form = bdialog.getModalBody().find('form');
-                    var $button = bdialog.getModalFooter().find('button.submit');
-                    App.AjaxForm.prototype.submit($form, $button, {
-                        success: function(response) {
-                            if (typeof self.ownerComponent !== 'undefined') {
-                                var result = self.ownerComponent.saveForm(response);
-                                if (result) {
-                                    // Has form errors.
-                                    return true;
-                                } else {
-                                    // Successfully saved, close the dialog.
-                                    self.close();
-                                    return false;
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        ];
-    };
-
-    ModelFormDialog.create = function(options) {
-        if (typeof options !== 'object') {
-            options = {};
-        }
-        delete options.view;
-        _.moveOptions(this, options, ['route', 'ownerComponent']);
-        var dialogOptions = $.extend({
-                type: BootstrapDialog.TYPE_PRIMARY,
-            }, options
-        );
-        this._super._call('create', dialogOptions);
-    };
-
-    ModelFormDialog.runComponent = function(elem) {
-        this.componentElement = elem;
-
-        this.show();
-    };
-
-    ModelFormDialog.removeComponent = function(elem) {
-        // todo: implement
-    };
-
-})(App.ModelFormDialog.prototype);
 
 
 // Runtime script shared objects.

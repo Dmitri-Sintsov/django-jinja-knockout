@@ -314,8 +314,17 @@ class FieldValidator:
             )
 
 
+class GetPostMixin:
+
+    def request_get(self, key, default=None):
+        if key in self.request.POST:
+            return self.request.POST.get(key)
+        else:
+            return self.request.GET.get(key, default)
+
+
 # Model queryset filtering / ordering base.
-class BaseFilterView(View):
+class BaseFilterView(View, GetPostMixin):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'
@@ -400,12 +409,6 @@ class BaseFilterView(View):
             ct = ContentType.objects.filter(app_label=app_label, model=model).first()
             filter_choices.append((ct.pk, ct.name))
         return filter_choices
-
-    def request_get(self, key, default=None):
-        if key in self.request.POST:
-            return self.request.POST.get(key)
-        else:
-            return self.request.GET.get(key, default)
 
     def get_all_fieldnames(self):
         return list(yield_model_fieldnames(self.__class__.model))
