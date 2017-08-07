@@ -942,6 +942,7 @@ App.ko.GridPage = function(options) {
 /**
  * Actions performed for particular grid (row) instance.
  * Mostly are row-click AJAX actions, although not limited to.
+ * .ownerComponent is the instance of App.ko.Grid.
  */
 App.GridActions = function(options) {
     $.inherit(App.Actions.prototype, this);
@@ -2629,6 +2630,7 @@ App.FkGridWidget = function(options) {
 
 /**
  * BootstrapDialog displayed when grid row is clicked and multiple 'click' actions are defined.
+ * .ownerComponent is the instance of App.ko.Grid.
  */
 App.ActionsMenuDialog = function(options) {
     $.inherit(App.Dialog.prototype, this);
@@ -2696,6 +2698,7 @@ App.ActionsMenuDialog = function(options) {
 
 /**
  * May be inherited to create BootstrapDialog with client-side template form for implemented action.
+ * .ownerComponent is the instance of App.ko.Grid.
  * Usage:
 
     App.ChildActionDialog = function(options) {
