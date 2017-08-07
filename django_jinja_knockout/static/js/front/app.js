@@ -513,14 +513,20 @@ App.Actions = function(options) {
 
 (function(Actions) {
 
+    Actions.action_kwarg = 'action';
+    Actions.viewModelName = 'action';
+
     Actions.init = function(options) {
-        this.actions = {
-            'delete': {'enabled': false},
-        };
-        this.action_kwarg = 'action';
-        this.viewModelName = 'action';
+        this.ownerComponent = options.ownerComponent;
         this.route = options.route;
         this.routeKwargs = options.routeKwargs;
+        this.actions = this.getActions();
+    };
+
+    Actions.getActions = function() {
+        return {
+            'delete': {'enabled': false},
+        };
     };
 
     Actions.setActions = function(actions) {
@@ -541,23 +547,15 @@ App.Actions = function(options) {
         return typeof this.actions[action] !== 'undefined' && this.actions[action].enabled;
     };
 
-    Actions.getRoute = function() {
-        return this.route;
-    };
-
-    Actions.getRouteKwargs = function() {
-        return this.routeKwargs;
-    };
-
     Actions.getUrl =  function(action) {
         if (typeof action === 'undefined') {
             action = '';
         } else {
             action = '/' + action;
         }
-        var params = $.extend({}, this.getRouteKwargs());
+        var params = $.extend({}, this.routeKwargs);
         params[this.action_kwarg] = action;
-        return App.routeUrl(this.getRoute(), params);
+        return App.routeUrl(this.route, params);
     };
 
     Actions.getQueryArgs = function(action, options) {

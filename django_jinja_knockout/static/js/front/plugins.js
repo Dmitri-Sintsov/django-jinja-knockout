@@ -708,6 +708,7 @@ $.fn.linkPreview = function(method) {
 
 };
 
+
 $.fn.highlightListUrl = function(location) {
     var $anchors = this.findSelf('ul.auto-highlight > li > a');
     var exactMatches = [];

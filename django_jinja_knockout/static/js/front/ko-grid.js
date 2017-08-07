@@ -950,14 +950,16 @@ App.GridActions = function(options) {
 
 (function(GridActions) {
 
-    GridActions.init = function(options) {
-        this.grid = options.grid;
-        this.actions = {
-            /**
-             * Sample action. Actual actions are configured at server-side and populated via AJAX response
-             * in App.ko.Grid.listCallback() when data.meta was received from remote host, during first execution
-             * of 'list' command.
-             */
+    GridActions.action_kwarg = 'action';
+    GridActions.viewModelName = 'grid_page';
+
+    /**
+     * Sample action. Actual actions are configured at server-side and populated via AJAX response
+     * in App.ko.Grid.listCallback() when data.meta was received from remote host, during first execution
+     * of 'list' command.
+     */
+    GridActions.getActions = function() {
+        return {
             'delete': {
                 'localName': App.trans('Remove'),
                 'type': 'glyphicon',
@@ -965,16 +967,6 @@ App.GridActions = function(options) {
                 'enabled': false
             }
         };
-        this.action_kwarg = 'action';
-        this.viewModelName = 'grid_page';
-    };
-
-    GridActions.getRoute = function() {
-        return this.grid.options.pageRoute;
-    };
-
-    GridActions.getRouteKwargs = function() {
-        return this.grid.options.pageRouteKwargs;
     };
 
     // Set last action name from the visual action instance supplied.
@@ -996,7 +988,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_create_form = function(viewModel) {
-        viewModel.ownerComponent = this.grid;
+        viewModel.ownerComponent = this.ownerComponent;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -1016,8 +1008,8 @@ App.GridActions = function(options) {
         var options = $.extend(
             true,
             {blockTags: this.blockTags},
-            this.grid.meta.fkNestedListOptions,
-            this.grid.meta.listOptions
+            this.ownerComponent.meta.fkNestedListOptions,
+            this.ownerComponent.meta.listOptions
         );
         return options;
     };
@@ -1062,7 +1054,7 @@ App.GridActions = function(options) {
             this.renderDescription(viewModel);
             new App.Dialog(viewModel).alert();
         } else {
-            this.grid.updatePage(viewModel);
+            this.ownerComponent.updatePage(viewModel);
         }
     };
 
@@ -1078,13 +1070,13 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_save_form = function(viewModel) {
-        this.grid.updatePage(viewModel);
+        this.ownerComponent.updatePage(viewModel);
         // Brute-force approach:
         // this.perform('list');
     };
 
     GridActions.callback_save_inline = function(viewModel) {
-        this.grid.updatePage(viewModel);
+        this.ownerComponent.updatePage(viewModel);
     };
 
     /**
@@ -1095,11 +1087,11 @@ App.GridActions = function(options) {
         if (typeof data.action_kwarg !== 'undefined') {
             this.setActionKwarg(data.action_kwarg);
         }
-        this.grid.loadMetaCallback(data);
+        this.ownerComponent.loadMetaCallback(data);
     };
 
     GridActions.queryargs_list = function(options) {
-        return this.grid.getListQueryArgs();
+        return this.ownerComponent.getListQueryArgs();
     };
 
     GridActions.queryargs_update = function(options) {
@@ -1110,7 +1102,7 @@ App.GridActions = function(options) {
      * Populate viewmodel from AJAX response.
      */
     GridActions.callback_list = function(data) {
-        this.grid.listCallback(data);
+        this.ownerComponent.listCallback(data);
     };
 
     GridActions.callback_update = function(data) {
@@ -1121,7 +1113,7 @@ App.GridActions = function(options) {
      * Combined 'meta' / 'list' action to reduce HTTP traffic.
      */
     GridActions.queryargs_meta_list = function(options) {
-        return this.grid.getListQueryArgs();
+        return this.ownerComponent.getListQueryArgs();
     };
 
     GridActions.callback_meta_list = function(data) {
@@ -1300,7 +1292,9 @@ App.ko.Grid = function(options) {
             self.actionTypes[type] = ko.observableArray();
         })
         this.gridActions = this.iocGridActions({
-            grid: this
+            ownerComponent: this,
+            route: this.options.pageRoute,
+            routeKwargs: this.options.pageRouteKwargs,
         });
         this.sortOrders = {};
         this.selectedRowsPks = [];
@@ -1806,7 +1800,7 @@ App.ko.Grid = function(options) {
         if (this.getEnabledActions(currKoRow, 'click').length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
-                grid: this
+                ownerComponent: this
             });
             this.actionsMenuDialog.show();
         } else if (this.actionTypes.click().length > 0) {
@@ -2248,6 +2242,10 @@ App.ko.Grid = function(options) {
         }
     };
 
+    Grid.getLastActionLocalName = function() {
+        return this.gridActions.lastKoAction.localName;
+    };
+
 })(App.ko.Grid.prototype);
 
 /**
@@ -2651,7 +2649,7 @@ App.ActionsMenuDialog = function(options) {
     };
 
     ActionsMenuDialog.getNestedListOptions = function() {
-        return this.grid.gridActions.getNestedListOptions();
+        return this.ownerComponent.gridActions.getNestedListOptions();
     };
 
     /**
@@ -2659,7 +2657,7 @@ App.ActionsMenuDialog = function(options) {
      * 'click' type actions for the current grid row.
      */
     ActionsMenuDialog.renderRow = function() {
-        return this.grid.lastClickedKoRow.renderDesc(
+        return this.ownerComponent.lastClickedKoRow.renderDesc(
             this.getNestedListOptions()
         );
     };
@@ -2668,8 +2666,7 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.create = function(options) {
         this.wasOpened = false;
-        this.grid = options.grid;
-        delete options.grid;
+        _.moveOptions(this, options, ['ownerComponent']);
         var dialogOptions = $.extend(
             {
                 template: this.templateId,
@@ -2684,14 +2681,14 @@ App.ActionsMenuDialog = function(options) {
         if (this.wasOpened) {
             this.recreateContent();
         }
-        this.grid.applyBindings(this.bdialog.getModal());
+        this.ownerComponent.applyBindings(this.bdialog.getModal());
         this.bdialog.getModalBody().prepend(this.renderRow());
         this.wasOpened = true;
     };
 
     ActionsMenuDialog.onHide = function() {
         // Clean only grid bindings of this dialog, not invoker bindings.
-        this.grid.cleanBindings(this.bdialog.getModal());
+        this.ownerComponent.cleanBindings(this.bdialog.getModal());
         this._super._call('onHide');
     };
 
@@ -2724,7 +2721,7 @@ App.ActionTemplateDialog = function(options) {
     ActionTemplateDialog.templateId = 'ko_action_form';
 
     ActionTemplateDialog.getActionLabel = function() {
-        return this.grid.gridActions.lastKoAction.localName;
+        return this.ownerComponent.getLastActionLocalName();
     };
 
     ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
@@ -2739,7 +2736,7 @@ App.ActionTemplateDialog = function(options) {
     };
 
     ActionTemplateDialog.create = function(options) {
-        options.title = options.grid.gridActions.lastKoAction.localName;
+        options.title = options.ownerComponent.getLastActionLocalName();
         this._super._call('create', options);
         /**
          * Update meta (display text) for bound ko template (this.templateId).
@@ -2747,7 +2744,7 @@ App.ActionTemplateDialog = function(options) {
          * for similar yet different actions.
          */
         if (typeof options.meta !== 'undefined') {
-            this.grid.updateMeta(options.meta);
+            this.ownerComponent.updateMeta(options.meta);
             delete options.meta;
         }
     };
