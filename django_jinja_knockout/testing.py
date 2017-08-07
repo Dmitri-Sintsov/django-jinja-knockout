@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import time
 from collections import namedtuple
 from importlib import import_module
@@ -160,23 +161,36 @@ class BaseSeleniumCommands(AutomationCommands):
     def get_now_str(self):
         return timezone.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-    def log_error(self, e):
+    def log_error(self, ex):
         if self.logged_error is False and isinstance(self.context.element, WebElement):
             now_str = self.get_now_str()
             scr = self.selenium.get_screenshot_as_png()
             scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
             self.upload_screenshot(scr, scr_filename)
             log_filename = 'selenium_error_html_{}.htm'.format(now_str)
+            try:
+                outer_html = self.get_outer_html()
+            except WebDriverException as e:
+                outer_html = str(e)
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
-                f.write(self.get_outer_html())
+                f.write(outer_html)
                 f.close()
+            try:
+                browser_log = self.selenium.get_log('browser')
+            except WebDriverException as e:
+                browser_log = str(e)
+            try:
+                element_rect = repr(self.context.element.rect)
+            except WebDriverException as e:
+                element_rect = str(e)
             log_filename = 'selenium_error_log_{}.txt'.format(now_str)
+            log = 'Error description:{}\n\nBrowser log:{}\n\nError element rect:\n\n{}'.format(
+                str(ex),
+                browser_log,
+                element_rect)
+            print(log, file=sys.stderr)
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
-                print(
-                    'Error description:{}\n\nError element rect:\n\n{}'.format(
-                        str(e), repr(self.context.element.rect)),
-                    file=f
-                )
+                print(log, file=f)
             self.logged_error = True
 
     def get_attr(self, attr):
