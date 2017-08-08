@@ -61,9 +61,22 @@ _.recursiveMap = function(value, fn) {
 _.moveOptions = function(toObj, fromObj, keys) {
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
+        var defVal = undefined;
+        if (typeof key === 'object') {
+            // tuple key / defVal.
+            for (var k in key) {
+                if (key.hasOwnProperty(k)) {
+                    break;
+                }
+            };
+            defVal = key[k];
+            key = k;
+        }
         if (typeof fromObj[key] !== 'undefined') {
             toObj[key] = fromObj[key];
             delete fromObj[key];
+        } else if (defVal !== undefined) {
+            toObj[key] = defVal;
         }
     }
 };

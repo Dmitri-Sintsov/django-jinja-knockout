@@ -217,21 +217,25 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                     'enabled': True
                 }),
                 ('create_form', {
+                    'localName': _('Add'),
                     'enabled': any([
                         self.get_create_form()
                     ])
                 }),
                 ('create_inline', {
+                    'localName': _('Add'),
                     'enabled': any([
                         self.get_create_form_with_inline_formsets()
                     ])
                 }),
                 ('edit_form', {
+                    'localName': _('Change'),
                     'enabled': any([
                         self.get_edit_form()
                     ])
                 }),
                 ('edit_inline', {
+                    'localName': _('Change'),
                     'enabled': any([
                         self.get_edit_form_with_inline_formsets()
                     ])
@@ -392,6 +396,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             },
             {
                 'view': self.viewmodel_name,
+                'pkVal': new_obj.pk,
             }
         )
 

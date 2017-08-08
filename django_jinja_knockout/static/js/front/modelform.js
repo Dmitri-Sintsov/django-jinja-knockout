@@ -125,10 +125,12 @@ App.EditForm = function(options) {
 
 (function(EditForm) {
 
-    EditForm.action = 'edit_form';
+    EditForm.getInitialAction = function() {
+        return (this.pkVal === null) ? 'create_form' : 'edit_form';
+    };
 
     EditForm.init = function(options) {
-        _.moveOptions(this, options, ['route', 'routeKwargs', 'pkVal']);
+        _.moveOptions(this, options, ['route', 'routeKwargs', {'pkVal': null}]);
     };
 
     EditForm.iocActions = function(options) {
@@ -142,7 +144,7 @@ App.EditForm = function(options) {
             routeKwargs: this.routeKwargs,
         });
         this.componentElement = elem;
-        this.actions.perform(this.action, {pk_val: this.pkVal});
+        this.actions.perform(this.getInitialAction(), {pk_val: this.pkVal});
     };
 
     EditForm.removeComponent = function(elem) {
@@ -179,5 +181,8 @@ App.EditInline = function(options) {
 
 (function(EditInline) {
 
-    EditInline.action = 'edit_inline';
+    EditInline.getInitialAction = function() {
+        return (this.pkVal === null) ? 'create_inline' : 'edit_inline';
+    };
+
 })(App.EditInline.prototype);
