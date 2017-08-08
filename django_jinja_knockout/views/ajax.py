@@ -197,6 +197,13 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     formset = None
     form_with_inline_formsets = None
 
+    def __init__(self):
+        if self.model is None:
+            if self.form is not None:
+                self.model = self.form._meta.model
+            elif self.form_with_inline_formsets is not None:
+                self.model = self.form_with_inline_formsets.get_form_class()._meta.model
+
     def get_actions(self):
         return {
             'built_in': OrderedDict([
