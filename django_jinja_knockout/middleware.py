@@ -18,7 +18,7 @@ except ImportError:
 from .utils import sdv
 from .utils.modules import get_fqn
 from .views import auth_redirect, error_response, exception_response
-from .viewmodels import to_vm_list, has_vm_list
+from .viewmodels import onload_vm_list, has_vm_list
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
@@ -189,9 +189,9 @@ class ContextMiddleware(ContextMiddlewareCompat, MiddlewareMixin):
             ]
         """
         request.client_routes = []
-        viewmodels = to_vm_list(request.client_data)
+        viewmodels = onload_vm_list(request.client_data)
         if has_vm_list(request.session):
-            vm_session = to_vm_list(request.session)
+            vm_session = onload_vm_list(request.session)
             viewmodels.extend(vm_session)
 
     def process_exception(self, request, exception):

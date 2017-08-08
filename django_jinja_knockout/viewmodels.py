@@ -10,7 +10,7 @@ def has_vm_list(dct):
     return KEY in dct
 
 
-def to_vm_list(dct, new_value=None):
+def onload_vm_list(dct, new_value=None):
     if new_value is not None:
         dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
         return dct[KEY]
@@ -19,6 +19,15 @@ def to_vm_list(dct, new_value=None):
     else:
         dct[KEY] = vm_list(*dct.get(KEY, []))
         return dct[KEY]
+
+
+def to_vm_list(v):
+    if isinstance(v, vm_list):
+        return v
+    elif isinstance(v, list):
+        return vm_list(*v)
+    else:
+        return vm_list(v)
 
 
 # List of client-side viewmodels, which can be serialized to json

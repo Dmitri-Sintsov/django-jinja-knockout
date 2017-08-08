@@ -2730,12 +2730,13 @@ App.ActionTemplateDialog = function(options) {
     ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
 
     ActionTemplateDialog.inherit = function() {
-        // First, import methods of direct ancestor.
+        // Import methods of direct ancestor.
         $.inherit(App.ActionsMenuDialog.prototype, this);
-        // Second, import methods of base class that are missing in direct ancestor.
+        // Import methods of base class that are missing in direct ancestor.
         $.inherit(App.Dialog.prototype, this);
-        // Third, import just one method from ModelFormDialog (simple mixin).
+        // Import required methods from ModelFormDialog (simple mixin).
         this.getButtons = App.ModelFormDialog.prototype.getButtons;
+        this.action = App.ModelFormDialog.prototype.action;
     };
 
     ActionTemplateDialog.create = function(options) {

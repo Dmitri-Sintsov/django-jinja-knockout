@@ -15,7 +15,7 @@ from ..models import (
     get_meta, get_verbose_name, model_fields_verbose_names, model_values, get_object_description, yield_related_models
 )
 from ..query import ListQuerySet
-from ..viewmodels import vm_list
+from ..viewmodels import vm_list, to_vm_list
 from .base import BaseFilterView, GetPostMixin, FormViewmodelsMixin
 
 
@@ -377,11 +377,16 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         )
 
     def vm_save_form(self, old_obj, new_obj):
-        return {
-            'view': 'alert',
-            'title': get_verbose_name(new_obj),
-            'message': self.get_object_desc(new_obj),
-        }
+        return vm_list(
+            {
+                'view': 'alert',
+                'title': get_verbose_name(new_obj),
+                'message': self.get_object_desc(new_obj),
+            },
+            {
+                'view': self.viewmodel_name,
+            }
+        )
 
     # Supports both 'create_form' and 'edit_form' actions.
     def action_save_form(self):
@@ -394,7 +399,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 new_obj = form.save()
                 self.event('save_form_success', obj=new_obj)
                 vm = self.vm_save_form(old_obj, new_obj)
-            return vm_list(vm)
+            return to_vm_list(vm)
         else:
             form_vms = vm_list()
             self.add_form_viewmodels(form, form_vms)
@@ -414,7 +419,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             if ff.has_changed():
                 self.event('save_inline_success', obj=new_obj)
                 vm = self.vm_save_form(old_obj, new_obj)
-            return vm_list(vm)
+            return to_vm_list(vm)
         else:
             return self.ajax_form_invalid(ff.form, ff.formsets)
 

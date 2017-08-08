@@ -27,11 +27,19 @@ App.ModelFormActions = function(options) {
         dialog.show();
     };
 
+    ModelFormActions.callback_save_form = function(viewModel) {
+        // noop
+    };
+
+    ModelFormActions.callback_save_inline = function(viewModel) {
+        // noop
+    };
+
 })(App.ModelFormActions.prototype);
 
 
 /**
- * BootstrapDialog that is used to create / edit row model object instance.
+ * BootstrapDialog that is used to create / edit model object instance.
  * May be used standalone, also is used by App.ko.Grid actions (eg. 'click' type ones).
  */
 App.ModelFormDialog = function(options) {
@@ -50,9 +58,6 @@ App.ModelFormDialog = function(options) {
         }
         delete options.view;
         _.moveOptions(this, options, ['ownerComponent']);
-        if (typeof this.routeKwargs === 'undefined') {
-            this.routeKwargs = {};
-        };
         var dialogOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
             }, options
@@ -111,6 +116,9 @@ App.ModelFormDialog = function(options) {
 })(App.ModelFormDialog.prototype);
 
 
+/**
+ * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
+ */
 App.EditForm = function(options) {
     this.init(options);
 };
@@ -127,9 +135,6 @@ App.EditForm = function(options) {
         return new App.ModelFormActions(options);
     };
 
-    /**
-     * Used when invoked as standalone component. Unused by App.ko.Grid.
-     */
     EditForm.runComponent = function(elem) {
         this.actions = this.iocActions({
             ownerComponent: this,
@@ -148,13 +153,13 @@ App.EditForm = function(options) {
         var vm = this.actions.getOurViewmodel(response);
         if (vm === null) {
             /**
-             * If response has no our grid viewmodel (this.gridActions.viewModelName), then it's a form viewmodel errors
-             * response which will be processed by App.AjaxForm.prototype.submit().
+             * If response has no our grid viewmodel (this.actions.viewModelName), then it's a
+             * form viewmodel errors response which will be processed by App.AjaxForm.prototype.submit().
              */
             return true;
         } else {
             this.actions.respond(
-                this.gridActions.lastActionName,
+                this.actions.lastActionName,
                 response
             );
             // Do not process viewmodel response, because we already processed it here.
@@ -165,6 +170,9 @@ App.EditForm = function(options) {
 })(App.EditForm.prototype);
 
 
+/**
+ * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
+ */
 App.EditInline = function(options) {
     this.init(options);
 };
