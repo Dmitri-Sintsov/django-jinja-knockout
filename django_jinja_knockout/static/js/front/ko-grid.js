@@ -954,6 +954,12 @@ App.GridActions = function(options) {
     GridActions.action_kwarg = 'action';
     GridActions.viewModelName = 'grid_page';
 
+    GridActions.init = function(options) {
+        this._super._call('init', options);
+        // Compatibility alias. Also has more precise meaning.
+        this.grid = this.owner;
+    };
+
     /**
      * Sample action. Actual actions are configured at server-side and populated via AJAX response
      * in App.ko.Grid.listCallback() when data.meta was received from remote host, during first execution
@@ -989,7 +995,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_create_form = function(viewModel) {
-        viewModel.owner = this.owner;
+        viewModel.owner = this.grid;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -1009,8 +1015,8 @@ App.GridActions = function(options) {
         var options = $.extend(
             true,
             {blockTags: this.blockTags},
-            this.owner.meta.fkNestedListOptions,
-            this.owner.meta.listOptions
+            this.grid.meta.fkNestedListOptions,
+            this.grid.meta.listOptions
         );
         return options;
     };
@@ -1055,7 +1061,7 @@ App.GridActions = function(options) {
             this.renderDescription(viewModel);
             new App.Dialog(viewModel).alert();
         } else {
-            this.owner.updatePage(viewModel);
+            this.grid.updatePage(viewModel);
         }
     };
 
@@ -1071,13 +1077,13 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_save_form = function(viewModel) {
-        this.owner.updatePage(viewModel);
+        this.grid.updatePage(viewModel);
         // Brute-force approach:
         // this.perform('list');
     };
 
     GridActions.callback_save_inline = function(viewModel) {
-        this.owner.updatePage(viewModel);
+        this.grid.updatePage(viewModel);
     };
 
     /**
@@ -1088,11 +1094,11 @@ App.GridActions = function(options) {
         if (typeof data.action_kwarg !== 'undefined') {
             this.setActionKwarg(data.action_kwarg);
         }
-        this.owner.loadMetaCallback(data);
+        this.grid.loadMetaCallback(data);
     };
 
     GridActions.queryargs_list = function(options) {
-        return this.owner.getListQueryArgs();
+        return this.grid.getListQueryArgs();
     };
 
     GridActions.queryargs_update = function(options) {
@@ -1103,7 +1109,7 @@ App.GridActions = function(options) {
      * Populate viewmodel from AJAX response.
      */
     GridActions.callback_list = function(data) {
-        this.owner.listCallback(data);
+        this.grid.listCallback(data);
     };
 
     GridActions.callback_update = function(data) {
@@ -1114,7 +1120,7 @@ App.GridActions = function(options) {
      * Combined 'meta' / 'list' action to reduce HTTP traffic.
      */
     GridActions.queryargs_meta_list = function(options) {
-        return this.owner.getListQueryArgs();
+        return this.grid.getListQueryArgs();
     };
 
     GridActions.callback_meta_list = function(data) {
