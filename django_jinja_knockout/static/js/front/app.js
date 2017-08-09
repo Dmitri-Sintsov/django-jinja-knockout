@@ -505,7 +505,7 @@ App.Dialog = function(options) {
 
 
 /**
- * Client-side helper for server-side ActionsView.
+ * Client-side AJAX request / response viewmodel handler for server-side ActionsView.
  */
 App.Actions = function(options) {
     this.init(options);

@@ -1171,12 +1171,12 @@ App.ko.Grid = function(options) {
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
              * values of dict type: see views.GridActionxMixin.vm_get_filters().
              */
-            this.gridActions.perform('meta', {}, function(viewmodel) {
+            this.actions.perform('meta', {}, function(viewmodel) {
                 if (self.options.defaultOrderBy !== null) {
                     // Override 'list' action AJAX queryargs ordering.
                     self.setQueryOrderBy(self.options.defaultOrderBy);
                 }
-                self.gridActions.perform('list', {}, function(viewmodel) {
+                self.actions.perform('list', {}, function(viewmodel) {
                     self.onFirstLoad();
                     if (typeof callback === 'function') {
                         callback();
@@ -1185,7 +1185,7 @@ App.ko.Grid = function(options) {
             });
         } else {
             // Save a bit of HTTP traffic by default.
-            this.gridActions.perform('meta_list', {}, function(viewmodel) {
+            this.actions.perform('meta_list', {}, function(viewmodel) {
                 self.onFirstLoad();
                 if (typeof callback === 'function') {
                     callback();
@@ -1292,7 +1292,7 @@ App.ko.Grid = function(options) {
         _.each(this.uiActionTypes, function(type) {
             self.actionTypes[type] = ko.observableArray();
         })
-        this.gridActions = this.iocGridActions({
+        this.actions = this.iocGridActions({
             ownerComponent: this,
             route: this.options.pageRoute,
             routeKwargs: this.options.pageRouteKwargs,
@@ -1810,11 +1810,11 @@ App.ko.Grid = function(options) {
             this.rowSelect(currKoRow);
         }
         /*
-            if (this.gridActions.has('edit_formset')) {
-                this.gridActions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
+            if (this.actions.has('edit_formset')) {
+                this.actions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
             }
-            if (this.gridActions.has('edit_form')) {
-                this.gridActions.perform('edit_form', {'pk_val': currPkVal});
+            if (this.actions.has('edit_form')) {
+                this.actions.perform('edit_form', {'pk_val': currPkVal});
             }
         */
     };
@@ -2055,15 +2055,15 @@ App.ko.Grid = function(options) {
 
     Grid.listAction = function(callback) {
         if (typeof callback === 'function') {
-            this.gridActions.perform('list', {}, callback);
+            this.actions.perform('list', {}, callback);
         } else {
-            this.gridActions.perform('list', {});
+            this.actions.perform('list', {});
         }
     };
 
     Grid.loadMetaCallback = function(data) {
         if (typeof data.actions !== 'undefined') {
-            this.gridActions.setActions(data.actions);
+            this.actions.setActions(data.actions);
             this.setKoActionTypes(data.actions);
         }
         if (typeof data.meta !== 'undefined') {
@@ -2192,8 +2192,8 @@ App.ko.Grid = function(options) {
 
     // Pass fired visual action from ko ui to actual action implementation.
     Grid.performKoAction = function(koAction, actionOptions) {
-        this.gridActions.setLastKoAction(koAction);
-        this.gridActions.performLastAction(actionOptions);
+        this.actions.setLastKoAction(koAction);
+        this.actions.performLastAction(actionOptions);
     };
 
     // Returns only enabled actions for particular App.ko.GridRow instance of the specified actionType.
@@ -2226,16 +2226,16 @@ App.ko.Grid = function(options) {
     };
 
     Grid.modelFormAction = function(response) {
-        var vm = this.gridActions.getOurViewmodel(response);
+        var vm = this.actions.getOurViewmodel(response);
         if (vm === null) {
             /**
-             * If response has no our grid viewmodel (this.gridActions.viewModelName), then it's a form viewmodel errors
+             * If response has no our grid viewmodel (this.actions.viewModelName), then it's a form viewmodel errors
              * response which will be processed by App.AjaxForm.prototype.submit().
              */
             return true;
         } else {
-            this.gridActions.respond(
-                this.gridActions.lastActionName,
+            this.actions.respond(
+                this.actions.lastActionName,
                 response
             );
             // Do not process viewmodel response, because we already processed it here.
@@ -2244,13 +2244,14 @@ App.ko.Grid = function(options) {
     };
 
     Grid.getLastActionLocalName = function() {
-        return this.gridActions.lastKoAction.localName;
+        return this.actions.lastKoAction.localName;
     };
 
 })(App.ko.Grid.prototype);
 
 /**
  * Visual representation of grid action. Should be used to display / trigger button / glyphicon actions.
+ * Do not confuse with App.Actions / App.GridActions which is the abstraction layer for AJAX handling of viewmodels.
  */
 App.ko.Action = function(options) {
     this.init(options);
@@ -2651,7 +2652,7 @@ App.ActionsMenuDialog = function(options) {
     };
 
     ActionsMenuDialog.getNestedListOptions = function() {
-        return this.ownerComponent.gridActions.getNestedListOptions();
+        return this.ownerComponent.actions.getNestedListOptions();
     };
 
     /**
