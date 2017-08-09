@@ -956,7 +956,7 @@ App.GridActions = function(options) {
 
     GridActions.init = function(options) {
         this._super._call('init', options);
-        // Compatibility alias. Also has more precise meaning.
+        // Compatibility alias. Also it has more precise meaning.
         this.grid = this.owner;
     };
 
