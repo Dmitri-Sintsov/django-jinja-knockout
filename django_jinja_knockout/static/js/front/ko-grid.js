@@ -438,7 +438,7 @@ App.ko.FkGridFilter = function(options) {
             delete options.fkGridOptions.dialogOptions;
         }
         var gridDialogOptions = $.extend({
-            ownerComponent: this,
+            owner: this,
             filterOptions: options.fkGridOptions
         }, gridDialogOptions);
         this.gridDialog = new App.GridDialog(gridDialogOptions);
@@ -533,7 +533,7 @@ App.ko.RangeFilter = function(options) {
         }
         this.fieldAttrs = this[method]();
         this.filterDialog = new App.FilterDialog({
-            ownerComponent: this,
+            owner: this,
             title: this.name,
             template: 'ko_range_filter'
         });
@@ -942,7 +942,7 @@ App.ko.GridPage = function(options) {
 /**
  * Actions performed for particular grid (row) instance.
  * Mostly are row-click AJAX actions, although not limited to.
- * .ownerComponent is the instance of App.ko.Grid.
+ * .owner is the instance of App.ko.Grid.
  */
 App.GridActions = function(options) {
     $.inherit(App.Actions.prototype, this);
@@ -989,7 +989,7 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_create_form = function(viewModel) {
-        viewModel.ownerComponent = this.ownerComponent;
+        viewModel.owner = this.owner;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -1009,8 +1009,8 @@ App.GridActions = function(options) {
         var options = $.extend(
             true,
             {blockTags: this.blockTags},
-            this.ownerComponent.meta.fkNestedListOptions,
-            this.ownerComponent.meta.listOptions
+            this.owner.meta.fkNestedListOptions,
+            this.owner.meta.listOptions
         );
         return options;
     };
@@ -1055,7 +1055,7 @@ App.GridActions = function(options) {
             this.renderDescription(viewModel);
             new App.Dialog(viewModel).alert();
         } else {
-            this.ownerComponent.updatePage(viewModel);
+            this.owner.updatePage(viewModel);
         }
     };
 
@@ -1071,13 +1071,13 @@ App.GridActions = function(options) {
     };
 
     GridActions.callback_save_form = function(viewModel) {
-        this.ownerComponent.updatePage(viewModel);
+        this.owner.updatePage(viewModel);
         // Brute-force approach:
         // this.perform('list');
     };
 
     GridActions.callback_save_inline = function(viewModel) {
-        this.ownerComponent.updatePage(viewModel);
+        this.owner.updatePage(viewModel);
     };
 
     /**
@@ -1088,11 +1088,11 @@ App.GridActions = function(options) {
         if (typeof data.action_kwarg !== 'undefined') {
             this.setActionKwarg(data.action_kwarg);
         }
-        this.ownerComponent.loadMetaCallback(data);
+        this.owner.loadMetaCallback(data);
     };
 
     GridActions.queryargs_list = function(options) {
-        return this.ownerComponent.getListQueryArgs();
+        return this.owner.getListQueryArgs();
     };
 
     GridActions.queryargs_update = function(options) {
@@ -1103,7 +1103,7 @@ App.GridActions = function(options) {
      * Populate viewmodel from AJAX response.
      */
     GridActions.callback_list = function(data) {
-        this.ownerComponent.listCallback(data);
+        this.owner.listCallback(data);
     };
 
     GridActions.callback_update = function(data) {
@@ -1114,7 +1114,7 @@ App.GridActions = function(options) {
      * Combined 'meta' / 'list' action to reduce HTTP traffic.
      */
     GridActions.queryargs_meta_list = function(options) {
-        return this.ownerComponent.getListQueryArgs();
+        return this.owner.getListQueryArgs();
     };
 
     GridActions.callback_meta_list = function(data) {
@@ -1293,7 +1293,7 @@ App.ko.Grid = function(options) {
             self.actionTypes[type] = ko.observableArray();
         })
         this.actions = this.iocGridActions({
-            ownerComponent: this,
+            owner: this,
             route: this.options.pageRoute,
             routeKwargs: this.options.pageRouteKwargs,
         });
@@ -1801,7 +1801,7 @@ App.ko.Grid = function(options) {
         if (this.getEnabledActions(currKoRow, 'click').length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
-                ownerComponent: this
+                owner: this
             });
             this.actionsMenuDialog.show();
         } else if (this.actionTypes.click().length > 0) {
@@ -2326,7 +2326,7 @@ App.FilterDialog = function(options) {
 
     FilterDialog.getButtons = function() {
         var self = this;
-        if (typeof this.ownerComponent !== 'undefined') {
+        if (typeof this.owner !== 'undefined') {
             return [{
                 id: 'filter_remove_selection',
                 hotkey: 27,
@@ -2361,11 +2361,11 @@ App.FilterDialog = function(options) {
             options = {};
         }
         // Reference to owner component (for example App.ko.FkGridFilter instance).
-        this.ownerComponent = options.ownerComponent;
-        delete options.ownerComponent;
+        this.owner = options.owner;
+        delete options.owner;
         // Filter options.
         this.filterOptions = $.extend({
-                selectMultipleRows: typeof this.ownerComponent !== 'undefined'
+                selectMultipleRows: typeof this.owner !== 'undefined'
             },
             options.filterOptions
         );
@@ -2374,12 +2374,12 @@ App.FilterDialog = function(options) {
     };
 
     FilterDialog.onApply = function() {
-        this.propCall('ownerComponent.onFilterDialogApply', {});
+        this.propCall('owner.onFilterDialogApply', {});
         return true;
     };
 
     FilterDialog.onRemoveSelection = function() {
-        this.propCall('ownerComponent.onFilterDialogRemoveSelection', {});
+        this.propCall('owner.onFilterDialogRemoveSelection', {});
     };
 
     FilterDialog.onShow = function() {
@@ -2387,7 +2387,7 @@ App.FilterDialog = function(options) {
         if (this.wasOpened) {
             this.recreateContent();
         }
-        ko.applyBindings(this.ownerComponent, this.bdialog.getModal().get(0));
+        ko.applyBindings(this.owner, this.bdialog.getModal().get(0));
         App.initClient(this.bdialog.getModal());
         this.wasOpened = true;
     };
@@ -2444,20 +2444,20 @@ App.GridDialog = function(options) {
 
     GridDialog.onRemoveSelection = function() {
         this.grid.unselectAllRows();
-        this.propCall('ownerComponent.onGridDialogUnselectAllRows', {
+        this.propCall('owner.onGridDialogUnselectAllRows', {
             'childGrid': this.grid
         });
     };
 
     GridDialog.onChildGridFirstLoad = function() {
-        this.propCall('ownerComponent.onGridDialogFirstLoad', {
+        this.propCall('owner.onGridDialogFirstLoad', {
             'childGrid': this.grid
         });
     };
 
     GridDialog.onChildGridSelectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('ownerComponent.onGridDialogSelectRow', {
+        this.propCall('owner.onGridDialogSelectRow', {
             'pkVal': pkVal,
             'childGrid': this.grid
         });
@@ -2465,7 +2465,7 @@ App.GridDialog = function(options) {
 
     GridDialog.onChildGridUnselectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('ownerComponent.onGridDialogUnselectRow', {
+        this.propCall('owner.onGridDialogUnselectRow', {
             'pkVal': pkVal,
             'childGrid': this.grid
         });
@@ -2501,7 +2501,7 @@ App.GridDialog = function(options) {
 
     GridDialog.onHide = function() {
         this.grid.cleanBindings(this.bdialog.getModal());
-        this.propCall('ownerComponent.onGridDialogHide');
+        this.propCall('owner.onGridDialogHide');
         if (this.componentElement !== null) {
             delete this.grid;
             delete this.bdialog;
@@ -2525,20 +2525,20 @@ App.GridDialog = function(options) {
             this.grid = this.iocGridOwner();
             this.grid.firstLoad(function() {
                 // Select grid rows when there are filter choices set already.
-                var filterChoices = self.propCall('ownerComponent.getQueryFilter');
+                var filterChoices = self.propCall('owner.getQueryFilter');
                 self.grid.selectKoRowsByPkVals(filterChoices);
             });
         }
         this.grid.applyBindings(this.bdialog.getModal());
         this.wasOpened = true;
-        this.propCall('ownerComponent.onGridDialogShow', {
+        this.propCall('owner.onGridDialogShow', {
             'childGrid': this.grid
         });
     };
 
     GridDialog.close = function() {
         this._super._call('close');
-        this.propCall('ownerComponent.onGridDialogClose');
+        this.propCall('owner.onGridDialogClose');
     };
 
 })(App.GridDialog.prototype);
@@ -2559,7 +2559,7 @@ App.FkGridWidget = function(options) {
             showSelection: true
         });
         this.gridDialog = new App.GridDialog({
-            ownerComponent: this,
+            owner: this,
             filterOptions: gridOptions
         });
     };
@@ -2631,7 +2631,7 @@ App.FkGridWidget = function(options) {
 
 /**
  * BootstrapDialog displayed when grid row is clicked and multiple 'click' actions are defined.
- * .ownerComponent is the instance of App.ko.Grid.
+ * .owner is the instance of App.ko.Grid.
  */
 App.ActionsMenuDialog = function(options) {
     $.inherit(App.Dialog.prototype, this);
@@ -2652,7 +2652,7 @@ App.ActionsMenuDialog = function(options) {
     };
 
     ActionsMenuDialog.getNestedListOptions = function() {
-        return this.ownerComponent.actions.getNestedListOptions();
+        return this.owner.actions.getNestedListOptions();
     };
 
     /**
@@ -2660,7 +2660,7 @@ App.ActionsMenuDialog = function(options) {
      * 'click' type actions for the current grid row.
      */
     ActionsMenuDialog.renderRow = function() {
-        return this.ownerComponent.lastClickedKoRow.renderDesc(
+        return this.owner.lastClickedKoRow.renderDesc(
             this.getNestedListOptions()
         );
     };
@@ -2669,7 +2669,7 @@ App.ActionsMenuDialog = function(options) {
 
     ActionsMenuDialog.create = function(options) {
         this.wasOpened = false;
-        _.moveOptions(this, options, ['ownerComponent']);
+        _.moveOptions(this, options, ['owner']);
         var dialogOptions = $.extend(
             {
                 template: this.templateId,
@@ -2684,14 +2684,14 @@ App.ActionsMenuDialog = function(options) {
         if (this.wasOpened) {
             this.recreateContent();
         }
-        this.ownerComponent.applyBindings(this.bdialog.getModal());
+        this.owner.applyBindings(this.bdialog.getModal());
         this.bdialog.getModalBody().prepend(this.renderRow());
         this.wasOpened = true;
     };
 
     ActionsMenuDialog.onHide = function() {
         // Clean only grid bindings of this dialog, not invoker bindings.
-        this.ownerComponent.cleanBindings(this.bdialog.getModal());
+        this.owner.cleanBindings(this.bdialog.getModal());
         this._super._call('onHide');
     };
 
@@ -2699,7 +2699,7 @@ App.ActionsMenuDialog = function(options) {
 
 /**
  * May be inherited to create BootstrapDialog with client-side template form for implemented action.
- * .ownerComponent is the instance of App.ko.Grid.
+ * .owner is the instance of App.ko.Grid.
  * Usage:
 
     App.ChildActionDialog = function(options) {
@@ -2725,7 +2725,7 @@ App.ActionTemplateDialog = function(options) {
     ActionTemplateDialog.templateId = 'ko_action_form';
 
     ActionTemplateDialog.getActionLabel = function() {
-        return this.ownerComponent.getLastActionLocalName();
+        return this.owner.getLastActionLocalName();
     };
 
     ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
@@ -2741,7 +2741,7 @@ App.ActionTemplateDialog = function(options) {
     };
 
     ActionTemplateDialog.create = function(options) {
-        options.title = options.ownerComponent.getLastActionLocalName();
+        options.title = options.owner.getLastActionLocalName();
         this._super._call('create', options);
         /**
          * Update meta (display text) for bound ko template (this.templateId).
@@ -2749,7 +2749,7 @@ App.ActionTemplateDialog = function(options) {
          * for similar yet different actions.
          */
         if (typeof options.meta !== 'undefined') {
-            this.ownerComponent.updateMeta(options.meta);
+            this.owner.updateMeta(options.meta);
             delete options.meta;
         }
     };

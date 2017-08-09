@@ -22,7 +22,7 @@ App.ModelFormActions = function(options) {
     };
 
     ModelFormActions.callback_create_form = function(viewModel) {
-        viewModel.ownerComponent = this.ownerComponent;
+        viewModel.owner = this.owner;
         var dialog = new App.ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -57,7 +57,7 @@ App.ModelFormDialog = function(options) {
             options = {};
         }
         delete options.view;
-        _.moveOptions(this, options, ['ownerComponent']);
+        _.moveOptions(this, options, ['owner']);
         var dialogOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
             }, options
@@ -75,8 +75,8 @@ App.ModelFormDialog = function(options) {
         var $button = bdialog.getModalFooter().find('button.submit');
         App.AjaxForm.prototype.submit($form, $button, {
             success: function(response) {
-                if (typeof self.ownerComponent !== 'undefined') {
-                    var result = self.ownerComponent.modelFormAction(response);
+                if (typeof self.owner !== 'undefined') {
+                    var result = self.owner.modelFormAction(response);
                     if (result) {
                         // Has form errors.
                         return true;
@@ -139,7 +139,7 @@ App.EditForm = function(options) {
 
     EditForm.runComponent = function(elem) {
         this.actions = this.iocActions({
-            ownerComponent: this,
+            owner: this,
             route: this.route,
             routeKwargs: this.routeKwargs,
         });

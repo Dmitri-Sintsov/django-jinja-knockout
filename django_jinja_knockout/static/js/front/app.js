@@ -517,7 +517,7 @@ App.Actions = function(options) {
     Actions.viewModelName = 'action';
 
     Actions.init = function(options) {
-        this.ownerComponent = options.ownerComponent;
+        this.owner = options.owner;
         this.route = options.route;
         this.routeKwargs = App.propGet(options, 'routeKwargs', {});
         this.actions = this.getActions();
