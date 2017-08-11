@@ -197,12 +197,18 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     formset = None
     form_with_inline_formsets = None
 
-    def __init__(self):
+    def dispatch(self, request, *args, **kwargs):
         if self.model is None:
             if self.form is not None:
                 self.model = self.form._meta.model
             elif self.form_with_inline_formsets is not None:
-                self.model = self.form_with_inline_formsets.get_form_class()._meta.model
+                form_class = self.form_with_inline_formsets(request).get_form_class()
+                if form_class is None:
+                    raise ValueError('Neither a model class attribute nor form_with_inline_formsets defines model class')
+                self.model = form_class._meta.model
+            else:
+                raise ValueError('model class attribute is undefined')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_actions(self):
         return {

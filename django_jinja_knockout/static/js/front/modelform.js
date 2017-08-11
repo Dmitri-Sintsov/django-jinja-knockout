@@ -176,6 +176,7 @@ App.EditForm = function(options) {
  * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
  */
 App.EditInline = function(options) {
+    $.inherit(App.EditForm.prototype, this);
     this.init(options);
 };
 
