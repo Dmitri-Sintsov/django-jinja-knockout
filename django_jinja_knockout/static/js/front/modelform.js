@@ -129,8 +129,29 @@ App.EditForm = function(options) {
         return (this.pkVal === null) ? 'create_form' : 'edit_form';
     };
 
+    /**
+     * Supports passing pkVal to server-side view both via optional pkUrlKwarg value as well as via POST 'pk_val' value.
+     * See also views.ajax.ModelFormActionsView.get_pk_val().
+     */
     EditForm.init = function(options) {
-        _.moveOptions(this, options, ['route', 'routeKwargs', {'pkVal': null}]);
+        _.moveOptions(this, options, [
+            'route',
+            {'routeKwargs': {}},
+            {'pkUrlKwarg': null},
+        ]);
+        if (typeof options.pkVal !== 'undefined') {
+            this.pkVal = options.pkVal;
+            if (typeof this.pkUrlKwarg !== null) {
+                this.routeKwargs[this.pkUrlKwarg] = this.pkVal;
+            }
+        } else {
+            if (typeof this.pkUrlKwarg !== null) {
+                this.pkVal = this.routeKwargs[this.pkUrlKwarg];
+                if (this.pkVal === 0 || this.pkVal === '0') {
+                    this.pkVal = null;
+                }
+            }
+        }
     };
 
     EditForm.iocActions = function(options) {
@@ -144,7 +165,8 @@ App.EditForm = function(options) {
             routeKwargs: this.routeKwargs,
         });
         this.componentElement = elem;
-        this.actions.perform(this.getInitialAction(), {pk_val: this.pkVal});
+        var queryArgs = (this.pkUrlKwarg === null) ? {pk_val: this.pkVal} : {};
+        this.actions.perform(this.getInitialAction(), queryArgs);
     };
 
     EditForm.removeComponent = function(elem) {

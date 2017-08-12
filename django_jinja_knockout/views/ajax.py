@@ -191,6 +191,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
 class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     context_object_name = 'model'
+    pk_url_kwarg = None
     model = None
     model_fields_i18n = False
     form = None
@@ -285,13 +286,19 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_edit_form_with_inline_formsets(self):
         return self.form_with_inline_formsets
 
+    # KoGridView uses .request_get() value because one grid may edit different model objects.
+    # ModelFormActionsView may use either pk_url_kwarg value or .request_get() value.
+    # See also App.EditForm.init() / .runComponent() at client-side.
+    def get_pk_val(self):
+        return self.request_get('pk_val') if self.pk_url_kwarg is None else self.kwargs[self.pk_url_kwarg]
+
     def get_object_for_action(self):
-        return self.model.objects.filter(pk=self.request_get('pk_val')).first()
+        return self.model.objects.filter(pk=self.get_pk_val()).first()
 
     def get_queryset_for_action(self):
         pks = self.request.POST.getlist('pk_vals[]')
         if len(pks) == 0:
-            pks = [self.request_get('pk_val')]
+            pks = [self.get_pk_val()]
         return self.model.objects.filter(pk__in=pks)
 
     # Do not just remove bs_form() options.

@@ -513,13 +513,13 @@ App.Actions = function(options) {
 
 (function(Actions) {
 
-    Actions.action_kwarg = 'action';
+    Actions.actionKwarg = 'action';
     Actions.viewModelName = 'action';
 
     Actions.init = function(options) {
         this.owner = options.owner;
         this.route = options.route;
-        this.routeKwargs = App.propGet(options, 'routeKwargs', {});
+        this.routeKwargs = options.routeKwargs;
         this.actions = this.getActions();
     };
 
@@ -539,8 +539,8 @@ App.Actions = function(options) {
         });
     };
 
-    Actions.setActionKwarg = function(action_kwarg) {
-        this.action_kwarg = action_kwarg;
+    Actions.setActionKwarg = function(actionKwarg) {
+        this.actionKwarg = actionKwarg;
     };
 
     Actions.has = function(action) {
@@ -554,7 +554,7 @@ App.Actions = function(options) {
             action = '/' + action;
         }
         var params = $.extend({}, this.routeKwargs);
-        params[this.action_kwarg] = action;
+        params[this.actionKwarg] = action;
         return App.routeUrl(this.route, params);
     };
 

@@ -468,7 +468,7 @@ class BaseFilterView(View, GetPostMixin):
                 self.pk_field = field.attname
                 break
 
-        list_filter_str = self.request_get(self.__class__.filter_key)
+        list_filter_str = self.request_get(self.filter_key)
         if list_filter_str is not None:
             try:
                 self.request_list_filter = json.loads(list_filter_str)
@@ -666,7 +666,7 @@ class BaseFilterView(View, GetPostMixin):
         return current_list_filter_args, current_list_filter_kwargs
 
     def get_current_query(self):
-        sort_order = self.request_get(self.__class__.order_key)
+        sort_order = self.request_get(self.order_key)
         if sort_order is not None:
             try:
                 sort_order = json.loads(sort_order)

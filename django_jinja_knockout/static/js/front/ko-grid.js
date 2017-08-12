@@ -951,7 +951,7 @@ App.GridActions = function(options) {
 
 (function(GridActions) {
 
-    GridActions.action_kwarg = 'action';
+    GridActions.actionKwarg = 'action';
     GridActions.viewModelName = 'grid_page';
 
     GridActions.init = function(options) {
