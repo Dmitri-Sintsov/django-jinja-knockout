@@ -400,13 +400,14 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
-    def vm_save_form(self, old_obj, new_obj):
+    def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
         return vm_list(
             {
                 'view': 'alert',
                 'title': get_verbose_name(new_obj),
                 'message': self.get_object_desc(new_obj),
             },
+            # 'view': self.viewmodel_name indicates that the BootstrapDialog has to be closed.
             {
                 'view': self.viewmodel_name,
                 'pkVal': new_obj.pk,
@@ -422,9 +423,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             vm = {}
             if form.has_changed():
                 new_obj = form.save()
-                self.event('save_form_success', obj=new_obj)
-                vm = self.vm_save_form(old_obj, new_obj)
-            return to_vm_list(vm)
+                self.event('save_form_success', old_obj=old_obj, form=form)
+                vms = self.vm_save_form(old_obj, new_obj, form=form)
+            return vms
         else:
             form_vms = vm_list()
             self.add_form_viewmodels(form, form_vms)
@@ -442,9 +443,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if new_obj is not None:
             vm = {}
             if ff.has_changed():
-                self.event('save_inline_success', obj=new_obj)
-                vm = self.vm_save_form(old_obj, new_obj)
-            return to_vm_list(vm)
+                self.event('save_inline_success', old_obj=old_obj, ff=ff)
+                vms = self.vm_save_form(old_obj, new_obj, ff=ff)
+            return vms
         else:
             return self.ajax_form_invalid(ff.form, ff.formsets)
 
@@ -567,7 +568,7 @@ class GridActionsMixin(ModelFormActionsView):
         return _('Action "%(action)s" is not allowed') % \
             {'action': self.get_action_local_name()}
 
-    def vm_save_form(self, old_obj, new_obj):
+    def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
         vm = {}
         row = self.postprocess_row(
             self.get_model_row(new_obj),
@@ -577,7 +578,7 @@ class GridActionsMixin(ModelFormActionsView):
             vm['prepend_rows'] = [row]
         else:
             vm['update_rows'] = [row]
-        return vm
+        return to_vm_list(vm)
 
     def action_delete_is_allowed(self, objects):
         return True
