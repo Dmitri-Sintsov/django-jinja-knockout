@@ -319,10 +319,15 @@ def to_json(self):
 
 
 def json_flatatt(atts):
+    _atts = atts
+    has_atts = False
     for k, v in atts.items():
         if isinstance(v, (tuple, list, dict)):
-            atts[k] = to_json(v)
-    return flatatt(atts)
+            if not has_atts:
+                has_atts = True
+                _atts = copy(atts)
+            _atts[k] = to_json(v)
+    return flatatt(_atts)
 
 
 # https://developer.mozilla.org/en-US/docs/Web/API/CSS/escape
