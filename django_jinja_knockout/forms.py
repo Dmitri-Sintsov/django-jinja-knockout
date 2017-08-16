@@ -194,11 +194,13 @@ class FormWithInlineFormsets:
     FormsetClasses = None
     prefix = None
 
-    def __init__(self, request, form_class=None, formset_classes=None, create=False):
+    def __init__(self, request, form_class=None, formset_classes=None, create=False, prefix=None):
         if self.FormClass is None:
             self.FormClass = form_class
         if self.FormsetClasses is None:
             self.FormsetClasses = [] if formset_classes is None else formset_classes
+        if self.prefix is None:
+            self.prefix = prefix
         self.instance = None
         self.form = None
         self.formsets = None
