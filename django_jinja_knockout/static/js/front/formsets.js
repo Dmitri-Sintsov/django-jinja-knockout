@@ -127,9 +127,9 @@ App.initClientHooks.push({
     },
     dispose: function($selector) {
         $.each($selector.findSelf('.formset'), function(k, v) {
+            var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
-                var $formset = $(v);
                 var ko_formset = $formset.popInstance('App.ko.formset');
                 ko_formset.destroy($formset);
             }
