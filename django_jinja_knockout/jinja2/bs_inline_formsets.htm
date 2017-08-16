@@ -6,14 +6,20 @@
 {% if formsets|get_type != 'list' -%}
 {{ raise('"formsets" argument should be the list of formsets') }}
 {% endif -%}
+{% set wrapper_atts = {
+    'class': 'formsets panel panel-default default-padding'
+} -%}
 {% if not html.layout_classes -%}
     {% do html.update({'layout_classes': layout_classes}) -%}
 {% endif -%}
-{% if not html.class -%}
-    {% do html.update({'class': ''}) -%}
+{% if html.class -%}
+    {% do tpl.add_css_classes_to_dict(wrapper_atts, html.class) -%}
+{% endif -%}
+{% if action == '' -%}
+    {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
 {% set table_classes = 'table table-bordered table-responsive' -%}
-<div class="formsets panel panel-default default-padding {{ html.class }}">
+<div{{ flatatt(wrapper_atts)}}>
     {% if html.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
     {% endif -%}

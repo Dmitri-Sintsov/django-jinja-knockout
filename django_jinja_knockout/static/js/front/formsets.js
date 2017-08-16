@@ -96,37 +96,43 @@ App.initClientHooks.push({
     init: function($selector) {
         $.each($selector.findSelf('.formset'), function(k, v) {
             var $formset = $(v);
-            var $formsTotalCount;
-            var serversideFormsCount;
-            var maxFormsCount;
-            $.each($formset.find('.management-form :input'), function(k, v) {
-                var $input = $(v);
-                if ($input.prop('id').match(/TOTAL_FORMS$/)) {
-                    $formsTotalCount = $input;
-                    serversideFormsCount = parseInt($input.val());
+            // Do not bind to display-only formsets.
+            if ($formset.parent('.formsets.display-only').length == 0) {
+                var $formsTotalCount;
+                var serversideFormsCount;
+                var maxFormsCount;
+                $.each($formset.find('.management-form :input'), function(k, v) {
+                    var $input = $(v);
+                    if ($input.prop('id').match(/TOTAL_FORMS$/)) {
+                        $formsTotalCount = $input;
+                        serversideFormsCount = parseInt($input.val());
+                    }
+                    if ($input.prop('id').match(/MAX_NUM_FORMS$/)) {
+                        maxFormsCount = parseInt($input.val());
+                    }
+                });
+                if (typeof serversideFormsCount === 'undefined' ||
+                        typeof maxFormsCount === 'undefined') {
+                    return;
                 }
-                if ($input.prop('id').match(/MAX_NUM_FORMS$/)) {
-                    maxFormsCount = parseInt($input.val());
-                }
-            });
-            if (typeof serversideFormsCount === 'undefined' ||
-                    typeof maxFormsCount === 'undefined') {
-                return;
+                var ko_formset = new App.ko.formset(
+                    $formsTotalCount,
+                    serversideFormsCount,
+                    maxFormsCount
+                );
+                $formset.addInstance('App.ko.formset', ko_formset);
+                ko.applyBindings(ko_formset, v);
             }
-            var ko_formset = new App.ko.formset(
-                $formsTotalCount,
-                serversideFormsCount,
-                maxFormsCount
-            );
-            $formset.addInstance('App.ko.formset', ko_formset);
-            ko.applyBindings(ko_formset, v);
         });
     },
     dispose: function($selector) {
         $.each($selector.findSelf('.formset'), function(k, v) {
-            var $formset = $(v);
-            var ko_formset = $formset.popInstance('App.ko.formset');
-            ko_formset.destroy($formset);
+            // Do not bind to display-only formsets.
+            if ($formset.parent('.formsets.display-only').length == 0) {
+                var $formset = $(v);
+                var ko_formset = $formset.popInstance('App.ko.formset');
+                ko_formset.destroy($formset);
+            }
         });
     }
 });
