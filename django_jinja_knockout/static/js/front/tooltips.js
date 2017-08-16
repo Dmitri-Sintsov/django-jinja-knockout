@@ -16,34 +16,45 @@ App.addViewHandler('popover_error', function(viewModel) {
 });
 
 App.addViewHandler('form_error', function(viewModel) {
-    var $field = $(document.getElementById(viewModel.id));
+    var errTitle = null;
+    var $field = $.id(viewModel.id);
+    if ($field.length > 1) {
+        errTitle = 'Multiple fields with auto_id: ' + viewModel.id;
+    }
     if ($field.length == 0) {
-        var $message = $('<div>');
-        App.renderNestedList($message, viewModel.messages);
+        errTitle = "Unknown field auto_id: " + viewModel.id;
+    }
+    if (errTitle !== null) {
+        var $errmsg = $('<div>');
+        App.renderNestedList($errmsg, viewModel.messages);
         new App.Dialog({
-            title: "Unknown field auto_id: " + viewModel.id,
-            message: $message
+            title: errTitle,
+            message: $errmsg,
         }).alert();
-    }
-    var $inputGroup = $field.parents('.input-group:eq(0)');
-    if ($inputGroup.length > 0) {
-        $field = $inputGroup;
-    }
-    var $formErrors = $field.parent('.has-error');
-    if ($formErrors.length === 0) {
-        var $formErrors = $('<div>').addClass('has-error');
-        $field.wrap($formErrors);
     } else {
-        $formErrors.find('.alert').remove();
-    }
-    var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
-    for (var i = 0; i < viewModel.messages.length; i++) {
-        $field.after($.contents(
-            sprintf(
-                '<div class="alert alert-%s alert-dismissible"><button class="close" data-dismiss="alert" type="button">×</button>%s</div>',
-                alert_class, viewModel.messages[i]
-            )
-        ));
+        var $inputGroup = $field.parents('.input-group:eq(0)');
+        if ($inputGroup.length > 0) {
+            $field = $inputGroup;
+        }
+        var $formErrors = $field.parent('.has-error');
+        if ($formErrors.length === 0) {
+            var $formErrors = $('<div>').addClass('has-error');
+            $field.wrap($formErrors);
+        } else {
+            $formErrors.find('.alert').remove();
+        }
+        var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
+        for (var i = 0; i < viewModel.messages.length; i++) {
+            var $contents = $('<div>', {
+                'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
+            }).text(viewModel.messages[i]);
+            $contents.prepend($('<button>', {
+                'class': 'close',
+                'data-dismiss': 'alert',
+                'type': 'button'
+            }).text('×'))
+            $field.after($contents);
+        }
     }
 });
 

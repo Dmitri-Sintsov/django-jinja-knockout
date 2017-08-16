@@ -40,7 +40,12 @@ $.inheritProps = function(parent, child) {
 
 $.id = function(id) {
     // FF 54 generates warning when empty string is passed.
-    return (typeof id !== 'string' || id === '') ? $() : $(document.getElementById(id));
+    if (typeof id !== 'string' || id === '') {
+        return $();
+    } else {
+        // Support multiple ID's to detect content bugs.
+        return $(document.querySelectorAll('#' + CSS.escape(id)))
+    }
 };
 
 _.recursiveMap = function(value, fn) {
