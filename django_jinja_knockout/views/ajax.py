@@ -4,6 +4,7 @@ from math import ceil
 from ensure import ensure_annotations
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
@@ -46,6 +47,9 @@ class ViewmodelView(TemplateView):
     # todo: Optional error accumulation.
     def error(self, *args, **kwargs):
         from ..middleware import ImmediateJsonResponse
+        if 'ex' in kwargs:
+            ex = kwargs.pop('ex')
+            kwargs['messages'] = ex.messages if isinstance(ex, ValidationError) else [str(ex)]
         if len(kwargs) > 0:
             vms = vm_list(dict(**kwargs))
         else:
