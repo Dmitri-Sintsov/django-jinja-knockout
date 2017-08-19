@@ -168,6 +168,33 @@ a.sort-inactive:before {
 	content: "\e150";
 }
 
+/* Badges that can be used to wrap long text in bootstrap buttons. */
+.badge.btn-primary {
+	display: block;
+	white-space: pre-wrap;
+	color: white;
+}
+.badge.btn-info {
+	display: block;
+	white-space: pre-wrap;
+	color: white;
+}
+.badge.btn-success {
+	display: block;
+	white-space: pre-wrap;
+	color: white;
+}
+.badge.btn-warning {
+	display: block;
+	white-space: pre-wrap;
+	color: white;
+}
+.badge.btn-error {
+	display: block;
+	white-space: pre-wrap;
+	color: white;
+}
+
 form label {
 	font-weight: normal;
 }
