@@ -152,6 +152,11 @@ App.EditForm = function(options) {
                 }
             }
         }
+        if (typeof options.initialAction !== 'undefined') {
+            this.initialAction = options.initialAction;
+        } else {
+            this.initialAction = this.getInitialAction();
+        }
     };
 
     EditForm.iocActions = function(options) {
@@ -166,7 +171,7 @@ App.EditForm = function(options) {
         });
         this.componentElement = elem;
         var queryArgs = (this.pkUrlKwarg === null) ? {pk_val: this.pkVal} : {};
-        this.actions.perform(this.getInitialAction(), queryArgs);
+        this.actions.perform(this.initialAction, queryArgs);
     };
 
     EditForm.removeComponent = function(elem) {

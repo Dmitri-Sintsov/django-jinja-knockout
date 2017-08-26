@@ -195,6 +195,8 @@ class ActionsView(ViewmodelView, GetPostMixin):
 class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     context_object_name = 'model'
+    form_template = 'bs_form.htm'
+    inline_template = 'bs_inline_formsets.htm'
     pk_url_kwarg = None
     model = None
     model_fields_i18n = False
@@ -329,8 +331,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
 
-    def vm_form(self, form, verbose_name=None, form_action='save_form', action_query={}):
-        t = tpl_loader.get_template('bs_form.htm')
+    def vm_form(self, form, template=None, verbose_name=None, form_action='save_form', action_query={}):
+        if template is None:
+            template = self.form_template
+        t = tpl_loader.get_template(template)
         form_html = t.render(request=self.request, context={
             '_render_': True,
             'form': form,
@@ -349,8 +353,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             'message': form_html
         })
 
-    def vm_inline(self, ff, verbose_name=None, form_action='save_inline', action_query={}):
-        t = tpl_loader.get_template('bs_inline_formsets.htm')
+    def vm_inline(self, ff, template=None, verbose_name=None, form_action='save_inline', action_query={}):
+        if template is None:
+            template = self.inline_template
+        t = tpl_loader.get_template(template)
         ff_html = t.render(request=self.request, context={
             '_render_': True,
             'form': ff.form,
