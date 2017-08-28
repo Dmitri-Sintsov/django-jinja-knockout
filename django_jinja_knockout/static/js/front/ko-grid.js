@@ -186,7 +186,7 @@ App.ko.GridFilterChoice = function(options) {
     GridFilterChoice.onLoadFilter = function(data, ev) {
         this.ownerFilter.switchKoFilterChoices(this, ev);
         this.ownerFilter.ownerGrid.queryArgs.page = 1;
-        this.ownerFilter.ownerGrid.listAction();
+        this.ownerFilter.refreshGrid();
     };
 
     GridFilterChoice.is = function(filterChoice) {
@@ -262,6 +262,10 @@ App.ko.AbstractGridFilter = function(options) {
      */
     AbstractGridFilter.setChoices = function(values) {
         throw 'Abstract method';
+    };
+
+    AbstractGridFilter.refreshGrid = function(callback) {
+        this.ownerGrid.listAction(callback);
     };
 
 })(App.ko.AbstractGridFilter.prototype);
@@ -463,7 +467,7 @@ App.ko.FkGridFilter = function(options) {
         });
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction();
+        this.refreshGrid();
     };
 
     FkGridFilter.onGridDialogUnselectRow = function(options) {
@@ -474,7 +478,7 @@ App.ko.FkGridFilter = function(options) {
             });
             this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
             this.ownerGrid.queryArgs.page = 1;
-            this.ownerGrid.listAction();
+            this.refreshGrid();
         }
     };
 
@@ -484,7 +488,7 @@ App.ko.FkGridFilter = function(options) {
         });
         this.hasActiveChoices(false);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction();
+        this.refreshGrid();
     };
 
     FkGridFilter.setChoices = function(values) {
@@ -579,7 +583,7 @@ App.ko.RangeFilter = function(options) {
         });
         this.hasActiveChoices(true);
         this.ownerGrid.queryArgs.page = 1;
-        this.ownerGrid.listAction(function(viewModel) {
+        this.refreshGrid(function(viewModel) {
             if (typeof self.filterDialog.bdialog !== 'undefined') {
                 var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
                 if (App.propGet(viewModel, 'has_errors') === true) {
@@ -1171,30 +1175,31 @@ App.ko.Grid = function(options) {
 
     Grid.firstLoad = function(callback) {
         var self = this;
+        var queryArgs = {firstLoad: 1};
         if (this.options.separateMeta) {
             /**
              * this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depends
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
              * values of dict type: see views.GridActionxMixin.vm_get_filters().
              */
-            this.actions.perform('meta', {}, function(viewmodel) {
+            this.actions.perform('meta', queryArgs, function(viewmodel) {
                 if (self.options.defaultOrderBy !== null) {
                     // Override 'list' action AJAX queryargs ordering.
                     self.setQueryOrderBy(self.options.defaultOrderBy);
                 }
-                self.actions.perform('list', {}, function(viewmodel) {
+                self.actions.perform('list', queryArgs, function(viewmodel) {
                     self.onFirstLoad();
                     if (typeof callback === 'function') {
-                        callback();
+                        callback(queryArgs);
                     }
                 });
             });
         } else {
             // Save a bit of HTTP traffic by default.
-            this.actions.perform('meta_list', {}, function(viewmodel) {
+            this.actions.perform('meta_list', queryArgs, function(viewmodel) {
                 self.onFirstLoad();
                 if (typeof callback === 'function') {
-                    callback();
+                    callback(queryArgs);
                 }
             });
         }
@@ -2060,11 +2065,7 @@ App.ko.Grid = function(options) {
     };
 
     Grid.listAction = function(callback) {
-        if (typeof callback === 'function') {
-            this.actions.perform('list', {}, callback);
-        } else {
-            this.actions.perform('list', {});
-        }
+        this.actions.perform('list', {}, callback);
     };
 
     Grid.loadMetaCallback = function(data) {
