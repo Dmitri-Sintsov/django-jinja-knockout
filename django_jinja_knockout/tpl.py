@@ -72,8 +72,14 @@ class PrintList:
     def nested(self, row):
         result = []
         for definition in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+            # When row element value is a tuple, it's elements define key / elem / format_kwargs.
+            # Dict key, value pairs are supported, however the row of tuples allows to use repeated keys
+            # and to apply custom format kwargs to selective cells.
             if len(definition) > 2:
                 key, elem, format_kwargs = definition
+            elif len(definition) > 1:
+                key, elem = definition
+                format_kwargs = {}
             else:
                 key, elem = definition
                 format_kwargs = {}
