@@ -10,6 +10,7 @@ from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
 from django.views.generic import TemplateView
 
+from ..validators import ViewmodelValidator
 from ..utils import sdv
 from .. import tpl as qtpl
 from ..models import (
@@ -302,9 +303,15 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.model.objects.filter(pk=self.get_pk_val()).first()
 
     def get_queryset_for_action(self):
+        # jQuery / PHP like array post.
         pks = self.request.POST.getlist('pk_vals[]')
         if len(pks) == 0:
-            pks = [self.get_pk_val()]
+            # JSON array post.
+            validator = ViewmodelValidator()
+            pks = validator.load_json_ids(json_str=self.request_get('pk_vals'), errmsg=None)
+            if validator.has_errors():
+                # Single value, no array.
+                pks = [self.get_pk_val()]
         return self.model.objects.filter(pk__in=pks)
 
     # Do not just remove bs_form() options.
@@ -430,7 +437,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
         form = form_class(self.request.POST, instance=old_obj, **self.get_form_kwargs(form_class))
         if form.is_valid():
-            vm = {}
             if form.has_changed():
                 new_obj = form.save()
                 self.event('save_form_success', old_obj=old_obj, form=form)
@@ -451,7 +457,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         ff = ff_class(self.request, create=old_obj is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
         new_obj = ff.save(instance=old_obj)
         if new_obj is not None:
-            vm = {}
             if ff.has_changed():
                 self.event('save_inline_success', old_obj=old_obj, ff=ff)
                 vms = self.vm_save_form(old_obj, new_obj, ff=ff)
