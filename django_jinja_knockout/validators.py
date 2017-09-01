@@ -28,11 +28,9 @@ class ViewmodelValidator:
                 'messages': [message],
             })
 
-    # @todo: support error accumulation for AJAX forms.
     # Limit AJAX string argument to min / max length.
     def lim_str(self, s, minmsg, maxmsg, auto_id=None, minlen=1, maxlen=255):
         _len = len(s)
-
         if _len < minlen:
             self.add_error(minmsg.format(**locals()), auto_id)
         elif _len > maxlen:
@@ -41,11 +39,12 @@ class ViewmodelValidator:
     def load_json_ids(self, json_str, errmsg, auto_id=None):
         try:
             ids = json.loads(json_str)
-            if type(ids) is not list:
+            if type(ids) is not list or len(ids) == 0:
                 raise ValueError(errmsg)
             for id in ids:
                 if type(id) is not int:
                     raise ValueError(errmsg)
         except ValueError as e:
             self.add_error(str(e), auto_id)
+            return None
         return ids

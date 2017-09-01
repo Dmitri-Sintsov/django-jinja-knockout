@@ -308,7 +308,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if len(pks) == 0:
             # JSON array post.
             validator = ViewmodelValidator()
-            pks = validator.load_json_ids(json_str=self.request_get('pk_vals'), errmsg=None)
+            pks = validator.load_json_ids(json_str=self.request_get('pk_vals'), errmsg='')
             if validator.has_errors():
                 # Single value, no array.
                 pks = [self.get_pk_val()]
@@ -441,6 +441,8 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 new_obj = form.save()
                 self.event('save_form_success', old_obj=old_obj, form=form)
                 vms = self.vm_save_form(old_obj, new_obj, form=form)
+            else:
+                vms = vm_list()
             return vms
         else:
             form_vms = vm_list()
@@ -460,6 +462,8 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             if ff.has_changed():
                 self.event('save_inline_success', old_obj=old_obj, ff=ff)
                 vms = self.vm_save_form(old_obj, new_obj, ff=ff)
+            else:
+                vms = vm_list()
             return vms
         else:
             return self.ajax_form_invalid(ff.form, ff.formsets)
