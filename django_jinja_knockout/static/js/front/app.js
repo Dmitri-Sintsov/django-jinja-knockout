@@ -376,7 +376,7 @@ App.Dialog = function(options) {
         }
     };
 
-    Dialog.runComponent = function(options) {
+    Dialog.runComponent = function(elem) {
         this.show();
     };
 
