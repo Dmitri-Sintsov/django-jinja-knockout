@@ -376,6 +376,10 @@ App.Dialog = function(options) {
         }
     };
 
+    Dialog.runComponent = function(options) {
+        this.show();
+    };
+
     Dialog.show = function() {
         if (typeof this.showMethod !== 'undefined') {
             this[this.showMethod](this.dialogOptions);
