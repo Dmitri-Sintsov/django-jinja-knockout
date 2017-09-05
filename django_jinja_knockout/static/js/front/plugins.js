@@ -730,7 +730,8 @@ $.fn.linkPreview = function(method) {
 $.fn.highlightListUrl = function(location) {
     var $anchors = this.findSelf('ul.auto-highlight > li > a');
     var exactMatches = [];
-    var approximateMatches = [];
+    var searchMatches = [];
+    var pathnameMatches = [];
     $anchors.parent('li').removeClass('active');
     $.each($anchors, function(k, a) {
         var a_pathname = a.pathname;
@@ -740,17 +741,18 @@ $.fn.highlightListUrl = function(location) {
         }
         if (a_pathname === location.pathname &&
             a.port === location.port &&
-            a.hostname === location.hostname
+            a.hostname === location.hostname &&
+            // Ignore anchors which actually have no 'href' with pathname defined.
+            !a.getAttribute('href').match(/^#/)
         ) {
-            if (a.hash !=='' &&
-                a.hash === location.hash &&
-                a.search === location.search) {
-                exactMatches.push(a);
-            } else {
-                // Ignore anchors which actually have no 'href' with pathname defined.
-                if (!a.getAttribute('href').match(/^#/)) {
-                    approximateMatches.push(a);
+            if (a.search === location.search) {
+                if (a.hash === location.hash) {
+                    exactMatches.push(a);
+                } else {
+                    searchMatches.push(a);
                 }
+            } else {
+                pathnameMatches.push(a);
             }
         }
     });
@@ -758,8 +760,10 @@ $.fn.highlightListUrl = function(location) {
         for (var i = 0; i < exactMatches.length; i++) {
             $(exactMatches[i]).parent('li').addClass('active');
         }
-    } else if (approximateMatches.length === 1) {
-        $(approximateMatches[0]).parent('li').addClass('active');
+    } else if (searchMatches.length === 1) {
+        $(searchMatches[0]).parent('li').addClass('active');
+    } else if (pathnameMatches.length === 1) {
+        $(pathnameMatches[0]).parent('li').addClass('active');
     }
 };
 
