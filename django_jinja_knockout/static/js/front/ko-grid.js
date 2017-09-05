@@ -1515,6 +1515,17 @@ App.ko.Grid = function(options) {
         return false;
     };
 
+    Grid.checkAllRowsSelected = function() {
+        var result = true;
+        $.each(this.gridRows(), function(k, koRow) {
+            if (!koRow.isSelectedRow()) {
+                result = false;
+                return false;
+            }
+        });
+        return result;
+    };
+
     Grid.addSelectedPkVal = function(pkVal) {
         if (this.options.selectMultipleRows) {
             if (!this.hasSelectedPkVal(pkVal)) {
@@ -1523,7 +1534,7 @@ App.ko.Grid = function(options) {
         } else {
             this.selectedRowsPks = [pkVal];
         }
-        this.hasSelectAllRows(this.selectedRowsPks.length === this.gridRows().length);
+        this.hasSelectAllRows(this.checkAllRowsSelected());
     };
 
     Grid.removeSelectedPkVal = function(pkVal) {
@@ -1533,7 +1544,7 @@ App.ko.Grid = function(options) {
         this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
             return val !== pkVal;
         });
-        this.hasSelectAllRows(this.selectedRowsPks.length === this.gridRows().length);
+        this.hasSelectAllRows(this.checkAllRowsSelected());
     };
 
     Grid.removeAllSelectedPkVals = function() {
@@ -2145,6 +2156,7 @@ App.ko.Grid = function(options) {
         } else {
             self.gridRows(gridRows);
         }
+        this.hasSelectAllRows(this.checkAllRowsSelected());
         // Set grid pagination viewmodels.
         self.setKoPagination(data.totalPages, self.queryArgs.page);
     };
