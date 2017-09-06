@@ -197,24 +197,28 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.1
 -----
 * ``ActionsView`` with ``App.Actions`` client-side counterpart implements AJAX viewmodels routing to create generic AJAX
-  actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` and in knockout datatables actions.
+  actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` and with knockout datatables
+  actions.
 * ``ModelFormActionsView`` with ``App.ModelFormActions`` client-side counterpart allows to use Django forms / inline
   formsets with AJAX-powered BootstrapDialog via ``App.EditForm`` / ``App.EditInline`` client-side components.
-* Selective skipping of ``DisplayText`` field widget rendering via setting ``skip_output`` property in ``get_text_method``
-  callback.
-* Do not bind ``App.ko.formset`` to display-only ``bs_inline_formsets()`` generated forms with inline formsets.
-* knockout grids (datatables) ``'button_footer'`` action type.
-* ``djk_seed`` management command.
+* Selective skipping of ``DisplayText`` field widget rendering via setting ``skip_output`` property in
+  ``get_text_method`` callback.
+* Do not bind ``App.ko.Formset`` to display-only ``bs_inline_formsets()`` generated forms with inline formsets.
+* Knockout grids (datatables) ``'button_footer'`` built-in action type.
+* ``djk_seed`` Django management command.
 * ``App.renderNestedList`` supports rendering of ``jQuery`` objects values.
 * ``App.TabPane`` supports hiding / dynamic content loading of bootstrap 3 panes.
-* ``App.Dialog`` is now closable by default.
-* ``html`` and ``replaceWith`` viewmodels applies ``App.initClient`` hooks, also works correctly with response.html
+* ``App.Dialog`` is now closable by default. ``App.Dialog`` now can be run as component.
+* ``html`` and ``replaceWith`` viewmodels applies ``App.initClient`` hooks, also works correctly with viewmodel ``.html``
   content that is not wrapped into top tags.
 * Implemented ``App.propByPath`` which is now used to find class for ``App.renderNestedList`` ``options.blockTags``
   string. That allows to pass Javascript path string as ``options.blockTags`` via server-side AJAX response.
   ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels suppports this functionality when ``message`` option
   has ``object`` type value.
-* ``App.getClassFromPath`` / ``App.newClassFromPath`` used by ``App.Tpl`` class factories.
-* ``App.ko.Grid.iocKoFilter_`` methods now are orthogonal thus easier to override.
-* Grid dialogs hotkeys.
-* ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu.
+* ``App.getClassFromPath`` / ``App.newClassFromPath`` is used by ``App.Tpl`` class factories.
+* ``App.ko.Grid.iocKoFilter_*`` methods now are orthogonal thus are easier to override.
+* Grid dialogs default hotkeys (Escape, Enter).
+* ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu. ``ListQuerySet``
+  now has ``prefill_choices()`` method, which may provide prefill values for the form field from db field list of values.
+* ``.badge.btn-*`` CSS classes which can be used to wrap long text in bootstrap buttons.
+* Separate ``admin.js`` script to enable client-side of ``OptionalWidget`` in django admin.

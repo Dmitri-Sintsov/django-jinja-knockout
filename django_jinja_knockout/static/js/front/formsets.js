@@ -10,7 +10,7 @@ ko.bindingHandlers.anonymous_template = {
     }
 };
 
-App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount) {
+App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount) {
     var self = this;
     var formArray = [];
     /*
@@ -45,13 +45,13 @@ App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
     }
 };
 
-(function(ko_formset) {
+(function(Formset) {
 
-    ko_formset.getTotalFormsCount = function() {
+    Formset.getTotalFormsCount = function() {
         return this.serversideFormsCount + this.forms().length;
     };
 
-    ko_formset.deleteFormHandler = function($elements) {
+    Formset.deleteFormHandler = function($elements) {
         var self = this;
         var formModelName = $elements.find('.panel-title:first').html();
         // Attach event handler to newly added form delete input.
@@ -85,12 +85,12 @@ App.ko.formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
         });
     };
 
-    ko_formset.destroy = function($formset) {
+    Formset.destroy = function($formset) {
         $formset.findSelf('input[name$="-DELETE"]').unbind('change');
         ko.cleanNode($formset.get(0));
     };
 
-})(App.ko.formset.prototype);
+})(App.ko.Formset.prototype);
 
 App.initClientHooks.push({
     init: function($selector) {
@@ -115,12 +115,12 @@ App.initClientHooks.push({
                         typeof maxFormsCount === 'undefined') {
                     return;
                 }
-                var ko_formset = new App.ko.formset(
+                var ko_formset = new App.ko.Formset(
                     $formsTotalCount,
                     serversideFormsCount,
                     maxFormsCount
                 );
-                $formset.addInstance('App.ko.formset', ko_formset);
+                $formset.addInstance('App.ko.Formset', ko_formset);
                 ko.applyBindings(ko_formset, v);
             }
         });
@@ -130,7 +130,7 @@ App.initClientHooks.push({
             var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
-                var ko_formset = $formset.popInstance('App.ko.formset');
+                var ko_formset = $formset.popInstance('App.ko.Formset');
                 ko_formset.destroy($formset);
             }
         });

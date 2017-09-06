@@ -165,7 +165,7 @@ App.blockTags = {
 /**
  * Bootstrap tabs management class.
  */
-App.TabPane = function (hash) {
+App._TabPane = function (hash) {
     if (typeof hash === 'undefined') {
         hash = window.location.hash;
     }
@@ -180,20 +180,20 @@ App.TabPane = function (hash) {
     }
 };
 
-(function(TabPane) {
+(function(_TabPane) {
 
-    TabPane.exists = function() {
+    _TabPane.exists = function() {
         return App.propGet(this, ['anchor', 'length'], 0) > 0;
     };
 
-    TabPane.setLocation = function() {
+    _TabPane.setLocation = function() {
         if (this.exists()) {
             window.location.hash = '#' + this.cleanHash;
         }
         return this;
     };
 
-    TabPane.switchTo = function() {
+    _TabPane.switchTo = function() {
         if (this.exists()) {
             this.anchor.tab('show');
             var highlightClass = this.tab.data('highlightClass');
@@ -207,7 +207,7 @@ App.TabPane = function (hash) {
         return this;
     };
 
-    TabPane.hide = function() {
+    _TabPane.hide = function() {
         if (this.exists()) {
             this.tab.addClass('hidden');
             this.pane.addClass('hidden');
@@ -215,7 +215,7 @@ App.TabPane = function (hash) {
         return this;
     };
 
-    TabPane.show = function() {
+    _TabPane.show = function() {
         if (this.exists()) {
             this.pane.removeClass('hidden');
             this.tab.removeClass('hidden');
@@ -223,7 +223,7 @@ App.TabPane = function (hash) {
         return this;
     };
 
-    TabPane.highlight = function(bgClass, permanent) {
+    _TabPane.highlight = function(bgClass, permanent) {
         if (this.exists()) {
             if (typeof bgClass !== 'string') {
                 bgClass = 'bg-success';
@@ -236,7 +236,7 @@ App.TabPane = function (hash) {
         return this;
     };
 
-    TabPane.load = function(route, data, options) {
+    _TabPane.load = function(route, data, options) {
         if (this.exists()) {
             data.clean_hash = this.cleanHash;
             App.post(route, data, options);
@@ -244,14 +244,18 @@ App.TabPane = function (hash) {
         return this;
     };
 
-})(App.TabPane.prototype);
+})(App._TabPane.prototype);
 
+
+App.TabPane = function(hash) {
+    return new App._TabPane(hash);
+};
 
 // https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
 App.initTabPane = function() {
-    new App.TabPane().switchTo();
+    App.TabPane().switchTo();
     $(window).on('hashchange', function() {
-        new App.TabPane().switchTo();
+        App.TabPane().switchTo();
     });
     // Change hash upon pane activation
     $('a[role="tab"]').on('click', function() {

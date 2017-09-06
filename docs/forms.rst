@@ -248,7 +248,7 @@ Dynamically adding new related formset forms
 
 ``bs_inline_formsets()`` macro with conjunction of ``django_jinja_knockout.forms.set_knockout_template()`` monkey
 patching formset method and client-side ``formsets.js`` script supports dynamic adding / removing of new formset forms
-(so-called ``empty_form``) via Knockout.js custom binding ``App.ko.formset``.
+(so-called ``empty_form``) via Knockout.js custom binding to ``App.ko.Formset``.
 
 .. highlight:: javascript
 
