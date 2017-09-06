@@ -2,13 +2,17 @@
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+.. _contenttypes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/contenttypes.py
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
+.. _djk_seed: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/management/commands/djk_seed.py
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
-.. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=modelFormAction
+.. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=modelFormAction&utf8=%E2%9C%93
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/tooltips.js
+.. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
+.. _validators: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/validators.py
 .. _yield_out_instances: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=yield_out_instances
 
 =======
@@ -200,27 +204,28 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.1
 -----
 * ``ActionsView`` with ``App.Actions`` client-side counterpart implements AJAX viewmodels routing to create generic AJAX
-  actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` and with knockout datatables
-  actions (see `modelFormAction`_ method).
+  actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` / ``ModelFormActionsView`` and with
+  knockout datatables actions (see `modelFormAction`_ method).
 * ``ModelFormActionsView`` with ``App.ModelFormActions`` client-side counterpart allows to use Django forms / inline
   formsets with AJAX-powered BootstrapDialog via ``App.EditForm`` / ``App.EditInline`` client-side components.
 * Selective skipping of ``DisplayText`` field widget rendering via setting ``skip_output`` property in
   ``get_text_method`` callback.
 * Do not bind ``App.ko.Formset`` to display-only ``bs_inline_formsets()`` generated forms with inline formsets.
 * Knockout grids (datatables) ``'button_footer'`` built-in action type.
-* ``djk_seed`` Django management command.
+* `djk_seed`_ Django management command.
 * ``App.renderNestedList`` supports rendering of ``jQuery`` objects values.
 * ``App.TabPane`` supports hiding / dynamic content loading of bootstrap 3 panes.
 * ``App.Dialog`` is now closable by default. ``App.Dialog`` now can be run as component.
 * ``html`` and ``replaceWith`` viewmodels applies ``App.initClient`` hooks, also works correctly with viewmodel ``.html``
   content that is not wrapped into top tags.
-* Implemented ``App.propByPath`` which is now used to find class for ``App.renderNestedList`` ``options.blockTags``
-  string. That allows to pass Javascript path string as ``options.blockTags`` via server-side AJAX response.
+* Implemented ``App.propByPath`` which is now used to load Javascript object specified for ``App.renderNestedList`` as
+  ``options.blockTags`` string. That allows to pass Javascript path string as ``options.blockTags`` via server-side AJAX
+  response.
   ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels suppports this functionality when ``message`` option
   has ``object`` type value.
 * ``App.getClassFromPath`` / ``App.newClassFromPath`` is used by ``App.Tpl`` class factories.
 * ``App.ko.Grid.iocKoFilter_*`` methods now are orthogonal thus are easier to override.
-* Grid dialogs default hotkeys (Escape, Enter).
+* Grid dialogs default hotkeys (``Escape``, ``Enter``).
 * ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu. ``ListQuerySet``
   now has ``prefill_choices()`` method, which may provide prefill values for the form field from db field list of values.
 * ``.badge.btn-*`` CSS classes which can be used to wrap long text in bootstrap buttons.
@@ -232,3 +237,14 @@ Alternative breadcrumbs layout of field filters widgets.
   values. ``highlightListUrl`` jQuery function bugfixes.
 * `tooltips.js`_: ``form_error`` viewmodel handler, used to display AJAX forms validation errors now has the diagnostic
   for missing ``auto_id`` values and better support for multiple error messages per field.
+* `contenttypes`_: Create content types / user groups / user permissions / Django model migration seeds. For the example
+  of seeds, see `djk_seed`_ Django management command.
+* ``FormWithInlineFormsets`` supports form auto_id prefix and optional customizeable form / formset constructor kwargs.
+* ``json_validators`` module is renamed into `validators`_, which implements generic ``ViewmodelValidator`` class to
+  validate AJAX submitted form input and to return error viewmodels when needed.
+* ``DjkJSONEncoder`` serializes lazy strings to prevent json serialization errors.
+* ``BaseSeleniumCommands`` logs browser errors.
+* `tpl`_ module reworked and expanded. Nested lists use common class ``PrintList``. Implemented ``json_flatatt()`` and
+  ``format_html_attrs()`` functions which work like built-in Django ``flatatt()`` and ``format_html()`` but automatically
+  convert list / dict types of arguments into html attributes and / or JSON strings.
+* Many bugfixes.
