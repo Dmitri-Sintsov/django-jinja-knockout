@@ -87,6 +87,6 @@ class ViewmodelValidator:
                     raise ValueError(errmsg)
         except (TypeError, ValueError) as e:
             self.add_error(str(e))
-            return None
+            return self
         self._val = ids
         return self

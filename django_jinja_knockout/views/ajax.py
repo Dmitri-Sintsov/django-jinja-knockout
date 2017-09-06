@@ -306,12 +306,12 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         # jQuery / PHP like array post.
         pks = self.request.POST.getlist('pk_vals[]')
         if len(pks) == 0:
-            # JSON array post.
             validator = ViewmodelValidator(val=self.request_get('pk_vals')).load_json_ids()
             if validator.has_errors():
                 # Single value, no array.
                 pks = [self.get_pk_val()]
             else:
+                # JSON array post.
                 pks = validator.val()
         return self.model.objects.filter(pk__in=pks)
 
