@@ -1,4 +1,3 @@
-from copy import copy
 from .viewmodels import vm_list
 import json
 
