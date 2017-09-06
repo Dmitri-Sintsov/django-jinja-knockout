@@ -307,11 +307,12 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         pks = self.request.POST.getlist('pk_vals[]')
         if len(pks) == 0:
             # JSON array post.
-            validator = ViewmodelValidator()
-            pks = validator.load_json_ids(json_str=self.request_get('pk_vals'))
+            validator = ViewmodelValidator(val=self.request_get('pk_vals')).load_json_ids()
             if validator.has_errors():
                 # Single value, no array.
                 pks = [self.get_pk_val()]
+            else:
+                pks = validator.val()
         return self.model.objects.filter(pk__in=pks)
 
     # Do not just remove bs_form() options.
