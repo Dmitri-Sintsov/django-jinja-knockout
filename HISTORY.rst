@@ -6,6 +6,9 @@
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
+.. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=modelFormAction
+.. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
+.. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/tooltips.js
 .. _yield_out_instances: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=yield_out_instances
 
 =======
@@ -198,7 +201,7 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * ``ActionsView`` with ``App.Actions`` client-side counterpart implements AJAX viewmodels routing to create generic AJAX
   actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` and with knockout datatables
-  actions.
+  actions (see `modelFormAction`_ method).
 * ``ModelFormActionsView`` with ``App.ModelFormActions`` client-side counterpart allows to use Django forms / inline
   formsets with AJAX-powered BootstrapDialog via ``App.EditForm`` / ``App.EditInline`` client-side components.
 * Selective skipping of ``DisplayText`` field widget rendering via setting ``skip_output`` property in
@@ -222,3 +225,10 @@ Alternative breadcrumbs layout of field filters widgets.
   now has ``prefill_choices()`` method, which may provide prefill values for the form field from db field list of values.
 * ``.badge.btn-*`` CSS classes which can be used to wrap long text in bootstrap buttons.
 * Separate ``admin.js`` script to enable client-side of ``OptionalWidget`` in django admin.
+* ``App.ko.Grid`` actions ``meta`` / ``list`` / ``meta_list`` first requests passing HTTP POST ``firstLoad`` variable to
+  detect the initial grid datatable action at server-side in ``KoGridView`` derived class.
+* Fixed selection of all current page grid datatable rows at miltiple grid datatable pages.
+* `plugins.js`_: ``jQuery.id()`` to get multiple DOM ids, ``_.moveOptions()`` to move options with possible default
+  values. ``highlightListUrl`` jQuery function bugfixes.
+* `tooltips.js`_: ``form_error`` viewmodel handler, used to display AJAX forms validation errors now has the diagnostic
+  for missing ``auto_id`` values and better support for multiple error messages per field.
