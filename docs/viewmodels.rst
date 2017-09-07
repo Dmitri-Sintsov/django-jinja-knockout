@@ -409,6 +409,11 @@ Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel
 `App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
 change it's name; for example grid datatables use ``grid_page`` as viewmodel name.
 
+The actions which have different names are are not processed by ``App.Actions`` directly. Instead, they are routed to
+standard viewmodel handlers, added with ``App.addViewHandler()`` - see `Defining custom viewmodel handlers`_ section.
+Such way standard built-in viewmodels are not ignored, for example server-side exception reporting which is done with
+``alert_error`` action, and AJAX form validation errors with ``form_error`` action.
+
 .. highlight:: python
 
 The difference between handling AJAX viewmodels with ``App.viewHandlers`` (see `Defining custom viewmodel handlers`_)
@@ -436,19 +441,25 @@ while client-side part of ``edit_form`` action response is defined as::
         dialog.show();
     };
 
-Client-side classes also can optionally add queryargs to AJAX HTTP request with ``edit_form_queryargs`` method::
+Client-side classes also can optionally add queryargs to AJAX HTTP request with ``queryargs_ACTION_NAME`` method::
 
     MyFormActions.queryargs_edit_form = function(options) {
         // Add a custom queryarg:
         options['myArg'] = 1;
     };
 
-Client-side classes also can use client-side actions without calling AJAX viewmodel server-side part like this::
+Client-side classes also can directly process actions at client-side without calling AJAX viewmodel server-side part
+by defining ``perform_ACTION_NAME`` method::
 
     MyFormActions.perform_edit_form = function(queryArgs, ajaxCallback) {
-       new App.ActionTemplateDialog({
-            title: 'Edit data',
+        // this.owner may be instance of App.ko.Grid or another class which implements proper owner interface.
+        new App.ActionTemplateDialog({
             template: 'my_form_template',
+            owner: this.owner,
+            // Optional knockout.js bindings for 'my_form_template'
+            meta: {
+                'greeting': 'Hello, world!',
+            }
         }).show();
     };
 
@@ -461,7 +472,7 @@ while generated html page should contain template like this::
             <div class="panel-body">
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
-                    <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
+                    <div class="greeting" data-bind="text: meta.greeting"></div>
                     <div class="jumbotron">
                         <div class="default-padding">
                             This is the sample template. Copy this template with another id then add your MVVM fields here.
