@@ -108,6 +108,18 @@ will not work without these scripts.
 Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
 client-side scripts.
 
+Major changes (version 0.5.1)
+-----------------------------
+AJAX actions are rewritten as server-side ``ActionsView`` class and client-side counterpart ``App.Actions``. It is now
+used as foundation for most of AJAX code, including grid datatables and new ``App.EditForm`` / ``App.EditInline``
+client-side components.
+
+New widget ``widgets.PrefillWidget`` to select pre-filled text from the list of supplied values.
+
+Selective skipping of ``DisplayText`` field widget rendering.
+
+Basic version of ``ViewmodelValidator`` for AJAX submitted forms.
+
 Major changes (version 0.5.0)
 -----------------------------
 Rewritten recursive underscore.js template processor, see `underscore.js templates`_.

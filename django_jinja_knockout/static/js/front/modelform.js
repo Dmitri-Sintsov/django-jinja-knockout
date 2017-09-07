@@ -117,6 +117,99 @@ App.ModelFormDialog = function(options) {
 
 
 /**
+ * May be inherited to create BootstrapDialog with client-side template form for implemented action.
+ * .owner usually is the instance of App.ko.Grid but can be any knockout.js bound class with owner-implemented methods.
+ * Usage:
+
+    App.ChildActionDialog = function(options) {
+        $.inherit(App.ActionTemplateDialog.prototype, this);
+        this.inherit();
+        this.create(options);
+    };
+
+    ChildActionDialog.create = function(options) {
+        this._super._call('create', options);
+        ...
+    };
+ */
+App.ActionTemplateDialog = function(options) {
+    this.inherit();
+    this.create(options);
+};
+
+(function(ActionTemplateDialog) {
+
+    ActionTemplateDialog.initClient = true;
+    ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
+    ActionTemplateDialog.templateId = 'ko_action_form';
+    ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
+
+    ActionTemplateDialog.inherit = function() {
+        $.inherit(App.Dialog.prototype, this);
+        this.getButtons = App.ModelFormDialog.prototype.getButtons;
+        this.action = App.ModelFormDialog.prototype.action;
+    };
+
+    ActionTemplateDialog.getTitle = function() {
+        return this.owner.getLastActionLocalName();
+    };
+
+    ActionTemplateDialog.create = function(options) {
+        this.wasOpened = false;
+        _.moveOptions(this, options, ['owner']);
+        var dialogOptions = $.extend(
+            {
+                template: this.templateId,
+                title: this.getTitle(),
+            }, options
+        );
+        /**
+         * Update meta (display text) for bound ko template (this.templateId).
+         * This may be used to invoke the same dialog with different messages
+         * for similar yet different actions.
+         */
+        if (typeof options.meta !== 'undefined' && typeof this.owner.updateMeta === 'function') {
+            this.owner.updateMeta(options.meta);
+            delete options.meta;
+        }
+        this._super._call('create', dialogOptions);
+    };
+
+    /**
+     * Issued to render current row object description in multiple actions menu when there are more than one
+     * 'click' type actions for the current grid row.
+     */
+    ActionTemplateDialog.renderHeading = function() {
+        return this.owner.renderLastActionHeading();
+    };
+
+    ActionTemplateDialog.onShow = function() {
+        this._super._call('onShow');
+        if (this.wasOpened) {
+            this.recreateContent();
+        }
+        this.owner.applyBindings(this.bdialog.getModal());
+        var actionHeading = this.renderHeading();
+        if (actionHeading instanceof jQuery) {
+            this.bdialog.getModalBody().prepend(actionHeading);
+        }
+        this.wasOpened = true;
+    };
+
+    ActionTemplateDialog.onHide = function() {
+        // Clean only grid bindings of this dialog, not invoker bindings.
+        this.owner.cleanBindings(this.bdialog.getModal());
+        this._super._call('onHide');
+    };
+
+    ActionTemplateDialog.getActionLabel = function() {
+        return this.owner.getLastActionLocalName();
+    };
+
+})(App.ActionTemplateDialog.prototype);
+
+
+/**
  * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
  */
 App.EditForm = function(options) {

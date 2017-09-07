@@ -1,3 +1,11 @@
+.. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
+.. _App.Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Actions&type=&utf8=%E2%9C%93
+.. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
+.. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
+.. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
+.. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
+.. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
+
 =================================================
 Client-side viewmodels and AJAX response routing
 =================================================
@@ -298,8 +306,8 @@ BootstrapDialog alerts / confirmations when page is just loaded. For example you
 method like this::
 
     def get(self, request, *args, **kwargs):
-        onload_vm_list = to_vm_list(request.client_data)
-        onload_vm_list.append({
+        load_vm_list = onload_vm_list(request.client_data)
+        load_vm_list.append({
             'view': 'confirm',
             'title': 'Please enter <i>your</i> personal data.',
             'message': 'After the registration our manager will contact <b>you</b> to validate your personal data.',
@@ -325,7 +333,7 @@ or during redirect to another page (for example after login redirect) then displ
                 'title': last_message.title,
                 'text': last_message.text
             }
-        session_vm_list = to_vm_list(request.session)
+        session_vm_list = onload_vm_list(request.session)
         idx, old_view_model = session_vm_list.find_by_kw(view='initial_views')
         if idx is not False:
             # Remove already existing 'initial_views' viewmodel, otherwise they will accumulate.
@@ -336,12 +344,12 @@ or during redirect to another page (for example after login redirect) then displ
 
 To inject client-side viewmodels on page DOM load just once::
 
-    onload_vm_list = to_vm_list(request.client_data)
-    onload_vm_list.append({...})
+    load_vm_list = onload_vm_list(request.client_data)
+    load_vm_list.append({...})
 
 To inject client-side viewmodels on page DOM load persistently in user session::
 
-    session_vm_list = to_vm_list(request.session)
+    session_vm_list = onload_vm_list(request.session)
     session_vm_list.append({...})
 
 Require viewmodels handlers
@@ -389,3 +397,77 @@ handler, ``App.saveResponse()`` saves received viewmodels::
 ``App.loadResponse()`` executes previously saved viewmodels. Multiple save points might be set by calling
 ``App.saveResponse()``, then restored and executed by calling ``App.loadResponse()`` with different ``name`` argument
 value.
+
+AJAX actions
+------------
+Since version 0.5.1, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
+`App.Actions`_ at client-side, which utilize the same viewmodel handler for multiple actions. It allows to better
+structurize AJAX code. `ModelFormActionsView`_ and `KoGridView`_ (see :doc:`grids`) inherit from `ActionsView`_, while
+client-side `App.ModelFormActions`_ and `App.GridActions`_ (see :doc:`grids`) inherit from `App.Actions`_.
+
+Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel_name`` Python attribute /
+`App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
+change it's name; for example grid datatables use ``grid_page`` as viewmodel name.
+
+.. highlight:: python
+
+The difference between handling AJAX viewmodels with ``App.viewHandlers`` (see `Defining custom viewmodel handlers`_)
+and `App.Actions`_ is that later way allows to have different actions to be used by the same viewmodel handler with
+actions routing to class methods.
+
+For example, server-side part of action ``edit_form`` is defined as `ModelFormActionsView`_ method
+``action_edit_form``::
+
+    def action_edit_form(self):
+        obj = self.get_object_for_action()
+        form_class = self.get_edit_form()
+        form = form_class(instance=obj, **self.get_form_kwargs(form_class))
+        return self.vm_form(
+            form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+        )
+
+.. highlight:: javascript
+
+while client-side part of ``edit_form`` action response is defined as::
+
+    ModelFormActions.callback_edit_form = function(viewModel) {
+        viewModel.owner = this.grid;
+        var dialog = new App.ModelFormDialog(viewModel);
+        dialog.show();
+    };
+
+Client-side classes also can optionally add queryargs to AJAX HTTP request with ``edit_form_queryargs`` method::
+
+    MyFormActions.queryargs_edit_form = function(options) {
+        // Add a custom queryarg:
+        options['myArg'] = 1;
+    };
+
+Client-side classes also can use client-side actions without calling AJAX viewmodel server-side part like this::
+
+    MyFormActions.perform_edit_form = function(queryArgs, ajaxCallback) {
+       new App.ActionTemplateDialog({
+            title: 'Edit data',
+            template: 'my_form_template',
+        }).show();
+    };
+
+.. highlight:: jinja
+
+while generated html page should contain template like this::
+
+    <script type="text/template" id="my_form_template">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
+                    <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
+                    <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
+                    <div class="jumbotron">
+                        <div class="default-padding">
+                            This is the sample template. Copy this template with another id then add your MVVM fields here.
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>

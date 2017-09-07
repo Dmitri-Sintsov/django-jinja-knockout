@@ -994,10 +994,6 @@ App.GridActions = function(options) {
         this.perform(this.lastActionName, actionOptions);
     };
 
-    GridActions.getLastActionUrl = function() {
-        return this.getUrl(this.lastActionName);
-    };
-
     GridActions.callback_create_form = function(viewModel) {
         viewModel.owner = this.grid;
         var dialog = new App.ModelFormDialog(viewModel);
@@ -2235,11 +2231,6 @@ App.ko.Grid = function(options) {
     };
 
     // Used in ActionTemplateDialog 'ko_action_form' template.
-    Grid.getCsrfToken = function() {
-        return App.conf.csrfToken;
-    };
-
-    // Used in ActionTemplateDialog 'ko_action_form' template.
     Grid.getLastPkVal = function() {
         return this.lastClickedKoRow.getPkVal();
     };
@@ -2264,6 +2255,12 @@ App.ko.Grid = function(options) {
 
     Grid.getLastActionLocalName = function() {
         return this.actions.lastKoAction.localName;
+    };
+
+    Grid.renderLastActionHeading = function() {
+        return this.lastClickedKoRow.renderDesc(
+            this.actions.getNestedListOptions()
+        );
     };
 
 })(App.ko.Grid.prototype);
@@ -2653,11 +2650,20 @@ App.FkGridWidget = function(options) {
  * .owner is the instance of App.ko.Grid.
  */
 App.ActionsMenuDialog = function(options) {
-    $.inherit(App.Dialog.prototype, this);
+    this.inherit();
     this.create(options);
 };
 
 (function(ActionsMenuDialog) {
+
+    ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';
+
+    ActionsMenuDialog.inherit = function() {
+        // Import methods of direct ancestor.
+        $.inherit(App.ActionTemplateDialog.prototype, this);
+        // Import methods of base class that are missing in direct ancestor.
+        $.inherit(App.Dialog.prototype, this);
+    };
 
     ActionsMenuDialog.getButtons = function() {
         var self = this;
@@ -2670,112 +2676,8 @@ App.ActionsMenuDialog = function(options) {
         }];
     };
 
-    ActionsMenuDialog.getNestedListOptions = function() {
-        return this.owner.actions.getNestedListOptions();
-    };
-
-    /**
-     * Issued to render current row object description in multiple actions menu when there are more than one
-     * 'click' type actions for the current grid row.
-     */
-    ActionsMenuDialog.renderRow = function() {
-        return this.owner.lastClickedKoRow.renderDesc(
-            this.getNestedListOptions()
-        );
-    };
-
-    ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';
-
-    ActionsMenuDialog.create = function(options) {
-        this.wasOpened = false;
-        _.moveOptions(this, options, ['owner']);
-        var dialogOptions = $.extend(
-            {
-                template: this.templateId,
-                title: App.trans('Choose action'),
-            }, options
-        );
-        this._super._call('create', dialogOptions);
-    };
-
-    ActionsMenuDialog.onShow = function() {
-        this._super._call('onShow');
-        if (this.wasOpened) {
-            this.recreateContent();
-        }
-        this.owner.applyBindings(this.bdialog.getModal());
-        this.bdialog.getModalBody().prepend(this.renderRow());
-        this.wasOpened = true;
-    };
-
-    ActionsMenuDialog.onHide = function() {
-        // Clean only grid bindings of this dialog, not invoker bindings.
-        this.owner.cleanBindings(this.bdialog.getModal());
-        this._super._call('onHide');
+    ActionsMenuDialog.getTitle = function() {
+        return App.trans('Choose action');
     };
 
 })(App.ActionsMenuDialog.prototype);
-
-/**
- * May be inherited to create BootstrapDialog with client-side template form for implemented action.
- * .owner is the instance of App.ko.Grid.
- * Usage:
-
-    App.ChildActionDialog = function(options) {
-        $.inherit(App.ActionTemplateDialog.prototype, this);
-        this.inherit();
-        this.create(options);
-    };
-
-    ChildActionDialog.create = function(options) {
-        this._super._call('create', options);
-        ...
-    };
- */
-App.ActionTemplateDialog = function(options) {
-    this.inherit();
-    this.create(options);
-};
-
-(function(ActionTemplateDialog) {
-
-    ActionTemplateDialog.initClient = true;
-    ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
-    ActionTemplateDialog.templateId = 'ko_action_form';
-
-    ActionTemplateDialog.getActionLabel = function() {
-        return this.owner.getLastActionLocalName();
-    };
-
-    ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
-
-    ActionTemplateDialog.inherit = function() {
-        // Import methods of direct ancestor.
-        $.inherit(App.ActionsMenuDialog.prototype, this);
-        // Import methods of base class that are missing in direct ancestor.
-        $.inherit(App.Dialog.prototype, this);
-        // Import required methods from ModelFormDialog (simple mixin).
-        this.getButtons = App.ModelFormDialog.prototype.getButtons;
-        this.action = App.ModelFormDialog.prototype.action;
-    };
-
-    ActionTemplateDialog.create = function(options) {
-        options.title = options.owner.getLastActionLocalName();
-        this._super._call('create', options);
-        /**
-         * Update meta (display text) for bound ko template (this.templateId).
-         * This may be used to invoke the same dialog with different messages
-         * for similar yet different actions.
-         */
-        if (typeof options.meta !== 'undefined') {
-            this.owner.updateMeta(options.meta);
-            delete options.meta;
-        }
-    };
-
-    // Do not remove, otherwise it will cause double binding error in App.ActionsMenuDialog.onShow.
-    ActionTemplateDialog.onShow = function() {
-        this._super._call('onShow');
-    };
-
-})(App.ActionTemplateDialog.prototype);

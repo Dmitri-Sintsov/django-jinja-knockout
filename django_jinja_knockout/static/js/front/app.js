@@ -566,6 +566,10 @@ App.Actions = function(options) {
         return App.routeUrl(this.route, params);
     };
 
+    Actions.getLastActionUrl = function() {
+        return this.getUrl(this.lastActionName);
+    };
+
     Actions.getQueryArgs = function(action, options) {
         if (typeof options === 'undefined') {
             options = {};
@@ -589,9 +593,13 @@ App.Actions = function(options) {
         return (vms.length === 0) ? null : vms[0];
     };
 
+    Actions.getCsrfToken = function() {
+        return App.conf.csrfToken;
+    };
+
     Actions.ajax = function(action, queryArgs, callback) {
         var self = this;
-        queryArgs.csrfmiddlewaretoken = App.conf.csrfToken;
+        queryArgs.csrfmiddlewaretoken = this.getCsrfToken();
         $.post(this.getUrl(action),
             queryArgs,
             function(response) {

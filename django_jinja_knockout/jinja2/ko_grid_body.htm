@@ -57,7 +57,7 @@
     <div class="panel panel-default">
         <div class="panel-body">
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
-                <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
+                <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: actions.getCsrfToken()">
                 <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
                 <div class="jumbotron">
                     <div class="default-padding">
