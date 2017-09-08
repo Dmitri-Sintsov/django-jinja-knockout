@@ -1391,19 +1391,23 @@ Here is the example of action implementation::
 `views`_ module has many built-in actions implemented, while `club_app.views_ajax`_ has some examples of custom
 actions code.
 
+.. _grids_client_side_action_routing:
+
 Client-side action routing
 --------------------------
 
 .. highlight:: javascript
 
 ``App.GridActions`` class defined in `ko_grid.js`_ is used both to invoke grid actions and to process their results.
+Since version 0.5.1, ``App.GridActions`` uses ``App.Actions`` as the base class for client-side viewmodel routing.
+See :ref:`viewmodels_ajax_actions` for general introduction.
 
 Invocation of action
 ~~~~~~~~~~~~~~~~~~~~
 
-Actions are invoked via Javascript ``App.GridActions.perform()`` method::
+Actions are invoked via Javascript ``App.Actions.perform()`` method::
 
-    GridActions.perform = function(action, actionOptions, ajaxCallback)
+    Actions.perform = function(action, actionOptions, ajaxCallback)
 
 * ``'action' argument``: mandatory name of action as it is returned by Django grid ``get_actions()`` method;
 * ``'actionOptions' argument``: optional, custom parameters of action (usually Javascript object). These are passed to
@@ -1416,7 +1420,7 @@ Javascript class, which is used to setup CSS classes of bound DOM element button
 
 When bound DOM element is clicked, these interactive actions invoke ``App.ko.Action.doAction()`` method for particular
 visual action Knockout.js viewmodel, which calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing
-the same ``App.GridActions.perform()`` method::
+the same ``App.Actions.perform()`` method::
 
     Action.doAction = function(options, actionOptions)
 
@@ -1445,7 +1449,7 @@ Javascript invocation of interacive action with specified target grid row when g
         }
     };
 
-* ``'actionOptions' argument`: optional Javascript object that is passed to ``App.GridActions.perform()`` as
+* ``'actionOptions' argument`: optional Javascript object that is passed to ``App.Actions.perform()`` as
   ``actionOptions`` argument, usually to extend queryargs of action AJAX POST request, but might be used to pass custom
   data to client-side actions as well.
 
@@ -1470,9 +1474,9 @@ Here is the example of ``'list'`` action AJAX request queryargs population::
 
     Grid.listAction = function(callback) {
         if (typeof callback === 'function') {
-            this.gridActions.perform('list', {}, callback);
+            this.actions.perform('list', {}, callback);
         } else {
-            this.gridActions.perform('list', {});
+            this.actions.perform('list', {});
         }
     };
 
@@ -1565,7 +1569,7 @@ It is also possible to perform actions partially or entirely at client-side. To 
         MemberGridActions.perform_edit_note = function(queryArgs, ajaxCallback) {
             var actionDialog = new App.ActionTemplateDialog({
                 template: 'member_note_form',
-                grid: this.grid,
+                owner: this.grid,
                 meta: {
                     noteLabel: 'Member note',
                     note: this.grid.lastClickedKoRow.getValue('note')
@@ -1883,7 +1887,7 @@ Open `club-grid.js`_ to see the example of manually executing ``ActionGrid`` `'u
             var actionGrid = $('#action_grid').component();
             if (actionGrid !== null) {
                 // Update ActionGrid.
-                actionGrid.gridActions.perform('update');
+                actionGrid.actions.perform('update');
             }
         };
 
@@ -2825,7 +2829,7 @@ Here is the code of grid AJAX callbacks::
             var grid = $(selector).component();
             if (grid !== null) {
                 // Update dependent grid.
-                grid.gridActions.perform('update');
+                grid.actions.perform('update');
             }
         };
 

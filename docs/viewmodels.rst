@@ -398,6 +398,8 @@ handler, ``App.saveResponse()`` saves received viewmodels::
 ``App.saveResponse()``, then restored and executed by calling ``App.loadResponse()`` with different ``name`` argument
 value.
 
+.. _viewmodels_ajax_actions:
+
 AJAX actions
 ------------
 Since version 0.5.1, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
@@ -456,10 +458,6 @@ by defining ``perform_ACTION_NAME`` method::
         new App.ActionTemplateDialog({
             template: 'my_form_template',
             owner: this.owner,
-            // Optional knockout.js bindings for 'my_form_template'
-            meta: {
-                'greeting': 'Hello, world!',
-            }
         }).show();
     };
 
@@ -472,7 +470,6 @@ while generated html page should contain template like this::
             <div class="panel-body">
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
-                    <div class="greeting" data-bind="text: meta.greeting"></div>
                     <div class="jumbotron">
                         <div class="default-padding">
                             This is the sample template. Copy this template with another id then add your MVVM fields here.
@@ -482,3 +479,5 @@ while generated html page should contain template like this::
             </div>
         </div>
     </script>
+
+For more detailed example of using viewmodel actions routing, see see :doc:`grids` section :ref:`grids_client_side_action_routing`.
