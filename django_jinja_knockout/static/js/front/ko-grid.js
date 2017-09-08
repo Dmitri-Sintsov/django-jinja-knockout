@@ -2257,10 +2257,29 @@ App.ko.Grid = function(options) {
         return this.actions.lastKoAction.localName;
     };
 
-    Grid.renderLastActionHeading = function() {
-        return this.lastClickedKoRow.renderDesc(
+    Grid.onActionTemplateDialogCreate = function(dialog, options) {
+        /**
+         * Update meta (display text) for bound ko template (this.templateId).
+         * This may be used to invoke the same dialog with different messages
+         * for similar yet different actions.
+         */
+        if (typeof options.meta !== 'undefined') {
+            this.updateMeta(options.meta);
+            delete options.meta;
+        }
+        options.title = this.getLastActionLocalName();
+        options.actionLabel = options.title;
+    };
+
+    Grid.onActionTemplateDialogShow = function(dialog) {
+        /**
+         * Render current row object description in multiple actions menu when there are more than one 'click' type
+         * actions for the current grid row.
+         */
+        var actionHeading = this.lastClickedKoRow.renderDesc(
             this.actions.getNestedListOptions()
         );
+        dialog.bdialog.getModalBody().prepend(actionHeading);
     };
 
 })(App.ko.Grid.prototype);
@@ -2676,8 +2695,9 @@ App.ActionsMenuDialog = function(options) {
         }];
     };
 
-    ActionsMenuDialog.getTitle = function() {
-        return App.trans('Choose action');
+    ActionsMenuDialog.ownerOnCreate = function(options) {
+        options.title = App.trans('Choose action');
+        options.actionLabel = options.title;
     };
 
 })(App.ActionsMenuDialog.prototype);

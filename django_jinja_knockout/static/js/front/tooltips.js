@@ -1,7 +1,7 @@
 'use strict';
 
 App.addViewHandler('tooltip_error', function(viewModel) {
-    var fieldTooltip = new App.fieldTooltip(viewModel);
+    var fieldTooltip = new App.FieldTooltip(viewModel);
     // Save instance of tooltip to delete it later via applying _.filter() to
     // App.executedViewModels only when there was no previous instance created
     // for the matching or the same selector.
@@ -12,7 +12,7 @@ App.addViewHandler('tooltip_error', function(viewModel) {
 
 // Do not forget to escape viewModel.message from XSS.
 App.addViewHandler('popover_error', function(viewModel) {
-    viewModel.instance = new App.fieldPopover(viewModel);
+    viewModel.instance = new App.FieldPopover(viewModel);
 });
 
 App.addViewHandler('form_error', function(viewModel) {
@@ -61,12 +61,12 @@ App.addViewHandler('form_error', function(viewModel) {
 /**
  * Information popover (useful to show ajax form errors and more).
  */
-App.genericPopover = function(options) {
+App.GenericPopover = function(options) {
     this.create(options);
 };
 
-(function(genericPopover) {
-    genericPopover.create = function(options) {
+(function(GenericPopover) {
+    GenericPopover.create = function(options) {
         this.destroyEventName = 'input';
         if (typeof options.selector !== 'undefined') {
             this.$messageTarget = $(options.selector);
@@ -120,16 +120,16 @@ App.genericPopover = function(options) {
         this.message = options.message;
         this.setupEvents();
     }
-})(App.genericPopover.prototype);
+})(App.GenericPopover.prototype);
 
 
-App.fieldPopover = function(options) {
-    $.inherit(App.genericPopover.prototype, this);
+App.FieldPopover = function(options) {
+    $.inherit(App.GenericPopover.prototype, this);
     this.create(options);
 };
 
-(function(fieldPopover) {
-    fieldPopover.setupEvents = function() {
+(function(FieldPopover) {
+    FieldPopover.setupEvents = function() {
         var self = this;
         this.$field.focus();
         // Do not show/hide multiple times to prevent flickering.
@@ -161,16 +161,16 @@ App.fieldPopover = function(options) {
             }
         });
     };
-}) (App.fieldPopover.prototype);
+}) (App.FieldPopover.prototype);
 
 
-App.fieldTooltip = function(options) {
-    $.inherit(App.genericPopover.prototype, this);
+App.FieldTooltip = function(options) {
+    $.inherit(App.GenericPopover.prototype, this);
     this.create(options);
 };
 
-(function(fieldTooltip) {
-    fieldTooltip.setupEvents = function() {
+(function(FieldTooltip) {
+    FieldTooltip.setupEvents = function() {
         var self = this;
         if (this.hasInstance = this.$cssTarget.hasClass('validation-error')) {
             // @note: data-original-title is boostrap3 standard attribute, do not change the name.
@@ -194,7 +194,7 @@ App.fieldTooltip = function(options) {
         }
     };
 
-    fieldTooltip.destroy = function() {
+    FieldTooltip.destroy = function() {
         if (!this.destroyed) {
             this.$messageTarget.removeAttr('title').tooltip('destroy');
             this.$cssTarget.removeClass('validation-error');
@@ -203,4 +203,4 @@ App.fieldTooltip = function(options) {
         }
     };
 
-}) (App.fieldTooltip.prototype);
+}) (App.FieldTooltip.prototype);

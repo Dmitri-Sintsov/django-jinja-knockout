@@ -118,7 +118,8 @@ App.ModelFormDialog = function(options) {
 
 /**
  * May be inherited to create BootstrapDialog with client-side template form for implemented action.
- * .owner usually is the instance of App.ko.Grid but can be any knockout.js bound class with owner-implemented methods.
+ * .owner can be any knockout.js bound class which may have purely optional owner-implemented methods.
+ * Built-in example of .owner is an instance of App.ko.Grid class.
  * Usage:
 
     App.ChildActionDialog = function(options) {
@@ -150,37 +151,18 @@ App.ActionTemplateDialog = function(options) {
         this.action = App.ModelFormDialog.prototype.action;
     };
 
-    ActionTemplateDialog.getTitle = function() {
-        return this.owner.getLastActionLocalName();
-    };
-
     ActionTemplateDialog.create = function(options) {
         this.wasOpened = false;
-        _.moveOptions(this, options, ['owner']);
-        var dialogOptions = $.extend(
-            {
-                template: this.templateId,
-                title: this.getTitle(),
-            }, options
-        );
-        /**
-         * Update meta (display text) for bound ko template (this.templateId).
-         * This may be used to invoke the same dialog with different messages
-         * for similar yet different actions.
-         */
-        if (typeof options.meta !== 'undefined' && typeof this.owner.updateMeta === 'function') {
-            this.owner.updateMeta(options.meta);
-            delete options.meta;
-        }
-        this._super._call('create', dialogOptions);
+        _.moveOptions(this, options, ['owner', {'template': this.templateId}]);
+        this.ownerOnCreate(options);
+        _.moveOptions(this, options, ['actionLabel']);
+        this._super._call('create', options);
     };
 
-    /**
-     * Issued to render current row object description in multiple actions menu when there are more than one
-     * 'click' type actions for the current grid row.
-     */
-    ActionTemplateDialog.renderHeading = function() {
-        return this.owner.renderLastActionHeading();
+    ActionTemplateDialog.ownerOnCreate = function(options) {
+        if (typeof this.owner.onActionTemplateDialogCreate === 'function') {
+            this.owner.onActionTemplateDialogCreate(this, options);
+        }
     };
 
     ActionTemplateDialog.onShow = function() {
@@ -189,21 +171,31 @@ App.ActionTemplateDialog = function(options) {
             this.recreateContent();
         }
         this.owner.applyBindings(this.bdialog.getModal());
-        var actionHeading = this.renderHeading();
-        if (actionHeading instanceof jQuery) {
-            this.bdialog.getModalBody().prepend(actionHeading);
-        }
+        this.ownerOnShow();
         this.wasOpened = true;
     };
 
+    ActionTemplateDialog.ownerOnShow = function() {
+        if (typeof this.owner.onActionTemplateDialogShow === 'function') {
+            this.owner.onActionTemplateDialogShow(this);
+        }
+    };
+
     ActionTemplateDialog.onHide = function() {
+        this.ownerOnHide();
         // Clean only grid bindings of this dialog, not invoker bindings.
         this.owner.cleanBindings(this.bdialog.getModal());
         this._super._call('onHide');
     };
 
+    ActionTemplateDialog.ownerOnHide = function() {
+        if (typeof this.owner.onActionTemplateDialogHide === 'function') {
+            this.owner.onActionTemplateDialogHide(this);
+        }
+    };
+
     ActionTemplateDialog.getActionLabel = function() {
-        return this.owner.getLastActionLocalName();
+        return this.actionLabel;
     };
 
 })(App.ActionTemplateDialog.prototype);
