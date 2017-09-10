@@ -57,16 +57,16 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
 
     def get_form_with_inline_formsets(self, request, create=False):
         # UPDATE mode by default (UPDATE / VIEW).
-        if self.__class__.form is None:
-            return self.__class__.form_with_inline_formsets(request, create=create)
+        if self.form is None:
+            return self.form_with_inline_formsets(request, create=create)
         else:
-            if self.__class__.form_with_inline_formsets is not None:
+            if self.form_with_inline_formsets is not None:
                 raise ValueError('Ambiguous .form and .form_with_inline_formsets class attributes')
             from ..forms import FormWithInlineFormsets
-            return FormWithInlineFormsets(request, form_class=self.__class__.form, create=create)
+            return FormWithInlineFormsets(request, form_class=self.form, create=create)
 
     def get_model(self):
-        return getattr(self.__class__, 'model', None)
+        return getattr(self, 'model', None)
 
     def dispatch(self, request, *args, **kwargs):
         self.ff = self.get_form_with_inline_formsets(request)
