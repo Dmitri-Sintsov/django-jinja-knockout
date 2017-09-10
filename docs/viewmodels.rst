@@ -1,10 +1,17 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
 .. _App.Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Actions&type=&utf8=%E2%9C%93
+.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
+.. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editform&type=&utf8=%E2%9C%93
+.. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.EditForm
+.. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editinline&type=&utf8=%E2%9C%93
+.. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
+.. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/tooltips.js
 
 =================================================
 Client-side viewmodels and AJAX response routing
@@ -208,7 +215,7 @@ code is enough::
 
 .. highlight:: python
 
-``app.js`` will care itself of setting Javascript event handler, performing AJAX request POST and AJAX response routing
+`app.js`_ will care itself of setting Javascript event handler, performing AJAX request POST and AJAX response routing
 will execute viewmodels returned from Django view. If you want to ensure AJAX requests, just set your ``urls.py`` route
 kwargs key ``is_ajax`` to ``True`` (optional step)::
 
@@ -294,7 +301,7 @@ instead::
 Non-AJAX server-side invocation of client-side viewmodels.
 ----------------------------------------------------------
 
-Besides direct client-side invocation of viewmodels via ``app.js`` ``App.viewResponse()`` method, and AJAX POST /
+Besides direct client-side invocation of viewmodels via `app.js`_ ``App.viewResponse()`` method, and AJAX POST /
 AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with
 server-side invocation.
 
@@ -357,14 +364,14 @@ Require viewmodels handlers
 .. highlight:: javascript
 
 Sometimes there are many separate Javascript source files which define different viewmodel handlers. To assure that
-required external source viewmodel handlers are available, ``app.js`` provides ``App.requireViewHandlers()`` method::
+required external source viewmodel handlers are available, `app.js`_ provides ``App.requireViewHandlers()`` method::
 
     App.requireViewHandlers(['field_error', 'carousel_images']);
 
 Nested / conditional execution of client-side viewmodels
 --------------------------------------------------------
 Nesting viewmodels as callbacks is available for automated conditional / event-based viewmodels execution. Example of
-such approach is implementation of ``'confirm'`` viewmodel in ``app.js`` ``App.Dialog.create()``::
+such approach is implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog.create()``::
 
     var cbViewModel = this.dialogOptions.callback;
     this.dialogOptions.callback = function(result) {
@@ -411,18 +418,19 @@ Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel
 `App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
 change it's name; for example grid datatables use ``grid_page`` as viewmodel name.
 
-The actions which have different names are are not processed by ``App.Actions`` directly. Instead, they are routed to
+The viewmodels which have different names are are not processed by ``App.Actions`` directly. Instead, they are routed to
 standard viewmodel handlers, added with ``App.addViewHandler()`` - see `Defining custom viewmodel handlers`_ section.
-Such way standard built-in viewmodels are not ignored, for example server-side exception reporting which is done with
-``alert_error`` action, and AJAX form validation errors with ``form_error`` action.
+Such way standard built-in viewmodel handlers are not ignored. For example server-side exception reporting is done with
+``alert_error`` viewmodel handler (`app.js`_), while AJAX form validation errors with ``form_error`` viewmodel handler
+(`tooltips.js`_).
 
 .. highlight:: python
 
 The difference between handling AJAX viewmodels with ``App.viewHandlers`` (see `Defining custom viewmodel handlers`_)
-and `App.Actions`_ is that later way allows to have different actions to be used by the same viewmodel handler with
-actions routing to class methods.
+and AJAX actions is that the later shares the same viewmodel handler by routing multiple actions to separate methods
+of `App.Actions`_ class or it's descendant.
 
-For example, server-side part of action ``edit_form`` is defined as `ModelFormActionsView`_ method
+For example, server-side part of AJAX action ``edit_form`` is defined as `ModelFormActionsView`_ method
 ``action_edit_form``::
 
     def action_edit_form(self):
@@ -433,25 +441,43 @@ For example, server-side part of action ``edit_form`` is defined as `ModelFormAc
             form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
+This server-side action part generates AJAX html form, but it can be arbitrary AJAX data passed back to client-side as
+one or multiple viewmodels.
+
 .. highlight:: javascript
 
-while client-side part of ``edit_form`` action response is defined as::
+To implement or to override client-side processing of AJAX action response, one should implement custom Javascript
+class, inherited from `App.Actions`_ (or from `App.GridActions`_ in case of custom grid datatables)::
 
-    ModelFormActions.callback_edit_form = function(viewModel) {
-        viewModel.owner = this.grid;
-        var dialog = new App.ModelFormDialog(viewModel);
-        dialog.show();
+    App.MyModelFormActions = function(options) {
+        $.inherit(App.Actions.prototype, this);
+        this.init(options);
     };
 
-Client-side classes also can optionally add queryargs to AJAX HTTP request with ``queryargs_ACTION_NAME`` method::
+Client-side part of ``edit_form`` action response, which receives AJAX viewmodel(s) response is defined as::
+
+    (function(MyModelFormActions) {
+
+        MyModelFormActions.callback_edit_form = function(viewModel) {
+            viewModel.owner = this.grid;
+            var dialog = new App.ModelFormDialog(viewModel);
+            dialog.show();
+        };
+
+        // ... See more sample methods below.
+
+    })(App.MyModelFormActions.prototype);
+
+Client-side `App.Actions`_ descendant classes can optionally add queryargs to AJAX HTTP request with
+``queryargs_ACTION_NAME`` method::
 
     MyFormActions.queryargs_edit_form = function(options) {
-        // Add a custom queryarg:
+        // Add a custom queryarg to AJAX POST:
         options['myArg'] = 1;
     };
 
-Client-side classes also can directly process actions at client-side without calling AJAX viewmodel server-side part
-by defining ``perform_ACTION_NAME`` method::
+Client-side `App.Actions`_ descendant classes can directly process actions without calling AJAX viewmodel server-side
+part (client-only actions) by defining ``perform_ACTION_NAME`` method::
 
     MyFormActions.perform_edit_form = function(queryArgs, ajaxCallback) {
         // this.owner may be instance of App.ko.Grid or another class which implements proper owner interface.
@@ -463,7 +489,8 @@ by defining ``perform_ACTION_NAME`` method::
 
 .. highlight:: jinja
 
-while generated html page should contain template like this::
+For such client-only actions ``App.ActionTemplateDialog`` utilizes underscore.js or knockout.js (when two way binding is
+required) template like this::
 
     <script type="text/template" id="my_form_template">
         <div class="panel panel-default">
@@ -480,4 +507,16 @@ while generated html page should contain template like this::
         </div>
     </script>
 
-For more detailed example of using viewmodel actions routing, see see :doc:`grids` section :ref:`grids_client_side_action_routing`.
+.. highlight:: javascript
+
+Custom grid actions should be inherited from both ``App.GridActions`` and it's base class ``App.Actions``::
+
+    App.MyGridActions = function(options) {
+        $.inherit(App.GridActions.prototype, this);
+        $.inherit(App.Actions.prototype, this);
+        this.init(options);
+    };
+
+For more detailed example of using viewmodel actions routing, see see :doc:`grids` section
+:ref:`grids_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_ and
+by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.

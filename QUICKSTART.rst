@@ -65,6 +65,8 @@ Simplifying AJAX calls
 * ``$(document).ready()`` event handler uses it's own hook system for plugins, to do not interfere with external scripts
   code.
 
+.. _quickstart_underscore_js_templates:
+
 Underscore.js templates
 ~~~~~~~~~~~~~~~~~~~~~~~
 Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction

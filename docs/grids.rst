@@ -320,7 +320,7 @@ class via `App.components`_ class instance `.add()` method to make grid "alive".
   `Grids interaction`_ for more details.
 * Optional ``template_dom_attrs`` argument allows to pass custom values of template ``data-template-id``,
   ``data-template-args``, ``data-template-options`` html attributes used by template processor ``App.Tpl``.
-  See :doc:`quickstart` Underscore.js templates section for more detail on these attributes usage. See also
+  See :ref:`quickstart_underscore_js_templates` for more detail on these attributes usage. See also
   `member_grid_tabs.htm`_ for the example.
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
@@ -1473,11 +1473,7 @@ Here is the example of ``'list'`` action AJAX request queryargs population::
     // ... skipped ...
 
     Grid.listAction = function(callback) {
-        if (typeof callback === 'function') {
-            this.actions.perform('list', {}, callback);
-        } else {
-            this.actions.perform('list', {});
-        }
+        this.actions.perform('list', {}, callback);
     };
 
     // ... skipped ...
