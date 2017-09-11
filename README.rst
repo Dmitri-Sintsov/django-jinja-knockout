@@ -108,7 +108,7 @@ will not work without these scripts.
 Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
 client-side scripts.
 
-Major changes (version 0.5.1)
+Major changes (version 0.6.0)
 -----------------------------
 AJAX actions are rewritten as server-side ``ActionsView`` class and client-side counterpart ``App.Actions``. It is now
 used as foundation for most of AJAX code, including grid datatables and new ``App.EditForm`` / ``App.EditInline``

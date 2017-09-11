@@ -409,7 +409,7 @@ value.
 
 AJAX actions
 ------------
-Since version 0.5.1, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
+Since version 0.6.0, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
 `App.Actions`_ at client-side, which utilize the same viewmodel handler for multiple actions. It allows to better
 structurize AJAX code. `ModelFormActionsView`_ and `KoGridView`_ (see :doc:`grids`) inherit from `ActionsView`_, while
 client-side `App.ModelFormActions`_ and `App.GridActions`_ (see :doc:`grids`) inherit from `App.Actions`_.

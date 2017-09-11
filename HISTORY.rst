@@ -201,7 +201,7 @@ Alternative breadcrumbs layout of field filters widgets.
   model relations in queried field names via ``__`` separator, just like usual Django querysets.
 * Numerous bugfixes.
 
-0.5.1
+0.6.0
 -----
 * ``ActionsView`` with ``App.Actions`` client-side counterpart implements AJAX viewmodels routing to create generic AJAX
   actions / responses. It is now used as base foundation for ``App.ModelFormDialog`` / ``ModelFormActionsView`` and with

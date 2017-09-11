@@ -11,6 +11,7 @@ Quickstart
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _Celery: https://github.com/celery/celery
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
+.. _DisplayText sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_text_method&type=
 .. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
@@ -18,8 +19,10 @@ Quickstart
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
+.. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
+.. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
@@ -677,6 +680,37 @@ widgets.py
   templates like this::
 
     {% jinja 'bs_form.htm' with _render_=1 form=form action=view_action opts=opts %}
+
+  See ``DisplayText`` widget customization of widget html output via ``get_text_method()`` see `DisplayText sample`_.
+
+* ``PrefillWidget`` - Django form input field which supports both free text and quick filling of input text value from
+  the list of prefilled choices. Since version 0.6.0, `ListQuerySet`_ has ``prefill_choices()`` method, which allows to
+  generate choices lsists for ``PrefillWidget`` initial values like this::
+
+    from django_jinja_knockout.widgets import PrefillWidget
+    from django_jinja_knockout.query import ListQuerySet
+
+    # ...
+
+    self.related_members_qs = ListQuerySet(
+        Member.objects.filter(
+            club__id=self.request.view_kwargs.get('club_id', None)
+        )
+    )
+    if self.related_members_qs.count() > 1 and isinstance(form, MemberForm):
+        # Replace standard Django CharField widget to PrefillWidget with incorporated standard field widget:
+        form.fields['note'].widget = PrefillWidget(
+            data_widget=form.fields['note'].widget,
+            choices=self.related_members_qs.prefill_choices('note')
+        )
+        # Replace one more field widget to PrefillWidget:
+        form.fields['name'].widget = PrefillWidget(
+            data_widget=form.fields['name'].widget,
+            choices=self.related_members_qs.prefill_choices('name')
+        )
+
+See ``djk-sample`` project for the sample of `PrefillWidget`_ usage with inline formsets. It is also simpler to use the
+widget in single ModelForm without inline formsets.
 
 utils/mail.py
 -------------

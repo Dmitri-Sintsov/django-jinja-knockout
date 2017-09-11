@@ -1399,7 +1399,7 @@ Client-side action routing
 .. highlight:: javascript
 
 ``App.GridActions`` class defined in `ko_grid.js`_ is used both to invoke grid actions and to process their results.
-Since version 0.5.1, ``App.GridActions`` uses ``App.Actions`` as the base class for client-side viewmodel routing.
+Since version 0.6.0, ``App.GridActions`` uses ``App.Actions`` as the base class for client-side viewmodel routing.
 See :ref:`viewmodels_ajax_actions` for general introduction.
 
 Invocation of action
@@ -3065,7 +3065,7 @@ Knockout.js ``<!-- ko foreach: actionTypes['button_bottom'] -->`` binding is ver
 actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below the grid table,
 not above.
 
-Since version 0.5.1, there is built-in action type ``'button_footer'`` available, which displays grid action buttons
+Since version 0.6.0, there is built-in action type ``'button_footer'`` available, which displays grid action buttons
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
 

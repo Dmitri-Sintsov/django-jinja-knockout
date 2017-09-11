@@ -200,7 +200,7 @@ the current field.
 
 Note that ``get_text_method`` argument will be re-bound from form ``Meta`` class to instance of ``DisplayText`` widget.
 
-Since version 0.5.1 ``DisplayText`` field widget supports selective skipping of table rows rendering via setting
+Since version 0.6.0 ``DisplayText`` field widget supports selective skipping of table rows rendering via setting
 widget instance property ``skip_output`` to ``True``::
 
     # ... skipped imports ...
