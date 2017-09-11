@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Setup ~/.pypirc at https://packaging.python.org/guides/migrating-to-pypi-org/
+# python setup.py sdist
+# pip3 install twine
+# twine upload -r test dist/django-jinja-knockout-0.6.0.tar.gz
 
 import os
 import sys
