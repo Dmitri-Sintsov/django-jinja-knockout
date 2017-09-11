@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Setup ~/.pypirc at https://packaging.python.org/guides/migrating-to-pypi-org/
+
 import os
 import sys
 import pip.download
