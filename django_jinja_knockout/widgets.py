@@ -77,7 +77,8 @@ class PrefillDropdown(Widget):
 class PrefillWidget(Widget):
 
     def __init__(self, data_widget=None, widget_class=Textarea, attrs={}, choices=None, choices_attrs={}):
-        # todo: use templates instead of hardcoding.
+        # todo: Use templates instead of hardcoding.
+        # todo: Support AJAX pulling the list of choices.
         add_css_classes_to_dict(attrs, 'form-control')
         if data_widget is None:
             if widget_class is Textarea:

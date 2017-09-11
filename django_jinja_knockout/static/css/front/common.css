@@ -210,8 +210,8 @@ form label.required:after {
 	content: "\e162";
 }
 
-form .form-optional,
-form .form-empty {
+form .form-optional .panel .panel-heading,
+form .form-empty .panel .panel-heading {
 	opacity: 0.8;
 }
 
