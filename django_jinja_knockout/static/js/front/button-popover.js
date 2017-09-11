@@ -186,7 +186,14 @@ App.ButtonPopover = function(popoverOptions) {
     };
 
     ButtonPopover.createPopoverContent = function() {
-        return $.contents('<button class="button btn btn-default btn-sm">' + this.getMessage() + '</button>');
+        var message = this.getMessage();
+        var $result = $('<button class="button btn btn-default btn-sm">');
+        if (message instanceof jQuery) {
+            $result.append(message);
+        } else {
+            $result.text(message);
+        }
+        return $result;
     };
 
     ButtonPopover.clickPopoverButton = function(ev) {
