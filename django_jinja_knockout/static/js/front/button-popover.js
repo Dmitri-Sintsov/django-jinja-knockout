@@ -105,8 +105,19 @@ App.ClosablePopover = function(target, popoverOptions) {
         return (typeof this.message === 'undefined') ? 'Sample message' : this.message;
     };
 
+    ClosablePopover.getContentWrapper = function() {
+        return $('<div class="alert alert-warning preformatted">');
+    };
+
     ClosablePopover.createPopoverContent = function() {
-        return $.contents('<div class="alert alert-warning preformatted">' + this.getMessage() + '</div>');
+        var message = this.getMessage();
+        var $result = this.getContentWrapper();
+        if (message instanceof jQuery) {
+            $result.append(message);
+        } else {
+            $result.text(message);
+        }
+        return $result;
     };
 
     ClosablePopover.mouseEnterTarget = function(ev) {
@@ -185,15 +196,8 @@ App.ButtonPopover = function(popoverOptions) {
         this._super._call('destroy');
     };
 
-    ButtonPopover.createPopoverContent = function() {
-        var message = this.getMessage();
-        var $result = $('<button class="button btn btn-default btn-sm">');
-        if (message instanceof jQuery) {
-            $result.append(message);
-        } else {
-            $result.text(message);
-        }
-        return $result;
+    ButtonPopover.getContentWrapper = function() {
+        return $('<button class="button btn btn-default btn-sm">');
     };
 
     ButtonPopover.clickPopoverButton = function(ev) {
