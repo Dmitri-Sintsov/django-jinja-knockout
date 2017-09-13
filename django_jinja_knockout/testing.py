@@ -519,7 +519,7 @@ class DjkTestCase(StaticLiveServerTestCase):
     reset_sequences = True
     WAIT_SECONDS = 5
     dump_data_re = re.compile(r'^(\d)+_(.*)\.json')
-    DEFAULT_WEBDRIVER = 'selenium.webdriver.firefox.webdriver'
+    DEFAULT_WEBDRIVER = 'selenium.webdriver.chrome.webdriver'
 
     @classmethod
     def setUpClass(cls):
