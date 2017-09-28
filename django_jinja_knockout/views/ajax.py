@@ -95,6 +95,9 @@ class ActionsView(ViewmodelView, GetPostMixin):
             ])
         }
 
+    def get_default_action_name(self):
+        return self.default_action_name
+
     def get_current_action_name(self):
         return self.kwargs.get(self.action_kwarg, '').strip('/')
 
@@ -173,7 +176,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         self.kwargs = kwargs
         self.current_action_name = self.get_current_action_name()
         if self.current_action_name == '':
-            self.current_action_name = self.default_action_name
+            self.current_action_name = self.get_default_action_name()
         current_action = self.get_action(self.current_action_name)
         if current_action is None:
             handler = self.action_not_implemented
@@ -204,6 +207,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     form = None
     formset = None
     form_with_inline_formsets = None
+
+    def get_default_action_name(self):
+        return 'edit_inline' if self.form is None else 'edit_form'
 
     def dispatch(self, request, *args, **kwargs):
         if self.model is None:

@@ -700,6 +700,9 @@ App.viewHandlers = {
     'confirm' : function(viewModel) {
         new App.Dialog(viewModel).confirm();
     },
+    'trigger': function(viewModel) {
+        $(viewModel.selector).trigger(viewModel.event);
+    },
     'append': function(response) {
         $(response.selector).append(response.html);
     },
