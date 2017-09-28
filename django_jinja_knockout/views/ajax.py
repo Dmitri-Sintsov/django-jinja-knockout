@@ -393,6 +393,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_form_kwargs(self, form_class):
         return {}
 
+    def get_action_query(self, obj):
+        return {'pk_val': obj.pk}
+
     def action_create_form(self):
         form_class = self.get_create_form()
         form = form_class(**self.get_form_kwargs(form_class))
@@ -403,7 +406,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         form_class = self.get_edit_form()
         form = form_class(instance=obj, **self.get_form_kwargs(form_class))
         return self.vm_form(
-            form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+            form, verbose_name=self.render_object_desc(obj), action_query=self.get_action_query(obj)
         )
 
     def get_form_with_inline_formsets_kwargs(self, ff_class):
@@ -421,7 +424,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get(instance=obj)
         return self.vm_inline(
-            ff, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
+            ff, verbose_name=self.render_object_desc(obj), action_query=self.get_action_query(obj)
         )
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
