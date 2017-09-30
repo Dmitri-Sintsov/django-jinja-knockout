@@ -70,7 +70,7 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 
 class ContextMiddlewareCompat:
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
 
     def is_authenticated(self):
@@ -81,13 +81,13 @@ class ContextMiddlewareCompat:
         return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
 
 
-class ContextMiddleware(ContextMiddlewareCompat, MiddlewareMixin):
+class ContextMiddleware(MiddlewareMixin, ContextMiddlewareCompat):
 
     _threadmap = {}
     _mock_request = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.view_func = None
         self.view_args = None
         self.view_kwargs = None

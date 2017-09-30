@@ -314,7 +314,8 @@ def get_formatted_url(url_name):
     except NoReverseMatch as e:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)
-        for matches, pat, defaults in urlresolver.reverse_dict.getlist(url_name):
+        for url_def in urlresolver.reverse_dict.getlist(url_name):
+            matches = url_def[0]
             for sprintf_url, named_parameters in matches:
                 return '{}{}'.format(get_script_prefix(), sprintf_url)
         raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
