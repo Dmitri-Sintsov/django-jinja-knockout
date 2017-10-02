@@ -1,7 +1,7 @@
 # from pudb import set_trace
 from .tpl import to_json
 
-# dict manipulation functions are used on HttpRequest.client_data or HttpRequest.session.
+# dict manipulation functions are used with HttpRequest.client_data or with HttpRequest.session.
 
 KEY = 'onloadViewModels'
 

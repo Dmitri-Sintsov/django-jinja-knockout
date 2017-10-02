@@ -401,8 +401,13 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         form = form_class(**self.get_form_kwargs(form_class))
         return self.vm_form(form)
 
-    def action_edit_form(self):
-        obj = self.get_object_for_action()
+    def action_edit_form(self, obj=None):
+        """
+        :param obj: None when called from .post(), use to override when calling super().action_edit_form(obj)
+        :return: vm_list
+        """
+        if obj is None:
+            obj = self.get_object_for_action()
         form_class = self.get_edit_form()
         form = form_class(instance=obj, **self.get_form_kwargs(form_class))
         return self.vm_form(
@@ -418,8 +423,13 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         ff.get()
         return self.vm_inline(ff)
 
-    def action_edit_inline(self):
-        obj = self.get_object_for_action()
+    def action_edit_inline(self, obj=None):
+        """
+        :param obj: None when called from .post(), use to override when calling super().action_edit_inline(obj)
+        :return: vm_list
+        """
+        if obj is None:
+            obj = self.get_object_for_action()
         ff_class = self.get_edit_form_with_inline_formsets()
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get(instance=obj)
