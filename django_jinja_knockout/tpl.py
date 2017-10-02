@@ -314,6 +314,7 @@ def get_formatted_url(url_name):
     except NoReverseMatch as e:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)
+        # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
         for url_def in urlresolver.reverse_dict.getlist(url_name):
             matches = url_def[0]
             for sprintf_url, named_parameters in matches:
