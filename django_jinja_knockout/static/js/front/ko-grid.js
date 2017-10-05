@@ -2507,11 +2507,14 @@ App.GridDialog = function(options) {
     };
 
     GridDialog.iocGrid = function(options) {
-        options = $.extend(
+        var options = $.extend(
             this.filterOptions,
             options
         );
-        if (typeof this.dialogOptions.iocGrid === 'function') {
+        if (typeof options.classPath === 'string') {
+            var gridClass = App.getClassFromPath(options.classPath);
+            return new gridClass(options);
+        } else if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(options);
         } else if (typeof this.dialogOptions.iocGrid === 'string') {
             var gridClass = App.getClassFromPath(this.dialogOptions.iocGrid);
