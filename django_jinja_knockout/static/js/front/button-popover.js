@@ -48,8 +48,18 @@ App.ClosablePopover = function(target, popoverOptions) {
         };
         self.$target.popover(popoverOptions);
         self.$target
+        .on('shown.bs.popover', function() {
+            var id = $(this).attr('aria-describedby');
+            self.popoverContent = $.id(id);
+            self.popoverContent.on('mouseleave', self.popoverLeave.bind(self));
+        })
         .on('mouseenter', self.onMouseEnter)
         .on('click', self.onClick);
+    };
+
+    ClosablePopover.popoverLeave = function() {
+        this.$target.popover('hide');
+        this.popoverContent.off('mouseleave', this.popoverLeave);
     };
 
     ClosablePopover.destroy = function() {
@@ -68,6 +78,7 @@ App.ClosablePopover = function(target, popoverOptions) {
             trigger: 'manual',
             placement: 'bottom',
             html: 'true',
+            container: 'body',
         };
     };
 
