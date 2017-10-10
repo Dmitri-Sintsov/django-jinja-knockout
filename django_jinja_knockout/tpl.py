@@ -182,7 +182,7 @@ def print_list_group(row, cb=escape, show_keys=None, i18n={}):
     return mark_safe(
         PrintList(
             elem_tpl='<li{v_attrs}>{v}</li>\n',
-            key_tpl='<ul class="list-group"><div{k_attrs}>{k}</div><div{v_attrs}>{v}</div></ul>\n',
+            key_tpl='<li{k_attrs}>{k}</li><li{v_attrs}>{v}</li>\n',
             top_tpl='<ul class="list-group">{}</ul>\n',
             tpl_kwargs={'v_attrs': {'class': 'list-group-item'}, 'k_attrs': {'class': 'list-group-item'}},
             cb=cb,
