@@ -204,3 +204,34 @@ App.FieldTooltip = function(options) {
     };
 
 }) (App.FieldTooltip.prototype);
+
+
+/**
+ * @note: has optional support for viewModel.instance.destroy()
+ * @todo: destroy tooltip errors only for the form specified
+ */
+App.destroyTooltipErrors = function(form) {
+    App.executedViewModels = _.filter(
+        App.executedViewModels,
+        function(viewModel) {
+            if (viewModel.view === 'tooltip_error' &&
+                    typeof viewModel.instance !== 'undefined') {
+                viewModel.instance.destroy();
+                return false;
+            }
+            return true;
+        }
+    );
+};
+
+
+(function(AjaxForm) {
+
+    var superBeforeSubmit = AjaxForm.beforeSubmit;
+
+    AjaxForm.beforeSubmit = function($form) {
+        App.destroyTooltipErrors($form);
+        superBeforeSubmit($form);
+    }
+
+})(App.AjaxForm.prototype);

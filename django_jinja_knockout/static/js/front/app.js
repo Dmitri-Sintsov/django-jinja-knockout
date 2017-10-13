@@ -790,8 +790,8 @@ App.addViewHandler = function(viewname, fn) {
     }
 };
 
-App.execViewHandler = function(viewModel, bindContext) {
-    var handler = App.viewHandlers[viewModel.view];
+App.execViewHandler = function(viewModel, viewName, bindContext) {
+    var handler = App.viewHandlers[viewName];
     if (typeof handler === 'function') {
         handler(viewModel, bindContext);
     } else if (_.isArray(handler)) {
@@ -801,8 +801,8 @@ App.execViewHandler = function(viewModel, bindContext) {
     } else {
         throw sprintf(
             "Invalid previous value of viewhandler '%s': %s",
-            viewname,
-            JSON.stringify(App.viewHandlers[viewname])
+            viewName,
+            JSON.stringify(App.viewHandlers[viewName])
         );
     }
 };
@@ -825,7 +825,7 @@ App.showView = function(viewModel, bindContext) {
     }
     var hasView;
     if (hasView = (typeof App.viewHandlers[viewModel.view] !== 'undefined')) {
-        App.execViewHandler(viewModel, bindContext);
+        App.execViewHandler(viewModel, viewModel.view, bindContext);
     }
     return hasView;
 };
@@ -956,24 +956,6 @@ App.clearInputs = function(parent) {
     .autogrow('update')
     .collapsibleSubmit('update');
     $parent.find('.select2-container').remove();
-};
-
-/**
- * @note: has optional support for viewModel.instance.destroy()
- * @todo: destroy tooltip errors only for the form specified
- */
-App.destroyTooltipErrors = function(form) {
-    App.executedViewModels = _.filter(
-        App.executedViewModels,
-        function(viewModel) {
-            if (viewModel.view === 'tooltip_error' &&
-                    typeof viewModel.instance !== 'undefined') {
-                viewModel.instance.destroy();
-                return false;
-            }
-            return true;
-        }
-    );
 };
 
 App.showAjaxError = function(jqXHR, exception) {
@@ -1280,6 +1262,10 @@ App.AjaxForm = function($selector) {
         return true;
     };
 
+    AjaxForm.beforeSubmit = function($form) {
+        App.disableInputs($form);
+    };
+
     // @call static
     AjaxForm.submit = function($form, $btn, callbacks) {
         if (typeof App.conf.fileMaxSize !== 'undefined' &&
@@ -1319,8 +1305,7 @@ App.AjaxForm = function($selector) {
             },
             dataType: 'json',
             beforeSubmit: function() {
-                App.destroyTooltipErrors($form);
-                App.disableInputs($form);
+                AjaxForm.beforeSubmit($form);
             },
             error: function(jqXHR, exception) {
                 always();
