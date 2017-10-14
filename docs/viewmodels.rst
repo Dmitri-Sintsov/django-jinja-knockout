@@ -40,7 +40,11 @@ Viewmodels are defined as an array of simple objects in Javascript::
             'message': 'After the registration our manager will contact <b>you</b> to validate your personal data.',
             'callback': [{
                 'view': 'redirect_to',
-                'url': '/homepage'
+                'url': '/homepage/'
+            }],
+            'cb_cancel': [{
+                'view': 'redirect_to',
+                'url': '/logout/'
             }]
         }
     ];
@@ -64,7 +68,11 @@ and as the special list (`vm_list`_) of ordinary dicts in Python::
             'message': 'After the registration our manager will contact <b>you</b> to validate your personal data.',
             'callback': vm_list({
                 'view': 'redirect_to',
-                'url': '/homepage'
+                'url': '/homepage/'
+            }),
+            'cb_cancel': vm_list({
+                'view': 'redirect_to',
+                'url': '/logout/'
             })
         }
     )
@@ -72,11 +80,12 @@ and as the special list (`vm_list`_) of ordinary dicts in Python::
 When executed, each viewmodel object (dict) from the ``viewmodels`` variable defined above, will be used as the function
 argument of their particular handler:
 
-* ``'view': 'prepend'``: executes ``jQuery.prepend(viewmodel.html)`` function on specified selector ``#infobar``;
+* ``'view': 'prepend'``: executes ``jQuery.prepend(viewmodel.html)`` function for specified selector ``#infobar``;
 * ``'view': 'confirm'``: shows ``BootstrapDialog`` confirmation window with specified ``title`` and ``message``;
-* ``'callback' : [{'view': 'redirect_to'}]`` In case ``Ok`` button of ``BootstrapDialog`` will be pressed by end-user,
-  nested ``callback`` list of client-side viewmodels will be executed, which defines just one command: ``redirect_to``
-  with the specified url ``/homepage``. In case user cancels confirmation dialog, no extra viewmodels will be executed.
+* ``'callback'``: when ``Ok`` button of ``BootstrapDialog`` will be pressed by end-user, nested ``callback`` list of
+  client-side viewmodels will be executed, which defines just one command: ``redirect_to`` with the specified url
+  ``/homepage/``;
+* ``'cb_cancel``: when user cancels confirmation dialog, redirect to ``/logout/`` url will be performed.
 
 .. highlight:: javascript
 
@@ -343,8 +352,8 @@ server-side invocation.
 
 Client-side viewmodels can be injected into generated HTML page and then executed when page DOM is loaded. It's
 useful to prepare page / form templates which may require automated Javascript code applying, or to display
-BootstrapDialog alerts / confirmations when the page is just loaded. For example you can override class-based view
-``get()`` method like this::
+BootstrapDialog alerts / confirmations when the page is just loaded. For example to display confirmation dialog when the
+page is loaded, you can override class-based view ``get()`` method like this::
 
     def get(self, request, *args, **kwargs):
         load_vm_list = onload_vm_list(request.client_data)
@@ -361,7 +370,8 @@ BootstrapDialog alerts / confirmations when the page is just loaded. For example
 
 The second way of server-side invocation is similar to just explained one, but it stores client-side viewmodels in
 current user session, making them persistent across requests. This allows to set initial page viewmodels during POST
-or during redirect to another page (for example after login redirect) then display required viewmodels::
+or during redirect to another page (for example after login redirect) then display required viewmodels in the next
+request::
 
     def set_session_viewmodels(request):
         last_message = Message.objects.last()
@@ -380,18 +390,18 @@ or during redirect to another page (for example after login redirect) then displ
             # Remove already existing 'initial_views' viewmodel, otherwise they will accumulate.
             # Normally it should not happen, but it's better to be careful.
             session_vm_list.pop(idx)
-        if len(view_model.keys()) > 1:
+        if len(view_model) > 1:
             session_vm_list.append(view_model)
 
-To inject client-side viewmodels on page DOM load just once::
+To inject client-side viewmodel when page DOM loads just once::
 
     load_vm_list = onload_vm_list(request.client_data)
-    load_vm_list.append({...})
+    load_vm_list.append({'view': 'my_view'})
 
-To inject client-side viewmodels on page DOM load persistently in user session::
+To inject client-side viewmodel when page DOM loads persistently in user session::
 
     session_vm_list = onload_vm_list(request.session)
-    session_vm_list.append({...})
+    session_vm_list.append({'view': 'my_view'})
 
 Require viewmodels handlers
 ---------------------------
@@ -405,22 +415,26 @@ required external source viewmodel handlers are available, `app.js`_ provides ``
 Nested / conditional execution of client-side viewmodels
 --------------------------------------------------------
 Nesting viewmodels as callbacks is available for automated conditional / event-based viewmodels execution. Example of
-such approach is implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog.create()``::
+such approach is the implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog.create()``::
 
     var cbViewModel = this.dialogOptions.callback;
     this.dialogOptions.callback = function(result) {
+        // @note: Do not use alert view as callback, it will cause stack overflow.
         if (result) {
             App.viewResponse(cbViewModel);
+        } else if (typeof self.dialogOptions.cb_cancel === 'object') {
+            App.viewResponse(self.dialogOptions.cb_cancel);
         }
-    }
+    };
 
 Asynchronous execution of client-side viewmodels
 ------------------------------------------------
 
-There is one drawback of the lists of viewmodels: these are not asynchronous and do not support promises by default.
-In some more complex arbitrary cases (for example one need to wait some DOM loaded first, then executing viewmodels),
-one may "save" viewmodels received from AJAX response, then "restore" (execute) these in required DOM event / promise
-handler, ``App.saveResponse()`` saves received viewmodels::
+There is one drawback of `vm_list`_: it is execution is synchronous and does not support promises by default. In some
+complex arbitrary cases (for example one need to wait some DOM loaded first, then execute viewmodels), one may "save"
+viewmodels received from AJAX response, then "restore" (execute) these later in another DOM event / promise handler.
+
+``App.saveResponse()`` saves received viewmodels::
 
     App.addViewHandler('popup_modal_error', function(viewModel) {
         // Save received response to execute it in the 'shown.bs.modal' event handler (see just below).
@@ -429,15 +443,16 @@ handler, ``App.saveResponse()`` saves received viewmodels::
         $popupModal.modal('show');
     });
 
+``App.loadResponse()`` executes viewmodels previously saved with ``App.saveResponse()`` call::
+
     // Open modal popup.
     $popupModal.on('shown.bs.modal', function (ev) {
         // Execute viewmodels received in 'dialog_tooltip_error' viewmodel handler.
         App.loadResponse('popupModal');
     });
 
-``App.loadResponse()`` executes previously saved viewmodels. Multiple save points might be set by calling
-``App.saveResponse()``, then restored and executed by calling ``App.loadResponse()`` with different ``name`` argument
-value.
+Multiple save points might be set by calling ``App.saveResponse()``with the particular ``name`` argument value, then
+calling ``App.loadResponse()`` with the same ``name`` argument value.
 
 .. _viewmodels_ajax_actions:
 

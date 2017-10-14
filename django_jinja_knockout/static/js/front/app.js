@@ -363,7 +363,7 @@ App.Dialog = function(options) {
                 } else if (typeof self.dialogOptions.cb_cancel === 'object') {
                     App.viewResponse(self.dialogOptions.cb_cancel);
                 }
-            }
+            };
             break;
         case 'function':
             // Function callback.
