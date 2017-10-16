@@ -24,6 +24,7 @@ except ImportError:
 
 from .utils.sdv import iter_enumerate, nested_update, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
+from .models import model_fields_verbose_names
 from .admin import empty_value_display
 
 
@@ -373,6 +374,7 @@ class ModelLinker:
     # Use Str instance to add .html or .text attribute value to Model.get_absoulte_url() result.
     def __init__(self, obj):
         self.obj = obj
+        self.str_fields = self.obj.get_str_fields() if hasattr(self.obj, 'get_str_fields') else None
         if hasattr(self.obj, 'get_absolute_url') and callable(self.obj.get_absolute_url):
             self.url = self.obj.get_absolute_url()
             self.desc = mark_safe(self.url.html) if hasattr(self.url, 'html') else getattr(self.url, 'text', None)
@@ -380,12 +382,24 @@ class ModelLinker:
             self.url = None
             self.desc = None
         if self.desc is None:
-            if hasattr(self.obj, 'get_str_fields'):
+            if self.str_fields is not None:
                 # todo: use models.model_fields_verbose_names() to optionally populate verbose (localized) list keys.
-                self.desc = print_list_group(self.obj.get_str_fields())
+                self.desc = print_list_group(self.str_fields)
             else:
                 if self.obj is not None:
                     self.desc = str(self.obj)
+
+    def get_nested_data(self):
+        nested_data = {}
+        if self.url is not None:
+            nested_data['_url'] = self.url
+        if self.str_fields is not None:
+            nested_data['_strFields'] = self.str_fields
+            nested_data['_options'] = {
+                'showKeys': True,
+                'i18n': model_fields_verbose_names(self.obj)
+            }
+        return nested_data
 
     def __html__(self, template=None):
         if self.url is not None:
