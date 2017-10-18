@@ -667,6 +667,7 @@ App.getSelector = function(selector) {
         $(selector);
 };
 
+// https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 App.viewHandlers = {
     'redirect_to' : function(viewModel) {
         var href = viewModel.url;
@@ -704,19 +705,29 @@ App.viewHandlers = {
         $(viewModel.selector).trigger(viewModel.event);
     },
     'append': function(response) {
-        $(response.selector).append(response.html);
+        var $html = $.contents(response.html);
+        App.initClient($html);
+        $(response.selector).append($html);
     },
     'prepend': function(response) {
-        $(response.selector).prepend(response.html);
+        var $html = $.contents(response.html);
+        App.initClient($html);
+        $(response.selector).prepend($html);
     },
     'after': function(response) {
-        $(response.selector).after(response.html);
+        var $html = $.contents(response.html);
+        App.initClient($html);
+        $(response.selector).after($html);
     },
     'before': function(response) {
-        $(response.selector).before(response.html);
+        var $html = $.contents(response.html);
+        App.initClient($html);
+        $(response.selector).before($html);
     },
     'remove': function(response) {
-        $(response.selector).remove();
+        var $selector = $(response.selector);
+        App.initClient($selector, 'dispose');
+        $selector.remove();
     },
     'html': function(response) {
         var $selector = $(response.selector);
@@ -1854,7 +1865,7 @@ ko.from_virtual = function(element) {
 };
 
 /**
- * Subscribe / unsubscribe observables for Knockout.js easily.
+ * Subscribe / unsubscribe observables for Knockout.js in easy way.
  * Binds subscriptions to instanse method with prefix 'on*' by default.
  */
 ko.switchSubscription = function(self, propName, turnOn, method) {
