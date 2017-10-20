@@ -39,7 +39,7 @@ class SendmailQueue:
             return getattr(self, '_' + name)
 
     def _add(self, **kwargs):
-        if 'html_body' in kwargs:
+        if kwargs.get('html_body', None) is not None:
             html_body = kwargs.pop('html_body')
         else:
             html_body = linebreaks(linkify(kwargs['body']))
@@ -128,29 +128,3 @@ class SendmailQueue:
         EmailQueueIoc(EmailQueue)
 """
 EmailQueue = SendmailQueue()
-
-
-# https://vilimpoc.org/blog/2013/07/18/detailed-error-emails-for-django-in-production-mode/
-# In your project AppConfig.ready() method use the following boilerplate code:
-def uncaught_exception_email(self, request, resolver, exc_info):
-    """
-    # Save uncaught exception handler.
-    BaseHandler.original_handle_uncaught_exception = BaseHandler.handle_uncaught_exception
-    # Override uncaught exception handler.
-    BaseHandler.handle_uncaught_exception = uncaught_exception_email
-    BaseHandler.developers_emails = ['your-admin-account@gmail.com']
-    BaseHandler.uncaught_exception_subject = 'Django exception stack trace at your-hostname.net'
-    """
-    from django.conf import settings
-    from django.views.debug import ExceptionReporter
-
-    if settings.DEBUG is False:
-        reporter = ExceptionReporter(request, *exc_info)
-        SendmailQueue()._add(
-            subject=getattr(self, 'uncaught_exception_subject', 'Django exception stack trace'),
-            body=reporter.get_traceback_text(),
-            html_body=reporter.get_traceback_html(),
-            to=self.developers_emails
-        )._flush()
-
-    return self.original_handle_uncaught_exception(request, resolver, exc_info)
