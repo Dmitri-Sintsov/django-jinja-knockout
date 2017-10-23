@@ -29,7 +29,8 @@ from .admin import empty_value_display
 
 
 def limitstr(value, maxlen=50, suffix='...'):
-    return '{0}{1}'.format(value[:maxlen - len(suffix)], suffix) if len(value) > maxlen else value
+    s = str(value)
+    return '{0}{1}'.format(s[:maxlen - len(suffix)], suffix) if len(s) > maxlen else s
 
 
 # Insert separator to s between each specified left to right.

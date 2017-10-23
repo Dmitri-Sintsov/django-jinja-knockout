@@ -42,3 +42,6 @@
 {% endfor -%}
 </div>
 {% endmacro -%}
+{% if _render_ -%}
+    {{ bs_tabs(tabs) }}
+{% endif -%}

@@ -1,11 +1,21 @@
-{%- macro bs_navs(navs) -%}
+{%- macro bs_navs(navs=[]) -%}
 <ul class="nav nav-tabs">
-    {% for nav in navs -%}
-    <li {{ flatatt(nav.atts) }}><a href="{{ nav.url }}">{{ nav.text }}</a></li>
-    {% endfor -%}
+{% for nav in navs -%}
+    {% set li_atts = {} -%}
+    {% if nav.atts is defined -%}
+        {% do li_atts.update(nav.atts) -%}
+    {% endif -%}
+    {% if nav.tooltip -%}
+        {% do li_atts.update({
+            'data-toggle': 'tooltip',
+            'data-placement': 'bottom',
+            'title': nav.tooltip
+        }) -%}
+    {% endif -%}
+    <li {{ tpl.json_flatatt(li_atts) }}><a href="{{ nav.url }}">{{ nav.text }}</a></li>
+{% endfor -%}
 </ul>
 {% endmacro -%}
 {% if _render_ -%}
     {{ bs_navs(navs) }}
 {% endif -%}
-

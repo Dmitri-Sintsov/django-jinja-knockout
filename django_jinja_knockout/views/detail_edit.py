@@ -23,6 +23,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     form = None
 
     ajax_refresh = False
+    inline_template = 'bs_inline_formsets.htm'
 
     # Related form with inline formsets or inline formsets without related form.
     # Required to define ONLY when form_with_inline_formsets has FormClass = None
@@ -91,12 +92,23 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     def get_alert_message(self):
         return get_object_description(self.ff.instance)
 
-    def get_alert_verbose_field_names(self):
+    def get_alert_i18n(self):
         return model_fields_verbose_names(self.ff.instance)
+
+    def get_alert_success_viewmodels(self):
+        return vm_list({
+            'view': 'alert',
+            'title': self.get_alert_title(),
+            'message': self.get_alert_message(),
+            'nestedListOptions': {
+                'showKeys': True,
+                'i18n': self.get_alert_i18n(),
+            }
+        })
 
     def get_success_viewmodels(self):
         if self.ajax_refresh:
-            t = tpl_loader.get_template('bs_inline_formsets.htm')
+            t = tpl_loader.get_template(self.inline_template)
             # Build the separate form with formset for GET because create=False version could have different forms
             # comparing to self.ff POST in create=True mode (combined create / update with different forms).
             ff = self.get_form_with_inline_formsets(self.request)
@@ -113,17 +125,11 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
                     'view': 'replaceWith',
                     'selector': self.get_ajax_refresh_selector(),
                     'html': ff_html,
-                },
-                {
-                    'view': 'alert',
-                    'title': self.get_alert_title(),
-                    'message': self.get_alert_message(),
-                    'nestedListOptions': {
-                        'showKeys': True,
-                        'i18n': self.get_alert_verbose_field_names(),
-                    }
                 }
             )
+            alert_vms = self.get_alert_success_viewmodels()
+            if isinstance(alert_vms, list):
+                vms.extend(alert_vms)
             return vms
         else:
             # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
