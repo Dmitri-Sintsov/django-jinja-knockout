@@ -56,6 +56,7 @@ App.ko.GridColumnOrder = function(options) {
         this.order = ko.observable(options.order);
         this.isSortedColumn = ko.observable(options.isSorted);
         this.orderCss = ko.computed(this.getOrderCss, this);
+        this.lastColumnCss = {};
         this.columnCss = ko.computed(this.getColumnCss, this);
     };
 
@@ -68,13 +69,16 @@ App.ko.GridColumnOrder = function(options) {
     };
 
     GridColumnOrder.getColumnCss = function() {
-        var css = {};
-        if (this.ownerGrid.highlightMode() === 1) {
+        this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
+            return false;
+        });
+        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
+        if (highlightModeRule.direction === 1) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridColumns().indexOf(this);
-            css = $.extend(this.ownerGrid.getCycleCss(index), css);
+            this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
         }
-        return css;
+        return this.lastColumnCss;
     };
 
     GridColumnOrder.setSwitchElement = function($element) {
@@ -746,16 +750,20 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.getRowCss = function() {
-        var css = {
+        this.lastRowCss = _.mapObject(this.lastRowCss, function() {
+            return false;
+        });
+        this.lastRowCss = $.extend(this.lastRowCss, {
             'grid-new-row': this.isUpdated(),
-            'pointer': this.ownerGrid.actionTypes['click']().length > 0
-        };
-        if (this.ownerGrid.highlightMode() === 2) {
+            'pointer': this.ownerGrid.actionTypes['click']().length > 0,
+        });
+        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
+        if (highlightModeRule.direction === 2) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridRows().indexOf(this);
-            css = $.extend(this.ownerGrid.getCycleCss(index), css);
+            this.lastRowCss = $.extend(this.lastRowCss, this.ownerGrid.getCycleCss(index));
         }
-        return css;
+        return this.lastRowCss;
     };
 
     GridRow.init = function(options) {
@@ -770,6 +778,7 @@ App.ko.GridRow = function(options) {
         this.isUpdated = ko.observable(
             (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
         );
+        this.lastRowCss = {};
         this.rowCss = ko.computed(this.getRowCss, this);
         this.isSelectedRow.subscribe(function(newValue) {
             if (newValue) {
@@ -1254,13 +1263,37 @@ App.ko.Grid = function(options) {
             // Overrides this.meta.orderBy value when not null.
             defaultOrderBy: null,
             fkGridOptions: {},
-            // Currently available modes:
+            highlightMode: 'cycleRows',
+            // Currently available highlight directions:
             //   0 - do not highlight,
             //   1 - highlight columns,
             //   2 - highlight rows,
-            highlightMode: 2,
-            highlightCycler: ['success', 'info', 'warning'],
-            // highlightCycler: ['linear-white'],
+            highlightModeRules: [
+                {
+                    'none': {
+                        direction: 0,
+                        cycler: [],
+                    }
+                },
+                {
+                    'cycleColumns': {
+                        direction: 1,
+                        cycler: ['success', 'info', 'warning'],
+                    },
+                },
+                {
+                    'cycleRows': {
+                        direction: 2,
+                        cycler: ['success', 'info', 'warning'],
+                    },
+                },
+                {
+                    'linearRows': {
+                        direction: 2,
+                        cycler: ['linear-white'],
+                    }
+                },
+            ],
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
@@ -1334,16 +1367,30 @@ App.ko.Grid = function(options) {
 
     };
 
+    Grid.getHighlightModeRule = function() {
+        var currMode = this.highlightMode();
+        for (var i = 0; i < this.options.highlightModeRules.length; i++) {
+            var ruleDef = this.options.highlightModeRules[i];
+            if (typeof ruleDef[currMode] !== 'undefined') {
+                return ruleDef[currMode];
+            }
+        }
+        return {
+            direction: 0,
+            cycler: [],
+        }
+    };
+
     Grid.isSortedField = function(field) {
         return typeof this.sortOrders[field] !== 'undefined';
     };
 
     Grid.getCycleCss = function(seqIdx) {
         var css = {};
-        var cycLen = this.options.highlightCycler.length;
+        var cycler = this.getHighlightModeRule().cycler;
         if (seqIdx >= 0) {
-            for (var i = 0; i < cycLen; i++) {
-                css[this.options.highlightCycler[i]] = ((seqIdx % cycLen) === i);
+            for (var i = 0; i < cycler.length; i++) {
+                css[cycler[i]] = ((seqIdx % cycler.length) === i);
             }
         }
         return css;

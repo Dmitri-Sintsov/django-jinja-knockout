@@ -1839,6 +1839,21 @@ $(document)
     App.initClient($row);
 });
 
+
+// https://github.com/knockout/knockout/issues/1019
+ko.forcibleComputed = function(readFunc, context, options) {
+    var trigger = ko.observable().extend({notify: 'always'}),
+        target = ko.computed(function() {
+            trigger();
+            return readFunc.call(context);
+        }, null, options);
+    target.evaluateImmediate = function() {
+        trigger.valueHasMutated();
+    };
+    return target;
+};
+
+
 ko.utils.setProps = function(src, dst) {
     $.each(src, function(k, v) {
         if (typeof dst[k] === 'function') {
