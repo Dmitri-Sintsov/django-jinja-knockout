@@ -72,10 +72,7 @@ App.ko.GridColumnOrder = function(options) {
         if (this.ownerGrid.highlightMode() === 1) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridColumns().indexOf(this);
-            css = $.extend({
-                'success': !(index & 1),
-                'info': index & 1
-            }, css);
+            css = $.extend(this.ownerGrid.getCycleCss(index), css);
         }
         return css;
     };
@@ -756,10 +753,7 @@ App.ko.GridRow = function(options) {
         if (this.ownerGrid.highlightMode() === 2) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridRows().indexOf(this);
-            css = $.extend({
-                'success': !(index & 1),
-                'info': index & 1
-            }, css);
+            css = $.extend(this.ownerGrid.getCycleCss(index), css);
         }
         return css;
     };
@@ -1263,8 +1257,10 @@ App.ko.Grid = function(options) {
             // Currently available modes:
             //   0 - do not highlight,
             //   1 - highlight columns,
-            //   2 - highlight rows.
+            //   2 - highlight rows,
             highlightMode: 2,
+            highlightCycler: ['success', 'info', 'warning'],
+            // highlightCycler: ['linear-white'],
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
@@ -1341,6 +1337,17 @@ App.ko.Grid = function(options) {
     Grid.isSortedField = function(field) {
         return typeof this.sortOrders[field] !== 'undefined';
     };
+
+    Grid.getCycleCss = function(seqIdx) {
+        var css = {};
+        var cycLen = this.options.highlightCycler.length;
+        if (seqIdx >= 0) {
+            for (var i = 0; i < cycLen; i++) {
+                css[this.options.highlightCycler[i]] = ((seqIdx % cycLen) === i);
+            }
+        }
+        return css;
+    }
 
     Grid.getSelectAllRowsCss = function() {
         return {

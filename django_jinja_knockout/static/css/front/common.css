@@ -108,6 +108,13 @@ body {
 	margin: 0 0.5em;
 }
 
+
+tr.linear-white > td, td.linear-white, tr.linear-white > th, th.linear-white {
+	background:
+		linear-gradient(to top, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
+		linear-gradient(to bottom, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
+}
+
 table.table {
 	table-layout: fixed;
 	word-wrap: break-word;
