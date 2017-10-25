@@ -6,6 +6,11 @@ from pprint import pprint
 LOGPATH = ['logs']
 
 
+# To use with user.is_authenticated / user.is_anonymous Django portable code.
+def call_prop(prop):
+    return prop() if callable(prop) else prop
+
+
 def str_to_numeric(val):
     try:
         int_val = int(val)

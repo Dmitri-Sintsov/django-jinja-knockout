@@ -21,7 +21,11 @@ except ImportError:
     from django.core.urlresolvers import (
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
-
+try:
+    # Django 2.0.
+    from django.utils.encoding import force_text
+except ImportError:
+    from django.forms.utils import force_text
 from .utils.sdv import iter_enumerate, nested_update, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
 from .models import model_fields_verbose_names
