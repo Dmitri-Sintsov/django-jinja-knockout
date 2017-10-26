@@ -1239,6 +1239,19 @@ App.ko.Grid = function(options) {
         this.gridSearchStr(newValue);
     };
 
+    Grid.onSwitchHighlight = function(data, ev) {
+        var self = this;
+        var nextRuleIdx = this.getHighlightRuleIdx() + 1;
+        if (nextRuleIdx >= this.options.highlightModeRules.length) {
+            nextRuleIdx = 0;
+        }
+        var nextRule = this.options.highlightModeRules[nextRuleIdx];
+        $.each(nextRule, function(k, v) {
+            self.highlightMode(k);
+            return false;
+        });
+    };
+
     Grid.onSelectAllRows = function(data, ev) {
         var selectAllRows = !this.hasSelectAllRows();
         for (var i = 0; i < this.gridRows().length; i++) {
@@ -1298,6 +1311,7 @@ App.ko.Grid = function(options) {
             selectMultipleRows: false,
             separateMeta: false,
             showSelection: false,
+            switchHighlight: true,
             ownerCtrl: null,
             pageRoute: null,
             pageRouteKwargs: {},
@@ -1367,18 +1381,20 @@ App.ko.Grid = function(options) {
 
     };
 
-    Grid.getHighlightModeRule = function() {
+    Grid.getHighlightRuleIdx = function() {
         var currMode = this.highlightMode();
         for (var i = 0; i < this.options.highlightModeRules.length; i++) {
             var ruleDef = this.options.highlightModeRules[i];
             if (typeof ruleDef[currMode] !== 'undefined') {
-                return ruleDef[currMode];
+                return i;
             }
         }
-        return {
-            direction: 0,
-            cycler: [],
-        }
+        return 0;
+    };
+
+    Grid.getHighlightModeRule = function() {
+        var ruleIdx = this.getHighlightRuleIdx();
+        return this.options.highlightModeRules[ruleIdx][this.highlightMode()];
     };
 
     Grid.isSortedField = function(field) {

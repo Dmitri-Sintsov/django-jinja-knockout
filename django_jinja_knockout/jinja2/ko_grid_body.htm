@@ -291,10 +291,15 @@
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
-        <ul data-bind="foreach: gridPages" class="pagination">
+        <ul class="pagination">
+            <li data-bind="if: options.switchHighlight">
+                <span data-bind="click: onSwitchHighlight" class="halflings glyphicon glyphicon-th"></span>
+            </li>
+            <!-- ko foreach: gridPages -->
             <li data-bind="css:{active: isActive}">
                 <a data-bind="text:title, click: onPagination" name="#"></a>
             </li>
+            <!-- /ko -->
         </ul>
     </div>
 </script>
