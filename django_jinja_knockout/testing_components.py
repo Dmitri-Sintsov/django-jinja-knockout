@@ -279,7 +279,7 @@ class GridCommands:
     def _grid_goto_page(self, page):
         return self.exec(
             'component_relative_by_xpath', (
-                './/*[@data-bind="foreach: gridPages"]//a[text() = {}]', page,
+                './/*[contains(concat(" ", @class, " "), " pagination ")]//a[text() = {}]', page,
             ),
             'click',
             'default_sleep',
