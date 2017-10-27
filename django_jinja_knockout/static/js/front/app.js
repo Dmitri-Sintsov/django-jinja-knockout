@@ -17,6 +17,36 @@ if (typeof window.App === 'undefined') {
 };
 App = window.App;
 
+App.previousErrorHandler = window.onerror;
+window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    var stack = App.propGet(error, 'stack', null);
+    var data = {
+        'url': window.location + '',
+        'message': messageOrEvent,
+        'source': source,
+        'lineno': lineno,
+        'colno': colno,
+        'error': error + '',
+        'stack': stack + '',
+    };
+    if (typeof App.previousErrorHandler === 'function') {
+        App.previousErrorHandler(messageOrEvent, source, lineno, colno, error);
+    }
+    /*
+    var prevVal = Cookies.get('lastJsError');
+    Cookies.set('lastJsError', JSON.stringify(data));
+    if (prevVal === undefined) {
+        window.location.reload();
+    }
+    */
+    data.csrfmiddlewaretoken = App.conf.csrfToken;
+    $.post('/djk-js-error/',
+        data,
+        function(response) {},
+        'json'
+    )
+    .fail(App.showAjaxError);
+};
 
 App.globalIoc = {
     'App.Tpl': function(options) {
@@ -1766,6 +1796,9 @@ App.post = function(route, data, options) {
 App.propGet = function(self, propChain, defVal, get_context) {
     var propName;
     var prop = self;
+    if (typeof prop !== 'object') {
+        return defVal;
+    }
     if (_.isArray(propChain)) {
         propName = propChain.pop();
         for (var i = 0; i < propChain.length; i++) {
@@ -1777,7 +1810,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
     } else {
         propName = propChain;
     }
-    if (prop !== null) {
+    if (typeof prop === 'object') {
         var propType = typeof prop[propName];
         if (propType !== 'undefined') {
             if (propType === 'function' && typeof get_context !== 'undefined') {
