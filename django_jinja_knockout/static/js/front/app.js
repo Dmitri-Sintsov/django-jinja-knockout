@@ -19,6 +19,9 @@ App = window.App;
 
 App.previousErrorHandler = window.onerror;
 window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    if (typeof App.previousErrorHandler === 'function') {
+        App.previousErrorHandler(messageOrEvent, source, lineno, colno, error);
+    }
     var stack = App.propGet(error, 'stack', null);
     var data = {
         'url': window.location + '',
@@ -29,20 +32,17 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
         'error': error + '',
         'stack': stack + '',
     };
-    if (typeof App.previousErrorHandler === 'function') {
-        App.previousErrorHandler(messageOrEvent, source, lineno, colno, error);
-    }
-    /*
-    var prevVal = Cookies.get('lastJsError');
-    Cookies.set('lastJsError', JSON.stringify(data));
-    if (prevVal === undefined) {
-        window.location.reload();
-    }
-    */
     data.csrfmiddlewaretoken = App.conf.csrfToken;
-    $.post('/djk-js-error/',
+    $.post('/-djk-js-error-/',
         data,
-        function(response) {},
+        function(response) {
+            // Wrapped into try / catch to avoid nested window.onerror calls.
+            try {
+                App.viewResponse(response);
+            } catch (e) {
+                console.log(e);
+            }
+        },
         'json'
     )
     .fail(App.showAjaxError);
@@ -1796,7 +1796,7 @@ App.post = function(route, data, options) {
 App.propGet = function(self, propChain, defVal, get_context) {
     var propName;
     var prop = self;
-    if (typeof prop !== 'object') {
+    if (!$.isMapping(prop)) {
         return defVal;
     }
     if (_.isArray(propChain)) {
@@ -1810,7 +1810,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
     } else {
         propName = propChain;
     }
-    if (typeof prop === 'object') {
+    if ($.isMapping(prop)) {
         var propType = typeof prop[propName];
         if (propType !== 'undefined') {
             if (propType === 'function' && typeof get_context !== 'undefined') {

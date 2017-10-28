@@ -2,6 +2,10 @@
 
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
 
+$.isMapping = function(v) {
+    return typeof v === 'object' && v !== null;
+};
+
 $.isScalar = function(v) {
     var nonScalarTypes = ['object', 'undefined', 'function'];
     return (nonScalarTypes.indexOf(typeof(v)) === -1) || v === null;

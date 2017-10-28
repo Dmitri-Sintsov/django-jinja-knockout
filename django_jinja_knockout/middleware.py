@@ -7,13 +7,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.encoding import force_text
 from django.utils import timezone
+from django.utils.html import format_html
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:
-    from .utils.deprecation import MiddlewareMixin
 
 from .utils import sdv
 from .utils.modules import get_fqn
@@ -71,7 +68,18 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 class ContextMiddlewareCompat:
 
     def __init__(self, *args, **kwargs):
+        self.get_response = kwargs.get('get_response', args[0] if len(args) > 0 else None)
         self.request = kwargs.pop('request', None)
+
+    def __call__(self, request):
+        response = None
+        if hasattr(self, 'process_request'):
+            response = self.process_request(request)
+        if not response:
+            response = self.get_response(request)
+        if hasattr(self, 'process_response'):
+            response = self.process_response(request, response)
+        return response
 
     def is_authenticated(self):
         user = self.request.user
@@ -81,7 +89,7 @@ class ContextMiddlewareCompat:
         return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
 
 
-class ContextMiddleware(MiddlewareMixin, ContextMiddlewareCompat):
+class ContextMiddleware(ContextMiddlewareCompat):
 
     _threadmap = {}
     _mock_request = None
@@ -162,7 +170,39 @@ class ContextMiddleware(MiddlewareMixin, ContextMiddlewareCompat):
                 pass
         return None
 
+    def log_js_error(self):
+        from .utils.mail import send_admin_mail
+        body_keys = [
+            'message',
+            'source',
+            'lineno',
+            'colno',
+            'error',
+            'stack',
+        ]
+        if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
+            subject = 'Javascript error at {}'.format(self.request.POST['url'])
+            html_message = '\n\n'.join([
+                format_html('<p><b>{}:</b> \n<div>{}</div></p>', k, self.request.POST[k]) for k in body_keys
+            ])
+            if hasattr(settings, 'ADMINS') and len(settings.ADMINS) > 0:
+                try:
+                    send_admin_mail.delay(subject=subject, html_message=html_message, request=self.request)
+                except ImmediateJsonResponse as e:
+                    return e.response if self.request.is_ajax() else error_response(request, 'AJAX request is required')
+        else:
+            subject = 'Unknown Javascript logging error'
+            message = 'Missing required POST argument'
+        return JsonResponse({
+            'view': 'alert_error',
+            'title': subject,
+            'message': html_message,
+        })
+
     def process_request(self, request):
+        self.request = request
+        if request.path_info == '/-djk-js-error-/':
+            return self.log_js_error()
 
         # Todo: remove when IE9 support will expire.
         request.ie_ajax_iframe = request.method == 'POST' and \
@@ -278,7 +318,6 @@ class ContextMiddleware(MiddlewareMixin, ContextMiddlewareCompat):
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
                 request.client_routes.extend(view_class.client_routes)
-        self.request = request
         self.view_func = view_func
         self.view_args = view_args
         self.view_kwargs = view_kwargs

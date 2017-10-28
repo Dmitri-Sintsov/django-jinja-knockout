@@ -39,9 +39,8 @@ class SendmailQueue:
             return getattr(self, '_' + name)
 
     def _add(self, **kwargs):
-        if kwargs.get('html_body', None) is not None:
-            html_body = kwargs.pop('html_body')
-        else:
+        html_body = kwargs.pop('html_body', None)
+        if html_body is None:
             html_body = linebreaks(linkify(kwargs['body']))
         if 'body' not in kwargs:
             kwargs['body'] = html_to_text(html_body)
@@ -75,12 +74,12 @@ class SendmailQueue:
                 self.ioc.success()
             self.messages = []
             return result
-        except (SMTPDataError, SMTPServerDisconnected, gaierror) as e:
+        except (SMTPDataError, SMTPServerDisconnected, gaierror, ConnectionError) as e:
             if isinstance(e, SMTPDataError):
                 title = e.smtp_code
                 trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while sending email.'
                 trans_params = {
-                    'err_type': 'SMTPDataError',
+                    'err_type': e.__class__.__name__,
                     'code': e.smtp_code,
                     'msg': e.smtp_error,
                 }
@@ -88,15 +87,15 @@ class SendmailQueue:
                 title = 'SMTP server disconnected'
                 trans_msg = 'Error "%(err_type)s" "%(msg)s" while sending email.'
                 trans_params = {
-                    'err_type': 'SMTPServerDisconnected',
+                    'err_type': e.__class__.__name__,
                     'code': 1,
                     'msg': str(e),
                 }
             else:
                 title = e.errno
-                trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while resolving inet address.'
+                trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while the transmission attempt.'
                 trans_params = {
-                    'err_type': 'gaierror',
+                    'err_type': e.__class__.__name__,
                     'code': e.errno,
                     'msg': e.strerror,
                 }
@@ -128,3 +127,19 @@ class SendmailQueue:
         EmailQueueIoc(EmailQueue)
 """
 EmailQueue = SendmailQueue()
+
+
+def send_admin_mail(subject, message=None, *args, **kwargs):
+    from django.conf import settings
+    SendmailQueue()._add(
+        subject=subject,
+        body=message,
+        html_body=kwargs.get('html_message', None),
+        to=[v[1] for v in settings.ADMINS]
+    )._flush(request=kwargs.get('request', None))
+
+try:
+    from celery.decorators import task
+    send_admin_mail = task(send_admin_mail, name='send_admin_mail')
+except ImportError:
+    send_admin_mail.delay = send_admin_mail

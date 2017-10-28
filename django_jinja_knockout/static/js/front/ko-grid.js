@@ -1246,10 +1246,12 @@ App.ko.Grid = function(options) {
             nextRuleIdx = 0;
         }
         var nextRule = this.options.highlightModeRules[nextRuleIdx];
-        $.each(nextRule, function(k, v) {
-            self.highlightMode(k);
-            return false;
-        });
+        for (var k in nextRule) {
+            if (nextRule.hasOwnProperty(k)) {
+                this.highlightMode(k);
+                break;
+            }
+        }
     };
 
     Grid.onSelectAllRows = function(data, ev) {
@@ -1394,7 +1396,12 @@ App.ko.Grid = function(options) {
 
     Grid.getHighlightModeRule = function() {
         var ruleIdx = this.getHighlightRuleIdx();
-        return this.options.highlightModeRules[ruleIdx][this.highlightMode()];
+        var ruleDef = this.options.highlightModeRules[ruleIdx];
+        for (var k in ruleDef) {
+            if (ruleDef.hasOwnProperty(k)) {
+                return ruleDef[k];
+            }
+        }
     };
 
     Grid.isSortedField = function(field) {
