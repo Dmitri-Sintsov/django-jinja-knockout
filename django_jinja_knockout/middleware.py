@@ -1,5 +1,6 @@
 import json
 import pytz
+import re
 import threading
 
 import django
@@ -93,6 +94,9 @@ class ContextMiddleware(ContextMiddlewareCompat):
 
     _threadmap = {}
     _mock_request = None
+    routes = [
+        ('/-djk-js-error-/', 'log_js_error')
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -189,10 +193,10 @@ class ContextMiddleware(ContextMiddlewareCompat):
                 try:
                     send_admin_mail.delay(subject=subject, html_message=html_message, request=self.request)
                 except ImmediateJsonResponse as e:
-                    return e.response if self.request.is_ajax() else error_response(request, 'AJAX request is required')
+                    return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
         else:
             subject = 'Unknown Javascript logging error'
-            message = 'Missing required POST argument'
+            html_message = 'Missing required POST argument'
         return JsonResponse({
             'view': 'alert_error',
             'title': subject,
@@ -201,8 +205,12 @@ class ContextMiddleware(ContextMiddlewareCompat):
 
     def process_request(self, request):
         self.request = request
-        if request.path_info == '/-djk-js-error-/':
-            return self.log_js_error()
+        for pattern, method_name in self.routes:
+            if isinstance(pattern, re._pattern_type):
+                if pattern.search(request.path_info) is not None:
+                    return getattr(self, method_name)()
+            elif pattern == request.path:
+                return getattr(self, method_name)()
 
         # Todo: remove when IE9 support will expire.
         request.ie_ajax_iframe = request.method == 'POST' and \
