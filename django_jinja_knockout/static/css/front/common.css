@@ -113,6 +113,8 @@ body {
 	background:
 		linear-gradient(to top, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
 		linear-gradient(to bottom, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
+		/* IE9 */
+		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#F2F2F2', endColorstr='#FFFFFF')";
 }
 
 table.table {

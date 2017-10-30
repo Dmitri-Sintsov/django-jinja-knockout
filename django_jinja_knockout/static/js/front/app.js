@@ -24,12 +24,13 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
     }
     if (App.conf.jsErrorsAlert || App.conf.jsErrorsLogging) {
         var stack = App.propGet(error, 'stack', null);
+        // Convert to strings for more reliability.
         var data = {
             'url': window.location + '',
-            'message': messageOrEvent,
-            'source': source,
-            'lineno': lineno,
-            'colno': colno,
+            'message': messageOrEvent + '',
+            'source': source + '',
+            'lineno': lineno + '',
+            'colno': colno + '',
             'error': error + '',
             'stack': stack + '',
         };
