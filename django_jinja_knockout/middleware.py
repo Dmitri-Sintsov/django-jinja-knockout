@@ -254,11 +254,14 @@ class ContextMiddleware(RouterMiddleware):
         else:
             subject = 'Unknown Javascript logging error'
             html_message = 'Missing required POST argument'
-        return JsonResponse({
-            'view': 'alert_error',
-            'title': subject,
-            'message': html_message,
-        })
+        if getattr(settings, 'JS_ERRORS_ALERT', False):
+            return JsonResponse({
+                'view': 'alert_error',
+                'title': subject,
+                'message': html_message,
+            })
+        else:
+            return JsonResponse([])
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
