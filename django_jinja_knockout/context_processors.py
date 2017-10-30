@@ -62,6 +62,8 @@ class TemplateContextProcessor():
 
         self.user_id = self.get_user_id()
         client_conf = {
+            'jsErrorsAlert': getattr(settings, 'JS_ERRORS_ALERT', False),
+            'jsErrorsLogging': getattr(settings, 'JS_ERRORS_LOGGING', False),
             'csrfToken': get_token(self.HttpRequest),
             'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
             'staticPath': static(''),

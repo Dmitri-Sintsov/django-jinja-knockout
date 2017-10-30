@@ -22,30 +22,50 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
     if (typeof App.previousErrorHandler === 'function') {
         App.previousErrorHandler(messageOrEvent, source, lineno, colno, error);
     }
-    var stack = App.propGet(error, 'stack', null);
-    var data = {
-        'url': window.location + '',
-        'message': messageOrEvent,
-        'source': source,
-        'lineno': lineno,
-        'colno': colno,
-        'error': error + '',
-        'stack': stack + '',
-    };
-    data.csrfmiddlewaretoken = App.conf.csrfToken;
-    $.post('/-djk-js-error-/',
-        data,
-        function(response) {
-            // Wrapped into try / catch to avoid nested window.onerror calls.
-            try {
-                App.viewResponse(response);
-            } catch (e) {
-                console.log(e);
+    if (App.conf.jsErrorsAlert || App.conf.jsErrorsLogging) {
+        var stack = App.propGet(error, 'stack', null);
+        var data = {
+            'url': window.location + '',
+            'message': messageOrEvent,
+            'source': source,
+            'lineno': lineno,
+            'colno': colno,
+            'error': error + '',
+            'stack': stack + '',
+        };
+        if (App.conf.jsErrorsLogging) {
+            data.csrfmiddlewaretoken = App.conf.csrfToken;
+            $.post('/-djk-js-error-/',
+                data,
+                function(response) {
+                    // Wrapped into try / catch to avoid nested window.onerror calls.
+                    try {
+                        if (App.conf.jsErrorsAlert) {
+                            App.viewResponse(response);
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                },
+                'json'
+            )
+            .fail(App.showAjaxError);
+        } else if (App.conf.jsErrorsAlert) {
+            var $message = $('<div>');
+            for (var k in data) {
+                if (data.hasOwnProperty(k)) {
+                    var $elem = $('<p>')
+                        .append($('<b>').text(k))
+                        .append($(k === 'stack' ? '<pre>' : '<div>').text(data[k]));
+                    $message.append($elem);
+                }
             }
-        },
-        'json'
-    )
-    .fail(App.showAjaxError);
+            new App.Dialog({
+                'title': 'Javascript error at: ' + data.url,
+                'message': $message
+            }).alertError();
+        }
+    }
 };
 
 App.globalIoc = {

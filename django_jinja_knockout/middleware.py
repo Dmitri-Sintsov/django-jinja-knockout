@@ -1,3 +1,4 @@
+import copy
 import json
 import pytz
 import re
@@ -8,13 +9,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.encoding import force_text
 from django.utils import timezone
-from django.utils.html import format_html
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
 
 from .utils import sdv
 from .utils.modules import get_fqn
+from .tpl import format_html_attrs
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import onload_vm_list, has_vm_list
 
@@ -226,7 +227,7 @@ class ContextMiddleware(RouterMiddleware):
                 yield obj
 
     def log_js_error(self):
-        from .log import send_admin_mail_task
+        from .log import send_admin_mail_delay
         body_keys = [
             'message',
             'source',
@@ -238,11 +239,16 @@ class ContextMiddleware(RouterMiddleware):
         if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
             subject = 'Javascript error at {}'.format(self.request.POST['url'])
             html_message = '\n\n'.join([
-                format_html('<p><b>{}:</b> \n<div>{}</div></p>', k, self.request.POST[k]) for k in body_keys
+                format_html_attrs(
+                    '<p><b>{k}:</b> \n<div{attrs}>{v}</div></p>',
+                    k=k,
+                    v=self.request.POST[k],
+                    attrs={'style': 'white-space: pre-wrap;'} if k == 'stack' else {}
+                ) for k in body_keys
             ])
             if hasattr(settings, 'ADMINS') and len(settings.ADMINS) > 0:
                 try:
-                    send_admin_mail_task(subject=subject, html_message=html_message, request=self.request)
+                    send_admin_mail_delay(subject=subject, html_message=html_message, request=self.request)
                 except ImmediateJsonResponse as e:
                     return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
         else:
