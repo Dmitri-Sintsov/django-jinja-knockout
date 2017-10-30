@@ -42,7 +42,7 @@ class SendmailQueue:
         html_body = kwargs.pop('html_body', None)
         if html_body is None:
             html_body = linebreaks(linkify(kwargs['body']))
-        if 'body' not in kwargs:
+        if 'body' not in kwargs or kwargs['body'] is None:
             kwargs['body'] = html_to_text(html_body)
         kwargs = dict(self.defaults, **kwargs)
         message = mail.EmailMultiAlternatives(**kwargs)
@@ -127,19 +127,3 @@ class SendmailQueue:
         EmailQueueIoc(EmailQueue)
 """
 EmailQueue = SendmailQueue()
-
-
-def send_admin_mail(subject, message=None, *args, **kwargs):
-    from django.conf import settings
-    SendmailQueue()._add(
-        subject=subject,
-        body=message,
-        html_body=kwargs.get('html_message', None),
-        to=[v[1] for v in settings.ADMINS]
-    )._flush(request=kwargs.get('request', None))
-
-try:
-    from celery.decorators import task
-    send_admin_mail = task(send_admin_mail, name='send_admin_mail')
-except ImportError:
-    send_admin_mail.delay = send_admin_mail

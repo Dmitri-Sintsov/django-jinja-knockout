@@ -90,118 +90,11 @@ class ContextMiddlewareCompat:
         return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
 
 
-class ContextMiddleware(ContextMiddlewareCompat):
+class RouterMiddleware(ContextMiddlewareCompat):
 
-    _threadmap = {}
     _mock_request = None
-    routes = [
-        ('/-djk-js-error-/', 'log_js_error')
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.view_func = None
-        self.view_args = None
-        self.view_kwargs = None
-
-    @classmethod
-    def is_active(cls):
-        return threading.get_ident() in cls._threadmap
-
-    # todo: complete url resolution and middleware / mock view.
-    # As mocks are more often used with forms, uses 'post' method by default.
-    # Call this method in child class with custom arguments before calling .get_request(), when needed.
-    @classmethod
-    def mock_request(cls, factory_method='post', path='/', *args, **kwargs):
-        if cls._mock_request is None:
-            from django.test.client import RequestFactory
-            factory = RequestFactory()
-            method = getattr(factory, factory_method)
-            cls._mock_request = method(path, *args, **kwargs)
-        return cls._mock_request
-
-    # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
-    @classmethod
-    def get_request(cls):
-        if cls.is_active():
-            return cls._threadmap[threading.get_ident()]
-        else:
-            return cls.mock_request()
-
-    # Mostly to store contenttypes framework http session logs and to store modified / added objects of inline formsets.
-    @classmethod
-    def add_instance(cls, group_key, obj, obj_key=None):
-        request = cls.get_request()
-        if request is None:
-            return
-        instances = getattr(request, group_key, [] if obj_key is None else {})
-        if obj_key is None:
-            instances.append(obj)
-        else:
-            instances[obj_key] = obj
-        setattr(request, group_key, instances)
-
-    @classmethod
-    def yield_out_instances(cls, group_key):
-        request = cls.get_request()
-        if request is None or not hasattr(request, group_key):
-            return
-        instances = getattr(request, group_key)
-        delattr(request, group_key)
-        if isinstance(instances, dict):
-            for key, obj in instances.items():
-                yield key, obj
-        else:
-            for obj in instances:
-                yield obj
-
-    @classmethod
-    def get_request_timezone(cls, request=None):
-        if request is None:
-            request = cls.get_request()
-        if 'local_tz' in request.COOKIES:
-            try:
-                local_tz = int(request.COOKIES['local_tz'])
-                if -14 <= local_tz <= 12:
-                    if local_tz == 0:
-                        tz_name = 'Etc/GMT'
-                    elif local_tz < 0:
-                        tz_name = 'Etc/GMT{}'.format(local_tz)
-                    else:
-                        tz_name = 'Etc/GMT+{}'.format(local_tz)
-                    return tz_name
-            except ValueError:
-                pass
-        return None
-
-    def log_js_error(self):
-        from .utils.mail import send_admin_mail
-        body_keys = [
-            'message',
-            'source',
-            'lineno',
-            'colno',
-            'error',
-            'stack',
-        ]
-        if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
-            subject = 'Javascript error at {}'.format(self.request.POST['url'])
-            html_message = '\n\n'.join([
-                format_html('<p><b>{}:</b> \n<div>{}</div></p>', k, self.request.POST[k]) for k in body_keys
-            ])
-            if hasattr(settings, 'ADMINS') and len(settings.ADMINS) > 0:
-                try:
-                    send_admin_mail.delay(subject=subject, html_message=html_message, request=self.request)
-                except ImmediateJsonResponse as e:
-                    return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
-        else:
-            subject = 'Unknown Javascript logging error'
-            html_message = 'Missing required POST argument'
-        return JsonResponse({
-            'view': 'alert_error',
-            'title': subject,
-            'message': html_message,
-        })
+    _threadmap = {}
+    routes = []
 
     def process_request(self, request):
         self.request = request
@@ -248,6 +141,118 @@ class ContextMiddleware(ContextMiddlewareCompat):
     def process_response(self, request, response):
         self.__class__._threadmap.pop(threading.get_ident(), None)
         return response
+
+    @classmethod
+    def is_active(cls):
+        return threading.get_ident() in cls._threadmap
+
+    # todo: complete url resolution and middleware / mock view.
+    # As mocks are more often used with forms, uses 'post' method by default.
+    # Call this method in child class with custom arguments before calling .get_request(), when needed.
+    @classmethod
+    def mock_request(cls, factory_method='post', path='/', *args, **kwargs):
+        if cls._mock_request is None:
+            from django.test.client import RequestFactory
+            factory = RequestFactory()
+            method = getattr(factory, factory_method)
+            cls._mock_request = method(path, *args, **kwargs)
+        return cls._mock_request
+
+    # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
+    @classmethod
+    def get_request(cls):
+        if cls.is_active():
+            return cls._threadmap[threading.get_ident()]
+        else:
+            return cls.mock_request()
+
+    @classmethod
+    def get_request_timezone(cls, request=None):
+        if request is None:
+            request = cls.get_request()
+        if 'local_tz' in request.COOKIES:
+            try:
+                local_tz = int(request.COOKIES['local_tz'])
+                if -14 <= local_tz <= 12:
+                    if local_tz == 0:
+                        tz_name = 'Etc/GMT'
+                    elif local_tz < 0:
+                        tz_name = 'Etc/GMT{}'.format(local_tz)
+                    else:
+                        tz_name = 'Etc/GMT+{}'.format(local_tz)
+                    return tz_name
+            except ValueError:
+                pass
+        return None
+
+
+class ContextMiddleware(RouterMiddleware):
+
+    routes = [
+        ('/-djk-js-error-/', 'log_js_error')
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.view_func = None
+        self.view_args = None
+        self.view_kwargs = None
+
+    # Mostly to store contenttypes framework http session logs and to store modified / added objects of inline formsets.
+    @classmethod
+    def add_instance(cls, group_key, obj, obj_key=None):
+        request = cls.get_request()
+        if request is None:
+            return
+        instances = getattr(request, group_key, [] if obj_key is None else {})
+        if obj_key is None:
+            instances.append(obj)
+        else:
+            instances[obj_key] = obj
+        setattr(request, group_key, instances)
+
+    @classmethod
+    def yield_out_instances(cls, group_key):
+        request = cls.get_request()
+        if request is None or not hasattr(request, group_key):
+            return
+        instances = getattr(request, group_key)
+        delattr(request, group_key)
+        if isinstance(instances, dict):
+            for key, obj in instances.items():
+                yield key, obj
+        else:
+            for obj in instances:
+                yield obj
+
+    def log_js_error(self):
+        from .log import send_admin_mail_task
+        body_keys = [
+            'message',
+            'source',
+            'lineno',
+            'colno',
+            'error',
+            'stack',
+        ]
+        if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
+            subject = 'Javascript error at {}'.format(self.request.POST['url'])
+            html_message = '\n\n'.join([
+                format_html('<p><b>{}:</b> \n<div>{}</div></p>', k, self.request.POST[k]) for k in body_keys
+            ])
+            if hasattr(settings, 'ADMINS') and len(settings.ADMINS) > 0:
+                try:
+                    send_admin_mail_task(subject=subject, html_message=html_message, request=self.request)
+                except ImmediateJsonResponse as e:
+                    return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
+        else:
+            subject = 'Unknown Javascript logging error'
+            html_message = 'Missing required POST argument'
+        return JsonResponse({
+            'view': 'alert_error',
+            'title': subject,
+            'message': html_message,
+        })
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
