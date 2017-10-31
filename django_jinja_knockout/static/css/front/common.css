@@ -109,12 +109,20 @@ body {
 }
 
 
-.linear-white, tr.linear-white > td, tr.linear-white > th {
+.linear-white {
 	background:
-		linear-gradient(to top, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
-		linear-gradient(to bottom, white 0%, #F2F2F2 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
+		linear-gradient(to top, white 0%, #F4F4F4 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
+		linear-gradient(to bottom, white 0%, #F4F4F4 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
 		/* IE9 */
-		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#F2F2F2', endColorstr='#FFFFFF')";
+		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#F4F4F4', endColorstr='#FFFFFF')";
+}
+
+tr.linear-white:hover {
+	background:
+		linear-gradient(to top, #F4F4F4 0%, white 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
+		linear-gradient(to bottom, #F4F4F4 0%, white 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
+		/* IE9 */
+		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#FFFFFF', endColorstr='#F4F4F4')";
 }
 
 table.table {
@@ -297,14 +305,25 @@ a[name="#"] {
 	width: 2em;
 }
 
-/* Support for App.ko.Grid highlight mode 1 / 2 */
+/* Support for App.ko.Grid highlightMode */
+table > tbody > tr.grid-new-row > td {
+	background-color: #F4F4F4; /* original: ffffff */
+}
+
+/* Support for App.ko.Grid highlightMode */
 table > tbody > tr.grid-new-row.success > td,
 table > tbody > tr.grid-new-row > td.success {
 	background-color: #EDFFE6; /* original: dff0d8 */
 }
 
-/* Support for App.ko.Grid highlight mode 1 / 2 */
+/* Support for App.ko.Grid highlightMode */
 table > tbody > tr.grid-new-row.info > td,
 table > tbody > tr.grid-new-row > td.info {
 	background-color: #E0F5FF; /* original: d9edf7 */
+}
+
+/* Support for App.ko.Grid highlightMode */
+table > tbody > tr.grid-new-row.warning > td,
+table > tbody > tr.grid-new-row > td.warning {
+	background-color: #FEF9E5; /* original: fcf8e3 */
 }
