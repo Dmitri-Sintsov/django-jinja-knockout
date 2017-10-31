@@ -1,4 +1,3 @@
-import copy
 import json
 import pytz
 import re
@@ -95,16 +94,24 @@ class RouterMiddleware(ContextMiddlewareCompat):
 
     _mock_request = None
     _threadmap = {}
-    routes = []
+    routes_str = {}
+    routes_re = []
 
     def process_request(self, request):
         self.request = request
-        for pattern, method_name in self.routes:
+
+        # Mini-router (local mini-resolver).
+        if request.path_info in self.routes_str:
+            return getattr(self, self.routes_str[request.path_info])()
+        for pattern, method_name in self.routes_re:
             if isinstance(pattern, re._pattern_type):
-                if pattern.search(request.path_info) is not None:
-                    return getattr(self, method_name)()
-            elif pattern == request.path:
-                return getattr(self, method_name)()
+                match = pattern.search(request.path_info)
+            else:
+                match = re.search(pattern, request.path_info)
+            if match is not None:
+                kwargs = match.groupdict()
+                args = () if kwargs else match.groups()
+                return getattr(self, method_name)(*args, **kwargs)
 
         # Todo: remove when IE9 support will expire.
         request.ie_ajax_iframe = request.method == 'POST' and \
@@ -189,8 +196,11 @@ class RouterMiddleware(ContextMiddlewareCompat):
 
 class ContextMiddleware(RouterMiddleware):
 
-    routes = [
-        ('/-djk-js-error-/', 'log_js_error')
+    routes_str = {
+        '/-djk-js-error-/': 'log_js_error',
+    }
+    routes_re = [
+        # (r'^/-djk-js-(?P<action>/?\w*)-/', 'log_js_error'),
     ]
 
     def __init__(self, *args, **kwargs):
