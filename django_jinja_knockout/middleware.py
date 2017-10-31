@@ -16,7 +16,7 @@ from .utils import sdv
 from .utils.modules import get_fqn
 from .tpl import format_html_attrs
 from .views import auth_redirect, error_response, exception_response
-from .viewmodels import onload_vm_list, has_vm_list
+from .viewmodels import vm_list, onload_vm_list, has_vm_list
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
@@ -246,6 +246,7 @@ class ContextMiddleware(RouterMiddleware):
             'error',
             'stack',
         ]
+        vms = vm_list()
         if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
             subject = 'Javascript error at {}'.format(self.request.POST['url'])
             html_message = '\n\n'.join([
@@ -262,16 +263,12 @@ class ContextMiddleware(RouterMiddleware):
                 except ImmediateJsonResponse as e:
                     return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
         else:
-            subject = 'Unknown Javascript logging error'
-            html_message = 'Missing required POST argument'
-        if getattr(settings, 'JS_ERRORS_ALERT', False):
-            return JsonResponse({
+            vms.append({
                 'view': 'alert_error',
-                'title': subject,
-                'message': html_message,
+                'subject': 'Unknown Javascript logging error',
+                'html_message': 'Missing required POST argument',
             })
-        else:
-            return JsonResponse([])
+        return JsonResponse(vms)
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.

@@ -51,10 +51,11 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
                 'json'
             )
             .fail(App.showAjaxError);
-        } else if (App.conf.jsErrorsAlert) {
+        }
+        if (App.conf.jsErrorsAlert) {
             var $message = $('<div>');
             for (var k in data) {
-                if (data.hasOwnProperty(k)) {
+                if (k !== 'csrfmiddlewaretoken' && data.hasOwnProperty(k)) {
                     var $elem = $('<p>')
                         .append($('<b>').text(k))
                         .append($(k === 'stack' ? '<pre>' : '<div>').text(data[k]));
