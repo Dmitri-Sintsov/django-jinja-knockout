@@ -1,4 +1,3 @@
-from django.utils import six
 from django import template
 from django.template.loader import _engine_list
 from django.template.base import token_kwargs
@@ -31,7 +30,7 @@ class JinjaNode(template.Node):
                 tpl = self.get_jinja_engine().get_template(tpl)
             isolated_values = {
                 name: var.resolve(context)
-                for name, var in six.iteritems(self.extra_context)
+                for name, var in self.extra_context.items()
             }
             if self.isolated_context:
                 return tpl.render(request=context.request, context=isolated_values)
