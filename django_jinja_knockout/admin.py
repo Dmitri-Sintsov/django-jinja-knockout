@@ -41,7 +41,6 @@ class DjkAdminMixin(object):
 
 # http://stackoverflow.com/questions/9025624/allowing-only-some-given-instances-of-a-model-to-be-deleted-from-the-admin #
 class ProtectMixin:
-    actions = ['delete_empty']
 
     # Check for deletion of one model.
     def is_protected(self, obj):
@@ -65,15 +64,15 @@ class ProtectMixin:
         # Do not allow to delete built-in specializations.
         queryset = self.queryset_is_protected(queryset)
         # call Django's delete_selected with limited queryset
-        delete_selected(self, request, queryset)
-        pass
+        return self.delete_selected_original(self, request, queryset)
     delete_empty.short_description = _('Delete non-builtin records')
 
     def get_actions(self, request):
         actions = super().get_actions(request)
         # sdv.dbg('actions', actions)
         if 'delete_selected' in actions:
-            del actions['delete_selected']
+            self.delete_selected_original = actions['delete_selected'][0]
+            actions['delete_selected'] = (self.delete_empty.__func__, 'delete_selected', self.delete_empty.short_description)
         return actions
 
 
