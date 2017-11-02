@@ -17,7 +17,12 @@ class AstEvalNode(template.Node):
 
     def render(self, context):
         if self not in context.render_context:
-            context.render_context[self] = literal_eval(self.eval_str)
+            try:
+                context.render_context[self] = literal_eval(self.eval_str)
+            except Exception:
+                if context.template.engine.debug:
+                    raise SyntaxError(self.eval_str)
+                context.render_context[self] = ''
         context[self.varname] = context.render_context[self]
         return ''
 
