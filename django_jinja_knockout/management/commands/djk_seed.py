@@ -1,4 +1,3 @@
-from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.apps import apps
 from django.conf import settings
@@ -11,55 +10,54 @@ from django_jinja_knockout.contenttypes import models_seeds, create_content_type
 class Command(BaseCommand):
     # Django command help
     help = 'Seed initial data into the database after migrations are complete.'
-    # https://docs.python.org/3/library/optparse.html#module-optparse
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '--create-content-types',
             action='store_true',
             dest='create_content_types',
             default=False,
             help='Create selected app models content types (by default is off).'
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--skip-seeds',
             action='store_true',
             dest='skip_seeds',
             default=False,
             help='Do not create seeds (creates them by default).'
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--only-apps',
             action='store',
             dest='only_apps',
             default=None,
             help='Apply seeds only to the comma-separated list of apps.',
-            type='string'
-        ),
-        make_option(
+            type=str
+        )
+        parser.add_argument(
             '--only-models',
             action='store',
             dest='only_models',
             default=None,
             help='Apply seeds only to the comma-separated list of models.',
-            type='string'
-        ),
-        make_option(
+            type=str
+        )
+        parser.add_argument(
             '--exclude-apps',
             action='store',
             dest='exclude_apps',
             default='',
             help='Exclude apps from applying seeds via comma-separated list.',
-            type='string'
-        ),
-        make_option(
+            type=str
+        )
+        parser.add_argument(
             '--exclude-models',
             action='store',
             dest='exclude_models',
             default='',
             help='Exclude models from applying seeds via comma-separated list.',
-            type='string'
-        ),
-    )
+            type=str
+        )
 
     def yield_app_config(self):
         for app_name in self.only_apps:
