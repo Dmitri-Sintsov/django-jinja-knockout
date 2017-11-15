@@ -45,13 +45,11 @@ https://github.com/alcaeus/bootstrap-table-responsive/blob/master/dist/css/boots
   }
   .table-collapse tbody > tr > td[data-caption]:before {
     display: block;
-    float: left;
-    width: 160px;
-    padding-right: 20px;
+    width: 100%;
     overflow: hidden;
+    padding-bottom: 4px;
     clear: left;
     font-weight: bold;
-    text-align: right;
     text-overflow: ellipsis;
     white-space: nowrap;
     content: attr(data-caption);
