@@ -2,6 +2,9 @@ __version__ = '0.6.1'
 
 
 # Patch for Django datetime 'en' locales format to work with Bootstrap datetimepicker.
+# Currently is disabled, because Bootstrap datetimepicker is patched instead
+# in app.js via App.DatetimeWidget.formatFixes and that is a more portable approach.
+"""
 def set_datetime_12_hour_format(lang_code, use_l10n):
     from django.utils.formats import get_format, _format_cache
 
@@ -11,9 +14,6 @@ def set_datetime_12_hour_format(lang_code, use_l10n):
             _format_cache[key] += ('%m/%d/%Y %I:%M %p',)
 
 
-# Currently is disabled, because Bootstrap datetimepicker is patched instead
-# in app.js via App.DatetimeWidget.formatFixes.
-"""
 try:
     from django.core.exceptions import ImproperlyConfigured
     from django.conf import settings

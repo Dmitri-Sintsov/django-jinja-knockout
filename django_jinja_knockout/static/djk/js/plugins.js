@@ -629,7 +629,7 @@ $.fn.linkPreview = function(method) {
                     '"frameborder="0" scrolling="no" src="' +
                     $.htmlEncode(this.href) +
                     '" class="transform-origin-0"></iframe>' +
-                    '<div class="link-preview-spinner"><img src="/static/img/loading.gif"></div>';
+                    '<div class="link-preview-spinner"><img src="/static/djk/img/loading.gif"></div>';
             }
             return result;
         };

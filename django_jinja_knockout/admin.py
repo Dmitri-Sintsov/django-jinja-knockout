@@ -29,13 +29,13 @@ class DjkAdminMixin(object):
     class Media:
         css = {
             'all': (
-                'css/front/common.css',
+                'djk/css/app.css',
             )
         }
         js = (
-            'js/underscore-min.js',
-            'js/front/plugins.js',
-            'js/front/admin.js',
+            'djk/js/lib/underscore-min.js',
+            'djk/js/plugins.js',
+            'djk/js/admin.js',
         )
 
 

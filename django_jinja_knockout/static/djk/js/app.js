@@ -544,7 +544,6 @@ App.Dialog = function(options) {
         return options;
     };
 
-    // @todo: check correctness for messaging.js.
     Dialog.isOpened = function() {
         return (typeof this.bdialog !== 'undefined') ? this.bdialog.isOpened() : false;
     };
