@@ -322,6 +322,17 @@ class GetPostMixin:
         else:
             return self.request.GET.get(key, default)
 
+    def request_get_int(self, key, default=None, minval=None, maxval=None):
+        try:
+            result = int(self.request_get(key, default))
+        except ValueError:
+            return default
+        if minval is not None and result < minval:
+            result = minval
+        if maxval is not None and result > maxval:
+            result = maxval
+        return result
+
 
 # Model queryset filtering / ordering base.
 class BaseFilterView(View, GetPostMixin):

@@ -12,7 +12,8 @@
     'ko_grid_no_results',
     'ko_grid_table',
     'ko_grid_body',
-    'ko_grid_pagination'
+    'ko_grid_pagination',
+    'ko_grid_num_rows_dialog'
 ]) -%}
 
 {% if include_ids is not none -%}
@@ -136,7 +137,7 @@
             <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
         </div>
         <!-- ko foreach: actionTypes['button'] -->
-            <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction({}); }">
+            <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
                 <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
                 <span data-bind="text: $data.localName"></span>
             </button>
@@ -167,7 +168,7 @@
 <script type="text/template" id="ko_grid_bottom_nav">
     <div class="navbar navbar-left">
         <!-- ko foreach: actionTypes['button_footer'] -->
-        <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction({}); }">
+        <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
             <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
             <span data-bind="text: $data.localName"></span>
         </button>
@@ -235,7 +236,7 @@
                         </td>
                         <!-- /ko -->
                         <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
-                        <td class="grid-glyph-cell" data-bind="click: function() { doAction({gridRow: $parent}); }">
+                        <td class="grid-glyph-cell" data-bind="click: function() { doForRow($parent); }">
                             <!-- ko if: $parent.observeEnabledAction($data) -->
                             <span data-bind="css: actionCss(), attr: {title: $data.localName}" class="halflings glyphicon pointer"></span>
                             <!-- /ko -->
@@ -244,9 +245,9 @@
                         <!-- ko foreach: $parent.gridColumns -->
                         <td data-bind="
                             click: $parent.onRowClick.bind($parent),
-                            grid_row_value: $parent.displayValues[field],
                             attr: {index: $index, 'data-caption': name},
-                            css: columnCss
+                            css: columnCss,
+                            grid_row_value: $parent.displayValues[field]
                         "></td>
                         <!-- /ko -->
                     </tr>
@@ -292,9 +293,11 @@
 <script type="text/template" id="ko_grid_pagination">
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
         <ul class="pagination">
-            <li data-bind="if: options.switchHighlight">
-                <span data-bind="click: onSwitchHighlight" class="halflings glyphicon glyphicon-th"></span>
-            </li>
+            <!-- ko foreach: actionTypes['pagination'] -->
+                <li data-bind="click: function() { doAction(); }">
+                    <span class="halflings glyphicon" data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}"></span>
+                </li>
+            <!-- /ko -->
             <!-- ko foreach: gridPages -->
             <li data-bind="css:{active: isActive}">
                 <a data-bind="text:title, click: onPagination" name="#"></a>
@@ -304,6 +307,20 @@
     </div>
 </script>
 {% endif -%}
+
+{% if 'ko_grid_num_rows_dialog' in _include_ids -%}
+<script id="ko_grid_num_rows_dialog" language="text/html">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div data-bind="text: meta.numRows"></div>
+        </div>
+        <div class="panel-body">
+            <input type="range" data-bind="attr: meta.numRowsRange, value: meta.numRows, valueUpdate: 'input'">
+        </div>
+    </div>
+</script>
+{% endif -%}
+
 
 {% endmacro -%}
 {% if _render_ -%}

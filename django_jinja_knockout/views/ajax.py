@@ -494,6 +494,8 @@ class GridActionsMixin(ModelFormActionsView):
     viewmodel_name = 'grid_page'
     default_action_name = 'list'
     enable_deletion = False
+    select_num_rows = True
+    switch_highlight = True
     mark_safe_fields = None
     show_nested_fieldnames = True
     # Currently is used only to get verbose / localized foreign key field names and is not required to be filled.
@@ -526,14 +528,14 @@ class GridActionsMixin(ModelFormActionsView):
                     'enabled': True
                 }),
                 ('delete_confirmed', {
-                    'enabled': self.__class__.enable_deletion
+                    'enabled': self.enable_deletion
                 })
             ]),
+            # Extendable UI actions.
             'button': OrderedDict([
-                # Extendable UI actions (has 'type' key).
                 ('create_form', {
                     'localName': _('Add'),
-                    'class': {
+                    'css': {
                         'button': 'btn-primary',
                         'glyphicon': 'glyphicon-plus'
                     },
@@ -543,7 +545,7 @@ class GridActionsMixin(ModelFormActionsView):
                 }),
                 ('create_inline', {
                     'localName': _('Add'),
-                    'class': {
+                    'css': {
                         'button': 'btn-primary',
                         'glyphicon': 'glyphicon-plus'
                     },
@@ -553,24 +555,47 @@ class GridActionsMixin(ModelFormActionsView):
                 })
             ]),
             'button_footer': OrderedDict(),
+            'pagination': OrderedDict([
+                ('select_num_rows', {
+                    'classPath': 'App.ko.SelectNumRowsAction',
+                    'localName': _('Rows per page'),
+                    'css': {
+                        'glyphicon': 'glyphicon-th-list'
+                    },
+                    'rowsPerPage': getattr(settings, 'OBJECTS_PER_PAGE', 10),
+                    'range': {
+                        'min': getattr(settings, 'OBJECTS_PER_PAGE', 10),
+                        'max': getattr(settings, 'OBJECTS_PER_PAGE', 10) * 5,
+                        'step': getattr(settings, 'OBJECTS_PER_PAGE', 10),
+                    },
+                    'enabled': self.select_num_rows
+                }),
+                ('switch_highlight', {
+                    'localName': _('Switch highlight'),
+                    'css': {
+                        'glyphicon': 'glyphicon-th'
+                    },
+                    'enabled': self.switch_highlight
+                })
+            ]),
             'click': OrderedDict([
                 ('edit_form', {
                     'localName': _('Change'),
-                    'class': 'btn-primary',
+                    'css': 'btn-primary',
                     'enabled': any([
                         self.get_edit_form()
                     ])
                 }),
                 ('edit_inline', {
                     'localName': _('Change'),
-                    'class': 'btn-primary',
+                    'css': 'btn-primary',
                     'enabled': any([
                         self.get_edit_form_with_inline_formsets()
                     ])
                 }),
                 ('edit_formset', {
                     'localName': _('Change'),
-                    'class': 'btn-primary',
+                    'css': 'btn-primary',
                     'enabled': any([
                         self.get_edit_formset()
                     ])
@@ -580,8 +605,8 @@ class GridActionsMixin(ModelFormActionsView):
                 # Delete one or many model object.
                 ('delete', {
                     'localName': _('Remove'),
-                    'class': 'glyphicon-remove',
-                    'enabled': self.__class__.enable_deletion
+                    'css': 'glyphicon-remove',
+                    'enabled': self.enable_deletion
                 })
             ])
         }
@@ -733,10 +758,12 @@ class GridActionsMixin(ModelFormActionsView):
         return vm
 
     def action_list(self):
-        rows = self.get_rows()
+        rows, page_num, objects_per_page = self.get_rows()
         vm = {
             'entries': list(rows),
-            'totalPages': ceil(self.total_rows / self.__class__.objects_per_page),
+            'page': page_num,
+            'rowsPerPage': objects_per_page,
+            'totalPages': ceil(self.total_rows / objects_per_page),
         }
         return vm
 
@@ -775,6 +802,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     exclude_fields = None
 
     current_page = 1
+    min_objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
+    max_objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10) * 5
     objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     force_str_desc = False
     # optional value of ko_grid() Jinja2 macro 'grid_options' argument.
@@ -804,7 +833,10 @@ class KoGridView(BaseFilterView, GridActionsMixin):
 
     @classmethod
     def discover_grid_options(cls, request):
-        grid_options = cls.get_grid_options()
+        grid_options = {
+            'numRows': cls.objects_per_page
+        }
+        grid_options.update(cls.get_grid_options())
         if 'fkGridOptions' not in grid_options:
             # Autodiscover 'fkGridOptions'.
             # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
@@ -889,6 +921,12 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         return row
 
     def get_rows(self):
+        kw = {
+            'minval': self.min_objects_per_page,
+            'maxval': self.max_objects_per_page
+        }
+        objects_per_page = self.request_get_int('rows_per_page', default=self.objects_per_page, **kw)
+        prev_objects_per_page = self.request_get_int('prev_rows_per_page', default=objects_per_page, **kw)
         page_num = self.request_get('page', 1)
         try:
             page_num = int(page_num)
@@ -898,21 +936,24 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                 message=format_html('Page number: {}', page_num)
             )
         if page_num > 0:
-            first_elem = (page_num - 1) * self.__class__.objects_per_page
-            last_elem = first_elem + self.__class__.objects_per_page
+            first_elem = (page_num - 1) * prev_objects_per_page
+            if objects_per_page != prev_objects_per_page:
+                # Rows per page was just changed.
+                page_num = first_elem // objects_per_page + 1
+            last_elem = first_elem + objects_per_page
         else:
-            first_elem = last_elem = 0
+            page_num = first_elem = last_elem = 0
         qs = self.get_queryset()
         self.total_rows = qs.count()
         paginated_qs = ListQuerySet(qs[first_elem:last_elem])
         paginated_qs_iter = paginated_qs.__iter__()
-        result = [
+        rows = [
             self.postprocess_row(
                 self.set_row_related_fields(row), next(paginated_qs_iter)
             )
             for row in paginated_qs.values(*self.query_fields)
         ]
-        return result
+        return rows, page_num, objects_per_page
 
     def postprocess_qs(self, qs):
         return [

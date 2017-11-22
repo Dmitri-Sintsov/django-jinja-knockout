@@ -179,7 +179,7 @@ class GridCommands:
     def _grid_row_glyphicon_action(self, action_name):
         return self.exec(
             'grid_row_relative_by_xpath', (
-                './/td[@data-bind="click: function() {{ doAction({{gridRow: $parent}}); }}"]/span[@title={}]',
+                './/td[@data-bind="click: function() {{ doForRow($parent); }}"]/span[@title={}]',
                 action_name,
             ),
             'click',

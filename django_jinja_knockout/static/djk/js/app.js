@@ -361,18 +361,16 @@ App.Dialog = function(options) {
             size: this.size,
             onshow: function(bdialog) {
                 self.bdialog = bdialog;
+                bdialog._owner = self;
                 self.onShow();
             },
             onshown: function(bdialog) {
-                self.bdialog = bdialog;
                 self.onShown();
             },
             onhide: function(bdialog) {
-                self.bdialog = bdialog;
                 self.onHide();
             },
             onhidden: function(bdialog) {
-                self.bdialog = bdialog;
                 self.onHidden();
             },
         };
@@ -1821,8 +1819,8 @@ App.propGet = function(self, propChain, defVal, get_context) {
         return defVal;
     }
     if (_.isArray(propChain)) {
-        propName = propChain.pop();
-        for (var i = 0; i < propChain.length; i++) {
+        propName = propChain[propChain.length - 1];
+        for (var i = 0; i < propChain.length - 1; i++) {
             if (typeof prop[propChain[i]] !== 'object') {
                 return defVal;
             }
@@ -1933,36 +1931,41 @@ ko.from_virtual = function(element) {
     return realElement;
 };
 
+ko.getPropSubscription = function(self, propChain, methodChain) {
+    if (typeof methodChain === 'undefined' && typeof propChain === 'string') {
+        methodChain = 'on' + $.capitalize(propChain);
+    }
+    var prop = App.propGet(self, propChain);
+    if (typeof prop !== 'function' || !ko.isObservable(prop)) {
+        throw sprintf("%s is not observable", JSON.stringify(propChain));
+    }
+    var method = App.propGet(self, methodChain);
+    if (typeof method !== 'function') {
+        throw sprintf("%s is not callable", JSON.stringify(methodChain));
+    }
+    var hash = (typeof methodChain === 'string') ? methodChain : methodChain.join('.');
+    if (typeof self.koSubscriptions === 'undefined') {
+        self.koSubscriptions = {};
+    }
+    return {'prop': prop, 'method': method, 'hash': hash};
+}
+
 /**
  * Subscribe / unsubscribe observables for Knockout.js in easy way.
  * Binds subscriptions to instanse method with prefix 'on*' by default.
  */
-ko.switchSubscription = function(self, propName, turnOn, method) {
-    if (typeof self.koSubscriptions === 'undefined') {
-        self.koSubscriptions = {};
+ko.subscribeToMethod = function(self, propChain, methodChain) {
+    var result = ko.getPropSubscription(self, propChain, methodChain);
+    if (typeof self.koSubscriptions[result.hash] === 'undefined') {
+        self.koSubscriptions[result.hash] = result.prop.subscribe(_.bind(result.method, self));
     }
-    if (typeof method === 'undefined') {
-        method = 'on' + $.capitalize(propName);
-    }
-    if (typeof self[propName] !== 'function') {
-        throw sprintf("%s is not observable", propName);
-    }
-    if (typeof self[method] !== 'function') {
-        throw sprintf("%s is not callable", method);
-    }
-    if (typeof turnOn === 'undefined' || turnOn) {
-        if (typeof self.koSubscriptions[propName] === 'undefined') {
-            self.koSubscriptions[propName] = self[propName].subscribe(_.bind(self[method], self));
-        } else {
-            console.log(sprintf('warning: %s is already subscribed', propName));
-        }
-    } else {
-        if (typeof self.koSubscriptions[propName] !== 'undefined') {
-            self.koSubscriptions[propName].dispose();
-            delete self.koSubscriptions[propName];
-        } else {
-            console.log(sprintf('warning: %s is already disposed', propName));
-        }
+};
+
+ko.disposeMethod = function(self, propChain, methodChain) {
+    var result = ko.getPropSubscription(self, propChain, methodChain);
+    if (typeof self.koSubscriptions[result.hash] !== 'undefined') {
+        self.koSubscriptions[result.hash].dispose();
+        delete self.koSubscriptions[result.hash];
     }
 };
 

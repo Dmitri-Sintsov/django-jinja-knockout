@@ -530,8 +530,8 @@ App.ko.RangeFilter = function(options) {
         };
         this.from = ko.observable('');
         this.to = ko.observable('');
-        ko.switchSubscription(this, 'from');
-        ko.switchSubscription(this, 'to');
+        ko.subscribeToMethod(this, 'from');
+        ko.subscribeToMethod(this, 'to');
         var method = 'getFieldAttrs_' + this.type;
         if (typeof this[method] !== 'function') {
             throw 'App.ko.RangeFilter.' + method + ' is not the function';
@@ -918,8 +918,7 @@ App.ko.GridRow = function(options) {
         if (action === null) {
             return;
         }
-        var _options = $.extend({gridRow: this}, options);
-        action.doAction(_options);
+        action.doForRow(this, options);
     };
 
 })(App.ko.GridRow.prototype);
@@ -995,6 +994,30 @@ App.GridActions = function(options) {
     GridActions.performLastAction = function(actionOptions) {
         this.lastActionOptions = actionOptions;
         this.perform(this.lastActionName, actionOptions);
+    };
+
+    GridActions.perform_select_num_rows = function(queryArgs, ajaxCallback) {
+        this.grid.lastClickedKoRow = undefined;
+        var dialog = new App.ActionTemplateDialog({
+            template: 'ko_grid_num_rows_dialog',
+            owner: this.grid,
+            buttons: [
+                {
+                    icon: 'glyphicon glyphicon-ok',
+                    label: App.trans('Ok'),
+                    hotkey: 27,
+                    cssClass: 'btn-success',
+                    action: function(bdialog) {
+                        bdialog._owner.close();
+                    }
+                },
+            ]
+        });
+        dialog.show();
+    };
+
+    GridActions.perform_switch_highlight = function(queryArgs, ajaxCallback) {
+        this.grid.onSwitchHighlight();
     };
 
     GridActions.callback_create_form = function(viewModel) {
@@ -1101,7 +1124,8 @@ App.GridActions = function(options) {
     };
 
     GridActions.queryargs_list = function(options) {
-        return this.grid.getListQueryArgs();
+        var result = $.extend(options, this.grid.getListQueryArgs());
+        return result;
     };
 
     GridActions.queryargs_update = function(options) {
@@ -1239,6 +1263,10 @@ App.ko.Grid = function(options) {
         this.gridSearchStr(newValue);
     };
 
+    Grid.onNumRowsChange = function(newValue) {
+        this.actions.perform('list');
+    };
+
     Grid.onSwitchHighlight = function(data, ev) {
         var self = this;
         var nextRuleIdx = this.getHighlightRuleIdx() + 1;
@@ -1268,7 +1296,7 @@ App.ko.Grid = function(options) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'button_footer', 'click', 'glyphicon'];
+    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon'];
 
     Grid.init = function(options) {
         var self = this;
@@ -1309,6 +1337,7 @@ App.ko.Grid = function(options) {
                     }
                 },
             ],
+            numRows: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
@@ -1336,10 +1365,14 @@ App.ko.Grid = function(options) {
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
+            prevNumRows: this.options.numRows,
+            numRows: ko.observable(this.options.numRows),
+            numRowsRange: ko.observable({}),
             strDesc: false,
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+        this.meta.numRows.extend({ rateLimit: 500 });
         this.actionTypes = {};
         _.each(this.uiActionTypes, function(type) {
             self.actionTypes[type] = ko.observableArray();
@@ -1900,7 +1933,7 @@ App.ko.Grid = function(options) {
             });
             this.actionsMenuDialog.show();
         } else if (this.actionTypes.click().length > 0) {
-            this.actionTypes.click()[0].doAction({gridRow: currKoRow});
+            this.actionTypes.click()[0].doForRow(currKoRow);
         } else {
             this.rowSelect(currKoRow);
         }
@@ -2088,6 +2121,8 @@ App.ko.Grid = function(options) {
      */
     Grid.setKoPagination = function(totalPages, currPage) {
         var self = this;
+        // Update queryArgs.page value because current page number may be recalculated when meta.numRows value was changed.
+        self.queryArgs.page = currPage;
         self.gridPages([]);
         this.gridTotalPages(totalPages);
         var maxVisiblePages = 5;
@@ -2145,6 +2180,10 @@ App.ko.Grid = function(options) {
     Grid.getListQueryArgs = function() {
         this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
         this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
+        this.queryArgs.rows_per_page = this.meta.numRows();
+        if (this.queryArgs.rows_per_page !== this.meta.prevNumRows) {
+            this.queryArgs.prev_rows_per_page = this.meta.prevNumRows;
+        }
         return this.queryArgs;
     };
 
@@ -2230,12 +2269,19 @@ App.ko.Grid = function(options) {
             self.gridRows(gridRows);
         }
         this.hasSelectAllRows(this.checkAllRowsSelected());
+        // Temporarily disable meta.numRows() subscription.
+        ko.disposeMethod(this, ['meta', 'numRows'], 'onNumRowsChange');
+        this.meta.prevNumRows = this.meta.numRows();
+        this.meta.numRows(data.rowsPerPage);
+        // Re-enable meta.numRows() subscription.
+        ko.subscribeToMethod(this, ['meta', 'numRows'], 'onNumRowsChange');
         // Set grid pagination viewmodels.
-        self.setKoPagination(data.totalPages, self.queryArgs.page);
+        this.setKoPagination(data.totalPages, data.page);
     };
 
     Grid.iocKoAction = function(options) {
-        return new App.ko.Action(options);
+        var classPath = App.propGet(options.actDef, 'classPath', 'App.ko.Action');
+        return new App.newClassFromPath(classPath, [options]);
     };
 
     Grid.setKoActionTypes = function(metaActions) {
@@ -2265,7 +2311,8 @@ App.ko.Grid = function(options) {
 
     /**
      * Get ui ko action by it's name, optionally restricted to specific action type.
-     * Can be used to perform specific action programmatically via .doAction() method.
+     * Can be used to perform grid-wide action programmatically via .doAction(),
+     * row-specific action via .doForRow() methods.
      */
     Grid.getKoAction = function(actionName, actionType) {
         var action = null;
@@ -2353,10 +2400,12 @@ App.ko.Grid = function(options) {
          * Render current row object description in multiple actions menu when there are more than one 'click' type
          * actions for the current grid row.
          */
-        var actionHeading = this.lastClickedKoRow.renderDesc(
-            this.actions.getNestedListOptions()
-        );
-        dialog.bdialog.getModalBody().prepend(actionHeading);
+        if (typeof this.lastClickedKoRow !== 'undefined') {
+            var actionHeading = this.lastClickedKoRow.renderDesc(
+                this.actions.getNestedListOptions()
+            );
+            dialog.bdialog.getModalBody().prepend(actionHeading);
+        }
     };
 
 })(App.ko.Grid.prototype);
@@ -2380,32 +2429,21 @@ App.ko.Action = function(options) {
 
     Action.actionCss = function(type) {
         var koCss = {};
-        switch (typeof this.actDef.class) {
+        switch (typeof this.actDef.css) {
         case 'string':
-            koCss[this.actDef.class] = true;
+            koCss[this.actDef.css] = true;
             break;
         case 'object':
-            if (typeof this.actDef.class[type] !== 'undefined') {
-                koCss[this.actDef.class[type]] = true;
+            if (typeof this.actDef.css[type] !== 'undefined') {
+                koCss[this.actDef.css[type]] = true;
             }
         }
         return koCss;
     };
 
-    Action.doAction = function(options, actionOptions) {
+    Action.doAction = function(actionOptions) {
         if (typeof actionOptions === 'undefined') {
             actionOptions = {};
-        }
-        // Check whether this is row action (usually it has 'click' or 'glyphicon' action type),
-        // which has gridRow instance passed to options.
-        if (typeof options.gridRow !== 'undefined') {
-            if (!options.gridRow.observeEnabledAction(this)()) {
-                // Current action is disabled for gridRow instance specified.
-                return;
-            }
-            this.grid.lastClickedKoRow = options.gridRow;
-            // Clicked row pk value ('pkVal').
-            actionOptions = $.extend(actionOptions, options.gridRow.getActionOptions());
         }
         if (this.grid.selectedRowsPks.length > 0) {
             // Multiple rows selected. Add all selected rows pk values.
@@ -2414,15 +2452,45 @@ App.ko.Action = function(options) {
         this.grid.performKoAction(this, actionOptions);
     };
 
+    Action.doForRow = function(gridRow, actionOptions) {
+        if (typeof actionOptions === 'undefined') {
+            actionOptions = {};
+        }
+        if (gridRow.observeEnabledAction(this)()) {
+            this.grid.lastClickedKoRow = gridRow;
+            // Clicked row pk value ('pkVal').
+            actionOptions = $.extend(actionOptions, gridRow.getActionOptions());
+            this.doAction(actionOptions);
+        }
+    };
+
     Action.doLastClickedRowAction = function() {
         if (typeof this.grid.actionsMenuDialog !== 'undefined') {
             this.grid.actionsMenuDialog.close();
             delete this.grid.actionsMenuDialog;
         }
-        this.doAction({gridRow: this.grid.lastClickedKoRow});
+        this.doForRow(this.grid.lastClickedKoRow);
     };
 
 })(App.ko.Action.prototype);
+
+App.ko.SelectNumRowsAction = function(options) {
+    $.inherit(App.ko.Action.prototype, this);
+    this.init(options);
+};
+
+(function(SelectNumRowsAction) {
+
+    SelectNumRowsAction.init = function(options) {
+        this._super._call('init', options);
+        this.grid.meta.numRowsRange(this.actDef.range);
+        this.grid.meta.prevNumRows = this.actDef.rowsPerPage;
+        ko.disposeMethod(this.grid, ['meta', 'numRows'], 'onNumRowsChange');
+        this.grid.meta.numRows(this.actDef.rowsPerPage);
+        ko.subscribeToMethod(this.grid, ['meta', 'numRows'], 'onNumRowsChange');
+    };
+
+})(App.ko.SelectNumRowsAction.prototype);
 
 /**
  * Base class for dialog-based grid filters.

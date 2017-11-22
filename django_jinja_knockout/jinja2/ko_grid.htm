@@ -36,8 +36,7 @@ Setup url name kwargs both for tpl.resolve_cbv() and as grid_options.pageRoute /
 Setup final _grid_options (component options).
 
 -#}
-{% set _grid_options = {} -%}
-{% do _grid_options.update(view.discover_grid_options(request)) -%}
+{% set _grid_options = view.discover_grid_options(request) -%}
 {% do _grid_options.update(grid_options) -%}
 {#
 
