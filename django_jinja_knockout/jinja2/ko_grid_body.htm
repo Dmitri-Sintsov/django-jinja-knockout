@@ -13,7 +13,7 @@
     'ko_grid_table',
     'ko_grid_body',
     'ko_grid_pagination',
-    'ko_grid_num_rows_dialog'
+    'ko_grid_rows_per_page_dialog'
 ]) -%}
 
 {% if include_ids is not none -%}
@@ -308,19 +308,21 @@
 </script>
 {% endif -%}
 
-{% if 'ko_grid_num_rows_dialog' in _include_ids -%}
-<script id="ko_grid_num_rows_dialog" language="text/html">
+{% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
+<script id="ko_grid_rows_per_page_dialog" language="text/html">
     <div class="panel panel-default">
         <div class="panel-heading">
-            <div data-bind="text: meta.numRows"></div>
+            <div data-bind="text: meta.rowsPerPage"></div>
         </div>
         <div class="panel-body">
-            <input type="range" data-bind="attr: meta.numRowsRange, value: meta.numRows, valueUpdate: 'input'">
+            <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
+            <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
+                <option data-bind="attr: {value: $data, label: $data}">
+            </datalist>
         </div>
     </div>
 </script>
 {% endif -%}
-
 
 {% endmacro -%}
 {% if _render_ -%}

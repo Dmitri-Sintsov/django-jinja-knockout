@@ -21,6 +21,10 @@ from ..viewmodels import vm_list, to_vm_list
 from .base import BaseFilterView, GetPostMixin, FormViewmodelsMixin
 
 
+MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
+MAX_OBJECTS_PER_PAGE = MIN_OBJECTS_PER_PAGE * 5
+
+
 # GET request usually generates html template, POST - returns AJAX viewmodels.
 class ViewmodelView(TemplateView):
 
@@ -494,8 +498,8 @@ class GridActionsMixin(ModelFormActionsView):
     viewmodel_name = 'grid_page'
     default_action_name = 'list'
     enable_deletion = False
-    select_num_rows = True
-    switch_highlight = True
+    enable_rows_per_page = True
+    enable_switch_highlight = True
     mark_safe_fields = None
     show_nested_fieldnames = True
     # Currently is used only to get verbose / localized foreign key field names and is not required to be filled.
@@ -556,26 +560,25 @@ class GridActionsMixin(ModelFormActionsView):
             ]),
             'button_footer': OrderedDict(),
             'pagination': OrderedDict([
-                ('select_num_rows', {
-                    'classPath': 'App.ko.SelectNumRowsAction',
+                ('rows_per_page', {
+                    'classPath': 'App.ko.RowsPerPageAction',
                     'localName': _('Rows per page'),
                     'css': {
                         'glyphicon': 'glyphicon-th-list'
                     },
-                    'rowsPerPage': getattr(settings, 'OBJECTS_PER_PAGE', 10),
                     'range': {
-                        'min': getattr(settings, 'OBJECTS_PER_PAGE', 10),
-                        'max': getattr(settings, 'OBJECTS_PER_PAGE', 10) * 5,
-                        'step': getattr(settings, 'OBJECTS_PER_PAGE', 10),
+                        'min': MIN_OBJECTS_PER_PAGE,
+                        'max': MAX_OBJECTS_PER_PAGE,
+                        'step': MIN_OBJECTS_PER_PAGE,
                     },
-                    'enabled': self.select_num_rows
+                    'enabled': self.enable_rows_per_page
                 }),
                 ('switch_highlight', {
                     'localName': _('Switch highlight'),
                     'css': {
                         'glyphicon': 'glyphicon-th'
                     },
-                    'enabled': self.switch_highlight
+                    'enabled': self.enable_switch_highlight
                 })
             ]),
             'click': OrderedDict([
@@ -802,9 +805,9 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     exclude_fields = None
 
     current_page = 1
-    min_objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
-    max_objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10) * 5
-    objects_per_page = getattr(settings, 'OBJECTS_PER_PAGE', 10)
+    min_objects_per_page = MIN_OBJECTS_PER_PAGE
+    max_objects_per_page = MAX_OBJECTS_PER_PAGE
+    objects_per_page = MIN_OBJECTS_PER_PAGE
     force_str_desc = False
     # optional value of ko_grid() Jinja2 macro 'grid_options' argument.
     grid_options = None
@@ -834,7 +837,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     @classmethod
     def discover_grid_options(cls, request):
         grid_options = {
-            'numRows': cls.objects_per_page
+            'rowsPerPage': cls.objects_per_page
         }
         grid_options.update(cls.get_grid_options())
         if 'fkGridOptions' not in grid_options:

@@ -350,8 +350,6 @@ class ContextMiddleware(RouterMiddleware):
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
                 request.client_routes.extend(view_class.client_routes)
-            if hasattr(view_class, 'client_data'):
-                sdv.nested_update(request.client_data, view_class.client_data)
         self.view_func = view_func
         self.view_args = view_args
         self.view_kwargs = view_kwargs

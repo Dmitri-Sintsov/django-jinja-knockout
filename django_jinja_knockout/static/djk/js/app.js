@@ -352,6 +352,7 @@ App.Dialog = function(options) {
             animate: false,
             closable: this.isClosable,
             draggable: true,
+            initClient: this.initClient,
             buttonLabel: App.trans('OK'),
             btnCancelLabel: App.trans('No'),
             btnOKLabel: App.trans('Yes'),
@@ -375,6 +376,8 @@ App.Dialog = function(options) {
             },
         };
         this.dialogOptions = $.extend(this.dialogOptions, this.getOptions(), options);
+        this.initClient = this.dialogOptions.initClient;
+        delete this.dialogOptions.initClient;
         if (typeof this.dialogOptions.buttons === 'undefined') {
             this.dialogOptions.buttons = this.getButtons();
             if (!_.isArray(this.dialogOptions.buttons)) {
@@ -1932,8 +1935,9 @@ ko.from_virtual = function(element) {
 };
 
 ko.getPropSubscription = function(self, propChain, methodChain) {
-    if (typeof methodChain === 'undefined' && typeof propChain === 'string') {
-        methodChain = 'on' + $.capitalize(propChain);
+    if (typeof methodChain === 'undefined') {
+        var propHash = (typeof propChain === 'string') ? $.capitalize(propChain) : '_' + propChain.join('_');
+        methodChain = 'on' + propHash;
     }
     var prop = App.propGet(self, propChain);
     if (typeof prop !== 'function' || !ko.isObservable(prop)) {

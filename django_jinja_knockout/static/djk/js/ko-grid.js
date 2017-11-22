@@ -996,10 +996,11 @@ App.GridActions = function(options) {
         this.perform(this.lastActionName, actionOptions);
     };
 
-    GridActions.perform_select_num_rows = function(queryArgs, ajaxCallback) {
+    GridActions.perform_rows_per_page = function(queryArgs, ajaxCallback) {
         this.grid.lastClickedKoRow = undefined;
         var dialog = new App.ActionTemplateDialog({
-            template: 'ko_grid_num_rows_dialog',
+            // initClient: true,
+            template: 'ko_grid_rows_per_page_dialog',
             owner: this.grid,
             buttons: [
                 {
@@ -1263,7 +1264,7 @@ App.ko.Grid = function(options) {
         this.gridSearchStr(newValue);
     };
 
-    Grid.onNumRowsChange = function(newValue) {
+    Grid.on_meta_rowsPerPage = function(newValue) {
         this.actions.perform('list');
     };
 
@@ -1337,7 +1338,7 @@ App.ko.Grid = function(options) {
                     }
                 },
             ],
-            numRows: 10,
+            rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
@@ -1365,14 +1366,15 @@ App.ko.Grid = function(options) {
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
             markSafeFields: [],
-            prevNumRows: this.options.numRows,
-            numRows: ko.observable(this.options.numRows),
-            numRowsRange: ko.observable({}),
+            prevRowsPerPage: this.options.rowsPerPage,
+            rowsPerPage: ko.observable(this.options.rowsPerPage),
+            rowsPerPageRange: ko.observable({}),
+            rowsPerPageValues: ko.observableArray(),
             strDesc: false,
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
-        this.meta.numRows.extend({ rateLimit: 500 });
+        this.meta.rowsPerPage.extend({ rateLimit: 500 });
         this.actionTypes = {};
         _.each(this.uiActionTypes, function(type) {
             self.actionTypes[type] = ko.observableArray();
@@ -2121,7 +2123,10 @@ App.ko.Grid = function(options) {
      */
     Grid.setKoPagination = function(totalPages, currPage) {
         var self = this;
-        // Update queryArgs.page value because current page number may be recalculated when meta.numRows value was changed.
+        /**
+         * Update queryArgs.page value because current page number may be recalculated
+         * when meta.rowsPerPage value was changed.
+         */
         self.queryArgs.page = currPage;
         self.gridPages([]);
         this.gridTotalPages(totalPages);
@@ -2180,9 +2185,9 @@ App.ko.Grid = function(options) {
     Grid.getListQueryArgs = function() {
         this.queryArgs[this.queryKeys.search] = this.gridSearchStr();
         this.queryArgs[this.queryKeys.filter] = JSON.stringify(this.queryFilters);
-        this.queryArgs.rows_per_page = this.meta.numRows();
-        if (this.queryArgs.rows_per_page !== this.meta.prevNumRows) {
-            this.queryArgs.prev_rows_per_page = this.meta.prevNumRows;
+        this.queryArgs['rows_per_page'] = this.meta.rowsPerPage();
+        if (this.queryArgs['rows_per_page'] !== this.meta.prevRowsPerPage) {
+            this.queryArgs['prev_rows_per_page'] = this.meta.prevRowsPerPage;
         }
         return this.queryArgs;
     };
@@ -2269,12 +2274,12 @@ App.ko.Grid = function(options) {
             self.gridRows(gridRows);
         }
         this.hasSelectAllRows(this.checkAllRowsSelected());
-        // Temporarily disable meta.numRows() subscription.
-        ko.disposeMethod(this, ['meta', 'numRows'], 'onNumRowsChange');
-        this.meta.prevNumRows = this.meta.numRows();
-        this.meta.numRows(data.rowsPerPage);
-        // Re-enable meta.numRows() subscription.
-        ko.subscribeToMethod(this, ['meta', 'numRows'], 'onNumRowsChange');
+        // Temporarily disable meta.rowsPerPage() subscription.
+        ko.disposeMethod(this, ['meta', 'rowsPerPage']);
+        this.meta.prevRowsPerPage = this.meta.rowsPerPage();
+        this.meta.rowsPerPage(data.rowsPerPage);
+        // Re-enable meta.rowsPerPage() subscription.
+        ko.subscribeToMethod(this, ['meta', 'rowsPerPage']);
         // Set grid pagination viewmodels.
         this.setKoPagination(data.totalPages, data.page);
     };
@@ -2474,23 +2479,23 @@ App.ko.Action = function(options) {
 
 })(App.ko.Action.prototype);
 
-App.ko.SelectNumRowsAction = function(options) {
+App.ko.RowsPerPageAction = function(options) {
     $.inherit(App.ko.Action.prototype, this);
     this.init(options);
 };
 
-(function(SelectNumRowsAction) {
+(function(RowsPerPageAction) {
 
-    SelectNumRowsAction.init = function(options) {
+    RowsPerPageAction.init = function(options) {
         this._super._call('init', options);
-        this.grid.meta.numRowsRange(this.actDef.range);
-        this.grid.meta.prevNumRows = this.actDef.rowsPerPage;
-        ko.disposeMethod(this.grid, ['meta', 'numRows'], 'onNumRowsChange');
-        this.grid.meta.numRows(this.actDef.rowsPerPage);
-        ko.subscribeToMethod(this.grid, ['meta', 'numRows'], 'onNumRowsChange');
+        this.grid.meta.rowsPerPageRange(this.actDef.range);
+        this.grid.meta.rowsPerPageValues([]);
+        for (var i = this.actDef.range.min; i <= this.actDef.range.max; i += this.actDef.range.step) {
+            this.grid.meta.rowsPerPageValues.push(i);
+        }
     };
 
-})(App.ko.SelectNumRowsAction.prototype);
+})(App.ko.RowsPerPageAction.prototype);
 
 /**
  * Base class for dialog-based grid filters.
