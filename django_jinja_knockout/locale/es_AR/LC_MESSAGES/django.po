@@ -106,3 +106,9 @@ msgstr ""
 
 msgid "'in' is the only supported field lookup for filter field '%(field)s'"
 msgstr ""
+
+msgid "Rows per page"
+msgstr ""
+
+msgid "Highlight mode"
+msgstr ""
