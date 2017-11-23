@@ -311,13 +311,13 @@
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
     <div class="panel panel-default">
-        <div class="panel-heading">
-            <div data-bind="text: meta.rowsPerPage"></div>
+        <div class="panel-heading flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
+            <div data-bind="text: $data"></div>
         </div>
         <div class="panel-body">
             <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
             <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
-                <option data-bind="attr: {value: $data, label: $data}">
+                <option data-bind="attr: {value: $data}">
             </datalist>
         </div>
     </div>

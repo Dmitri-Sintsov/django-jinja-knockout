@@ -574,7 +574,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'enabled': self.enable_rows_per_page
                 }),
                 ('switch_highlight', {
-                    'localName': _('Switch highlight'),
+                    'localName': _('Highlight mode'),
                     'css': {
                         'glyphicon': 'glyphicon-th'
                     },

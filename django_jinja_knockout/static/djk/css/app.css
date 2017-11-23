@@ -250,6 +250,11 @@ textarea.ko-template {
 	visibility: hidden;
 }
 
+.flex-space-between {
+	display: flex;
+	justify-content: space-between;
+}
+
 .display-block {
 	display: block;
 }
