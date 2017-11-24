@@ -355,17 +355,19 @@ def escape_css_selector(s):
 
 
 def format_html_attrs(format_string, *args, **kwargs):
-    for k, arg in enumerate(args):
-        if isinstance(arg, (dict)):
-            args[k] = json_flatatt(arg)
-        elif isinstance(arg, (tuple, list)):
-            args[k] = to_json(arg)
-    for k, arg in kwargs.items():
+    _args = list(args)
+    for k, arg in enumerate(_args):
         if isinstance(arg, dict):
-            kwargs[k] = to_json(arg) if k.endswith('_json') else json_flatatt(arg)
+            _args[k] = json_flatatt(arg)
         elif isinstance(arg, (tuple, list)):
-            kwargs[k] = to_json(arg)
-    return format_html(format_string, *args, **kwargs)
+            _args[k] = to_json(arg)
+    _kwargs = kwargs.copy()
+    for k, arg in _kwargs.items():
+        if isinstance(arg, dict):
+            _kwargs[k] = to_json(arg) if k.endswith('_json') else json_flatatt(arg)
+        elif isinstance(arg, (tuple, list)):
+            _kwargs[k] = to_json(arg)
+    return format_html(format_string, *_args, **_kwargs)
 
 
 # A string class with attributes. Used in ModelLinker.__html__().

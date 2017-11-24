@@ -6,7 +6,6 @@ except ImportError:
     # Django 1.8..1.10.
     from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.utils.html import mark_safe, escape
 from django.db import models
 try:
     # Django 1.8
@@ -17,6 +16,8 @@ except ImportError:
     empty_value_display = site.empty_value_display
 
 from django.contrib.admin.actions import delete_selected
+
+from .tpl import format_html_attrs
 
 
 class DjkAdminMixin(object):
@@ -91,11 +92,16 @@ def get_admin_url(model: models.Model, action='change'):
 # https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display
 # http://stackoverflow.com/questions/5330598/making-django-readonly-foreignkey-field-in-admin-render-as-a-link/
 @ensure_annotations
-def get_model_change_link(model, modelattrs: list=[]):
+def get_model_change_link(model, modelattrs: list=[], tag_attrs={}):
     if model is None:
         return empty_value_display
-    change_url = get_admin_url(model)
     display_text = model
     for attr in modelattrs:
         display_text = getattr(display_text, attr)
-    return mark_safe('<a href="{0}">{1}</a>'.format(change_url, escape(display_text)))
+    _tag_attrs = {
+        'href': get_admin_url(model)
+    }
+    _tag_attrs.update(tag_attrs)
+    return format_html_attrs(
+        '<a{0}>{1}</a>', _tag_attrs, display_text
+    )
