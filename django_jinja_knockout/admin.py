@@ -17,8 +17,6 @@ except ImportError:
 
 from django.contrib.admin.actions import delete_selected
 
-from .tpl import format_html_attrs
-
 
 class DjkAdminMixin(object):
     """
@@ -93,6 +91,7 @@ def get_admin_url(model: models.Model, action='change'):
 # http://stackoverflow.com/questions/5330598/making-django-readonly-foreignkey-field-in-admin-render-as-a-link/
 @ensure_annotations
 def get_model_change_link(model, modelattrs: list=[], tag_attrs={}):
+    from .tpl import format_html_attrs
     if model is None:
         return empty_value_display
     display_text = model
