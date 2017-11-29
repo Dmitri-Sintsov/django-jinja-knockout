@@ -1,59 +1,59 @@
 'use strict';
 
-App.addViewHandler('tooltip_error', function(viewModel) {
-    var fieldTooltip = new App.FieldTooltip(viewModel);
-    // Save instance of tooltip to delete it later via applying _.filter() to
-    // App.executedViewModels only when there was no previous instance created
-    // for the matching or the same selector.
-    if (!fieldTooltip.hasInstance) {
-        viewModel.instance = fieldTooltip;
-    }
-});
-
-// Do not forget to escape viewModel.message from XSS.
-App.addViewHandler('popover_error', function(viewModel) {
-    viewModel.instance = new App.FieldPopover(viewModel);
-});
-
-App.addViewHandler('form_error', function(viewModel) {
-    var errTitle = null;
-    var $field = $.id(viewModel.id);
-    if ($field.length > 1) {
-        errTitle = 'Multiple fields with auto_id: ' + viewModel.id;
-    }
-    if ($field.length == 0) {
-        errTitle = "Unknown field auto_id: " + viewModel.id;
-    }
-    if (errTitle !== null) {
-        var $errmsg = $('<div>');
-        App.renderNestedList($errmsg, viewModel.messages);
-        new App.Dialog({
-            title: errTitle,
-            message: $errmsg,
-        }).alert();
-    } else {
-        var $inputGroup = $field.parents('.input-group:eq(0)');
-        if ($inputGroup.length > 0) {
-            $field = $inputGroup;
+App.vmRouter.add({
+    'tooltip_error': function(viewModel) {
+        var fieldTooltip = new App.FieldTooltip(viewModel);
+        // Save instance of tooltip to delete it later via applying _.filter() to
+        // App.vmRouter.executedViewModels only when there was no previous instance created
+        // for the matching or the same selector.
+        if (!fieldTooltip.hasInstance) {
+            viewModel.instance = fieldTooltip;
         }
-        var $formErrors = $field.parent('.has-error');
-        if ($formErrors.length === 0) {
-            var $formErrors = $('<div>').addClass('has-error');
-            $field.wrap($formErrors);
+    },
+    'popover_error': function(viewModel) {
+        // Do not forget to escape viewModel.message from XSS.
+        viewModel.instance = new App.FieldPopover(viewModel);
+    },
+    'form_error': function(viewModel) {
+        var errTitle = null;
+        var $field = $.id(viewModel.id);
+        if ($field.length > 1) {
+            errTitle = 'Multiple fields with auto_id: ' + viewModel.id;
+        }
+        if ($field.length == 0) {
+            errTitle = "Unknown field auto_id: " + viewModel.id;
+        }
+        if (errTitle !== null) {
+            var $errmsg = $('<div>');
+            App.renderNestedList($errmsg, viewModel.messages);
+            new App.Dialog({
+                title: errTitle,
+                message: $errmsg,
+            }).alert();
         } else {
-            $formErrors.find('.alert').remove();
-        }
-        var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
-        for (var i = 0; i < viewModel.messages.length; i++) {
-            var $contents = $('<div>', {
-                'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
-            }).text(viewModel.messages[i]);
-            $contents.prepend($('<button>', {
-                'class': 'close',
-                'data-dismiss': 'alert',
-                'type': 'button'
-            }).text('×'))
-            $field.after($contents);
+            var $inputGroup = $field.parents('.input-group:eq(0)');
+            if ($inputGroup.length > 0) {
+                $field = $inputGroup;
+            }
+            var $formErrors = $field.parent('.has-error');
+            if ($formErrors.length === 0) {
+                var $formErrors = $('<div>').addClass('has-error');
+                $field.wrap($formErrors);
+            } else {
+                $formErrors.find('.alert').remove();
+            }
+            var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
+            for (var i = 0; i < viewModel.messages.length; i++) {
+                var $contents = $('<div>', {
+                    'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
+                }).text(viewModel.messages[i]);
+                $contents.prepend($('<button>', {
+                    'class': 'close',
+                    'data-dismiss': 'alert',
+                    'type': 'button'
+                }).text('×'))
+                $field.after($contents);
+            }
         }
     }
 });
@@ -211,8 +211,7 @@ App.FieldTooltip = function(options) {
  * @todo: destroy tooltip errors only for the form specified
  */
 App.destroyTooltipErrors = function(form) {
-    App.executedViewModels = _.filter(
-        App.executedViewModels,
+    App.vmRouter.filterExecuted(
         function(viewModel) {
             if (viewModel.view === 'tooltip_error' &&
                     typeof viewModel.instance !== 'undefined') {

@@ -42,7 +42,7 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
                     // Wrapped into try / catch to avoid nested window.onerror calls.
                     try {
                         if (App.conf.jsErrorsAlert) {
-                            App.viewResponse(response);
+                            App.vmRouter.respond(response);
                         }
                     } catch (e) {
                         console.log(e);
@@ -412,9 +412,9 @@ App.Dialog = function(options) {
             this.dialogOptions.callback = function(result) {
                 // @note: Do not use alert view as callback, it will cause stack overflow.
                 if (result) {
-                    App.viewResponse(cbViewModel);
+                    App.vmRouter.respond(cbViewModel);
                 } else if (typeof self.dialogOptions.cb_cancel === 'object') {
-                    App.viewResponse(self.dialogOptions.cb_cancel);
+                    App.vmRouter.respond(self.dialogOptions.cb_cancel);
                 }
             };
             break;
@@ -635,7 +635,7 @@ App.Actions = function(options) {
     };
 
     Actions.getOurViewmodel = function(response) {
-        var vms = App.filterViewModels(response, {
+        var vms = App.vmRouter.filter(response, {
             view: this.viewModelName
         });
         // Assuming there is only one viewmodel with view: this.viewModelName, which is currently true.
@@ -689,7 +689,7 @@ App.Actions = function(options) {
             }
             throw sprintf('Unimplemented %s()', method);
         };
-        App.viewResponse(response, responseOptions);
+        App.vmRouter.respond(response, responseOptions);
     };
 
     Actions.perform = function(action, actionOptions, ajaxCallback) {
@@ -720,7 +720,265 @@ App.getSelector = function(selector) {
 };
 
 // https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
-App.viewHandlers = {
+/*
+App.viewHandlers = {},
+};
+App.requireViewHandlers = function(list) {
+};
+App.addViewHandler = function(viewname, fn, bindContext) {
+};
+App.execViewHandler = function(viewModel, viewName, bindContext) {
+};
+App.showView = function(viewModel, bindContext) {
+};
+App.filterViewModels = function(response, props) {
+App.executedViewModels = [];
+};
+App.savedResponses = {};
+App.viewResponse = function(response, options) {
+};
+App.saveResponse = function(name, response) {
+};
+App.loadResponse = function(name) {
+};
+*/
+
+App.ViewModelRouter = function(viewHandlers) {
+    this.handlers = [];
+    this.executedViewModels = [];
+    this.savedResponses = {};
+    this.add(viewHandlers);
+};
+
+(function(ViewModelRouter) {
+
+    /**
+     * Require viewModel handlers with specified viewModel names to exists.
+     */
+    ViewModelRouter.req = function(list) {
+        for (var i = 0; typeof list[i] !== 'undefined'; i++) {
+            if (typeof this.handlers[list[i]] === 'undefined') {
+                throw "Missing .handlers['" + list[i] + "']";
+            }
+        }
+    };
+
+    /**
+     * Add bound method: handler={'fn': methodName, 'context': classInstance}
+     * Add classPath:    handler='App.MyClass'
+     */
+    ViewModelRouter.addHandler = function(viewName, handler) {
+        if (typeof this.handlers[viewName] === 'undefined') {
+            this.handlers[viewName] = handler;
+        } else if (_.isArray(this.handlers[viewName])) {
+            this.handlers[viewName].push(handler);
+        } else {
+            // Convert single handler to the array of handlers.
+            this.handlers[viewName] = [
+                this.handlers[viewName], handler
+            ];
+        }
+    };
+
+    ViewModelRouter.removeHandler = function(viewName, handler) {
+        if (typeof this.handlers[viewName] !== 'undefined') {
+            if (_.isArray(this.handlers[viewName])) {
+                var k = -1;
+                for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined '; i++) {
+                    if (_.isEqual(this.handlers[viewName][i], handler)) {
+                        k = i;
+                        break;
+                    }
+                }
+                if (k !== -1) {
+                    this.handlers[viewName].splice(k, 1);
+                }
+                if (this.handlers[viewName].length === 0) {
+                    delete this.handlers[viewName];
+                }
+            } else {
+                if (_.isEqual(this.handlers[viewName], handler)) {
+                    delete this.handlers[viewName];
+                };
+            }
+        }
+    };
+
+    /**
+     * Add unbound function or a bound method of class instance.
+     */
+    ViewModelRouter.addFn = function(viewName, fn, bindContext) {
+        if (typeof fn !== 'function') {
+            throw sprintf(
+                "Invalid type '%s' for viewhandler '%s': %s",
+                typeof fn,
+                viewName,
+                JSON.stringify(this.handlers[viewName])
+            );
+        }
+        var handler = (typeof bindContext === 'object') ? {'fn': fn, 'context': bindContext} : fn;
+        this.addHandler(viewName, handler);
+    };
+
+    /**
+     * Add multiple viewHandlers at once.
+     * Each key is viewName, while the values are handler definitions.
+     */
+    ViewModelRouter.add = function(viewHandlers) {
+        for (var viewName in viewHandlers) {
+            if (viewHandlers.hasOwnProperty(viewName)) {
+                var handler = viewHandlers[viewName];
+                if (typeof handler === 'function') {
+                    this.addFn(viewName, handler);
+                } else if (typeof handler === 'object') {
+                    this.addHandler(viewName, handler)
+                }
+            }
+        }
+    };
+
+    /**
+     * Execute a handler of any available type: unbound, bound, classPath.
+     */
+    ViewModelRouter.applyHandler = function(viewModel, handler, bindContext) {
+        var fn;
+        if (typeof handler === 'object') {
+            fn = handler.fn;
+            if (bindContext === undefined) {
+                bindContext = handler.context;
+            }
+        } else {
+            fn = handler;
+        }
+        if (typeof bindContext === 'object') {
+            fn.apply(bindContext, [viewModel]);
+        } else {
+            if (typeof fn === 'string') {
+                App.newClassFromPath(fn, [viewModel]);
+            } else {
+                fn(viewModel);
+            }
+        }
+    };
+
+    ViewModelRouter.exec = function(viewModel, viewName, bindContext) {
+        if (typeof this.handlers[viewName] !== 'undefined') {
+            var handler = this.handlers[viewName];
+            if (_.isArray(handler)) {
+                for (var i = 0; typeof handler[i] !== 'undefined'; i++) {
+                    this.applyHandler(viewModel, handler[i], bindContext);
+                }
+            } else {
+                this.applyHandler(viewModel, handler, bindContext);
+            }
+        }
+    };
+
+    ViewModelRouter.showView = function(viewModel, bindContext) {
+        if (typeof viewModel.view === 'undefined') {
+            var viewModelStr = '';
+            try {
+                viewModelStr = JSON.stringify(viewModel);
+            } catch (e) {
+                console.log('@exception: ' + e);
+            }
+            new App.Dialog({
+                'title': App.trans('AJAX response error'),
+                'message': App.trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr)),
+            }).alertError();
+            throw 'ViewModelRouter.show() error';
+        }
+        var hasView;
+        if (hasView = (typeof this.handlers[viewModel.view] !== 'undefined')) {
+            this.exec(viewModel, viewModel.view, bindContext);
+        }
+        return hasView;
+    };
+
+    // Can be called static.
+    ViewModelRouter.filter = function(response, props) {
+        if (typeof props !== 'object') {
+            throw "ViewModelRouter.filter 'props' arg must be an instance of object.";
+        }
+        var foundVms = [];
+        for (var i = 0; typeof response[i] !== 'undefined'; i++) {
+            var vm = response[i];
+            var found = true;
+            for (var k in props) {
+                if (props.hasOwnProperty(k)) {
+                    if (typeof vm[k] === 'undefined' || vm[k] !== props[k]) {
+                        found = false;
+                        break;
+                    }
+                }
+            }
+            if (found) {
+                foundVms.push(vm);
+            }
+        }
+        return foundVms;
+    };
+
+    ViewModelRouter.filterExecuted = function(filterFn) {
+        this.executedViewModels = _.filter(
+            this.executedViewModels, filterFn
+        );
+    };
+
+    ViewModelRouter.respond = function(response, options) {
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        var bindContext = (typeof options.bindContext ==='undefined') ? undefined : options.bindContext;
+        if (!_.isArray(response)) {
+            response = [response];
+        }
+        options = $.extend({before: {}, after: {}}, options);
+        // @note: Do not replace with response.length; because
+        // response may have extra non-integer properties and object
+        // has no length property in such case.
+        for (var i = 0; typeof response[i] !== 'undefined'; i++) {
+            var hasView;
+            var viewModel = response[i];
+            // Execute custom 'before' handler, when available.
+            if (hasView = (typeof options.before[viewModel.view] !== 'undefined')) {
+                this.applyHandler(viewModel, options.before[viewModel.view], bindContext);
+            }
+            // Execute registered handler.
+            var hasView = this.showView(viewModel, bindContext) || hasView;
+            // Execute custom 'after' handler, when available.
+            if (typeof options.after[viewModel.view] !== 'undefined') {
+                this.applyHandler(viewModel, options.after[viewModel.view], bindContext);
+                hasView = true;
+            }
+            if (hasView) {
+                this.executedViewModels.push(viewModel);
+            } else {
+                var viewModelStr = viewModel.view;
+                try {
+                    viewModelStr = JSON.stringify(viewModel);
+                } catch (e) {
+                    console.log('@exception: ' + e);
+                }
+                console.log('Warning: skipped unhandled viewModel: ' + viewModelStr);
+            }
+        }
+    };
+
+    ViewModelRouter.saveResponse = function(name, response) {
+        this.savedResponses[name] = response;
+    };
+
+    ViewModelRouter.loadResponse = function(name, options) {
+        if (typeof this.savedResponses[name] !== 'undefined') {
+            this.respond(this.savedResponses[name], options);
+            delete this.savedResponses[name];
+        }
+    };
+
+})(App.ViewModelRouter.prototype);
+
+App.vmRouter = new App.ViewModelRouter({
     'redirect_to' : function(viewModel) {
         var href = viewModel.url;
         var hash = href.match('(#.*)$');
@@ -822,155 +1080,9 @@ App.viewHandlers = {
                 $submit.data('url', response.toUrl);
             }
         });
-    },
-};
-
-
-App.requireViewHandlers = function(list) {
-    for (var i = 0; typeof list[i] !== 'undefined'; i++) {
-        if (typeof App.viewHandlers[list[i]] === 'undefined') {
-            throw "Missing App.viewHandlers['" + list[i] + "']";
-        }
     }
-};
+});
 
-App.addViewHandler = function(viewname, fn) {
-    var handlerType = typeof App.viewHandlers[viewname];
-    if (handlerType === 'undefined') {
-        App.viewHandlers[viewname] = fn;
-    } else if (handlerType === 'function') {
-        App.viewHandlers[viewname] = [
-            App.viewHandlers[viewname], fn
-        ];
-    } else if (_.isArray(App.viewHandlers[viewname])) {
-        App.viewHandlers[viewname].push(fn);
-    } else {
-        throw sprintf(
-            "Invalid value of viewhandler '%s': %s",
-            viewname,
-            JSON.stringify(App.viewHandlers[viewname])
-        );
-    }
-};
-
-App.execViewHandler = function(viewModel, viewName, bindContext) {
-    var handler = App.viewHandlers[viewName];
-    if (typeof handler === 'function') {
-        handler(viewModel, bindContext);
-    } else if (_.isArray(handler)) {
-        for (var i = 0; i < handler.length; i++) {
-            handler[i](viewModel, bindContext);
-        }
-    } else {
-        throw sprintf(
-            "Invalid previous value of viewhandler '%s': %s",
-            viewName,
-            JSON.stringify(App.viewHandlers[viewName])
-        );
-    }
-};
-
-App.showView = function(viewModel, bindContext) {
-    if (typeof viewModel.view === 'undefined') {
-        var viewModelStr = '';
-        if (JSON.stringify) {
-            try {
-                viewModelStr = JSON.stringify(viewModel);
-            } catch (e) {
-                console.log('@exception: ' + e);
-            }
-        }
-        new App.Dialog({
-            'title': App.trans('AJAX request error'),
-            'message': App.trans('Undefined response view %s', $.htmlEncode(viewModelStr)),
-        }).alertError();
-        throw "App.showView() error";
-    }
-    var hasView;
-    if (hasView = (typeof App.viewHandlers[viewModel.view] !== 'undefined')) {
-        App.execViewHandler(viewModel, viewModel.view, bindContext);
-    }
-    return hasView;
-};
-
-App.filterViewModels = function(response, props) {
-    if (typeof props !== 'object') {
-        throw "App.filterViewModels props arg must be an instanceof object.";
-    }
-    var foundVms = [];
-    for (var i = 0; typeof response[i] !== 'undefined'; i++) {
-        var vm = response[i];
-        var found = true;
-        for (var k in props) {
-            if (props.hasOwnProperty(k)) {
-                if (typeof vm[k] === 'undefined' || vm[k] !== props[k]) {
-                    found = false;
-                    break;
-                }
-            }
-        }
-        if (found) {
-            foundVms.push(vm);
-        }
-    }
-    return foundVms;
-};
-
-App.executedViewModels = [];
-
-App.viewResponse = function(response, options) {
-    if (typeof options !== 'object') {
-        options = {};
-    }
-    var bindContext = (typeof options.bindContext ==='undefined') ? this : options.bindContext;
-    if (!_.isArray(response)) {
-        response = [response];
-    }
-    options = $.extend({before: {}, after: {}}, options);
-    // @note: Do not replace with response.length; because
-    // response may have extra non-integer properties and object
-    // has no length property in such case.
-    for (var i = 0; typeof response[i] !== 'undefined'; i++) {
-        var hasView;
-        // Execute custom 'before' handler, when available.
-        if (hasView = (typeof options.before[response[i].view] === 'function')) {
-            options.before[response[i].view](response[i], bindContext);
-        }
-        // Execute registered handler.
-        var hasView = App.showView(response[i], bindContext) || hasView;
-        // Execute custom 'after' handler, when available.
-        if (typeof options.after[response[i].view] === 'function') {
-            options.after[response[i].view](response[i], bindContext);
-            hasView = true;
-        }
-        if (hasView) {
-            App.executedViewModels.push(response[i]);
-        } else {
-            var viewModelStr = response[i].view;
-            if (JSON.stringify) {
-                try {
-                    viewModelStr = JSON.stringify(response[i]);
-                } catch (e) {
-                    console.log('@exception: ' + e);
-                }
-            }
-            console.log('Warning: skipped unknown view: ' + viewModelStr);
-        }
-    }
-};
-
-App.savedResponses = {};
-
-App.saveResponse = function(name, response) {
-    App.savedResponses[name] = response;
-};
-
-App.loadResponse = function(name) {
-    if (typeof App.savedResponses[name] !== 'undefined') {
-        App.viewResponse(App.savedResponses[name]);
-        delete App.savedResponses[name];
-    }
-};
 
 App.disableInput = function(input) {
     var $input = $(input);
@@ -1038,7 +1150,7 @@ App.showAjaxError = function(jqXHR, exception) {
     } else {
         message = 'Uncaught Error.\n' + $.htmlEncode(jqXHR.responseText);
     }
-    App.viewResponse({
+    App.vmRouter.respond({
         'view': 'alert_error',
         'title': App.trans('Request error'),
         'message': message
@@ -1204,7 +1316,15 @@ App.AjaxButton = function($selector) {
         if (url === undefined) {
             throw "Please define data-url or data-route attribute on the selected element.";
         }
-        $.post(url, {csrfmiddlewaretoken: App.conf.csrfToken}, App.viewResponse, 'json')
+        $.post(url,
+            {
+                csrfmiddlewaretoken: App.conf.csrfToken
+            },
+            function(response) {
+                App.vmRouter.respond(response);
+            },
+            'json'
+        )
         .always(function() {
             l.remove();
             App.enableInput($target);
@@ -1305,7 +1425,7 @@ App.AjaxForm = function($selector) {
                     if (file.size > App.conf.fileMaxSize) {
                         var message = App.trans('Too big file size=%s, max_size=%s', file.size, maxSize)
                         if (typeof $formFiles[i].id === 'string') {
-                            App.showView({
+                            App.vmRouter.showView({
                                 'view': 'form_error',
                                 'id': $formFiles[i].id,
                                 'messages': [message]
@@ -1380,7 +1500,7 @@ App.AjaxForm = function($selector) {
                 // Add $form property for custom viewHandler.
                 response.$form = $form;
                 if (_callbacks.success(response)) {
-                    App.viewResponse(response);
+                    App.vmRouter.respond(response);
                 }
             },
             complete: function() {
@@ -1779,7 +1899,7 @@ App.get = function(route, data, options) {
         url,
         (typeof data === 'undefined') ? {} : data,
         function(response) {
-            App.viewResponse(response, options);
+            App.vmRouter.respond(response, options);
         },
         'json'
     ).fail(App.showAjaxError);
@@ -1803,7 +1923,7 @@ App.post = function(route, data, options) {
         url,
         data,
         function(response) {
-            App.viewResponse(response, options);
+            App.vmRouter.respond(response, options);
         },
         'json'
     ).fail(App.showAjaxError);
@@ -1884,7 +2004,7 @@ $(document)
         console.log('@note: client_data middleware is disabled at server side.')
     } else if (typeof App.clientData.onloadViewModels !== 'undefined') {
         // Execute server-side injected initial viewmodels, if any.
-        App.viewResponse(App.clientData.onloadViewModels);
+        App.vmRouter.respond(App.clientData.onloadViewModels);
     }
     for (var i = 0; i < App.documentReadyHooks.length; i++) {
         App.documentReadyHooks[i]();
