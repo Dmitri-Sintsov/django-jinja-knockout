@@ -851,17 +851,20 @@ App.ViewModelRouter = function(viewHandlers) {
             fn = handler;
         }
         if (typeof bindContext === 'object') {
-            fn.apply(bindContext, [viewModel]);
+            fn.apply(bindContext, [viewModel, this]);
         } else {
             if (typeof fn === 'string') {
-                App.newClassFromPath(fn, [viewModel]);
+                App.newClassFromPath(fn, [viewModel, this]);
             } else {
-                fn(viewModel);
+                fn(viewModel, this);
             }
         }
     };
 
-    ViewModelRouter.exec = function(viewModel, viewName, bindContext) {
+    /**
+     * Allows to specify a different viewName, to override viewModel.view.
+     */
+    ViewModelRouter.exec = function(viewName, viewModel, bindContext) {
         if (typeof this.handlers[viewName] !== 'undefined') {
             var handler = this.handlers[viewName];
             if (_.isArray(handler)) {
@@ -874,6 +877,9 @@ App.ViewModelRouter = function(viewHandlers) {
         }
     };
 
+    /**
+     * Executes viewModel based on it's viewModel.view property which contanis viewModel name.
+     */
     ViewModelRouter.showView = function(viewModel, bindContext) {
         if (typeof viewModel.view === 'undefined') {
             var viewModelStr = '';
@@ -890,7 +896,7 @@ App.ViewModelRouter = function(viewHandlers) {
         }
         var hasView;
         if (hasView = (typeof this.handlers[viewModel.view] !== 'undefined')) {
-            this.exec(viewModel, viewModel.view, bindContext);
+            this.exec(viewModel.view, viewModel, bindContext);
         }
         return hasView;
     };
