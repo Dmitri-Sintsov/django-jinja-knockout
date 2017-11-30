@@ -761,6 +761,7 @@ App.ViewModelRouter = function(viewHandlers) {
                 throw "Missing .handlers['" + list[i] + "']";
             }
         }
+        return this;
     };
 
     /**
@@ -778,6 +779,7 @@ App.ViewModelRouter = function(viewHandlers) {
                 this.handlers[viewName], handler
             ];
         }
+        return this;
     };
 
     ViewModelRouter.removeHandler = function(viewName, handler) {
@@ -802,6 +804,16 @@ App.ViewModelRouter = function(viewHandlers) {
                 };
             }
         }
+        return this;
+    };
+
+    ViewModelRouter.removeAll = function() {
+        for (var i = 0; i < arguments.length; i++) {
+            if (typeof this.handlers[arguments[i]] !== 'undefined') {
+                delete this.handlers[arguments[i]];
+            }
+        }
+        return this;
     };
 
     /**
@@ -818,6 +830,7 @@ App.ViewModelRouter = function(viewHandlers) {
         }
         var handler = (typeof bindContext === 'object') ? {'fn': fn, 'context': bindContext} : fn;
         this.addHandler(viewName, handler);
+        return this;
     };
 
     /**
@@ -835,6 +848,7 @@ App.ViewModelRouter = function(viewHandlers) {
                 }
             }
         }
+        return this;
     };
 
     /**
@@ -859,6 +873,7 @@ App.ViewModelRouter = function(viewHandlers) {
                 fn(viewModel, this);
             }
         }
+        return this;
     };
 
     /**
@@ -875,6 +890,7 @@ App.ViewModelRouter = function(viewHandlers) {
                 this.applyHandler(viewModel, handler, bindContext);
             }
         }
+        return this;
     };
 
     /**

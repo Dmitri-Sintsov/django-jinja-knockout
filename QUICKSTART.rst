@@ -6,6 +6,7 @@ Quickstart
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
+.. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
@@ -41,8 +42,9 @@ See `viewmodels`_ for detailed explanation.
 * Client-side view models can also be executed from Javascript code directly.
 * Possibility to optionally inject client-side view models into html pages, executing these onload.
 * Possibility to execute client-side viewmodels from current user session (persistent onload).
-* ``App.viewHandlers`` - predefined built-in AJAX response routing viewmodels to perform standard client-side actions,
-  such as displaying BootstrapDialogs, manipulate DOM content, graceful AJAX errors handling and more.
+* `App.vmRouter`_ - predefined built-in AJAX response viewmodels router to perform standard client-side actions, such as
+  displaying BootstrapDialogs, manipulate DOM content, graceful AJAX errors handling. It can be used to define new
+  viewmodel handlers.
 
 Simplifying AJAX calls
 ~~~~~~~~~~~~~~~~~~~~~~

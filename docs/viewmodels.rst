@@ -1,17 +1,18 @@
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _App.Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Actions&type=&utf8=%E2%9C%93
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
 .. _App.destroyTooltipErrors: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.destroyTooltipErrors&type=&utf8=%E2%9C%93
 .. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editform&type=&utf8=%E2%9C%93
 .. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.EditForm
 .. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editinline&type=&utf8=%E2%9C%93
-.. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
+.. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
+.. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ko-grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
-.. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/tooltips.js
+.. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
 .. _vm_list: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=vm_list&type=&utf8=%E2%9C%93
 
 
@@ -28,7 +29,7 @@ Client-side viewmodels
 
 Viewmodels are defined as an array of simple objects in Javascript::
 
-    viewmodels = [
+    var viewmodels = [
         {
             'view': 'prepend',
             'selector': '#infobar',
@@ -82,31 +83,58 @@ argument of their particular handler:
 
 * ``'view': 'prepend'``: executes ``jQuery.prepend(viewmodel.html)`` function for specified selector ``#infobar``;
 * ``'view': 'confirm'``: shows ``BootstrapDialog`` confirmation window with specified ``title`` and ``message``;
-* ``'callback'``: when ``Ok`` button of ``BootstrapDialog`` will be pressed by end-user, nested ``callback`` list of
-  client-side viewmodels will be executed, which defines just one command: ``redirect_to`` with the specified url
-  ``/homepage/``;
-* ``'cb_cancel``: when user cancels confirmation dialog, redirect to ``/logout/`` url will be performed.
+
+  * ``'callback'``: when user hits ``Ok`` button of ``BootstrapDialog``, nested ``callback`` list of client-side
+    viewmodels will be executed, which defines just one command: ``redirect_to`` with the specified url ``/homepage/``;
+  * ``'cb_cancel``: when user cancels confirmation dialog, redirect to ``/logout/`` url will be performed.
 
 .. highlight:: javascript
 
-Now, how to execute these viewmodels we defined actually? At Javascript side it's a simple call::
+Now, how to execute these viewmodels we defined actually? At Javascript side it's a simple call (version 0.7.0)::
 
-    App.viewResponse(viewmodels);
+    App.vmRouter.respond(viewmodels);
 
 While single viewmodel may be execuded via the following call::
 
-    App.showView({
+    App.vmRouter.show({
         'view': 'form_error',
         'id': $formFiles[i].id,
         'messages': [message]
     });
 
 However, it does not provide much advantage over performing ``jQuery.prepend()`` and instantiating ``BootstrapDialog()``
-manually, while losing some of their flexibility. Then why is all of that?
+manually. Then why is all of that?
 
-Because one rarely should execute viewmodels from client-side directly. It's not the key point of their introduction.
-They are most useful as foundation of interaction between server-side Django and client-side Javascript via AJAX
-requests where the AJAX response is the list of viewmodels generated at server-side, and in few other special cases.
+First reason: one rarely should execute viewmodels from client-side directly. It's not the key point of their
+introduction. They are most useful as foundation of interaction between server-side Django and client-side Javascript
+via AJAX requests where the AJAX response is the list of viewmodels generated at server-side, and in few other special
+cases, such as sessions and document.onload viewmodels injecting.
+
+Second reason: It is possible to setup multiple viewmodel handlers and then to remove these. One handler also could call
+another handler. Think of event subscription: these are very similar, however not only plain functions are supported,
+but also functions bound to particular instance (methods) and classpath strings to instantiate new Javascript classes::
+
+    var handler = {
+        fn: App.MyClass.prototype.myMethod,
+        context: App.myClassInstance
+    };
+    // Subscribe to bound method:
+    App.vmRouter.addHandler('my_view', handler)
+    // Subscribe to bound method:
+        .addFn('my_view', App.MyClass.prototype.myMethod2, App.myClassInstance)
+    // Subscribe to unbound function:
+        .addFn('my_view', myFunc)
+    // Subscribe to instantiate a new class via classpath specified:
+        .addHandler('my_view', 'App.MyClass');
+    // ...
+    // Will execute all four handlers attached above:
+    App.vmRouter.exec('my_view', {'a': 1, 'b': 2});
+    // ...
+    // Unsubscribe handlers. The order is arbitrary.
+    App.vmRouter.removeHandler('my_view', {fn: App.MyClass.prototype.myMethod2, context: App.myClassInstance})
+        .removeHandler('my_view', myFunc)
+        .removeHandler('my_view', handler)
+        .removeHandler('my_view', 'App.MyClass');
 
 Viewmodel data format
 ~~~~~~~~~~~~~~~~~~~~~
@@ -114,7 +142,7 @@ Viewmodel data format
 Key ``'view'`` of each Javascript object / Python dict in the list specifies the value of ``viewmodel name``, that is
 bound to particular Javascript ``viewmodel handler``. The viewmodel itself is used as the Javascript object argument of
 each particular ``viewmodel handler`` with the corresponding keys and their values. The following built-in viewmodel
-names currently are available in `app.js`_ (version 0.6.1)::
+names currently are available in `app.js`_ (version 0.7.0)::
 
     [
         'redirect_to',
@@ -154,36 +182,62 @@ bundled viewmodel names and their viewmodel handlers::
 
 which are primarily used to display errors for AJAX submitted forms via viewmodels AJAX response.
 
-The following method allows to attach multiple handlers to one viewmodel name::
+The following methods allows to attach one or multiple handlers to one viewmodel name::
 
-    App.addViewHandler('my_view', function(viewModel) {
+    App.vmRouter.addFn('my_view', function(viewModel, vmRouter) {
         // execute viewmodel here...
+    })
+        .addHandler('my_view2', {fn: App.MyClass.prototype.method, context: MyClassInstance})
+        .addHandler('my_view3', 'App.MyClass');
+    // or
+    App.vmRouter.add({
+        'my_view': function(viewModel, vmRouter) {
+            // execute viewmodel here...
+        },
+        'my_view2': {fn: App.MyClass.prototype.method, context: MyClassInstance},
+        'my_view3': 'App.MyClass'
     });
 
-The following syntax allows to reset previous handlers with that name (if any)::
+The following syntax allows to reset previous handlers with the names specified (if any)::
 
-    App.viewHandlers['my_view'] = function(viewModel) {
-        // execute viewmodel here...
-    };
+    App.vmRouter.removeAll('my_view', 'my_view2', 'my_view3')
+        .add({
+            'my_view': function(viewModel, vmRouter) {
+                // execute viewmodel here...
+            },
+            'my_view2': {fn: App.MyClass.prototype.method, context: MyClassInstance},
+            'my_view3': 'App.MyClass'
+        });
 
 When ``function`` handler is called, it's ``viewModel`` argument receives the actual instance of ``viewmodel``.
+Second optional argument ``vmRouter`` points to the instance of `App.vmRouter`_ that was used to process current
+``viewmodel``. It could be used to call another viewmodel handler inside the current handler / add / remove handlers
+via calling vmRouter instance methods::
+
+    App.vmRouter.addFn('my_view1', function(viewModel, vmRouter) {
+        vmRouter.addFn('my_view2', function(viewModelNested, vmRouter) {
+            // viewModelNested == {'a': 1, 'b': 2}}
+            // execute viewModelNested here...
+        });
+        // ... skipped ...
+        vmRouter.exec('my_view2', {'a': 1, 'b': 2});
+    });
 
 Note that new properties might be added to viewmodel for further access, like ``.instance`` property which holds an
 instance of ``App.FieldPopover`` in the following code::
 
-    App.viewHandlers['tooltip_error'] = function(viewModel) {
+    App.vmRouter.addFn('tooltip_error', function(viewModel) {
         // Adding .instance property at the client-side to server-side generated viewModel:
         viewModel.instance = new App.FieldPopover(viewModel);
-    };
+    });
 
-Every already executed viewmodel is stored in ``App.executedViewModels`` Javascript array, which may be processed later.
-An example of such processing is `App.destroyTooltipErrors`_ static method, which clears form input Bootstrap tooltips
-previously set by ``'tooltip_error'`` viewmodel handler then removes these viewmodels from ``App.executedViewModels``
-list::
+Every already executed viewmodel is stored in ``.executedViewModels`` property of `App.vmRouter`_ instance, which may be
+processed later. An example of such processing is `App.destroyTooltipErrors`_ static method, which clears form input
+Bootstrap tooltips previously set by ``'tooltip_error'`` viewmodel handler then removes these viewmodels from
+``.executedViewModels`` list::
 
     App.destroyTooltipErrors = function(form) {
-        App.executedViewModels = _.filter(
-            App.executedViewModels,
+        App.vmRouter.filterExecuted(
             function(viewModel) {
                 if (viewModel.view === 'tooltip_error' &&
                         typeof viewModel.instance !== 'undefined') {
@@ -197,14 +251,17 @@ list::
 
 It is possible to chain viewmodel handlers, implementing a code-reuse and a pseudo-inheritance of viewmodels::
 
-    App.addViewHandler('popover_error', function(viewModel, bindContext) {
+    App.vmRouter.addFn('popover_error', function(viewModel, vmRouter) {
         viewModel.instance = new App.FieldPopover(viewModel);
         // Override viewModel.name without altering it:
-        App.execViewHandler(viewModel, 'tooltip_error', bindContext);
+        vmRouter.exec(viewModel, 'tooltip_error');
+        // or, to preserve the bound context (if any):
+        vmRouter.exec(viewModel, 'tooltip_error', this);
     });
 
-where newly defined handler ``popover_error`` executes already existing one ``tooltip_error``. ``bindContext`` argument
-is optional one and it's purpose is explained below in `AJAX response routing`_ section.
+where newly defined handler ``popover_error`` executes already existing ``tooltip_error`` viewmodel handler.
+The purpose of passing ``this`` bind context as an optional third argument of vmRouter.exec() call is explained below
+in the `AJAX response routing`_ section.
 
 AJAX response routing
 ---------------------
@@ -241,15 +298,16 @@ Javascript::
 
 Such code have many disadvantages:
 
-1. Repeated boilerplate code with ``$.post()`` numerous arguments, including manual specification of CSRF token.
-2. Route url names are tied into client-side Javascript, instead of being supplied from Django. If you change an url of
-   route in ``urls.py``, and forget to update url path in Javascript code, AJAX POST may break.
-3. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
+1. Too much of callback nesting.
+2. Repeated boilerplate code with ``$.post()`` numerous arguments, including manual specification of CSRF token.
+3. Route url names are hardcoded into client-side Javascript, instead of being supplied from Django server-side. If you
+   change an url of route in ``urls.py``, and forget to update url path in Javascript code, AJAX POST may break.
+4. What if your AJAX response should have finer control over client-side response? For exmaple, sometimes you need
    to open ``BootstrapDialog``, sometimes to redirect instead, sometimes to perform some custom action?
 
 .. highlight:: html
 
-Now, with client-side viewmodels response routing, to execute AJAX post via button click, the following Jinja2 template
+Enter client-side viewmodels response routing: to execute AJAX post via button click, the following Jinja2 template
 code is enough::
 
     <button class="button btn btn-default" data-route="my_url_name">
@@ -317,20 +375,82 @@ and per class-based view::
 
 .. highlight:: javascript
 
-Also it is possible to change view handler Javascript bind context with the second argument of viewmodel handler::
+Also it is possible to specify view handler function bind context, specifying it via ``.addFn()`` / ``.addHandler()`` /
+``.add()`` method argument::
 
-    App.addViewHandler('set_context_title', function(viewModel, bindContext) {
-        bindContext.setTitle(viewModel.title);
+    App.vmRouter.addFn('set_context_title', function(viewModel) {
+        // this == bindContext
+        this.setTitle(viewModel.title);
+    }, bindContext);
+
+    App.vmRouter.addHandler('set_context_title', {
+        fn: function(viewModel) {
+            // this == bindContext
+            this.setTitle(viewModel.title);
+        },
+        context: bindContext
     });
 
-but in the last case to have instance of bind_context to be passed to viewmodel handler, one has to perform AJAX GET /
-POST request manually via::
+    App.vmRouter.add({
+        'set_context_title': {
+            fn: function(viewModel) {
+                // this == bindContext
+                this.setTitle(viewModel.title);
+            },
+            context: bindContext
+        },
+        'set_context_name': {
+            fn: function(viewModel) {
+                // this == bindContext
+                this.setName(viewModel.name);
+            },
+            context: bindContext
+        }
+    });
+
+It is also possible to override the bindContext value for viewmodel handler dynamically with ``App.post()`` optional
+``bindContext`` argument::
 
     App.post('my_url_name', post_data, bind_context);
 
-and of course Django view mapped to ``'my_url_name'`` (see :doc:`installation`) should return `vm_list`_ () instance
-with one of it's elements having the key ``{'view': 'set_context_title'}`` to have the viewmodel handler above to be
-actually called.
+That allows to use method prototypes bound to different instances of the same Javascript class::
+
+    (function(MessagingDialog) {
+
+        MessagingDialog.receivedMessages = [];
+        MessagingDialog.sentMessages = [];
+
+        MessagingDialog.vm_addReceivedMessage = function(viewModel, vmRouter) {
+            this.receivedMessages.push(viewModel.text);
+        };
+
+        MessagingDialog.vm_addSentMessage = function(viewModel, vmRouter) {
+            this.sentMessages.push(viewModel.text);
+        };
+
+        App.vmRouter.add({
+            'add_received_message': MessagingDialog.vm_addReceivedMessage,
+            'add_sent_message': MessagingDialog.vm_addSentMessage,
+        });
+
+    })(App.ko.MessagingDialog.prototype);
+
+
+Django view mapped to ``'my_url_name'`` (see :doc:`installation`) should return `vm_list`_ () instance with one of it's
+elements having the structure like this::
+
+    [
+        {
+            'view': 'add_received_message',
+            'text'; 'Thanks, I am fine!'
+        },
+        {
+            'view': 'add_sent_message',
+            'text'; 'How are you?'
+        }
+    ]
+
+to have the viewmodel handler(s) above to be actually called.
 
 .. highlight:: jinja
 

@@ -18,12 +18,12 @@ Grids
 .. _member_grid_custom_actions.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_custom_actions.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
-.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/club-grid.js
-.. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/formsets.js
-.. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko-grid.js
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
+.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
+.. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/formsets.js
+.. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ko-grid.js
 .. _knockout.js: http://knockoutjs.com/
-.. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/front/member-grid.js
+.. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/member-grid.js
 .. _underscore.js template: http://underscorejs.org/#template
 
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
@@ -2292,7 +2292,7 @@ The action itself is defined in ``django_jinja_knockout.views`` module ``GridAct
             # Delete one or many model object.
             ('delete', {
                 'localName': _('Remove'),
-                'class': 'glyphicon-remove',
+                'css': 'glyphicon-remove',
                 'enabled': False
             })
         ])
@@ -2312,7 +2312,7 @@ Imagine one grid having custom glyphicon action defined like this::
             actions = super().get_actions()
             actions['glyphicon']['quick_endorse'] = {
                 'localName': _('Quick endorsement'),
-                'class': 'glyphicon-cloud-upload',
+                'css': 'glyphicon-cloud-upload',
                 'enabled': True
             }
             return actions
@@ -2392,7 +2392,7 @@ First step to add new action is to override ``get_actions()`` method in Django g
             action_type = 'click'
             actions[action_type]['ask_user'] = {
                 'localName': _('Ask user'),
-                'class': 'btn-warning',
+                'css': 'btn-warning',
                 'enabled': True
             }
             return actions
@@ -2413,7 +2413,7 @@ To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
             action_type = 'glyphicon'
             actions[action_type]['ask_user'] = {
                 'localName': _('Ask user'),
-                'class': 'glyphicon-user',
+                'css': 'glyphicon-user',
                 'enabled': True
             }
             return actions
@@ -2706,7 +2706,7 @@ pagination and optional search / filtering - not having to load the whole querys
             }
             actions['glyphicon']['add_equipment'] = {
                 'localName': _('Add club equipment'),
-                'class': 'glyphicon-wrench',
+                'css': 'glyphicon-wrench',
                 'enabled': True
             }
             return actions
@@ -2904,7 +2904,7 @@ definition(s)::
             actions['button_bottom'] = OrderedDict([
                 ('approve_user', {
                     'localName': _('Approve user'),
-                    'class': {
+                    'css': {
                         'button': 'btn-warning',
                         'glyphicon': 'glyphicon-user'
                     },
