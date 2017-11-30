@@ -702,7 +702,7 @@ $.fn.linkPreview = function(method) {
                 if ($elem.prop('href') !== undefined) {
                     new scaledPreview($elem);
                 } else {
-                    $.each($elem.find('a'), function(k, anchor) {
+                    $elem.find('a').each(function(k, anchor) {
                         new scaledPreview($(anchor));
                     });
                 }
@@ -717,7 +717,7 @@ $.fn.linkPreview = function(method) {
                         scaledPreview.destroy();
                     }
                 } else {
-                    $.each($elem.find('a'), function(k, anchor) {
+                    $elem.find('a').each(function(k, anchor) {
                         var scaledPreview = $(anchor).popInstance('scaledPreview');
                         if (scaledPreview !== undefined) {
                             scaledPreview.destroy();
@@ -737,7 +737,7 @@ $.fn.highlightListUrl = function(location) {
     var searchMatches = [];
     var pathnameMatches = [];
     $anchors.parent('li').removeClass('active');
-    $.each($anchors, function(k, a) {
+    $anchors.each(function(k, a) {
         var a_pathname = a.pathname;
         if (a_pathname.match(/^[\/]/) === null) {
             // IE9 fix. Remove when IE9 support becomes obsolete.

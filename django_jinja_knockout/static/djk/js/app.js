@@ -1073,7 +1073,7 @@ App.vmRouter = new App.ViewModelRouter({
             return;
         }
         var $submits = $(App.AjaxForm.prototype.formSubmitSelector);
-        $.each($submits, function(k, v) {
+        $submits.each(function(k, v) {
             var $submit = $(v);
             if ($submit.data('url') === response.fromUrl || $submit.prop('data-url') === response.fromUrl) {
                 $submit.prop('data-url', response.toUrl);
@@ -1110,13 +1110,13 @@ App.enableInput = function(input) {
 };
 
 App.disableInputs = function(parent) {
-    $.each( $(parent).find(':input:visible'), function(k, v) {
+    $(parent).find(':input:visible').each(function(k, v) {
         App.disableInput(v);
     });
 };
 
 App.enableInputs = function(parent) {
-    $.each( $(parent).find(':input:visible'), function(k, v) {
+    $(parent).find(':input:visible').each(function(k, v) {
         App.enableInput(v);
     });
 };
@@ -1158,7 +1158,7 @@ App.showAjaxError = function(jqXHR, exception) {
 };
 
 App.SelectMultipleAutoSize = function($selector) {
-    $.each($selector.findSelf('select[multiple]'), function(k, v) {
+    $selector.findSelf('select[multiple]').each(function(k, v) {
         var $select = $(v);
         var size = $select.prop('size');
         var length = $select.find('option').length;
@@ -1272,7 +1272,7 @@ App.DatetimeWidget = function($parent) {
 App.ladder = function($selector) {
     var self = this;
     this.laddas = [];
-    $.each($selector.findSelf('button[type="submit"], input[type="submit"]'), function(k, v) {
+    $selector.findSelf('button[type="submit"], input[type="submit"]').each(function(k, v) {
         var l = Ladda.create(v);
         l.start();
         self.laddas.push(l);
@@ -1547,7 +1547,7 @@ App.DialogButton = function($selector) {
     };
 
     DialogButton.init = function() {
-        $.each(this.$dialogButtons, function(k, v) {
+        this.$dialogButtons.each(function(k, v) {
             var dialog = new App.Dialog($(v).data('options'));
             $(v).data('DialogButton', {instance: dialog});
             $(v).on('click', DialogButton.onClick);
@@ -1556,7 +1556,7 @@ App.DialogButton = function($selector) {
     };
 
     DialogButton.destroy = function() {
-        $.each(this.$dialogButtons, function(k, v) {
+        this.$dialogButtons.each(function(k, v) {
             var dialog = $(v).data('DialogButton').instance;
             // Assumes BootstrapDialog.autodestroy == true;
             dialog.close();
@@ -1701,7 +1701,7 @@ App.Tpl = function(options) {
         var contents = self.expandTemplate(tplId);
         var $result = $.contents(contents);
         // Load recursive nested templates, if any.
-        $.each($result, function(k, v) {
+        $result.each(function(k, v) {
             var $node = $(v);
             if ($node.prop('nodeType') === 1) {
                 self.loadTemplates($node);
@@ -1729,7 +1729,7 @@ App.Tpl = function(options) {
         var $result = this.domTemplate(this.tplId);
         var topNodeCount = 0;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
-        $.each($result, function(k, v) {
+        $result.each(function(k, v) {
             if ($(v).prop('nodeType') === 1) {
                 if (++topNodeCount > 1) {
                     throw "Template '" + this.tplId + "' expanded contents should have only one top DOM tag.";
@@ -1765,7 +1765,7 @@ App.Tpl = function(options) {
         var $targets = $selector.findSelf('[data-template-id]');
         // Build the list of parent templates for each template available.
         var $ancestors = [];
-        $.each($targets, function(k, currentTarget) {
+        $targets.each(function(k, currentTarget) {
             $ancestors[k] = $(currentTarget).parents('[data-template-id]');
             $ancestors[k]._targetKey = k;
         });
@@ -1777,7 +1777,7 @@ App.Tpl = function(options) {
             var ancestorTpl = this.inheritProcessor($target);
             ancestorTpl.prependTemplates($target, $ancestors[k]);
         };
-        $.each($targets, function(k, currentTarget) {
+        $targets.each(function(k, currentTarget) {
             $(currentTarget).contents().unwrap();
         });
     };
@@ -1863,7 +1863,7 @@ App.initClientApply = function(selector, method) {
             return App.initClient(selector, method);
         }
     }
-    $.each($selector.findSelf('.' + markerBegin), function(k, v) {
+    $selector.findSelf('.' + markerBegin).each(function(k, v) {
         // todo: check unbalanced trees.
         App.initClient($(v).nextUntil('.' + markerEnd), method);
     });

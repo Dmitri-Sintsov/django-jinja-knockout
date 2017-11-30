@@ -94,14 +94,14 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
 
 App.initClientHooks.push({
     init: function($selector) {
-        $.each($selector.findSelf('.formset'), function(k, v) {
+        $selector.findSelf('.formset').each(function(k, v) {
             var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
                 var $formsTotalCount;
                 var serversideFormsCount;
                 var maxFormsCount;
-                $.each($formset.find('.management-form :input'), function(k, v) {
+                $formset.find('.management-form :input').each(function(k, v) {
                     var $input = $(v);
                     if ($input.prop('id').match(/TOTAL_FORMS$/)) {
                         $formsTotalCount = $input;
@@ -126,7 +126,7 @@ App.initClientHooks.push({
         });
     },
     dispose: function($selector) {
-        $.each($selector.findSelf('.formset'), function(k, v) {
+        $selector.findSelf('.formset').each(function(k, v) {
             var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
