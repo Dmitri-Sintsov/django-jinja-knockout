@@ -320,7 +320,9 @@ code is enough::
 will execute viewmodels returned from Django view. If you want to ensure AJAX requests, just set your ``urls.py`` route
 kwargs key ``is_ajax`` to ``True`` (optional step)::
 
-    url(r'^button-click/$', 'my_app.views.button_click', name='my_url_name', kwargs={'ajax': True}),
+    from my_app.views import button_click
+    # ...
+    url(r'^button-click/$', button_click, name='my_url_name', kwargs={'ajax': True}),
 
 register AJAX client-side route (url name) in ``context_processors.py``::
 
@@ -355,7 +357,7 @@ and return the list of viewmodels in my_app/views.py::
 that's all.
 
 If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like in the
-example above, you do not even have to modify a single bit of your Javascript code!
+example above, you do not even have to modify a single bit of your Javascript code.
 
 Since version 0.2.0, it is possible to specify client-side routes per view, not having to define them globally
 in template context processor::
@@ -375,8 +377,8 @@ and per class-based view::
 
 .. highlight:: javascript
 
-Also it is possible to specify view handler function bind context, specifying it via ``.addFn()`` / ``.addHandler()`` /
-``.add()`` method argument::
+Also it is possible to specify view handler function bind context via ``.addFn()`` / ``.addHandler()`` / ``.add()``
+method optional argument::
 
     App.vmRouter.addFn('set_context_title', function(viewModel) {
         // this == bindContext
@@ -408,49 +410,72 @@ Also it is possible to specify view handler function bind context, specifying it
         }
     });
 
-It is also possible to override the bindContext value for viewmodel handler dynamically with ``App.post()`` optional
+It is also possible to override the value of context for viewmodel handler dynamically with ``App.post()`` optional
 ``bindContext`` argument::
 
     App.post('my_url_name', post_data, bind_context);
 
 That allows to use method prototypes bound to different instances of the same Javascript class::
 
-    (function(MessagingDialog) {
+    App.AjaxDialog = function(options) {
+        $.inherit(App.Dialog.prototype, this);
+        this.create(options);
+    };
 
-        MessagingDialog.receivedMessages = [];
-        MessagingDialog.sentMessages = [];
+    (function(AjaxDialog) {
 
-        MessagingDialog.vm_addReceivedMessage = function(viewModel, vmRouter) {
+        AjaxDialog.receivedMessages = [];
+        AjaxDialog.sentMessages = [];
+
+        AjaxDialog.vm_addReceivedMessage = function(viewModel, vmRouter) {
             this.receivedMessages.push(viewModel.text);
         };
 
-        MessagingDialog.vm_addSentMessage = function(viewModel, vmRouter) {
+        AjaxDialog.vm_addSentMessage = function(viewModel, vmRouter) {
             this.sentMessages.push(viewModel.text);
         };
 
+        AjaxDialog.getMessages = function() {
+            // Call selected instance of AjaxDialog .vm_addReceivedMessage / .vm_addSentMessage bound methods,
+            // supposing that AJAX response contains one of 'add_received_message' / 'add_sent_message' viewmodels:
+            App.post('my_url_name', this.postData, this);
+        };
+
         App.vmRouter.add({
-            'add_received_message': MessagingDialog.vm_addReceivedMessage,
-            'add_sent_message': MessagingDialog.vm_addSentMessage,
+            'add_received_message': AjaxDialog.vm_addReceivedMessage,
+            'add_sent_message': AjaxDialog.vm_addSentMessage,
         });
 
-    })(App.ko.MessagingDialog.prototype);
+    })(App.AjaxDialog.prototype);
 
+    var ajaxDialog = new App.AjaxDialog(options);
+    ajaxDialog.getMessages();
 
-Django view mapped to ``'my_url_name'`` (see :doc:`installation`) should return `vm_list`_ () instance with one of it's
-elements having the structure like this::
+.. highlight:: python
 
-    [
-        {
-            'view': 'add_received_message',
-            'text'; 'Thanks, I am fine!'
-        },
-        {
-            'view': 'add_sent_message',
-            'text'; 'How are you?'
-        }
-    ]
+Django ``MyView`` mapped to ``'my_url_name'`` (see :ref:`installation_context-processor`) should return `vm_list`_ ()
+instance with one of it's elements having the structure like this::
 
-to have the viewmodel handler(s) above to be actually called.
+    from django_jinja_knockout.viewmodels import vm_list
+    # skipped ...
+
+    class MyView(View):
+
+        def post(self, request, *args, **kwargs):
+            return vm_list([
+                {
+                    'view': 'add_received_message',
+                    'text': 'Thanks, I am fine!'
+                },
+                {
+                    'view': 'add_sent_message',
+                    'text': 'How are you?'
+                }
+            ])
+
+to have ``ajaxDialog`` instance ``.vm_addReceivedMessage()`` / ``.vm_addSentMessage()`` methods to be actually called.
+Note that with viewmodels the server-side Django view may dynamically chose which client-side viewmodels will be
+executed, the order of execution and their parameters like 'text' in this example.
 
 .. highlight:: jinja
 
@@ -464,7 +489,7 @@ instead::
 Non-AJAX server-side invocation of client-side viewmodels.
 ----------------------------------------------------------
 
-Besides direct client-side invocation of viewmodels via `app.js`_ ``App.viewResponse()`` method, and AJAX POST /
+Besides direct client-side invocation of viewmodels via `app.js`_ ``App.vmRouter.respond()`` method, and AJAX POST /
 AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with
 server-side invocation.
 
@@ -495,7 +520,10 @@ request::
 
     def set_session_viewmodels(request):
         last_message = Message.objects.last()
-        # Custom viewmodel, requires App.addViewHandler('initial_views', function(viewModel) { ... }): at client-side.
+        # Custom viewmodel. Define it's handler at client-side with one of .addFn() / .addHandler() / .add() methods::
+        # App.vmRouter.addFn('initial_views', function(viewModel) { ... });
+        # App.vmRouter.addHandler('initial_views', {fn: myMethod, context: myClass});
+        # App.vmRouter.add({'initial_views': {fn: myMethod, context: myClass}});
         view_model = {
             'view': 'initial_views'
         }
@@ -528,22 +556,22 @@ Require viewmodels handlers
 .. highlight:: javascript
 
 Sometimes there are many separate Javascript source files which define different viewmodel handlers. To assure that
-required external source viewmodel handlers are available, `app.js`_ provides ``App.requireViewHandlers()`` method::
+required external source viewmodel handlers are immediately available, use `App.vmRouter`_ instance ``.req()`` method::
 
-    App.requireViewHandlers(['field_error', 'carousel_images']);
+    App.vmRouter.req('field_error', 'carousel_images');
 
 Nested / conditional execution of client-side viewmodels
 --------------------------------------------------------
-Nesting viewmodels as callbacks is available for automated conditional / event-based viewmodels execution. Example of
+Nesting viewmodels via callbacks is available for automated conditional / event-based viewmodels execution. Example of
 such approach is the implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog.create()``::
 
     var cbViewModel = this.dialogOptions.callback;
     this.dialogOptions.callback = function(result) {
         // @note: Do not use alert view as callback, it will cause stack overflow.
         if (result) {
-            App.viewResponse(cbViewModel);
+            App.vmRouter.respond(cbViewModel);
         } else if (typeof self.dialogOptions.cb_cancel === 'object') {
-            App.viewResponse(self.dialogOptions.cb_cancel);
+            App.vmRouter.respond(self.dialogOptions.cb_cancel);
         }
     };
 
@@ -554,25 +582,25 @@ There is one drawback of `vm_list`_: it is execution is synchronous and does not
 complex arbitrary cases (for example one need to wait some DOM loaded first, then execute viewmodels), one may "save"
 viewmodels received from AJAX response, then "restore" (execute) these later in another DOM event / promise handler.
 
-``App.saveResponse()`` saves received viewmodels::
+`App.vmRouter`_ method ``.saveResponse()`` saves received viewmodels::
 
-    App.addViewHandler('popup_modal_error', function(viewModel) {
+    App.vmRouter.addFn('popup_modal_error', function(viewModel, vmRouter) {
         // Save received response to execute it in the 'shown.bs.modal' event handler (see just below).
-        App.saveResponse('popupModal', viewModel);
+        vmRouter.saveResponse('popupModal', viewModel);
         // Open modal popup to show actual errors (received as viewModel from server-side).
         $popupModal.modal('show');
     });
 
-``App.loadResponse()`` executes viewmodels previously saved with ``App.saveResponse()`` call::
+`App.vmRouter`_ method ``loadResponse()`` executes viewmodels previously saved with ``.saveResponse()`` call::
 
     // Open modal popup.
     $popupModal.on('shown.bs.modal', function (ev) {
         // Execute viewmodels received in 'dialog_tooltip_error' viewmodel handler.
-        App.loadResponse('popupModal');
+        App.vmRouter.loadResponse('popupModal');
     });
 
-Multiple save points might be set by calling ``App.saveResponse()``with the particular ``name`` argument value, then
-calling ``App.loadResponse()`` with the same ``name`` argument value.
+Multiple save points might be set by calling `App.vmRouter`_ ``.saveResponse()`` with the particular ``name`` argument
+value, then calling `App.vmRouter`_ ``.loadResponse()`` with the matching ``name`` argument value.
 
 .. _viewmodels_ajax_actions:
 
@@ -587,17 +615,17 @@ Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel
 `App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
 change it's name; for example grid datatables use ``grid_page`` as viewmodel name.
 
-The viewmodels which have different names are are not processed by ``App.Actions`` directly. Instead, they are routed to
-standard viewmodel handlers, added with ``App.addViewHandler()`` - see `Defining custom viewmodel handlers`_ section.
+The viewmodels which have different names are not processed by ``App.Actions`` directly. Instead, they are routed to
+standard viewmodel handlers, added with `App.vmRouter`_ methods - see `Defining custom viewmodel handlers`_ section.
 Such way standard built-in viewmodel handlers are not ignored. For example server-side exception reporting is done with
 ``alert_error`` viewmodel handler (`app.js`_), while AJAX form validation errors with ``form_error`` viewmodel handler
 (`tooltips.js`_).
 
 .. highlight:: python
 
-The difference between handling AJAX viewmodels with ``App.viewHandlers`` (see `Defining custom viewmodel handlers`_)
-and AJAX actions is that the later shares the same viewmodel handler by routing multiple actions to separate methods
-of `App.Actions`_ class or it's descendant.
+The difference between handling AJAX viewmodels with `App.vmRouter`_ (see `Defining custom viewmodel handlers`_) and
+AJAX actions is that the later shares the same viewmodel handler by routing multiple actions to separate methods of
+`App.Actions`_ class or it's descendant.
 
 For example, server-side part of AJAX action ``edit_form`` is defined as `ModelFormActionsView`_ method
 ``action_edit_form``::

@@ -197,6 +197,8 @@ Add `django_jinja_knockout` `TemplateContextProcessor`_ to `settings.py`_::
 If you want to use built-in server-side to client-side global route mapping, create your own project
 ``context_processors.py`` (see `Extending context processor`_).
 
+.. _installation_context-processor:
+
 Context processor
 -----------------
 
@@ -215,9 +217,20 @@ and per class-based view::
             'my_grid_url_name'
         ]
 
+for ``urls.py`` like this::
+
+    from my_blog.views import feed_view
+    # ...
+    url(r'^blog-(?P<blog_id>\d+)/$', feed_view, name='blog_feed',
+        kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
+    url(r'^my-grid(?P<action>/?\w*)/$', MyGrid.as_view(), name='my_grid_url_name',
+        kwargs={'view_title': 'My Sample Grid'}),
+
+to make the resolved url available in client-side scripts.
+
 In such case extending built-in `TemplateContextProcessor`_ is not necessary, but one has to specity required
-client-side url names in every view which includes Javascript that accesses these url names (for example foreign key
-widgets of `grids`_).
+client-side url names in every view which includes Javascript template that accesses these url names (for example
+foreign key widgets of `grids`_ require resolved url names of their view classes).
 
 Extending context processor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -245,7 +258,9 @@ following code::
 
 while ``urls.py`` should have url name defined as::
 
-    url(r'^blog-(?P<blog_id>\d+)/$', 'my_blog.views.feed_view', name='blog_feed',
+    from my_blog.views import feed_view
+    # ...
+    url(r'^blog-(?P<blog_id>\d+)/$', feed_view, name='blog_feed',
         kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
 
 and register your context processor in ``settings.py`` as the value of ``TEMPLATES`` list item of nested dictionary keys

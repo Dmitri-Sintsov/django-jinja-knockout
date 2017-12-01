@@ -421,17 +421,23 @@ the application (for example to pass it to celery task)::
 Views are secured with urls that deny access to anonymous / inactive users by default. Anonymous views require explicit
 permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
 
-    url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'allow_anonymous': True})
+    from my_app.views import signup
+    # ...
+    url(r'^signup/$', signup, name='signup', kwargs={'allow_anonymous': True})
 
 Optional checks for AJAX requests and / or specific Django permission::
 
-    url(r'^check-project/$', 'my_app.views.check_project', name='check_project', kwargs={
+    from my_app.views import check_project
+    # ...
+    url(r'^check-project/$', check_project, name='check_project', kwargs={
         'ajax': True, 'permission_required': 'my_app.project_can_add'
     })
 
 View title is optionally defined as url kwargs ``'view_title'`` key value::
 
-    url(r'^signup/$', 'my_app.views.signup', name='signup', kwargs={'view_title': 'Sign me up', 'allow_anonymous': True})
+    from my_app.views import signup
+    # ...
+    url(r'^signup/$', signup, name='signup', kwargs={'view_title': 'Sign me up', 'allow_anonymous': True})
 
 .. highlight:: jinja
 

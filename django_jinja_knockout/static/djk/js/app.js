@@ -670,6 +670,8 @@ App.Actions = function(options) {
 
     Actions.respond = function(action, response) {
         var self = this;
+        // Cannot use App.vmRouter.addFn(this.viewModelName, function(){}) because
+        // this.viewModelName may vary in child class.
         var responseOptions = {'after': {}};
         responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('Actions.perform response: ' + JSON.stringify(viewModel));
@@ -719,30 +721,9 @@ App.getSelector = function(selector) {
         $(selector);
 };
 
-// https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
-/*
-App.viewHandlers = {},
-};
-App.requireViewHandlers = function(list) {
-};
-App.addViewHandler = function(viewname, fn, bindContext) {
-};
-App.execViewHandler = function(viewModel, viewName, bindContext) {
-};
-App.showView = function(viewModel, bindContext) {
-};
-App.filterViewModels = function(response, props) {
-App.executedViewModels = [];
-};
-App.savedResponses = {};
-App.viewResponse = function(response, options) {
-};
-App.saveResponse = function(name, response) {
-};
-App.loadResponse = function(name) {
-};
-*/
-
+/**
+ * https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
+ */
 App.ViewModelRouter = function(viewHandlers) {
     this.handlers = [];
     this.executedViewModels = [];
@@ -755,10 +736,10 @@ App.ViewModelRouter = function(viewHandlers) {
     /**
      * Require viewModel handlers with specified viewModel names to exists.
      */
-    ViewModelRouter.req = function(list) {
-        for (var i = 0; typeof list[i] !== 'undefined'; i++) {
-            if (typeof this.handlers[list[i]] === 'undefined') {
-                throw "Missing .handlers['" + list[i] + "']";
+    ViewModelRouter.req = function(names) {
+        for (var i = 0; typeof names[i] !== 'undefined'; i++) {
+            if (typeof this.handlers[names[i]] === 'undefined') {
+                throw "Missing .handlers['" + names[i] + "']";
             }
         }
         return this;
