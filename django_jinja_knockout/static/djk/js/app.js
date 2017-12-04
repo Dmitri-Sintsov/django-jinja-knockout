@@ -670,8 +670,8 @@ App.Actions = function(options) {
 
     Actions.respond = function(action, response) {
         var self = this;
-        // Cannot use App.vmRouter.addFn(this.viewModelName, function(){}) because
-        // this.viewModelName may vary in child class.
+        // Cannot use App.vmRouter.add(this.viewModelName, function(){}) because
+        // this.viewModelName is dynamical (may vary) in child class.
         var responseOptions = {'after': {}};
         responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('Actions.perform response: ' + JSON.stringify(viewModel));

@@ -121,9 +121,9 @@ but also functions bound to particular instance (methods) and classpath strings 
     // Subscribe to bound method:
     App.vmRouter.addHandler('my_view', handler)
     // Subscribe to bound method:
-        .addFn('my_view', App.MyClass.prototype.myMethod2, App.myClassInstance)
+        .add('my_view', App.MyClass.prototype.myMethod2, App.myClassInstance)
     // Subscribe to unbound function:
-        .addFn('my_view', myFunc)
+        .add('my_view', myFunc)
     // Subscribe to instantiate a new class via classpath specified:
         .addHandler('my_view', 'App.MyClass');
     // ...
@@ -184,11 +184,11 @@ which are primarily used to display errors for AJAX submitted forms via viewmode
 
 The following methods allows to attach one or multiple handlers to one viewmodel name::
 
-    App.vmRouter.addFn('my_view', function(viewModel, vmRouter) {
+    App.vmRouter.add('my_view', function(viewModel, vmRouter) {
         // execute viewmodel here...
     })
-        .addHandler('my_view2', {fn: App.MyClass.prototype.method, context: MyClassInstance})
-        .addHandler('my_view3', 'App.MyClass');
+        .add('my_view2', {fn: App.MyClass.prototype.method, context: MyClassInstance})
+        .add('my_view3', 'App.MyClass');
     // or
     App.vmRouter.add({
         'my_view': function(viewModel, vmRouter) {
@@ -214,8 +214,8 @@ Second optional argument ``vmRouter`` points to the instance of `App.vmRouter`_ 
 ``viewmodel``. It could be used to call another viewmodel handler inside the current handler / add / remove handlers
 via calling vmRouter instance methods::
 
-    App.vmRouter.addFn('my_view1', function(viewModel, vmRouter) {
-        vmRouter.addFn('my_view2', function(viewModelNested, vmRouter) {
+    App.vmRouter.add('my_view1', function(viewModel, vmRouter) {
+        vmRouter.add('my_view2', function(viewModelNested, vmRouter) {
             // viewModelNested == {'a': 1, 'b': 2}}
             // execute viewModelNested here...
         });
@@ -226,7 +226,7 @@ via calling vmRouter instance methods::
 Note that new properties might be added to viewmodel for further access, like ``.instance`` property which holds an
 instance of ``App.FieldPopover`` in the following code::
 
-    App.vmRouter.addFn('tooltip_error', function(viewModel) {
+    App.vmRouter.add('tooltip_error', function(viewModel) {
         // Adding .instance property at the client-side to server-side generated viewModel:
         viewModel.instance = new App.FieldPopover(viewModel);
     });
@@ -251,7 +251,7 @@ Bootstrap tooltips previously set by ``'tooltip_error'`` viewmodel handler then 
 
 It is possible to chain viewmodel handlers, implementing a code-reuse and a pseudo-inheritance of viewmodels::
 
-    App.vmRouter.addFn('popover_error', function(viewModel, vmRouter) {
+    App.vmRouter.add('popover_error', function(viewModel, vmRouter) {
         viewModel.instance = new App.FieldPopover(viewModel);
         // Override viewModel.name without altering it:
         vmRouter.exec(viewModel, 'tooltip_error');
@@ -377,43 +377,29 @@ and per class-based view::
 
 .. highlight:: javascript
 
-Also it is possible to specify view handler function bind context via ``.addFn()`` / ``.addHandler()`` / ``.add()``
-method optional argument::
-
-    App.vmRouter.addFn('set_context_title', function(viewModel) {
-        // this == bindContext
-        this.setTitle(viewModel.title);
-    }, bindContext);
-
-    App.vmRouter.addHandler('set_context_title', {
-        fn: function(viewModel) {
-            // this == bindContext
-            this.setTitle(viewModel.title);
-        },
-        context: bindContext
-    });
+Also it is possible to specify view handler function bind context via ``.add()`` method optional argument::
 
     App.vmRouter.add({
         'set_context_title': {
             fn: function(viewModel) {
-                // this == bindContext
+                // this == bindContext1
                 this.setTitle(viewModel.title);
             },
-            context: bindContext
+            context: bindContext1
         },
         'set_context_name': {
             fn: function(viewModel) {
-                // this == bindContext
+                // this == bindContext2
                 this.setName(viewModel.name);
             },
-            context: bindContext
+            context: bindContext2
         }
     });
 
 It is also possible to override the value of context for viewmodel handler dynamically with ``App.post()`` optional
 ``bindContext`` argument::
 
-    App.post('my_url_name', post_data, bind_context);
+    App.post('my_url_name', postData, bindContext);
 
 That allows to use method prototypes bound to different instances of the same Javascript class::
 
@@ -436,8 +422,8 @@ That allows to use method prototypes bound to different instances of the same Ja
         };
 
         AjaxDialog.getMessages = function() {
-            // Call selected instance of AjaxDialog .vm_addReceivedMessage / .vm_addSentMessage bound methods,
-            // supposing that AJAX response contains one of 'add_received_message' / 'add_sent_message' viewmodels:
+            // Call bound instance (this) of AjaxDialog .vm_addReceivedMessage / .vm_addSentMessage methods,
+            // supposing that AJAX response will contain one of 'add_received_message' / 'add_sent_message' viewmodels:
             App.post('my_url_name', this.postData, this);
         };
 
@@ -520,9 +506,9 @@ request::
 
     def set_session_viewmodels(request):
         last_message = Message.objects.last()
-        # Custom viewmodel. Define it's handler at client-side with one of .addFn() / .addHandler() / .add() methods::
-        # App.vmRouter.addFn('initial_views', function(viewModel) { ... });
-        # App.vmRouter.addHandler('initial_views', {fn: myMethod, context: myClass});
+        # Custom viewmodel. Define it's handler at client-side with .add() method::
+        # App.vmRouter.add('initial_views', function(viewModel) { ... });
+        # // or:
         # App.vmRouter.add({'initial_views': {fn: myMethod, context: myClass}});
         view_model = {
             'view': 'initial_views'
@@ -584,7 +570,7 @@ viewmodels received from AJAX response, then "restore" (execute) these later in 
 
 `App.vmRouter`_ method ``.saveResponse()`` saves received viewmodels::
 
-    App.vmRouter.addFn('popup_modal_error', function(viewModel, vmRouter) {
+    App.vmRouter.add('popup_modal_error', function(viewModel, vmRouter) {
         // Save received response to execute it in the 'shown.bs.modal' event handler (see just below).
         vmRouter.saveResponse('popupModal', viewModel);
         // Open modal popup to show actual errors (received as viewModel from server-side).
