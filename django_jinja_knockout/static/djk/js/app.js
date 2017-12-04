@@ -760,6 +760,23 @@ App.ViewModelRouter = function(viewHandlers) {
                 this.handlers[viewName], handler
             ];
         }
+    };
+
+    /**
+     * Add multiple viewHandlers at once.
+     * Each key is viewName, while the values are handler definitions.
+     */
+    ViewModelRouter.add = function(viewHandlers) {
+        if (typeof viewHandlers === 'object') {
+            for (var viewName in viewHandlers) {
+                if (viewHandlers.hasOwnProperty(viewName)) {
+                    var handler = viewHandlers[viewName];
+                    this.addHandler(viewName, handler);
+                }
+            }
+        } else if (typeof viewHandlers === 'string') {
+            this.addHandler.apply(this, arguments);
+        }
         return this;
     };
 
@@ -792,41 +809,6 @@ App.ViewModelRouter = function(viewHandlers) {
         for (var i = 0; i < arguments.length; i++) {
             if (typeof this.handlers[arguments[i]] !== 'undefined') {
                 delete this.handlers[arguments[i]];
-            }
-        }
-        return this;
-    };
-
-    /**
-     * Add unbound function or a bound method of class instance.
-     */
-    ViewModelRouter.addFn = function(viewName, fn, bindContext) {
-        if (typeof fn !== 'function') {
-            throw sprintf(
-                "Invalid type '%s' for viewhandler '%s': %s",
-                typeof fn,
-                viewName,
-                JSON.stringify(this.handlers[viewName])
-            );
-        }
-        var handler = (typeof bindContext === 'object') ? {'fn': fn, 'context': bindContext} : fn;
-        this.addHandler(viewName, handler);
-        return this;
-    };
-
-    /**
-     * Add multiple viewHandlers at once.
-     * Each key is viewName, while the values are handler definitions.
-     */
-    ViewModelRouter.add = function(viewHandlers) {
-        for (var viewName in viewHandlers) {
-            if (viewHandlers.hasOwnProperty(viewName)) {
-                var handler = viewHandlers[viewName];
-                if (typeof handler === 'function') {
-                    this.addFn(viewName, handler);
-                } else if (typeof handler === 'object') {
-                    this.addHandler(viewName, handler)
-                }
             }
         }
         return this;
