@@ -577,10 +577,10 @@ App.Actions = function(options) {
     Actions.viewModelName = 'action';
 
     Actions.init = function(options) {
-        this.owner = options.owner;
+        this.owner = App.propGet(options, 'owner');
         this.route = options.route;
         this.routeKwargs = options.routeKwargs;
-        this.actions = this.getActions();
+        this.actions = (typeof options.actions === 'undefined') ? this.getActions() : options.actions;
     };
 
     Actions.getActions = function() {
@@ -604,7 +604,7 @@ App.Actions = function(options) {
     };
 
     Actions.has = function(action) {
-        return typeof this.actions[action] !== 'undefined' && this.actions[action].enabled;
+        return typeof this.actions[action] !== 'undefined' && App.propGet(this.actions[action], 'enabled', true);
     };
 
     Actions.getUrl =  function(action) {
@@ -649,17 +649,25 @@ App.Actions = function(options) {
         return App.conf.csrfToken;
     };
 
+    /**
+     * callback: function or {fn: function, context: bindContext}
+     * callback.context also will be used for viewmodel response, when available;
+     * in such case callback: {context: bindContext} is enough.
+     */
     Actions.ajax = function(action, queryArgs, callback) {
         var self = this;
+        if (typeof queryArgs === 'undefined') {
+            queryArgs = {};
+        }
         queryArgs.csrfmiddlewaretoken = this.getCsrfToken();
-        $.post(this.getUrl(action),
+        return $.post(this.getUrl(action),
             queryArgs,
             function(response) {
-                self.respond(action, response);
-                if (typeof callback === 'function') {
+                self.respond(action, response, App.propGet(callback, 'context'));
+                if (callback !== undefined) {
                     var vm = self.getOurViewmodel(response);
                     if (vm !== null) {
-                        callback(vm);
+                        App.vmRouter.applyHandler(vm, callback);
                     }
                 }
             },
@@ -668,11 +676,14 @@ App.Actions = function(options) {
         .fail(App.showAjaxError);
     };
 
-    Actions.respond = function(action, response) {
+    Actions.respond = function(action, response, bindContext) {
         var self = this;
         // Cannot use App.vmRouter.add(this.viewModelName, function(){}) because
         // this.viewModelName is dynamical (may vary) in child class.
         var responseOptions = {'after': {}};
+        if (bindContext !== 'undefined') {
+            responseOptions.context = bindContext;
+        }
         responseOptions['after'][this.viewModelName] = function(viewModel) {
             // console.log('Actions.perform response: ' + JSON.stringify(viewModel));
             var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
@@ -820,7 +831,7 @@ App.ViewModelRouter = function(viewHandlers) {
     ViewModelRouter.applyHandler = function(viewModel, handler, bindContext) {
         var fn;
         if (typeof handler === 'object') {
-            fn = handler.fn;
+            fn = (typeof handler.fn === 'undefined') ? function() {} : handler.fn;
             if (bindContext === undefined) {
                 bindContext = handler.context;
             }
@@ -914,7 +925,7 @@ App.ViewModelRouter = function(viewHandlers) {
         if (typeof options !== 'object') {
             options = {};
         }
-        var bindContext = (typeof options.bindContext ==='undefined') ? undefined : options.bindContext;
+        var bindContext = (typeof options.context ==='undefined') ? undefined : options.context;
         if (!_.isArray(response)) {
             response = [response];
         }
@@ -1942,6 +1953,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
         if (propType !== 'undefined') {
             if (propType === 'function' && typeof get_context !== 'undefined') {
                 /**
+                 * See also App.ViewModelHandler which uses the same object keys to specify function context.
                  * Javascript cannot .apply() to bound function without implicitly specifying context,
                  * thus next code is commented out:
                  */

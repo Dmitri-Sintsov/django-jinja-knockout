@@ -2303,6 +2303,9 @@ App.ko.Grid = function(options) {
                 }
                 for (var i = 0; i < actions.length; i++) {
                     var actDef = actions[i];
+                    if (typeof actDef.enabled === 'undefined') {
+                        actDef.enabled = true;
+                    }
                     if (actDef.enabled) {
                         self.actionTypes[actionType].push(Grid.iocKoAction({
                             grid: self,

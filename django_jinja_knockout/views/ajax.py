@@ -119,9 +119,9 @@ class ActionsView(ViewmodelView, GetPostMixin):
         )
 
     def get_action(self, action_name):
-        for type, actions_list in self.actions.items():
-            if action_name in actions_list:
-                return actions_list[action_name]
+        for type, actions_map in self.actions.items():
+            if action_name in actions_map:
+                return actions_map[action_name]
         return None
 
     def get_action_local_name(self, action_name=None):
@@ -134,10 +134,10 @@ class ActionsView(ViewmodelView, GetPostMixin):
     # ordering, to preserve visual ordering of actions.
     def vm_get_actions(self):
         vm_actions = {}
-        for action_type, actions_list in self.actions.items():
+        for action_type, actions_map in self.actions.items():
             if action_type not in vm_actions:
                 vm_actions[action_type] = []
-            for action_name, action in actions_list.items():
+            for action_name, action in actions_map.items():
                 action['name'] = action_name
                 vm_actions[action_type].append(action)
         return vm_actions
@@ -184,7 +184,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         current_action = self.get_action(self.current_action_name)
         if current_action is None:
             handler = self.action_not_implemented
-        elif current_action['enabled']:
+        elif current_action.get('enabled', True):
             handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
         else:
             handler = self.action_is_denied
@@ -234,12 +234,8 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 ('meta', {
                     'enabled': False
                 }),
-                ('save_form', {
-                    'enabled': True
-                }),
-                ('save_inline', {
-                    'enabled': True
-                }),
+                ('save_form', {}),
+                ('save_inline', {}),
                 ('create_form', {
                     'localName': _('Add'),
                     'enabled': any([
@@ -513,24 +509,12 @@ class GridActionsMixin(ModelFormActionsView):
     def get_actions(self):
         return {
             'built_in': OrderedDict([
-                ('meta', {
-                    'enabled': True
-                }),
-                ('list', {
-                    'enabled': True
-                }),
-                ('update', {
-                    'enabled': True
-                }),
-                ('meta_list', {
-                    'enabled': True
-                }),
-                ('save_form', {
-                    'enabled': True
-                }),
-                ('save_inline', {
-                    'enabled': True
-                }),
+                ('meta', {}),
+                ('list', {}),
+                ('update', {}),
+                ('meta_list', {}),
+                ('save_form', {}),
+                ('save_inline', {}),
                 ('delete_confirmed', {
                     'enabled': self.enable_deletion
                 })
