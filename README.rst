@@ -11,6 +11,7 @@ django-jinja-knockout
 .. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
+.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
    :alt: PyPI package
@@ -49,22 +50,23 @@ Localization contributors:
 * Dutch: ``Melvyn Sopacua``
 * Polish: ``pawelkoston``
 
+* Django 1.8, 1.9, 1.10, 1.11, 2.0 support. Python 3.4 / 3.5 / 3.6 support.
+
 Key features
 ------------
 
-* Django 1.8, 1.9, 1.10, 1.11 support. Python 3.4 / 3.5 / 3.6 support.
+* `AJAX based django.admin-like grids (paginated datatables) with sorting / filters and custom actions.`
 * `Supports existing Django templates (DTL).`
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
+* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
+  field value via AJAX query / response.
 * Django raw queries with ``filter()`` / ``exclude()`` / ``order()`` / ``values()`` / ``values_list()`` and SQL slicing
   support via ``FilteredRawQuerySet``, suitable for usage in ``ListView`` / ``ListSortingView`` / ``KoGridView`` derived
   classes.
-* Knockout.js powered AJAX django.admin-like grids (paginated tables) with sorting / filters and custom actions.
-* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
-  field value via AJAX query / response.
-* Jinja2 templates can be integrated into existing Django templates via custom
-  template library tag::
+* `ListQuerySet` to query Python lists.
+* Jinja2 templates can be integrated into existing Django templates via custom template library tag::
 
     {% extends 'base_min.html' %}
     {% load jinja %}
@@ -79,12 +81,11 @@ Overview
 
 Templating languages are my favorite topic in programming. I love semantically organic way of HTML templating in
 Knockout.js that uses html5 "data-bind" JSON-like attributes instead of semantically alien double braces, which
-conflicts almost every server-side templating language out there (including Jinja2).
+conflicts almost every server-side templating language out there (including DTL and Jinja2).
 
-When developing with Django, I felt a lack of very powerful server-side templating when used built-in DTL templates.
+When developing with Django, I felt a lack of more powerful server-side templating when used built-in DTL templates.
 So I switched to Jinja2, thank to Django 1.8+ built-in support of this templating engine and to great project
-https://github.com/niwinz/django-jinja
-which simplifies Jinja2 integration.
+https://github.com/niwinz/django-jinja which simplifies Jinja2 integration.
 
 So, basically in this project two great templating engines (client-side https://github.com/knockout/knockout and
 server-side https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
@@ -96,17 +97,16 @@ framework for non-SPA applications is an overkill. And Django primary usage are 
 which aren't "outdated" in any way - because such applications are much better indexable by web crawlers and Python is
 better language than Javascript in general and server-side has less glitches than browsers.
 
-Most of client-side scripts included into this redistributable app are server-side agnostic and are not tied much to
-Django, except for client-side localization. In fact, significant parts of that client-side code also were used in large
-Laravel project. They are included for developer's convenience. Also my personal feeling is, that Django itself lacks
-a bit heavier support of client-side Javascript out-of-box. Knockout.js would be great inclusion for ``empty_form``
-handling and in ``django.admin``, considering it's small size.
+My personal feeling is that Django itself lacks a bit heavier support of client-side Javascript out-of-box. Knockout.js
+would be great inclusion for ``empty_form`` handling and in ``django.admin``, considering it's small size.
 
-However, some of server-side functionality, like AJAX form validation and viewmodels manipulation is either useless or
-will not work without these scripts.
+AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form``) are
+implemented via bundled client-side scripts.
 
-Only AJAX response parts and DOM manipulation (eg. Knockout.js processing of ``formset.empty_form``) are tied to bundled
-client-side scripts.
+Major changes (version 0.7.0)
+-----------------------------
+`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouting`` class with default instance
+``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
 
 Major changes (version 0.6.0)
 -----------------------------
