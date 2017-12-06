@@ -40,6 +40,8 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
+* Django 1.8, 1.9, 1.10, 1.11, 2.0 support. Python 3.4 / 3.5 / 3.6 support.
+
 Please contribute to the localization of the project:
 
 * `django-jinja-knockout python localization`_
@@ -50,13 +52,11 @@ Localization contributors:
 * Dutch: ``Melvyn Sopacua``
 * Polish: ``pawelkoston``
 
-* Django 1.8, 1.9, 1.10, 1.11, 2.0 support. Python 3.4 / 3.5 / 3.6 support.
-
 Key features
 ------------
 
-* `AJAX based django.admin-like grids (paginated datatables) with sorting / filters and custom actions.`
-* `Supports existing Django templates (DTL).`
+* AJAX based django.admin-like grids (paginated datatables) with sorting / filters and custom actions.
+* Supports existing Django templates (DTL).
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
@@ -65,7 +65,7 @@ Key features
 * Django raw queries with ``filter()`` / ``exclude()`` / ``order()`` / ``values()`` / ``values_list()`` and SQL slicing
   support via ``FilteredRawQuerySet``, suitable for usage in ``ListView`` / ``ListSortingView`` / ``KoGridView`` derived
   classes.
-* `ListQuerySet` to query Python lists.
+* ``ListQuerySet`` to query Python lists.
 * Jinja2 templates can be integrated into existing Django templates via custom template library tag::
 
     {% extends 'base_min.html' %}
