@@ -2,7 +2,7 @@
 
 ko.bindingHandlers.grid_row = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        // var realElement = ko.from_virtual(element);
+        // var realElement = ko.fromVirtual(element);
         viewModel.setRowElement($(element));
     }
 };
@@ -520,6 +520,7 @@ App.ko.RangeFilter = function(options) {
 (function(RangeFilter) {
 
     RangeFilter.init = function(options) {
+        $.inherit(App.ko.Subscriber.prototype, this);
         this.type = options.type;
         this._super._call('init', options);
         // Reset filter choice.
@@ -530,8 +531,8 @@ App.ko.RangeFilter = function(options) {
         };
         this.from = ko.observable('');
         this.to = ko.observable('');
-        ko.subscribeToMethod(this, 'from');
-        ko.subscribeToMethod(this, 'to');
+        this.subscribeToMethod('from');
+        this.subscribeToMethod('to');
         var method = 'getFieldAttrs_' + this.type;
         if (typeof this[method] !== 'function') {
             throw 'App.ko.RangeFilter.' + method + ' is not the function';
@@ -1300,6 +1301,7 @@ App.ko.Grid = function(options) {
     Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon'];
 
     Grid.init = function(options) {
+        $.inherit(App.ko.Subscriber.prototype, this);
         var self = this;
         this.options = $.extend({
             alwaysShowPagination: true,
@@ -2275,11 +2277,11 @@ App.ko.Grid = function(options) {
         }
         this.hasSelectAllRows(this.checkAllRowsSelected());
         // Temporarily disable meta.rowsPerPage() subscription.
-        ko.disposeMethod(this, ['meta', 'rowsPerPage']);
+        this.disposeMethod(['meta', 'rowsPerPage']);
         this.meta.prevRowsPerPage = this.meta.rowsPerPage();
         this.meta.rowsPerPage(data.rowsPerPage);
         // Re-enable meta.rowsPerPage() subscription.
-        ko.subscribeToMethod(this, ['meta', 'rowsPerPage']);
+        this.subscribeToMethod(['meta', 'rowsPerPage']);
         // Set grid pagination viewmodels.
         this.setKoPagination(data.totalPages, data.page);
     };

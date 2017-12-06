@@ -2012,6 +2012,52 @@ $(document)
 });
 
 
+App.ko.Subscriber = function() {};
+
+(function(Subscriber) {
+
+    Subscriber.getPropSubscription = function(propChain, methodChain) {
+        if (typeof methodChain === 'undefined') {
+            var propHash = (typeof propChain === 'string') ? $.capitalize(propChain) : '_' + propChain.join('_');
+            methodChain = 'on' + propHash;
+        }
+        var prop = App.propGet(this, propChain);
+        if (typeof prop !== 'function' || !ko.isObservable(prop)) {
+            throw sprintf("%s is not observable", JSON.stringify(propChain));
+        }
+        var method = App.propGet(this, methodChain);
+        if (typeof method !== 'function') {
+            throw sprintf("%s is not callable", JSON.stringify(methodChain));
+        }
+        var hash = (typeof methodChain === 'string') ? methodChain : methodChain.join('.');
+        if (typeof this.koSubscriptions === 'undefined') {
+            this.koSubscriptions = {};
+        }
+        return {'prop': prop, 'method': method, 'hash': hash};
+    }
+
+    /**
+     * Subscribe / unsubscribe observables for Knockout.js in easy way.
+     * Binds subscriptions to instanse method with prefix 'on*' by default.
+     */
+    Subscriber.subscribeToMethod = function(propChain, methodChain) {
+        var result = this.getPropSubscription(propChain, methodChain);
+        if (typeof this.koSubscriptions[result.hash] === 'undefined') {
+            this.koSubscriptions[result.hash] = result.prop.subscribe(_.bind(result.method, this));
+        }
+    };
+
+    Subscriber.disposeMethod = function(propChain, methodChain) {
+        var result = this.getPropSubscription(propChain, methodChain);
+        if (typeof this.koSubscriptions[result.hash] !== 'undefined') {
+            this.koSubscriptions[result.hash].dispose();
+            delete this.koSubscriptions[result.hash];
+        }
+    };
+
+})(App.ko.Subscriber.prototype);
+
+
 // https://github.com/knockout/knockout/issues/1019
 ko.forcibleComputed = function(readFunc, context, options) {
     var trigger = ko.observable().extend({notify: 'always'}),
@@ -2039,55 +2085,16 @@ ko.utils.setProps = function(src, dst) {
 /**
  * Use in knockout.js binding handlers that support virtual elements to get real bound DOM element.
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var realElement = ko.from_virtual(element);
+        var realElement = ko.fromVirtual(element);
         ...
     }
  */
-ko.from_virtual = function(element) {
+ko.fromVirtual = function(element) {
     var realElement = ko.virtualElements.firstChild(element);
     while (realElement !== null && realElement.nodeType !== 1) {
         realElement = ko.virtualElements.nextSibling(realElement);
     }
     return realElement;
-};
-
-ko.getPropSubscription = function(self, propChain, methodChain) {
-    if (typeof methodChain === 'undefined') {
-        var propHash = (typeof propChain === 'string') ? $.capitalize(propChain) : '_' + propChain.join('_');
-        methodChain = 'on' + propHash;
-    }
-    var prop = App.propGet(self, propChain);
-    if (typeof prop !== 'function' || !ko.isObservable(prop)) {
-        throw sprintf("%s is not observable", JSON.stringify(propChain));
-    }
-    var method = App.propGet(self, methodChain);
-    if (typeof method !== 'function') {
-        throw sprintf("%s is not callable", JSON.stringify(methodChain));
-    }
-    var hash = (typeof methodChain === 'string') ? methodChain : methodChain.join('.');
-    if (typeof self.koSubscriptions === 'undefined') {
-        self.koSubscriptions = {};
-    }
-    return {'prop': prop, 'method': method, 'hash': hash};
-}
-
-/**
- * Subscribe / unsubscribe observables for Knockout.js in easy way.
- * Binds subscriptions to instanse method with prefix 'on*' by default.
- */
-ko.subscribeToMethod = function(self, propChain, methodChain) {
-    var result = ko.getPropSubscription(self, propChain, methodChain);
-    if (typeof self.koSubscriptions[result.hash] === 'undefined') {
-        self.koSubscriptions[result.hash] = result.prop.subscribe(_.bind(result.method, self));
-    }
-};
-
-ko.disposeMethod = function(self, propChain, methodChain) {
-    var result = ko.getPropSubscription(self, propChain, methodChain);
-    if (typeof self.koSubscriptions[result.hash] !== 'undefined') {
-        self.koSubscriptions[result.hash].dispose();
-        delete self.koSubscriptions[result.hash];
-    }
 };
 
 // Use with care. Do not put custom bindings into App.documentReadyHooks,
