@@ -132,12 +132,12 @@ class RouterMiddleware(ContextMiddlewareCompat):
         # Optional server-side injected JSON.
         request.client_data = {}
         """
-            request.client_routes = [
+            request.client_routes = {
                 'logout',
                 'users_list',
-            ]
+            }
         """
-        request.client_routes = []
+        request.client_routes = set()
         viewmodels = onload_vm_list(request.client_data)
         if has_vm_list(request.session):
             vm_session = onload_vm_list(request.session)
@@ -349,7 +349,7 @@ class ContextMiddleware(RouterMiddleware):
         if hasattr(view_func, '__wrapped__'):
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
-                request.client_routes.extend(view_class.client_routes)
+                request.client_routes |= view_class.client_routes
         self.view_func = view_func
         self.view_args = view_args
         self.view_kwargs = view_kwargs

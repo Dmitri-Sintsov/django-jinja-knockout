@@ -21,16 +21,16 @@ def raise_exception(msg):
 
 class TemplateContextProcessor():
     # List of global client routes that will be injected into every view.
-    # One also may inject specific routes into client side per view via request.client_routes.extend(['route1', 'route2'])
+    # One also may inject specific routes into client side per view via request.client_routes |= {'route1', 'route2'}
     """
-        CLIENT_ROUTES = (
+        CLIENT_ROUTES = {
             # Available to both anonymous and registered users.
             ('logout', False),
             # Available to registered users only.
             ('users_list', True),
-        )
+        }
     """
-    CLIENT_ROUTES = ()
+    CLIENT_ROUTES = set()
 
     def __init__(self, HttpRequest=None):
         self.user_id = 0
@@ -46,15 +46,11 @@ class TemplateContextProcessor():
     def get_user_id(self):
         return ContextMiddlewareCompat(request=self.HttpRequest).get_user_id()
 
-    def yield_client_routes(self):
-        # Per-view client routes.
-        for url in self.HttpRequest.client_routes:
-            # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
-            # according to current permissions. So they are 'is_anon' because they exist.
-            yield url, True
-        # Always available client routes.
-        for route in self.CLIENT_ROUTES:
-            yield route
+    def get_client_routes(self):
+        # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
+        # according to current permissions. So they are 'is_anon' because they exist.
+        # Always available client routes | per-view client routes.
+        return self.CLIENT_ROUTES | {(url, True) for url in self.HttpRequest.client_routes}
 
     def get_context_data(self):
         if self.skip_request():
@@ -73,7 +69,7 @@ class TemplateContextProcessor():
         file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
         if file_max_size is not None:
             client_conf['fileMaxSize'] = file_max_size
-        for url_name, is_anon in self.yield_client_routes():
+        for url_name, is_anon in self.get_client_routes():
             if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
                 client_conf['url'][url_name] = tpl.get_formatted_url(url_name)
         """

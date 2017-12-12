@@ -170,7 +170,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         )
 
     def get(self, request, *args, **kwargs):
-        request.client_routes.append(request.url_name)
+        request.client_routes.add(request.url_name)
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
