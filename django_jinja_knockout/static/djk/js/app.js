@@ -2129,6 +2129,19 @@ ko.bindingHandlers.linkPreview = {
     }
 };
 
+// Usage: <textarea data-bind="focus"></textarea>
+ko.bindingHandlers.focus = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        var focus = function(ev) {
+            $(element).focus();
+        };
+        $(element).on('mouseenter', focus);
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+            $(element).off('mouseenter', focus);
+        });
+    }
+};
+
 // Set observable property value to bound DOM element.
 // data-bind="element: viewmodel_property_name_to_store_bound_dom_element"
 ko.bindingHandlers.element = {
