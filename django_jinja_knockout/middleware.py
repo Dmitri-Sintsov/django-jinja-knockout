@@ -11,12 +11,35 @@ from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
+from django.test.client import RequestFactory
 
 from .utils import sdv
 from .utils.modules import get_fqn
 from .tpl import format_html_attrs
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, onload_vm_list, has_vm_list
+
+
+# from django_jinja_knockout.apps import DjkAppConfig
+# request = DjkAppConfig.get_context_middleware().get_request()
+# from django_jinja_knockout.tpl import reverseq
+# reverseq('profile_detail',kwargs={'profile_id': 1},request=request)
+class MockRequestFactory(RequestFactory):
+
+    def _base_environ(self, **request):
+        environ = super()._base_environ(**request)
+        from django.contrib.sites.models import Site
+        if len(settings.ALLOWED_HOSTS) > 0:
+            environ['SERVER_NAME'] = settings.ALLOWED_HOSTS[-1]
+        elif hasattr(settings, 'DOMAIN_NAME'):
+            server_name = settings.DOMAIN_NAME
+        if Site._meta.installed:
+            site = Site.objects.get_current()
+            environ['SERVER_NAME'] = site.name
+        if environ['SERVER_NAME'] not in settings.ALLOWED_HOSTS:
+            # Fix host validation in django.http.request.HttpRequest.get_host()
+            settings.ALLOWED_HOSTS.append(environ['SERVER_NAME'])
+        return environ
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
@@ -154,25 +177,31 @@ class RouterMiddleware(ContextMiddlewareCompat):
     def is_active(cls):
         return threading.get_ident() in cls._threadmap
 
+    @classmethod
+    def mock_request_args(cls):
+        return 'post', '/', [], {
+            'secure': getattr(settings, 'SECURE_PROXY_SSL_HEADER', None) is not None
+        }
+
     # todo: complete url resolution and middleware / mock view.
     # As mocks are more often used with forms, uses 'post' method by default.
     # Call this method in child class with custom arguments before calling .get_request(), when needed.
     @classmethod
-    def mock_request(cls, factory_method='post', path='/', *args, **kwargs):
+    def mock_request(cls, method_name='post', path='/', *args, **kwargs):
         if cls._mock_request is None:
-            from django.test.client import RequestFactory
-            factory = RequestFactory()
-            method = getattr(factory, factory_method)
-            cls._mock_request = method(path, *args, **kwargs)
+            factory = MockRequestFactory()
+            factory_method = getattr(factory, method_name)
+            cls._mock_request = factory_method(path, *args, **kwargs)
         return cls._mock_request
 
     # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
     @classmethod
-    def get_request(cls):
+    def get_request(cls, *mock_request_args):
         if cls.is_active():
             return cls._threadmap[threading.get_ident()]
         else:
-            return cls.mock_request()
+            method_name, path, args, kwargs = cls.mock_request_args() if len(mock_request_args) == 0 else mock_request_args
+            return cls.mock_request(method_name, path, *args, **kwargs)
 
     @classmethod
     def get_request_timezone(cls, request=None):
