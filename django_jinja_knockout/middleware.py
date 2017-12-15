@@ -32,7 +32,7 @@ class MockRequestFactory(RequestFactory):
         if len(settings.ALLOWED_HOSTS) > 0:
             environ['SERVER_NAME'] = settings.ALLOWED_HOSTS[-1]
         elif hasattr(settings, 'DOMAIN_NAME'):
-            server_name = settings.DOMAIN_NAME
+            environ['SERVER_NAME'] = settings.DOMAIN_NAME
         if Site._meta.installed:
             site = Site.objects.get_current()
             environ['SERVER_NAME'] = site.name
