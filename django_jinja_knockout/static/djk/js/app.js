@@ -1925,6 +1925,36 @@ App.post = function(route, data, options) {
     ).fail(App.showAjaxError);
 };
 
+App.propSet = function(self, propChain, val) {
+    var prop = (self === null)? window : self;
+    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
+        propChain = propChain.split(/\./);;
+    }
+    if (_.isArray(propChain)) {
+        for (var i = 0; i < propChain.length - 1; i++) {
+            var propName = propChain[i];
+            if (typeof prop === 'undefined') {
+                prop = {};
+            }
+            if (!$.isMapping(prop)) {
+                return false;
+            }
+            prop = prop[propName];
+        }
+        propName = propChain[i];
+    } else {
+        propName = propChain;
+    }
+    if (typeof prop === 'undefined') {
+        prop = {};
+    }
+    if (!$.isMapping(prop)) {
+        return false;
+    }
+    prop[propName] = val;
+    return true;
+};
+
 /**
  * Usage:
  *   App.propGet(this, 'propName');
@@ -1932,10 +1962,13 @@ App.post = function(route, data, options) {
  *   App.propGet(someInstance, ['propName1', 'propName2', 'propNameN'], 'defaultValue');
  */
 App.propGet = function(self, propChain, defVal, get_context) {
+    var prop = (self === null)? window : self;
     var propName;
-    var prop = self;
     if (!$.isMapping(prop)) {
         return defVal;
+    }
+    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
+        propChain = propChain.split(/\./);;
     }
     if (_.isArray(propChain)) {
         propName = propChain[propChain.length - 1];
@@ -1976,7 +2009,7 @@ App.propGet = function(self, propChain, defVal, get_context) {
  */
 App.propCall = function() {
     var args = Array.prototype.slice.call(arguments);
-    var propChain = args.shift().split(/\./);
+    var propChain = args.shift();
     var propVal = App.propGet(this, propChain, null, true);
     if (typeof propVal === 'function') {
         var prop = propVal();
@@ -1986,12 +2019,32 @@ App.propCall = function() {
     }
 };
 
+App.createInstances = function(readyInstances) {
+    for (var instancePath in readyInstances) {
+        if (readyInstances.hasOwnProperty(instancePath)) {
+            var classDef = readyInstances[instancePath];
+            for (var classPath in classDef) {
+                if (classDef.hasOwnProperty(classPath)) {
+                    var args = classDef[classPath];
+                    if (!_.isArray(args)) {
+                        args = [args];
+                    }
+                    var instance = App.newClassFromPath(classPath, args);
+                    App.propSet(null, instancePath, instance);
+                }
+            }
+        }
+    }
+};
+
+App.readyInstances = {};
 App.documentReadyHooks = [];
 
 $(document)
 .ready(function() {
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
+    App.createInstances(App.readyInstances);
     App.initClient(document);
     App.initTabPane();
     $(window).on('hashchange', function() {
