@@ -23,7 +23,7 @@ from .viewmodels import vm_list, onload_vm_list, has_vm_list
 # from django_jinja_knockout.apps import DjkAppConfig
 # request = DjkAppConfig.get_context_middleware().get_request()
 # from django_jinja_knockout.tpl import reverseq
-# reverseq('profile_detail',kwargs={'profile_id': 1},request=request)
+# reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
 class MockRequestFactory(RequestFactory):
 
     def _base_environ(self, **request):

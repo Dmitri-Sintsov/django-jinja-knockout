@@ -93,8 +93,6 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
-App.queryString = new QueryString();
-
 /**
  * Render scalar element as plain html or as nested list of specified block tags.
  */
@@ -2037,7 +2035,11 @@ App.createInstances = function(readyInstances) {
     }
 };
 
-App.readyInstances = {};
+// Late initialization allows to patch / replace classes in user scripts.
+App.readyInstances = {
+    'App.queryString': {'QueryString' : []},
+    'App.components': {'App.Components': []},
+};
 App.documentReadyHooks = [];
 
 $(document)
@@ -2358,8 +2360,6 @@ App.Components = function() {
     };
 
 })(App.Components.prototype);
-
-App.components = new App.Components();
 
 // Get array with all component instances by jQuery selector.
 $.fn.components = function() {
