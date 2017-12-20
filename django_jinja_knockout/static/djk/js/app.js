@@ -2089,7 +2089,7 @@ App.ko.Subscriber = function() {};
             this.koSubscriptions = {};
         }
         return {'prop': prop, 'method': method, 'hash': hash};
-    }
+    };
 
     /**
      * Subscribe / unsubscribe observables for Knockout.js in easy way.

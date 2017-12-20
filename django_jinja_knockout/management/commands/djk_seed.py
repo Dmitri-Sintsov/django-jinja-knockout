@@ -62,9 +62,9 @@ class Command(BaseCommand):
     def yield_app_config(self):
         for app_name in self.only_apps:
             if app_name not in self.exclude_apps:
-                # isp_app = import_string('{}.apps'.format(app_name))
-                isp_app_config = apps.get_app_config(app_name)
-                yield isp_app_config
+                # app = import_string('{}.apps'.format(app_name))
+                app_config = apps.get_app_config(app_name)
+                yield app_config
 
     def handle(self, *args, **options):
         self.only_apps = settings.DJK_APPS if options['only_apps'] is None else options['only_apps'].split(',')
@@ -72,13 +72,13 @@ class Command(BaseCommand):
         only_models = None if options['only_models'] is None else options['only_models'].split(',')
         exclude_models = options['exclude_models'].split(',')
         if options['create_content_types']:
-            for isp_app_config in self.yield_app_config():
-                print('Creating content types for app {0} models'.format(isp_app_config))
-                create_content_types(sender=isp_app_config)
+            for app_config in self.yield_app_config():
+                print('Creating content types for app {0} models'.format(app_config))
+                create_content_types(sender=app_config)
         if not options['skip_seeds']:
-            for isp_app_config in self.yield_app_config():
+            for app_config in self.yield_app_config():
                 models_seeds(
-                    sender=isp_app_config,
+                    sender=app_config,
                     recreate=True,
                     only_models=only_models,
                     exclude_models=exclude_models
