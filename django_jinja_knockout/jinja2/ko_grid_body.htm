@@ -73,13 +73,13 @@
 
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices}" class="dropdown">
         <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
-            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+            <div data-bind="visible: currentName != '', text: currentName"></div>
         </a>
         <ul data-bind="foreach: choices" class="dropdown-menu">
-            <li data-bind="css: {active: is_active()}">
+            <li data-bind="css: {active: is_active}">
                 <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
             </li>
         </ul>
@@ -94,8 +94,8 @@
         <ol class="breadcrumb grid-breadcrumb">
             <li class="bold" data-bind="text: name"></li>
             <!-- ko foreach: choices -->
-            <li data-bind="css: {active: is_active()}">
-                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            <li data-bind="css: {active: is_active}">
+                <a data-bind="css: {bold: is_active}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
             </li>
             <!-- /ko -->
         </ol>
@@ -105,10 +105,10 @@
 
 {% if 'ko_grid_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_popup">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices}" class="dropdown">
         <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
-            <div data-bind="visible: current_name() != '', text: current_name()"></div>
+            <div data-bind="visible: currentName != '', text: currentName"></div>
         </a>
     </li>
 </script>
@@ -119,9 +119,9 @@
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
             <li>
-                <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
+                <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices}" href="#">
                     <span data-bind="text: name"></span> <b class="caret"></b>
-                    <div data-bind="visible: current_name() != '', text: current_name()"></div>
+                    <div data-bind="visible: currentName != '', text: currentName"></div>
                 </a>
             </li>
         </ol>
@@ -207,7 +207,7 @@
                         <!-- /ko -->
                         <!-- ko foreach: gridColumns -->
                         <th>
-                            <!-- ko if: isSortedColumn() -->
+                            <!-- ko if: isSortedColumn -->
                             <a data-bind="
                                 text: name,
                                 grid_order_by,
@@ -215,7 +215,7 @@
                                 css: orderCss
                             " class="halflings-before" name="#"></a>
                             <!-- /ko -->
-                            <!-- ko if: !isSortedColumn() -->
+                            <!-- ko if: !isSortedColumn -->
                             <span data-bind="text: name"></span>
                             <!-- /ko -->
                         </th>

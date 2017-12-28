@@ -53,18 +53,23 @@ App.ko.GridColumnOrder = function(options) {
         this.field = options.field;
         this.name = options.name;
         // '+' means 'asc', '-' means 'desc', null means unsorted.
-        this.order = ko.observable(options.order);
-        this.isSortedColumn = ko.observable(options.isSorted);
-        this.orderCss = ko.computed(this.getOrderCss, this);
+        this.order = options.order;
+        this.isSortedColumn = options.isSorted;
+        ko.defineProperty(this, 'orderCss', {
+            get: this.getOrderCss
+        });
         this.lastColumnCss = {};
-        this.columnCss = ko.computed(this.getColumnCss, this);
+        ko.defineProperty(this, 'columnCss', {
+            get: this.getColumnCss
+        });
+        ko.track(this, {fields: ['order', 'isSortedColumn']});
     };
 
     GridColumnOrder.getOrderCss = function() {
         return {
-            'sort-inactive': this.order() === null,
-            'sort-asc': this.order() === '+',
-            'sort-desc': this.order() === '-'
+            'sort-inactive': this.order === null,
+            'sort-asc': this.order === '+',
+            'sort-desc': this.order === '-'
         };
     };
 
@@ -91,14 +96,14 @@ App.ko.GridColumnOrder = function(options) {
 
     GridColumnOrder.onSwitchOrder = function() {
         this.ownerGrid.deactivateAllSorting(this);
-        if (this.order() === '+') {
-            this.order('-');
+        if (this.order === '+') {
+            this.order = '-';
         } else {
-            // this.order() === null || this.order() === '-'
-            this.order('+');
+            // this.order === null || this.order === '-'
+            this.order = '+';
         }
         var orderBy = {};
-        orderBy[this.field] = this.order();
+        orderBy[this.field] = this.order;
         this.ownerGrid.setQueryOrderBy(orderBy);
         this.ownerGrid.listAction();
     };
@@ -175,9 +180,10 @@ App.ko.GridFilterChoice = function(options) {
         this.ownerFilter = options.ownerFilter;
         this.name = options.name;
         this.value = options.value;
-        this.is_active = ko.observable();
-        this.is_active.subscribe(_.bind(this.updateQueryFilter, this));
-        this.is_active(options.is_active);
+        this.is_active = void 0;
+        ko.track(this, {fields: ['is_active']});
+        ko.getObservable(this, 'is_active').subscribe(_.bind(this.updateQueryFilter, this));
+        this.is_active = options.is_active;
     };
 
     GridFilterChoice.setLinkElement = function($element) {
@@ -211,10 +217,11 @@ App.ko.AbstractGridFilter = function(options) {
         this.ownerGrid =  options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
-        this.hasActiveChoices = ko.observable(false);
+        this.hasActiveChoices = false;
         // List of instances of current filter choices.
         this.choices = [];
-        this.current_name = ko.observable('');
+        this.currentName = '';
+        ko.track(this, {fields: ['hasActiveChoices', 'currentName']});
         // One of this.choices, special 'reset all choice'.
         this.resetFilter = null;
         this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
@@ -307,7 +314,7 @@ App.ko.GridFilter = function(options) {
         for (var i = 0; i < this.choices.length; i++) {
             if (this.choices[i].value === undefined) {
                 this.resetFilter = this.choices[i];
-            } else if (this.choices[i].is_active()) {
+            } else if (this.choices[i].is_active) {
                 totalActive++;
             }
         }
@@ -322,16 +329,16 @@ App.ko.GridFilter = function(options) {
                 // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
                 for (var i = 0; i < this.choices.length; i++) {
                     if (this.choices[i].value !== undefined) {
-                        this.choices[i].is_active(false);
+                        this.choices[i].is_active = false;
                     }
                 }
-                this.resetFilter.is_active(true);
+                this.resetFilter.is_active = true;
             } else if (totalActive === 0) {
                 // No active filter choices means that 'reset all choice' must be highlighted (activated).
-                this.resetFilter.is_active(true);
+                this.resetFilter.is_active = true;
             } else {
                 // Only some of the filter choices are active. Deactivate 'reset all choice'.
-                this.resetFilter.is_active(false);
+                this.resetFilter.is_active = false;
             }
         }
     };
@@ -344,20 +351,20 @@ App.ko.GridFilter = function(options) {
         if (currentChoice.value === undefined) {
             // Special 'all' value, deactivate all filter choices except current one.
             for (var i = 0; i < this.choices.length; i++) {
-                this.choices[i].is_active(false);
+                this.choices[i].is_active = false;
             }
-            currentChoice.is_active(true);
+            currentChoice.is_active = true;
         } else if (!this.allowMultipleChoices) {
             // Switch current filter choice.
             // Turn off all another filter choices.
             for (var i = 0; i < this.choices.length; i++) {
                 if (!currentChoice.is(this.choices[i])) {
-                    this.choices[i].is_active(false);
+                    this.choices[i].is_active = false;
                 }
             }
             // Allow to select none choices (reset) only if there is reset choice in menu.
-            if (this.resetFilter !== null || !currentChoice.is_active()) {
-                currentChoice.is_active(!currentChoice.is_active());
+            if (this.resetFilter !== null || !currentChoice.is_active) {
+                currentChoice.is_active = !currentChoice.is_active;
             }
             this.activateResetFilter();
         } else {
@@ -366,12 +373,12 @@ App.ko.GridFilter = function(options) {
                 ev.stopPropagation();
             }
             // Switch current filter choice.
-            currentChoice.is_active(!currentChoice.is_active());
+            currentChoice.is_active = !currentChoice.is_active;
             this.activateResetFilter();
         }
         var resetFilterIsActive = (this.resetFilter !== null) ?
-            this.resetFilter.is_active() : false;
-        this.hasActiveChoices(!resetFilterIsActive);
+            this.resetFilter.is_active : false;
+        this.hasActiveChoices = !resetFilterIsActive;
     };
 
     GridFilter.getKoFilterChoice = function(value) {
@@ -388,7 +395,7 @@ App.ko.GridFilter = function(options) {
         var activeChocies = [];
         for (var i = 0; i < this.choices.length; i++) {
             var filterChoice = this.choices[i];
-            if (filterChoice.is_active()) {
+            if (filterChoice.is_active) {
                 activeChocies.push(filterChoice);
             }
         }
@@ -466,7 +473,7 @@ App.ko.FkGridFilter = function(options) {
             value: options.pkVal,
             lookup: 'in'
         });
-        this.hasActiveChoices(true);
+        this.hasActiveChoices = true;
         this.ownerGrid.queryArgs.page = 1;
         this.refreshGrid();
     };
@@ -477,7 +484,7 @@ App.ko.FkGridFilter = function(options) {
                 value: options.pkVal,
                 lookup: 'in'
             });
-            this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
+            this.hasActiveChoices = options.childGrid.selectedRowsPks.length > 0;
             this.ownerGrid.queryArgs.page = 1;
             this.refreshGrid();
         }
@@ -487,7 +494,7 @@ App.ko.FkGridFilter = function(options) {
         this.removeQueryFilter({
             lookup: 'in'
         });
-        this.hasActiveChoices(false);
+        this.hasActiveChoices = false;
         this.ownerGrid.queryArgs.page = 1;
         this.refreshGrid();
     };
@@ -502,7 +509,7 @@ App.ko.FkGridFilter = function(options) {
                 lookup: 'in'
             });
         }
-        this.hasActiveChoices(values.length > 0);
+        this.hasActiveChoices = values.length > 0;
     };
 
 })(App.ko.FkGridFilter.prototype);
@@ -529,8 +536,9 @@ App.ko.RangeFilter = function(options) {
             from: App.trans('From'),
             to: App.trans('To'),
         };
-        this.from = ko.observable('');
-        this.to = ko.observable('');
+        this.from = '';
+        this.to = '';
+        ko.track(this, {fields: ['from', 'to']});
         this.subscribeToMethod('from');
         this.subscribeToMethod('to');
         var method = 'getFieldAttrs_' + this.type;
@@ -571,9 +579,9 @@ App.ko.RangeFilter = function(options) {
     };
 
     RangeFilter.onFilterDialogRemoveSelection = function() {
-        this.from('');
-        this.to('');
-        this.hasActiveChoices(false);
+        this.from = '';
+        this.to = '';
+        this.hasActiveChoices = false;
     };
 
     RangeFilter.doLookup = function(value, lookup) {
@@ -583,17 +591,17 @@ App.ko.RangeFilter = function(options) {
             'value': value,
             'lookup': lookup
         });
-        this.hasActiveChoices(true);
+        this.hasActiveChoices = true;
         this.ownerGrid.queryArgs.page = 1;
         this.refreshGrid(function(viewModel) {
             if (typeof self.filterDialog.bdialog !== 'undefined') {
                 var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
                 if (App.propGet(viewModel, 'has_errors') === true) {
                     applyButton.disable();
-                    self.hasActiveChoices(false);
+                    self.hasActiveChoices = false;
                 } else {
                     applyButton.enable();
-                    self.hasActiveChoices(self.from() !== '' || self.to() !== '');
+                    self.hasActiveChoices = self.from !== '' || self.to !== '';
                 }
             }
         });
@@ -609,10 +617,10 @@ App.ko.RangeFilter = function(options) {
 
     RangeFilter.setChoices = function(values) {
         if (typeof values.gte !== 'undefined') {
-            this.from(values.gte);
+            this.from = values.gte;
         }
         if (typeof values.lte !== 'undefined') {
-            this.to(values.lte);
+            this.to = values.lte;
         }
     };
 
@@ -744,8 +752,8 @@ App.ko.GridRow = function(options) {
 
     GridRow.getSelectionCss = function() {
         return {
-            'glyphicon-check': this.isSelectedRow(),
-            'glyphicon-unchecked': !this.isSelectedRow(),
+            'glyphicon-check': this.isSelectedRow,
+            'glyphicon-unchecked': !this.isSelectedRow,
             'pointer': true,
         };
     };
@@ -755,7 +763,7 @@ App.ko.GridRow = function(options) {
             return false;
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
-            'grid-new-row': this.isUpdated(),
+            'grid-new-row': this.isUpdated,
             'pointer': this.ownerGrid.actionTypes['click']().length > 0,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
@@ -774,14 +782,17 @@ App.ko.GridRow = function(options) {
             this.useInitClient = this.ownerGrid.options.useInitClient;
         }
         this.index = options.index;
-        this.isSelectedRow = ko.observable(options.isSelectedRow);
-        this.selectionCss = ko.computed(this.getSelectionCss, this);
-        this.isUpdated = ko.observable(
-            (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
-        );
+        this.isSelectedRow = options.isSelectedRow;
+        this.isUpdated = (typeof options.isUpdated === 'undefined') ? false : options.isUpdated;
+        ko.track(this, {fields: ['isSelectedRow', 'isUpdated']});
         this.lastRowCss = {};
-        this.rowCss = ko.computed(this.getRowCss, this);
-        this.isSelectedRow.subscribe(function(newValue) {
+        ko.defineProperty(this, 'selectionCss', {
+            get: this.getSelectionCss
+        });
+        ko.defineProperty(this, 'rowCss', {
+            get: this.getRowCss
+        });
+        ko.getObservable(this, 'isSelectedRow').subscribe(function(newValue) {
             if (newValue) {
                 self.ownerGrid.onSelectRow(self);
             } else {
@@ -805,7 +816,7 @@ App.ko.GridRow = function(options) {
             this.str = null;
         }
         this.initDisplayValues();
-        if (this.isSelectedRow()) {
+        if (this.isSelectedRow) {
             this.ownerGrid.addSelectedPkVal(this.getPkVal());
         }
         this.actionsACL = {};
@@ -821,7 +832,7 @@ App.ko.GridRow = function(options) {
     };
 
     GridRow.inverseSelection = function() {
-        this.isSelectedRow(!this.isSelectedRow());
+        this.isSelectedRow = !this.isSelectedRow;
     };
 
     GridRow.ignoreRowClickClosest = 'A, BUTTON, INPUT, OPTION, SELECT, TEXTAREA';
@@ -853,7 +864,7 @@ App.ko.GridRow = function(options) {
             // Dispose old row.
             this.dispose();
         }
-        this.isUpdated(savedRow.isUpdated);
+        this.isUpdated = savedRow.isUpdated;
         _.each(savedRow.values, function(value, field) {
             self.values[field] = value;
         });
@@ -1288,7 +1299,7 @@ App.ko.Grid = function(options) {
         var selectAllRows = !this.hasSelectAllRows();
         for (var i = 0; i < this.gridRows().length; i++) {
             var koRow = this.gridRows()[i];
-            koRow.isSelectedRow(selectAllRows);
+            koRow.isSelectedRow = selectAllRows;
         }
         return false;
     };
@@ -1628,7 +1639,7 @@ App.ko.Grid = function(options) {
     Grid.checkAllRowsSelected = function() {
         var result = true;
         $.each(this.gridRows(), function(k, koRow) {
-            if (!koRow.isSelectedRow()) {
+            if (!koRow.isSelectedRow) {
                 result = false;
                 return false;
             }
@@ -1754,7 +1765,7 @@ App.ko.Grid = function(options) {
             if (isSelected) {
                 self.addSelectedPkVal(val);
             }
-            v.isSelectedRow(isSelected);
+            v.isSelectedRow = isSelected;
         });
     };
 
@@ -1764,7 +1775,7 @@ App.ko.Grid = function(options) {
     Grid.unselectRow = function(pkVal) {
         var koRow = this.findKoRowByPkVal(pkVal);
         if (koRow !== null) {
-            koRow.isSelectedRow(false);
+            koRow.isSelectedRow = false;
         }
         // Next line is not required, because the action will be done by koRow.isSelectedRow.subscribe() function.
         // this.removeSelectedPkVal(koRow.getPkVal());
@@ -1772,13 +1783,13 @@ App.ko.Grid = function(options) {
     };
 
     Grid.unselectAllRows = function() {
-        // Make a clone of this.selectedRowsPks, otherwise .isSelectedRow(false) subscription
+        // Make a clone of this.selectedRowsPks, otherwise .isSelectedRow = false subscription
         // will alter loop array in progress.
         var selectedRowsPks = this.selectedRowsPks.slice();
         for (var i = 0; i < selectedRowsPks.length; i++) {
             var koRow = this.findKoRowByPkVal(selectedRowsPks[i]);
             if (koRow !== null) {
-                koRow.isSelectedRow(false);
+                koRow.isSelectedRow = false;
             }
         }
         this.selectedRowsPks = [];
@@ -1788,7 +1799,7 @@ App.ko.Grid = function(options) {
         var self = this;
         var koRow = null;
         _.each(this.gridRows(), function(koRow) {
-            koRow.isUpdated(isUpdated);
+            koRow.isUpdated = isUpdated;
         });
     };
 
@@ -1906,7 +1917,7 @@ App.ko.Grid = function(options) {
         // Unselect all rows except current one.
         _.each(this.gridRows(), function(koRow) {
             if (koRow.getPkVal() !== currPkVal) {
-                koRow.isSelectedRow(false);
+                koRow.isSelectedRow = false;
             }
         });
         // Current row must be inversed _after_ all unselected ones.
@@ -1954,7 +1965,7 @@ App.ko.Grid = function(options) {
     Grid.deactivateAllSorting = function(exceptOrder) {
         $.each(this.gridColumns(), function(k, gridOrder) {
             if (!gridOrder.is(exceptOrder)) {
-                gridOrder.order(null);
+                gridOrder.order = null;
             }
         });
     };
@@ -2265,10 +2276,10 @@ App.ko.Grid = function(options) {
                     withKey: true
                 });
                 if (findResult.koRow === null) {
-                    newRow.isUpdated(true);
+                    newRow.isUpdated = true;
                     self.gridRows.unshift(newRow);
                 } else if (!newRow.is(findResult.koRow)) {
-                    newRow.isUpdated(true);
+                    newRow.isUpdated = true;
                     self.gridRows.splice(findResult.key, 1, newRow);
                 }
             }
