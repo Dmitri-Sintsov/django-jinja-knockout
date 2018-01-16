@@ -1923,6 +1923,35 @@ App.post = function(route, data, options) {
     ).fail(App.showAjaxError);
 };
 
+
+/**
+ * A supplementary function to App.propGet() which gets the immediate parent of property instead of it's value.
+ * This allows to check the type of property before accessing it.
+ */
+App.propGetParent = function(self, propChain) {
+    var prop = self;
+    var propName;
+    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
+        propChain = propChain.split(/\./);;
+    }
+    if (_.isArray(propChain)) {
+        propName = propChain[propChain.length - 1];
+        for (var i = 0; i < propChain.length - 1; i++) {
+            if (typeof prop[propChain[i]] !== 'object') {
+                return {obj: undefined};
+            }
+            prop = prop[propChain[i]];
+        }
+    } else {
+        propName = propChain;
+    }
+    var parent = {
+        obj: prop,
+        childName: propName,
+    };
+    return parent;
+};
+
 App.propSet = function(self, propChain, val) {
     var prop = (self === null)? window : self;
     if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
@@ -1961,37 +1990,24 @@ App.propSet = function(self, propChain, val) {
  */
 App.propGet = function(self, propChain, defVal, get_context) {
     var prop = (self === null)? window : self;
-    var propName;
     if (!$.isMapping(prop)) {
         return defVal;
     }
-    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
-        propChain = propChain.split(/\./);;
-    }
-    if (_.isArray(propChain)) {
-        propName = propChain[propChain.length - 1];
-        for (var i = 0; i < propChain.length - 1; i++) {
-            if (typeof prop[propChain[i]] !== 'object') {
-                return defVal;
-            }
-            prop = prop[propChain[i]];
-        }
-    } else {
-        propName = propChain;
-    }
-    if ($.isMapping(prop)) {
-        var propType = typeof prop[propName];
+    var parent = App.propGetParent(prop, propChain);
+    if ($.isMapping(parent.obj)) {
+        var propType = typeof parent.obj[parent.childName];
         if (propType !== 'undefined') {
+            var propVal = parent.obj[parent.childName];
             if (propType === 'function' && typeof get_context !== 'undefined') {
                 /**
-                 * See also App.ViewModelHandler which uses the same object keys to specify function context.
+                 * See also App.ViewModelRouter which uses the same object keys to specify function context.
                  * Javascript cannot .apply() to bound function without implicitly specifying context,
                  * thus next code is commented out:
                  */
-                // return _.bind(prop[propName], prop);
-                return function() { return {'context': prop, 'fn': prop[propName]} };
+                // return _.bind(propVal, parent.obj);
+                return function() { return {'context': parent.obj, 'fn': propVal } };
             }
-            return prop[propName];
+            return propVal;
         }
     }
     return defVal;
@@ -2078,7 +2094,15 @@ App.ko.Subscriber = function() {};
         }
         var prop = App.propGet(this, propChain);
         if (typeof prop !== 'function' || !ko.isObservable(prop)) {
-            throw sprintf("%s is not observable", JSON.stringify(propChain));
+            var parent = App.propGetParent(this, propChain);
+            if (typeof ko.es5 !== 'undefined' &&
+                    $.isMapping(parent.obj) &&
+                    ko.es5.isTracked(parent.obj, parent.childName)
+            ) {
+                var prop = ko.getObservable(parent.obj, parent.childName);
+            } else {
+                throw sprintf("%s is not observable", JSON.stringify(propChain));
+            }
         }
         var method = App.propGet(this, methodChain);
         if (typeof method !== 'function') {
