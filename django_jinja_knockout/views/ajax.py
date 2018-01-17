@@ -667,22 +667,30 @@ class GridActionsMixin(ModelFormActionsView):
                 'description': self.get_objects_descriptions(objects)
             })
 
+    def vm_add_grid_fields(self, grid_fields, vm_grid_fields):
+        if not isinstance(grid_fields, list):
+            self.report_error('grid_fields must be list')
+        for field_def in grid_fields:
+            if isinstance(field_def, tuple):
+                vm_grid_fields.append({
+                    'field': field_def[0],
+                    'name': field_def[1]
+                })
+            elif isinstance(field_def, str):
+                vm_grid_fields.append({
+                    'field': field_def,
+                    'name': self.get_field_verbose_name(field_def)
+                })
+            elif isinstance(field_def, list):
+                vm_compound_fields = []
+                self.vm_add_grid_fields(field_def, vm_compound_fields)
+                vm_grid_fields.append(vm_compound_fields)
+            else:
+                self.report_error('grid_fields list values must be instances of str or tuple or list')
+
     def vm_get_grid_fields(self):
         vm_grid_fields = []
-        if not isinstance(self.grid_fields, list):
-            self.report_error('grid_fields must be list')
-        for field_def in self.grid_fields:
-            if type(field_def) is tuple:
-                field, name = field_def
-            elif type(field_def) is str:
-                field = field_def
-                name = self.get_field_verbose_name(field)
-            else:
-                self.report_error('grid_fields list values must be str or tuple')
-            vm_grid_fields.append({
-                'field': field,
-                'name': name
-            })
+        self.vm_add_grid_fields(self.grid_fields, vm_grid_fields)
         return vm_grid_fields
 
     # Collect field names verbose_name or i18n of field names from related model classes when available.
@@ -917,7 +925,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         page_num = self.request_get('page', 1)
         try:
             page_num = int(page_num)
-        except:
+        except ValueError:
             self.report_error(
                 title='Invalid page number',
                 message=format_html('Page number: {}', page_num)

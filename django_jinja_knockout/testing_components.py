@@ -152,7 +152,7 @@ class GridCommands:
                 first_elem = False
             else:
                 xpath_str += ' and '
-            xpath_str += './/td[@data-caption={} and text()={}]'
+            xpath_str += './/td[@data-caption={} and child::div/text()={}]'
             xpath_args.extend([
                 caption, value
             ])

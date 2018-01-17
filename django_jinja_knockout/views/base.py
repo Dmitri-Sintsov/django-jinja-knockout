@@ -342,10 +342,11 @@ class BaseFilterView(View, GetPostMixin):
     search_key = 'list_search'
     field_validator = FieldValidator
 
-    # List / grid columns. Use '__all__' value to display all model fields as grid columns,
-    # or specify the list of field names, where each value is str.
-    # Tuple value ('field', 'Column name') may be used instead of str value to override field names displayed
-    # in grid column.
+    # List of grid columns. Use '__all__' value to display all model fields as grid columns,
+    # or specify the list of field names:
+    #   str value: field name;
+    #   tuple value: ('field', 'Column name') override model field 'verbose_name' displayed in column header;
+    #   list value: compound column;
     grid_fields = None
 
     allowed_sort_orders = None
@@ -371,8 +372,16 @@ class BaseFilterView(View, GetPostMixin):
         self.search_fields = None
         self.has_get_str_fields = False
 
+    def yield_fields(self):
+        for column in self.grid_fields:
+            if isinstance(column, list):
+                for field in column:
+                    yield field
+            else:
+                yield column
+
     def get_grid_fields_attnames(self):
-        return [field[0] if type(field) is tuple else field for field in self.grid_fields]
+        return [field[0] if type(field) is tuple else field for field in self.yield_fields()]
 
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitly defined in self.__class__.grid_fields attribute,
@@ -435,7 +444,7 @@ class BaseFilterView(View, GetPostMixin):
     def get_row_str_fields(self, obj, row=None):
         if self.has_get_str_fields:
             str_fields = obj.get_str_fields()
-            for fieldname in self.grid_fields:
+            for fieldname in self.yield_fields():
                 if '__' in fieldname:
                     rel_path = fieldname.split('__')
                     rel_str = get_nested(str_fields, rel_path)

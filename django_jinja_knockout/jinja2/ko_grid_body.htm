@@ -206,7 +206,7 @@
                         <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: gridColumns -->
-                        <th>
+                        <th data-bind="foreach: columnOrders">
                             <!-- ko if: isSortedColumn() -->
                             <a data-bind="
                                 text: name,
@@ -245,10 +245,12 @@
                         <!-- ko foreach: $parent.gridColumns -->
                         <td data-bind="
                             click: $parent.onRowClick.bind($parent),
-                            attr: {index: $index, 'data-caption': name},
+                            attr: {index: $index, 'data-caption': names},
                             css: columnCss,
-                            grid_row_value: $parent.displayValues[field]
-                        "></td>
+                            foreach: columnOrders
+                        ">
+                            <div data-bind="grid_row_value: $parents[1].displayValues[field]"></div>
+                        </td>
                         <!-- /ko -->
                     </tr>
                 </tbody>

@@ -37,6 +37,7 @@ ko.bindingHandlers.grid_row_value = {
     }
 };
 
+
 /**
  * Grid column ordering control.
  */
@@ -56,29 +57,15 @@ App.ko.GridColumnOrder = function(options) {
         this.order = ko.observable(options.order);
         this.isSortedColumn = ko.observable(options.isSorted);
         this.orderCss = ko.computed(this.getOrderCss, this);
-        this.lastColumnCss = {};
-        this.columnCss = ko.computed(this.getColumnCss, this);
     };
 
     GridColumnOrder.getOrderCss = function() {
         return {
+            'display-block': true,
             'sort-inactive': this.order() === null,
             'sort-asc': this.order() === '+',
             'sort-desc': this.order() === '-'
         };
-    };
-
-    GridColumnOrder.getColumnCss = function() {
-        this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
-            return false;
-        });
-        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
-        if (highlightModeRule.direction === 1) {
-            // Finds foreach $index() inaccessible directly in computed.
-            var index = this.ownerGrid.gridColumns().indexOf(this);
-            this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
-        }
-        return this.lastColumnCss;
     };
 
     GridColumnOrder.setSwitchElement = function($element) {
@@ -140,6 +127,68 @@ App.ko.GridColumnOrder = function(options) {
     };
 
 })(App.ko.GridColumnOrder.prototype);
+
+
+/**
+ * Compound column which contains one or more of App.ko.GridColumnOrder instances.
+ */
+
+App.ko.GridColumn = function(options) {
+    this.init(options);
+};
+
+
+(function(GridColumn) {
+
+    GridColumn.init = function(options) {
+        this.ownerGrid = options.ownerGrid;
+        this.lastColumnCss = {};
+        this.columnOrders = ko.observableArray(options.columnOrders);
+        this.columnCss = ko.computed(this.getColumnCss, this);
+        this.names = ko.computed(this.getNames, this);
+    };
+
+    GridColumn.getColumnCss = function() {
+        this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
+            return false;
+        });
+        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
+        if (highlightModeRule.direction === 1) {
+            // Finds foreach $index() inaccessible directly in computed.
+            var index = this.ownerGrid.gridColumns().indexOf(this);
+            this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
+        }
+        return this.lastColumnCss;
+    };
+
+    GridColumn.getNames = function() {
+        var names = [];
+        _.find(this.columnOrders(), function(columnOrder) {
+            names.push(columnOrder.name);
+        });
+        return names.join(' / ');
+    };
+
+    GridColumn.getColumnOrder = function(fieldName) {
+        var result = null;
+        _.find(this.columnOrders(), function(columnOrder) {
+            if (columnOrder.field === fieldName) {
+                result = columnOrder;
+                return true;
+            }
+        });
+        return result;
+    };
+
+    GridColumn.deactivateAllSorting = function(exceptOrder) {
+        _.each(this.columnOrders(), function(columnOrder) {
+            if (!columnOrder.is(exceptOrder)) {
+                columnOrder.order(null);
+            }
+        });
+    };
+
+})(App.ko.GridColumn.prototype);
 
 
 /**
@@ -1952,10 +2001,8 @@ App.ko.Grid = function(options) {
     };
 
     Grid.deactivateAllSorting = function(exceptOrder) {
-        $.each(this.gridColumns(), function(k, gridOrder) {
-            if (!gridOrder.is(exceptOrder)) {
-                gridOrder.order(null);
-            }
+        _.each(this.gridColumns(), function(gridColumn) {
+            gridColumn.deactivateAllSorting(exceptOrder);
         });
     };
 
@@ -1969,6 +2016,10 @@ App.ko.Grid = function(options) {
     };
 
     Grid.iocKoGridColumn = function(options) {
+        return new App.ko.GridColumn(options);
+    };
+
+    Grid.iocKoGridColumnOrder = function(options) {
         return new App.ko.GridColumnOrder(options);
     };
 
@@ -1976,8 +2027,12 @@ App.ko.Grid = function(options) {
     Grid.getKoGridColumn = function(fieldName) {
         var result = null;
         _.find(this.gridColumns(), function(gridColumn) {
-            if (gridColumn.field === fieldName) {
-                result = gridColumn;
+            var columnOrder = gridColumn.getColumnOrder(fieldName);
+            if (columnOrder !== null) {
+                result = {
+                    column: gridColumn,
+                    order: columnOrder,
+                };
                 return true;
             }
         });
@@ -1987,17 +2042,26 @@ App.ko.Grid = function(options) {
     Grid.setKoGridColumns = function(gridFields) {
         var koGridColumns = [];
         for (var i = 0; i < gridFields.length; i++) {
-            var gridColumn = gridFields[i];
-            var order = App.propGet(this.meta.orderBy, gridColumn.field, null);
-            koGridColumns.push(
-                this.iocKoGridColumn({
+            if (!_.isArray(gridFields[i])) {
+                gridFields[i] = [gridFields[i]];
+            }
+            var gridColumnOrders = gridFields[i];
+            var koGridColumnOrders = [];
+            for (var j = 0; j < gridColumnOrders.length; j++) {
+                var gridColumn = gridColumnOrders[j];
+                var order = App.propGet(this.meta.orderBy, gridColumn.field, null);
+                koGridColumnOrders.push(this.iocKoGridColumnOrder({
                     field: gridColumn.field,
                     name: gridColumn.name,
                     isSorted: this.isSortedField(gridColumn.field),
                     order: order,
                     ownerGrid: this
-                })
-            );
+                }));
+            }
+            koGridColumns.push(this.iocKoGridColumn({
+                ownerGrid: this,
+                columnOrders: koGridColumnOrders
+            }));
         }
         this.gridColumns(koGridColumns);
     };
