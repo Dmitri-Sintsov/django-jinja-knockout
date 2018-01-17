@@ -1,39 +1,39 @@
 'use strict';
 
 ko.bindingHandlers.grid_row = {
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
         // var realElement = ko.fromVirtual(element);
-        viewModel.setRowElement($(element));
+        koGridRow.setRowElement($(element));
     }
 };
 
 ko.virtualElements.allowedBindings.grid_row = true;
 
 ko.bindingHandlers.grid_filter = {
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.setDropdownElement($(element));
+    update: function(element, valueAccessor, allBindings, koGridFilter, bindingContext) {
+        koGridFilter.setDropdownElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_filter_choice = {
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.setLinkElement($(element));
+    update: function(element, valueAccessor, allBindings, koGridFilterChoice, bindingContext) {
+        koGridFilterChoice.setLinkElement($(element));
     }
 };
 
 ko.bindingHandlers.grid_order_by = {
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.setSwitchElement($(element));
+    update: function(element, valueAccessor, allBindings, koGridColumnOrder, bindingContext) {
+        koGridColumnOrder.setSwitchElement($(element));
     }
 };
 
 // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
-ko.bindingHandlers.grid_row_value = {
-    update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        viewModel.renderRowValue(element, ko.utils.unwrapObservable(
-                valueAccessor()
-            )
-        );
+ko.bindingHandlers.grid_row_values = {
+    update:  function(element, valueAccessor, allBindings, koGridColumn, bindingContext) {
+        koGridColumn.render({
+            $element: $(element),
+            row: bindingContext.$parent,
+        });
     }
 };
 
@@ -148,6 +148,8 @@ App.ko.GridColumn = function(options) {
         this.names = ko.computed(this.getNames, this);
     };
 
+    GridColumn.blockTags = App.blockTags.list;
+
     GridColumn.getColumnCss = function() {
         this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
             return false;
@@ -186,6 +188,33 @@ App.ko.GridColumn = function(options) {
                 columnOrder.order(null);
             }
         });
+    };
+
+    GridColumn.getCompoundCells = function(options) {
+        var cells = [];
+        _.map(this.columnOrders(), function(columnOrder) {
+            var $container = $('<div>', {'class': 'grid-cell'});
+            columnOrder.renderRowValue($container[0], ko.utils.unwrapObservable(
+                    options.row.displayValues[columnOrder.field]
+                )
+            );
+            cells.push($container);
+        });
+        return cells;
+    };
+
+    GridColumn.renderCompound = function($element, cells) {
+        App.renderNestedList($element, cells, {blockTags: this.blockTags, fn: 'html'});
+    };
+
+    GridColumn.render = function(options) {
+        options.$element.empty();
+        var cells = this.getCompoundCells(options);
+        if (cells.length === 1) {
+            options.$element.append(cells[0]);
+        } else if (cells.length > 1) {
+            this.renderCompound(options.$element, cells);
+        }
     };
 
 })(App.ko.GridColumn.prototype);

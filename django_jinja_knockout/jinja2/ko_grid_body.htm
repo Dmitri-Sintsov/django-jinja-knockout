@@ -247,10 +247,8 @@
                             click: $parent.onRowClick.bind($parent),
                             attr: {index: $index, 'data-caption': names},
                             css: columnCss,
-                            foreach: columnOrders
-                        ">
-                            <div class="grid-cell" data-bind="grid_row_value: $parents[1].displayValues[field]"></div>
-                        </td>
+                            grid_row_values
+                        "></td>
                         <!-- /ko -->
                     </tr>
                 </tbody>
