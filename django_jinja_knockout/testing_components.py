@@ -142,7 +142,12 @@ class GridCommands:
             'click',
         )
 
-    # $x(".//tr [ .//td[@data-caption='Title' and text()='Yaroslavl Bears'] and .//td[@data-caption='First name' and text()='Ivan'] ]")
+    # $x(
+    #     ".//tr [" +
+    #     "   .//td[@data-caption='Title' and .//*[@class='grid-cell']/text()='Yaroslavl Bears'] and " +
+    #     "   .//td[@data-caption='First name' and .//*[@class='grid-cell']/text()='Ivan']" +
+    #     " ]"
+    # )
     def _grid_find_data_row(self, columns):
         xpath_str = './/tr [ '
         xpath_args = []
@@ -152,7 +157,7 @@ class GridCommands:
                 first_elem = False
             else:
                 xpath_str += ' and '
-            xpath_str += './/td[@data-caption={} and child::div/text()={}]'
+            xpath_str += './/td[@data-caption={} and .//*[@class="grid-cell"]/text()={}]'
             xpath_args.extend([
                 caption, value
             ])
@@ -201,7 +206,8 @@ class GridCommands:
     def _grid_order_by(self, verbose_name):
         return self.exec(
             'component_relative_by_xpath', (
-                './/thead//a[contains(@class, "halflings-before sort-") and text() = {}]', verbose_name,
+                './/thead//a[contains(@class, "halflings-before") and contains(@class, "sort-") and text() = {}]',
+                verbose_name,
             ),
             'click',
             # Wait until AJAX result is complete.
