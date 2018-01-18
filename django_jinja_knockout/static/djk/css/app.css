@@ -130,9 +130,16 @@ table.table {
 	word-wrap: break-word;
 }
 
-.black-on-white {
-	color: black;
-	background: white;
+.label-gray {
+	color: gray;
+	background: transparent;
+	padding-left: 0;
+}
+
+.label-white {
+	color: white;
+	background: transparent;
+	padding-left: 0;
 }
 
 .error-bg, .validation-error {

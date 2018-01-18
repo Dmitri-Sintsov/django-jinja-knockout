@@ -144,8 +144,8 @@ class GridCommands:
 
     # $x(
     #     ".//tr [" +
-    #     "   .//td[@data-caption='Title' and .//*[@class='grid-cell']/text()='Yaroslavl Bears'] and " +
-    #     "   .//td[@data-caption='First name' and .//*[@class='grid-cell']/text()='Ivan']" +
+    #     "   .//*[@data-caption='Title' and @class='grid-cell']/text()='Yaroslavl Bears' and " +
+    #     "   .//*[@data-caption='First name' and @class='grid-cell']/text()='Ivan'" +
     #     " ]"
     # )
     def _grid_find_data_row(self, columns):
@@ -157,7 +157,7 @@ class GridCommands:
                 first_elem = False
             else:
                 xpath_str += ' and '
-            xpath_str += './/td[@data-caption={} and .//*[@class="grid-cell"]/text()={}]'
+            xpath_str += './/*[@data-caption={} and @class="grid-cell"]/text()={}'
             xpath_args.extend([
                 caption, value
             ])

@@ -201,7 +201,10 @@ App.ko.GridColumn = function(options) {
     GridColumn.getCompoundCells = function(gridRow) {
         var cells = [];
         _.map(this.columnOrders(), function(columnOrder) {
-            var $container = $('<div>', {'class': 'grid-cell'});
+            var $container = $('<div>', {
+                'class': 'grid-cell',
+                'data-caption': columnOrder.name,
+            });
             columnOrder.renderRowValue(
                 $container[0], ko.utils.unwrapObservable(
                     gridRow.displayValues[columnOrder.field]

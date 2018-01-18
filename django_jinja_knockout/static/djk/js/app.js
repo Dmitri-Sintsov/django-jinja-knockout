@@ -119,7 +119,9 @@ App.renderNestedList = function(element, value, options) {
                 enclosureTag: '<ul>',
                 enclosureClasses: 'list-group',
                 itemTag: '<li>',
-                itemClasses: 'list-group-item preformatted'
+                itemClasses: 'list-group-item preformatted',
+                localKeyTag: '<div>',
+                localKeyClasses: 'label label-info label-gray preformatted',
             }
         ];
     } else if (_.isArray(options.blockTags)) {
@@ -175,13 +177,15 @@ App.renderNestedList = function(element, value, options) {
                     } else {
                         localKey = k;
                     }
-                    if (v instanceof jQuery) {
-                        v.prepend(
-                            $('<div>', {'class': 'label label-info black-on-white preformatted'}).text(localKey)
-                        );
-                    } else {
-                        v = localKey + ': ' + v;
+                    if (!(v instanceof jQuery)) {
+                        fn = 'append';
+                        v = $('<span>').text(v);
                     }
+                    v.prepend(
+                        $(blockTags[level].localKeyTag, {
+                            'class': blockTags[level].localKeyClasses,
+                        }).text(localKey)
+                    );
                 }
                 var $li = $(blockTags[level].itemTag)
                     .addClass(blockTags[level].itemClasses)
@@ -203,13 +207,17 @@ App.blockTags = {
             enclosureTag: '<ul>',
             enclosureClasses: 'list-group',
             itemTag: '<li>',
-            itemClasses: 'condensed list-group-item preformatted'
+            itemClasses: 'condensed list-group-item preformatted',
+            localKeyTag: '<div>',
+            localKeyClasses: 'label label-info label-gray preformatted',
         },
         {
             enclosureTag: '<ul>',
             enclosureClasses: 'list-group',
             itemTag: '<li>',
-            itemClasses: 'condensed list-group-item list-group-item-warning preformatted'
+            itemClasses: 'condensed list-group-item list-group-item-warning preformatted',
+            localKeyTag: '<div>',
+            localKeyClasses: 'label label-info label-gray preformatted',
         },
     ],
     badges: [
@@ -217,7 +225,9 @@ App.blockTags = {
             enclosureTag: '<div>',
             enclosureClasses: 'well well-condensed well-sm',
             itemTag: '<span>',
-                itemClasses: 'badge preformatted'
+            itemClasses: 'badge preformatted',
+            localKeyTag: '<div>',
+            localKeyClasses: 'label label-info label-white preformatted',
         }
     ]
 };
