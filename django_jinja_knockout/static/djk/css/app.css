@@ -130,6 +130,11 @@ table.table {
 	word-wrap: break-word;
 }
 
+.black-on-white {
+	color: black;
+	background: white;
+}
+
 .error-bg, .validation-error {
 	color: white;
 	background-color: red;

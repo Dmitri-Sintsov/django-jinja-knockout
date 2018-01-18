@@ -52,6 +52,18 @@ $.id = function(id) {
     }
 };
 
+/**
+ * OrderedDict element.
+ */
+_.ODict = function(k, v) {
+    this.k = k;
+    this.v = v;
+};
+
+_.odict = function(k, v) {
+    return new _.ODict(k, v);
+};
+
 _.recursiveMap = function(value, fn) {
     if (_.isArray(value)) {
         return _.map(value, function(v) {

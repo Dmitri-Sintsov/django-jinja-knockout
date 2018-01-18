@@ -171,6 +171,14 @@ App.ko.GridColumn = function(options) {
         return names.join(' / ');
     };
 
+    GridColumn.getOrders_i18n = function() {
+        var i18n = {};
+        _.find(this.columnOrders(), function(columnOrder) {
+            i18n[columnOrder.field] = columnOrder.name;
+        });
+        return i18n;
+    };
+
     GridColumn.getColumnOrder = function(fieldName) {
         var result = null;
         _.find(this.columnOrders(), function(columnOrder) {
@@ -190,28 +198,36 @@ App.ko.GridColumn = function(options) {
         });
     };
 
-    GridColumn.getCompoundCells = function(options) {
+    GridColumn.getCompoundCells = function(gridRow) {
         var cells = [];
         _.map(this.columnOrders(), function(columnOrder) {
             var $container = $('<div>', {'class': 'grid-cell'});
-            columnOrder.renderRowValue($container[0], ko.utils.unwrapObservable(
-                    options.row.displayValues[columnOrder.field]
+            columnOrder.renderRowValue(
+                $container[0], ko.utils.unwrapObservable(
+                    gridRow.displayValues[columnOrder.field]
                 )
             );
-            cells.push($container);
+            cells.push(
+                _.odict(columnOrder.field, $container)
+            );
         });
         return cells;
     };
 
     GridColumn.renderCompound = function($element, cells) {
-        App.renderNestedList($element, cells, {blockTags: this.blockTags, fn: 'html'});
+        App.renderNestedList($element, cells, {
+            blockTags: this.blockTags,
+            fn: 'html',
+            showKeys: true,
+            i18n: this.getOrders_i18n(),
+        });
     };
 
     GridColumn.render = function(options) {
         options.$element.empty();
-        var cells = this.getCompoundCells(options);
+        var cells = this.getCompoundCells(options.row);
         if (cells.length === 1) {
-            options.$element.append(cells[0]);
+            options.$element.append(cells[0].v);
         } else if (cells.length > 1) {
             this.renderCompound(options.$element, cells);
         }
