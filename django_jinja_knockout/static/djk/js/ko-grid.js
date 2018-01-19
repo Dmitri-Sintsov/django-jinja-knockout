@@ -1487,8 +1487,11 @@ App.ko.Grid = function(options) {
         this.selectedRowsPks = [];
         this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
+        this.glyphiconColumns = ko.computed(function() {
+            return (this.actionTypes['glyphicon']().length === 0) ? 0 : 1
+        }, this);
         this.totalColumns = ko.computed(function() {
-            var totalColumns = this.gridColumns().length + this.actionTypes['glyphicon']().length;
+            var totalColumns = this.gridColumns().length + this.glyphiconColumns();
             if (this.options.showSelection) {
                 totalColumns++;
             }

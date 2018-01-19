@@ -202,7 +202,7 @@
                             <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
                         </th>
                         <!-- /ko -->
-                        <!-- ko foreach: actionTypes['glyphicon'] -->
+                        <!-- ko if: glyphiconColumns() -->
                         <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: gridColumns -->
@@ -235,10 +235,16 @@
                             <span data-bind="css: selectionCss" class="halflings glyphicon"></span>
                         </td>
                         <!-- /ko -->
-                        <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
-                        <td class="grid-glyph-cell" data-bind="click: function() { doForRow($parent); }">
-                            <!-- ko if: $parent.observeEnabledAction($data) -->
-                            <span data-bind="css: actionCss(), attr: {title: $data.localName}" class="halflings glyphicon pointer"></span>
+                        <!-- ko if: $parent.glyphiconColumns() -->
+                        <td class="grid-glyph-cell grid-glypicon-actions">
+                            <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
+                                <!-- ko if: $parent.observeEnabledAction($data) -->
+                                <span data-bind="
+                                    css: actionCss(),
+                                    attr: {title: $data.localName},
+                                    click: function() { doForRow($parent); }
+                                " class="halflings glyphicon pointer"></span>
+                                <!-- /ko -->
                             <!-- /ko -->
                         </td>
                         <!-- /ko -->
