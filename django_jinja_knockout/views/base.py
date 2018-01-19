@@ -17,7 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from .. import tpl as qtpl
 from ..models import (
-    normalize_fk_fieldname, get_verbose_name, get_related_field, yield_model_fieldnames
+    normalize_fk_fieldname, get_verbose_name, get_related_field, get_related_field_val, yield_model_fieldnames
 )
 from ..viewmodels import vm_list
 from ..admin import empty_value_display
@@ -459,7 +459,7 @@ class BaseFilterView(View, GetPostMixin):
         if not hasattr(obj, '_display_value'):
             obj._display_value = self.get_row_str_fields(obj)
         normalized_field = normalize_fk_fieldname(field)
-        field_val = getattr(obj, field)
+        field_val = get_related_field_val(obj, field)
         if isinstance(field_val, models.Model) and hasattr(field_val, 'get_absolute_url'):
             display_value = qtpl.ModelLinker(field_val).__html__()
         elif field in obj._display_value:

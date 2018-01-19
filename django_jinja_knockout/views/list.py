@@ -370,37 +370,40 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
         if type(sort_order) is str:
             sort_order = [sort_order]
-        if kwargs is None:
-            kwargs = self.kwargs
-        if viewname is None:
-            viewname = self.request.url_name
         if text is None:
             text = self.get_field_verbose_name(sort_order[0])
-        link_attrs = {
-            'class': 'halflings-before',
-            'href': qtpl.reverseq(
-                viewname,
-                kwargs=kwargs,
-                query=self.get_negate_sort_order_querypart(
-                    sort_order=sort_order,
-                    query=self.get_list_filter_querypart(
-                        list_filter_querypart=self.get_current_list_filter_querypart(),
-                        query=query
+        if sort_order[0] in self.allowed_sort_orders:
+            if kwargs is None:
+                kwargs = self.kwargs
+            if viewname is None:
+                viewname = self.request.url_name
+            link_attrs = {
+                'class': 'halflings-before',
+                'href': qtpl.reverseq(
+                    viewname,
+                    kwargs=kwargs,
+                    query=self.get_negate_sort_order_querypart(
+                        sort_order=sort_order,
+                        query=self.get_list_filter_querypart(
+                            list_filter_querypart=self.get_current_list_filter_querypart(),
+                            query=query
+                        )
                     )
                 )
-            )
-        }
-        if sort_order == self.current_stripped_sort_order:
-            link_attrs['class'] += ' sort-desc' if self.is_negate_sort_order(self.current_sort_order) else ' sort-asc'
-        else:
-            # link_attrs['class'] = 'sort-desc' if self.is_negate_sort_order(sort_order) else 'sort-asc'
-            link_attrs['class'] += ' sort-inactive'
+            }
+            if sort_order == self.current_stripped_sort_order:
+                link_attrs['class'] += ' sort-desc' if self.is_negate_sort_order(self.current_sort_order) else ' sort-asc'
+            else:
+                # link_attrs['class'] = 'sort-desc' if self.is_negate_sort_order(sort_order) else 'sort-asc'
+                link_attrs['class'] += ' sort-inactive'
 
-        return format_html(
-            '<a{}>{}</a>',
-            flatatt(link_attrs),
-            force_text(text)
-        )
+            return format_html(
+                '<a{}>{}</a>',
+                flatatt(link_attrs),
+                force_text(text)
+            )
+        else:
+            return force_text(text)
 
     def get_filter_args(self, fieldname):
         if fieldname in self.allowed_filter_fields:

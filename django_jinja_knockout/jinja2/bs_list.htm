@@ -19,21 +19,29 @@
         {% set row_class = cycler('info', 'success', 'active') -%}
         {% if loop.index0 == 0 -%}
         <tr>
-        {% for field in view.grid_fields -%}
+        {% for column in view.grid_fields -%}
             <th>
-            {% if field in view.allowed_sort_orders -%}
-                {{ view.get_sort_order_link(field) }}
+            {% if isinstance(column, list) -%}
+                {% for field in column -%}
+                    <div>{{ view.get_sort_order_link(field) }}</div>
+                {% endfor -%}
             {% else -%}
-                {{ field }}
+                {{ view.get_sort_order_link(column) }}
             {% endif -%}
             </th>
         {% endfor -%}
         </tr>
         {% endif -%}
         <tr>
-        {% for field in view.grid_fields -%}
-            <td class="{{ row_class.__next__() }}" data-caption="{{ get_verbose_name(obj, field) }}">
-                {{ view.get_display_value(obj, field) }}
+        {% for column in view.grid_fields -%}
+            <td class="{{ row_class.__next__() }}" data-caption="{# get_verbose_name(obj, field) #}">
+            {% if isinstance(column, list) -%}
+                {% for field in column -%}
+                    <div>{{ view.get_display_value(obj, field) }}</div>
+                {% endfor -%}
+            {% else -%}
+                {{ view.get_display_value(obj, column) }}
+            {% endif -%}
             </td>
         {% endfor -%}
         </tr>
