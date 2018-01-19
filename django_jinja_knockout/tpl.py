@@ -158,9 +158,12 @@ def print_bs_badges(row, cb=escape, show_keys=None, i18n={}):
     return mark_safe(
         PrintList(
             elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
-            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
+            key_tpl='<span{attrs}><div{k_attrs}>{k}:</div> {v}</span><span class="conditional-display"></span>',
             top_tpl='{}',
-            tpl_kwargs={'attrs': {'class': "badge preformatted"}},
+            tpl_kwargs={
+                'attrs': {'class': "badge preformatted"},
+                'k_attrs': {'class': "label label-info label-white preformatted"}
+            },
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -174,9 +177,13 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
     return mark_safe(
         PrintList(
             elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
-            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
+            key_tpl=('<span{attrs}><div{k_attrs}>{k}:</div> {v}</span>'
+                     '<span class="conditional-display"></span>'),
             top_tpl='<div class="well well-condensed well-sm">{}</div>',
-            tpl_kwargs={'attrs': {'class': "badge preformatted"}},
+            tpl_kwargs={
+                'attrs': {'class': "badge preformatted"},
+                'k_attrs': {'class': "label label-info label-white preformatted"}
+            },
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
@@ -190,7 +197,10 @@ def print_list_group(row, cb=escape, show_keys=None, i18n={}):
             elem_tpl='<li{v_attrs}>{v}</li>\n',
             key_tpl='<li{k_attrs}>{k}</li><li{v_attrs}>{v}</li>\n',
             top_tpl='<ul class="list-group">{}</ul>\n',
-            tpl_kwargs={'v_attrs': {'class': 'list-group-item'}, 'k_attrs': {'class': 'list-group-item'}},
+            tpl_kwargs={
+                'v_attrs': {'class': 'list-group-item'},
+                'k_attrs': {'class': 'list-group-item'}
+            },
             cb=cb,
             show_keys=show_keys,
             i18n=i18n
