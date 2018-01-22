@@ -121,10 +121,10 @@
     {% elif field|is_checkbox -%}
         {{ render_field_checkbox(form, field, def_classes) }}
     {% elif field|is_multiple_checkbox -%}
-        {% do classes.update({'multiple_type': 'checkbox'}) -%}
+        {% do def_classes.update({'multiple_type': 'checkbox'}) -%}
         {{ render_field_multiple(form, field, def_classes) }}
     {% elif field|is_radio -%}
-        {% do classes.update({'multiple_type': 'radio'}) -%}
+        {% do def_classes.update({'multiple_type': 'radio'}) -%}
         {{ render_field_multiple(form, field, def_classes) }}
     {% else -%}
         {{ render_field_standard(form, field, def_classes) }}

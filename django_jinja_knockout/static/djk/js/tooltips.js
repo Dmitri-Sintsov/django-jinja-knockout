@@ -12,10 +12,14 @@ App.vmRouter.add({
     },
     'popover_error': function(viewModel) {
         // Do not forget to escape viewModel.message from XSS.
+        // Is not reliable due to: https://github.com/twbs/bootstrap/issues/20511
         viewModel.instance = new App.FieldPopover(viewModel);
     },
-    'form_error': function(viewModel) {
+    'bs_alert_error': function(viewModel) {
         viewModel.instance = new App.AlertError(viewModel);
+    },
+    'form_error': function(viewModel, vmRouter) {
+        vmRouter.exec('bs_alert_error', viewModel);
     }
 });
 
@@ -79,7 +83,7 @@ App.GenericPopover = function(options) {
             throw "Unmatched input: " + JSON.stringify(options);
         }
 
-        this.message = options.message;
+        this.messages = options.messages;
         this.setupEvents();
     }
 
@@ -92,38 +96,59 @@ App.FieldPopover = function(options) {
 };
 
 (function(FieldPopover) {
+
     FieldPopover.setupEvents = function() {
         var self = this;
+        this.destroyed = false;
         this.$field.focus();
         // Do not show/hide multiple times to prevent flickering.
         this.status = 'show';
-        var _popover;
-        _popover = this.$messageTarget.popover({
+        var $errmsg = $('<div>');
+        App.renderNestedList($errmsg, this.messages);
+        var _popover = this.$messageTarget.popover({
             trigger: 'manual',
             placement: 'bottom',
             container: 'body',
-            content: self.message,
+            content: $errmsg,
             html: true,
-            template: "<div class=\"popover\"><div class=\"arrow\"></div><div class=\"popover-inner\"><div class=\"popover-content\"><p></p></div></div></div>"
+            template:
+                "<div class=\"popover\">" +
+                "<div class=\"arrow\"></div><div class=\"popover-inner\"><div class=\"popover-content\"><p></p></div></div>" +
+                "</div>"
         });
-        _popover.data("bs.popover").options.content = self.message;
-        this.$messageTarget
-        .popover(self.status);
-        this.$field
-        .on(this.destroyEventName, function(ev) {
+        _popover.data("bs.popover").options.content = $errmsg;
+        this.$messageTarget.popover(self.status);
+        this.onDestroy = function(ev) {
             self.$messageTarget.popover('destroy');
-        })
-        .on('blur', function(ev) {
+        };
+        this.onBlur = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'hide') {
                 self.$messageTarget.popover(self.status = 'hide');
             }
-        })
-        .on('focus', function(ev) {
+        };
+        this.onFocus = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'show') {
                 self.$messageTarget.popover(self.status = 'show');
             }
-        });
+        };
+        this.$field
+        .on(this.destroyEventName, self.onDestroy)
+        .on('blur', self.onBlur)
+        .on('focus', self.onFocus);
     };
+
+    FieldPopover.destroy = function() {
+        if (!this.destroyed) {
+            this.$field
+            .off(this.destroyEventName, this.onDestroy)
+            .off('blur', this.onBlur)
+            .off('focus', this.onFocus);
+            // https://github.com/twbs/bootstrap/issues/20511
+            this.$messageTarget.popover('destroy');
+            this.destroyed = true;
+        }
+    };
+
 }) (App.FieldPopover.prototype);
 
 
@@ -140,11 +165,11 @@ App.FieldTooltip = function(options) {
             // @note: data-original-title is boostrap3 standard attribute, do not change the name.
             this.$messageTarget.attr(
                 'data-original-title',
-                this.$messageTarget.attr('data-original-title') + '\n' + this.message
+                this.$messageTarget.attr('data-original-title') + '\n' + this.messages.join('\n')
             );
         } else {
             this.$messageTarget
-              .attr('title', this.message);
+              .attr('title', this.messages.join('\n'));
             this.$messageTarget.tooltip({
                 'container': 'body',
                 'placement': 'bottom'
@@ -243,8 +268,7 @@ App.AlertError = function(options) {
         var form = this.$form.get(0);
         App.vmRouter.filterExecuted(
             function(viewModel) {
-                if (['tooltip_error', 'form_error'].indexOf(viewModel.view) !== -1 &&
-                        typeof viewModel.instance !== 'undefined') {
+                if (viewModel.view === 'form_error' && typeof viewModel.instance !== 'undefined') {
                     viewModel.instance.destroy(form);
                     return false;
                 }
