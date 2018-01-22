@@ -73,7 +73,8 @@ App.ModelFormDialog = function(options) {
         var self = this;
         var $form = bdialog.getModalBody().find('form');
         var $button = bdialog.getModalFooter().find('button.submit');
-        App.AjaxForm.prototype.submit($form, $button, {
+        var ajaxForm = new App.AjaxForm($form);
+        ajaxForm.submit($button, {
             success: function(response) {
                 if (typeof self.owner !== 'undefined') {
                     var result = self.owner.modelFormAction(response);
@@ -268,7 +269,7 @@ App.EditForm = function(options) {
         if (vm === null) {
             /**
              * If response has no our grid viewmodel (this.actions.viewModelName), then it's a
-             * form viewmodel errors response which will be processed by App.AjaxForm.prototype.submit().
+             * form viewmodel errors response which will be processed by App.AjaxForm.submit().
              */
             return true;
         } else {

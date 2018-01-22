@@ -1087,7 +1087,7 @@ App.vmRouter = new App.ViewModelRouter({
         if (response.fromUrl === response.toUrl) {
             return;
         }
-        var $submits = $(App.AjaxForm.prototype.formSubmitSelector);
+        var $submits = $(App.AjaxForms.prototype.formSubmitSelector);
         $submits.each(function(k, v) {
             var $submit = $(v);
             if ($submit.data('url') === response.fromUrl || $submit.prop('data-url') === response.fromUrl) {
@@ -1284,17 +1284,17 @@ App.DatetimeWidget = function($parent) {
 
 })(App.DatetimeWidget.prototype);
 
-App.ladder = function($selector) {
+App.Ladder = function($selector) {
     var self = this;
     this.laddas = [];
-    $selector.findSelf('button[type="submit"], input[type="submit"]').each(function(k, v) {
+    $selector.findSelf('button[type="submit"], button.submit, input[type="submit"]').each(function(k, v) {
         var l = Ladda.create(v);
         l.start();
         self.laddas.push(l);
     });
 };
 
-App.ladder.prototype.remove = function() {
+App.Ladder.prototype.remove = function() {
     $.each(this.laddas, function(k, v) {
         v.remove();
     });
@@ -1358,21 +1358,23 @@ App.AjaxButton = function($selector) {
 
 })(App.AjaxButton.prototype);
 
+
 /**
+ * Set of ajax forms.
  * Please use form[data-route] attribute.
- * Do not define form[action], otherwise form may be submitted twice.
+ * Do not define form[action], otherwise the form may be submitted twice.
  */
-App.AjaxForm = function($selector) {
+App.AjaxForms = function($selector) {
     this.create($selector);
 };
 
-(function(AjaxForm) {
+(function(AjaxForms) {
 
-    AjaxForm.formSelector = 'form.ajax-form';
-    AjaxForm.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
-    AjaxForm.formSubmitSelector = AjaxForm.formSelector + ', ' + AjaxForm.submitSelector;
+    AjaxForms.formSelector = 'form.ajax-form';
+    AjaxForms.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
+    AjaxForms.formSubmitSelector = AjaxForms.formSelector + ', ' + AjaxForms.submitSelector;
 
-    AjaxForm.has = function() {
+    AjaxForms.has = function() {
         var result = (typeof $.fn.ajaxForm !== 'undefined');
         if (!result) {
             console.log('@note: jQuery AJAX form plugin is disabled.');
@@ -1380,22 +1382,22 @@ App.AjaxForm = function($selector) {
         return result;
     };
 
-    AjaxForm.create = function($selector) {
-        this.$forms = $selector.findSelf(AjaxForm.formSelector);
+    AjaxForms.create = function($selector) {
+        this.$forms = $selector.findSelf(this.formSelector);
         this.$cancelButtons = this.$forms.find('.btn-cancel-compose');
-        this.$submitButtons = this.$forms.find(AjaxForm.submitSelector);
+        this.$submitButtons = this.$forms.find(this.submitSelector);
     };
 
     // @call static
-    AjaxForm.onCancelButtonClick = function(ev) {
+    AjaxForms.onCancelButtonClick = function(ev) {
         var $form = $(ev.target).closest('form');
-        App.clearInputs($form);
+        new App.AjaxForm($form).clearInputs();
     };
 
     // @call static
-    AjaxForm.onSubmitButtonClick = function(ev) {
-        var $form = $(ev.target).closest('form');
+    AjaxForms.onSubmitButtonClick = function(ev) {
         ev.preventDefault();
+        var $form = $(ev.target).closest('form');
         // Supposely clicked button. Each submit button may optionally have it's own route.
         // @note: forms may not have active button when submitted via keyboard or programmatically.
         // In such case do not forget to define form[data-route] value.
@@ -1407,32 +1409,47 @@ App.AjaxForm = function($selector) {
         }
         */
         var $btn = $(ev.target);
-        return AjaxForm.submit($form, $btn);
+        new App.AjaxForm($form).submit($btn);
     };
 
-    AjaxForm.init = function() {
+    AjaxForms.init = function() {
         if (!this.has()) {
             return;
         }
         this.$forms.ajaxForm();
-        this.$cancelButtons.on('click', AjaxForm.onCancelButtonClick);
+        this.$cancelButtons.on('click', AjaxForms.onCancelButtonClick);
         // Do not use ajaxForm plugin submit event, otherwise form will be double-POSTed.
-        this.$submitButtons.on('click', AjaxForm.onSubmitButtonClick);
+        this.$submitButtons.on('click', AjaxForms.onSubmitButtonClick);
         return this;
     };
 
-    AjaxForm.destroy = function() {
+    AjaxForms.destroy = function() {
         if (!this.has()) {
             return;
         }
-        this.$submitButtons.off('click', AjaxForm.onSubmitButtonClick);
-        this.$cancelButtons.off('click', AjaxForm.onCancelButtonClick);
+        this.$submitButtons.off('click', AjaxForms.onSubmitButtonClick);
+        this.$cancelButtons.off('click', AjaxForms.onCancelButtonClick);
         this.$forms.ajaxFormUnbind();
     };
 
-    AjaxForm.checkFiles = function($form, maxSize) {
+})(App.AjaxForms.prototype);
+
+/**
+ * Single instance of submitted ajax form.
+ */
+App.AjaxForm = function($form) {
+    this.init($form);
+};
+
+(function(AjaxForm) {
+
+    AjaxForm.init = function($form) {
+        this.$form = $form;
+    };
+
+    AjaxForm.checkFiles = function(maxSize) {
         if (window.File && window.FileReader && window.FileList && window.Blob) {
-            var $formFiles = $form.find('input[type="file"]');
+            var $formFiles = this.$form.find('input[type="file"]');
             for (var i = 0; i < $formFiles.length; i++) {
                 var files = $formFiles[i].files;
                 for (var j = 0; j < files.length; j++) {
@@ -1460,42 +1477,33 @@ App.AjaxForm = function($selector) {
         return true;
     };
 
-    AjaxForm.beforeSubmit = function($form) {
-        App.disableInputs($form);
+    AjaxForm.beforeSubmit = function() {
+        App.disableInputs(this.$form);
     };
 
-    // @call static
-    AjaxForm.submit = function($form, $btn, callbacks) {
-        if (typeof App.conf.fileMaxSize !== 'undefined' &&
-                !AjaxForm.checkFiles($form, App.conf.fileMaxSize)) {
-            return;
+    AjaxForm.always = function() {
+        App.enableInputs(this.$form);
+        if (typeof this.options['uploadProgress'] !== 'undefined') {
+            this.$progressBar.remove();
         }
+        this._callbacks.always();
+    };
+
+    AjaxForm.getUrl = function($btn) {
         var url = App.getDataUrl($btn);
-        if (typeof callbacks !== 'object') {
-            callbacks = {};
-        }
-        var _callbacks = $.extend({
-                always: function () {},
-                error: function (jqXHR, exception) {},
-                success: function (response) { return true; },
-            },
-            callbacks
-        );
         if (url === undefined) {
-            url = App.getDataUrl($form);
+            url = App.getDataUrl(this.$form);
         }
         if (url === undefined) {
             throw "Please define data-url or data-route attribute on form or on form submit button.";
         }
-        var always = function() {
-            App.enableInputs($form);
-            if (typeof options['uploadProgress'] !== 'undefined') {
-                $progressBar.remove();
-            }
-            _callbacks.always();
-        };
-        var options = {
-            'url': url,
+        return url;
+    };
+
+    AjaxForm.getOptions = function($btn) {
+        var self = this;
+        return {
+            'url': this.getUrl($btn),
             type: 'post',
             // IE9 poor fake workaround.
             data: {
@@ -1503,36 +1511,62 @@ App.AjaxForm = function($selector) {
             },
             dataType: 'json',
             beforeSubmit: function() {
-                AjaxForm.beforeSubmit($form);
+                self.beforeSubmit();
             },
             error: function(jqXHR, exception) {
-                always();
+                self.always();
                 App.showAjaxError(jqXHR, exception);
-                _callbacks.error(jqXHR, exception);
+                self._callbacks.error(jqXHR, exception);
             },
             success: function(response) {
-                always();
+                self.always();
                 // Add $form property for custom viewHandler.
-                response.$form = $form;
-                if (_callbacks.success(response)) {
+                response.$form = self.$form;
+                if (self._callbacks.success(response)) {
                     App.vmRouter.respond(response);
                 }
             },
             complete: function() {
-                l.remove();
+                self.ladder.remove();
             }
         };
-        if ($form.find('input[type="file"]').length > 0) {
-            var $progressBar = $.contents(
-                '<div class="default-padding"><div class="progress active"><div class="progress-bar progress-bar-striped" style="width: 0%;"></div></div></div>'
+    };
+
+    AjaxForm.setupProgressBar = function() {
+        var self = this;
+        if (this.$form.find('input[type="file"]').length > 0) {
+            this.$progressBar = $.contents(
+                '<div class="default-padding">' +
+                '<div class="progress active">' +
+                '<div class="progress-bar progress-bar-striped" style="width: 0%;"></div>' +
+                '</div>' +
+                '</div>'
             );
-            $progressBar.insertAfter($btn);
-            options['uploadProgress'] = function(event, position, total, percentComplete) {
-                $progressBar.find('.progress-bar').css('width', percentComplete + '%');
+            this.$progressBar.insertAfter($btn);
+            this.options['uploadProgress'] = function(event, position, total, percentComplete) {
+                self.$progressBar.find('.progress-bar').css('width', percentComplete + '%');
             };
         }
-        var l = new App.ladder($btn);
-        $form.ajaxSubmit(options);
+    };
+
+    AjaxForm.submit = function($btn, callbacks) {
+        if (typeof App.conf.fileMaxSize !== 'undefined' && this.checkFiles(App.conf.fileMaxSize)) {
+            return;
+        }
+        if (typeof callbacks !== 'object') {
+            callbacks = {};
+        }
+        this._callbacks = $.extend({
+                always: function () {},
+                error: function (jqXHR, exception) {},
+                success: function (response) { return true; },
+            },
+            callbacks
+        );
+        this.options = this.getOptions($btn);
+        this.setupProgressBar();
+        this.ladder = new App.Ladder($btn);
+        this.$form.ajaxSubmit(this.options);
         /**
          * Commented out because IE9 does not support .setRequestHeader() (due to iframe emulation?).
          * Patched in context middleware process_request() / process_view() at server-side instead.
@@ -1544,6 +1578,7 @@ App.AjaxForm = function($selector) {
     };
 
 })(App.AjaxForm.prototype);
+
 
 App.DialogButton = function($selector) {
     this.create($selector);
@@ -2433,7 +2468,7 @@ App.initClientHooks.push({
         $selector.highlightListUrl(window.location);
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
-        new App.AjaxForm($selector).init();
+        new App.AjaxForms($selector).init();
         new App.AjaxButton($selector).init();
         new App.DialogButton($selector).init();
         $selector.prefillField('init');
@@ -2452,7 +2487,7 @@ App.initClientHooks.push({
         $selector.prefillField('destroy');
         new App.DialogButton($selector).destroy();
         new App.AjaxButton($selector).destroy();
-        new App.AjaxForm($selector).destroy();
+        new App.AjaxForms($selector).destroy();
         new App.DatetimeWidget($selector).destroy();
         $selector.findSelf('[data-toggle="popover"]').popover('destroy');
     }

@@ -15,46 +15,7 @@ App.vmRouter.add({
         viewModel.instance = new App.FieldPopover(viewModel);
     },
     'form_error': function(viewModel) {
-        var errTitle = null;
-        var $field = $.id(viewModel.id);
-        if ($field.length > 1) {
-            errTitle = 'Multiple fields with auto_id: ' + viewModel.id;
-        }
-        if ($field.length == 0) {
-            errTitle = "Unknown field auto_id: " + viewModel.id;
-        }
-        if (errTitle !== null) {
-            var $errmsg = $('<div>');
-            App.renderNestedList($errmsg, viewModel.messages);
-            new App.Dialog({
-                title: errTitle,
-                message: $errmsg,
-            }).alert();
-        } else {
-            var $inputGroup = $field.parents('.input-group:eq(0)');
-            if ($inputGroup.length > 0) {
-                $field = $inputGroup;
-            }
-            var $formErrors = $field.parent('.has-error');
-            if ($formErrors.length === 0) {
-                var $formErrors = $('<div>').addClass('has-error');
-                $field.wrap($formErrors);
-            } else {
-                $formErrors.find('.alert').remove();
-            }
-            var alert_class = (typeof viewModel.class === 'undefined') ? 'warning' : 'danger';
-            for (var i = 0; i < viewModel.messages.length; i++) {
-                var $contents = $('<div>', {
-                    'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
-                }).text(viewModel.messages[i]);
-                $contents.prepend($('<button>', {
-                    'class': 'close',
-                    'data-dismiss': 'alert',
-                    'type': 'button'
-                }).text('×'))
-                $field.after($contents);
-            }
-        }
+        viewModel.instance = new App.AlertError(viewModel);
     }
 });
 
@@ -66,6 +27,7 @@ App.GenericPopover = function(options) {
 };
 
 (function(GenericPopover) {
+
     GenericPopover.create = function(options) {
         this.destroyEventName = 'input';
         if (typeof options.selector !== 'undefined') {
@@ -81,7 +43,7 @@ App.GenericPopover = function(options) {
         switch (this.$messageTarget.prop('tagName')) {
             case 'LABEL':
                 // Find associated input by label[for].
-                this.$field = $('[name="' + this.$messageTarget.attr('for') + ']"');
+                this.$field = $('[name="' + CSS.escape(this.$messageTarget.attr('for')) + ']"');
                 break;
             case 'BUTTON':
                 this.destroyEventName = 'click';
@@ -110,7 +72,7 @@ App.GenericPopover = function(options) {
                 break;
             default:
                 // Find associated input by [data-popover].
-                this.$field = $('[name="' + this.$messageTarget.data('popover') + ']"');
+                this.$field = $('[name="' + CSS.escape(this.$messageTarget.data('popover')) + ']"');
         }
 
         if (this.$field.length === 0) {
@@ -120,6 +82,7 @@ App.GenericPopover = function(options) {
         this.message = options.message;
         this.setupEvents();
     }
+
 })(App.GenericPopover.prototype);
 
 
@@ -170,6 +133,7 @@ App.FieldTooltip = function(options) {
 };
 
 (function(FieldTooltip) {
+
     FieldTooltip.setupEvents = function() {
         var self = this;
         if (this.hasInstance = this.$cssTarget.hasClass('validation-error')) {
@@ -194,43 +158,104 @@ App.FieldTooltip = function(options) {
         }
     };
 
-    FieldTooltip.destroy = function() {
+    FieldTooltip.destroy = function(form) {
         if (!this.destroyed) {
-            this.$messageTarget.removeAttr('title').tooltip('destroy');
-            this.$cssTarget.removeClass('validation-error');
-            this.$field.off(this.destroyEventName);
-            this.destroyed = true;
+            if (form === undefined || $.contains(form, this.$field.get(0))) {
+                this.$messageTarget.removeAttr('title').tooltip('destroy');
+                this.$cssTarget.removeClass('validation-error');
+                this.$field.off(this.destroyEventName);
+                this.destroyed = true;
+            }
         }
     };
 
 }) (App.FieldTooltip.prototype);
 
 
-/**
- * @note: has optional support for viewModel.instance.destroy()
- * @todo: destroy tooltip errors only for the form specified
- */
-App.destroyTooltipErrors = function(form) {
-    App.vmRouter.filterExecuted(
-        function(viewModel) {
-            if (viewModel.view === 'tooltip_error' &&
-                    typeof viewModel.instance !== 'undefined') {
-                viewModel.instance.destroy();
-                return false;
-            }
-            return true;
-        }
-    );
+App.AlertError = function(options) {
+    this.init(options);
 };
+
+(function(AlertError) {
+
+    AlertError.init = function(options) {
+        var errTitle = null;
+        this.$field = $.id(options.id);
+        if (this.$field.length > 1) {
+            errTitle = 'Multiple fields with auto_id: ' + options.id;
+        }
+        if (this.$field.length == 0) {
+            errTitle = "Unknown field auto_id: " + options.id;
+        }
+        if (errTitle !== null) {
+            var $errmsg = $('<div>');
+            App.renderNestedList($errmsg, options.messages);
+            new App.Dialog({
+                title: errTitle,
+                message: $errmsg,
+            }).alert();
+        } else {
+            var $inputGroup = this.$field.parents('.input-group:eq(0)');
+            if ($inputGroup.length > 0) {
+                this.$field = $inputGroup;
+            }
+            var $formErrors = this.$field.parent('.has-error');
+            if ($formErrors.length === 0) {
+                var $formErrors = $('<div>').addClass('has-error');
+                this.$field.wrap($formErrors);
+            } else {
+                $formErrors.find('.alert').remove();
+            }
+            var alert_class = (typeof options.class === 'undefined') ? 'warning' : 'danger';
+            for (var i = 0; i < options.messages.length; i++) {
+                var $contents = $('<div>', {
+                    'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
+                }).text(options.messages[i]);
+                $contents.prepend($('<button>', {
+                    'class': 'close',
+                    'data-dismiss': 'alert',
+                    'type': 'button'
+                }).text('×'))
+                this.$field.after($contents);
+            }
+        }
+    };
+
+    AlertError.destroy = function(form) {
+        if (form === undefined || $.contains(form, this.$field.get(0))) {
+            var $formErrors = this.$field.parent('.has-error');
+            $formErrors.find('.alert').remove();
+            $formErrors.removeClass('has-error');
+        }
+    };
+
+})(App.AlertError.prototype);
 
 
 (function(AjaxForm) {
 
-    var superBeforeSubmit = AjaxForm.beforeSubmit;
+    var superAlways = AjaxForm.always;
 
-    AjaxForm.beforeSubmit = function($form) {
-        App.destroyTooltipErrors($form);
-        superBeforeSubmit($form);
-    }
+    /**
+     * @note: has optional support for viewModel.instance.destroy()
+     */
+    AjaxForm.destroyFormErrors = function() {
+        var form = this.$form.get(0);
+        App.vmRouter.filterExecuted(
+            function(viewModel) {
+                if (['tooltip_error', 'form_error'].indexOf(viewModel.view) !== -1 &&
+                        typeof viewModel.instance !== 'undefined') {
+                    viewModel.instance.destroy(form);
+                    return false;
+                }
+                return true;
+            }
+        );
+    };
+
+    AjaxForm.always = function() {
+        this.destroyFormErrors();
+        superAlways.apply(this);
+    };
 
 })(App.AjaxForm.prototype);

@@ -2489,7 +2489,7 @@ App.ko.Grid = function(options) {
         if (vm === null) {
             /**
              * If response has no our grid viewmodel (this.actions.viewModelName), then it's a form viewmodel errors
-             * response which will be processed by App.AjaxForm.prototype.submit().
+             * response which will be processed by App.AjaxForm.submit().
              */
             return true;
         } else {
