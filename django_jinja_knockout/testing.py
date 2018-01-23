@@ -541,6 +541,7 @@ class DjkTestCase(StaticLiveServerTestCase):
     def selenium_factory(cls):
         # DJK_WEBDRIVER='selenium.webdriver.firefox.webdriver' ./manage.py test
         # DJK_WEBDRIVER='selenium.webdriver.ie.webdriver' ./manage.py test
+        # DJK_WEBDRIVER='django_jinja_knockout.webdriver.headless_chrome.webdriver'  ./manage.py test
         # DJK_WEBDRIVER='selenium.webdriver.phantomjs.webdriver' ./manage.py test
         cls.webdriver_name = os.environ.get('DJK_WEBDRIVER', cls.DEFAULT_WEBDRIVER)
         webdriver_module = import_module(cls.webdriver_name)
