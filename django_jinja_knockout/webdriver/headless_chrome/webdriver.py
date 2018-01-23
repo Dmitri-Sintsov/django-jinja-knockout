@@ -12,5 +12,5 @@ class WebDriver(ChromeWebDriver):
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
 
-        kwargs['chrome_options'] = chrome_options
+        kwargs['options'] = chrome_options
         return super().__init__(*args, **kwargs)
