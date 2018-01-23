@@ -132,9 +132,9 @@ App.FieldPopover = function(options) {
             }
         };
         this.$field
-        .on(this.destroyEventName, self.onDestroy)
-        .on('blur', self.onBlur)
-        .on('focus', self.onFocus);
+        .on(this.destroyEventName, this.onDestroy)
+        .on('blur', this.onBlur)
+        .on('focus', this.onFocus);
     };
 
     FieldPopover.destroy = function() {
@@ -176,9 +176,10 @@ App.FieldTooltip = function(options) {
             });
             this.destroyed = false;
             this.$cssTarget.addClass('validation-error');
-            this.$field.on(this.destroyEventName, function(ev) {
+            this.onDestroy = function(ev) {
                 self.destroy();
-            });
+            };
+            this.$field.on(this.destroyEventName, this.onDestroy);
             $('html, body').scrollTop(this.$field.offset().top);
         }
     };
@@ -188,7 +189,7 @@ App.FieldTooltip = function(options) {
             if (form === undefined || $.contains(form, this.$field.get(0))) {
                 this.$messageTarget.removeAttr('title').tooltip('destroy');
                 this.$cssTarget.removeClass('validation-error');
-                this.$field.off(this.destroyEventName);
+                this.$field.off(this.destroyEventName, this.onDestroy);
                 this.destroyed = true;
             }
         }
