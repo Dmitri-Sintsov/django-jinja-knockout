@@ -35,16 +35,16 @@ class RawSqlCompiler(SQLCompiler):
                 return '', ()
             distinct_fields = self.get_distinct()
 
-            # Django 1.8 uses self.query.where.
-            # Django 1.9, 1.10 uses self.where.
+            # Django==1.8 uses self.query.where.
+            # Django>=1.9 uses self.where.
             query_where = getattr(self, 'where', self.query.where)
             where, w_params = self.compile(query_where) if query_where is not None else ("", [])
             if where:
                 result.append('WHERE %s' % where)
                 params.extend(w_params)
 
-            # Django 1.8 uses self.query.having.
-            # Django 1.9, 1.10 uses self.having.
+            # Django==1.8 uses self.query.having.
+            # Django>=1.9 uses self.having.
             query_having = getattr(self, 'having', getattr(self.query, 'having', None))
             having, h_params = self.compile(query_having) if query_having is not None else ("", [])
             if having:

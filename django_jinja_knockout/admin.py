@@ -1,17 +1,17 @@
 from ensure import ensure_annotations
 try:
-    # Django 1.11.
+    # Django=>1.11
     from django.urls import reverse
 except ImportError:
-    # Django 1.8..1.10.
+    # Django>=1.8,<=1.10
     from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 try:
-    # Django 1.8
+    # Django==1.8
     from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE as empty_value_display
 except ImportError:
-    # Django > 1.8
+    # Django>=1.9
     from django.contrib.admin import site
     empty_value_display = site.empty_value_display
 

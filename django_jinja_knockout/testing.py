@@ -284,11 +284,11 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.context
 
     def _switch_to_last_window(self):
-        self.selenium.switch_to_window(self.selenium.window_handles[-1])
+        self.selenium.switch_to.window(self.selenium.window_handles[-1])
         return self._maximize_window()
 
     def _switch_to_window(self, title):
-        self.selenium.switch_to_window(title)
+        self.selenium.switch_to.window(title)
         return self.context
 
     def _close_current_window(self):

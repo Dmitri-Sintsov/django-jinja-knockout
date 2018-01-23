@@ -12,12 +12,12 @@ from django.utils import formats, timezone
 from django.utils.html import escape, mark_safe, format_html
 from django.forms.utils import flatatt
 try:
-    # Django 1.11.
+    # Django>=1.11
     from django.urls import (
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
 except ImportError:
-    # Django 1.8..1.10.
+    # Django>=1.8,<=1.10
     from django.core.urlresolvers import (
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
