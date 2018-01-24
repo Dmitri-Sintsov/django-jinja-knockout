@@ -1555,7 +1555,7 @@ App.AjaxForm = function($form) {
     };
 
     AjaxForm.submit = function($btn, callbacks) {
-        if (typeof App.conf.fileMaxSize !== 'undefined' && this.checkFiles(App.conf.fileMaxSize)) {
+        if (typeof App.conf.fileMaxSize !== 'undefined' && !this.checkFiles(App.conf.fileMaxSize)) {
             return;
         }
         if (typeof callbacks !== 'object') {
