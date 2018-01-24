@@ -1,3 +1,6 @@
+sudo: required
+addons:
+  chrome: stable
 language: python
 python:
   - '3.5'
@@ -13,6 +16,12 @@ branches:
 before_script:
   - pip freeze
 install:
+  - PATH=$PATH:$HOME
+  - CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
+  - wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - chmod 0755 ~/chromedriver
   - pip install tox
   - git clone https://github.com/Dmitri-Sintsov/djk-sample.git
   - cd djk-sample
