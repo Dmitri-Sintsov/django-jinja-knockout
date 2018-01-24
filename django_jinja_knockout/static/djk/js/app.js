@@ -777,7 +777,12 @@ App.ViewModelRouter = function(viewHandlers) {
 
     /**
      * Add bound method: handler={'fn': methodName, 'context': classInstance}
+     *   'fn' is not bound, and context is passed separately (re-binding is available)
      * Add classPath:    handler='App.MyClass'
+     * Add function:     handler=fn (unbound function)
+     *   one may pass bound function, in such case re-binding will be unavailable:
+     *     https://stackoverflow.com/questions/20925138/bind-more-arguments-of-an-already-bound-function-in-javascript
+     *     https://stackoverflow.com/questions/26545549/chaining-bind-calls-in-javascript-unexpected-result
      */
     ViewModelRouter.addHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] === 'undefined') {
