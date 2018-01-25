@@ -56,6 +56,10 @@ body {
 	border-bottom: 1px solid lightgray;
 }
 
+.popover-title, .popover-content {
+	white-space: pre-wrap;
+}
+
 .vscroll,
 .dropdown-menu-vscroll,
 .input-as-select,
