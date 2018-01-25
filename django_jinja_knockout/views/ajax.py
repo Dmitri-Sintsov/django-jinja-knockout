@@ -208,6 +208,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     pk_url_kwarg = None
     model = None
     model_fields_i18n = False
+    initial = {}
+    # Default prefix is not None to minimize the possibility of input ID clash with non-AJAX forms / formsets
+    # in the 'form_error' viewmodel handler.
+    prefix = 'ajax'
     form = None
     formset = None
     form_with_inline_formsets = None
@@ -390,8 +394,22 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             'message': ff_html
         })
 
+    def get_initial(self):
+        return self.initial.copy()
+
+    def get_prefix(self):
+        return self.prefix
+
     def get_form_kwargs(self, form_class):
-        return {}
+        return {
+            'initial': self.get_initial(),
+            'prefix': self.get_prefix(),
+        }
+
+    def get_form_with_inline_formsets_kwargs(self, ff_class):
+        return {
+            'prefix': self.get_prefix(),
+        }
 
     def get_action_query(self, obj):
         return {'pk_val': obj.pk}
@@ -413,9 +431,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.vm_form(
             form, verbose_name=self.render_object_desc(obj), action_query=self.get_action_query(obj)
         )
-
-    def get_form_with_inline_formsets_kwargs(self, ff_class):
-        return {}
 
     def action_create_inline(self):
         ff_class = self.get_create_form_with_inline_formsets()
@@ -491,6 +506,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
 class GridActionsMixin(ModelFormActionsView):
 
+    prefix = 'grid'
     viewmodel_name = 'grid_page'
     default_action_name = 'list'
     enable_deletion = False
