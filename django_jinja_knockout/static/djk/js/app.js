@@ -1408,7 +1408,7 @@ App.AjaxForms = function($selector) {
         // In such case do not forget to define form[data-route] value.
         /*
         var $btn = $(document.activeElement);
-        if ($btn.length && $form.has($btn) &&
+        if ($btn.length && $form.has($btn).length &&
                 $btn.is(submitSelector)) {
             route = $btn.data('route');
         }
@@ -1484,18 +1484,24 @@ App.AjaxForm = function($form) {
 
     AjaxForm.beforeSubmit = function() {
         App.disableInputs(this.$form);
+        if (this.$form.has(this.$btn).length === 0) {
+            App.disableInput(this.$btn);
+        }
     };
 
     AjaxForm.always = function() {
         App.enableInputs(this.$form);
+        if (this.$form.has(this.$btn).length === 0) {
+            App.enableInput(this.$btn);
+        }
         if (typeof this.options['uploadProgress'] !== 'undefined') {
             this.$progressBar.remove();
         }
         this._callbacks.always();
     };
 
-    AjaxForm.getUrl = function($btn) {
-        var url = App.getDataUrl($btn);
+    AjaxForm.getUrl = function() {
+        var url = App.getDataUrl(this.$btn);
         if (url === undefined) {
             url = App.getDataUrl(this.$form);
         }
@@ -1505,10 +1511,10 @@ App.AjaxForm = function($form) {
         return url;
     };
 
-    AjaxForm.getOptions = function($btn) {
+    AjaxForm.getOptions = function() {
         var self = this;
         return {
-            'url': this.getUrl($btn),
+            'url': this.getUrl(),
             type: 'post',
             // IE9 poor fake workaround.
             data: {
@@ -1547,7 +1553,7 @@ App.AjaxForm = function($form) {
                 '</div>' +
                 '</div>'
             );
-            this.$progressBar.insertAfter($btn);
+            this.$progressBar.insertAfter(this.$btn);
             this.options['uploadProgress'] = function(event, position, total, percentComplete) {
                 self.$progressBar.find('.progress-bar').css('width', percentComplete + '%');
             };
@@ -1555,6 +1561,7 @@ App.AjaxForm = function($form) {
     };
 
     AjaxForm.submit = function($btn, callbacks) {
+        this.$btn = $btn;
         if (typeof App.conf.fileMaxSize !== 'undefined' && !this.checkFiles(App.conf.fileMaxSize)) {
             return;
         }
@@ -1568,9 +1575,9 @@ App.AjaxForm = function($form) {
             },
             callbacks
         );
-        this.options = this.getOptions($btn);
+        this.options = this.getOptions();
         this.setupProgressBar();
-        this.ladder = new App.Ladder($btn);
+        this.ladder = new App.Ladder(this.$btn);
         this.$form.ajaxSubmit(this.options);
         /**
          * Commented out because IE9 does not support .setRequestHeader() (due to iframe emulation?).
