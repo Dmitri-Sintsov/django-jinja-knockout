@@ -209,9 +209,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     model = None
     model_fields_i18n = False
     initial = {}
-    # Default prefix is not None to minimize the possibility of input ID clash with non-AJAX forms / formsets
+    # Set prefix to string value to minimize the possibility of input ID clash with non-AJAX forms / formsets
     # in the 'form_error' viewmodel handler.
-    prefix = 'ajax'
+    prefix = None
     form = None
     formset = None
     form_with_inline_formsets = None
@@ -506,7 +506,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
 class GridActionsMixin(ModelFormActionsView):
 
-    prefix = 'grid'
     viewmodel_name = 'grid_page'
     default_action_name = 'list'
     enable_deletion = False
