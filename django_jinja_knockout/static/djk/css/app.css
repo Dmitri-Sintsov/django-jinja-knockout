@@ -134,6 +134,10 @@ table.table {
 	word-wrap: break-word;
 }
 
+table.rows-strong-border > thead > tr, table.rows-strong-border > tbody > tr {
+	border: 2px inset #eeeeee;
+}
+
 .label-gray {
 	color: gray;
 	background: transparent;
