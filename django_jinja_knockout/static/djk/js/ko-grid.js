@@ -155,7 +155,7 @@ App.ko.GridColumn = function(options) {
             return false;
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
-        if (highlightModeRule.direction === 1) {
+        if (highlightModeRule.direction === 0) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridColumns().indexOf(this);
             this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
@@ -856,7 +856,7 @@ App.ko.GridRow = function(options) {
             'pointer': this.ownerGrid.actionTypes['click']().length > 0,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
-        if (highlightModeRule.direction === 2) {
+        if (highlightModeRule.direction === 1) {
             // Finds foreach $index() inaccessible directly in computed.
             var index = this.ownerGrid.gridRows().indexOf(this);
             this.lastRowCss = $.extend(this.lastRowCss, this.ownerGrid.getCycleCss(index));
@@ -1414,25 +1414,25 @@ App.ko.Grid = function(options) {
             highlightModeRules: [
                 {
                     'none': {
-                        direction: 0,
+                        direction: null,
                         cycler: [],
                     }
                 },
                 {
                     'cycleColumns': {
-                        direction: 1,
+                        direction: 0,
                         cycler: ['success', 'info', 'warning'],
                     },
                 },
                 {
                     'cycleRows': {
-                        direction: 2,
+                        direction: 1,
                         cycler: ['success', 'info', 'warning'],
                     },
                 },
                 {
                     'linearRows': {
-                        direction: 2,
+                        direction: 1,
                         cycler: ['linear-white'],
                     }
                 },
