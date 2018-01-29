@@ -11,7 +11,7 @@ from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
 from .. import tpl as qtpl
-from ..models import get_meta
+from ..models import get_meta, get_verbose_name
 from .base import BaseFilterView
 
 
@@ -221,9 +221,30 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     template_name = 'cbv_list.htm'
+    highlight_mode = 'cycleRows'
+    highlight_mode_rules = {
+        'none': {
+            'cycler': [],
+        },
+        'cycleColumns': {
+            'direction': 0,
+            'cycler': ['success', 'info', 'warning'],
+        },
+        'cycleRows': {
+            'direction': 1,
+            'cycler': ['success', 'info', 'warning'],
+        },
+        'linearRows': {
+            'direction': 1,
+            'cycler': ['linear-white'],
+        }
+    }
+    data_caption = True
 
     def __init__(self):
         super().__init__()
+        self.cycler_direction = self.highlight_mode_rules[self.highlight_mode].get('direction', None)
+        self.cycler = self.highlight_mode_rules[self.highlight_mode].get('cycler', [])
         self.reported_error = None
         self.filter_display = {}
 
@@ -257,6 +278,24 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     def get_heading(self):
         return get_meta(self.__class__.model, 'verbose_name_plural')
+
+    def get_table_attrs(self):
+        return {
+            'class': 'table table-bordered table-collapse display-block-condition',
+        }
+
+    def get_cell_attrs(self, obj, column, row_idx, col_idx):
+        attrs = {}
+        if len(self.cycler) > 0:
+            idx = row_idx if self.cycler_direction == 1 else col_idx
+            attrs['class'] = self.cycler[idx % len(self.cycler)]
+        if self.data_caption:
+            if isinstance(column, list):
+                verbose_name = ' / '.join([str(get_verbose_name(obj, field)) for field in column])
+            else:
+                verbose_name = get_verbose_name(obj, column)
+            attrs['data-caption'] = verbose_name
+        return attrs
 
     def get_json_order_result(self, sort_order):
         return {

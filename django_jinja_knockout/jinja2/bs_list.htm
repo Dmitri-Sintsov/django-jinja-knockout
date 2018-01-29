@@ -14,9 +14,9 @@
 {% endfor -%}
 
 {% if object_list -%}
-    <table class="table table-collapse display-block-condition">
+    <table {{ flatatt(view.get_table_attrs()) }}>
     {% for obj in object_list -%}
-        {% set row_class = cycler('info', 'success', 'active') -%}
+        {% set row_loop_index = loop.index0 -%}
         {% if loop.index0 == 0 -%}
         <tr>
         {% for column in view.grid_fields -%}
@@ -34,7 +34,7 @@
         {% endif -%}
         <tr>
         {% for column in view.grid_fields -%}
-            <td class="{{ row_class.__next__() }}" data-caption="{# get_verbose_name(obj, field) #}">
+            <td {{ flatatt(view.get_cell_attrs(obj, column, row_loop_index, loop.index0)) }}>
             {% if isinstance(column, list) -%}
                 {% for field in column -%}
                     <div>{{ view.get_display_value(obj, field) }}</div>
