@@ -799,6 +799,7 @@ App.ko.GridRow = function(options) {
         if (displayValue === undefined || displayValue === null) {
             var fieldRelated = field.match(/(.+)_id$/);
             if (fieldRelated !== null) {
+                markSafe = this.ownerGrid.isMarkSafeField(fieldRelated[1]);
                 displayValue = this.getDisplayValue(fieldRelated[1]);
             }
             if (displayValue === undefined || displayValue === null) {

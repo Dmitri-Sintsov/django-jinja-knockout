@@ -114,16 +114,7 @@ App.renderNestedList = function(element, value, options) {
     }
     var blockTags;
     if (typeof options.blockTags === 'undefined') {
-        blockTags = [
-            {
-                enclosureTag: '<ul>',
-                enclosureClasses: 'list-group',
-                itemTag: '<li>',
-                itemClasses: 'list-group-item preformatted',
-                localKeyTag: '<div>',
-                localKeyClasses: 'label label-info label-gray preformatted',
-            }
-        ];
+        blockTags = App.blockTags.list;
     } else if (_.isArray(options.blockTags)) {
         blockTags = options.blockTags;
     } else if (typeof options.blockTags === 'string') {
@@ -209,7 +200,7 @@ App.blockTags = {
             itemTag: '<li>',
             itemClasses: 'condensed list-group-item preformatted',
             localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted',
+            localKeyClasses: 'label label-info label-gray preformatted br-after',
         },
         {
             enclosureTag: '<ul>',
@@ -217,7 +208,7 @@ App.blockTags = {
             itemTag: '<li>',
             itemClasses: 'condensed list-group-item list-group-item-warning preformatted',
             localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted',
+            localKeyClasses: 'label label-info label-gray preformatted br-after',
         },
     ],
     badges: [

@@ -187,6 +187,11 @@ button.close {
 	cursor: pointer;
 }
 
+.br-after::after {
+	content: '\a';
+	white-space: pre;
+}
+
 .halflings, .halflings-before:before {
 	color: Gray;
 	font-family: 'Glyphicons Halflings';
