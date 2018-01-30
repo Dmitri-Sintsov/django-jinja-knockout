@@ -168,7 +168,10 @@ App.renderNestedList = function(element, value, options) {
                     } else {
                         localKey = k;
                     }
-                    if (!(v instanceof jQuery)) {
+                    if (v instanceof jQuery) {
+                        // Clone nodes, otherwise the consequitive recursive rendering will accumulate the same nodes.
+                        v = v.clone();
+                    } else {
                         fn = 'append';
                         v = $('<span>').text(v);
                     }
