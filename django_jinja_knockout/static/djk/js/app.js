@@ -74,6 +74,9 @@ App.globalIoc = {
     'App.Tpl': function(options) {
         return new App.Tpl(options);
     },
+    'App.NestedList': function(options) {
+        return new App.NestedList(options);
+    },
 };
 
 if (typeof django === 'object' && typeof django.gettext === 'function') {
@@ -93,106 +96,131 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     throw "@error: Neither Django gettext nor sprintf.js is available."
 }
 
-/**
- * Render scalar element as plain html or as nested list of specified block tags.
- */
-App.renderNestedList = function(element, value, options) {
-    var $element = $(element);
-    if (typeof options !== 'object') {
-        options = {};
-    }
-    var fn = (typeof options.fn === 'undefined') ? 'text' : options.fn; // 'html'
-    if (typeof options.keyPath === 'undefined') {
-        options.keyPath = [];
-    }
-    if (typeof options.keyPrefix === 'undefined') {
-        options.keyPrefix = '';
-    }
-    if (typeof value !== 'object') {
-        $element[fn](value);
-        return;
-    }
-    var blockTags;
-    if (typeof options.blockTags === 'undefined') {
-        blockTags = App.blockTags.list;
-    } else if (_.isArray(options.blockTags)) {
-        blockTags = options.blockTags;
-    } else if (typeof options.blockTags === 'string') {
-        blockTags = App.propByPath(options.blockTags);
-    } else {
-        console.log('Invalid type of options.blockTags: ' + typeof(options.blockTags));
-    }
-    var level = (typeof options.level === 'undefined') ? 0 : options.level;
-    if (_.size(value) > 0) {
-        var $ul = $(blockTags[level].enclosureTag)
-            .addClass(blockTags[level].enclosureClasses);
-        $.each(value, function(k, v) {
-            var localKey;
-            var isNested = false;
-            if (v instanceof _.ODict) {
-                k = v.k;
-                v = v.v;
-            }
-            if (typeof k === 'string') {
-                options.keyPath.push(k);
+
+App.NestedList = function(options) {
+    this.init(options);
+};
+
+(function(NestedList) {
+
+    NestedList.init = function(options) {
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        this.fn = (typeof options.fn === 'undefined') ? 'text' : options.fn; // 'html'
+        this.keyPrefix = (typeof options.keyPrefix === 'undefined') ? '' : options.keyPrefix;
+        this.keyPath = [];
+        if (typeof options.blockTags === 'undefined') {
+            this.blockTags = App.blockTags.list;
+        } else if (_.isArray(options.blockTags)) {
+            this.blockTags = options.blockTags;
+        } else if (typeof options.blockTags === 'string') {
+            this.blockTags = App.propByPath(options.blockTags);
+        } else {
+            console.log('Invalid type of options.blockTags: ' + typeof(options.blockTags));
+        }
+        this.level = (typeof options.level === 'undefined') ? 0 : options.level;
+        this.showKeys = (typeof options.showKeys === 'undefined') ? false : options.showKeys;
+        this.i18n = (typeof options.i18n === 'undefined') ? undefined : options.i18n;
+    };
+
+    NestedList.getListContainer = function(level) {
+        return $(this.blockTags[level].enclosureTag)
+            .addClass(this.blockTags[level].enclosureClasses);
+    };
+
+    NestedList.getElementContainer = function(k, v, level) {
+        return $(this.blockTags[level].itemTag)
+            .addClass(this.blockTags[level].itemClasses)
+    };
+
+    NestedList.renderValue = function(k, v, fn, level) {
+        var localKey;
+        if (typeof k === 'string' && this.showKeys) {
+            if (typeof this.i18n === 'object') {
+                var localPath = this.keyPath.join('›');
+                if (typeof this.i18n[localPath] !== 'undefined') {
+                    localKey = this.i18n[localPath];
+                } else if (this.keyPrefix !== '' &&
+                        typeof this.i18n[this.keyPrefix + '›' + localPath] !== 'undefined') {
+                    localKey = this.i18n[this.keyPrefix + '›' + localPath];
+                } else if (localPath !== k && typeof this.i18n[k] !== 'undefined') {
+                    localKey = this.i18n[k];
+                } else {
+                    localKey = k;
+                }
+            } else {
+                localKey = k;
             }
             if (v instanceof jQuery) {
+                // Clone nodes, otherwise the consequitive recursive rendering will accumulate the same nodes.
+                v = v.clone();
+            } else {
                 fn = 'append';
-            } else if (typeof v ==='object') {
-                var nextLevel = (level < blockTags.length - 1) ? level + 1 : level;
-                isNested = true;
-                App.renderNestedList($ul, v, {
-                    fn: fn,
-                    blockTags: blockTags,
-                    level: nextLevel,
-                    showKeys: options.showKeys,
-                    i18n: options.i18n,
-                    keyPath: options.keyPath,
-                    keyPrefix: options.keyPrefix,
-                });
+                v = $('<span>').text(v);
             }
-            if (!isNested) {
-                if (typeof k === 'string' && options.showKeys) {
-                    if (typeof options.i18n === 'object') {
-                        var localPath = options.keyPath.join('›');
-                        if (typeof options.i18n[localPath] !== 'undefined') {
-                            localKey = options.i18n[localPath];
-                        } else if (options.keyPrefix !== '' &&
-                                typeof options.i18n[options.keyPrefix + '›' + localPath] !== 'undefined') {
-                            localKey = options.i18n[options.keyPrefix + '›' + localPath];
-                        } else if (localPath !== k && typeof options.i18n[k] !== 'undefined') {
-                            localKey = options.i18n[k];
-                        } else {
-                            localKey = k;
-                        }
-                    } else {
-                        localKey = k;
-                    }
-                    if (v instanceof jQuery) {
-                        // Clone nodes, otherwise the consequitive recursive rendering will accumulate the same nodes.
-                        v = v.clone();
-                    } else {
-                        fn = 'append';
-                        v = $('<span>').text(v);
-                    }
-                    v.prepend(
-                        $(blockTags[level].localKeyTag, {
-                            'class': blockTags[level].localKeyClasses,
-                        }).text(localKey)
-                    );
+            v.prepend(
+                $(this.blockTags[level].localKeyTag, {
+                    'class': this.blockTags[level].localKeyClasses,
+                }).text(localKey)
+            );
+        }
+        var $li = this.getElementContainer(k, v, level)[fn](v);
+        return $li;
+    };
+
+    /**
+     * Render scalar element as plain html or as nested list of specified block tags.
+     */
+    NestedList.render = function(element, value, fn, level) {
+        var self = this;
+        var curr_fn = (fn === undefined) ? this.fn : fn;
+        fn = curr_fn;
+        if (level === undefined) {
+            level = 0;
+        }
+        var $element = $(element);
+        if (typeof value !== 'object') {
+            $element[fn](value);
+            return;
+        }
+        if (_.size(value) > 0) {
+            var $ul = this.getListContainer(level);
+            $.each(value, function(k, v) {
+                fn = curr_fn;
+                var isNested = false;
+                if (v instanceof _.ODict) {
+                    k = v.k;
+                    v = v.v;
                 }
-                var $li = $(blockTags[level].itemTag)
-                    .addClass(blockTags[level].itemClasses)
-                    [fn](v);
-                $ul.append($li);
-            }
-            if (typeof k === 'string') {
-                options.keyPath.pop();
-            }
-        });
-        $element.append($ul);
-    }
-    return $element;
+                if (typeof k === 'string') {
+                    self.keyPath.push(k);
+                }
+                if (v instanceof jQuery) {
+                    fn = 'append';
+                } else if (typeof v ==='object') {
+                    var nextLevel = (level < self.blockTags.length - 1) ? level + 1 : level;
+                    isNested = true;
+                    self.render($ul, v, fn, nextLevel);
+                }
+                if (!isNested) {
+                    var $li = self.renderValue(k, v, fn, level);
+                    $ul.append($li);
+                }
+                if (typeof k === 'string') {
+                    self.keyPath.pop();
+                }
+            });
+            $element.append($ul);
+        }
+        return $element;
+    };
+
+})(App.NestedList.prototype);
+
+
+App.renderNestedList = function(element, value, options) {
+    return App.globalIoc['App.NestedList'](options).render(element, value);
 };
 
 App.blockTags = {

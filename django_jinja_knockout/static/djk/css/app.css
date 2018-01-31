@@ -189,7 +189,7 @@ button.close {
 
 .br-after::after {
 	content: '\a';
-	white-space: pre;
+	white-space: pre-wrap;
 }
 
 .halflings, .halflings-before:before {
@@ -208,6 +208,10 @@ a.sort-desc:before {
 
 a.sort-inactive:before {
 	content: "\e150";
+}
+
+.badge > a {
+	color: white;
 }
 
 /* Badges that can be used to wrap long text in bootstrap buttons. */
