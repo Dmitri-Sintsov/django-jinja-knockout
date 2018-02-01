@@ -10,6 +10,7 @@ django-jinja-knockout
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
+.. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
 .. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
@@ -107,6 +108,20 @@ Major changes (version 0.7.0)
 -----------------------------
 `viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouting`` class with default instance
 ``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
+
+Grids (datatables) now have new type of action ``'pagination'``. There are two built-in actions of this type
+implemented: ``'rows_per_page'`` and ``'switch_highlight'``.
+
+Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
+
+Updated to latest versions of Knockout.js / jQuery / Bootstrap 3.
+
+Built-in Javascript error logger.
+
+Request mock-up for console usage is greatly improved. That enables reverse resolving of FQN urls in console via
+`reverseq()`_ calls.
+
+Headless Chrome Selenium webdriver support (phantom.js is outdated).
 
 Major changes (version 0.6.0)
 -----------------------------

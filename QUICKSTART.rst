@@ -24,6 +24,7 @@ Quickstart
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
+.. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
@@ -131,6 +132,8 @@ instantiating. That allows to bind component classes to button click, for exampl
 
 Would create an instance of ``App.GridDialog`` class with ``data-component-options`` value passed as constructor
 argument when target button is clicked.
+
+.. highlight:: jinja
 
 JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
 is generated in Jinja2 macro, such as `ko_grid()`_::
@@ -245,7 +248,7 @@ scripts:
     <div data-bind="html: text, linkPreview"></div>
 * ``ko.bindingHandlers.scroller``::
 
-    <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}">
+    <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}"></div>
 
 admin.py
 --------
@@ -418,6 +421,9 @@ the application (for example to pass it to celery task)::
 
     ContextMiddleware.get_request_timezone()
 
+Views kwargs
+~~~~~~~~~~~~
+
 Views are secured with urls that deny access to anonymous / inactive users by default. Anonymous views require explicit
 permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
 
@@ -446,6 +452,46 @@ to be used in generic Jinja2 templates (one template per many views)::
     {{ request.view_title }}
 
 View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
+
+.. highlight:: python
+
+Request mock-up
+~~~~~~~~~~~~~~~
+
+Since version 0.7.0 it is possivble to mock-up requests in console mode (management commands) to resolve reverse URLs
+fully qualified names like this::
+
+    from django_jinja_knockout.apps import DjkAppConfig
+    request = DjkAppConfig.get_context_middleware().get_request()
+    from django_jinja_knockout.tpl import reverseq
+    # Will return fully-qualified URL for the specified route with query string appended:
+    reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
+
+By default domain name is taken from current configured Django `site`_. Otherwise either ``settings``. ``DOMAIN_NAME``
+or ``settings``. ``ALLOWED_HOSTS`` should be set to autodetect current domain name.
+
+Mini-router
+~~~~~~~~~~~
+
+Since version 0.7.0 inherited middleware classes (see :ref:`installation_djk_middleware` settings) support built-in mini
+router, which could be used to implement CBV-like logic in middleware class itself, either via string match or via
+regexp::
+
+    class ContextMiddleware(RouterMiddleware):
+
+        routes_str = {
+            '/-djk-js-error-/': 'log_js_error',
+        }
+        routes_re = [
+            # (r'^/-djk-js-(?P<action>/?\w*)-/', 'log_js_error'),
+        ]
+
+        def log_js_error(self):
+            from .log import send_admin_mail_delay
+            vms = vm_list()
+            # ... skipped ...
+            return JsonResponse(vms)
+
 
 models.py
 ---------

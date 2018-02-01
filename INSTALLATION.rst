@@ -24,6 +24,7 @@ Installation
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko_grid.js
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
+.. _settings.ADMINS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ADMINS
 .. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -117,6 +118,8 @@ Built-in allauth DTL templates are supported without any modification. In such c
 * It is possible to extend `django-jinja-knockout` `ContextMiddleware`_ to add new functionality. See
   `djk_sample.ContextMiddleware`_ code for example.
 
+.. _installation_djk_middleware:
+
 DJK_MIDDLEWARE
 ~~~~~~~~~~~~~~
 
@@ -156,6 +159,19 @@ USE_JS_TIMEZONE
 ~~~~~~~~~~~~~~~
 Optional boolean value (by default is ``False``). When ``True``, `ContextMiddleware`_ class ``process_request()`` method
 will autodetect Django timezone from current browser session timezone.
+
+Javascript errors logger
+~~~~~~~~~~~~~~~~~~~~~~~~
+Since version 0.7.0 it's possible to setup Javascript logger which would either display Javascript errors in Bootstrap
+dialog, or will report these via email to site admins whose emails are specified by `settings.ADMINS`_::
+
+    ADMINS = [('John Smith', 'user@host.com'),]
+    if DEBUG:
+        # Javascript error will display Bootstrap dialog.
+        JS_ERRORS_ALERT = True
+    else:
+        # Javascript error will be reported via ADMINS emails.
+        JS_ERRORS_LOGGING = True
 
 Context processors
 ~~~~~~~~~~~~~~~~~~

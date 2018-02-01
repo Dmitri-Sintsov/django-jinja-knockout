@@ -2230,9 +2230,29 @@ submit AJAX form to `'save_inline' action`_.
 See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
 types.
 
+Action type 'pagination'
+------------------------
+This type of actions is available since version 0.7.0. These actions add glyphicon buttons directly to pagination
+control of current grid (datatable). They may be applied to the whole grid or to the selected grid rows, similarly to
+`Action type 'button'`_.
+
+The following built-in actions of this type are implemented:
+
+'rows_per_page' action
+~~~~~~~~~~~~~~~~~~~~~~
+Allows to select the number of rows per grid (datatable) page via Bootstrap dialog. This may be useful when one wants
+to observe more of rows or to select more of rows to perform subsequent mass-rows actions. When number of displayed rows
+is changed, it tries to keep the current top row visible.
+
+'switch_highlight' action
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Cycles between the defined highlight modes of grid. The following built-in highlight modes are available::
+
+  'none', 'cycleColumns', 'cycleRows', 'linearRows'
+
 Action type 'glyphicon'
 -----------------------
-These actions are designed to process already displayed grid row, associated to existing Django model. Their
+These actions are designed to process already displayed grid (datatable) row, associated to existing Django model. Their
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
 are visually displayed as bootstrap glyphicon links in separate columns of grid.
 
@@ -3068,6 +3088,9 @@ not above.
 Since version 0.6.0, there is built-in action type ``'button_footer'`` available, which displays grid action buttons
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
+
+Since version 0.7.0, there is built-in action type ``'pagination'`` which allows to add glyphicon buttons with grid
+actions attached directly to datatable pagination list.
 
 Grids API
 ---------
