@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
@@ -118,6 +119,14 @@ class DialogCommands:
             'click',
         )
 
+    def _dialog_input_range_right(self, num):
+        return self.exec(
+            'dialog_relative_by_xpath', (
+                './/input[@type="range"]',
+            ),
+            'keys', (Keys.RIGHT,) * num
+        )
+
     def _wait_until_dialog_closes(self):
         try:
             WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
@@ -132,7 +141,7 @@ class DialogCommands:
 
 class GridCommands:
 
-    def _grid_button_action_click(self, action_name):
+    def _grid_button_action(self, action_name):
         return self.exec(
             'component_relative_by_xpath', (
                 './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
@@ -140,6 +149,16 @@ class GridCommands:
                 action_name
             ),
             'click',
+        )
+
+    def _grid_pagination_action(self, action_name):
+        return self.exec(
+            'component_relative_by_xpath', (
+                './/*[contains(concat(" ", @class, " "), " pagination ")]//span[@title={}]', action_name,
+            ),
+            'click',
+            'default_sleep',
+            'default_wait',
         )
 
     # $x(
@@ -197,7 +216,7 @@ class GridCommands:
             'component_relative_by_xpath', (
                 './/input[@type="search"]',
             ),
-            'keys', (substr,),
+            'all_keys', (substr,),
             'click',
             'default_sleep',
             'default_wait',

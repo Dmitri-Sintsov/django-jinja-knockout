@@ -343,17 +343,21 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         except WebDriverException as e:
             return self._by_wait(By.LINK_TEXT, link_text)
 
-    def _keys(self, keys):
+    def _keys(self, *keys_list):
+        for keys in keys_list:
+            self.context.element.send_keys(keys)
+        return self.context
+
+    def _all_keys(self, *keys_list):
         # Clear is replaced to "Select All" / "Delete" because it has bugs in IE webdriver.
         # self.context.element.clear()
         self.context.element.send_keys(Keys.CONTROL, 'a')
         self.context.element.send_keys(Keys.DELETE)
-        self.context.element.send_keys(keys)
-        return self.context
+        return self._keys(*keys_list)
 
-    def _keys_by_id(self, id, keys):
+    def _keys_by_id(self, id, *keys_list):
         self.context = self._by_id(id)
-        return self._keys(keys)
+        return self._all_keys(*keys_list)
 
     def _by_xpath(self, xpath):
         try:
@@ -493,7 +497,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
         commands = \
             (
                 'fk_widget_click', (fk_id,),
-                'grid_button_action_click', ('Add',),
+                'grid_button_action', ('Add',),
             ) + add_commands + \
             (
                 'dialog_footer_button_click', ('Save',),
