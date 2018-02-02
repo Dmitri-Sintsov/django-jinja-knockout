@@ -40,10 +40,12 @@ Grids
 .. _event_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/models.py
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _forms.FormWithInlineFormsets: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms.py
+.. _.get_actions(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_actions&type=&utf8=%E2%9C%93
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
+.. _views.ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _views.ajax.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.base.BaseFilterView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/base.py
 .. _views.list.ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/list.py
@@ -1683,12 +1685,19 @@ widgets may be filtered as well::
 Standard grid actions
 =====================
 
+Since version 0.6.0 grids (datatables) are based on generic `views.ActionsView`_ class which allows to interact with
+any client-side AJAX component. See :ref:`viewmodels_ajax_actions` for more info.
+
 By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
 one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive.
 Actions can be executed as one or multiple AJAX requests or be partially / purely client-side.
 
-`views.GridActionsMixin`_ class ``get_actions()`` method returns dict defining built-in actions available.
-Top level of that dict is ``action type``.
+`views.ActionsView`_ / `views.GridActionsMixin`_ `.get_actions()`_ method returns dict defining built-in actions
+available. Top level of that dict is current ``action type``.
+
+Since version 0.7.0 action defitions do not require to have ``'enabled'``: ``True`` to be set, action is considered to
+be enabled by default. That shortens the list of action definitions. To conditionally disable action, set ``'enabled``
+value of action definition to ``False``. See built-in `.get_actions()`_ method for example.
 
 Let's see which action types are available and their associated actions.
 
@@ -2241,8 +2250,40 @@ The following built-in actions of this type are implemented:
 'rows_per_page' action
 ~~~~~~~~~~~~~~~~~~~~~~
 Allows to select the number of rows per grid (datatable) page via Bootstrap dialog. This may be useful when one wants
-to observe more of rows or to select more of rows to perform subsequent mass-rows actions. When number of displayed rows
-is changed, it tries to keep the current top row visible.
+to observe more rows or to select more rows to perform subsequent mass-rows actions. When number of displayed rows is
+changed, it tries to keep the current top row visible.
+
+By default it allows to chose 1x to 5x steps from the current :ref:`installation_objects_per_page`. It can be overriden
+in child class by changing default ``'range'`` settings of action definition::
+
+    from django_jinja_knockout.views import KoGridView
+    from django_jinja_knockout.utils.sdv import nested_update
+    from my_app.models import Member
+    # ... skipped ...
+
+    class MemberGrid(KoGridView):
+
+        model = Member
+        # ... skipped ...
+
+        def get_actions(self):
+            actions = super().get_actions()
+            nested_update(actions, {
+                'pagination': {
+                    'rows_per_page': {
+                        'range': {
+                            'min': 10,
+                            'max': 100,
+                            'step': 10,
+                        },
+                    },
+                }
+            })
+            return actions
+
+Be aware that enabling large ``'rows_per_page'`` value may greatly increase server load. For high-load sites this action
+could be conditionally disabled (eg. for anonymous users), by setting key ``'enabled'`` to ``False``, such as for every
+another action out there.
 
 'switch_highlight' action
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3089,7 +3130,7 @@ Since version 0.6.0, there is built-in action type ``'button_footer'`` available
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
 
-Since version 0.7.0, there is built-in action type ``'pagination'`` which allows to add glyphicon buttons with grid
+Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add glyphicon buttons with grid
 actions attached directly to datatable pagination list.
 
 Grids API

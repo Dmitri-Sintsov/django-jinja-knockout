@@ -147,6 +147,8 @@ code. The default value is specified in `context_processors.py`_ but can be over
 
     LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
+.. _installation_objects_per_page:
+
 OBJECTS_PER_PAGE
 ~~~~~~~~~~~~~~~~
 Allows to specify default limit for Django paginated querysets for ``ListSortingView`` / ``KoGridView`` (see `views`_
