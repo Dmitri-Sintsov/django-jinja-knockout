@@ -112,6 +112,11 @@ Major changes (version 0.7.0)
 Grids (datatables) now have new type of action ``'pagination'``. There are two built-in actions of this type
 implemented: ``'rows_per_page'`` and ``'switch_highlight'``.
 
+Grids (datatables) now support compound columns to save the display space.
+
+Grids glyphicon actions are rendered in the single column of datatable, instead of each action per column to save the
+display space.
+
 Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
 
 Updated to latest versions of Knockout.js / jQuery / Bootstrap 3.
