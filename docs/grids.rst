@@ -689,6 +689,9 @@ property. See `'list' action`_ for more info.
 
 .. highlight:: python
 
+Client-side class overriding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To override client-side class to ``App.ko.MemberGrid`` instead of default ``App.ko.Grid``, define default grid
 options like this::
 
@@ -699,6 +702,7 @@ options like this::
 
     class MemberGrid(KoGridView):
 
+        model = Member
         # ... skipped ...
         grid_options = {
             'classPath': 'App.ko.MemberGrid'
@@ -2290,6 +2294,25 @@ another action out there.
 Cycles between the defined highlight modes of grid. The following built-in highlight modes are available::
 
   'none', 'cycleColumns', 'cycleRows', 'linearRows'
+
+Default highlight mode is set via overriding current grid (datatable) like this::
+
+    class MemberGrid(KoGridView):
+
+        grid_options = {
+            'highlightMode': 'cycleColumns',
+        }
+
+        # or, like this:
+        @classmethod
+        def get_grid_options(cls):
+            grid_options = super().get_grid_options()
+            grid_options['highlightMode'] = 'cycleColumns'
+            return grid_options
+
+
+It is possible to disable some of highlight modes or to define new ones via `Client-side class overriding`_ and
+providing custom list of ``highlightModeRules`` values in overriden (inherited) grid (datatable) class.
 
 Action type 'glyphicon'
 -----------------------
