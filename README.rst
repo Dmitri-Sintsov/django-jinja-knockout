@@ -106,16 +106,17 @@ implemented via bundled client-side scripts.
 
 Major changes (version 0.7.0)
 -----------------------------
-`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouting`` class with default instance
-``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
-
 Grids (datatables) now have new type of action ``'pagination'``. There are two built-in actions of this type
 implemented: ``'rows_per_page'`` and ``'switch_highlight'``.
 
-Grids (datatables) now support compound columns to save the display space.
+Grids (datatables) support compound columns for better utilization of the display space. That allows to display more
+data columns, including foreign relations at the screen.
 
-Grids glyphicon actions are rendered in the single column of datatable, instead of each action per column to save the
-display space.
+Grids ``glyphicon`` actions are rendered in the single column of datatable, instead of each action per column for better
+utilization of the display space.
+
+`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouting`` class with default instance
+``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
 
 Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
 

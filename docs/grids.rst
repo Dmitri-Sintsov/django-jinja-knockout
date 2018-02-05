@@ -46,6 +46,7 @@ Grids
 .. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
+.. _views.ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.ajax.KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.base.BaseFilterView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/base.py
 .. _views.list.ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/list.py
@@ -89,6 +90,19 @@ Possible ways of grid usage
 * Optional `Foreign key filter`_ for AJAX grid components.
 * Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality for
   ``ModelForm`` to select foreign key field value via AJAX query / response.
+
+Inheritance chain
+-----------------
+The current version >=0.7.0 inheritance chain is:
+
+* ``ViewmodelView`` - render component templates and process viewmodels response (see :doc:`viewmodels`);
+* ``ActionsView(ViewmodelView, GetPostMixin)`` - generic actions for viewmodels (:ref:`viewmodels_ajax_actions`);
+* ``ModelFormActionsView(ActionsView, FormViewmodelsMixin)`` - AJAX actions to display / edit Django ModelForm / inline
+  formsets;
+* ``GridActionsMixin(ModelFormActionsView)`` - AJAX actions to display / process ModelForm datatable (grid);
+* ``KoGridView(BaseFilterView, GridActionsMixin)`` - includes all the actions and functionality from above classes and
+  adds common code base for paginated datatables - ``BaseFilterView`` also used by non-AJAX `views.list.ListSortingView`_
+  .
 
 Models used in this documentation
 ---------------------------------
@@ -188,8 +202,8 @@ This documentation refers to Django models with one to many relationship defined
             str_fields = self.get_str_fields()
             return str_dict(str_fields)
 
-Simpliest grid
---------------
+Simplest grid
+-------------
 
 If you have Django model created and migrated, then it is quite easy to add grid for that model to Django app Jinja2
 template, providing your templates are inherited from `base_min.htm`_, or based on a custom-based template which
@@ -291,11 +305,12 @@ class via `App.components`_ class instance `.add()` method to make grid "alive".
     * ``alwaysShowPagination`` - set to ``False`` to show pagination controls only when there is more than one page
       of model instances are available.
     * ``defaultOrderBy`` - override initial order_by field name (by default Django model ``Meta.ordering`` is used).
-    * ``highlightMode`` - Currently available modes:
+    * ``highlightMode`` - built-in modes (See `'switch_highlight' action`_):
 
-      * 0 - do not highlight,
-      * 1 - highlight columns,
-      * 2 - highlight rows.
+      * ``'none'`` - do not highlight,
+      * ``'cycleColumns'`` - highlight columns with Bootstrap colors,
+      * ``'cycleRows'`` - highlight rows with Bootstrap colors,
+      * ``'linearRows'`` - highlight rows with CSS gradient,
 
     * ``searchPlaceholder`` - text to display when search field is empty.
     * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
@@ -1218,7 +1233,7 @@ Modifying visual layout of grid
 Top DOM nodes of grid component can be overridden by using Jinja2 ``{% call(kwargs) ko_grid() %}`` statement, then
 implementing a caller section with custom DOM nodes. See the source code of `ko_grid.htm`_ template for original DOM
 nodes of ``App.ko.Grid`` component. This feature is rarely used since version 0.5.0 rewritten template processor
-offers more simplier ways to override root ``ko_grid_body`` underscore.js template at client-side.
+offers more simpler ways to override root ``ko_grid_body`` underscore.js template at client-side.
 
 It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component. ``ko_grid()`` macro allows
 to override built-in grid templates with custom ones by providing ``template_dom_attrs`` argument with
@@ -1659,7 +1674,7 @@ template)::
             'pageRoute': 'club_member_grid',
             'pageRouteKwargs': {'club_id': club_id},
         },
-        dom_attrs={
+        wrapper_dom_attrs={
             'id': 'club_member_grid'
         }
     ) }}
@@ -1699,9 +1714,9 @@ Actions can be executed as one or multiple AJAX requests or be partially / purel
 `views.ActionsView`_ / `views.GridActionsMixin`_ `.get_actions()`_ method returns dict defining built-in actions
 available. Top level of that dict is current ``action type``.
 
-Since version 0.7.0 action defitions do not require to have ``'enabled'``: ``True`` to be set, action is considered to
-be enabled by default. That shortens the list of action definitions. To conditionally disable action, set ``'enabled``
-value of action definition to ``False``. See built-in `.get_actions()`_ method for example.
+Since version 0.7.0 action defitions do not require to have ``'enabled'``: ``True`` to be set. The action is considered
+to be enabled by default. That shortens the list of action definitions. To conditionally disable action, set
+``'enabled`` key of action definition dict to ``False`` value. See built-in `.get_actions()`_ method for example.
 
 Let's see which action types are available and their associated actions.
 
@@ -1801,7 +1816,7 @@ To make sure ``ClubMemberGrid`` action ``'list'`` respects ``allowed_filter_fiel
             'pageRoute': 'club_member_grid',
             'separateMeta': True,
         },
-        dom_attrs={
+        wrapper_dom_attrs={
             'id': 'club_member_grid'
         }
     ) }}
@@ -1866,7 +1881,7 @@ When one supplies custom initial ordering of rows that does not match default Dj
             'pageRoute': 'club_grid_with_action_logging',
             'defaultOrderBy': {'foundation_date': '-'},
         },
-        dom_attrs={
+        wrapper_dom_attrs={
             'id': 'club_grid'
         }
     ) }}
@@ -1980,8 +1995,8 @@ keys to client-side action viewmodel response handler, issuing multiple CRUD ope
         this.grid.updatePage(viewModel);
     };
 
-See also `views.GridActionsMixin`_ class ``action_delete_confirmed()`` / ``action_save_form()`` methods for
-server-side part example.
+See also `views.ModelFormActionsView`_ class ``action_save_form()`` and `views.GridActionsMixin`_ class
+``action_delete_confirmed()`` methods for server-side part example.
 
 Client-side part of multiple CRUD operation is implemented in `ko_grid.js`_ ``App.ko.Grid`` class ``updatePage()``
 method.
@@ -2060,10 +2075,9 @@ See `club_app.views_ajax`_ for full-featured example.
 
 Action type 'button'
 --------------------
-
-These actions are visually displayed as buttons and manually invoked via button click. With default underscore.js
-templates these buttons will be located at top navbar of the grid. Usually type ``'button'`` actions are not targeted to
-existing grid rows but are supposed either to create new rows or to process the whole queryset / list of rows.
+These actions are visually displayed as buttons and manually invoked via button click. With the default underscore.js
+templates these buttons are located at top navbar of the grid (datatable). Usually type ``'button'`` actions are not
+targeted to the single row, but are supposed either to create new rows or to process the whole queryset / list of rows.
 
 However, when ``App.ko.Grid`` -derived class instance has visible row selection enabled via ``init()`` method
 ``options.showSelection`` = ``true`` and / or ``options.selectMultipleRows`` = ``true``, the button action could be
@@ -2179,6 +2193,14 @@ to `'create_inline' action`_ new row and `'edit_inline' action`_ existing grid r
 * `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of
   ``template_name`` class property poitning to Jinja2 template which includes `formsets.js`_ by default.
 * See `club_app.views_ajax`_ for fullly featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
+
+Action type 'button_footer'
+---------------------------
+Works exactly like `Action type 'button'`_, however it displays grid action buttons below the grid rows, instead of the
+grid navigation bar.
+
+There is no built-in actions of this type. Custom actions of this type may be implemented in ``KoGridView`` inherited
+classes to change button display layout.
 
 Action type 'click'
 -------------------
@@ -2314,14 +2336,20 @@ Default highlight mode is set via overriding current grid (datatable) like this:
 It is possible to disable some of highlight modes or to define new ones via `Client-side class overriding`_ and
 providing custom list of ``highlightModeRules`` values in overriden (inherited) grid (datatable) class.
 
+Traditional (non-AJAX) request `views.list.ListSortingView`_ also supports ``highlight_mode`` attribute with similar
+highlighting settings, but no dynamical change of current highlight mode.
+
 Action type 'glyphicon'
 -----------------------
 These actions are designed to process already displayed grid (datatable) row, associated to existing Django model. Their
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
 are visually displayed as bootstrap glyphicon links in separate columns of grid.
 
+Since version 0.7.0 glyphicon actions are rendered in the single column of datatable, instead of each action per column
+for better utilization of the display space.
+
 By default there is no ``glyphicon`` type actions enabled. But there is one standard action of such type implemented
-in ``KoGridView``, `'delete' action`_.
+for ``KoGridView``: `'delete' action`_.
 
 'delete' action
 ~~~~~~~~~~~~~~~
@@ -2370,14 +2398,14 @@ or disabled per grid class - if one considers to check the user permissions::
 `views.KoGridView`_ has built-in support permission checking of deletion rights for selected rows lists / querysets.
 See `'delete_confirmed' action`_ for the primer of checking delete permissions per row / queryset.
 
-The action itself is defined in ``django_jinja_knockout.views`` module ``GridActionsMixin`` class::
+The action itself is defined in `views.GridActionsMixin`_ class::
 
         OrderedDict([
             # Delete one or many model object.
             ('delete', {
                 'localName': _('Remove'),
                 'css': 'glyphicon-remove',
-                'enabled': False
+                'enabled': self.enable_deletion
             })
         ])
 
@@ -2397,7 +2425,6 @@ Imagine one grid having custom glyphicon action defined like this::
             actions['glyphicon']['quick_endorse'] = {
                 'localName': _('Quick endorsement'),
                 'css': 'glyphicon-cloud-upload',
-                'enabled': True
             }
             return actions
 
@@ -2477,7 +2504,6 @@ First step to add new action is to override ``get_actions()`` method in Django g
             actions[action_type]['ask_user'] = {
                 'localName': _('Ask user'),
                 'css': 'btn-warning',
-                'enabled': True
             }
             return actions
 
@@ -2498,7 +2524,6 @@ To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
             actions[action_type]['ask_user'] = {
                 'localName': _('Ask user'),
                 'css': 'glyphicon-user',
-                'enabled': True
             }
             return actions
 
@@ -2785,13 +2810,10 @@ pagination and optional search / filtering - not having to load the whole querys
 
         def get_actions(self):
             actions = super().get_actions()
-            actions['built_in']['save_equipment'] = {
-                'enabled': True
-            }
+            actions['built_in']['save_equipment'] = {}
             actions['glyphicon']['add_equipment'] = {
                 'localName': _('Add club equipment'),
                 'css': 'glyphicon-wrench',
-                'enabled': True
             }
             return actions
 
@@ -2992,7 +3014,6 @@ definition(s)::
                         'button': 'btn-warning',
                         'glyphicon': 'glyphicon-user'
                     },
-                    'enabled': True
                 })
             ])
             return actions
@@ -3149,7 +3170,7 @@ Knockout.js ``<!-- ko foreach: actionTypes['button_bottom'] -->`` binding is ver
 actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below the grid table,
 not above.
 
-Since version 0.6.0, there is built-in action type ``'button_footer'`` available, which displays grid action buttons
+Since version 0.6.0, there is built-in `Action type 'button_footer'`_ available, which displays grid action buttons
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
 
