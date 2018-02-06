@@ -107,27 +107,27 @@
 {% endmacro -%}
 
 {% macro bs_field(field, classes={}) -%}
-{% set def_classes = {'label': 'col-md-2', 'field': 'col-md-6', 'multiple_type': ''} -%}
-{% do def_classes.update(classes) -%}
+{% set _classes = {'label': 'col-md-2', 'field': 'col-md-6', 'multiple_type': ''} -%}
+{% do _classes.update(classes) -%}
 {% if field|get_displaytext_layout == 'table' -%}
     {% set field_html -%}{{ field|safe }}{% endset -%}
     {% if not field.field.widget.skip_output -%}
-        {{ render_field_displaytext(form, field, field_html, def_classes) }}
+        {{ render_field_displaytext(form, field, field_html, _classes) }}
     {% endif -%}
 {% else -%}
 <div class="row form-group{% if field.errors -%} has-error{% endif -%}">
     {% if field|get_displaytext_layout == 'div' -%}
-        {{ render_field_standard(form, field, def_classes) }}
+        {{ render_field_standard(form, field, _classes) }}
     {% elif field|is_checkbox -%}
-        {{ render_field_checkbox(form, field, def_classes) }}
+        {{ render_field_checkbox(form, field, _classes) }}
     {% elif field|is_multiple_checkbox -%}
-        {% do def_classes.update({'multiple_type': 'checkbox'}) -%}
-        {{ render_field_multiple(form, field, def_classes) }}
+        {% do _classes.update({'multiple_type': 'checkbox'}) -%}
+        {{ render_field_multiple(form, field, _classes) }}
     {% elif field|is_radio -%}
-        {% do def_classes.update({'multiple_type': 'radio'}) -%}
-        {{ render_field_multiple(form, field, def_classes) }}
+        {% do _classes.update({'multiple_type': 'radio'}) -%}
+        {{ render_field_multiple(form, field, _classes) }}
     {% else -%}
-        {{ render_field_standard(form, field, def_classes) }}
+        {{ render_field_standard(form, field, _classes) }}
     {% endif -%}
 </div>
 {% endif -%}
