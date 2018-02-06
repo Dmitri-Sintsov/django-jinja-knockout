@@ -124,8 +124,9 @@ Updated to latest versions of Knockout.js / jQuery / Bootstrap 3.
 
 Built-in Javascript error logger.
 
-Request mock-up for console usage is greatly improved. That enables reverse resolving of FQN urls in console via
-`reverseq()`_ calls.
+Request mock-up when running without web server is greatly improved. That enables reverse resolving of FQN urls in
+console management commands and in background celery tasks via `reverseq()`_ calls when sites framework is correctly
+set up.
 
 Headless Chrome Selenium webdriver support (phantom.js is outdated).
 

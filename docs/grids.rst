@@ -401,9 +401,9 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
 
         client_routes = [
             'member_grid',
-            # url name (route) for 'profile' key of allowed_filter_fields
+            # url name (route) for 'profile' key of self.allowed_filter_fields
             'profile_fk_widget_grid',
-            # url name (route) for 'club' key of allowed_filter_fields
+            # url name (route) for 'club' key of self.allowed_filter_fields
             'club_grid_simple'
         ]
         # Use custom grid template instead of default 'cbv_grid.htm' template.
@@ -412,11 +412,14 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
         grid_fields = [
             'profile',
             'club',
-            # Will join 'category' field from related 'Club' model automatically via Django ORM (span relationships).
-            'club__category',
-            'last_visit',
-            'plays',
-            'role',
+            # Compound columns:
+            [
+                # Will join 'category' field from related 'Club' table automatically via Django ORM.
+                'club__category',
+                'last_visit',
+                'plays',
+                'role',
+            ],
             'note',
             'is_endorsed'
         ]
@@ -465,6 +468,94 @@ relationships, which are implemented in Django ORM via ``'__'`` separator betwee
 
 Set Django grid class ``grid_fields`` property value to the list of model fields that will be displayed as grid columns.
 Foreign key relationship spans are supported too.
+
+Compound columns
+~~~~~~~~~~~~~~~~
+
+Since version 0.7.0, compound columns are supported. In the example above, 8 fields will be displayed in 5 columns,
+conserving horizontal display space of datatable row:
+
+.. list-table:: MemberGrid
+   :widths: 20 20 20 20 20
+   :header-rows: 1
+
+   * - 'profile'
+     - 'club'
+     - 'club__category'
+
+       'last_visit'
+
+       'plays'
+
+       'role'
+
+     - 'note'
+     - 'is_endorsed'
+   * - profile1
+     - club1
+     - club__category1
+
+       last_visit1
+
+       plays1
+
+       role1
+
+     - note1
+     - is_endorsed1
+   * - profile2
+     - club2
+     - club__category2
+
+       last_visit2
+
+       plays2
+
+       role2
+
+     - note2
+     - is_endorsed2
+
+``profile`` / ``club`` / ``note`` fields visual display can take lots of screen space, because first two are foreign
+fields, while ``note`` is a ``TextField``, thus these are rendered in separate columns of datatable.
+
+``club_category`` / ``last_visit`` / ``plays`` / ``role`` fields visual display is short, thus these are grouped into
+single compound column to preserve display space.
+
+``is_endorsed`` field does not take lots of space, however it's a very important one, thus is displayed in separate
+column.
+
+Traditional non-AJAX `views.list.ListSortingView`_ also supports compound columns with the same definition syntax::
+
+    class ActionList(ContextDataMixin, ListSortingView):
+        # Enabled always visible paginator links because there could be many pages of actions, potentially.
+        always_visible_links = True
+        model = Action
+        grid_fields = [
+            [
+                'performer',
+                'performer__is_superuser',
+                'date',
+            ],
+            'action_type',
+            'content_object'
+        ]
+        allowed_sort_orders = [
+            'performer',
+            'date',
+            'action_type',
+        ]
+
+        def get_allowed_filter_fields(self):
+            allowed_filter_fields = {
+                'action_type': None,
+                'content_type': self.get_contenttype_filter(
+                    ('club_app', 'club'),
+                    ('club_app', 'equipment'),
+                    ('club_app', 'member'),
+                )
+            }
+            return allowed_filter_fields
 
 Nested verbose field names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
