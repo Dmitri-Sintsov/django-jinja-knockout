@@ -190,7 +190,7 @@ msgstr ""
 msgid "Cannot determine the type of filter for the field \"{}\""
 msgstr ""
 
-msgid "'in' is the only supported field lookup for filter field '%(field)s'"
+msgid "Unsupported field lookup for filter field '%(field)s'"
 msgstr ""
 
 msgid "Rows per page"

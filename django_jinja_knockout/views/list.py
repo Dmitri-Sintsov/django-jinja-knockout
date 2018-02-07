@@ -75,6 +75,8 @@ class FoldingPaginationMixin:
 #
 # For AJAX (client-side) implementation used in conjunction with KoGridView,
 # see App.ko.GridFilterChoice class in ko-grid.js.
+#
+# todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
 class FilterChoices:
 
     def __init__(self, view, filter_field, vm_filter, request_list_filter=None):
@@ -107,21 +109,32 @@ class FilterChoices:
 
     def switch_choice(self, curr_list_filter, value):
         is_added = False
+        in_filter = []
         if self.filter_field in curr_list_filter:
-            if isinstance(curr_list_filter[self.filter_field], dict):
-                if 'in' not in curr_list_filter[self.filter_field] or len(curr_list_filter[self.filter_field]) > 1:
+            field_filter = curr_list_filter[self.filter_field]
+            if isinstance(field_filter, dict):
+                unsupported_lookup = False
+                if len(curr_list_filter[self.filter_field]) > 1:
+                    unsupported_lookup = True
+                if 'in' in field_filter:
+                    in_filter = field_filter['in']
+                elif 'range' in field_filter:
+                    # self.get_link() switcher is for 'in' lookups only.
+                    return None
+                else:
+                    unsupported_lookup = True
+                if unsupported_lookup:
                     # self.view.report_error() will not work as this code path is called from partially rendered page
                     # in progress, usually via bs_breadcrumbs() filter field rendering Jinja2 macro,
                     # thus we have to use it to display the error.
                     self.view.remove_query_filter(self.filter_field)
                     raise ValidationError(
-                        _("'in' is the only supported field lookup for filter field '%(field)s'"),
+                        _("Unsupported field lookup for filter field '%(field)s'"),
                         params={'field': self.filter_field}
                     )
-                in_filter = curr_list_filter[self.filter_field]['in']
             else:
                 # Convert single value of field filter to the list of values.
-                in_filter = [curr_list_filter[self.filter_field]]
+                in_filter = [field_filter]
             # Switch value.
             if value in in_filter:
                 # Remove already existing filter value.
@@ -152,7 +165,9 @@ class FilterChoices:
             'text': choice_def['name'],
             'atts': {}
         }
-        if is_added:
+        if is_added is not False:
+            if is_added is None:
+                curr_list_filter[self.filter_field] = choice_def['value']
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         else:
             self.display.append(choice_def['name'])

@@ -603,6 +603,50 @@ class BaseFilterView(View, GetPostMixin):
         vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
 
+    def get_lookup_in(
+        self, fieldname, lookup, lookup_filter,
+        list_filter_args, list_filter_kwargs,
+        has_in_none
+    ):
+        field_lookup = fieldname + '__' + lookup
+        if len(lookup_filter) == 0:
+            # has_in_none == True
+            list_filter_kwargs['{}__isnull'.format(fieldname)] = True
+        # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
+        elif len(lookup_filter) == 1:
+            if has_in_none:
+                list_filter_args.append(
+                    self.get_q_or({
+                        '{}__isnull'.format(fieldname): True,
+                        fieldname: lookup_filter[0],
+                    })
+                )
+            else:
+                list_filter_kwargs[fieldname] = lookup_filter[0]
+        else:
+            if has_in_none:
+                list_filter_args.append(
+                    self.get_q_or({
+                        '{}__isnull'.format(fieldname): True,
+                        field_lookup: lookup_filter,
+                    })
+                )
+            else:
+                list_filter_kwargs[field_lookup] = lookup_filter
+
+    def get_lookup_range(
+        self, fieldname, lookup, lookup_filter,
+        list_filter_args, list_filter_kwargs,
+        has_in_none
+    ):
+        field_lookup = fieldname + '__' + lookup
+        if len(lookup_filter) != 2:
+            self.report_error(
+                'Range lookup requires exactly two arguments: "{}"', lookup_filter
+            )
+        else:
+            list_filter_kwargs[field_lookup] = lookup_filter
+
     def get_current_list_filter_multiple(self, fieldname, values):
         current_list_filter_args = []
         current_list_filter_kwargs = {}
@@ -610,7 +654,6 @@ class BaseFilterView(View, GetPostMixin):
         field_validator.set_auto_id(None)
         for lookup, value in values.items():
             field_validator.set_auto_id(lookup)
-            field_lookup = fieldname + '__' + lookup
             has_in_none = False
             if isinstance(value, list):
                 lookup_filter = []
@@ -623,37 +666,23 @@ class BaseFilterView(View, GetPostMixin):
                         lookup_filter.append(cleaned_value)
                 if len(lookup_filter) == 0 and not has_in_none:
                     continue
-                if lookup == 'in':
-                    if len(lookup_filter) == 0:
-                        # has_in_none == True
-                        current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
-                    # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
-                    elif len(lookup_filter) == 1:
-                        if has_in_none:
-                            current_list_filter_args.append(
-                                self.get_q_or({
-                                    '{}__isnull'.format(fieldname): True,
-                                    fieldname: lookup_filter[0],
-                                })
-                            )
-                        else:
-                            current_list_filter_kwargs[fieldname] = lookup_filter[0]
-                    else:
-                        if has_in_none:
-                            current_list_filter_args.append(
-                                self.get_q_or({
-                                    '{}__isnull'.format(fieldname): True,
-                                    field_lookup: lookup_filter,
-                                })
-                            )
-                        else:
-                            current_list_filter_kwargs[field_lookup] = lookup_filter
+                lookup_method = getattr(self, 'get_lookup_{}'.format(lookup), None)
+                if callable(lookup_method):
+                    lookup_method(
+                        fieldname, lookup, lookup_filter,
+                        current_list_filter_args, current_list_filter_kwargs,
+                        has_in_none
+                    )
                 else:
-                    current_list_filter_kwargs[field_lookup] = lookup_filter
+                    self.report_error(
+                        _("Invalid value of list filter: {}"), lookup_filter
+                    )
+                    # current_list_filter_kwargs[field_lookup] = lookup_filter
             else:
                 lookup_filter, is_blank = field_validator.clean(value)
                 if is_blank:
                     continue
+                field_lookup = fieldname + '__' + lookup
                 current_list_filter_kwargs[field_lookup] = lookup_filter
         return current_list_filter_args, current_list_filter_kwargs
 

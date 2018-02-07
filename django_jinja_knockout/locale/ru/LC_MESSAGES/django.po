@@ -104,8 +104,8 @@ msgstr "Недопустимый тип фильтра списка"
 msgid "Cannot determine the type of filter for the field \"{}\""
 msgstr "Невозможно определить тип фильтра для поля \"{}\""
 
-msgid "'in' is the only supported field lookup for filter field '%(field)s'"
-msgstr "'in' является единственным допустимым типом поиска для фильтра поля '%(field)s'"
+msgid "Unsupported field lookup for filter field '%(field)s'"
+msgstr "Недопустимый тип поиска для фильтра поля '%(field)s'"
 
 msgid "Rows per page"
 msgstr "Строк на странице"
