@@ -14,7 +14,8 @@ if (typeof console.dir !== 'function') {
 
 if (typeof window.App === 'undefined') {
     window.App = {};
-};
+}
+
 App = window.App;
 
 App.previousErrorHandler = window.onerror;

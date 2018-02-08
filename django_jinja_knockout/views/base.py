@@ -110,7 +110,7 @@ class FormatTitleMixin:
         super().__init__(*args, **kwargs)
 
     def format_title(self, *args):
-        if self.__class__.format_view_title and not self.view_title_is_formatted:
+        if self.format_view_title and not self.view_title_is_formatted:
             self.request.view_title = format_html(self.request.view_title, *args)
             self.view_title_is_formatted = True
 
@@ -165,7 +165,7 @@ class ContextDataMixin(ContextMixin):
     extra_context_data = {}
 
     def get_context_data(self, **kwargs):
-        context_data = self.__class__.extra_context_data.copy()
+        context_data = self.extra_context_data.copy()
         context_data.update(super().get_context_data(**kwargs))
         return context_data
 
@@ -232,7 +232,7 @@ class FieldValidator:
         self.form_field, self.field_filter_type = self.get_form_field()
 
     def get_form_field(self):
-        for model_field_type, field_filter_type, form_field_type in self.__class__.field_types:
+        for model_field_type, field_filter_type, form_field_type in self.field_types:
             model_field = getattr(models, model_field_type)
             if isinstance(self.model_field, model_field):
                 # Use the same field type from forms by default.
@@ -269,7 +269,7 @@ class FieldValidator:
                 self.form_field.errors = e.messages
                 self.view.error(
                     {
-                        'view': self.view.__class__.viewmodel_name,
+                        'view': self.view.viewmodel_name,
                         'has_errors': True,
                     },
                     self.view.get_field_error_viewmodel(self.form_field)
@@ -383,7 +383,7 @@ class BaseFilterView(View, GetPostMixin):
         return [field[0] if type(field) is tuple else field for field in self.yield_fields()]
 
     def get_all_allowed_sort_orders(self):
-        # If there are related grid fields explicitly defined in self.__class__.grid_fields attribute,
+        # If there are related grid fields explicitly defined in self.grid_fields attribute,
         # these will be automatically added to allowed sort orders.
         return self.get_all_fieldnames() if self.grid_fields is None else self.get_all_related_fields()
 
@@ -404,7 +404,7 @@ class BaseFilterView(View, GetPostMixin):
         return query_fields
 
     def get_field_validator(self, fieldname):
-        return self.__class__.field_validator(self, fieldname)
+        return self.field_validator(self, fieldname)
 
     def get_allowed_sort_orders(self):
         # Do not need to duplicate both accending and descending ('-' prefix) orders.
@@ -430,7 +430,7 @@ class BaseFilterView(View, GetPostMixin):
         return filter_choices
 
     def get_all_fieldnames(self):
-        return list(yield_model_fieldnames(self.__class__.model))
+        return list(yield_model_fieldnames(self.model))
 
     # virtual / annotated fields may be added to row via overloading:
     #
@@ -482,7 +482,7 @@ class BaseFilterView(View, GetPostMixin):
     @classmethod
     def init_class(cls, self):
 
-        for field in self.__class__.model._meta.fields:
+        for field in self.model._meta.fields:
             if field.primary_key:
                 self.pk_field = field.attname
                 break
@@ -519,12 +519,12 @@ class BaseFilterView(View, GetPostMixin):
         else:
             self.search_fields = cls.search_fields
 
-        model_class_members = get_object_members(self.__class__.model)
+        model_class_members = get_object_members(self.model)
         self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
 
     def get_field_verbose_name(self, field_name):
         # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-        return str(get_verbose_name(self.__class__.model, field_name))
+        return str(get_verbose_name(self.model, field_name))
 
     def get_vm_filter(self, fieldname, filter_def):
         vm_filter = {

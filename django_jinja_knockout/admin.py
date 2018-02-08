@@ -15,8 +15,6 @@ except ImportError:
     from django.contrib.admin import site
     empty_value_display = site.empty_value_display
 
-from django.contrib.admin.actions import delete_selected
-
 
 class DjkAdminMixin(object):
     """

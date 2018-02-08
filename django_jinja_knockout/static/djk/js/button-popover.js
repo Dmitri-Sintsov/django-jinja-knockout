@@ -4,7 +4,7 @@ App.ClosablePopover = function(target, popoverOptions) {
     this.create(target, popoverOptions);
 };
 
-(function(ClosablePopover) {
+void function(ClosablePopover) {
 
     ClosablePopover.dataKey = 'ClosablePopover';
 
@@ -181,7 +181,7 @@ App.ClosablePopover = function(target, popoverOptions) {
         this.goto();
     };
 
-})(App.ClosablePopover.prototype);
+}(App.ClosablePopover.prototype);
 
 App.ButtonPopover = function(popoverOptions) {
     $.inherit(App.ClosablePopover.prototype, this);

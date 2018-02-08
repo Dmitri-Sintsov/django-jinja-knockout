@@ -31,18 +31,18 @@ class FoldingPaginationMixin:
 
     # is_active = True means page is selected (current or meaningless to click) thus is not clickable.
     def add_clickable_page(self, page_num, is_active, link_text):
-        if self.__class__.always_visible_links or not is_active:
+        if self.always_visible_links or not is_active:
             self.selected_pages.append((page_num, is_active, link_text))
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         page_obj = context_data['page_obj']
 
-        starting_page = page_obj.number - self.__class__.delta_visible_pages
+        starting_page = page_obj.number - self.delta_visible_pages
         if starting_page < 1:
             starting_page = 1
 
-        ending_page = starting_page + self.__class__.delta_visible_pages * 2
+        ending_page = starting_page + self.delta_visible_pages * 2
         back_shift = ending_page - page_obj.paginator.num_pages
         if back_shift > 0:
             starting_page -= back_shift
@@ -277,7 +277,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         from ..middleware import ImmediateHttpResponse
         self.reset_query_args()
         self.reported_error = format_html(_(message), *args, **kwargs)
-        self.object_list = self.__class__.model.objects.all()[0:0]
+        self.object_list = self.model.objects.all()[0:0]
         # Reset page number otherwise there could be re-raised Http404() in genetic.list.MultipleObjectMixin.paginate_queryset().
         # Unfortunately there is no abstraction to reset current page number, that's why self.page_kwarg is altered instead.
         self.page_kwarg = ''
@@ -287,14 +287,14 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         context.update(self.get_context_data())
         response = TemplateResponse(
             self.request,
-            self.__class__.template_name,
+            self.template_name,
             context,
             status=404
         )
         raise ImmediateHttpResponse(response)
 
     def get_heading(self):
-        return get_meta(self.__class__.model, 'verbose_name_plural')
+        return get_meta(self.model, 'verbose_name_plural')
 
     def get_table_attrs(self):
         return {
@@ -316,7 +316,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     def get_json_order_result(self, sort_order):
         return {
-            self.__class__.order_key: json.dumps(
+            self.order_key: json.dumps(
                 sort_order[0] if len(sort_order) == 1 else sort_order
             )
         }
@@ -360,7 +360,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         if list_filter_querypart is None or len(list_filter_querypart) == 0:
             return query
         else:
-            result = {self.__class__.filter_key: json.dumps(list_filter_querypart)}
+            result = {self.filter_key: json.dumps(list_filter_querypart)}
             result.update(query)
             return result
 

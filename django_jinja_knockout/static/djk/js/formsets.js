@@ -115,13 +115,13 @@ App.initClientHooks.push({
                         typeof maxFormsCount === 'undefined') {
                     return;
                 }
-                var ko_formset = new App.ko.Formset(
+                var koFormset = new App.ko.Formset(
                     $formsTotalCount,
                     serversideFormsCount,
                     maxFormsCount
                 );
-                $formset.addInstance('App.ko.Formset', ko_formset);
-                ko.applyBindings(ko_formset, v);
+                $formset.addInstance('App.ko.Formset', koFormset);
+                ko.applyBindings(koFormset, v);
             }
         });
     },
@@ -130,8 +130,8 @@ App.initClientHooks.push({
             var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
-                var ko_formset = $formset.popInstance('App.ko.Formset');
-                ko_formset.destroy($formset);
+                var koFormset = $formset.popInstance('App.ko.Formset');
+                koFormset.destroy($formset);
             }
         });
     }

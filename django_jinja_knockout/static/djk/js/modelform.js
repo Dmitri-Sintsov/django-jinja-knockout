@@ -227,7 +227,7 @@ App.EditForm = function(options) {
         ]);
         if (typeof options.pkVal !== 'undefined') {
             this.pkVal = options.pkVal;
-            if (typeof this.pkUrlKwarg !== null) {
+            if (this.pkUrlKwarg !== null) {
                 this.routeKwargs[this.pkUrlKwarg] = this.pkVal;
             }
         } else {

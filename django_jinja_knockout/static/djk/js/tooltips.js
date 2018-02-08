@@ -210,7 +210,7 @@ App.AlertError = function(options) {
         if (this.$field.length > 1) {
             errTitle = 'Multiple fields with auto_id: ' + options.id;
         }
-        if (this.$field.length == 0) {
+        if (this.$field.length === 0) {
             errTitle = "Unknown field auto_id: " + options.id;
         }
         if (errTitle !== null) {
@@ -227,7 +227,7 @@ App.AlertError = function(options) {
             }
             var $formErrors = this.$field.parent('.has-error');
             if ($formErrors.length === 0) {
-                var $formErrors = $('<div>').addClass('has-error');
+                $formErrors = $('<div>').addClass('has-error');
                 this.$field.wrap($formErrors);
             } else {
                 $formErrors.find('.alert').remove();

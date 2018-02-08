@@ -85,11 +85,12 @@ _.moveOptions = function(toObj, fromObj, keys) {
         var defVal = undefined;
         if (typeof key === 'object') {
             // tuple key / defVal.
-            for (var k in key) {
+            var k;
+            for (k in key) {
                 if (key.hasOwnProperty(k)) {
                     break;
                 }
-            };
+            }
             defVal = key[k];
             key = k;
         }
@@ -113,7 +114,7 @@ $.htmlDecode = function(value) {
 // Create jQuery DOM nodes from arbitrary text contents.
 // Do not use $(contents) as $() is supposed to accept only top-level tags or jQuery selectors, not arbitrary text.
 $.contents = function(contents) {
-    return $('<span>').html(contents).contents()
+    return $('<span>').html(contents).contents();
 };
 
 // Bind instance of Javascript object to DOM element.
@@ -434,7 +435,7 @@ $.fn.prefillField = function(method) {
 
     function setSelectedChoice($selectedChoice) {
         var matches = $selectedChoice.parents('.prefill-field').prop('id').split(/-PREFILL_CHOICES$/g);
-        if (matches.length == 2) {
+        if (matches.length === 2) {
             var $fillingInput = $.id(matches[0]);
             if ($fillingInput.hasClass('optional-input-wrap')) {
                 var $inputs = $fillingInput.find('.optional-input');
