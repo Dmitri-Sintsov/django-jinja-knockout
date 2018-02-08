@@ -13,4 +13,4 @@ class WebDriver(ChromeWebDriver):
         chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
 
         kwargs['options'] = chrome_options
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)

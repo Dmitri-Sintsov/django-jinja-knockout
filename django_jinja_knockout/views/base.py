@@ -21,7 +21,7 @@ from ..models import (
 )
 from ..viewmodels import vm_list
 from ..admin import empty_value_display
-from ..utils.sdv import yield_ordered, get_object_members, get_nested
+from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 
 
 def auth_redirect(request):
@@ -359,9 +359,8 @@ class BaseFilterView(View, GetPostMixin):
         self.pk_field = None
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = {}
-        # queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
-        self.current_list_filter_args = None
-        self.current_list_filter_kwargs = None
+        # queryset.filter(*self.current_list_filter.args, **self.current_list_filter.kwargs)
+        self.current_list_filter = FuncArgs()
         # queryset.order_by(*self.current_sort_order)
         self.current_sort_order = None
         self.current_stripped_sort_order = None
@@ -603,53 +602,48 @@ class BaseFilterView(View, GetPostMixin):
         vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
 
-    def get_lookup_in(
-        self, fieldname, lookup, lookup_filter,
-        list_filter_args, list_filter_kwargs,
-        has_in_none
-    ):
-        field_lookup = fieldname + '__' + lookup
+    def get_scalar_lookup_in(self, fieldname, lookup_filter, list_filter):
+        field_lookup = fieldname + '__in'
+        list_filter.kwargs[field_lookup] = [lookup_filter]
+
+    def get_list_lookup_in(self, fieldname, lookup_filter, list_filter):
+        field_lookup = fieldname + '__in'
         if len(lookup_filter) == 0:
-            # has_in_none == True
-            list_filter_kwargs['{}__isnull'.format(fieldname)] = True
+            # None in lookup_filter is True
+            list_filter.kwargs['{}__isnull'.format(fieldname)] = True
         # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
         elif len(lookup_filter) == 1:
-            if has_in_none:
-                list_filter_args.append(
+            if None in lookup_filter:
+                list_filter.args += (
                     self.get_q_or({
                         '{}__isnull'.format(fieldname): True,
                         fieldname: lookup_filter[0],
-                    })
+                    }),
                 )
             else:
-                list_filter_kwargs[fieldname] = lookup_filter[0]
+                list_filter.kwargs[fieldname] = lookup_filter[0]
         else:
-            if has_in_none:
-                list_filter_args.append(
+            if None in lookup_filter:
+                list_filter.args += (
                     self.get_q_or({
                         '{}__isnull'.format(fieldname): True,
                         field_lookup: lookup_filter,
-                    })
+                    }),
                 )
             else:
-                list_filter_kwargs[field_lookup] = lookup_filter
+                list_filter.kwargs[field_lookup] = lookup_filter
 
-    def get_lookup_range(
-        self, fieldname, lookup, lookup_filter,
-        list_filter_args, list_filter_kwargs,
-        has_in_none
-    ):
-        field_lookup = fieldname + '__' + lookup
+    def get_list_lookup_range(self, fieldname, lookup_filter, list_filter):
+        field_lookup = fieldname + '__range'
         if len(lookup_filter) != 2:
             self.report_error(
                 'Range lookup requires exactly two arguments: "{}"', lookup_filter
             )
         else:
-            list_filter_kwargs[field_lookup] = lookup_filter
+            list_filter.kwargs[field_lookup] = lookup_filter
 
     def get_current_list_filter_multiple(self, fieldname, values):
-        current_list_filter_args = []
-        current_list_filter_kwargs = {}
+        current_list_filter = FuncArgs()
         field_validator = self.get_field_validator(fieldname)
         field_validator.set_auto_id(None)
         for lookup, value in values.items():
@@ -666,31 +660,30 @@ class BaseFilterView(View, GetPostMixin):
                         lookup_filter.append(cleaned_value)
                 if len(lookup_filter) == 0 and not has_in_none:
                     continue
-                lookup_method = getattr(self, 'get_lookup_{}'.format(lookup), None)
+                lookup_method = getattr(self, 'get_list_lookup_{}'.format(lookup), None)
                 if callable(lookup_method):
-                    lookup_method(
-                        fieldname, lookup, lookup_filter,
-                        current_list_filter_args, current_list_filter_kwargs,
-                        has_in_none
-                    )
+                    lookup_method(fieldname, lookup_filter, current_list_filter)
                 else:
                     self.report_error(
                         _("Invalid value of list filter: {}"), lookup_filter
                     )
-                    # current_list_filter_kwargs[field_lookup] = lookup_filter
+                    # current_list_filter.kwargs[field_lookup] = lookup_filter
             else:
                 lookup_filter, is_blank = field_validator.clean(value)
                 if is_blank:
                     continue
-                field_lookup = fieldname + '__' + lookup
-                current_list_filter_kwargs[field_lookup] = lookup_filter
-        return current_list_filter_args, current_list_filter_kwargs
+                lookup_method = getattr(self, 'get_scalar_lookup_{}'.format(lookup), None)
+                if callable(lookup_method):
+                    lookup_method(fieldname, lookup_filter, current_list_filter)
+                else:
+                    field_lookup = fieldname + '__' + lookup
+                    current_list_filter.kwargs[field_lookup] = lookup_filter
+        return current_list_filter
 
     def get_current_list_filter(self, list_filter):
         if type(list_filter) is not dict:
             self.report_error('Invalid type of list filter')
-        current_list_filter_args = []
-        current_list_filter_kwargs = {}
+        current_list_filter = FuncArgs()
         for fieldname, values in list_filter.items():
             if fieldname not in self.allowed_filter_fields:
                 self.report_error(
@@ -704,15 +697,14 @@ class BaseFilterView(View, GetPostMixin):
                 if is_blank:
                     continue
                 if cleaned_value is None:
-                    current_list_filter_kwargs['{}__isnull'.format(fieldname)] = True
+                    current_list_filter.kwargs['{}__isnull'.format(fieldname)] = True
                 else:
-                    current_list_filter_kwargs[fieldname] = cleaned_value
+                    current_list_filter.kwargs[fieldname] = cleaned_value
             else:
                 # Multiple lookups and / or multiple values.
-                a, k = self.get_current_list_filter_multiple(fieldname, values)
-                current_list_filter_args.extend(a)
-                current_list_filter_kwargs.update(k)
-        return current_list_filter_args, current_list_filter_kwargs
+                sub_filter = self.get_current_list_filter_multiple(fieldname, values)
+                current_list_filter.add(sub_filter)
+        return current_list_filter
 
     def get_current_query(self):
         sort_order = self.request_get(self.order_key)
@@ -728,8 +720,7 @@ class BaseFilterView(View, GetPostMixin):
             self.current_stripped_sort_order = self.strip_sort_order(sort_order)
             self.current_sort_order = sort_order
 
-        self.current_list_filter_args, self.current_list_filter_kwargs = \
-            self.get_current_list_filter(self.request_list_filter)
+        self.current_list_filter = self.get_current_list_filter(self.request_list_filter)
 
         self.current_search_str = self.request_get(self.search_key, '')
 
@@ -756,18 +747,7 @@ class BaseFilterView(View, GetPostMixin):
         return queryset.order_by(*self.current_sort_order)
 
     def filter_queryset(self, queryset):
-        has_args = self.current_list_filter_args is not None and len(self.current_list_filter_args) > 0
-        has_kwargs = self.current_list_filter_kwargs is not None and len(self.current_list_filter_kwargs) > 0
-        if has_args:
-            if has_kwargs:
-                return queryset.filter(*self.current_list_filter_args, **self.current_list_filter_kwargs)
-            else:
-                return queryset.filter(*self.current_list_filter_args)
-        else:
-            if has_kwargs:
-                return queryset.filter(**self.current_list_filter_kwargs)
-            else:
-                return queryset
+        return self.current_list_filter.apply(queryset.filter)
 
     def search_queryset(self, queryset):
         if self.current_search_str == '' or len(self.search_fields) == 0:

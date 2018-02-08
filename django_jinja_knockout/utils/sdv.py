@@ -133,3 +133,28 @@ def get_class_that_defined_method(meth):
 
 def get_cbv_from_dispatch_wrapper(meth):
     return getattr(inspect.getmodule(meth), meth.__qualname__)
+
+
+class FuncArgs:
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def add(self, another):
+        self.args += another.args
+        self.kwargs.update(another.kwargs)
+
+    def apply(self, meth):
+        has_args = self.args is not None and len(self.args) > 0
+        has_kwargs = self.kwargs is not None and len(self.kwargs) > 0
+        if has_args:
+            if has_kwargs:
+                return meth(*self.args, **self.kwargs)
+            else:
+                return meth(*self.args)
+        else:
+            if has_kwargs:
+                return meth(**self.kwargs)
+            else:
+                return meth()

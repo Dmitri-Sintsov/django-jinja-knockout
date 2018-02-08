@@ -94,7 +94,7 @@ class FilterChoices:
             'text': _('All'),
         }
         is_active = False
-        if self.view.current_list_filter_kwargs is None:
+        if self.view.current_list_filter.kwargs is None:
             is_active = True
             curr_list_filter = {}
         elif self.filter_field in curr_list_filter:
@@ -118,6 +118,8 @@ class FilterChoices:
                     unsupported_lookup = True
                 if 'in' in field_filter:
                     in_filter = field_filter['in']
+                    if not isinstance(in_filter, list):
+                        in_filter = [in_filter]
                 elif 'range' in field_filter:
                     # self.get_link() switcher is for 'in' lookups only.
                     return None
@@ -231,7 +233,7 @@ class FilterChoices:
 
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 # todo: Implement more filters ('range', 'fk').
-# todo: Support self.current_list_filter_args Q() __or__.
+# todo: Support self.current_list_filter.args Q() __or__.
 class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -265,7 +267,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     def reset_query_args(self):
         self.allowed_filter_fields = self.get_allowed_filter_fields()
-        self.current_list_filter_kwargs = {}
+        self.current_list_filter.kwargs = {}
         self.current_sort_order = []
         self.current_stripped_sort_order = []
         self.current_search_str = ''
@@ -394,7 +396,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                     return True
         return False
 
-    # todo: support self.current_list_filter_args Q lookups removal.
+    # todo: support self.current_list_filter.args Q lookups removal.
     def remove_query_filter(self, filter_field):
         field_lookups = set([filter_field])
         if isinstance(self.request_list_filter, dict) and filter_field in self.request_list_filter:
@@ -403,10 +405,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                     '{}__{}'.format(filter_field, lookup) for lookup in self.request_list_filter[filter_field]
                 ])
             # del self.request_list_filter[filter_field]
-        if isinstance(self.current_list_filter_kwargs, dict):
+        if isinstance(self.current_list_filter.kwargs, dict):
             for field_lookup in field_lookups:
-                if field_lookup in self.current_list_filter_kwargs:
-                    del self.current_list_filter_kwargs[field_lookup]
+                if field_lookup in self.current_list_filter.kwargs:
+                    del self.current_list_filter.kwargs[field_lookup]
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
