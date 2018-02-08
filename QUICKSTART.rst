@@ -73,6 +73,23 @@ Simplifying AJAX calls
 
 .. _quickstart_underscore_js_templates:
 
+Global IoC
+~~~~~~~~~~
+Since version 0.7.0, there is ``App.readyInstances`` variable which holds lazy definitions of global instances
+initialized when browser document is loaded. It allows to re-define built-in global instances and to add custom
+global instances in user scripts like this::
+
+    // Late initialization allows to patch / replace classes in user scripts.
+    App.readyInstances['App.userActions'] = {'App.Actions': {
+        route: 'user_actions',
+        actions: {
+            'send': {},
+            'receive_for_room': {},
+            'room_list': {},
+            'unread_count': {},
+        }
+    }};
+
 Underscore.js templates
 ~~~~~~~~~~~~~~~~~~~~~~~
 Underscore.js templates may be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction

@@ -115,18 +115,29 @@ data columns, including foreign relations at the screen.
 Grids ``glyphicon`` actions are rendered in the single column of datatable, instead of each action per column for better
 utilization of the display space.
 
-`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouting`` class with default instance
-``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
-
 Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
 
-Updated to latest versions of Knockout.js / jQuery / Bootstrap 3.
+Updated to latest versions of Knockout.js / jQuery / Bootstrap 3 (should also work with not-too-old ones).
 
-Built-in Javascript error logger.
+`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouter`` class with default instance
+``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
+
+Built-in Javascript error logger. ``App.NestedList`` internally used by ``App.renderNestedList`` for greater flexibility
+of client-side Javascript nested lists rendering. ``App.NestedList`` now supports ordered maps via ``_.ODict`` instances.
+
+Ajax forms submitting is refactored into ``App.AjaxForm`` class, while setting up the ajax forms is performed by
+``App.AjaxForms``, for better flexibility.
+
+``App.readyInstances`` introduced for global client-side IoC, available in custom user scripts as well.
+
+Knockout.js method subscription / unsubscription is placed into ``App.ko.Subscriber`` mixin class. ``focus`` binding
+is implemented for Knockout.js.
 
 Request mock-up when running without web server is greatly improved. That enables reverse resolving of FQN urls in
 console management commands and in background celery tasks via `reverseq()`_ calls when sites framework is correctly
 set up.
+
+``ast_eval`` templage tag.
 
 Headless Chrome Selenium webdriver support (phantom.js is outdated).
 
