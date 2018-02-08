@@ -106,7 +106,10 @@
 </div>
 {% endmacro -%}
 
-{% macro bs_field(field, classes={}) -%}
+{% macro bs_field(field, classes=None) -%}
+{% if classes is none -%}
+    {% set classes = {} -%}
+{% endif -%}
 {% set _classes = {'label': 'col-md-2', 'field': 'col-md-6', 'multiple_type': ''} -%}
 {% do _classes.update(classes) -%}
 {% if field|get_displaytext_layout == 'table' -%}

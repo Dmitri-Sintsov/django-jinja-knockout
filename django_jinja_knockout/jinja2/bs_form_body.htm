@@ -1,4 +1,7 @@
-{% macro bs_form_body(form, field_classes={}) -%}
+{% macro bs_form_body(form, field_classes=None) -%}
+{% if field_classes is none -%}
+    {% set field_classes = {} -%}
+{% endif -%}
 {% from 'bs_field.htm' import bs_field with context -%}
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {# <div class="alert alert-info debug">

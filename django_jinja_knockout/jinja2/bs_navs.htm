@@ -1,4 +1,7 @@
-{%- macro bs_navs(navs=[]) -%}
+{%- macro bs_navs(navs=None) -%}
+{% if navs is none -%}
+    {% set navs = [] -%}
+{% endif -%}
 <ul class="nav nav-tabs">
 {% for nav in navs -%}
     {% set li_atts = {} -%}

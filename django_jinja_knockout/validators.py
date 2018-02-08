@@ -12,7 +12,9 @@ class ViewmodelValidator:
         'load_json_ids': 'Not a non-empty JSON array of integer values',
     }
 
-    def __init__(self, val=None, auto_id=None, msgs={}):
+    def __init__(self, val=None, auto_id=None, msgs: dict=None):
+        if msgs is None:
+            msgs = {}
         self.vms = vm_list()
         self._val = val
         self.auto_id = auto_id

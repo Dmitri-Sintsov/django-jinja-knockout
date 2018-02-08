@@ -333,10 +333,10 @@
 {% endmacro -%}
 {% if _render_ -%}
     {% if not include_ids is defined -%}
-        {% set include_ids={} -%}
+        {% set include_ids = {} -%}
     {% endif -%}
     {% if not exclude_ids is defined -%}
-        {% set exclude_ids={} -%}
+        {% set exclude_ids = {} -%}
     {% endif -%}
     {{ ko_grid_body(include_ids=include_ids, exclude_ids=exclude_ids) }}
 {% endif -%}

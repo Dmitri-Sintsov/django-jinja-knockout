@@ -1,5 +1,8 @@
 {# http://getbootstrap.com/javascript/#tabs #}
-{% macro bs_tabs(tabs=[]) -%}
+{% macro bs_tabs(tabs=None) -%}
+{% if tabs is none -%}
+    {% set tabs = [] -%}
+{% endif -%}
 <ul class="nav nav-tabs" role="tablist">
 {% for tab in tabs -%}
     {% set li_atts = {'role': 'presentation'} -%}

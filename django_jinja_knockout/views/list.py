@@ -321,7 +321,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             )
         }
 
-    def get_current_sort_order_querypart(self, query={}):
+    def get_current_sort_order_querypart(self, query: dict=None):
+        if query is None:
+            query = {}
         if self.current_sort_order is None:
             return query
         else:
@@ -335,9 +337,11 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def is_negate_sort_order(self, sort_order):
         return sort_order[0][0] == '-'
 
-    def get_negate_sort_order_querypart(self, sort_order, query={}):
+    def get_negate_sort_order_querypart(self, sort_order, query: dict=None):
         if sort_order is None:
             return query
+        if query is None:
+            query = {}
         # stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
@@ -350,7 +354,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_current_list_filter_querypart(self):
         return self.get_request_list_filter()
 
-    def get_list_filter_querypart(self, list_filter_querypart=None, query={}):
+    def get_list_filter_querypart(self, list_filter_querypart=None, query: dict=None):
+        if query is None:
+            query = {}
         if list_filter_querypart is None or len(list_filter_querypart) == 0:
             return query
         else:
@@ -360,7 +366,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     # Methods with _querypart suffix are used to parse and return HTTP request querypart for current view state
     # of filtering / sorting, used in navigation and pagination.
-    def get_current_querypart(self, query={}):
+    def get_current_querypart(self, query: dict=None):
+        if query is None:
+            query = {}
         return self.get_list_filter_querypart(
             list_filter_querypart=self.get_current_list_filter_querypart(),
             query=self.get_current_sort_order_querypart(query)
@@ -423,9 +431,11 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         filter_class = globals()[filter_classname](self, filter_field, vm_filter)
         return filter_class
 
-    def get_sort_order_link(self, sort_order, kwargs=None, query={}, text=None, viewname=None):
+    def get_sort_order_link(self, sort_order, kwargs=None, query: dict=None, text=None, viewname=None):
         if type(sort_order) is str:
             sort_order = [sort_order]
+        if query is None:
+            query = {}
         if text is None:
             text = self.get_field_verbose_name(sort_order[0])
         if sort_order[0] in self.allowed_sort_orders:

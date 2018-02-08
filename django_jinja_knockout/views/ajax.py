@@ -109,7 +109,9 @@ class ActionsView(ViewmodelView, GetPostMixin):
     def get_view_kwargs(self):
         return deepcopy(self.kwargs)
 
-    def get_action_url(self, action, query={}):
+    def get_action_url(self, action, query: dict=None):
+        if query is None:
+            query = {}
         kwargs = self.get_view_kwargs()
         kwargs[self.action_kwarg] = '/{}'.format(action)
         return qtpl.reverseq(
@@ -349,9 +351,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
 
-    def vm_form(self, form, template=None, verbose_name=None, form_action='save_form', action_query={}):
+    def vm_form(self, form, template=None, verbose_name=None, form_action='save_form', action_query: dict=None):
         if template is None:
             template = self.form_template
+        if action_query is None:
+            action_query = {}
         t = tpl_loader.get_template(template)
         form_html = t.render(request=self.request, context={
             '_render_': True,
@@ -371,9 +375,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             'message': form_html
         })
 
-    def vm_inline(self, ff, template=None, verbose_name=None, form_action='save_inline', action_query={}):
+    def vm_inline(self, ff, template=None, verbose_name=None, form_action='save_inline', action_query: dict=None):
         if template is None:
             template = self.inline_template
+        if action_query is None:
+            action_query = {}
         t = tpl_loader.get_template(template)
         ff_html = t.render(request=self.request, context={
             '_render_': True,

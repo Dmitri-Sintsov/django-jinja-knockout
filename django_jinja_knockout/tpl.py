@@ -62,9 +62,14 @@ class PrintList:
         elem_tpl='<li><div{attrs}>{v}</div></li>\n',
         key_tpl='<li><div{attrs}><div>{k}</div>{v}</div></li>',
         top_tpl='<ul>{}</ul>\n',
-        tpl_kwargs={},
-        cb=escape, show_keys=None, i18n={}
+        tpl_kwargs: dict=None,
+        cb=escape, show_keys=None,
+        i18n: dict=None
     ):
+        if tpl_kwargs is None:
+            tpl_kwargs = {}
+        if i18n is None:
+            i18n = {}
         self.elem_tpl = elem_tpl
         self.key_tpl = key_tpl
         self.top_tpl = top_tpl
@@ -124,7 +129,7 @@ def print_table(
         row_tpl='<tr>{}</tr>\n',
         key_tpl='<td><div{attrs}><div>{k}</div>{v}</div></td>\n',
         elem_tpl='<td><div{attrs}>{v}</div></td>\n',
-        cb=escape, show_keys=None, i18n={}
+        cb=escape, show_keys=None, i18n=None
 ):
     print_list = PrintList(
         elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
@@ -136,7 +141,7 @@ def print_table(
     return top_tpl.format(rows_str)
 
 
-def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n={}):
+def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n=None):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -152,7 +157,7 @@ def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n={}):
     )
 
 
-def print_bs_badges(row, cb=escape, show_keys=None, i18n={}):
+def print_bs_badges(row, cb=escape, show_keys=None, i18n=None):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -171,7 +176,7 @@ def print_bs_badges(row, cb=escape, show_keys=None, i18n={}):
     )
 
 
-def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
+def print_bs_well(row, cb=escape, show_keys=None, i18n=None):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
@@ -191,7 +196,7 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n={}):
     )
 
 
-def print_list_group(row, cb=escape, show_keys=None, i18n={}):
+def print_list_group(row, cb=escape, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
             elem_tpl='<li{v_attrs}>{v}</li>\n',

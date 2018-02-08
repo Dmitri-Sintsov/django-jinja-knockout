@@ -1,9 +1,12 @@
-{% macro bs_pagination(url_name=None, kwargs=None, query={}, cbv=None, page_obj=None) -%}
+{% macro bs_pagination(url_name=None, kwargs=None, query=None, cbv=None, page_obj=None) -%}
 {% if url_name is none -%}
     {% set url_name = request.url_name -%}
 {% endif -%}
 {% if kwargs is none -%}
     {% set kwargs = request.view_kwargs -%}
+{% endif -%}
+{% if query is none -%}
+    {% set query = {} -%}
 {% endif -%}
 {% if cbv is not none -%}
     {% set query = cbv.get_current_querypart() -%}

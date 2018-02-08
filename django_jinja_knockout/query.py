@@ -227,7 +227,9 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def clone_raw_queryset(cls, raw_qs, filtered_qs=None, relation_map={}):
+    def clone_raw_queryset(cls, raw_qs, filtered_qs=None, relation_map: dict=None):
+        if relation_map is None:
+            relation_map = {}
         if not isinstance(raw_qs, RawQuerySet):
             raise ValueError('raw_qs must be an instance of RawQuerySet')
         if filtered_qs is None:

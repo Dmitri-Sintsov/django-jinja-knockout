@@ -1,4 +1,13 @@
-{% macro ko_grid(grid_options, template_args={}, wrapper_dom_attrs={}, template_dom_attrs={}) -%}
+{% macro ko_grid(grid_options, template_args=None, wrapper_dom_attrs=None, template_dom_attrs=None) -%}
+{% if template_args is none -%}
+    {% set template_args = {} -%}
+{% endif -%}
+{% if wrapper_dom_attrs is none -%}
+    {% set wrapper_dom_attrs = {} -%}
+{% endif -%}
+{% if template_dom_attrs is none -%}
+    {% set template_dom_attrs = {} -%}
+{% endif -%}
 {#
 
 Setup underscore.js template args (stored to template_dom_attrs as json at later step).

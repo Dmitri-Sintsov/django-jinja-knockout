@@ -112,12 +112,14 @@ class WidgetInstancesMixin(forms.ModelForm):
 
 
 # Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #
-def set_empty_template(formset, request, html={}):
+def set_empty_template(formset, request, html: dict=None):
     return None
 
 
 # Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request, html={}):
+def set_knockout_template(formset, request, html: dict=None):
+    if html is None:
+        html = {}
     t = tpl_loader.get_template('bs_formset_form.htm')
     _html = {
         'formset_form_class': 'form-empty',

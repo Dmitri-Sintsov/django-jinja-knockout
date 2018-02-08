@@ -1,4 +1,7 @@
-{% macro bs_breadcrumbs(title=None, navs={}) -%}
+{% macro bs_breadcrumbs(title=None, navs=None) -%}
+{% if navs is none -%}
+    {% set navs = {} -%}
+{% endif -%}
 <ol class="breadcrumb">
     {% if title is not none -%}
     <li class="bold">{{ title }}:</li>

@@ -47,7 +47,9 @@ def create_builtin_user_groups(BUILTIN_GROUPS):
 
 
 # Automatic seeding for app models, both from post_migrate signal and from management command.
-def models_seeds(sender, recreate=False, only_models=None, exclude_models=[], **kwargs):
+def models_seeds(sender, recreate=False, only_models=None, exclude_models: list=None, **kwargs):
+    if exclude_models is None:
+        exclude_models = []
     # https://gist.github.com/rctay/527113
     for model in sender.get_seed_list() if hasattr(sender, 'get_seed_list') else sender.get_models():
         table_name = model._meta.db_table
