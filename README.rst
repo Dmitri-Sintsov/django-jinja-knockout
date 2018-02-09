@@ -122,8 +122,10 @@ Updated to latest versions of Knockout.js / jQuery / Bootstrap 3 (should also wo
 `viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouter`` class with default instance
 ``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
 
-Built-in Javascript error logger. ``App.NestedList`` internally used by ``App.renderNestedList`` for greater flexibility
-of client-side Javascript nested lists rendering. ``App.NestedList`` now supports ordered maps via ``_.ODict`` instances.
+Optional built-in Javascript error logger.
+
+``App.NestedList`` internally used by ``App.renderNestedList`` for greater flexibility of client-side Javascript nested
+lists rendering. ``App.NestedList`` now supports ordered maps via ``_.ODict`` instances.
 
 Ajax forms submitting is refactored into ``App.AjaxForm`` class, while setting up the ajax forms is performed by
 ``App.AjaxForms``, for better flexibility.
@@ -139,7 +141,7 @@ set up.
 
 ``ast_eval`` templage tag.
 
-Headless Chrome Selenium webdriver support (phantom.js is outdated).
+Headless Chrome Selenium webdriver support (phantom.js is deprecated).
 
 Major changes (version 0.6.0)
 -----------------------------
