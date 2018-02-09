@@ -680,11 +680,11 @@ class BaseFilterView(View, GetPostMixin):
                     current_list_filter.kwargs[field_lookup] = lookup_filter
         return current_list_filter
 
-    def get_current_list_filter(self, list_filter):
-        if type(list_filter) is not dict:
+    def get_current_list_filter(self, request_list_filter):
+        if type(request_list_filter) is not dict:
             self.report_error('Invalid type of list filter')
         current_list_filter = FuncArgs()
-        for fieldname, values in list_filter.items():
+        for fieldname, values in request_list_filter.items():
             if fieldname not in self.allowed_filter_fields:
                 self.report_error(
                     'Not allowed filter field: "{}"', fieldname

@@ -86,6 +86,7 @@ class SendmailQueue:
                     'msg': e.smtp_error,
                 }
             if isinstance(e, SMTPServerDisconnected):
+                self.connection = mail.get_connection(**kwargs)
                 title = 'SMTP server disconnected'
                 trans_msg = 'Error "%(err_type)s" "%(msg)s" while sending email.'
                 trans_params = {
