@@ -959,7 +959,12 @@ App.ko.GridRow = function(options) {
             self.strFields[field] = value;
         });
         _.each(savedRow.displayValues, function(value, field) {
-            self.displayValues[field](ko.utils.unwrapObservable(value));
+            var val = ko.utils.unwrapObservable(value);
+            if (ko.isObservable(self.displayValues[field])) {
+                self.displayValues[field](val);
+            } else {
+                self.displayValues[field] = val;
+            }
             // self.displayValues[field].valueHasMutated();
         });
         if (this.useInitClient) {
