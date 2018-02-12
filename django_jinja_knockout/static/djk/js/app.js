@@ -1618,44 +1618,6 @@ void function(AjaxForm) {
 }(App.AjaxForm.prototype);
 
 
-App.DialogButton = function($selector) {
-    this.create($selector);
-};
-
-void function(DialogButton) {
-
-    DialogButton.create = function($selector) {
-        this.$dialogButtons = $selector.findSelf('.dialog-button');
-    };
-
-    DialogButton.onClick = function(ev) {
-        var $target = $(ev.target);
-        var dialog = $target.data('DialogButton').instance;
-        dialog.show();
-    };
-
-    DialogButton.init = function() {
-        this.$dialogButtons.each(function(k, v) {
-            var dialog = new App.Dialog($(v).data('options'));
-            $(v).data('DialogButton', {instance: dialog});
-            $(v).on('click', DialogButton.onClick);
-        });
-        return this;
-    };
-
-    DialogButton.destroy = function() {
-        this.$dialogButtons.each(function(k, v) {
-            var dialog = $(v).data('DialogButton').instance;
-            // Assumes BootstrapDialog.autodestroy == true;
-            dialog.close();
-            $(v).off('click', DialogButton.onClick);
-            $(v).removeData('DialogButton');
-        });
-        return this;
-    };
-
-}(App.DialogButton.prototype);
-
 // Cache for compiled templates.
 App.bag._templates = {};
 
@@ -2522,7 +2484,6 @@ App.initClientHooks.push({
         new App.DatetimeWidget($selector).init();
         new App.AjaxForms($selector).init();
         new App.AjaxButton($selector).init();
-        new App.DialogButton($selector).init();
         $selector.prefillField('init');
         $selector.inputAsSelect('init');
         $selector.autogrow('init');
@@ -2537,7 +2498,6 @@ App.initClientHooks.push({
         $selector.autogrow('destroy');
         $selector.inputAsSelect('destroy');
         $selector.prefillField('destroy');
-        new App.DialogButton($selector).destroy();
         new App.AjaxButton($selector).destroy();
         new App.AjaxForms($selector).destroy();
         new App.DatetimeWidget($selector).destroy();
