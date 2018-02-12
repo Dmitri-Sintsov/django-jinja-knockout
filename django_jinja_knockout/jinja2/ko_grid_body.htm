@@ -76,7 +76,6 @@
     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
         <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
-            <div data-bind="visible: current_name() != '', text: current_name()"></div>
         </a>
         <ul data-bind="foreach: choices" class="dropdown-menu">
             <li data-bind="css: {active: is_active()}">
@@ -108,7 +107,6 @@
     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
         <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
-            <div data-bind="visible: current_name() != '', text: current_name()"></div>
         </a>
     </li>
 </script>
@@ -121,7 +119,6 @@
             <li>
                 <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
                     <span data-bind="text: name"></span> <b class="caret"></b>
-                    <div data-bind="visible: current_name() != '', text: current_name()"></div>
                 </a>
             </li>
         </ol>

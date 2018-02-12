@@ -45,7 +45,7 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
     }
 };
 
-(function(Formset) {
+void function(Formset) {
 
     Formset.getTotalFormsCount = function() {
         return this.serversideFormsCount + this.forms().length;
@@ -90,7 +90,7 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
         ko.cleanNode($formset.get(0));
     };
 
-})(App.ko.Formset.prototype);
+}(App.ko.Formset.prototype);
 
 App.initClientHooks.push({
     init: function($selector) {
@@ -143,5 +143,5 @@ App.initClientHooks.push(function($selector) {
     $requiredFormsDeleteFields.parents('.field').empty().html(App.trans('Required'));
     // Display different label for optional previously saved forms loaded at server-side.
     var $optionalFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-optional input[name$="-DELETE"]');
-    $optionalFormsDeleteFields.next('span').html(App.trans('Delete when saved'))
+    $optionalFormsDeleteFields.next('span').html(App.trans('Delete when saved'));
 });

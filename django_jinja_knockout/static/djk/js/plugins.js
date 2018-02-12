@@ -48,7 +48,7 @@ $.id = function(id) {
         return $();
     } else {
         // Support multiple ID's to detect content bugs.
-        return $(document.querySelectorAll('#' + CSS.escape(id)))
+        return $(document.querySelectorAll('#' + CSS.escape(id)));
     }
 };
 
@@ -140,7 +140,7 @@ $.fn.getInstance = function(key, pop) {
     }
     var $this = $(this[0]);
     var data = $this.data('Instance');
-    if (data === undefined || data[key] === 'undefined') {
+    if (data === undefined || typeof data[key] === 'undefined') {
         return undefined;
     }
     var result = data[key];
@@ -203,7 +203,7 @@ $.SuperChain = function(childInstance, parentPrototype) {
 /**
  * Implements nested chains of prototypes (multi-level inheritance).
  */
-(function(SuperChain) {
+void function(SuperChain) {
 
     /**
      * Find method / property among inherited prototypes from top (immediate ancestor) to bottom (base class).
@@ -264,7 +264,7 @@ $.SuperChain = function(childInstance, parentPrototype) {
         return result;
     };
 
-})($.SuperChain.prototype);
+}($.SuperChain.prototype);
 
 /**
  * Multi-level inheritance should be specified in descendant to ancestor order.
@@ -292,7 +292,7 @@ $.fn.autogrow = function(method) {
 
     function updateAutogrow(ev) {
         $(ev.target).autogrow('update');
-    };
+    }
 
     return {
         'init' : function() {
@@ -553,7 +553,7 @@ $.fn.linkPreview = function(method) {
         this.create($anchor);
     };
 
-    (function(scaledPreview) {
+    void function(scaledPreview) {
 
         scaledPreview.enabledLocalHrefs = [
             // These extensions should be previewed locally.
@@ -706,7 +706,7 @@ $.fn.linkPreview = function(method) {
             $iframe.parent().height(containerHeight);
         };
 
-    })(scaledPreview.prototype);
+    }(scaledPreview.prototype);
 
     return {
         init: function() {
@@ -836,7 +836,7 @@ $.fn.scroller = function(method) {
         this.$scroller.focus()
     }
 
-    (function(Scroller) {
+    void function(Scroller) {
 
         Scroller.getPos = function() {
             // Number of pixels the element is scrolled down vertically (top visible scrolling point).
@@ -947,7 +947,7 @@ $.fn.scroller = function(method) {
             }
         };
 
-    })(Scroller.prototype);
+    }(Scroller.prototype);
 
     return {
         'init': function() {

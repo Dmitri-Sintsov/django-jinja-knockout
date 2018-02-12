@@ -30,7 +30,7 @@ App.GenericPopover = function(options) {
     this.create(options);
 };
 
-(function(GenericPopover) {
+void function(GenericPopover) {
 
     GenericPopover.create = function(options) {
         this.destroyEventName = 'input';
@@ -87,7 +87,7 @@ App.GenericPopover = function(options) {
         this.setupEvents();
     }
 
-})(App.GenericPopover.prototype);
+}(App.GenericPopover.prototype);
 
 
 App.FieldPopover = function(options) {
@@ -95,7 +95,7 @@ App.FieldPopover = function(options) {
     this.create(options);
 };
 
-(function(FieldPopover) {
+void function(FieldPopover) {
 
     FieldPopover.setupEvents = function() {
         var self = this;
@@ -149,7 +149,7 @@ App.FieldPopover = function(options) {
         }
     };
 
-}) (App.FieldPopover.prototype);
+}(App.FieldPopover.prototype);
 
 
 App.FieldTooltip = function(options) {
@@ -157,7 +157,7 @@ App.FieldTooltip = function(options) {
     this.create(options);
 };
 
-(function(FieldTooltip) {
+void function(FieldTooltip) {
 
     FieldTooltip.setupEvents = function() {
         var self = this;
@@ -195,14 +195,14 @@ App.FieldTooltip = function(options) {
         }
     };
 
-}) (App.FieldTooltip.prototype);
+}(App.FieldTooltip.prototype);
 
 
 App.AlertError = function(options) {
     this.init(options);
 };
 
-(function(AlertError) {
+void function(AlertError) {
 
     AlertError.init = function(options) {
         var errTitle = null;
@@ -255,10 +255,13 @@ App.AlertError = function(options) {
         }
     };
 
-})(App.AlertError.prototype);
+}(App.AlertError.prototype);
 
 
-(function(AjaxForm) {
+/**
+ * Extend App.AjaxForm.always() to support 'form_error' viewmodel removal.
+ */
+void function(AjaxForm) {
 
     var superAlways = AjaxForm.always;
 
@@ -283,4 +286,4 @@ App.AlertError = function(options) {
         superAlways.apply(this);
     };
 
-})(App.AjaxForm.prototype);
+}(App.AjaxForm.prototype);

@@ -8,7 +8,7 @@ App.ModelFormActions = function(options) {
     this.init(options);
 };
 
-(function(ModelFormActions){
+void function(ModelFormActions){
 
     /**
      * The same client-side AJAX form is used both to add new objects and to update existing ones.
@@ -35,7 +35,7 @@ App.ModelFormActions = function(options) {
         // noop
     };
 
-})(App.ModelFormActions.prototype);
+}(App.ModelFormActions.prototype);
 
 
 /**
@@ -47,7 +47,7 @@ App.ModelFormDialog = function(options) {
     this.create(options);
 };
 
-(function(ModelFormDialog) {
+void function(ModelFormDialog) {
 
     ModelFormDialog.initClient = true;
     ModelFormDialog.actionCssClass = 'glyphicon-save';
@@ -114,7 +114,7 @@ App.ModelFormDialog = function(options) {
         ];
     };
 
-})(App.ModelFormDialog.prototype);
+}(App.ModelFormDialog.prototype);
 
 
 /**
@@ -139,7 +139,7 @@ App.ActionTemplateDialog = function(options) {
     this.create(options);
 };
 
-(function(ActionTemplateDialog) {
+void function(ActionTemplateDialog) {
 
     ActionTemplateDialog.initClient = true;
     ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
@@ -199,7 +199,7 @@ App.ActionTemplateDialog = function(options) {
         return this.actionLabel;
     };
 
-})(App.ActionTemplateDialog.prototype);
+}(App.ActionTemplateDialog.prototype);
 
 
 /**
@@ -209,7 +209,7 @@ App.EditForm = function(options) {
     this.init(options);
 };
 
-(function(EditForm) {
+void function(EditForm) {
 
     EditForm.getInitialAction = function() {
         return (this.pkVal === null) ? 'create_form' : 'edit_form';
@@ -282,7 +282,7 @@ App.EditForm = function(options) {
         }
     };
 
-})(App.EditForm.prototype);
+}(App.EditForm.prototype);
 
 
 /**
@@ -293,10 +293,10 @@ App.EditInline = function(options) {
     this.init(options);
 };
 
-(function(EditInline) {
+void function(EditInline) {
 
     EditInline.getInitialAction = function() {
         return (this.pkVal === null) ? 'create_inline' : 'edit_inline';
     };
 
-})(App.EditInline.prototype);
+}(App.EditInline.prototype);

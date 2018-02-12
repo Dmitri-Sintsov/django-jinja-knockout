@@ -92,17 +92,20 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     }
 } else if (typeof sprintf === 'function') {
     App.trans = sprintf;
-    console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js')
+    console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js');
 } else {
-    throw "@error: Neither Django gettext nor sprintf.js is available."
+    throw "@error: Neither Django gettext nor sprintf.js is available.";
 }
 
 
+/**
+ * Render nested Javascript structures as nested DOM nodes.
+ */
 App.NestedList = function(options) {
     this.init(options);
 };
 
-(function(NestedList) {
+void function(NestedList) {
 
     NestedList.init = function(options) {
         if (typeof options !== 'object') {
@@ -217,7 +220,7 @@ App.NestedList = function(options) {
         return $element;
     };
 
-})(App.NestedList.prototype);
+}(App.NestedList.prototype);
 
 
 App.renderNestedList = function(element, value, options) {
@@ -274,7 +277,7 @@ App._TabPane = function (hash) {
     }
 };
 
-(function(_TabPane) {
+void function(_TabPane) {
 
     _TabPane.exists = function() {
         return App.propGet(this, ['anchor', 'length'], 0) > 0;
@@ -338,7 +341,7 @@ App._TabPane = function (hash) {
         return this;
     };
 
-})(App._TabPane.prototype);
+}(App._TabPane.prototype);
 
 
 App.TabPane = function(hash) {
@@ -368,7 +371,7 @@ App.Dialog = function(options) {
     this.create(options);
 };
 
-(function(Dialog) {
+void function(Dialog) {
 
     Dialog.type = BootstrapDialog.TYPE_WARNING;
     Dialog.size = BootstrapDialog.SIZE_NORMAL;
@@ -603,7 +606,7 @@ App.Dialog = function(options) {
         this.bdialog.close();
     };
 
-})(App.Dialog.prototype);
+}(App.Dialog.prototype);
 
 
 /**
@@ -613,7 +616,7 @@ App.Actions = function(options) {
     this.init(options);
 };
 
-(function(Actions) {
+void function(Actions) {
 
     Actions.actionKwarg = 'action';
     Actions.viewModelName = 'action';
@@ -759,7 +762,7 @@ App.Actions = function(options) {
         }
     };
 
-})(App.Actions.prototype);
+}(App.Actions.prototype);
 
 
 // Runtime script shared objects.
@@ -784,7 +787,7 @@ App.ViewModelRouter = function(viewHandlers) {
     this.add(viewHandlers);
 };
 
-(function(ViewModelRouter) {
+void function(ViewModelRouter) {
 
     /**
      * Require viewModel handlers with specified viewModel names to exists.
@@ -1019,7 +1022,7 @@ App.ViewModelRouter = function(viewHandlers) {
         }
     };
 
-})(App.ViewModelRouter.prototype);
+}(App.ViewModelRouter.prototype);
 
 App.vmRouter = new App.ViewModelRouter({
     'redirect_to' : function(viewModel) {
@@ -1215,7 +1218,7 @@ App.DatetimeWidget = function($parent) {
     this.create($parent);
 };
 
-(function(DatetimeWidget) {
+void function(DatetimeWidget) {
 
     // Override moment.js Django-incompatible locales formatting used by bootstrap datetimepicker.
     // Locale 'ru' moment.js is compatible to Django thus does not require override, for example.
@@ -1310,7 +1313,7 @@ App.DatetimeWidget = function($parent) {
         });
     };
 
-})(App.DatetimeWidget.prototype);
+}(App.DatetimeWidget.prototype);
 
 App.Ladder = function($selector) {
     var self = this;
@@ -1342,7 +1345,7 @@ App.AjaxButton = function($selector) {
     this.create($selector);
 };
 
-(function(AjaxButton) {
+void function(AjaxButton) {
 
     AjaxButton.create = function($selector) {
         this.$ajaxButtons = $selector.findSelf('a[data-route], a[data-url], ' +
@@ -1384,7 +1387,7 @@ App.AjaxButton = function($selector) {
         this.$ajaxButtons.off('click', AjaxButton.onClick);
     };
 
-})(App.AjaxButton.prototype);
+}(App.AjaxButton.prototype);
 
 
 /**
@@ -1396,7 +1399,7 @@ App.AjaxForms = function($selector) {
     this.create($selector);
 };
 
-(function(AjaxForms) {
+void function(AjaxForms) {
 
     AjaxForms.formSelector = 'form.ajax-form';
     AjaxForms.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
@@ -1460,7 +1463,7 @@ App.AjaxForms = function($selector) {
         this.$forms.ajaxFormUnbind();
     };
 
-})(App.AjaxForms.prototype);
+}(App.AjaxForms.prototype);
 
 /**
  * Single instance of submitted ajax form.
@@ -1469,7 +1472,7 @@ App.AjaxForm = function($form) {
     this.init($form);
 };
 
-(function(AjaxForm) {
+void function(AjaxForm) {
 
     AjaxForm.init = function($form) {
         this.$form = $form;
@@ -1612,14 +1615,14 @@ App.AjaxForm = function($form) {
         return false;
     };
 
-})(App.AjaxForm.prototype);
+}(App.AjaxForm.prototype);
 
 
 App.DialogButton = function($selector) {
     this.create($selector);
 };
 
-(function(DialogButton) {
+void function(DialogButton) {
 
     DialogButton.create = function($selector) {
         this.$dialogButtons = $selector.findSelf('.dialog-button');
@@ -1651,7 +1654,7 @@ App.DialogButton = function($selector) {
         return this;
     };
 
-})(App.DialogButton.prototype);
+}(App.DialogButton.prototype);
 
 // Cache for compiled templates.
 App.bag._templates = {};
@@ -1691,7 +1694,7 @@ App.Tpl = function(options) {
     this.init(options);
 };
 
-(function(Tpl) {
+void function(Tpl) {
 
     Tpl.parentProps = ['data', 'templates'];
 
@@ -1867,7 +1870,7 @@ App.Tpl = function(options) {
         });
     };
 
-})(App.Tpl.prototype);
+}(App.Tpl.prototype);
 
 /**
  * Recursive underscore.js template autoloading with template self instance binding.
@@ -2176,7 +2179,18 @@ $(document)
 
 App.ko.Subscriber = function() {};
 
-(function(Subscriber) {
+/**
+ * Swtiches Knockout.js subscription to bound instance methods.
+ * Use as mixin in class constructor:
+ *    $.inherit(App.ko.Subscriber.prototype, this);
+ *    // Temporarily disable meta.rowsPerPage() subscription.
+ *    this.disposeMethod(['meta', 'rowsPerPage']);
+ *    this.meta.prevRowsPerPage = this.meta.rowsPerPage();
+ *    this.meta.rowsPerPage(data.rowsPerPage);
+ *    // Re-enable meta.rowsPerPage() subscription.
+ *    this.subscribeToMethod(['meta', 'rowsPerPage']);
+ */
+void function(Subscriber) {
 
     Subscriber.getPropSubscription = function(propChain, methodChain) {
         if (typeof methodChain === 'undefined') {
@@ -2225,7 +2239,7 @@ App.ko.Subscriber = function() {};
         }
     };
 
-})(App.ko.Subscriber.prototype);
+}(App.ko.Subscriber.prototype);
 
 
 // https://github.com/knockout/knockout/issues/1019
@@ -2367,13 +2381,16 @@ App.newClassFromPath = function(classPath, classPathArgs) {
 /**
  * Auto-instantiated Javascript classes bound to selected DOM elements.
  * Primarily used with Knockout.js bindings, although is not limited to.
- * 'data-component-options' html5 attribute is used as an argument of class constructor.
+ * 'data-component-class' html5 attribute is used as Javascript class path;
+ * 'data-component-options' html5 attribute is used as an argument of class constructor;
+ * 'data-event' html5 attribute optionally specifies DOM event used to instantiate class;
+ *     otherwise, the class is instantiated when DOM is ready;
  */
 App.Components = function() {
     this.init();
 };
 
-(function(Components) {
+void function(Components) {
 
     Components.init = function() {
         this.list = [];
@@ -2474,7 +2491,7 @@ App.Components = function() {
         return desc;
     };
 
-})(App.Components.prototype);
+}(App.Components.prototype);
 
 // Get array with all component instances by jQuery selector.
 $.fn.components = function() {

@@ -155,7 +155,7 @@ void function(ClosablePopover) {
         ev.preventDefault();
         this.hide();
         return false;
-    }
+    };
 
     ClosablePopover.goto = function(ev) {
         var hash = this.$target.prop('name');
@@ -188,7 +188,7 @@ App.ButtonPopover = function(popoverOptions) {
     this.create(popoverOptions);
 };
 
-(function(ButtonPopover) {
+void function(ButtonPopover) {
 
     ButtonPopover.dataKey = 'ButtonPopover';
 
@@ -215,4 +215,4 @@ App.ButtonPopover = function(popoverOptions) {
         this.hide();
     };
 
-})(App.ButtonPopover.prototype);
+}(App.ButtonPopover.prototype);
