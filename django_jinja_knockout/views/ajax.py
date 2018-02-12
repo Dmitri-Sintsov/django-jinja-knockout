@@ -287,7 +287,8 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return get_object_description(obj)
 
     def render_object_desc(self, obj):
-        return qtpl.print_bs_badges(self.get_object_desc(obj))
+        i18n = self.get_model_fields_verbose_names() if self.model_fields_i18n else None
+        return qtpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
 
     # Create one model object.
     def get_create_form(self):
@@ -459,12 +460,18 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         )
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
+        vm = {
+            'view': 'alert',
+            'title': get_verbose_name(new_obj),
+            'message': self.get_object_desc(new_obj),
+        }
+        if self.model_fields_i18n:
+            vm['nestedListOptions'] = {
+                'showKeys': True,
+                'i18n': self.get_model_fields_verbose_names()
+            }
         return vm_list(
-            {
-                'view': 'alert',
-                'title': get_verbose_name(new_obj),
-                'message': self.get_object_desc(new_obj),
-            },
+            vm,
             # 'view': self.viewmodel_name indicates that the BootstrapDialog has to be closed.
             {
                 'view': self.viewmodel_name,
