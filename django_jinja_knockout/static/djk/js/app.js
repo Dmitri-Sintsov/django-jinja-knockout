@@ -2142,15 +2142,8 @@ $(document)
 App.ko.Subscriber = function() {};
 
 /**
- * Swtiches Knockout.js subscription to bound instance methods.
- * Use as mixin in class constructor:
- *    $.inherit(App.ko.Subscriber.prototype, this);
- *    // Temporarily disable meta.rowsPerPage() subscription.
- *    this.disposeMethod(['meta', 'rowsPerPage']);
- *    this.meta.prevRowsPerPage = this.meta.rowsPerPage();
- *    this.meta.rowsPerPage(data.rowsPerPage);
- *    // Re-enable meta.rowsPerPage() subscription.
- *    this.subscribeToMethod(['meta', 'rowsPerPage']);
+ * Switches Knockout.js subscription to bound instance methods.
+ * https://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#knockout-js-subscriber
  */
 void function(Subscriber) {
 

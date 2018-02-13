@@ -5,6 +5,7 @@ Quickstart
 .. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
+.. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
@@ -138,8 +139,9 @@ element's ``data-component-class`` html5 attribute and bind these to that elemen
 
 .. highlight:: html
 
-Since version 0.3.0, components can be also instantiated via browser event in addition to default document 'ready' event
-instantiating. That allows to bind component classes to button click, for example::
+Since version 0.3.0, components can be also instantiated via target element event instead of document 'ready' event.
+To enable that, define ``data-event`` html5 attribute on target element. For example, to bind component classes to
+button 'click' / 'hover'::
 
     <button class="component" data-event="click"
         data-component-class="App.GridDialog"
@@ -147,17 +149,17 @@ instantiating. That allows to bind component classes to button click, for exampl
         Click to see project list
     </button>
 
-Would create an instance of ``App.GridDialog`` class with ``data-component-options`` value passed as constructor
-argument when target button is clicked.
+When target button is clicked, ``App.GridDialog`` class will be instantiated with ``data-component-options`` value
+passed as constructor argument.
 
 .. highlight:: jinja
 
 JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
 is generated in Jinja2 macro, such as `ko_grid()`_::
 
-    <div{{ json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
+    <div{{ tpl.json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
     <a name="{{ fragment_name }}"></a>
-        <div{{ json_flatatt(_template_dom_attrs) }}>
+        <div{{ tpl.json_flatatt(_template_dom_attrs) }}>
         </div>
     </div>
 
@@ -173,7 +175,7 @@ like this::
         this.doStuff();
     };
 
-Then in your component shutdown code call ``App.components`` instance ``.unbind()`` / ``.add()`` methods::
+Then in your component shutdown code call ``App.components`` instance ``.unbind()`` method, then ``.add()`` method::
 
     MyComponent.onHide = function() {
         // Run your shutdown code ...
@@ -192,10 +194,44 @@ Then in your component shutdown code call ``App.components`` instance ``.unbind(
 See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX grids via click events.
 
 Because ``App.GridDialog`` class constructor may have many options, including dynamically-generated ones, it's
-preferrable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
+preferable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
 
 Search for `data-component-class`_ in djk-sample code for the examples of both document ready and button click
 component binding.
+
+Knockout.js subscriber
+~~~~~~~~~~~~~~~~~~~~~~
+Since version 0.7.0, there is Javascript class `App.ko.Subscriber`_ which may be used as mixin to Knockout.js viewmodels
+classes to control viewmodel methods subscriptions. To add mixin to your class::
+
+    $.inherit(App.ko.Subscriber.prototype, this);
+
+In case there is observable property::
+
+    this.meta.rowsPerPage = ko.observable();
+
+Which changes should be notified to viewmodel method::
+
+    Grid.on_meta_rowsPerPage = function(newValue) {
+        this.actions.perform('list');
+    };
+
+Then to subscribe that method to this.meta.rowsPerPage() changes::
+
+    this.subscribeToMethod(['meta', 'rowsPerPage']);
+
+An example of temporary unsubscription / subscription to method, used to alter observable value without an observation::
+
+    Grid.listCallback = function(data) {
+        // ... skipped ...
+        // Temporarily disable meta.rowsPerPage() subscription.
+        this.disposeMethod(['meta', 'rowsPerPage']);
+        this.meta.prevRowsPerPage = this.meta.rowsPerPage();
+        this.meta.rowsPerPage(data.rowsPerPage);
+        // Re-enable meta.rowsPerPage() subscription.
+        this.subscribeToMethod(['meta', 'rowsPerPage']);
+        // ... skipped ...
+    }
 
 plugins.js
 ----------

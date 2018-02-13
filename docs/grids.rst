@@ -765,7 +765,7 @@ of values:
             ])
             return parts
 
-        # It's preferrable to reconstruct model's str() via get_str_fields() to keep it DRY.
+        # It's preferable to reconstruct model's str() via get_str_fields() to keep it DRY.
         def __str__(self):
             str_fields = self.get_str_fields()
             return str_dict(str_fields)
