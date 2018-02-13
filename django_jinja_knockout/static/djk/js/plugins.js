@@ -288,6 +288,16 @@ $.fn.findSelf = function(selector) {
         result.add(this) : result;
 };
 
+$.fn.lastScrollable = function() {
+    var $scrollable = this.filter(function(idx) {
+        return this.scrollHeight > this.offsetHeight;
+    }).last();
+    if ($scrollable.length === 0) {
+        $scrollable = $('html, body');
+    }
+    return $scrollable;
+};
+
 $.fn.autogrow = function(method) {
 
     function updateAutogrow(ev) {

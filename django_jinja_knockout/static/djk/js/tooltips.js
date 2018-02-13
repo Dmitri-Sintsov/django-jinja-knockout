@@ -180,7 +180,9 @@ void function(FieldTooltip) {
                 self.destroy();
             };
             this.$field.on(this.destroyEventName, this.onDestroy);
-            $('html, body').scrollTop(this.$field.offset().top);
+            // $('html, body').scrollTop(this.$field.offset().top);
+            var $scrollable = this.$field.parents().lastScrollable();
+            $scrollable.scrollTop(this.$field.position().top);
         }
     };
 
@@ -241,8 +243,10 @@ void function(AlertError) {
                     'class': 'close',
                     'data-dismiss': 'alert',
                     'type': 'button'
-                }).text('×'))
+                }).text('×'));
                 this.$field.after($contents);
+                var $scrollable = this.$field.parents().lastScrollable();
+                $scrollable.scrollTop(this.$field.position().top);
             }
         }
     };
