@@ -288,10 +288,14 @@ $.fn.findSelf = function(selector) {
         result.add(this) : result;
 };
 
-$.fn.lastScrollable = function() {
-    var $scrollable = this.filter(function(idx) {
-        return this.scrollHeight > this.offsetHeight;
-    }).last();
+$.fn.scrollableParent = function() {
+    var $parents = this.parents();
+    var $scrollable = $parents.find('.bootstrap-dialog-message').first();
+    if ($scrollable.length === 0) {
+        $scrollable = $parents.filter(function(idx) {
+            return this.scrollHeight > this.offsetHeight;
+        }).last();
+    }
     if ($scrollable.length === 0) {
         $scrollable = $('html, body');
     }

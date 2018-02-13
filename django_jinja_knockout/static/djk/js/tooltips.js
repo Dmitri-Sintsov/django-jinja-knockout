@@ -181,8 +181,10 @@ void function(FieldTooltip) {
             };
             this.$field.on(this.destroyEventName, this.onDestroy);
             // $('html, body').scrollTop(this.$field.offset().top);
-            var $scrollable = this.$field.parents().lastScrollable();
-            $scrollable.scrollTop(this.$field.position().top);
+            var $scrollable = this.$field.scrollableParent();
+            window.setTimeout(function() {
+                $scrollable.scrollTop(self.$field.position().top);
+            }, 100);
         }
     };
 
@@ -207,6 +209,7 @@ App.AlertError = function(options) {
 void function(AlertError) {
 
     AlertError.init = function(options) {
+        var self = this;
         var errTitle = null;
         this.$field = $.id(options.id);
         if (this.$field.length > 1) {
@@ -245,8 +248,10 @@ void function(AlertError) {
                     'type': 'button'
                 }).text('×'));
                 this.$field.after($contents);
-                var $scrollable = this.$field.parents().lastScrollable();
-                $scrollable.scrollTop(this.$field.position().top);
+                var $scrollable = this.$field.scrollableParent();
+                window.setTimeout(function() {
+                    $scrollable.scrollTop(self.$field.position().top);
+                }, 100);
             }
         }
     };
