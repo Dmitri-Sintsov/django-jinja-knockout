@@ -127,4 +127,6 @@ def escapejs(val, view_error=False):
             })
     else:
         json_str = to_json(val)
-    return mark_safe(json_str)
+    return mark_safe(
+        json_str.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+    )
