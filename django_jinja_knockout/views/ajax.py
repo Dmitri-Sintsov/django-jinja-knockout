@@ -209,7 +209,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     inline_template = 'bs_inline_formsets.htm'
     pk_url_kwarg = None
     model = None
-    model_fields_i18n = False
+    model_fields_i18n = True
     initial = {}
     # Set prefix to string value to minimize the possibility of input ID clash with non-AJAX forms / formsets
     # in the 'form_error' viewmodel handler.
