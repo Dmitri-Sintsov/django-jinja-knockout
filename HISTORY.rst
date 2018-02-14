@@ -10,9 +10,11 @@
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
 .. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=modelFormAction&utf8=%E2%9C%93
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
+.. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _validators: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/validators.py
+.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _yield_out_instances: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=yield_out_instances
 
 =======
@@ -248,3 +250,29 @@ Alternative breadcrumbs layout of field filters widgets.
   ``format_html_attrs()`` functions which work like built-in Django ``flatatt()`` and ``format_html()`` but automatically
   convert list / dict types of arguments into html attributes and / or JSON strings.
 * Many bugfixes.
+
+0.7.0
+-----
+* Grids (datatables)
+
+  * New type of action ``'pagination'``.
+
+    * There are two built-in actions of this type implemented: ``'rows_per_page'`` and ``'switch_highlight'``.
+  * Support of compound columns.
+  * ``glyphicon`` actions are rendered in the single column of datatable, instead of each action per column.
+* Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
+* Updated to latest versions of Knockout.js / jQuery / Bootstrap 3 (should also work with not-too-old ones).
+* `viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouter`` class with default instance
+  ``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
+* Optional built-in Javascript error logger.
+* ``App.NestedList`` internally used by ``App.renderNestedList`` for greater flexibility of client-side Javascript
+  nested lists rendering. ``App.NestedList`` now supports ordered maps via ``_.ODict`` instances.
+* Ajax forms submitting is refactored into ``App.AjaxForm`` class, while setting up the ajax forms is performed by
+  ``App.AjaxForms``.
+* ``App.readyInstances`` introduced for global client-side IoC, available in custom user scripts as well.
+* Knockout.js method subscription / unsubscription is placed into ``App.ko.Subscriber`` mixin class.
+* ``focus`` binding is implemented for Knockout.js.
+* Request mock-up when running without web server allows reverse resolving of FQN urls in console management commands
+  and in background celery tasks via `reverseq()`_ calls when sites framework is correctly set up.
+* ``ast_eval`` templage tag.
+* Headless Chrome Selenium webdriver support.
