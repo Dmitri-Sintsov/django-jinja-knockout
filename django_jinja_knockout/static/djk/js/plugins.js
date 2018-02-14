@@ -290,12 +290,11 @@ $.fn.findSelf = function(selector) {
 
 $.fn.scrollableParent = function() {
     var $parents = this.parents();
-    var $scrollable = $parents.find('.bootstrap-dialog-message').first();
-    if ($scrollable.length === 0) {
-        $scrollable = $parents.filter(function(idx) {
-            return this.scrollHeight > this.offsetHeight;
-        }).last();
-    }
+
+    var $scrollable = $parents.filter(function(idx) {
+        return this.scrollHeight > this.offsetHeight && this.offsetWidth !== this.clientWidth;
+    }).first();
+
     if ($scrollable.length === 0) {
         $scrollable = $('html, body');
     }
