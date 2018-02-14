@@ -248,6 +248,8 @@ void function(AlertError) {
                     'type': 'button'
                 }).text('×'));
                 this.$field.after($contents);
+            }
+            if (options.messages.length > 0) {
                 var $scrollable = this.$field.scrollableParent();
                 window.setTimeout(function() {
                     $scrollable.scrollTop(self.$field.position().top);
