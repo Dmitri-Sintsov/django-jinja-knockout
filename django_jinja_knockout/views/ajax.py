@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
+from django.forms import model_to_dict
 from django.views.generic import TemplateView
 
 from ..validators import ViewmodelValidator
@@ -217,6 +218,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     form = None
     formset = None
     form_with_inline_formsets = None
+    instance = None
 
     def get_default_action_name(self):
         return 'edit_inline' if self.form is None else 'edit_form'
@@ -431,12 +433,13 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         :param obj: None when called from .post(), use to override when calling super().action_edit_form(obj)
         :return: vm_list
         """
-        if obj is None:
-            obj = self.get_object_for_action()
+        self.instance = self.get_object_for_action() if obj is None else obj
         form_class = self.get_edit_form()
-        form = form_class(instance=obj, **self.get_form_kwargs(form_class))
+        form = form_class(instance=self.instance, **self.get_form_kwargs(form_class))
         return self.vm_form(
-            form, verbose_name=self.render_object_desc(obj), action_query=self.get_action_query(obj)
+            form,
+            verbose_name=self.render_object_desc(self.instance),
+            action_query=self.get_action_query(self.instance)
         )
 
     def action_create_inline(self):
@@ -450,13 +453,14 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         :param obj: None when called from .post(), use to override when calling super().action_edit_inline(obj)
         :return: vm_list
         """
-        if obj is None:
-            obj = self.get_object_for_action()
+        self.instance = self.get_object_for_action() if obj is None else obj
         ff_class = self.get_edit_form_with_inline_formsets()
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
-        ff.get(instance=obj)
+        ff.get(instance=self.instance)
         return self.vm_inline(
-            ff, verbose_name=self.render_object_desc(obj), action_query=self.get_action_query(obj)
+            ff,
+            verbose_name=self.render_object_desc(self.instance),
+            action_query=self.get_action_query(self.instance)
         )
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
@@ -481,14 +485,19 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     # Supports both 'create_form' and 'edit_form' actions.
     def action_save_form(self):
-        old_obj = self.get_object_for_action()
-        form_class = self.get_create_form() if old_obj is None else self.get_edit_form()
-        form = form_class(self.request.POST, instance=old_obj, **self.get_form_kwargs(form_class))
+        self.instance = old_obj = self.get_object_for_action()
+        if old_obj is None:
+            form_class = self.get_create_form()
+        else:
+            # Clone old obj. Setting .pk = None will not work.
+            old_obj = model_to_dict(old_obj, exclude=['id'])
+            form_class = self.get_edit_form()
+        form = form_class(self.request.POST, instance=self.instance, **self.get_form_kwargs(form_class))
         if form.is_valid():
             if form.has_changed():
-                new_obj = form.save()
+                self.instance = form.save()
                 self.event('save_form_success', old_obj=old_obj, form=form)
-                vms = self.vm_save_form(old_obj, new_obj, form=form)
+                vms = self.vm_save_form(old_obj, self.instance, form=form)
             else:
                 vms = vm_list()
             return vms
@@ -499,17 +508,19 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     # Supports both 'create_inline' and 'edit_inline' actions.
     def action_save_inline(self):
-        old_obj = self.get_object_for_action()
+        self.instance = old_obj = self.get_object_for_action()
         if old_obj is None:
             ff_class = self.get_create_form_with_inline_formsets()
         else:
+            # Clone old obj. Setting .pk = None will not work.
+            old_obj = model_to_dict(old_obj, exclude=['id'])
             ff_class = self.get_edit_form_with_inline_formsets()
-        ff = ff_class(self.request, create=old_obj is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
-        new_obj = ff.save(instance=old_obj)
+        ff = ff_class(self.request, create=self.instance is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
+        self.instance = ff.save(instance=self.instance)
         if new_obj is not None:
             if ff.has_changed():
                 self.event('save_inline_success', old_obj=old_obj, ff=ff)
-                vms = self.vm_save_form(old_obj, new_obj, ff=ff)
+                vms = self.vm_save_form(old_obj, self.instance, ff=ff)
             else:
                 vms = vm_list()
             return vms
