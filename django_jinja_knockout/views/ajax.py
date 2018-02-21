@@ -489,7 +489,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if old_obj is None:
             form_class = self.get_create_form()
         else:
-            # Clone old obj. Setting .pk = None will not work.
+            # Save old obj for comparsion. Setting .pk = None will not work.
             old_obj = model_to_dict(old_obj, exclude=['id'])
             form_class = self.get_edit_form()
         form = form_class(self.request.POST, instance=self.instance, **self.get_form_kwargs(form_class))
@@ -512,12 +512,12 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if old_obj is None:
             ff_class = self.get_create_form_with_inline_formsets()
         else:
-            # Clone old obj. Setting .pk = None will not work.
+            # Save old obj for comparsion. Setting .pk = None will not work.
             old_obj = model_to_dict(old_obj, exclude=['id'])
             ff_class = self.get_edit_form_with_inline_formsets()
         ff = ff_class(self.request, create=self.instance is None, **self.get_form_with_inline_formsets_kwargs(ff_class))
         self.instance = ff.save(instance=self.instance)
-        if new_obj is not None:
+        if self.instance is not None:
             if ff.has_changed():
                 self.event('save_inline_success', old_obj=old_obj, ff=ff)
                 vms = self.vm_save_form(old_obj, self.instance, ff=ff)
