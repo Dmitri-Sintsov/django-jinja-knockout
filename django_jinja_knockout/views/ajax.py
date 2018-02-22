@@ -855,9 +855,6 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     def get_query_fields(self):
         return self.get_all_related_fields()
 
-    def get_allowed_filter_fields(self):
-        return OrderedDict()
-
     @classmethod
     def process_qs(cls, request, qs):
         self = cls()

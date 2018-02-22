@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 import traceback
 
@@ -381,7 +382,7 @@ class BaseFilterView(View, GetPostMixin):
         self.current_sort_order = None
         self.current_stripped_sort_order = None
         self.current_search_str = ''
-
+        self.grid_fields = None
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
@@ -404,12 +405,12 @@ class BaseFilterView(View, GetPostMixin):
         return self.get_all_fieldnames() if self.grid_fields is None else self.get_all_related_fields()
 
     def get_grid_fields(self):
-        if self.grid_fields is None:
+        if self.__class__.grid_fields is None:
             grid_fields = []
-        elif self.grid_fields == '__all__':
+        elif self.__class__.grid_fields == '__all__':
             grid_fields = self.get_all_fieldnames()
         else:
-            grid_fields = self.grid_fields
+            grid_fields = self.__class__.grid_fields
         return grid_fields
 
     def get_related_fields(self, query_fields=None):
@@ -431,29 +432,31 @@ class BaseFilterView(View, GetPostMixin):
     def get_allowed_sort_orders(self):
         # Do not need to duplicate both accending and descending ('-' prefix) orders.
         # Both are counted in.
-        if self.allowed_sort_orders is None:
+        if self.__class__.allowed_sort_orders is None:
             allowed_sort_orders = []
-        elif self.allowed_sort_orders == '__all__':
-            self.allowed_sort_orders = self.get_all_allowed_sort_orders()
+        elif self.__class__.allowed_sort_orders == '__all__':
+            allowed_sort_orders = self.get_all_allowed_sort_orders()
+        else:
+            allowed_sort_orders = self.__class__.allowed_sort_orders
         return allowed_sort_orders
 
     def get_allowed_filter_fields(self):
         # Be careful about enabling filters.
         # key is field name (may be one to many related field as well)
         # value is the list of field choice tuples, as specified in model field 'choices' kwarg.
-        if self.allowed_filter_fields is None:
-            allowed_filter_fields = {}
+        if self.__class__.allowed_filter_fields is None:
+            allowed_filter_fields = OrderedDict()
         else:
-            allowed_filter_fields = self.allowed_filter_fields
+            allowed_filter_fields = self.__class__.allowed_filter_fields
         return allowed_filter_fields
 
     def get_search_fields(self):
         # (('field1', 'contains'), ('field2', 'icontains'), ('field3', ''))
         # Ordered dict is also supported with the same syntax.
-        if self.search_fields is None:
+        if self.__class__.search_fields is None:
             search_fields = ()
         else:
-            search_fields = self.search_fields
+            search_fields = self.__class__.search_fields
         return search_fields
 
     def get_contenttype_filter(self, *apps_models):
