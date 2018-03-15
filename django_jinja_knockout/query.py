@@ -534,6 +534,9 @@ class ListQuerySet(ValuesQuerySetMixin):
     def __iter__(self):
         return iter(self.list)
 
+    def __len__(self):
+        return len(self.list)
+
     def __getitem__(self, k):
         """
         Retrieves an item or slice from the set of results.
