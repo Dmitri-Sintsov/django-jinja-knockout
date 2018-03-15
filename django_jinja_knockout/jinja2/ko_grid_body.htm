@@ -193,7 +193,7 @@
         <div class="table-responsive" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
-                    <tr>
+                    <tr class="info">
                         <!-- ko if: options.showSelection -->
                         <th data-bind="if: options.selectMultipleRows" class="grid-glyph-cell">
                             <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>

@@ -1432,13 +1432,13 @@ void function(Grid) {
                 {
                     'cycleColumns': {
                         direction: 0,
-                        cycler: ['success', 'info', 'warning'],
+                        cycler: ['warning', ''],
                     },
                 },
                 {
                     'cycleRows': {
                         direction: 1,
-                        cycler: ['success', 'info', 'warning'],
+                        cycler: ['warning', ''],
                     },
                 },
                 {
