@@ -138,6 +138,14 @@ table.rows-strong-border > thead > tr, table.rows-strong-border > tbody > tr {
 	border: 2px inset #eeeeee;
 }
 
+table.double-rows > thead > tr:nth-child(odd), table.double-rows > tbody > tr:nth-child(odd) {
+	border-bottom: none;
+}
+
+table.double-rows > thead > tr:nth-child(even), table.double-rows > tbody > tr:nth-child(even) {
+	border-top: none;
+}
+
 .label-gray {
 	color: gray;
 	background: transparent;

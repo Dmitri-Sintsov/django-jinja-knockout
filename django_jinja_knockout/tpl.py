@@ -213,6 +213,23 @@ def print_list_group(row, cb=escape, show_keys=None, i18n=None):
     )
 
 
+def print_badge_list_group(row, cb=escape, show_keys=None, i18n=None):
+    return mark_safe(
+        PrintList(
+            elem_tpl='<li{v_attrs}>{v}</li>\n',
+            key_tpl='<li{v_attrs}><span{k_attrs}>{k}</span>{v}</li>\n',
+            top_tpl='<ul class="list-group">{}</ul>\n',
+            tpl_kwargs={
+                'v_attrs': {'class': 'list-group-item'},
+                'k_attrs': {'class': "badge preformatted"},
+            },
+            cb=cb,
+            show_keys=show_keys,
+            i18n=i18n
+        ).nested(row)
+    )
+
+
 def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
     r = d.__class__()
     for key in d:
