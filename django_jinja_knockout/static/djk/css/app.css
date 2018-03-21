@@ -138,12 +138,28 @@ table.rows-strong-border > thead > tr, table.rows-strong-border > tbody > tr {
 	border: 2px inset #eeeeee;
 }
 
-table.double-rows > thead > tr:nth-child(odd), table.double-rows > tbody > tr:nth-child(odd) {
+table.double-rows > thead > tr:nth-child(odd),
+table.double-rows > thead > tr:nth-child(odd) > td,
+table.double-rows > tbody > tr:nth-child(odd),
+table.double-rows > tbody > tr:nth-child(odd) > td
+{
 	border-bottom: none;
+	padding-bottom: 0;
+	margin-bottom: 0;
 }
 
-table.double-rows > thead > tr:nth-child(even), table.double-rows > tbody > tr:nth-child(even) {
+table.double-rows > thead > tr:nth-child(even),
+table.double-rows > thead > tr:nth-child(even) > td,
+table.double-rows > tbody > tr:nth-child(even),
+table.double-rows > tbody > tr:nth-child(even) > td
+{
 	border-top: none;
+	padding-top: 0;
+	margin-top: 0;
+}
+
+tr.cells-no-border > td, tr.cells-no-border > th {
+	border: none !important;
 }
 
 .label-gray {
