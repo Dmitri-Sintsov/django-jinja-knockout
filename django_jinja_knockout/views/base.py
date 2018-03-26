@@ -508,8 +508,7 @@ class BaseFilterView(View, GetPostMixin):
             display_value = qtpl.print_list_group(display_value.values())
         return display_value
 
-    @classmethod
-    def init_class(cls, self):
+    def init_class(self):
 
         for field in self.model._meta.fields:
             if field.primary_key:
@@ -738,7 +737,7 @@ class BaseFilterView(View, GetPostMixin):
         self.current_search_str = self.request_get(self.search_key, '')
 
     def dispatch(self, request, *args, **kwargs):
-        self.__class__.init_class(self)
+        self.init_class()
         self.get_current_query()
         return super().dispatch(request, *args, **kwargs)
 

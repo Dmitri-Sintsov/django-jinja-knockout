@@ -223,7 +223,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_default_action_name(self):
         return 'edit_inline' if self.form is None else 'edit_form'
 
-    def dispatch(self, request, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         if self.model is None:
             if self.form is not None:
                 self.model = self.form._meta.model
@@ -234,7 +234,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 self.model = form_class._meta.model
             else:
                 raise ValueError('model class attribute is undefined')
-        return super().dispatch(request, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_actions(self):
         return {
@@ -859,7 +859,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     def process_qs(cls, request, qs):
         self = cls()
         self.request = request
-        cls.init_class(self)
+        self.init_class()
         return self.postprocess_qs(qs)
 
     @classmethod
@@ -907,14 +907,11 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             exclude_fields = self.__class__.exclude_fields
         return exclude_fields
 
-    @classmethod
-    def init_class(cls, self):
-        super(KoGridView, cls).init_class(self)
+    def init_class(self):
+        super().init_class()
 
-        if cls.query_fields is None:
+        if self.query_fields is None:
             self.query_fields = self.get_query_fields()
-        else:
-            self.query_fields = cls.query_fields
 
         self.exclude_fields = self.get_exclude_fields()
 
