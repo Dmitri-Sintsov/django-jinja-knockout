@@ -64,7 +64,8 @@ class PrintList:
         top_tpl='<ul>{}</ul>\n',
         tpl_kwargs: dict=None,
         cb=escape, show_keys=None,
-        i18n: dict=None
+        i18n: dict=None,
+        keypath=None,
     ):
         if tpl_kwargs is None:
             tpl_kwargs = {}
@@ -79,6 +80,8 @@ class PrintList:
         self.cb = cb
         self.show_keys = self.PRINT_NO_KEYS if show_keys is None else show_keys
         self.i18n = i18n
+        # Set keypath kwarg to False to skip keypath nesting keys.
+        self.keypath = [] if keypath is None else keypath
 
     def nested(self, row):
         result = []
@@ -94,12 +97,16 @@ class PrintList:
             else:
                 key, elem = definition
                 format_kwargs = {}
+            if isinstance(self.keypath, list):
+                self.keypath.append(key)
             if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
                 result.append(self.nested(elem))
             else:
                 result.append(
                     self.format_val(key, elem, format_kwargs)
                 )
+            if isinstance(self.keypath, list):
+                self.keypath.pop()
         return self.top_tpl.format(''.join(result))
 
     def format_val(self, key, elem, format_kwargs):
@@ -114,7 +121,11 @@ class PrintList:
             else:
                 format_kwargs[k] = attrs
         if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
-            key_val = self.i18n.get(key, key)
+            if isinstance(self.keypath, list):
+                local_keypath = '›'.join(self.keypath)
+                key_val = self.i18n.get(local_keypath, key)
+            else:
+                key_val = self.i18n.get(key, key)
             format_kwargs['k'] = self.cb(key_val) if callable(self.cb) else str(key_val)
             tpl = self.key_tpl
         else:

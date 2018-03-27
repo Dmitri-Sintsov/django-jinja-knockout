@@ -289,7 +289,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return get_object_description(obj)
 
     def render_object_desc(self, obj):
-        i18n = self.get_model_fields_verbose_names() if self.model_fields_i18n else None
+        if self.model_fields_i18n:
+            i18n = self.get_model_fields_verbose_names()
+            sdv.nested_update(i18n, self.get_related_model_fields_verbose_names())
+        else:
+            i18n = None
         return qtpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
 
     # Create one model object.
@@ -645,11 +649,14 @@ class GridActionsMixin(ModelFormActionsView):
         return [self.get_object_desc(obj) for obj in objects]
 
     # Used to get local verbose names of the foreign fields.
-    def get_related_models(self):
+    def get_related_models(self, field_related=False):
         if self.related_models is None:
             related_models = {}
             for field_name, related_model in yield_related_models(self.model, self.get_all_related_fields()):
                 related_models[field_name] = related_model
+                if field_related and field_name.endswith('_id'):
+                    related_models[field_name[:-len('_id')]] = related_model
+
             return related_models
         else:
             return self.related_models
@@ -737,7 +744,7 @@ class GridActionsMixin(ModelFormActionsView):
     def get_related_model_fields_verbose_names(self):
         # Grid model fields are not rendered as nested fields in grid, thus are not included into result of this call.
         related_verbose_names = {}
-        related_models = self.get_related_models()
+        related_models = self.get_related_models(field_related=True)
         # See the description of related_models class attribute.
         # The value of field_name will be used at client-side as App.renderNestedList() options.keyPrefix attribute.
         # See ko-grid.js for more details.
