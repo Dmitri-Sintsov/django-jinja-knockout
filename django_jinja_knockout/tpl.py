@@ -121,7 +121,7 @@ class PrintList:
             else:
                 format_kwargs[k] = attrs
         if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
-            if isinstance(self.keypath, list):
+            if isinstance(self.keypath, list) and all(isinstance(v, str) for v in self.keypath):
                 local_keypath = '›'.join(self.keypath)
                 key_val = self.i18n.get(local_keypath, key)
             else:
