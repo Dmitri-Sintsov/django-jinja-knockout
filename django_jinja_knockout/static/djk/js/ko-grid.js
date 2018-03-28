@@ -1426,24 +1426,28 @@ void function(Grid) {
                 {
                     'none': {
                         direction: null,
+                        header: '',
                         cycler: [],
                     }
                 },
                 {
                     'cycleColumns': {
                         direction: 0,
+                        header: 'info',
                         cycler: ['warning', ''],
                     },
                 },
                 {
                     'cycleRows': {
                         direction: 1,
+                        header: 'info',
                         cycler: ['warning', ''],
                     },
                 },
                 {
                     'linearRows': {
                         direction: 1,
+                        header: '',
                         cycler: ['linear-white'],
                     }
                 },
@@ -1516,8 +1520,10 @@ void function(Grid) {
         this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
         this.gridSearchDisplayStr = ko.observable('');
         this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
-        this.selectAllRowsCss = ko.computed(this.getSelectAllRowsCss, this);
         this.highlightMode = ko.observable(this.options.highlightMode);
+        this.lastHeaderCss = {};
+        this.headerCss = ko.computed(this.getHeaderCss, this);
+        this.selectAllRowsCss = ko.computed(this.getSelectAllRowsCss, this);
         this.initAjaxParams();
         this.localize();
 
@@ -1566,6 +1572,15 @@ void function(Grid) {
         }
         return css;
     }
+
+    Grid.getHeaderCss = function() {
+        this.lastHeaderCss = _.mapObject(this.lastHeaderCss, function() {
+            return false;
+        });
+        var highlightModeRule = this.getHighlightModeRule();
+        this.lastHeaderCss[highlightModeRule.header] = true;
+        return this.lastHeaderCss;
+    };
 
     Grid.getSelectAllRowsCss = function() {
         return {
