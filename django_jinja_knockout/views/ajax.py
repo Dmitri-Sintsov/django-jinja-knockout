@@ -288,12 +288,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_object_desc(self, obj):
         return get_object_description(obj)
 
+    def get_all_verbose_names(self):
+        return self.get_model_fields_verbose_names() if self.model_fields_i18n else None
+
     def render_object_desc(self, obj):
-        if self.model_fields_i18n:
-            i18n = self.get_model_fields_verbose_names()
-            sdv.nested_update(i18n, self.get_related_model_fields_verbose_names())
-        else:
-            i18n = None
+        i18n = self.get_all_verbose_names()
         return qtpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
 
     # Create one model object.
@@ -641,6 +640,12 @@ class GridActionsMixin(ModelFormActionsView):
             ])
         }
 
+    def get_all_verbose_names(self):
+        i18n = super().get_all_verbose_names()
+        if i18n is not None:
+            sdv.nested_update(i18n, self.get_related_model_fields_verbose_names(add_field_related=False))
+        return i18n
+
     # Edit multiple selected model objects.
     def get_edit_formset(self):
         return self.formset
@@ -649,13 +654,19 @@ class GridActionsMixin(ModelFormActionsView):
         return [self.get_object_desc(obj) for obj in objects]
 
     # Used to get local verbose names of the foreign fields.
-    def get_related_models(self, field_related=False):
+    # For client-side rendering, set add_field_related=True.
+    # For server-side rendering, set add_field_related=False,
+    def get_related_models(self, add_field_related=None):
         if self.related_models is None:
             related_models = {}
             for field_name, related_model in yield_related_models(self.model, self.get_all_related_fields()):
-                related_models[field_name] = related_model
-                if field_related and field_name.endswith('_id'):
-                    related_models[field_name[:-len('_id')]] = related_model
+                if field_name.endswith('_id'):
+                    if add_field_related in (None, True):
+                        related_models[field_name] = related_model
+                    if add_field_related in (None, False):
+                        related_models[field_name[:-len('_id')]] = related_model
+                else:
+                    related_models[field_name] = related_model
 
             return related_models
         else:
@@ -741,10 +752,10 @@ class GridActionsMixin(ModelFormActionsView):
 
     # Collect field names verbose_name or i18n of field names from related model classes when available.
     # These usually are stored into App.ko.Grid.meta.fkNestedListOptions.i18n
-    def get_related_model_fields_verbose_names(self):
+    def get_related_model_fields_verbose_names(self, add_field_related=None):
         # Grid model fields are not rendered as nested fields in grid, thus are not included into result of this call.
         related_verbose_names = {}
-        related_models = self.get_related_models(field_related=True)
+        related_models = self.get_related_models(add_field_related=add_field_related)
         # See the description of related_models class attribute.
         # The value of field_name will be used at client-side as App.renderNestedList() options.keyPrefix attribute.
         # See ko-grid.js for more details.
@@ -774,7 +785,7 @@ class GridActionsMixin(ModelFormActionsView):
             meta['fkNestedListOptions'] = {
                 'showKeys': True,
             }
-            i18n = self.get_related_model_fields_verbose_names()
+            i18n = self.get_related_model_fields_verbose_names(add_field_related=True)
             if len(i18n) > 0:
                 meta['fkNestedListOptions']['i18n'] = i18n
             # Current model verbose / local field names used by client-side App.FkGridWidget.setDisplayValue() call.
