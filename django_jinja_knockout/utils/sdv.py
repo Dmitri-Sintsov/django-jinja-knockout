@@ -2,8 +2,15 @@ from collections import OrderedDict, ValuesView, Mapping
 import os
 import inspect
 from pprint import pprint
+from uuid import uuid4
+from base64 import b32encode
+
 
 LOGPATH = ['logs']
+
+
+def uuid4_base32():
+    return b32encode((uuid4()).bytes).decode('utf-8').rstrip('=').lower()
 
 
 # To use with user.is_authenticated / user.is_anonymous Django portable code.

@@ -5,6 +5,12 @@
     <script src="{{ static('djk/js/lib/js.cookie.js') }}"></script>
     <script src="{{ static('djk/js/lib/QueryString.js') }}"></script>
     <script src="{{ url('javascript-catalog') }}"></script>
+    {% if client_conf.debug -%}
+    <script src="{{ static('djk/js/lib/vue.js') }}"></script>
+    {% else -%}
+    <script src="{{ static('djk/js/lib/vue.min.js') }}"></script>
+    {% endif -%}
+    <script src="{{ static('djk/js/lib/v-visible.min.js') }}"></script>
     <script src="{{ static('djk/js/lib/knockout.js') }}"></script>
     <!-- script src="{{ static('djk/js/lib/knockout-es5.min.js') }}"></script -->
     <script src="{{ static('djk/js/lib/jquery.form.min.js') }}"></script>

@@ -1,5 +1,5 @@
 {% from 'bs_form_body.htm' import bs_form_body with context -%}
-{# @note: Also called in forms.set_knockout_template #}
+{# @note: Also called in forms.set_vue_template #}
 {% if not html.layout_classes -%}
     {% do html.update({'layout_classes': layout_classes}) -%}
 {% endif -%}

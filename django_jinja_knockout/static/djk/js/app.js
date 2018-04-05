@@ -16,6 +16,15 @@ if (typeof window.App === 'undefined') {
     window.App = {};
 }
 
+
+void function(Vue) {
+    var DELIMITER_PATCH = { replace: function() { return '^(?!.).' } };
+    Vue.mixin({
+        delimiters: [DELIMITER_PATCH, DELIMITER_PATCH]
+    });
+}(Vue);
+
+
 App = window.App;
 
 App.previousErrorHandler = window.onerror;
@@ -767,6 +776,9 @@ void function(Actions) {
 
 // Runtime script shared objects.
 App.bag = {};
+
+// Vue.js bindings.
+App.vue = {};
 
 // Knockout,js bindings.
 App.ko = {};
@@ -1885,17 +1897,40 @@ App.initClient = function(selector, method, reverse) {
     }
 
     var $selector = $(selector);
-    if (reverse) {
-        for (var i = App.initClientHooks.length - 1; i >= 0; i--) {
-            execHook($selector, App.initClientHooks[i], method);
+
+    // https://github.com/vuejs/vue/issues/3587
+    if (method !== 'unprotect') {
+        $selector.findSelf('.no-initclient').each(function(k, v) {
+            var outerHTML = $(v).prop('outerHTML');
+            var $cloak = $('<script>', {
+                'class': 'initclient',
+                'type': 'initclient',
+            }).text(outerHTML);
+            $(v).replaceWith($cloak);
+        });
+        if (reverse) {
+            for (var i = App.initClientHooks.length - 1; i >= 0; i--) {
+                execHook($selector, App.initClientHooks[i], method);
+            }
+        } else {
+            for (var i = 0; i < App.initClientHooks.length; i++) {
+                execHook($selector, App.initClientHooks[i], method);
+            }
         }
-    } else {
-        for (var i = 0; i < App.initClientHooks.length; i++) {
-            execHook($selector, App.initClientHooks[i], method);
-        }
+    }
+    $selector.findSelf('script.initclient').each(function(k, v) {
+        var outerHTML = $(v).text();
+        $(v).replaceWith($.contents(outerHTML));
+    });
+
+    if (method === 'unprotect') {
+        $selector.findSelf('.no-initclient').removeClass('no-initclient');
     }
 };
 
+/**
+ * Specifies partial applying of App.initClient hooks.
+ */
 App.initClientMark = function(html) {
     return '<span class="init-client-begin"></span>' + html + '<span class="init-client-end"></span>';
 };

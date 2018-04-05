@@ -62,6 +62,7 @@ class TemplateContextProcessor():
             'jsErrorsLogging': getattr(settings, 'JS_ERRORS_LOGGING', False),
             'csrfToken': get_token(self.HttpRequest),
             'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
+            'debug': getattr(settings, 'DEBUG', False),
             'staticPath': static(''),
             'userId': self.user_id,
             'url': {}

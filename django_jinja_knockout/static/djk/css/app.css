@@ -298,7 +298,7 @@ form .optional-input[type="checkbox"] {
 	margin-right: 0.5em;
 }
 
-textarea.ko-template {
+textarea.template {
 	display: none;
 	visibility: hidden;
 }

@@ -68,7 +68,7 @@
             {% if caller -%}
                 {{ caller({'formset_begin': formset, 'html': html}) }}
             {% endif -%}
-            <div class="formset default-padding">
+            <div class="formset no-initclient default-padding">
                 <div class="management-form">
                     {{ formset.management_form }}
                 </div>
@@ -106,11 +106,9 @@
                 {% if action == '' -%}
                     </table>
                 {% endif -%}
-                {% if formset.knockout_template -%}
-                <div data-bind="foreach: {data: forms, afterRender: afterFormRendered}">
-                    <div data-bind="anonymous_template: {'base-selector': '.formsets', 'template-index': {{ loop.index0 }}}"></div>
-                </div>
-                <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">
+                {% if formset.vue_template -%}
+                <{{ formset.uuid }} v-for="(form, idx) in forms" v-bind:key="form" v-bind:form_idx="idx"></{{ formset.uuid }}>
+                <button class="btn btn-info btn-sm" v-on:click="addForm" v-visible="hasMoreForms">
                     {{ _('Add "%(verbose_name)s"', verbose_name=html.inline_title) }}
                 </button>
                 {% endif -%}
@@ -129,8 +127,8 @@
     </form>
     {% endif -%}
     {% for formset in formsets -%}
-        {% if formset.knockout_template -%}
-        <textarea class="ko-template">{{ formset.knockout_template }}</textarea>
+        {% if formset.vue_template -%}
+        <script type="text/x-template" id="{{ formset.uuid }}" class="vue-empty-formset">{{ formset.vue_template|safe }}</script>
         {% endif -%}
     {% endfor -%}
 </div>

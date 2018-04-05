@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import string
 from .utils import sdv
 from io import StringIO
@@ -111,13 +112,13 @@ class WidgetInstancesMixin(forms.ModelForm):
                 field.widget.request = self.request
 
 
-# Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #
+# Used to generate fake empty_form template for display models formsets where real Vue.js template is unneeded.
 def set_empty_template(formset, request, html: dict=None):
     return None
 
 
-# Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request, html: dict=None):
+# Monkey-patching of formset class to support Vue.js version of empty_form.
+def set_vue_template(formset, request, html: dict=None):
     if html is None:
         html = {}
     t = tpl_loader.get_template('bs_formset_form.htm')
@@ -135,31 +136,34 @@ def set_knockout_template(formset, request, html: dict=None):
     html = lxml.html.parse(StringIO(empty_form))
     for element in html.xpath("//*[@id or @name or @for]"):
         # sdv.dbg('element', element)
-        data_bind_args = []
+        data_bind_args = OrderedDict()
         for attr in ['for', 'id', 'name']:
             if attr in element.attrib:
-                attr_parts = element.attrib[attr].split('__prefix__')
-                if len(attr_parts) == 2:
-                    attr_parts = to_json(attr_parts[0]) + ' + ($index() + $parent.serversideFormsCount) + ' + to_json(attr_parts[1])
-                    data_bind_args.append(to_json(attr) + ': ' + attr_parts)
-                    del element.attrib[attr]
+                if attr == 'name' and element.attrib[attr].endswith('-DELETE'):
+                        element.attrib['v-on:change'] = '$parent.deleteForm($event, form_idx)'
+                else:
+                    attr_parts = element.attrib[attr].split('__prefix__')
+                    if len(attr_parts) == 2:
+                        data_bind_args[attr] = \
+                            to_json(attr_parts[0]) + ' + ($parent.getFormIndex(form_idx)) + ' + to_json(attr_parts[1])
+                        del element.attrib[attr]
         # sdv.dbg('data_bind_args', data_bind_args)
         if len(data_bind_args) > 0:
-            data_bind = 'attr: {' + ', '.join(data_bind_args) + '}'
-            # sdv.dbg('data_bind', data_bind)
-            element.attrib['data-bind'] = data_bind
-    knockout_template = tostring(html, method='html', encoding='utf-8', standalone=True).decode('utf-8')
-    # sdv.dbg('knockout_template before', knockout_template)
-    body_begin = knockout_template.find('<body>')
-    body_end = knockout_template.rfind('</body>')
+            for attr, vue_expr in data_bind_args.items():
+                element.attrib['v-bind:' + attr] = vue_expr
+    vue_template = tostring(html, method='html', encoding='utf-8', standalone=True).decode('utf-8')
+    # sdv.dbg('vue_template before', vue_template)
+    body_begin = vue_template.find('<body>')
+    body_end = vue_template.rfind('</body>')
     if body_begin == -1 or body_end == -1:
-        sdv.dbg('failed ko template', knockout_template)
-        raise ValueError('Knockout template is not wrapped in body tag')
-    # sdv.dbg('knockout_template after', formset.knockout_template)
-    formset.knockout_template = knockout_template[body_begin + len('<body>'):body_end]
-    # @note: Uncomment next line to test knockout.js template for XSS.
+        sdv.dbg('failed vue template', vue_template)
+        raise ValueError('Vue template is not wrapped in body tag')
+    formset.vue_template = '<div>' + vue_template[body_begin + len('<body>'):body_end] + '</div>'
+    # sdv.dbg('vue_template after', formset.vue_template)
+    # @note: Uncomment next line to test Vue.js template for XSS.
     # alert() should execute only when new form is added into formset, not during the page load.
-    # formset.knockout_template += '<script language="javascript">alert(1);</script>'
+    # formset.vue_template += '<script language="javascript">alert(1);</script>'
+    formset.uuid = 'formset_' + sdv.uuid4_base32()
 
 
 def ko_inlineformset_factory(parent_model, model, form, **kwargs):
@@ -169,9 +173,9 @@ def ko_inlineformset_factory(parent_model, model, form, **kwargs):
             'can_delete': False
         })
     formset = inlineformset_factory(parent_model, model, form, **kwargs)
-    formset.set_knockout_template = set_empty_template \
+    formset.set_vue_template = set_empty_template \
         if isinstance(form, DisplayModelMetaclass) \
-        else set_knockout_template
+        else set_vue_template
     return formset
 
 
@@ -182,9 +186,9 @@ def ko_generic_inlineformset_factory(model, form, **kwargs):
             'can_delete': False
         })
     formset = generic_inlineformset_factory(model, form, **kwargs)
-    formset.set_knockout_template = set_empty_template \
+    formset.set_vue_template = set_empty_template \
         if isinstance(form, DisplayModelMetaclass) \
-        else set_knockout_template
+        else set_vue_template
     return formset
 
 
@@ -240,7 +244,7 @@ class FormWithInlineFormsets:
         inline_title = self.get_formset_inline_title(formset)
         if inline_title is not None:
             formset.inline_title = inline_title
-        formset.set_knockout_template(self.request)
+        formset.set_vue_template(self.request)
         formset.request = self.request
         for form in formset:
             if hasattr(form, 'set_request') and callable(form.set_request):
