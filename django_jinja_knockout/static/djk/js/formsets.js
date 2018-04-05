@@ -10,8 +10,10 @@ $('.vue-empty-formset').each(function(k, v) {
                 this.$nextTick(
                     function() {
                         var $formset = $(this.$el).parents('.formset:first');
-                        $formset.addInstance('App.vue.Formset', this.$parent.ctrl);
-                        App.initClient(this.$el);
+                        if ($formset.getInstance('App.vue.Formset') === undefined) {
+                            $formset.addInstance('App.vue.Formset', this.$parent.ctrl);
+                            App.initClient(this.$el);
+                        }
                     }
                 )
             },
@@ -27,7 +29,7 @@ $('.vue-empty-formset').each(function(k, v) {
     }
 });
 
-App.vue.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount) {
+App.vue.Formset = function(serversideFormsCount, maxFormsCount) {
     var self = this;
     var formArray = [];
     /*
@@ -41,6 +43,7 @@ App.vue.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount
         data: {
             ctrl: this,
             forms: formArray,
+            formsTotalCount: serversideFormsCount,
         },
         computed: {
             hasMoreForms: function() {
@@ -71,7 +74,6 @@ App.vue.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount
             App.initClient(this.$el, 'dispose');
         },
     });
-    this.$formsTotalCount = $formsTotalCount;
     this.serversideFormsCount = serversideFormsCount;
     this.maxFormsCount = maxFormsCount;
 };
@@ -83,13 +85,12 @@ void function(Formset) {
     };
 
     Formset.addForm = function() {
-        var formsCount = this.getTotalFormsCount();
         if (this.vm.hasMoreForms) {
             // Add new form Vue component.
             // Value does not matter because Vue template uses v-for index.
             this.vm.forms.push($.randomHash());
             // Update DOM node for forms total count, otherwise Django will not create extra model forms.
-            this.$formsTotalCount.val(this.getTotalFormsCount());
+            this.vm.formsTotalCount = this.getTotalFormsCount();
         }
     };
 
@@ -105,7 +106,7 @@ void function(Formset) {
                 if (result) {
                     self.vm.forms.splice(form_idx, 1);
                     // Update DOM node for forms total count.
-                    self.$formsTotalCount.val(self.getTotalFormsCount());
+                    self.vm.formsTotalCount = self.getTotalFormsCount();
                 } else {
                     $target.prop('checked', false);
                     $panel.removeClass('alert alert-danger');
@@ -128,13 +129,12 @@ App.initClientHooks.push({
             var $formset = $(v);
             // Do not bind to display-only formsets.
             if ($formset.parent('.formsets.display-only').length == 0) {
-                var $formsTotalCount;
                 var serversideFormsCount;
                 var maxFormsCount;
                 $formset.find('.management-form :input').each(function(k, v) {
                     var $input = $(v);
                     if ($input.prop('id').match(/TOTAL_FORMS$/)) {
-                        $formsTotalCount = $input;
+                        $input.attr({'v-bind:value': 'formsTotalCount'});
                         serversideFormsCount = parseInt($input.val());
                     }
                     if ($input.prop('id').match(/MAX_NUM_FORMS$/)) {
@@ -146,7 +146,6 @@ App.initClientHooks.push({
                     return;
                 }
                 var vueFormset = new App.vue.Formset(
-                    $formsTotalCount,
                     serversideFormsCount,
                     maxFormsCount
                 );
