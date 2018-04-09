@@ -166,7 +166,7 @@ def set_vue_template(formset, request, html: dict=None):
     formset.uuid = 'empty-form-' + sdv.uuid4_base32()
 
 
-def ko_inlineformset_factory(parent_model, model, form, **kwargs):
+def vue_inlineformset_factory(parent_model, model, form, **kwargs):
     if isinstance(form, DisplayModelMetaclass):
         kwargs.update({
             'extra': 0,
@@ -179,7 +179,10 @@ def ko_inlineformset_factory(parent_model, model, form, **kwargs):
     return formset
 
 
-def ko_generic_inlineformset_factory(model, form, **kwargs):
+ko_inlineformset_factory = vue_inlineformset_factory
+
+
+def vue_generic_inlineformset_factory(model, form, **kwargs):
     if isinstance(form, DisplayModelMetaclass):
         kwargs.update({
             'extra': 0,
@@ -190,6 +193,9 @@ def ko_generic_inlineformset_factory(model, form, **kwargs):
         if isinstance(form, DisplayModelMetaclass) \
         else set_vue_template
     return formset
+
+
+ko_generic_inlineformset_factory = vue_generic_inlineformset_factory
 
 
 # Layer on top of related form and it's many to one multiple formsets.

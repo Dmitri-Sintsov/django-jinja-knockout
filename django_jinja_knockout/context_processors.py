@@ -68,7 +68,7 @@ class TemplateContextProcessor():
             'url': {},
             'Vue': {
                 'interpolation': getattr(settings, 'VUE_INTERPOLATION', True),
-            }
+            },
         }
         file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
         if file_max_size is not None:

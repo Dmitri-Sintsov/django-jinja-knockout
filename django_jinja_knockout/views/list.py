@@ -74,7 +74,7 @@ class FoldingPaginationMixin:
 # This class should not be exported in __init__.py.
 #
 # For AJAX (client-side) implementation used in conjunction with KoGridView,
-# see App.ko.GridFilterChoice class in ko-grid.js.
+# see App.ko.GridFilterChoice class in grid.js.
 #
 # todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
 class FilterChoices:

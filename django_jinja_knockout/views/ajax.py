@@ -758,7 +758,7 @@ class GridActionsMixin(ModelFormActionsView):
         related_models = self.get_related_models(add_field_related=add_field_related)
         # See the description of related_models class attribute.
         # The value of field_name will be used at client-side as App.renderNestedList() options.keyPrefix attribute.
-        # See ko-grid.js for more details.
+        # See grid.js for more details.
         for field_name, model in sdv.iter_enumerate(related_models, repeated_keys=True):
             verbose_names = self.get_model_fields_verbose_names(field_name, model)
             sdv.nested_update(related_verbose_names, verbose_names)
@@ -830,7 +830,7 @@ class GridActionsMixin(ModelFormActionsView):
         return vm
 
 
-# Knockout.js ko-grid.js filtered / sorted ListView.
+# Vue.js grid.js filtered / sorted ListView.
 #
 # In urls.py define
 #     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
