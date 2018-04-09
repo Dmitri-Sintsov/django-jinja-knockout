@@ -1,25 +1,5 @@
 'use strict';
 
-$('.vue-empty-formset').each(function(k, v) {
-    var scriptId = $(v).prop('id');
-    if (scriptId.indexOf('formset_') === 0) {
-        Vue.component(scriptId, {
-            template: '#' + scriptId,
-            props: ['form_idx'],
-            mounted: function() {
-                this.$nextTick(
-                    function() {
-                        App.initClient(this.$el);
-                    }
-                )
-            },
-            beforeDestroy: function() {
-                App.initClient(this.$el, 'dispose');
-            },
-        });
-    }
-});
-
 App.vue.Formset = function(serversideFormsCount, maxFormsCount) {
     var self = this;
     var formArray = [];
@@ -123,6 +103,31 @@ void function(Formset) {
     };
 
 }(App.vue.Formset.prototype);
+
+App.initClientHooks.push(
+    function($selector) {
+        $selector.findSelf('.vue-empty-formset').each(function(k, v) {
+            var scriptId = $(v).prop('id');
+            if (scriptId.indexOf('formset_') === 0 &&
+                    (typeof Vue.options.components[scriptId] === 'undefined')) {
+                Vue.component(scriptId, {
+                    template: '#' + scriptId,
+                    props: ['form_idx'],
+                    mounted: function() {
+                        this.$nextTick(
+                            function() {
+                                App.initClient(this.$el);
+                            }
+                        )
+                    },
+                    beforeDestroy: function() {
+                        App.initClient(this.$el, 'dispose');
+                    },
+                });
+            }
+        });
+    }
+);
 
 App.initClientHooks.push({
     init: function($selector) {
