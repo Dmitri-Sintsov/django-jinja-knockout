@@ -16,16 +16,8 @@ if (typeof window.App === 'undefined') {
     window.App = {};
 }
 
-
-void function(Vue) {
-    var DELIMITER_PATCH = { replace: function() { return '^(?!.).' } };
-    Vue.mixin({
-        delimiters: [DELIMITER_PATCH, DELIMITER_PATCH]
-    });
-}(Vue);
-
-
 App = window.App;
+
 
 App.previousErrorHandler = window.onerror;
 window.onerror = function(messageOrEvent, source, lineno, colno, error) {
@@ -2153,6 +2145,14 @@ $(document)
 .ready(function() {
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
+    if (App.conf.Vue.interpolation !== true) {
+        void function(Vue) {
+            var DELIMITER_PATCH = { replace: function() { return '^(?!.).' } };
+            Vue.mixin({
+                delimiters: [DELIMITER_PATCH, DELIMITER_PATCH]
+            });
+        }(Vue);
+    }
     App.createInstances(App.readyInstances);
     App.initClient(document);
     App.initTabPane();
