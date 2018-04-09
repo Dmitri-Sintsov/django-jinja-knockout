@@ -18,8 +18,7 @@ App.vue.Formset = function(serversideFormsCount, maxFormsCount) {
         },
         computed: {
             hasMoreForms: function() {
-                return typeof this.ctrl.maxFormsCount === 'undefined' ||
-                    this.ctrl.getTotalFormsCount() < this.ctrl.maxFormsCount;
+                return this.ctrl.getTotalFormsCount() < this.ctrl.maxFormsCount;
             }
         },
         methods: {
@@ -106,9 +105,9 @@ void function(Formset) {
 
 App.initClientHooks.push(
     function($selector) {
-        $selector.findSelf('.vue-empty-formset').each(function(k, v) {
+        $selector.findSelf('.vue-empty-form').each(function(k, v) {
             var scriptId = $(v).prop('id');
-            if (scriptId.indexOf('formset_') === 0 &&
+            if (scriptId.indexOf('empty-form-') === 0 &&
                     (typeof Vue.options.components[scriptId] === 'undefined')) {
                 Vue.component(scriptId, {
                     template: '#' + scriptId,

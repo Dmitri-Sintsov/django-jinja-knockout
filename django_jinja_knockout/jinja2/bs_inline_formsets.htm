@@ -128,7 +128,7 @@
     {% endif -%}
     {% for formset in formsets -%}
         {% if formset.vue_template -%}
-        <script type="text/x-template" id="{{ formset.uuid }}" class="vue-empty-formset">{{ formset.vue_template|safe }}</script>
+        <script type="text/x-template" id="{{ formset.uuid }}" class="vue-empty-form">{{ formset.vue_template|safe }}</script>
         {% endif -%}
     {% endfor -%}
 </div>

@@ -158,12 +158,12 @@ def set_vue_template(formset, request, html: dict=None):
     if body_begin == -1 or body_end == -1:
         sdv.dbg('failed vue template', vue_template)
         raise ValueError('Vue template is not wrapped in body tag')
-    formset.vue_template = '<div>' + vue_template[body_begin + len('<body>'):body_end] + '</div>'
+    formset.vue_template = '<div data-top="true">' + vue_template[body_begin + len('<body>'):body_end] + '</div>'
     # sdv.dbg('vue_template after', formset.vue_template)
     # @note: Uncomment next line to test Vue.js template for XSS.
     # alert() should execute only when new form is added into formset, not during the page load.
     # formset.vue_template += '<script language="javascript">alert(1);</script>'
-    formset.uuid = 'formset_' + sdv.uuid4_base32()
+    formset.uuid = 'empty-form-' + sdv.uuid4_base32()
 
 
 def ko_inlineformset_factory(parent_model, model, form, **kwargs):
