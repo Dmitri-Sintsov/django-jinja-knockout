@@ -9,21 +9,12 @@ $('.vue-empty-formset').each(function(k, v) {
             mounted: function() {
                 this.$nextTick(
                     function() {
-                        var $formset = $(this.$el).parents('.formset:first');
-                        if ($formset.getInstance('App.vue.Formset') === undefined) {
-                            $formset.addInstance('App.vue.Formset', this.$parent.ctrl);
-                            App.initClient(this.$el);
-                        }
+                        App.initClient(this.$el);
                     }
                 )
             },
             beforeDestroy: function() {
                 App.initClient(this.$el, 'dispose');
-                var $formset = $(this.$el).parents('.formset:first');
-                var vueFormset = $formset.popInstance('App.vue.Formset');
-                if (vueFormset !== undefined) {
-                    vueFormset.destroy();
-                }
             },
         });
     }
@@ -66,11 +57,20 @@ App.vue.Formset = function(serversideFormsCount, maxFormsCount) {
         mounted: function() {
             this.$nextTick(
                 function() {
+                    var $formset = $(this.$el).parents('.formset:first');
+                    if ($formset.getInstance('App.vue.Formset') === undefined) {
+                        $formset.addInstance('App.vue.Formset', this.ctrl);
+                    }
                     App.initClient(this.$el);
                 }
             )
         },
         beforeDestroy: function() {
+            var $formset = $(this.$el).parents('.formset:first');
+            var vueFormset = $formset.popInstance('App.vue.Formset');
+            if (vueFormset !== undefined) {
+                vueFormset.destroy();
+            }
             App.initClient(this.$el, 'dispose');
         },
     });
@@ -116,7 +116,10 @@ void function(Formset) {
     };
 
     Formset.destroy = function() {
-        this.vm.$destroy();
+        /**
+         * Will be called automatically after .beforeDestroy.
+         */
+        // this.vm.$destroy();
     };
 
 }(App.vue.Formset.prototype);
