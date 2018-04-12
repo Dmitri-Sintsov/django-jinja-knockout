@@ -12,9 +12,11 @@ App.vue.Formset = function(serversideFormsCount, maxFormsCount) {
     */
     this.vm = new Vue({
         data: {
-            ctrl: this,
             forms: formArray,
             formsTotalCount: serversideFormsCount,
+        },
+        created: function() {
+            this.ctrl = self;
         },
         computed: {
             hasMoreForms: function() {

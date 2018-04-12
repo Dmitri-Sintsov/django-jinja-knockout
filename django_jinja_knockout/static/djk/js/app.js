@@ -2174,7 +2174,7 @@ $(document)
 });
 
 
-App.ko.Subscriber = function() {};
+App.vue.Subscriber = function() {};
 
 /**
  * Switches Knockout.js subscription to bound instance methods.
@@ -2187,27 +2187,15 @@ void function(Subscriber) {
             var propHash = (typeof propChain === 'string') ? $.capitalize(propChain) : '_' + propChain.join('_');
             methodChain = 'on' + propHash;
         }
-        var prop = App.propGet(this, propChain);
-        if (typeof prop !== 'function' || !ko.isObservable(prop)) {
-            var parent = App.propGetParent(this, propChain);
-            if (typeof ko.es5 !== 'undefined' &&
-                    $.isMapping(parent.obj) &&
-                    ko.es5.isTracked(parent.obj, parent.childName)
-            ) {
-                var prop = ko.getObservable(parent.obj, parent.childName);
-            } else {
-                throw sprintf("%s is not observable", JSON.stringify(propChain));
-            }
-        }
         var method = App.propGet(this, methodChain);
         if (typeof method !== 'function') {
             throw sprintf("%s is not callable", JSON.stringify(methodChain));
         }
         var hash = (typeof methodChain === 'string') ? methodChain : methodChain.join('.');
-        if (typeof this.koSubscriptions === 'undefined') {
-            this.koSubscriptions = {};
+        if (typeof this.vueSubscriptions === 'undefined') {
+            this.vueSubscriptions = {};
         }
-        return {'prop': prop, 'method': method, 'hash': hash};
+        return {'method': method, 'hash': hash};
     };
 
     /**
@@ -2216,20 +2204,20 @@ void function(Subscriber) {
      */
     Subscriber.subscribeToMethod = function(propChain, methodChain) {
         var result = this.getPropSubscription(propChain, methodChain);
-        if (typeof this.koSubscriptions[result.hash] === 'undefined') {
-            this.koSubscriptions[result.hash] = result.prop.subscribe(_.bind(result.method, this));
+        if (typeof this.vueSubscriptions[result.hash] === 'undefined') {
+            this.vueSubscriptions[result.hash] = this.vm.$watch(propChain.join('.'), _.bind(result.method, this));
         }
     };
 
     Subscriber.disposeMethod = function(propChain, methodChain) {
         var result = this.getPropSubscription(propChain, methodChain);
-        if (typeof this.koSubscriptions[result.hash] !== 'undefined') {
-            this.koSubscriptions[result.hash].dispose();
-            delete this.koSubscriptions[result.hash];
+        if (typeof this.vueSubscriptions[result.hash] !== 'undefined') {
+            this.vueSubscriptions[result.hash]();
+            delete this.vueSubscriptions[result.hash];
         }
     };
 
-}(App.ko.Subscriber.prototype);
+}(App.vue.Subscriber.prototype);
 
 
 // https://github.com/knockout/knockout/issues/1019
