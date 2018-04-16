@@ -475,3 +475,7 @@ class ContentTypeLinker(ModelLinker):
 
     def get_str_obj_type(self):
         return str(empty_value_display if self.obj_type is None else self.obj_type)
+
+
+def obj_to_json(obj):
+    return to_json(obj_to_str_dict(obj))

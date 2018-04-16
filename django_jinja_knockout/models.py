@@ -183,3 +183,7 @@ def wakeup_user(user):
             user._setup()
         user = user._wrapped
     return user
+
+
+def obj_to_str_dict(obj):
+    return {k: str(v) for k, v in model_to_dict(obj).items()}
