@@ -10,6 +10,7 @@ from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
+from django.forms.models import model_to_dict
 
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
@@ -183,3 +184,7 @@ def wakeup_user(user):
             user._setup()
         user = user._wrapped
     return user
+
+
+def obj_to_str_dict(obj):
+    return {k: str(v) for k, v in model_to_dict(obj).items()}
