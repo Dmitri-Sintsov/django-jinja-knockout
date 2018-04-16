@@ -13,11 +13,11 @@ jobs:
           export PYENV_ROOT="$HOME/.pyenv"
           export PATH="$PYENV_ROOT/bin:$PATH"
           pyenv init -
-          pyenv install 3.6.4
+          pyenv install 3.6.5
           # Version of Python installed in the python:latest-browsers image.
           python3 --version
           # Version of Python used to run the tests.
-          $(pyenv root)/versions/3.6.4/bin/python --version
+          $(pyenv root)/versions/3.6.5/bin/python --version
           # https://stackoverflow.com/questions/27849412/permissionerror-with-pip3
           python3 -m pip install -U pip wheel tox tox-pyenv setuptools --user
           git clone https://github.com/Dmitri-Sintsov/djk-sample.git
@@ -27,4 +27,3 @@ workflows:
   all_steps:
     jobs:
       - test
-
