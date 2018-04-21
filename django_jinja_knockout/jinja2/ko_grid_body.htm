@@ -29,13 +29,13 @@
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="row form-group">
-                <label data-bind="text: meta.from" class="control-label col-md-4" for="id_range_from"></label>
+                <label v-text="meta.from" class="control-label col-md-4" for="id_range_from"></label>
                 <div class="field col-md-6">
-                    <input data-bind="textInput: from, attr: fieldAttrs" id="id_range_from" name="range_from">
+                    <input v-model="from" v-bind="fieldAttrs" id="id_range_from" name="range_from">
                 </div>
-                <label data-bind="text: meta.to" class="control-label col-md-4" for="id_range_to"></label>
+                <label v-text="meta.to" class="control-label col-md-4" for="id_range_to"></label>
                 <div class="field col-md-6">
-                    <input data-bind="textInput: to, attr: fieldAttrs" id="id_range_to" name="range_to">
+                    <input v-model="to" v-bind="fieldAttrs" id="id_range_to" name="range_to">
                 </div>
             </div>
         </div>
@@ -45,8 +45,8 @@
 
 {% if 'ko_grid_row_click_menu' in _include_ids -%}
 <script type="text/template" id="ko_grid_row_click_menu">
-    <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
-        <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
+    <div v-for="action in getEnabledActions(lastClickedKoRow, 'click')">
+        <button class="btn btn-block" v-bind:class="action.actionCss()" v-on:click="action.doLastClickedRowAction" v-text="action.localName">
         </button>
     </div>
 </script>
@@ -57,9 +57,9 @@
 <script type="text/template" id="ko_action_form">
     <div class="panel panel-default">
         <div class="panel-body">
-            <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
-                <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: actions.getCsrfToken()">
-                <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
+            <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" v-bind="{'data-url': actions.getLastActionUrl()}">
+                <input type="hidden" name="csrfmiddlewaretoken" v-bind:value="actions.getCsrfToken()">
+                <input type="hidden" name="pk_val" v-bind:value="getLastPkVal()">
                 <div class="jumbotron">
                     <div class="default-padding">
                         This is the sample template. Copy this template with another id then add your MVVM fields here.
@@ -73,13 +73,13 @@
 
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <span data-bind="text: name"></span> <b class="caret"></b>
+    <li v-grid-filter="gridFilter" v-bind:class="{'bg-info': gridFilter.hasActiveChoices()}" class="dropdown">
+        <a v-on:click="gridFilter.onDropdownClick()" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <span v-text="gridFilter.name"></span> <b class="caret"></b>
         </a>
-        <ul data-bind="foreach: choices" class="dropdown-menu">
-            <li data-bind="css: {active: is_active()}">
-                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+        <ul v-for="filterChoice in gridFilter.choices" class="dropdown-menu">
+            <li v-bind:class="{active: filterChoice.is_active()}">
+                <a v-grid-filter-choice="filterChoice" v-text="filterChoice.name" v-on:click="filterChoice.onLoadFilter()" name="#"></a>
             </li>
         </ul>
     </li>
@@ -89,14 +89,18 @@
 
 {% if 'ko_grid_breadcrumb_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_breadcrumb_filter_choices">
-    <li data-bind="grid_filter">
+    <li v-grid-filter="gridFilter">
         <ol class="breadcrumb grid-breadcrumb">
-            <li class="bold" data-bind="text: name"></li>
-            <!-- ko foreach: choices -->
-            <li data-bind="css: {active: is_active()}">
-                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            <li class="bold" v-text="name"></li>
+            <template v-for="filterChoice in gridFilter.choices">
+            <li v-bind:class="{active: filterChoice.is_active}">
+                <a v-bind:class="{bold: filterChoice.is_active}"
+                   v-text="filterChoice.name"
+                   v-grid-filter-choice="filterChoice"
+                   v-on:click="filterChoice.onLoadFilter()"
+                   name="#"></a>
             </li>
-            <!-- /ko -->
+            </template>
         </ol>
     </li>
 </script>
@@ -104,9 +108,9 @@
 
 {% if 'ko_grid_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_popup">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <span data-bind="text: name"></span> <b class="caret"></b>
+    <li v-grid-filter="gridFilter" v-bind:class="{'bg-info': gridFilter.hasActiveChoices()}" class="dropdown">
+        <a v-on:click="gridFilter.onDropdownClick()" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <span v-text="gridFilter.name"></span> <b class="caret"></b>
         </a>
     </li>
 </script>
@@ -114,11 +118,11 @@
 
 {% if 'ko_grid_breadcrumb_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_breadcrumb_filter_popup">
-    <li data-bind="grid_filter">
+    <li v-grid-filter="gridFilter">
         <ol class="breadcrumb grid-breadcrumb">
             <li>
-                <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
-                    <span data-bind="text: name"></span> <b class="caret"></b>
+                <a v-on:click="gridFilter.onDropdownClick()" v-bind:class="{'bold': gridFilter.hasActiveChoices()}" href="#">
+                    <span v-text="gridFilter.name"></span> <b class="caret"></b>
                 </a>
             </li>
         </ol>
@@ -128,17 +132,17 @@
 
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
-    <form data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0" class="navbar-form navbar-left">
-        <div data-bind="if: meta.hasSearch()" class="form-group">
-            <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-            <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
+    <form v-show="meta.hasSearch || actionTypes['button'].length > 0" class="navbar-form navbar-left">
+        <div v-if="meta.hasSearch" class="form-group">
+            <input v-model="gridSearchDisplayStr" v-bind="{placeholder: meta.searchPlaceholder}" class="form-control" type="search">
+            <button v-on:click="onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
         </div>
-        <!-- ko foreach: actionTypes['button'] -->
-            <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
-                <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
-                <span data-bind="text: $data.localName"></span>
+        <template v-for="buttonAction in actionTypes['button']">
+            <button class="btn" v-bind:class="buttonAction.actionCss('button')" v-on:click="buttonAction.doAction()">
+                <span class="glyphicon" v-bind:class="buttonAction.actionCss('glyphicon')"></span>
+                <span v-text="buttonAction.localName"></span>
             </button>
-        <!-- /ko -->
+        </template>
     </form>
 </script>
 {% endif -%}
@@ -147,13 +151,9 @@
 <script type="text/template" id="ko_grid_nav">
     <nav class="nav navbar navbar-default">
         <div class="container-fluid grid-controls">
-            <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
-                <!-- ko if: choices === undefined -->
-                <div data-template-id="ko_grid_filter_popup"></div>
-                <!-- /ko -->
-                <!-- ko if: choices !== undefined -->
-                <div data-template-id="ko_grid_filter_choices"></div>
-                <!-- /ko -->
+            <ul v-for="gridFilter in gridFilters" class="nav navbar-nav">
+                <div v-if="choices === undefined" data-template-id="ko_grid_filter_popup"></div>
+                <div v-if="choices !== undefined" data-template-id="ko_grid_filter_choices"></div>
             </ul>
             <div data-template-id="ko_grid_search"></div>
         </div>
@@ -164,12 +164,12 @@
 {% if 'ko_grid_bottom_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_bottom_nav">
     <div class="navbar navbar-left">
-        <!-- ko foreach: actionTypes['button_footer'] -->
-        <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
-            <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
-            <span data-bind="text: $data.localName"></span>
-        </button>
-        <!-- /ko -->
+        <template v-for="buttonAction in actionTypes['button_footer']">
+            <button class="btn" v-bind:class="buttonAction.actionCss('button')" v-on:click="buttonAction.doAction()">
+                <span class="glyphicon" v-bind:class="buttonAction.actionCss('glyphicon')"></span>
+                <span v-text="buttonAction.localName"></span>
+            </button>
+        </template>
     </div>
 </script>
 {% endif -%}
@@ -180,7 +180,7 @@
         <div class="panel-heading">
             {{ _(
                 'No %(verbose_name)s found matching the query',
-                verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
+                verbose_name=mark_safe('<span v-text="meta.verboseName"></span>'
             )) }}.
         </div>
     </div>
@@ -193,30 +193,30 @@
         <div class="table-responsive" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
-                    <tr data-bind="css: headerCss">
-                        <!-- ko if: options.showSelection -->
-                        <th data-bind="if: options.selectMultipleRows" class="grid-glyph-cell">
-                            <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
-                        </th>
-                        <!-- /ko -->
-                        <!-- ko if: glyphiconColumns() -->
-                        <th class="grid-glyph-cell"></th>
-                        <!-- /ko -->
-                        <!-- ko foreach: gridColumns -->
-                        <th data-bind="foreach: columnOrders">
-                            <!-- ko if: isSortedColumn() -->
-                            <a data-bind="
-                                text: name,
-                                grid_order_by,
-                                click: onSwitchOrder,
-                                css: orderCss
-                            " class="halflings-before" name="#"></a>
-                            <!-- /ko -->
-                            <!-- ko if: !isSortedColumn() -->
-                            <div data-bind="text: name"></div>
-                            <!-- /ko -->
-                        </th>
-                        <!-- /ko -->
+                    <tr v-bind:class="headerCss">
+                        <template v-if="options.showSelection">
+                            <th v-if="options.selectMultipleRows" class="grid-glyph-cell">
+                                <span v-bind:class="selectAllRowsCss" v-on:click="onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
+                            </th>
+                        </template>
+                        <template v-if="glyphiconColumns()">
+                            <th class="grid-glyph-cell"></th>
+                        </template>
+                        <template v-for="gridColumn in gridColumns">
+                            <th v-for="columnOrder in columnOrders">
+                                <template v-if="isSortedColumn">
+                                    <a v-text="name"
+                                       v-grid-order-by="columnOrder"
+                                       v-on:click="columnOrder.onSwitchOrder"
+                                       v-bind:class="columnOrder.orderCss"
+                                       class="halflings-before"
+                                       name="#"></a>
+                                </template>
+                                <template v-if="!isSortedColumn">
+                                    <div v-text="columnOrder.name"></div>
+                                </template>
+                            </th>
+                        </template>
                     </tr>
                 </thead>
                 <% if (self.get('vscroll')) { %>
@@ -225,39 +225,34 @@
         <div class="table-responsive vscroll" style="overflow-y: scroll;">
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
-                <tbody data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
-                    <tr data-bind="grid_row, css: rowCss">
-                        <!-- ko if: $parent.options.showSelection -->
-                        <td data-bind="click: onSelect" class="grid-glyph-cell">
-                            <span data-bind="css: selectionCss" class="halflings glyphicon"></span>
+                <tbody>
+                    <tr is="grid-row-component"
+                        v-for="(gridRow, key, index) in gridRows" :key="key"
+                        data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data)}"
+                        v-grid-row="gridRow"
+                        v-bind:class="gridRow.rowCss">
+                        <td v-if="$parent.options.showSelection" v-on:click="gridRow.onSelect" class="grid-glyph-cell">
+                            <span v-bind:class="gridRow.selectionCss" class="halflings glyphicon"></span>
                         </td>
-                        <!-- /ko -->
-                        <!-- ko if: $parent.glyphiconColumns() -->
-                        <td class="grid-glyph-cell grid-glypicon-actions">
-                            <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
-                                <!-- ko if: $parent.observeEnabledAction($data) -->
-                                <span data-bind="
-                                    css: actionCss(),
-                                    attr: {title: $data.localName},
-                                    click: function() { doForRow($parent); }
-                                " class="halflings glyphicon pointer"></span>
-                                <!-- /ko -->
-                            <!-- /ko -->
+                        <td v-if="$parent.glyphiconColumns()" class="grid-glyph-cell grid-glypicon-actions">
+                            <template v-for="cellAction in $parent.actionTypes['glyphicon']">
+                                <span v-if="$parent.observeEnabledAction(cellAction)"
+                                      v-bind:class="cellAction.actionCss()"
+                                      v-bind="{title: cellAction.localName}"
+                                      v-on:click="cellAction.doForRow($parent)"
+                                      class="halflings glyphicon pointer"></span>
+                            </template>
                         </td>
-                        <!-- /ko -->
-                        <!-- ko foreach: $parent.gridColumns -->
-                        <td data-bind="
-                            click: $parent.onRowClick.bind($parent),
-                            attr: {index: $index, 'data-caption': names},
-                            css: columnCss,
-                            grid_row_values
-                        "></td>
-                        <!-- /ko -->
+                        <td v-for="(gridColumn, key) in $parent.gridColumns"
+                            v-on:click="$parent.onRowClick"
+                            v-bind="{index: key, 'data-caption': gridColumn.names}"
+                            v-bind:class="gridColumn.columnCss"
+                            v-grid-row-values="gridColumn"></td>
                     </tr>
                 </tbody>
-                <tfoot class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
+                <tfoot class="jumbotron default-padding" v-show="gridRows.length === 0">
                     <tr>
-                        <td data-bind="attr: {colspan: totalColumns()}">
+                        <td v-bind="{colspan: totalColumns}">
                             <div data-template-id="ko_grid_no_results"></div>
                         </td>
                     </tr>
@@ -272,19 +267,15 @@
 <script type="text/template" id="ko_grid_body">
     <div <% if (self.get('show_title')) { %> class="panel panel-primary" <% } %>>
         <% if (self.get('show_title')) { %>
-        <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+        <div v-text="meta.verboseNamePlural" class="panel-heading"></div>
         <div class="panel-body">
         <% } %>
-            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
-            <div data-template-id="ko_grid_nav"></div>
-            <!-- /ko -->
+            <div v-if="meta.hasSearch || gridFilters.length > 0 || actionTypes['button'].length > 0" data-template-id="ko_grid_nav"></div>
             <div data-template-id="ko_grid_table"></div>
         <% if (self.get('show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         <% } %>
-            <!-- ko if: actionTypes['button_footer']().length > 0 -->
-            <div data-template-id="ko_grid_bottom_nav"></div>
-            <!-- /ko -->
+            <div v-if="actionTypes['button_footer'].length > 0" data-template-id="ko_grid_bottom_nav"></div>
         <% if (self.get('show_title')) { %>
         </div>
         <% } %>
@@ -294,18 +285,18 @@
 
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
-    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
+    <div v-show="options.alwaysShowPagination || gridTotalPages > 1" class="pagination-wrapper default-padding">
         <ul class="pagination">
-            <!-- ko foreach: actionTypes['pagination'] -->
-                <li data-bind="click: function() { doAction(); }">
-                    <span class="halflings glyphicon" data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}"></span>
+            <template v-for="paginationAction in actionTypes['pagination']">
+                <li v-on:click="paginationAction.doAction()">
+                    <span class="halflings glyphicon" v-bind:class="paginationAction.actionCss('glyphicon')" v-bind="{title: paginationAction.localName}"></span>
                 </li>
-            <!-- /ko -->
-            <!-- ko foreach: gridPages -->
-            <li data-bind="css:{active: isActive}">
-                <a data-bind="text:title, click: onPagination" name="#"></a>
-            </li>
-            <!-- /ko -->
+            </template>
+            <template v-for="page in gridPages">
+                <li v-bind:class="{active: page.isActive}">
+                    <a v-text="page.title" v-on:click="page.onPagination" name="#"></a>
+                </li>
+            </template>
         </ul>
     </div>
 </script>
@@ -314,13 +305,13 @@
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
     <div class="panel panel-default">
-        <div class="panel-heading flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
-            <div data-bind="text: $data"></div>
+        <div class="panel-heading flex-space-between" >
+            <div v-for="val in meta.rowsPerPageValues" v-text="val"></div>
         </div>
         <div class="panel-body">
-            <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
-            <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
-                <option data-bind="attr: {value: $data}">
+            <input type="range" v-bind="meta.rowsPerPageRange" v-model="meta.rowsPerPage" list="tickmarks">
+            <datalist id="tickmarks">
+                <option v-for="val in meta.rowsPerPageValues" v-bind="{value: val}">
             </datalist>
         </div>
     </div>

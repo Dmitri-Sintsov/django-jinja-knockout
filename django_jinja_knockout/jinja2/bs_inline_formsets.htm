@@ -108,7 +108,7 @@
                 {% endif -%}
                 {% if formset.vue_template -%}
                 <{{ formset.uuid }} v-for="(form, idx) in forms" v-bind:key="form" v-bind:form_idx="idx"></{{ formset.uuid }}>
-                <button class="btn btn-info btn-sm" v-on:click="addForm" v-visible="hasMoreForms">
+                <button class="btn btn-info btn-sm" v-on:click="addForm" v-show="hasMoreForms">
                     {{ _('Add "%(verbose_name)s"', verbose_name=html.inline_title) }}
                 </button>
                 {% endif -%}

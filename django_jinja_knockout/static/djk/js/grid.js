@@ -1,41 +1,66 @@
 'use strict';
 
-ko.bindingHandlers.grid_row = {
-    update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
-        // var realElement = ko.fromVirtual(element);
+Vue.directive('grid-row', {
+    inserted: function (element, koGridRow, vnode) {
         koGridRow.setRowElement($(element));
-    }
-};
+    },
+    update: function(element, koGridRow, vnode, oldVnode) {
+        if (vnode !== oldVnode) {
+            koGridRow.setRowElement($(element));
+        }
+    },
+});
 
-ko.virtualElements.allowedBindings.grid_row = true;
-
-ko.bindingHandlers.grid_filter = {
-    update: function(element, valueAccessor, allBindings, koGridFilter, bindingContext) {
+Vue.directive('grid-filter', {
+    inserted: function (element, koGridFilter, vnode) {
         koGridFilter.setDropdownElement($(element));
-    }
-};
+    },
+    update: function(element, koGridFilter, vnode, oldVnode) {
+        if (vnode !== oldVnode) {
+            koGridFilter.setDropdownElement($(element));
+        }
+    },
+});
 
-ko.bindingHandlers.grid_filter_choice = {
-    update: function(element, valueAccessor, allBindings, koGridFilterChoice, bindingContext) {
+Vue.directive('grid-filter-choice', {
+    inserted: function (element, koGridFilterChoice, vnode) {
         koGridFilterChoice.setLinkElement($(element));
-    }
-};
+    },
+    update: function(element, koGridFilterChoice, vnode, oldVnode) {
+        if (vnode !== oldVnode) {
+            koGridFilterChoice.setLinkElement($(element));
+        }
+    },
+});
 
-ko.bindingHandlers.grid_order_by = {
-    update: function(element, valueAccessor, allBindings, koGridColumnOrder, bindingContext) {
+Vue.directive('grid-order-by', {
+    inserted: function (element, koGridColumnOrder, vnode) {
         koGridColumnOrder.setSwitchElement($(element));
-    }
-};
+    },
+    update: function(element, koGridColumnOrder, vnode, oldVnode) {
+        if (vnode !== oldVnode) {
+            koGridColumnOrder.setSwitchElement($(element));
+        }
+    },
+});
 
 // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
-ko.bindingHandlers.grid_row_values = {
-    update:  function(element, valueAccessor, allBindings, koGridColumn, bindingContext) {
+Vue.directive('grid-row-values', {
+    inserted: function (element, koGridColumn, vnode) {
         koGridColumn.render({
             $element: $(element),
             row: bindingContext.$parent,
         });
-    }
-};
+    },
+    update: function(element, koGridColumn, vnode, oldVnode) {
+        if (vnode !== oldVnode) {
+            koGridColumn.render({
+                $element: $(element),
+                row: bindingContext.$parent,
+            });
+        }
+    },
+});
 
 
 /**
