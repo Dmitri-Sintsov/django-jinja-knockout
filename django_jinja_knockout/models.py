@@ -186,5 +186,8 @@ def wakeup_user(user):
     return user
 
 
-def obj_to_str_dict(obj):
-    return {k: str(v) for k, v in model_to_dict(obj).items()}
+def obj_to_flat_dict(obj):
+    return {
+        k: v if isinstance(v, (int, float, type(None), bool)) else str(v)
+        for k, v in model_to_dict(obj).items()
+    }
