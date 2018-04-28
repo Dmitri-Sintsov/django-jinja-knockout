@@ -194,28 +194,16 @@
             <table class="table table-bordered table-hover table-collapse" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
                     <tr v-bind:class="headerCss">
-                        <template v-if="options.showSelection">
-                            <th v-if="options.selectMultipleRows" class="grid-glyph-cell">
+                        <template v-if="ctrl.options.showSelection">
+                            <th v-if="ctrl.options.selectMultipleRows" class="grid-glyph-cell">
                                 <span v-bind:class="selectAllRowsCss" v-on:click="onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
                             </th>
                         </template>
-                        <template v-if="glyphiconColumns()">
+                        <template v-if="glyphiconColumns">
                             <th class="grid-glyph-cell"></th>
                         </template>
                         <template v-for="gridColumn in gridColumns">
-                            <th v-for="columnOrder in columnOrders">
-                                <template v-if="isSortedColumn">
-                                    <a v-text="name"
-                                       v-grid-order-by="columnOrder"
-                                       v-on:click="columnOrder.onSwitchOrder"
-                                       v-bind:class="columnOrder.orderCss"
-                                       class="halflings-before"
-                                       name="#"></a>
-                                </template>
-                                <template v-if="!isSortedColumn">
-                                    <div v-text="columnOrder.name"></div>
-                                </template>
-                            </th>
+                            <grid-column-header v-bind:column="gridColumn"></grid-column-header>
                         </template>
                     </tr>
                 </thead>
@@ -231,10 +219,10 @@
                         data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data)}"
                         v-grid-row="gridRow"
                         v-bind:class="gridRow.rowCss">
-                        <td v-if="$parent.options.showSelection" v-on:click="gridRow.onSelect" class="grid-glyph-cell">
+                        <td v-if="ctrl.options.showSelection" v-on:click="gridRow.onSelect" class="grid-glyph-cell">
                             <span v-bind:class="gridRow.selectionCss" class="halflings glyphicon"></span>
                         </td>
-                        <td v-if="$parent.glyphiconColumns()" class="grid-glyph-cell grid-glypicon-actions">
+                        <td v-if="glyphiconColumns" class="grid-glyph-cell grid-glypicon-actions">
                             <template v-for="cellAction in $parent.actionTypes['glyphicon']">
                                 <span v-if="$parent.observeEnabledAction(cellAction)"
                                       v-bind:class="cellAction.actionCss()"
@@ -243,8 +231,8 @@
                                       class="halflings glyphicon pointer"></span>
                             </template>
                         </td>
-                        <td v-for="(gridColumn, key) in $parent.gridColumns"
-                            v-on:click="$parent.onRowClick"
+                        <td v-for="(gridColumn, key) in gridColumns"
+                            v-on:click="gridRow.onRowClick"
                             v-bind="{index: key, 'data-caption': gridColumn.names}"
                             v-bind:class="gridColumn.columnCss"
                             v-grid-row-values="gridColumn"></td>
@@ -285,7 +273,7 @@
 
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
-    <div v-show="options.alwaysShowPagination || gridTotalPages > 1" class="pagination-wrapper default-padding">
+    <div v-show="ctrl.options.alwaysShowPagination || gridTotalPages > 1" class="pagination-wrapper default-padding">
         <ul class="pagination">
             <template v-for="paginationAction in actionTypes['pagination']">
                 <li v-on:click="paginationAction.doAction()">
@@ -317,6 +305,23 @@
     </div>
 </script>
 {% endif -%}
+
+<script id="grid-column-header" language="text/x-template">
+    <th>
+        <grid-column-order v-for="columnOrder in column.columnOrders" v-bind:column-order="columnOrder"></grid-column-order>
+    </th>
+</script>
+
+<script id="grid-column-order" language="text/x-template">
+    <a v-if="columnOrder.isSorted"
+       v-text="columnOrder.name"
+       v-grid-order-by="columnOrder"
+       v-on:click="onSwitchOrder"
+       v-bind:class="columnOrder.orderCss"
+       class="halflings-before"
+       name="#"></a>
+    <div v-else v-text="columnOrder.name"></div>
+</script>
 
 {% endmacro -%}
 {% if _render_ -%}

@@ -33,17 +33,6 @@ Vue.directive('grid-filter-choice', {
     },
 });
 
-Vue.directive('grid-order-by', {
-    inserted: function (element, koGridColumnOrder, vnode) {
-        koGridColumnOrder.setSwitchElement($(element));
-    },
-    update: function(element, koGridColumnOrder, vnode, oldVnode) {
-        if (vnode !== oldVnode) {
-            koGridColumnOrder.setSwitchElement($(element));
-        }
-    },
-});
-
 // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
 Vue.directive('grid-row-values', {
     inserted: function (element, koGridColumn, vnode) {
@@ -62,34 +51,94 @@ Vue.directive('grid-row-values', {
     },
 });
 
+Vue.component('grid-column-header', {
+    template: '#grid-column-header',
+    props: ['column'],
+    data: function() {
+        return {
+            ctrl: null,
+        }
+    },
+    created: function() {
+        // https://github.com/vuejs/vue/issues/6052
+        this.$parent.ctrl.iocKoGridColumn(this);
+    },
+    computed: {
+        columnCss: function() {
+            return this.ctrl.getColumnCss();
+        },
+        names: function() {
+            return this.ctrl.getNames();
+        },
+    }
+});
+
+
+Vue.component('grid-column-order', {
+    template: '#grid-column-order',
+    props: ['columnOrder'],
+    data: function() {
+        return {
+            ctrl: null,
+        }
+    },
+    directives: {
+        'grid-order-by': {
+            inserted: function (element, binding, vnode) {
+                binding.value.ctrl.setSwitchElement($(element));
+            },
+            update: function(element, binding, vnode, oldVnode) {
+                if (vnode !== oldVnode) {
+                    binding.value.ctrl.setSwitchElement($(element));
+                }
+            },
+        },
+    },
+    created: function() {
+        // https://github.com/vuejs/vue/issues/6052
+        this.$parent.$data.ctrl.iocKoGridColumnOrder(this);
+    },
+    computed: {
+        orderCss: function() {
+            return this.ctrl.getOrderCss();
+        },
+    },
+    methods: {
+        onSwitchOrder: function() {
+            return this.ctrl.onSwitchOrder();
+        },
+    }
+});
+
 
 /**
  * Grid column ordering control.
  */
 
-App.ko.GridColumnOrder = function(options) {
-    this.init(options);
+App.ko.GridColumnOrder = function(vueComponent) {
+    this.init(vueComponent);
 };
 
 void function(GridColumnOrder) {
 
-    GridColumnOrder.init = function(options) {
+    GridColumnOrder.init = function(vueComponent) {
+        this.ownerGrid = vueComponent.$parent.ctrl;
+        // todo: check whether dynamic update of .columnOrder is possible.
+        this.vm = vueComponent.columnOrder;
+        this.vm.ctrl = this;
         this.$switch = null;
-        this.ownerGrid = options.ownerGrid;
-        this.field = options.field;
-        this.name = options.name;
-        // '+' means 'asc', '-' means 'desc', null means unsorted.
-        this.order = ko.observable(options.order);
-        this.isSortedColumn = ko.observable(options.isSorted);
-        this.orderCss = ko.computed(this.getOrderCss, this);
+        // this.field = options.field;
+        // this.name = options.name;
+        // this.order = options.order;
+        // this.isSortedColumn = options.isSorted;
     };
 
     GridColumnOrder.getOrderCss = function() {
         return {
             'display-block': true,
-            'sort-inactive': this.order() === null,
-            'sort-asc': this.order() === '+',
-            'sort-desc': this.order() === '-'
+            'sort-inactive': this.vm.order === null,
+            'sort-asc': this.vm.order === '+',
+            'sort-desc': this.vm.order === '-'
         };
     };
 
@@ -98,19 +147,19 @@ void function(GridColumnOrder) {
     };
 
     GridColumnOrder.is = function(anotherOrder) {
-        return this.field === anotherOrder.field;
+        return this.vm.field === anotherOrder.vm.field;
     };
 
     GridColumnOrder.onSwitchOrder = function() {
         this.ownerGrid.deactivateAllSorting(this);
-        if (this.order() === '+') {
-            this.order('-');
+        if (this.vm.order === '+') {
+            this.vm.order = '-';
         } else {
-            // this.order() === null || this.order() === '-'
-            this.order('+');
+            // this.vm.order === null || this.vm.order === '-'
+            this.vm.order = '+';
         }
         var orderBy = {};
-        orderBy[this.field] = this.order();
+        orderBy[this.field] = this.vm.order;
         this.ownerGrid.setQueryOrderBy(orderBy);
         this.ownerGrid.listAction();
     };
@@ -158,19 +207,20 @@ void function(GridColumnOrder) {
  * Compound column which contains one or more of App.ko.GridColumnOrder instances.
  */
 
-App.ko.GridColumn = function(options) {
-    this.init(options);
+App.ko.GridColumn = function(vueComponent) {
+    this.init(vueComponent);
 };
 
 
 void function(GridColumn) {
 
-    GridColumn.init = function(options) {
-        this.ownerGrid = options.ownerGrid;
+    GridColumn.init = function(vueComponent) {
+        this.ownerGrid = vueComponent.$parent.ctrl;
+        this.vm = vueComponent.column;
+        this.vm.ctrl = this;
         this.lastColumnCss = {};
-        this.columnOrders = ko.observableArray(options.columnOrders);
-        this.columnCss = ko.computed(this.getColumnCss, this);
-        this.names = ko.computed(this.getNames, this);
+        // this.columnCss = ko.computed(this.getColumnCss, this);
+        // this.names = ko.computed(this.getNames, this);
     };
 
     GridColumn.blockTags = App.blockTags.list;
@@ -182,7 +232,7 @@ void function(GridColumn) {
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
         if (highlightModeRule.direction === 0) {
             // Finds foreach $index() inaccessible directly in computed.
-            var index = this.ownerGrid.vm.gridColumns.indexOf(this);
+            var index = this.ownerGrid.vm.gridColumns.indexOf(this.vm);
             this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
         }
         return this.lastColumnCss;
@@ -190,7 +240,7 @@ void function(GridColumn) {
 
     GridColumn.getNames = function() {
         var names = [];
-        _.find(this.columnOrders(), function(columnOrder) {
+        _.find(this.vm.columnOrders, function(columnOrder) {
             names.push(columnOrder.name);
         });
         return names.join(' / ');
@@ -198,7 +248,7 @@ void function(GridColumn) {
 
     GridColumn.getOrders_i18n = function() {
         var i18n = {};
-        _.find(this.columnOrders(), function(columnOrder) {
+        _.find(this.vm.columnOrders, function(columnOrder) {
             i18n[columnOrder.field] = columnOrder.name;
         });
         return i18n;
@@ -206,34 +256,32 @@ void function(GridColumn) {
 
     GridColumn.getColumnOrder = function(fieldName) {
         var result = null;
-        _.find(this.columnOrders(), function(columnOrder) {
+        _.find(this.vm.columnOrders, function(columnOrder) {
             if (columnOrder.field === fieldName) {
-                result = columnOrder;
+                result = columnOrder.ctrl;
                 return true;
             }
         });
         return result;
     };
 
-    GridColumn.deactivateAllSorting = function(exceptOrder) {
-        _.each(this.columnOrders(), function(columnOrder) {
-            if (!columnOrder.is(exceptOrder)) {
-                columnOrder.order(null);
+    GridColumn.deactivateAllSorting = function(exceptOrderCtrl) {
+        _.each(this.vm.columnOrders, function(columnOrder) {
+            if (!columnOrder.ctrl.is(exceptOrderCtrl)) {
+                columnOrder.order = null;
             }
         });
     };
 
     GridColumn.getCompoundCells = function(gridRow) {
         var cells = [];
-        _.map(this.columnOrders(), function(columnOrder) {
+        _.map(this.vm.columnOrders, function(columnOrder) {
             var $container = $('<div>', {
                 'class': 'grid-cell',
                 'data-caption': columnOrder.name,
             });
-            columnOrder.renderRowValue(
-                $container[0], ko.utils.unwrapObservable(
-                    gridRow.displayValues[columnOrder.field]
-                )
+            columnOrder.ctrl.renderRowValue(
+                $container[0], gridRow.displayValues[columnOrder.field]
             );
             cells.push(
                 _.odict(columnOrder.field, $container)
@@ -2138,12 +2186,12 @@ void function(Grid) {
         this.listAction();
     };
 
-    Grid.iocKoGridColumn = function(options) {
-        return new App.ko.GridColumn(options);
+    Grid.iocKoGridColumn = function(vueComponent) {
+        return new App.ko.GridColumn(vueComponent);
     };
 
-    Grid.iocKoGridColumnOrder = function(options) {
-        return new App.ko.GridColumnOrder(options);
+    Grid.iocKoGridColumnOrder = function(vueComponent) {
+        return new App.ko.GridColumnOrder(vueComponent);
     };
 
     // May be used in descendant of App.ko.GridRow() to get metadata of current field.
@@ -2163,30 +2211,29 @@ void function(Grid) {
     };
 
     Grid.setKoGridColumns = function(gridFields) {
-        var koGridColumns = [];
+        var vueGridColumns = [];
         for (var i = 0; i < gridFields.length; i++) {
             if (!_.isArray(gridFields[i])) {
                 gridFields[i] = [gridFields[i]];
             }
             var gridColumnOrders = gridFields[i];
-            var koGridColumnOrders = [];
+            var vueGridColumnOrders = [];
             for (var j = 0; j < gridColumnOrders.length; j++) {
                 var gridColumn = gridColumnOrders[j];
                 var order = App.propGet(this.vm.meta.orderBy, gridColumn.field, null);
-                koGridColumnOrders.push(this.iocKoGridColumnOrder({
+                vueGridColumnOrders.push({
                     field: gridColumn.field,
                     name: gridColumn.name,
                     isSorted: this.isSortedField(gridColumn.field),
+                    // '+' means 'asc', '-' means 'desc', null means unsorted.
                     order: order,
-                    ownerGrid: this
-                }));
+                });
             }
-            koGridColumns.push(this.iocKoGridColumn({
-                ownerGrid: this,
-                columnOrders: koGridColumnOrders
-            }));
+            vueGridColumns.push({
+                columnOrders: vueGridColumnOrders
+            });
         }
-        this.vm.gridColumns = koGridColumns;
+        this.vm.gridColumns = vueGridColumns;
     };
 
     Grid.iocKoFilterChoice = function(options) {
