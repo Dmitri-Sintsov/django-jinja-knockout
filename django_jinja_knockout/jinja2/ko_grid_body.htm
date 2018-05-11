@@ -235,7 +235,7 @@
                             v-on:click="gridRow.onRowClick"
                             v-bind="{index: key, 'data-caption': gridColumn.names}"
                             v-bind:class="gridColumn.columnCss"
-                            v-grid-row-values="gridColumn"></td>
+                            v-grid-row-values="{column: gridColumn, row: gridRow}"></td>
                     </tr>
                 </tbody>
                 <tfoot class="jumbotron default-padding" v-show="gridRows.length === 0">
@@ -308,7 +308,7 @@
 
 <script id="grid-column-header" language="text/x-template">
     <th>
-        <grid-column-order v-for="columnOrder in column.columnOrders" v-bind:column-order="columnOrder"></grid-column-order>
+        <grid-column-order v-for="columnOrder in column.columnOrders" :key="columnOrder.field" v-bind:column-order="columnOrder"></grid-column-order>
     </th>
 </script>
 

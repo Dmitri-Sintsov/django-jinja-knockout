@@ -1,11 +1,13 @@
 'use strict';
 
 Vue.directive('grid-row', {
-    inserted: function (element, koGridRow, vnode) {
+    inserted: function (element, binding, vnode) {
+        var koGridRow = binding.value;
         koGridRow.setRowElement($(element));
     },
-    update: function(element, koGridRow, vnode, oldVnode) {
+    update: function(element, binding, vnode, oldVnode) {
         if (vnode !== oldVnode) {
+            var koGridRow = binding.value;
             koGridRow.setRowElement($(element));
         }
     },
@@ -35,17 +37,19 @@ Vue.directive('grid-filter-choice', {
 
 // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
 Vue.directive('grid-row-values', {
-    inserted: function (element, koGridColumn, vnode) {
-        koGridColumn.render({
+    inserted: function (element, binding, vnode) {
+        var ctrlGridColumn = binding.value.column.ctrl;
+        ctrlGridColumn.render({
             $element: $(element),
-            row: bindingContext.$parent,
+            row: binding.value.row,
         });
     },
-    update: function(element, koGridColumn, vnode, oldVnode) {
+    update: function(element, binding, vnode, oldVnode) {
         if (vnode !== oldVnode) {
-            koGridColumn.render({
+            var ctrlGridColumn = binding.value.column.ctrl;
+            ctrlGridColumn.render({
                 $element: $(element),
-                row: bindingContext.$parent,
+                row: binding.value.row,
             });
         }
     },
@@ -85,27 +89,29 @@ Vue.component('grid-column-order', {
     directives: {
         'grid-order-by': {
             inserted: function (element, binding, vnode) {
-                binding.value.ctrl.setSwitchElement($(element));
+                var ctrlGridColumnOrder = binding.value.ctrl;
+                ctrlGridColumnOrder.setSwitchElement($(element));
             },
             update: function(element, binding, vnode, oldVnode) {
                 if (vnode !== oldVnode) {
-                    binding.value.ctrl.setSwitchElement($(element));
+                    var ctrlGridColumnOrder = binding.value.ctrl;
+                    ctrlGridColumnOrder.setSwitchElement($(element));
                 }
             },
         },
     },
     created: function() {
         // https://github.com/vuejs/vue/issues/6052
-        this.$parent.$data.ctrl.iocKoGridColumnOrder(this);
+        this.$parent.$parent.ctrl.iocKoGridColumnOrder(this);
     },
     computed: {
         orderCss: function() {
-            return this.ctrl.getOrderCss();
+            return this.columnOrder.ctrl.getOrderCss();
         },
     },
     methods: {
-        onSwitchOrder: function() {
-            return this.ctrl.onSwitchOrder();
+        onSwitchOrder: function(vm) {
+            return this.columnOrder.ctrl.onSwitchOrder();
         },
     }
 });
@@ -122,7 +128,7 @@ App.ko.GridColumnOrder = function(vueComponent) {
 void function(GridColumnOrder) {
 
     GridColumnOrder.init = function(vueComponent) {
-        this.ownerGrid = vueComponent.$parent.ctrl;
+        this.ownerGrid = vueComponent.$parent.$parent.ctrl;
         // todo: check whether dynamic update of .columnOrder is possible.
         this.vm = vueComponent.columnOrder;
         this.vm.ctrl = this;
@@ -159,7 +165,7 @@ void function(GridColumnOrder) {
             this.vm.order = '+';
         }
         var orderBy = {};
-        orderBy[this.field] = this.vm.order;
+        orderBy[this.vm.field] = this.vm.order;
         this.ownerGrid.setQueryOrderBy(orderBy);
         this.ownerGrid.listAction();
     };
@@ -2174,7 +2180,7 @@ void function(Grid) {
 
     Grid.deactivateAllSorting = function(exceptOrder) {
         this.vm.gridColumns.forEach(function(gridColumn) {
-            gridColumn.deactivateAllSorting(exceptOrder);
+            gridColumn.ctrl.deactivateAllSorting(exceptOrder);
         }, this);
     };
 
