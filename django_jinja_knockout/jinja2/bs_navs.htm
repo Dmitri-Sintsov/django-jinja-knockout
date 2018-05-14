@@ -1,8 +1,11 @@
-{%- macro bs_navs(navs=None) -%}
+{%- macro bs_navs(navs=None, attrs=None) -%}
 {% if navs is none -%}
     {% set navs = [] -%}
 {% endif -%}
-<ul class="nav nav-tabs">
+{% if attrs is none -%}
+    {% set attrs = {'class': 'nav nav-tabs'} -%}
+{% endif -%}
+<ul {{ flatatt(attrs) }}>
 {% for nav in navs -%}
     {% set li_atts = {} -%}
     {% if nav.atts is defined -%}

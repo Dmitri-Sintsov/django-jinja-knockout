@@ -1,7 +1,11 @@
 {# http://anvoz.github.io/bootstrap-tldr/ #}
 {# type can be: 'success', 'info', 'warning', 'danger' #}
-{% macro bs_panel(type, heading=None) -%}
-<div class="panel panel-{{ type }}">
+{% macro bs_panel(type, heading=None, attrs=None) -%}
+{% if attrs is none -%}
+    {% set attrs = {'class': 'panel'} -%}
+{% endif -%}
+{% do tpl.add_css_classes_to_dict(attrs, 'panel-' + type) -%}
+<div {{ flatatt(attrs) }}>
     <div class="panel-heading">
     {% if heading is not none -%}
         {{ heading }}
