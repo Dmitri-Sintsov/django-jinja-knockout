@@ -270,7 +270,7 @@
 
 {% if 'ko_grid_body' in _include_ids -%}
 <script type="text/template" id="ko_grid_body">
-    <div <% if (self.get('show_title')) { %> class="panel panel-primary" <% } %>>
+    <div <% if (self.get('show_title')) { %> class="panel panel-<%= self.get('panel_type') %>" <% } %>>
         <% if (self.get('show_title')) { %>
         <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
         <div class="panel-body">
