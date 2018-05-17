@@ -88,15 +88,22 @@ def cbv_decorator(decorator):
 
 
 def prepare_bs_navs(navs, request):
-    # Select active nav tab according to request.path, if any.
-    for key, nav in enumerate(navs):
+    has_active = False
+    for nav in navs:
         if 'atts' not in nav:
             nav['atts'] = {}
-        if 'class' not in nav['atts']:
+        if 'class' in nav['atts']:
+            css_classes = nav['atts']['class'].split(' ')
+            if 'active' in css_classes:
+                has_active = True
+        else:
             nav['atts']['class'] = ''
-        if nav['url'] == request.path:
-            nav['atts']['class'] += ' active'
-        nav['atts']['class'].strip()
+    if not has_active:
+        # Select active nav tab according to request.path, if any.
+        for key, nav in enumerate(navs):
+            if nav['url'] == request.path:
+                nav['atts']['class'] += ' active'
+            nav['atts']['class'].strip()
 
 
 # Supports both ancestors of DetailView and KoGridView.
