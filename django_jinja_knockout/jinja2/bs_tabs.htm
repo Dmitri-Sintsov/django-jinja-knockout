@@ -34,7 +34,9 @@
     </li>
 {% endfor -%}
 </ul>
-
+{% if caller -%}
+    {{ caller() }}
+{% endif -%}
 <div class="tab-content">
 {% for tab in tabs -%}
     {% set div_atts = {
