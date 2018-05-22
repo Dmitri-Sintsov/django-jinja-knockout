@@ -1,7 +1,7 @@
 from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, AutoField, BigAutoField
 # Django>=1.8
 from django.db.models.fields.related import ForeignObjectRel
 # Django>=1.9
@@ -186,8 +186,25 @@ def wakeup_user(user):
     return user
 
 
-def obj_to_flat_dict(obj):
-    return {
-        k: v if isinstance(v, (int, float, type(None), bool)) else str(v)
-        for k, v in model_to_dict(obj).items()
-    }
+# Get localized verbose description of model, including nested relationships as dict.
+def get_verbose_dict(obj, nesting_level=1):
+    i18n_fields = {}
+    if nesting_level > 0:
+        for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
+            field = obj._meta.get_field(field_name)
+            if not isinstance(field, (AutoField, BigAutoField)):
+                v = getattr(obj, field_name)
+                if isinstance(v, models.Model):
+                    v = get_verbose_dict(v, nesting_level - 1)
+                elif not isinstance(v, (int, float, type(None), bool, str)):
+                    v = str(v)
+                i18n_fields[str(verbose_name)] = v
+        return i18n_fields
+    elif hasattr(obj, 'get_str_fields'):
+        verbose_names = model_fields_meta(obj, 'verbose_name')
+        for field_name, val in obj.get_str_fields().items():
+            if field_name in verbose_names:
+                i18n_fields[str(verbose_names[field_name])] = val
+        return i18n_fields if len(i18n_fields) > 0 else str(obj)
+    else:
+        return str(obj)
