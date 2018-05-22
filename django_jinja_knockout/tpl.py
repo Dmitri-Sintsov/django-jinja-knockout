@@ -263,9 +263,14 @@ def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})
     return r
 
 
+def recursive_join(lst, separator=' › ', enclosure_fmt='({})'):
+    return separator.join([
+        enclosure_fmt.format(recursive_join(v, separator, enclosure_fmt)) if isinstance(v, list) else v for v in lst
+    ])
+
 def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
     flat_d = flatten_dict(d, separator, only_keys, enclosure_fmt)
-    return separator.join(flat_d.values())
+    return recursive_join(flat_d.values(), separator, enclosure_fmt)
 
 
 def add_css_classes(existing_classes=None, new_classes=''):
