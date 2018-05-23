@@ -1,7 +1,7 @@
 from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.db import models
-from django.db.models import Q, AutoField, BigAutoField
+from django.db.models import Q, AutoField
 # Django>=1.8
 from django.db.models.fields.related import ForeignObjectRel
 # Django>=1.9
@@ -192,7 +192,7 @@ def get_verbose_dict(obj, nesting_level=1):
     if nesting_level > 0:
         for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
             field = obj._meta.get_field(field_name)
-            if not isinstance(field, (AutoField, BigAutoField)):
+            if not isinstance(field, AutoField):
                 v = getattr(obj, field_name)
                 if isinstance(v, models.Model):
                     v = get_verbose_dict(v, nesting_level - 1)

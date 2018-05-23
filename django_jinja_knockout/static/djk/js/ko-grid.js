@@ -221,7 +221,7 @@ void function(GridColumn) {
         App.renderNestedList($element, cells, {
             blockTags: this.blockTags,
             fn: 'html',
-            showKeys: true,
+            showKeys: this.ownerGrid.options.showCompoundKeys,
             i18n: this.getOrders_i18n(),
         });
     };
@@ -1456,6 +1456,7 @@ void function(Grid) {
             searchPlaceholder: null,
             selectMultipleRows: false,
             separateMeta: false,
+            showCompoundKeys: true,
             showSelection: false,
             switchHighlight: true,
             ownerCtrl: null,
