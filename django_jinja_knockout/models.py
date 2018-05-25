@@ -186,25 +186,69 @@ def wakeup_user(user):
     return user
 
 
-# Get localized verbose description of model, including nested relationships as dict.
-def get_verbose_dict(obj, nesting_level=1):
-    i18n_fields = {}
-    if nesting_level > 0:
-        for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
-            field = obj._meta.get_field(field_name)
-            if not isinstance(field, AutoField):
-                v = getattr(obj, field_name)
-                if isinstance(v, models.Model):
-                    v = get_verbose_dict(v, nesting_level - 1)
-                elif not isinstance(v, (int, float, type(None), bool, str)):
-                    v = str(v)
-                i18n_fields[str(verbose_name)] = v
-        return i18n_fields
-    elif hasattr(obj, 'get_str_fields'):
-        verbose_names = model_fields_meta(obj, 'verbose_name')
-        for field_name, val in obj.get_str_fields().items():
-            if field_name in verbose_names:
-                i18n_fields[str(verbose_names[field_name])] = val
-        return i18n_fields if len(i18n_fields) > 0 else str(obj)
-    else:
-        return str(obj)
+class NestedSerializer:
+
+    def __init__(self, obj=None, i18n_fields=None, str_fields_keys=None):
+        self.obj = obj
+        self.i18n_fields = i18n_fields
+        self.str_fields_keys = str_fields_keys
+        self.i18n_parent_path = []
+
+    def to_dict(self, nesting_level=1):
+        self.i18n_fields = {}
+        self.str_fields_keys = {}
+        return self._to_dict(self.obj, nesting_level)
+
+    def _to_dict(self, obj, nesting_level):
+        model_dict = {}
+        if nesting_level > 0:
+            if hasattr(obj, 'get_str_fields'):
+                self.str_fields_keys['›'.join(self.i18n_parent_path)] = list(obj.get_str_fields().keys())
+            for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
+                field = obj._meta.get_field(field_name)
+                if not isinstance(field, models.AutoField):
+                    try:
+                        v = getattr(obj, field_name)
+                    except AttributeError:
+                        pass
+                    else:
+                        self.i18n_parent_path.append(field_name)
+                        self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
+                        if isinstance(v, models.Model):
+                            v = self._to_dict(v, nesting_level - 1)
+                        elif not isinstance(v, (int, float, type(None), bool, str)):
+                            v = str(v)
+                        model_dict[field_name] = v
+                        self.i18n_parent_path.pop()
+            return model_dict
+        elif hasattr(obj, 'get_str_fields'):
+            verbose_names = model_fields_meta(obj, 'verbose_name')
+            for field_name, val in obj.get_str_fields().items():
+                if field_name in verbose_names:
+                    self.i18n_parent_path.append(field_name)
+                    self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_names[field_name])
+                    model_dict[field_name] = val
+                    self.i18n_parent_path.pop()
+            return model_dict if len(model_dict) > 0 else str(obj)
+        else:
+            return str(obj)
+
+    def localize_model_dict(self, model_dict):
+        if self.i18n_fields is None:
+            return model_dict
+        else:
+            i18n_model_dict = {}
+            return self._localize_model_dict(model_dict, {})
+
+    def _localize_model_dict(self, model_dict, i18n_model_dict):
+        for k, v in model_dict.items():
+            self.i18n_parent_path.append(k)
+            local_keypath = self.i18n_fields.get('›'.join(self.i18n_parent_path), k)
+            if self.str_fields_keys is None or local_keypath in self.str_fields_keys:
+                if isinstance(v, dict):
+                    i18n_model_dict[local_keypath] = {}
+                    self.localize_model_dict(v, i18n_model_dict[local_keypath])
+                else:
+                    i18n_model_dict[local_keypath] = v
+            self.i18n_parent_path.pop()
+        return i18n_model_dict
