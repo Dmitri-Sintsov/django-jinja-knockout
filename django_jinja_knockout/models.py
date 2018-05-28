@@ -1,7 +1,7 @@
 from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.db import models
-from django.db.models import Q, AutoField
+from django.db.models import Q
 # Django>=1.8
 from django.db.models.fields.related import ForeignObjectRel
 # Django>=1.9
@@ -10,8 +10,6 @@ from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
-from django.forms.models import model_to_dict
-
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
 MANY_NONE_SINGLE_TRUE = (
@@ -189,13 +187,12 @@ def wakeup_user(user):
 class NestedSerializer:
 
     def __init__(self, obj=None, i18n_fields=None, str_fields_keys=None):
-        self.obj = obj
-        self.i18n_fields = i18n_fields
-        self.str_fields_keys = str_fields_keys
         self.i18n_parent_path = []
+        self.obj = obj
+        self.i18n_fields = {} if i18n_fields is None else i18n_fields
+        self.str_fields_keys = None if str_fields_keys is None else str_fields_keys
 
     def to_dict(self, nesting_level=1):
-        self.i18n_fields = {}
         self.str_fields_keys = {}
         return self._to_dict(self.obj, nesting_level)
 
@@ -237,18 +234,25 @@ class NestedSerializer:
         if self.i18n_fields is None:
             return model_dict
         else:
-            i18n_model_dict = {}
-            return self._localize_model_dict(model_dict, {})
+            return self._localize_model_dict(model_dict, self.str_fields_keys, {})
 
-    def _localize_model_dict(self, model_dict, i18n_model_dict):
+    def _localize_model_dict(self, model_dict, str_fields_keys, i18n_model_dict):
         for k, v in model_dict.items():
-            self.i18n_parent_path.append(k)
-            local_keypath = self.i18n_fields.get('›'.join(self.i18n_parent_path), k)
-            if self.str_fields_keys is None or local_keypath in self.str_fields_keys:
+            if str_fields_keys is None:
+                str_field_key = True
+            else:
+                str_field_key = k in (str_fields_keys[''] if len(self.i18n_parent_path) == 0 else str_fields_keys)
+            if str_field_key:
+                self.i18n_parent_path.append(k)
+                local_keypath = self.i18n_fields.get('›'.join(self.i18n_parent_path), k)
                 if isinstance(v, dict):
-                    i18n_model_dict[local_keypath] = {}
-                    self.localize_model_dict(v, i18n_model_dict[local_keypath])
+                    child_str_keys = str_fields_keys[k] if isinstance(str_fields_keys, dict) else None
+                    if isinstance(child_str_keys, str):
+                        child_str_keys = {}
+                    i18n_model_dict[local_keypath] = self._localize_model_dict(
+                        v, child_str_keys, {}
+                    )
                 else:
                     i18n_model_dict[local_keypath] = v
-            self.i18n_parent_path.pop()
+                self.i18n_parent_path.pop()
         return i18n_model_dict
