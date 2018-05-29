@@ -88,10 +88,14 @@ def model_fields_meta(model, meta_attr):
         if isinstance(field, ForeignObjectRel):
             field_meta = getattr(field.related_model._meta, meta_attr)
         elif isinstance(field, GenericForeignKey):
-            field_meta = getattr(
-                getattr(model, field.ct_field).field,
-                meta_attr
-            )
+            content_obj = getattr(model, field.ct_field)
+            if content_obj is None:
+                field_meta = ''
+            else:
+                if hasattr(content_obj, 'field'):
+                    field_meta = getattr(content_obj.field, meta_attr)
+                else:
+                    field_meta = getattr(content_obj._meta, meta_attr)
         else:
             field_meta = getattr(field, meta_attr)
         meta[field.name] = field_meta
