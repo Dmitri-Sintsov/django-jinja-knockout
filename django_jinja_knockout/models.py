@@ -209,7 +209,11 @@ class NestedSerializer:
                 field = obj._meta.get_field(field_name)
                 if not isinstance(field, models.AutoField):
                     try:
-                        v = getattr(obj, field_name)
+                        choices_fn = 'get_{}_display'.format(field_name)
+                        if hasattr(obj, choices_fn):
+                            v = getattr(obj, choices_fn)()
+                        else:
+                            v = getattr(obj, field_name)
                     except AttributeError:
                         pass
                     else:
@@ -245,17 +249,18 @@ class NestedSerializer:
             if str_fields_keys is None:
                 str_field_key = True
             else:
-                str_field_key = k in (str_fields_keys[''] if len(self.i18n_parent_path) == 0 else str_fields_keys)
+                str_field_key = k in (str_fields_keys.get('', []) if len(self.i18n_parent_path) == 0 else str_fields_keys)
             if str_field_key:
                 self.i18n_parent_path.append(k)
                 local_keypath = self.i18n_fields.get('›'.join(self.i18n_parent_path), k)
                 if isinstance(v, dict):
-                    child_str_keys = str_fields_keys[k] if isinstance(str_fields_keys, dict) else None
-                    if isinstance(child_str_keys, str):
-                        child_str_keys = {}
-                    i18n_model_dict[local_keypath] = self._localize_model_dict(
-                        v, child_str_keys, {}
-                    )
+                    child_str_keys = str_fields_keys.get(k, '') if isinstance(str_fields_keys, dict) else None
+                    if child_str_keys != '':
+                        if isinstance(child_str_keys, str):
+                            child_str_keys = {}
+                        i18n_model_dict[local_keypath] = self._localize_model_dict(
+                            v, child_str_keys, {}
+                        )
                 else:
                     i18n_model_dict[local_keypath] = v
                 self.i18n_parent_path.pop()
