@@ -57,34 +57,51 @@ class PrintList:
     PRINT_KEYS = 1
     PRINT_REPEATED_KEYS = 2
 
+    default_tpl = {
+        'elem': '<li><div{attrs}>{v}</div></li>\n',
+        'key': '<li><div{attrs}><div>{k}</div>{v}</div></li>',
+        'top': '<ul>{}</ul>\n',
+    }
+
     def __init__(
         self,
-        elem_tpl='<li><div{attrs}>{v}</div></li>\n',
-        key_tpl='<li><div{attrs}><div>{k}</div>{v}</div></li>',
-        top_tpl='<ul>{}</ul>\n',
+        tpl=None,
         tpl_kwargs: dict=None,
-        cb=escape, show_keys=None,
+        cb=escape,
+        show_keys=None,
         i18n: dict=None,
-        keypath=None,
+        keypath=None
     ):
-        if tpl_kwargs is None:
-            tpl_kwargs = {}
-        if i18n is None:
-            i18n = {}
-        self.elem_tpl = elem_tpl
-        self.key_tpl = key_tpl
-        self.top_tpl = top_tpl
-        self.tpl_kwargs = tpl_kwargs
+        self.tpl = {} if tpl is None else tpl
+        for typ in ('elem', 'key'):
+            if typ not in self.tpl:
+                self.tpl[typ] = {'': self.default_tpl[typ]}
+            elif isinstance(self.tpl[typ], str):
+                self.tpl[typ] = {'': self.tpl[typ]}
+            for case in ('first', 'single'):
+                if case not in self.tpl[typ]:
+                    self.tpl[typ][case] = self.tpl[typ]['']
+        self.tpl_kwargs = {} if tpl_kwargs is None else tpl_kwargs
         if 'attrs' not in self.tpl_kwargs:
             self.tpl_kwargs['attrs'] = {}
         self.cb = cb
         self.show_keys = self.PRINT_NO_KEYS if show_keys is None else show_keys
-        self.i18n = i18n
+        self.i18n = {} if i18n is None else i18n
         # Set keypath kwarg to False to skip keypath nesting keys.
         self.keypath = [] if keypath is None else keypath
 
     def nested(self, row):
         result = []
+        gen = iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS)
+        try:
+            case = 'first'
+            gen.__next__()
+            try:
+                gen.__next__()
+            except StopIteration:
+                case = 'single'
+        except StopIteration:
+            pass
         for definition in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
             # When row element value is a tuple, it's elements define key / elem / format_kwargs.
             # Dict key, value pairs are supported, however the row of tuples allows to use repeated keys
@@ -100,20 +117,23 @@ class PrintList:
             if isinstance(self.keypath, list):
                 self.keypath.append(key)
             if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
-                result.append(self.nested(elem))
+                result.append(self.format_val(key, self.nested(elem), case, format_kwargs, cb=''))
             else:
                 result.append(
-                    self.format_val(key, elem, format_kwargs)
+                    self.format_val(key, elem, case, format_kwargs)
                 )
             if isinstance(self.keypath, list):
                 self.keypath.pop()
-        return self.top_tpl.format(''.join(result))
+            case = ''
+        return self.tpl['top'].format(''.join(result))
 
-    def format_val(self, key, elem, format_kwargs):
+    def format_val(self, key, elem, case, format_kwargs, cb=None):
         tpl_kwargs = copy(self.tpl_kwargs)
         tpl_kwargs.update(format_kwargs)
+        if cb is None:
+            cb = self.cb
         format_kwargs = {
-            'v': self.cb(elem) if callable(self.cb) else elem,
+            'v': cb(elem) if callable(cb) else elem
         }
         for k, attrs in tpl_kwargs.items():
             if isinstance(attrs, dict):
@@ -127,9 +147,9 @@ class PrintList:
             else:
                 key_val = self.i18n.get(key, key)
             format_kwargs['k'] = self.cb(key_val) if callable(self.cb) else str(key_val)
-            tpl = self.key_tpl
+            tpl = self.tpl['key'][case]
         else:
-            tpl = self.elem_tpl
+            tpl = self.tpl['elem'][case]
         return tpl.format(**format_kwargs)
 
 
@@ -143,7 +163,11 @@ def print_table(
         cb=escape, show_keys=None, i18n=None
 ):
     print_list = PrintList(
-        elem_tpl=elem_tpl, key_tpl=key_tpl, top_tpl=row_tpl,
+        tpl={
+            'elem': elem_tpl,
+            'key': key_tpl,
+            'top': row_tpl,
+        },
         cb=cb, show_keys=show_keys, i18n=i18n
     )
     rows_str = ''.join([
@@ -152,14 +176,42 @@ def print_table(
     return top_tpl.format(rows_str)
 
 
+def print_brackets(row, cb=escape, show_keys=None, i18n=None):
+    # See app.css how .conditional-display can be displayed as block element or inline element
+    # via outer .display-block / .display-inline classes.
+    return mark_safe(
+        PrintList(
+            tpl={
+                'elem': {
+                    '': ', {v}',
+                    'first': '{v}',
+                },
+                'key': {
+                    '': ' › {k}: ({v})',
+                    'first': '{k}: ({v})',
+                    'single': '{k}: {v}',
+                },
+                'top': '{}',
+            },
+            tpl_kwargs={
+            },
+            cb=cb,
+            show_keys=show_keys,
+            i18n=i18n
+        ).nested(row)
+    )
+
+
 def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n=None):
     # See app.css how .conditional-display can be displayed as block element or inline element
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
-            key_tpl='<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
-            top_tpl='{}',
+            tpl={
+                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
+                'key': '<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
+                'top': '{}',
+            },
             tpl_kwargs={'attrs': {'class': 'label label-' + bs_type + ' preformatted'}},
             cb=cb,
             show_keys=show_keys,
@@ -173,9 +225,11 @@ def print_bs_badges(row, cb=escape, show_keys=None, i18n=None):
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
-            key_tpl='<span{attrs}><div{k_attrs}>{k}:</div> {v}</span><span class="conditional-display"></span>',
-            top_tpl='{}',
+            tpl={
+                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
+                'key': '<span{attrs}><div{k_attrs}>{k}:</div> {v}</span><span class="conditional-display"></span>',
+                'top': '{}',
+            },
             tpl_kwargs={
                 'attrs': {'class': "badge preformatted"},
                 'k_attrs': {'class': "label label-info label-white preformatted"}
@@ -192,10 +246,12 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n=None):
     # via outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
-            elem_tpl='<span{attrs}>{v}</span><span class="conditional-display"></span>',
-            key_tpl=('<span{attrs}><div{k_attrs}>{k}:</div> {v}</span>'
-                     '<span class="conditional-display"></span>'),
-            top_tpl='<div class="well well-condensed well-sm">{}</div>',
+            tpl={
+                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
+                'key': ('<span{attrs}><div{k_attrs}>{k}:</div> {v}</span>'
+                        '<span class="conditional-display"></span>'),
+                'top': '<div class="well well-condensed well-sm">{}</div>',
+            },
             tpl_kwargs={
                 'attrs': {'class': "badge preformatted"},
                 'k_attrs': {'class': "label label-info label-white preformatted"}
@@ -210,9 +266,11 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n=None):
 def print_list_group(row, cb=escape, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
-            elem_tpl='<li{v_attrs}>{v}</li>\n',
-            key_tpl='<li{k_attrs}>{k}</li><li{v_attrs}>{v}</li>\n',
-            top_tpl='<ul class="list-group">{}</ul>\n',
+            tpl={
+                'elem': '<li{v_attrs}>{v}</li>\n',
+                'key': '<li{k_attrs}>{k}</li><li{v_attrs}>{v}</li>\n',
+                'top': '<ul class="list-group">{}</ul>\n',
+            },
             tpl_kwargs={
                 'v_attrs': {'class': 'list-group-item'},
                 'k_attrs': {'class': 'list-group-item'}
@@ -227,9 +285,11 @@ def print_list_group(row, cb=escape, show_keys=None, i18n=None):
 def print_badge_list_group(row, cb=escape, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
-            elem_tpl='<li{v_attrs}>{v}</li>\n',
-            key_tpl='<li{v_attrs}><span{k_attrs}>{k}</span>{v}</li>\n',
-            top_tpl='<ul class="list-group">{}</ul>\n',
+            tpl={
+                'elem': '<li{v_attrs}>{v}</li>\n',
+                'key': '<li{v_attrs}><span{k_attrs}>{k}</span>{v}</li>\n',
+                'top': '<ul class="list-group">{}</ul>\n',
+            },
             tpl_kwargs={
                 'v_attrs': {'class': 'list-group-item'},
                 'k_attrs': {'class': "badge preformatted"},
@@ -265,8 +325,10 @@ def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})
 
 def recursive_join(lst, separator=' › ', enclosure_fmt='({})'):
     return separator.join([
-        enclosure_fmt.format(recursive_join(v, separator, enclosure_fmt)) if isinstance(v, list) else v for v in lst
+        enclosure_fmt.format(recursive_join(v, separator, enclosure_fmt)) if isinstance(v, (dict, list)) else v
+        for k, v in iter_enumerate(lst)
     ])
+
 
 def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
     flat_d = flatten_dict(d, separator, only_keys, enclosure_fmt)

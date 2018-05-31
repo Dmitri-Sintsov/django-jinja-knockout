@@ -1,4 +1,5 @@
 from collections import OrderedDict, ValuesView, Mapping
+import sys
 import os
 import inspect
 from pprint import pprint
@@ -26,7 +27,7 @@ def str_to_numeric(val):
 
 
 def reverse_enumerate(iterable):
-    yield from zip(reversed(range(len(iterable))), reversed(iterable))
+    return zip(reversed(range(len(iterable))), reversed(iterable))
 
 
 def iter_enumerate(iterable, repeated_keys=False):
@@ -42,7 +43,7 @@ def iter_enumerate(iterable, repeated_keys=False):
 
 
 def yield_ordered(iterable):
-    if isinstance(iterable, OrderedDict):
+    if isinstance(iterable, OrderedDict) or (isinstance(iterable, dict) and sys.version_info >= (3, 6, 0)):
         for key, val in iterable.items():
             yield key, val
     elif isinstance(iterable, list):

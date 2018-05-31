@@ -207,24 +207,23 @@ class NestedSerializer:
                 self.str_fields_keys['›'.join(self.i18n_parent_path)] = list(obj.get_str_fields().keys())
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
                 field = obj._meta.get_field(field_name)
-                if not isinstance(field, models.AutoField):
-                    try:
-                        choices_fn = 'get_{}_display'.format(field_name)
-                        if hasattr(obj, choices_fn):
-                            v = getattr(obj, choices_fn)()
-                        else:
-                            v = getattr(obj, field_name)
-                    except AttributeError:
-                        pass
+                if not isinstance(field, (models.AutoField, models.ManyToOneRel)):
+                    choices_fn = 'get_{}_display'.format(field_name)
+                    if hasattr(obj, choices_fn):
+                        v = getattr(obj, choices_fn)()
                     else:
-                        self.i18n_parent_path.append(field_name)
-                        self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
-                        if isinstance(v, models.Model):
-                            v = self._to_dict(v, nesting_level - 1)
-                        elif not isinstance(v, (int, float, type(None), bool, str)):
-                            v = str(v)
-                        model_dict[field_name] = v
-                        self.i18n_parent_path.pop()
+                        try:
+                            v = getattr(obj, field_name)
+                        except AttributeError:
+                            continue
+                    self.i18n_parent_path.append(field_name)
+                    self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
+                    if isinstance(v, models.Model):
+                        v = self._to_dict(v, nesting_level - 1)
+                    elif not isinstance(v, (int, float, type(None), bool, str)):
+                        v = str(v)
+                    model_dict[field_name] = v
+                    self.i18n_parent_path.pop()
             return model_dict
         elif hasattr(obj, 'get_str_fields'):
             verbose_names = model_fields_meta(obj, 'verbose_name')
