@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.db import models
@@ -10,6 +12,7 @@ from django.db.models.fields.related import ForeignObject
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
+
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
 MANY_NONE_SINGLE_TRUE = (
@@ -190,6 +193,12 @@ def wakeup_user(user):
 
 class NestedSerializer:
 
+    scalar_display = {
+        None: 'Отсутствует',
+        False: 'Нет',
+        True: 'Да',
+    }
+
     def __init__(self, obj=None, i18n_fields=None, str_fields_keys=None):
         self.i18n_parent_path = []
         self.obj = obj
@@ -204,7 +213,10 @@ class NestedSerializer:
         model_dict = {}
         if nesting_level > 0:
             if hasattr(obj, 'get_str_fields'):
-                self.str_fields_keys['›'.join(self.i18n_parent_path)] = list(obj.get_str_fields().keys())
+                str_fields = obj.get_str_fields()
+                self.str_fields_keys['›'.join(self.i18n_parent_path)] = list(str_fields.keys())
+            else:
+                str_fields = {}
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
                 field = obj._meta.get_field(field_name)
                 if not isinstance(field, (models.AutoField, models.ManyToOneRel)):
@@ -219,11 +231,22 @@ class NestedSerializer:
                     self.i18n_parent_path.append(field_name)
                     self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
                     if isinstance(v, models.Model):
-                        v = self._to_dict(v, nesting_level - 1)
+                        model_dict[field_name] = self._to_dict(v, nesting_level - 1)
+                    elif field_name in str_fields:
+                        model_dict[field_name] = str_fields[field_name]
+                    elif isinstance(v, (datetime.date, datetime.datetime)):
+                        model_dict[field_name] = format_local_date(v)
+                    elif v in self.scalar_display:
+                        model_dict[field_name] = self.scalar_display[v]
                     elif not isinstance(v, (int, float, type(None), bool, str)):
-                        v = str(v)
-                    model_dict[field_name] = v
+                        # Valid JSON types
+                        model_dict[field_name] = str(v)
+                    else:
+                        model_dict[field_name] = v
                     self.i18n_parent_path.pop()
+                else:
+                    if field_name in str_fields:
+                        model_dict[field_name] = str_fields(field_name)
             return model_dict
         elif hasattr(obj, 'get_str_fields'):
             verbose_names = model_fields_meta(obj, 'verbose_name')
@@ -264,3 +287,6 @@ class NestedSerializer:
                     i18n_model_dict[local_keypath] = v
                 self.i18n_parent_path.pop()
         return i18n_model_dict
+
+
+from .tpl import format_local_date  # noqa
