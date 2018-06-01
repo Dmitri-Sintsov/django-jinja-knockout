@@ -13,6 +13,8 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
 
+from .admin import empty_value_display
+
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
 MANY_NONE_SINGLE_TRUE = (
@@ -194,9 +196,9 @@ def wakeup_user(user):
 class NestedSerializer:
 
     scalar_display = {
-        None: 'Отсутствует',
-        False: 'Нет',
-        True: 'Да',
+        None: empty_value_display,
+        False: _('No'),
+        True: _('Yes'),
     }
 
     def __init__(self, obj=None, i18n_fields=None, str_fields_keys=None):
@@ -236,8 +238,6 @@ class NestedSerializer:
                         model_dict[field_name] = str_fields[field_name]
                     elif isinstance(v, (datetime.date, datetime.datetime)):
                         model_dict[field_name] = format_local_date(v)
-                    elif v in self.scalar_display:
-                        model_dict[field_name] = self.scalar_display[v]
                     elif not isinstance(v, (int, float, type(None), bool, str)):
                         # Valid JSON types
                         model_dict[field_name] = str(v)
@@ -284,7 +284,7 @@ class NestedSerializer:
                             v, child_str_keys, {}
                         )
                 else:
-                    i18n_model_dict[local_keypath] = v
+                    i18n_model_dict[local_keypath] = self.scalar_display[v] if v in self.scalar_display else v
                 self.i18n_parent_path.pop()
         return i18n_model_dict
 

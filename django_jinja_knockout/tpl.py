@@ -9,6 +9,8 @@ from datetime import date, datetime
 from urllib.parse import urlencode
 
 from django.utils import formats, timezone
+from django.utils.functional import Promise
+from django.utils.encoding import force_text
 from django.utils.html import escape, mark_safe, format_html
 from django.forms.utils import flatatt
 try:
@@ -116,7 +118,7 @@ class PrintList:
                 format_kwargs = {}
             if isinstance(self.keypath, list):
                 self.keypath.append(key)
-            if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes)):
+            if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes, Promise)):
                 result.append(self.format_val(key, self.nested(elem), case, format_kwargs, cb=''))
             else:
                 result.append(
