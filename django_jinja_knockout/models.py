@@ -211,6 +211,37 @@ class NestedSerializer:
         self.str_fields_keys = {}
         return self._to_dict(self.obj, nesting_level)
 
+    def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
+        result = None, False
+        field = obj._meta.get_field(field_name)
+        if not isinstance(field, (models.AutoField, models.ManyToOneRel)):
+            choices_fn = 'get_{}_display'.format(field_name)
+            if hasattr(obj, choices_fn):
+                v = getattr(obj, choices_fn)()
+            else:
+                try:
+                    v = getattr(obj, field_name)
+                except AttributeError:
+                    return result
+            self.i18n_parent_path.append(field_name)
+            self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
+            if isinstance(v, models.Model):
+                result = self._to_dict(v, nesting_level - 1), True
+            elif field_name in str_fields:
+                result = str_fields[field_name], True
+            elif isinstance(v, (datetime.date, datetime.datetime)):
+                result = format_local_date(v), True
+            elif not isinstance(v, (int, float, type(None), bool, str)):
+                # Not a valid JSON type
+                result = str(v), True
+            else:
+                result = v, True
+            self.i18n_parent_path.pop()
+        else:
+            if field_name in str_fields:
+                result = str_fields(field_name)
+        return result
+
     def _to_dict(self, obj, nesting_level):
         model_dict = {}
         if nesting_level > 0:
@@ -220,33 +251,9 @@ class NestedSerializer:
             else:
                 str_fields = {}
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
-                field = obj._meta.get_field(field_name)
-                if not isinstance(field, (models.AutoField, models.ManyToOneRel)):
-                    choices_fn = 'get_{}_display'.format(field_name)
-                    if hasattr(obj, choices_fn):
-                        v = getattr(obj, choices_fn)()
-                    else:
-                        try:
-                            v = getattr(obj, field_name)
-                        except AttributeError:
-                            continue
-                    self.i18n_parent_path.append(field_name)
-                    self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
-                    if isinstance(v, models.Model):
-                        model_dict[field_name] = self._to_dict(v, nesting_level - 1)
-                    elif field_name in str_fields:
-                        model_dict[field_name] = str_fields[field_name]
-                    elif isinstance(v, (datetime.date, datetime.datetime)):
-                        model_dict[field_name] = format_local_date(v)
-                    elif not isinstance(v, (int, float, type(None), bool, str)):
-                        # Valid JSON types
-                        model_dict[field_name] = str(v)
-                    else:
-                        model_dict[field_name] = v
-                    self.i18n_parent_path.pop()
-                else:
-                    if field_name in str_fields:
-                        model_dict[field_name] = str_fields(field_name)
+                val, exists = self.field_to_dict(obj, field_name, verbose_name, nesting_level, str_fields)
+                if exists:
+                    model_dict[field_name] = val
             return model_dict
         elif hasattr(obj, 'get_str_fields'):
             verbose_names = model_fields_meta(obj, 'verbose_name')

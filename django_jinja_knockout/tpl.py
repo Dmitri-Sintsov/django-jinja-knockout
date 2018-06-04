@@ -275,7 +275,7 @@ def print_list_group(row, cb=escape, show_keys=None, i18n=None):
             },
             tpl_kwargs={
                 'v_attrs': {'class': 'list-group-item'},
-                'k_attrs': {'class': 'list-group-item'}
+                'k_attrs': {'class': 'list-group-item bold'},
             },
             cb=cb,
             show_keys=show_keys,
