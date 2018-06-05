@@ -207,7 +207,6 @@ class NestedSerializer:
         self.metadata = {} if metadata is None else metadata
 
     def to_dict(self, nesting_level=1):
-        self.str_fields_keys = {}
         return self._to_dict(self.obj, nesting_level)
 
     def get_str_type(self, field):
@@ -262,7 +261,6 @@ class NestedSerializer:
         if nesting_level > 0:
             if hasattr(obj, 'get_str_fields'):
                 str_fields = obj.get_str_fields()
-                self.str_fields_keys['›'.join(self.i18n_parent_path)] = list(str_fields.keys())
             else:
                 str_fields = {}
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
