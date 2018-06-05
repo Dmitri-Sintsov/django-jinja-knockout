@@ -201,15 +201,21 @@ class NestedSerializer:
         True: _('Yes'),
     }
 
-    def __init__(self, obj=None, i18n_fields=None, str_fields_keys=None):
-        self.i18n_parent_path = []
+    def __init__(self, obj=None, metadata=None):
+        self.treepath = []
         self.obj = obj
-        self.i18n_fields = {} if i18n_fields is None else i18n_fields
-        self.str_fields_keys = None if str_fields_keys is None else str_fields_keys
+        self.metadata = {} if metadata is None else metadata
 
     def to_dict(self, nesting_level=1):
         self.str_fields_keys = {}
         return self._to_dict(self.obj, nesting_level)
+
+    def get_str_type(self, field):
+        if field is None:
+            return None
+        else:
+            path = str(type(field)).split('.')
+            return path[-1].strip("'>")
 
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         result = None, False
@@ -223,8 +229,12 @@ class NestedSerializer:
                     v = getattr(obj, field_name)
                 except AttributeError:
                     return result
-            self.i18n_parent_path.append(field_name)
-            self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_name)
+            self.treepath.append(field_name)
+            self.metadata['›'.join(self.treepath)] = {
+                'verbose_name': str(verbose_name),
+                'is_anon': field_name in str_fields,
+                'type': self.get_str_type(field),
+            }
             if isinstance(v, models.Model):
                 result = self._to_dict(v, nesting_level - 1), True
             elif field_name in str_fields:
@@ -236,10 +246,15 @@ class NestedSerializer:
                 result = str(v), True
             else:
                 result = v, True
-            self.i18n_parent_path.pop()
+            self.treepath.pop()
         else:
             if field_name in str_fields:
-                result = str_fields(field_name)
+                self.metadata['›'.join(self.treepath)] = {
+                    'verbose_name': str(verbose_name),
+                    'is_anon': True,
+                    'type': self.get_str_type(field),
+                }
+                result = str_fields(field_name), True
         return result
 
     def _to_dict(self, obj, nesting_level):
@@ -258,41 +273,38 @@ class NestedSerializer:
         elif hasattr(obj, 'get_str_fields'):
             verbose_names = model_fields_meta(obj, 'verbose_name')
             for field_name, val in obj.get_str_fields().items():
+                field = getattr(obj, field_name, None)
                 if field_name in verbose_names:
-                    self.i18n_parent_path.append(field_name)
-                    self.i18n_fields['›'.join(self.i18n_parent_path)] = str(verbose_names[field_name])
+                    self.treepath.append(field_name)
+                    self.metadata['›'.join(self.treepath)] = {
+                        'verbose_name': str(verbose_names[field_name]),
+                        'is_anon': True,
+                        'type': self.get_str_type(field),
+                    }
                     model_dict[field_name] = val
-                    self.i18n_parent_path.pop()
+                    self.treepath.pop()
             return model_dict if len(model_dict) > 0 else str(obj)
         else:
             return str(obj)
 
     def localize_model_dict(self, model_dict):
-        if self.i18n_fields is None:
+        if self.metadata is None:
             return model_dict
         else:
-            return self._localize_model_dict(model_dict, self.str_fields_keys, {})
+            return self._localize_model_dict(model_dict, {})
 
-    def _localize_model_dict(self, model_dict, str_fields_keys, i18n_model_dict):
+    def _localize_model_dict(self, model_dict, i18n_model_dict):
         for k, v in model_dict.items():
-            if str_fields_keys is None:
-                str_field_key = True
+            self.treepath.append(k)
+            treepath_str = '›'.join(self.treepath)
+            local_keypath = self.metadata[treepath_str]['verbose_name'] if treepath_str in self.metadata else k
+            if isinstance(v, dict):
+                i18n_model_dict[local_keypath] = self._localize_model_dict(
+                    v, {}
+                )
             else:
-                str_field_key = k in (str_fields_keys.get('', []) if len(self.i18n_parent_path) == 0 else str_fields_keys)
-            if str_field_key:
-                self.i18n_parent_path.append(k)
-                local_keypath = self.i18n_fields.get('›'.join(self.i18n_parent_path), k)
-                if isinstance(v, dict):
-                    child_str_keys = str_fields_keys.get(k, '') if isinstance(str_fields_keys, dict) else None
-                    if child_str_keys != '':
-                        if isinstance(child_str_keys, str):
-                            child_str_keys = {}
-                        i18n_model_dict[local_keypath] = self._localize_model_dict(
-                            v, child_str_keys, {}
-                        )
-                else:
-                    i18n_model_dict[local_keypath] = self.scalar_display[v] if v in self.scalar_display else v
-                self.i18n_parent_path.pop()
+                i18n_model_dict[local_keypath] = self.scalar_display[v] if v in self.scalar_display else v
+            self.treepath.pop()
         return i18n_model_dict
 
 
