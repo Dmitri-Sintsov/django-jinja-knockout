@@ -205,6 +205,7 @@ class NestedSerializer:
         self.treepath = []
         self.obj = obj
         self.metadata = {} if metadata is None else metadata
+        self.is_anon = None
 
     def to_dict(self, nesting_level=1):
         return self._to_dict(self.obj, nesting_level)
@@ -285,7 +286,8 @@ class NestedSerializer:
         else:
             return str(obj)
 
-    def localize_model_dict(self, model_dict):
+    def localize_model_dict(self, model_dict, is_anon=None):
+        self.is_anon = is_anon
         if self.metadata is None:
             return model_dict
         else:
@@ -295,13 +297,19 @@ class NestedSerializer:
         for k, v in model_dict.items():
             self.treepath.append(k)
             treepath_str = '›'.join(self.treepath)
-            local_keypath = self.metadata[treepath_str]['verbose_name'] if treepath_str in self.metadata else k
-            if isinstance(v, dict):
-                i18n_model_dict[local_keypath] = self._localize_model_dict(
-                    v, {}
-                )
-            else:
-                i18n_model_dict[local_keypath] = self.scalar_display[v] if v in self.scalar_display else v
+            metadata = self.metadata[treepath_str] if treepath_str in self.metadata else {
+                'verbose_name': k,
+                'is_anon': False,
+                'type': None,
+            }
+            if self.is_anon is None or self.is_anon == metadata['is_anon']:
+                local_key = metadata['verbose_name']
+                if isinstance(v, dict):
+                    i18n_model_dict[local_key] = self._localize_model_dict(
+                        v, {}
+                    )
+                else:
+                    i18n_model_dict[local_key] = self.scalar_display[v] if v in self.scalar_display else v
             self.treepath.pop()
         return i18n_model_dict
 
