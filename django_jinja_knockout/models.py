@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.exceptions import FieldDoesNotExist
+from django.utils.dateparse import parse_date, parse_datetime
 from django.apps import apps
 from django.db import models
 from django.db.models import Q
@@ -237,15 +238,15 @@ class NestedSerializer:
             }
             if isinstance(v, models.Model):
                 result = self._to_dict(v, nesting_level - 1), True
+            elif isinstance(v, (datetime.date, datetime.datetime)):
+                result = v.isoformat(), True
+            elif isinstance(v, (int, float, type(None), bool, str)):
+                result = v, True
             elif field_name in str_fields:
                 result = str_fields[field_name], True
-            elif isinstance(v, (datetime.date, datetime.datetime)):
-                result = format_local_date(v), True
-            elif not isinstance(v, (int, float, type(None), bool, str)):
+            else:
                 # Not a valid JSON type
                 result = str(v), True
-            else:
-                result = v, True
             self.treepath.pop()
         else:
             if field_name in str_fields:
@@ -293,7 +294,7 @@ class NestedSerializer:
         else:
             return self._localize_model_dict(model_dict, {})
 
-    def _localize_model_dict(self, model_dict, i18n_model_dict):
+    def _localize_model_dict(self, model_dict, local_model_dict):
         for k, v in model_dict.items():
             self.treepath.append(k)
             treepath_str = '›'.join(self.treepath)
@@ -305,13 +306,18 @@ class NestedSerializer:
             if self.is_anon is None or self.is_anon == metadata['is_anon']:
                 local_key = metadata['verbose_name']
                 if isinstance(v, dict):
-                    i18n_model_dict[local_key] = self._localize_model_dict(
+                    local_model_dict[local_key] = self._localize_model_dict(
                         v, {}
                     )
                 else:
-                    i18n_model_dict[local_key] = self.scalar_display[v] if v in self.scalar_display else v
+                    if metadata['type'] == 'DateTimeField':
+                        local_model_dict[local_key] = format_local_date(parse_datetime(v))
+                    elif metadata['type'] == 'DateField':
+                        local_model_dict[local_key] = format_local_date(parse_date(v))
+                    else:
+                        local_model_dict[local_key] = self.scalar_display[v] if v in self.scalar_display else v
             self.treepath.pop()
-        return i18n_model_dict
+        return local_model_dict
 
 
 from .tpl import format_local_date  # noqa
