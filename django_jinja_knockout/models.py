@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.dateparse import parse_date, parse_datetime
@@ -215,8 +216,13 @@ class NestedSerializer:
         if field is None:
             return None
         else:
-            path = str(type(field)).split('.')
-            return path[-1].strip("'>")
+            path = str(type(field))
+            mtch = re.search(r"<\w*?\s*?'(.*?)'>", path)
+            if mtch is None:
+                return path
+            else:
+                grp = mtch.group(1).split('.')
+                return grp[-1]
 
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         result = None, False
@@ -231,7 +237,7 @@ class NestedSerializer:
                 except AttributeError:
                     return result
             self.treepath.append(field_name)
-            self.metadata['›'.join(self.treepath)] = {
+            metadata = {
                 'verbose_name': str(verbose_name),
                 'is_anon': field_name in str_fields,
                 'type': self.get_str_type(field),
@@ -244,18 +250,20 @@ class NestedSerializer:
                 result = v, True
             elif field_name in str_fields:
                 result = str_fields[field_name], True
+                metadata['type'] = self.get_str_type(v)
             else:
                 # Not a valid JSON type
                 result = str(v), True
+            self.metadata['›'.join(self.treepath)] = metadata
             self.treepath.pop()
         else:
             if field_name in str_fields:
                 self.metadata['›'.join(self.treepath)] = {
                     'verbose_name': str(verbose_name),
                     'is_anon': True,
-                    'type': self.get_str_type(field),
+                    'type': self.get_str_type(str_fields[field_name]),
                 }
-                result = str_fields(field_name), True
+                result = str_fields[field_name], True
         return result
 
     def _to_dict(self, obj, nesting_level):
@@ -310,12 +318,14 @@ class NestedSerializer:
                         v, {}
                     )
                 else:
-                    if metadata['type'] == 'DateTimeField':
+                    if v in self.scalar_display:
+                        local_model_dict[local_key] = self.scalar_display[v]
+                    elif metadata['type'] == 'DateTimeField':
                         local_model_dict[local_key] = format_local_date(parse_datetime(v))
                     elif metadata['type'] == 'DateField':
                         local_model_dict[local_key] = format_local_date(parse_date(v))
                     else:
-                        local_model_dict[local_key] = self.scalar_display[v] if v in self.scalar_display else v
+                        local_model_dict[local_key] = v
             self.treepath.pop()
         return local_model_dict
 
