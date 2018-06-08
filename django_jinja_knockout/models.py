@@ -197,6 +197,12 @@ def wakeup_user(user):
 
 class NestedSerializer:
 
+    skip_serialization = (
+        models.ManyToOneRel,
+    )
+    skip_localization = (
+        'AutoField',
+    )
     scalar_display = {
         None: empty_value_display,
         False: _('No'),
@@ -227,7 +233,7 @@ class NestedSerializer:
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         result = None, False
         field = obj._meta.get_field(field_name)
-        if not isinstance(field, (models.AutoField, models.ManyToOneRel)):
+        if not isinstance(field, self.skip_serialization):
             choices_fn = 'get_{}_display'.format(field_name)
             if hasattr(obj, choices_fn):
                 v = getattr(obj, choices_fn)()
@@ -302,30 +308,37 @@ class NestedSerializer:
         else:
             return self._localize_model_dict(model_dict, {})
 
-    def _localize_model_dict(self, model_dict, local_model_dict):
-        for k, v in model_dict.items():
-            self.treepath.append(k)
-            treepath_str = '›'.join(self.treepath)
-            metadata = self.metadata[treepath_str] if treepath_str in self.metadata else {
-                'verbose_name': k,
-                'is_anon': False,
-                'type': None,
-            }
-            if self.is_anon is None or self.is_anon == metadata['is_anon']:
-                local_key = metadata['verbose_name']
-                if isinstance(v, dict):
-                    local_model_dict[local_key] = self._localize_model_dict(
-                        v, {}
-                    )
+    def localize_field(self, field_name, field_val):
+        treepath_str = '›'.join(self.treepath)
+        metadata = self.metadata[treepath_str] if treepath_str in self.metadata else {
+            'verbose_name': field_name,
+            'is_anon': False,
+            'type': None,
+        }
+        if metadata['type'] not in self.skip_localization and \
+                (self.is_anon is None or self.is_anon == metadata['is_anon']):
+            local_key = metadata['verbose_name']
+            if isinstance(field_val, dict):
+                return local_key, self._localize_model_dict(
+                    field_val, {}
+                )
+            else:
+                if field_val in self.scalar_display:
+                    return local_key, self.scalar_display[field_val]
+                elif metadata['type'] == 'DateTimeField':
+                    return local_key, format_local_date(parse_datetime(field_val))
+                elif metadata['type'] == 'DateField':
+                    return local_key, format_local_date(parse_date(field_val))
                 else:
-                    if v in self.scalar_display:
-                        local_model_dict[local_key] = self.scalar_display[v]
-                    elif metadata['type'] == 'DateTimeField':
-                        local_model_dict[local_key] = format_local_date(parse_datetime(v))
-                    elif metadata['type'] == 'DateField':
-                        local_model_dict[local_key] = format_local_date(parse_date(v))
-                    else:
-                        local_model_dict[local_key] = v
+                    return local_key, field_val
+        return None, None
+
+    def _localize_model_dict(self, model_dict, local_model_dict):
+        for field_name, field_val in model_dict.items():
+            self.treepath.append(field_name)
+            local_name, local_val = self.localize_field(field_name, field_val)
+            if local_name is not None:
+                local_model_dict[local_name] = local_val
             self.treepath.pop()
         return local_model_dict
 
