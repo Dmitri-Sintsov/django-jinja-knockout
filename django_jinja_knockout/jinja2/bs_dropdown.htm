@@ -1,0 +1,28 @@
+{% macro bs_dropdown(title=None, navs=None) -%}
+{% if navs is none -%}
+    {% set navs = {} -%}
+{% endif -%}
+{% if title is not none -%}
+<ul class="nav nav-pills">
+    <li class="dropdown dropdown-choice">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+        {{ title }} <span class="caret"></span>
+        </a>
+{% endif -%}
+        <ul class="dropdown-menu dropdown-menu-right">
+            {% for nav in navs -%}
+            <li {{ flatatt(nav.atts) }}>
+                {% if 'active' in nav.atts.class -%}
+                    {% set a_atts = {'name': '#'} -%}
+                {% else -%}
+                    {% set a_atts = {'href': nav['url'] } -%}
+                {% endif -%}
+                <a{{ flatatt(a_atts)}}>{{ nav.text }}</a>
+            </li>
+            {% endfor -%}
+        </ul>
+{% if title is not none -%}
+    </li>
+</ul>
+{% endif -%}
+{% endmacro -%}

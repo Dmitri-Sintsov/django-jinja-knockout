@@ -1,0 +1,15 @@
+{% macro bs_choice_list(title=None, navs=None) -%}
+{% if navs is none -%}
+    {% set navs = {} -%}
+{% endif -%}
+{% if title is not none -%}
+<span class="choice-title">{{ title }}-</span>
+{% endif -%}
+{% set first_active_index = True -%}
+{% for nav in navs -%}
+    {% if 'active' in nav.atts.class -%}
+        {% if first_active_index -%}{% set first_active_index = False -%}{% else -%}, {% endif -%}<span class="choice-text">{{ nav.text }}</span>
+    {% endif -%}
+</li>
+{% endfor -%}
+{% endmacro -%}

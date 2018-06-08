@@ -8,9 +8,9 @@
     {% endif -%}
     {% for nav in navs -%}
     <li {{ flatatt(nav.atts) }}>
-        {% if nav.atts.class != 'active' -%}<a href="{{ nav.url }}">{% endif -%}
+        {% if 'active' not in nav.atts.class -%}<a href="{{ nav.url }}">{% endif -%}
         {{ nav.text }}
-        {% if nav.atts.class != 'active' -%}</a>{% endif -%}
+        {% if 'active' not in nav.atts.class -%}</a>{% endif -%}
     </li>
     {% endfor -%}
 </ol>
