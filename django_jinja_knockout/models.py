@@ -16,6 +16,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
 
 from .admin import empty_value_display
+from .utils import sdv
 
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
@@ -198,7 +199,8 @@ def wakeup_user(user):
 class NestedSerializer:
 
     skip_serialization = (
-        models.ManyToOneRel,
+        models.ManyToManyRel,
+        # models.ManyToOneRel,
     )
     skip_localization = (
         'AutoField',
@@ -210,13 +212,10 @@ class NestedSerializer:
     }
 
     def __init__(self, obj=None, metadata=None):
-        self.treepath = []
+        self.treepath = ''
         self.obj = obj
         self.metadata = {} if metadata is None else metadata
         self.is_anon = None
-
-    def to_dict(self, nesting_level=1):
-        return self._to_dict(self.obj, nesting_level)
 
     def get_str_type(self, field):
         if field is None:
@@ -230,24 +229,56 @@ class NestedSerializer:
                 grp = mtch.group(1).split('.')
                 return grp[-1]
 
+    def push_path(self, field_name):
+        if '›' in field_name:
+            raise ValueError('Unsupported character "›" in field_name')
+        if self.treepath != '':
+            self.treepath += '›' + field_name
+        else:
+            self.treepath = field_name
+
+    def pop_path(self):
+        if self.treepath == '':
+            raise ValueError('self.treepath is already at bottom')
+        self.treepath = '›'.join(self.treepath.split('›')[:-1])
+
+    def is_serializable_field(self, field):
+        return not isinstance(field, self.skip_serialization)
+
+    def get_reverse_qs(self, field):
+        return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
+
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         result = None, False
         field = obj._meta.get_field(field_name)
-        if not isinstance(field, self.skip_serialization):
-            choices_fn = 'get_{}_display'.format(field_name)
-            if hasattr(obj, choices_fn):
-                v = getattr(obj, choices_fn)()
-            else:
-                try:
-                    v = getattr(obj, field_name)
-                except AttributeError:
-                    return result
-            self.treepath.append(field_name)
+        if self.is_serializable_field(field):
             metadata = {
                 'verbose_name': str(verbose_name),
                 'is_anon': field_name in str_fields,
                 'type': self.get_str_type(field),
             }
+            choices_fn = 'get_{}_display'.format(field_name)
+            if hasattr(obj, choices_fn):
+                v = getattr(obj, choices_fn)()
+            else:
+                if isinstance(field, models.ManyToOneRel):
+                    metadata['is_anon'] = True
+                    reverse_qs = self.get_reverse_qs(field)
+                    if callable(reverse_qs):
+                        v = [
+                            self._to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
+                        ]
+                        self.metadata[self.treepath] = metadata
+                        if len(v) > 0:
+                            return v, True
+                        else:
+                            return result
+                    else:
+                        return result
+                try:
+                    v = getattr(obj, field_name)
+                except AttributeError:
+                    return result
             if isinstance(v, models.Model):
                 result = self._to_dict(v, nesting_level - 1), True
             elif isinstance(v, (datetime.date, datetime.datetime)):
@@ -260,11 +291,10 @@ class NestedSerializer:
             else:
                 # Not a valid JSON type
                 result = str(v), True
-            self.metadata['›'.join(self.treepath)] = metadata
-            self.treepath.pop()
+            self.metadata[self.treepath] = metadata
         else:
             if field_name in str_fields:
-                self.metadata['›'.join(self.treepath)] = {
+                self.metadata[self.treepath] = {
                     'verbose_name': str(verbose_name),
                     'is_anon': True,
                     'type': self.get_str_type(str_fields[field_name]),
@@ -280,7 +310,9 @@ class NestedSerializer:
             else:
                 str_fields = {}
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
+                self.push_path(field_name)
                 val, exists = self.field_to_dict(obj, field_name, verbose_name, nesting_level, str_fields)
+                self.pop_path()
                 if exists:
                     model_dict[field_name] = val
             return model_dict
@@ -289,17 +321,68 @@ class NestedSerializer:
             for field_name, val in obj.get_str_fields().items():
                 field = getattr(obj, field_name, None)
                 if field_name in verbose_names:
-                    self.treepath.append(field_name)
-                    self.metadata['›'.join(self.treepath)] = {
+                    self.push_path(field_name)
+                    self.metadata[self.treepath] = {
                         'verbose_name': str(verbose_names[field_name]),
                         'is_anon': True,
                         'type': self.get_str_type(field),
                     }
                     model_dict[field_name] = val
-                    self.treepath.pop()
+                    self.pop_path()
             return model_dict if len(model_dict) > 0 else str(obj)
         else:
             return str(obj)
+
+    def to_dict(self, nesting_level=1):
+        return self._to_dict(self.obj, nesting_level)
+
+    def _localize_field_val(self, field_val, metadata):
+        if field_val in self.scalar_display:
+            return self.scalar_display[field_val]
+        elif metadata['type'] == 'DateTimeField':
+            return format_local_date(parse_datetime(field_val))
+        elif metadata['type'] == 'DateField':
+            return format_local_date(parse_date(field_val))
+        else:
+            return field_val
+
+    def _localize_field(self, field_val, metadata):
+        if isinstance(field_val, dict):
+            return self._localize_model_dict(
+                field_val, {}
+            )
+        elif isinstance(field_val, list):
+            return [self._localize_field(reverse_val, metadata) for reverse_val in field_val]
+        else:
+            return self._localize_field_val(field_val, metadata)
+
+    def _get_metadata(self, field_name):
+        return self.metadata[self.treepath] if self.treepath in self.metadata else {
+            'verbose_name': field_name,
+            'is_anon': False,
+            'type': None,
+        }
+
+    def _is_permitted_field(self, metadata):
+        return metadata['type'] not in self.skip_localization and \
+            (self.is_anon is None or self.is_anon == metadata['is_anon'])
+
+    def localize_field(self, field_name, field_val):
+        metadata = self._get_metadata(field_name)
+        if self._is_permitted_field(metadata):
+            local_name = metadata['verbose_name']
+            return local_name, self._localize_field(field_val, metadata)
+        else:
+            return None, None
+
+    def _localize_model_dict(self, model_dict, local_model_dict):
+        for field_name, field_val in model_dict.items():
+            self.push_path(field_name)
+            local_name, local_val = self.localize_field(field_name, field_val)
+            if local_name is not None:
+                local_model_dict[local_name] = local_val
+            self.pop_path()
+        return local_model_dict
 
     def localize_model_dict(self, model_dict, is_anon=None):
         self.is_anon = is_anon
@@ -307,40 +390,6 @@ class NestedSerializer:
             return model_dict
         else:
             return self._localize_model_dict(model_dict, {})
-
-    def localize_field(self, field_name, field_val):
-        treepath_str = '›'.join(self.treepath)
-        metadata = self.metadata[treepath_str] if treepath_str in self.metadata else {
-            'verbose_name': field_name,
-            'is_anon': False,
-            'type': None,
-        }
-        if metadata['type'] not in self.skip_localization and \
-                (self.is_anon is None or self.is_anon == metadata['is_anon']):
-            local_key = metadata['verbose_name']
-            if isinstance(field_val, dict):
-                return local_key, self._localize_model_dict(
-                    field_val, {}
-                )
-            else:
-                if field_val in self.scalar_display:
-                    return local_key, self.scalar_display[field_val]
-                elif metadata['type'] == 'DateTimeField':
-                    return local_key, format_local_date(parse_datetime(field_val))
-                elif metadata['type'] == 'DateField':
-                    return local_key, format_local_date(parse_date(field_val))
-                else:
-                    return local_key, field_val
-        return None, None
-
-    def _localize_model_dict(self, model_dict, local_model_dict):
-        for field_name, field_val in model_dict.items():
-            self.treepath.append(field_name)
-            local_name, local_val = self.localize_field(field_name, field_val)
-            if local_name is not None:
-                local_model_dict[local_name] = local_val
-            self.treepath.pop()
-        return local_model_dict
 
 
 from .tpl import format_local_date  # noqa
