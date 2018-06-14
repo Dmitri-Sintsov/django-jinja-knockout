@@ -302,9 +302,27 @@ class NestedSerializer:
                 result = str_fields[field_name], True
         return result
 
-    def _to_dict(self, obj, nesting_level):
+    def _get_str_val_dict(self, obj, str_fields):
         model_dict = {}
+        verbose_names = model_fields_meta(obj, 'verbose_name')
+        for field_name, val in str_fields.items():
+            field = getattr(obj, field_name, None)
+            if field_name in verbose_names:
+                self.push_path(field_name)
+                self.metadata[self.treepath] = {
+                    'verbose_name': str(verbose_names[field_name]),
+                    'is_anon': True,
+                    'type': self.get_str_type(field),
+                }
+                model_dict[field_name] = val
+                if isinstance(val, dict) and isinstance(field, models.Model):
+                    self._get_str_val_dict(field, val)
+                self.pop_path()
+        return model_dict
+
+    def _to_dict(self, obj, nesting_level):
         if nesting_level > 0:
+            model_dict = {}
             if hasattr(obj, 'get_str_fields'):
                 str_fields = obj.get_str_fields()
             else:
@@ -317,18 +335,7 @@ class NestedSerializer:
                     model_dict[field_name] = val
             return model_dict
         elif hasattr(obj, 'get_str_fields'):
-            verbose_names = model_fields_meta(obj, 'verbose_name')
-            for field_name, val in obj.get_str_fields().items():
-                field = getattr(obj, field_name, None)
-                if field_name in verbose_names:
-                    self.push_path(field_name)
-                    self.metadata[self.treepath] = {
-                        'verbose_name': str(verbose_names[field_name]),
-                        'is_anon': True,
-                        'type': self.get_str_type(field),
-                    }
-                    model_dict[field_name] = val
-                    self.pop_path()
+            model_dict = self._get_str_val_dict(obj, obj.get_str_fields())
             return model_dict if len(model_dict) > 0 else str(obj)
         else:
             return str(obj)
