@@ -248,50 +248,61 @@ class NestedSerializer:
     def get_reverse_qs(self, field):
         return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
 
-    def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
-        result = None, False
+    def get_field_val(self, obj, field_name, metadata, nesting_level):
+        not_found = None, False
         field = obj._meta.get_field(field_name)
-        if self.is_serializable_field(field):
-            metadata = {
-                'verbose_name': str(verbose_name),
-                'is_anon': field_name in str_fields,
-                'type': self.get_str_type(field),
-            }
-            choices_fn = 'get_{}_display'.format(field_name)
-            if hasattr(obj, choices_fn):
-                v = getattr(obj, choices_fn)()
-            else:
-                if isinstance(field, models.ManyToOneRel):
-                    metadata['is_anon'] = True
-                    reverse_qs = self.get_reverse_qs(field)
-                    if callable(reverse_qs):
-                        v = [
-                            self._to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
-                        ]
-                        self.metadata[self.treepath] = metadata
-                        if len(v) > 0:
-                            return v, True
-                        else:
-                            return result
+        choices_fn = 'get_{}_display'.format(field_name)
+        if hasattr(obj, choices_fn):
+            return getattr(obj, choices_fn)(), True
+        else:
+            if isinstance(field, models.ManyToOneRel):
+                metadata['is_anon'] = True
+                reverse_qs = self.get_reverse_qs(field)
+                if callable(reverse_qs):
+                    v = [
+                        self._to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
+                    ]
+                    # Always store metadata for reverse relationships even when there is zero relations.
+                    # Such way it minimizes the number of different metadata dicts for the same Model.
+                    self.metadata[self.treepath] = metadata
+                    if len(v) > 0:
+                        return v, True
                     else:
-                        return result
-                try:
-                    v = getattr(obj, field_name)
-                except AttributeError:
-                    return result
-            if isinstance(v, models.Model):
-                result = self._to_dict(v, nesting_level - 1), True
-            elif isinstance(v, (datetime.date, datetime.datetime)):
-                result = v.isoformat(), True
-            elif isinstance(v, (int, float, type(None), bool, str)):
-                result = v, True
-            elif field_name in str_fields:
-                result = str_fields[field_name], True
-                metadata['type'] = self.get_str_type(v)
+                        return not_found
+                else:
+                    return not_found
+            try:
+                return getattr(obj, field_name), True
+            except AttributeError:
+                return not_found
+
+    def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
+        field = obj._meta.get_field(field_name)
+        metadata = {
+            'verbose_name': str(verbose_name),
+            'is_anon': field_name in str_fields,
+            'type': self.get_str_type(field),
+        }
+        if self.is_serializable_field(field):
+            v, exists = self.get_field_val(obj, field_name, metadata, nesting_level)
+            if exists:
+                if isinstance(v, list):
+                    result = v, exists
+                elif isinstance(v, models.Model):
+                    result = self._to_dict(v, nesting_level - 1), True
+                elif isinstance(v, (datetime.date, datetime.datetime)):
+                    result = v.isoformat(), True
+                elif isinstance(v, (int, float, type(None), bool, str)):
+                    result = v, True
+                elif field_name in str_fields:
+                    result = str_fields[field_name], True
+                    metadata['type'] = self.get_str_type(v)
+                else:
+                    # Not a valid JSON type
+                    result = str(v), True
+                self.metadata[self.treepath] = metadata
             else:
-                # Not a valid JSON type
-                result = str(v), True
-            self.metadata[self.treepath] = metadata
+                return None, False
         else:
             if field_name in str_fields:
                 self.metadata[self.treepath] = {
