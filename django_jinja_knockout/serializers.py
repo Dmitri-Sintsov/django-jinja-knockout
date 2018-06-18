@@ -124,7 +124,7 @@ class NestedSerializer(NestedBase):
                 result = str_fields[field_name], True
         return result
 
-    def _get_str_val_dict(self, obj, str_fields):
+    def get_str_val_dict(self, obj, str_fields):
         model_dict = {}
         verbose_names = model_fields_meta(obj, 'verbose_name')
         for field_name, val in str_fields.items():
@@ -138,7 +138,7 @@ class NestedSerializer(NestedBase):
                 }
                 model_dict[field_name] = val
                 if isinstance(val, dict) and isinstance(field, models.Model):
-                    self._get_str_val_dict(field, val)
+                    self.get_str_val_dict(field, val)
                 self.pop_path()
         return model_dict
 
@@ -157,7 +157,7 @@ class NestedSerializer(NestedBase):
                     model_dict[field_name] = val
             return model_dict
         elif hasattr(obj, 'get_str_fields'):
-            model_dict = self._get_str_val_dict(obj, obj.get_str_fields())
+            model_dict = self.get_str_val_dict(obj, obj.get_str_fields())
             return model_dict if len(model_dict) > 0 else str(obj)
         else:
             return str(obj)
@@ -183,7 +183,7 @@ class NestedLocalizer(NestedBase):
         self.metadata = {} if metadata is None else metadata
         self.is_anon = None
 
-    def _localize_field_val(self, field_val, metadata):
+    def localize_field_val(self, field_val, metadata):
         if field_val in self.scalar_display:
             return self.scalar_display[field_val]
         elif metadata['type'] == 'DateTimeField':
@@ -193,17 +193,17 @@ class NestedLocalizer(NestedBase):
         else:
             return field_val
 
-    def _localize_field(self, field_val, metadata):
+    def recursive_localize_field(self, field_val, metadata):
         if isinstance(field_val, dict):
-            return self._localize_model_dict(
+            return self.recursive_localize_model_dict(
                 field_val, {}
             )
         elif isinstance(field_val, list):
-            return [self._localize_field(reverse_val, metadata) for reverse_val in field_val]
+            return [self.recursive_localize_field(reverse_val, metadata) for reverse_val in field_val]
         else:
-            return self._localize_field_val(field_val, metadata)
+            return self.localize_field_val(field_val, metadata)
 
-    def _get_metadata(self, field_name):
+    def get_metadata(self, field_name):
         return self.metadata[self.treepath] if self.treepath in self.metadata else {
             'verbose_name': field_name,
             'is_anon': False,
@@ -215,14 +215,14 @@ class NestedLocalizer(NestedBase):
             (self.is_anon is None or self.is_anon == metadata['is_anon'])
 
     def localize_field(self, field_name, field_val):
-        metadata = self._get_metadata(field_name)
+        metadata = self.get_metadata(field_name)
         if self.is_permitted_field(metadata):
             local_name = metadata['verbose_name']
-            return local_name, self._localize_field(field_val, metadata)
+            return local_name, self.recursive_localize_field(field_val, metadata)
         else:
             return None, None
 
-    def _localize_model_dict(self, model_dict, local_model_dict):
+    def recursive_localize_model_dict(self, model_dict, local_model_dict):
         for field_name, field_val in model_dict.items():
             self.push_path(field_name)
             local_name, local_val = self.localize_field(field_name, field_val)
@@ -236,7 +236,7 @@ class NestedLocalizer(NestedBase):
         if self.metadata is None:
             return model_dict
         else:
-            return self._localize_model_dict(model_dict, {})
+            return self.recursive_localize_model_dict(model_dict, {})
 
 
 from .tpl import format_local_date  # noqa
