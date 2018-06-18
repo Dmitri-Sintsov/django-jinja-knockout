@@ -53,8 +53,8 @@ class NestedSerializer(NestedBase):
                 grp = mtch.group(1).split('.')
                 return grp[-1]
 
-    def is_serializable_field(self, field):
-        return not isinstance(field, self.skip_serialization)
+    def is_serializable_field(self, field, field_name):
+        return not isinstance(field, self.skip_serialization) and field_name != 'password'
 
     def get_reverse_qs(self, field):
         return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
@@ -94,7 +94,7 @@ class NestedSerializer(NestedBase):
             'is_anon': field_name in str_fields,
             'type': self.get_str_type(field),
         }
-        if self.is_serializable_field(field):
+        if self.is_serializable_field(field, field_name):
             v, exists = self.get_field_val(obj, field_name, metadata, nesting_level)
             if exists:
                 if isinstance(v, list):
@@ -112,6 +112,7 @@ class NestedSerializer(NestedBase):
                     # Not a valid JSON type
                     result = str(v), True
                 self.metadata[self.treepath] = metadata
+                return result
             else:
                 return None, False
         else:
@@ -121,8 +122,9 @@ class NestedSerializer(NestedBase):
                     'is_anon': True,
                     'type': self.get_str_type(str_fields[field_name]),
                 }
-                result = str_fields[field_name], True
-        return result
+                return str_fields[field_name], True
+            else:
+                return None, False
 
     def get_str_val_dict(self, obj, str_fields):
         model_dict = {}
