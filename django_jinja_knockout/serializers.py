@@ -1,6 +1,7 @@
 import datetime
 import re
 
+from django.db.models.fields.related import ForeignObjectRel
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
@@ -31,9 +32,12 @@ class NestedBase:
 
 class NestedSerializer(NestedBase):
 
-    skip_serialization = (
+    skip_serialization = ()
+    related_field_classes = (
+        models.ManyToOneRel,
         models.ManyToManyRel,
-        # models.ManyToOneRel,
+        models.ManyToManyField,
+        ForeignObjectRel,
     )
 
     def __init__(self, obj):
@@ -56,6 +60,9 @@ class NestedSerializer(NestedBase):
     def is_serializable_field(self, field, field_name):
         return not isinstance(field, self.skip_serialization) and field_name != 'password'
 
+    def is_related_field(self, field, field_name):
+        return isinstance(field, self.related_field_classes) and not isinstance(field, models.OneToOneRel)
+
     def get_reverse_qs(self, obj, field_name):
         reverse_qs = sdv.get_nested(obj, [field_name + '_set', 'all'])
         if callable(reverse_qs):
@@ -74,7 +81,7 @@ class NestedSerializer(NestedBase):
         if hasattr(obj, choices_fn):
             return getattr(obj, choices_fn)(), True
         else:
-            if isinstance(field, models.ManyToOneRel):
+            if self.is_related_field(field, field_name):
                 metadata['is_anon'] = True
                 reverse_qs = self.get_reverse_qs(obj, field_name)
                 if callable(reverse_qs):
@@ -97,6 +104,9 @@ class NestedSerializer(NestedBase):
 
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         field = obj._meta.get_field(field_name)
+        if field_name == verbose_name and isinstance(field, models.ForeignKey):
+            # Localize related field model verbose_name, if any.
+            verbose_name = sdv.get_nested(field, ['related_model', '_meta', 'verbose_name'], verbose_name)
         metadata = {
             'verbose_name': str(verbose_name),
             'is_anon': field_name in str_fields,
