@@ -56,8 +56,16 @@ class NestedSerializer(NestedBase):
     def is_serializable_field(self, field, field_name):
         return not isinstance(field, self.skip_serialization) and field_name != 'password'
 
-    def get_reverse_qs(self, field):
-        return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
+    def get_reverse_qs(self, obj, field_name):
+        reverse_qs = sdv.get_nested(obj, [field_name + '_set', 'all'])
+        if callable(reverse_qs):
+            return reverse_qs
+        else:
+            reverse_qs = sdv.get_nested(obj, [field_name, 'all'])
+            return reverse_qs
+            # Commented out, obtaining the queryset such way does not provide reverse relationship JOIN.
+            # field = obj._meta.get_field(field_name)
+            # return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
 
     def get_field_val(self, obj, field_name, metadata, nesting_level):
         not_found = None, False
@@ -68,7 +76,7 @@ class NestedSerializer(NestedBase):
         else:
             if isinstance(field, models.ManyToOneRel):
                 metadata['is_anon'] = True
-                reverse_qs = self.get_reverse_qs(field)
+                reverse_qs = self.get_reverse_qs(obj, field_name)
                 if callable(reverse_qs):
                     v = [
                         self.recursive_to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
