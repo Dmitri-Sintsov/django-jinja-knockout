@@ -33,7 +33,7 @@ class RawSqlCompiler(SQLCompiler):
             extra_select, order_by, group_by = self.pre_sql_setup()
             if with_limits and self.query.low_mark == self.query.high_mark:
                 return '', ()
-            distinct_fields = self.get_distinct()
+            distinct_args = self.get_distinct()
 
             # Django==1.8 uses self.query.where.
             # Django>=1.9 uses self.where.
@@ -52,7 +52,11 @@ class RawSqlCompiler(SQLCompiler):
                 params.extend(h_params)
 
             if self.query.distinct:
-                distinct_result = self.connection.ops.distinct_sql(distinct_fields)
+                if isinstance(distinct_args, tuple):
+                    # Django >=2.1
+                    distinct_result = self.connection.ops.distinct_sql(*distinct_args)
+                else:
+                    distinct_result = self.connection.ops.distinct_sql(distinct_args)
 
             grouping = []
             for g_sql, g_params in group_by:

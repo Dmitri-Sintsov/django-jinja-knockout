@@ -6,7 +6,8 @@ import bleach
 from django.utils.html import escape
 from django import forms
 from django_jinja import library
-from django.utils.translation import string_concat, ugettext as _
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from ..widgets import DisplayText
 from ..viewmodels import to_json
@@ -49,7 +50,7 @@ def add_input_classes_to_field(model_field):
     if is_select_multiple_field(model_field):
         msg = _('Hold down "Control", or "Command" on a Mac, to select more than one.')
         help_text = model_field.help_text
-        model_field.help_text = string_concat(help_text, ' ', msg) if help_text else msg
+        model_field.help_text = format_lazy('{} {}', help_text, msg) if help_text else msg
 
 
 def is_displaytext_field(model_field):
