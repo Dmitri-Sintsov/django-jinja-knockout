@@ -331,8 +331,14 @@ def str_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})'):
     return recursive_join(flat_d.values(), separator, enclosure_fmt)
 
 
-def add_css_classes(existing_classes=None, new_classes=''):
-    existing_list = [] if existing_classes is None else existing_classes.split(' ')
+def has_css_classes(existing_classes='', find_classes=''):
+    existing_list = existing_classes.split(' ')
+    find_set = set(find_classes.split(' '))
+    return len(find_set - set(existing_list)) == 0
+
+
+def add_css_classes(existing_classes='', new_classes=''):
+    existing_list = existing_classes.split(' ')
     new_list = new_classes.split(' ')
     result_dict = {css_class: False for css_class in set(existing_list) | set(new_list)}
     result_list = []
@@ -341,27 +347,29 @@ def add_css_classes(existing_classes=None, new_classes=''):
             result_dict[css_class] = True
             result_list.append(css_class)
     result = ' '.join(result_list).strip()
-    if result == '' and existing_classes is None:
-        return None
-    return result
+    return None if result == '' else result
 
 
-def remove_css_classes(existing_classes=None, remove_classes=''):
-    existing_list = [] if existing_classes is None else existing_classes.split(' ')
+def remove_css_classes(existing_classes='', remove_classes=''):
+    existing_list = existing_classes.split(' ')
     remove_set = set(remove_classes.split(' '))
     result_list = filter(lambda css_class: css_class not in remove_set, existing_list)
     result = ' '.join(result_list).strip()
-    if result == '' and existing_classes is None:
-        return None
-    return result
+    return None if result == '' else result
+
+
+def has_css_classes_in_dict(element, classnames, key='class'):
+    return has_css_classes(element.get(key, ''), classnames)
 
 
 def add_css_classes_to_dict(element, classnames, key='class'):
-    element[key] = add_css_classes(element.get(key), classnames)
+    result = add_css_classes(element.get(key, ''), classnames)
+    if result is not None:
+        element[key] = result
 
 
 def remove_css_classes_from_dict(element, classnames, key='class'):
-    result = remove_css_classes(element.get(key), classnames)
+    result = remove_css_classes(element.get(key, ''), classnames)
     if result is None:
         if key in element:
             del element[key]
