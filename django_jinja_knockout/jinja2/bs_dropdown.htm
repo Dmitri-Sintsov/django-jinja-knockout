@@ -12,7 +12,7 @@
         <ul class="dropdown-menu dropdown-menu-right">
             {% for nav in navs -%}
             <li {{ flatatt(nav.atts) }}>
-                {% if 'active' in nav.atts.class -%}
+                {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
                     {% set a_atts = {'name': '#'} -%}
                 {% else -%}
                     {% set a_atts = {'href': nav['url'] } -%}
