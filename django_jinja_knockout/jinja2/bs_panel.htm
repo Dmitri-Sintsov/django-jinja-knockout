@@ -5,7 +5,7 @@
     {% set attrs = {'class': 'panel'} -%}
 {% endif -%}
 {% do tpl.add_css_classes_to_dict(attrs, 'panel-' + type) -%}
-<div {{ flatatt(attrs) }}>
+<div {{ tpl.json_flatatt(attrs) }}>
 {% if has_heading -%}
     <div class="panel-heading">
     {% if heading is not none -%}

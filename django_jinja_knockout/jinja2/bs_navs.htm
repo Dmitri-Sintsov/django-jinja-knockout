@@ -5,7 +5,7 @@
 {% if attrs is none -%}
     {% set attrs = {'class': 'nav nav-tabs'} -%}
 {% endif -%}
-<ul {{ flatatt(attrs) }}>
+<ul {{ tpl.json_flatatt(attrs) }}>
 {% for nav in navs -%}
     {% set li_atts = {} -%}
     {% if nav.atts is defined -%}

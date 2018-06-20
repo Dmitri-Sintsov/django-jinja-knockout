@@ -11,13 +11,13 @@
 {% endif -%}
         <ul class="dropdown-menu dropdown-menu-right">
             {% for nav in navs -%}
-            <li {{ flatatt(nav.atts) }}>
+            <li {{ tpl.json_flatatt(nav.atts) }}>
                 {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
                     {% set a_atts = {'name': '#'} -%}
                 {% else -%}
                     {% set a_atts = {'href': nav['url'] } -%}
                 {% endif -%}
-                <a{{ flatatt(a_atts)}}>{{ nav.text }}</a>
+                <a{{ tpl.json_flatatt(a_atts)}}>{{ nav.text }}</a>
             </li>
             {% endfor -%}
         </ul>

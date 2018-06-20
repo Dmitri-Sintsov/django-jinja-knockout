@@ -19,7 +19,7 @@
     {% if is_active -%}
         {% do tpl.add_css_classes_to_dict(li_atts, 'active') -%}
     {% endif -%}
-    <li{{ flatatt(li_atts) }}>
+    <li{{ tpl.json_flatatt(li_atts) }}>
         {% do query.update({'page': page_num}) -%}
         {% if is_active -%}
             <a href="#">{{ link_text }}</a>

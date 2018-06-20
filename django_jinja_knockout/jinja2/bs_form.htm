@@ -23,7 +23,7 @@
             'enctype': "multipart/form-data",
             'role': 'form'
         }) -%}
-        <form{{ flatatt(atts) }}>
+        <form{{ tpl.json_flatatt(atts) }}>
         {% endif -%}
             {% if action == '' -%}
             {# DisplayText fields use tr/td #}

@@ -14,7 +14,7 @@
 {% endfor -%}
 
 {% if object_list -%}
-    <table {{ flatatt(view.get_table_attrs()) }}>
+    <table {{ tpl.json_flatatt(view.get_table_attrs()) }}>
     {% for obj in object_list -%}
         {% set row_loop_index = loop.index0 -%}
         {% if loop.index0 == 0 -%}
@@ -34,7 +34,7 @@
         {% endif -%}
         <tr>
         {% for column in view.grid_fields -%}
-            <td {{ flatatt(view.get_cell_attrs(obj, column, row_loop_index, loop.index0)) }}>
+            <td {{ tpl.json_flatatt(view.get_cell_attrs(obj, column, row_loop_index, loop.index0)) }}>
             {% if isinstance(column, list) -%}
                 {% for field in column -%}
                     <div>{{ view.get_display_value(obj, field) }}</div>

@@ -19,7 +19,7 @@
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
 {% set table_classes = 'table table-bordered table-responsive' -%}
-<div{{ flatatt(wrapper_atts) }}>
+<div{{ tpl.json_flatatt(wrapper_atts) }}>
     {% if html.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
     {% endif -%}
@@ -34,7 +34,7 @@
             'enctype': "multipart/form-data",
             'role': 'form'
         }) -%}
-    <form{{ flatatt(atts) }}>
+    <form{{ tpl.json_flatatt(atts) }}>
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% endif -%}
         {% if related_form -%}

@@ -6,7 +6,7 @@
 {% if field.field.required -%}
     {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
 {% endif -%}
-<label{{ flatatt(label_att) }}>{{ field.label }}</label>
+<label{{ tpl.json_flatatt(label_att) }}>{{ field.label }}</label>
 
 <div class="field {{ classes.field }}">
     {{ field|safe }}
@@ -30,7 +30,7 @@
     {% if field.field.required -%}
         {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
     {% endif -%}
-    <td{{ flatatt(label_att) }}>{{ field.label }}</td>
+    <td{{ tpl.json_flatatt(label_att) }}>{{ field.label }}</td>
 
     <td class="info {{ classes.field }}">
         {{ field_html|safe }}
@@ -57,7 +57,7 @@
         {% if field.field.required -%}
             {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
         {% endif -%}
-        <label{{ flatatt(label_att) }}>
+        <label{{ tpl.json_flatatt(label_att) }}>
             {{ field|safe }} <span>{{ field.label }}</span>
         </label>
         {% for error in field.errors -%}
@@ -82,9 +82,9 @@
 {% if field.field.required -%}
     {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
 {% endif -%}
-<label{{ flatatt(label_att) }}>{{ field.label }}</label>
+<label{{ tpl.json_flatatt(label_att) }}>{{ field.label }}</label>
 <div class="field {{ classes.field }}">
-    <div{{ flatatt(field_att) }}></div>
+    <div{{ tpl.json_flatatt(field_att) }}></div>
     <div class="input-as-select">
         {% for choice in field -%}
         <div class="{{ classes.multiple_type }}">

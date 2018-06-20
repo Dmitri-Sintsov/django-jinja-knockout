@@ -7,7 +7,7 @@
     <li class="bold">{{ title }}:</li>
     {% endif -%}
     {% for nav in navs -%}
-    <li {{ flatatt(nav.atts) }}>
+    <li {{ tpl.json_flatatt(nav.atts) }}>
         {% if not tpl.has_css_classes_in_dict(nav.atts, 'active') -%}<a href="{{ nav.url }}">{% endif -%}
         {{ nav.text }}
         {% if not tpl.has_css_classes_in_dict(nav.atts, 'active') -%}</a>{% endif -%}
