@@ -30,8 +30,19 @@ class NestedBase:
         self.treepath = '›'.join(self.treepath.split('›')[:-1])
 
 
+# Serializes Django model with nested relationships to model_dict with separate localization metadata.
+#
+# Usage:
+#   ns = NestedSerializer(obj=obj)
+#   model_dict = ns.to_dict(nesting_level=2)
+#   pp.pprint(model_dict)
+#   pp.pprint(ns.metadata)
+#   model_dict = ns.to_dict(nesting_level=2, serialize_reverse_relationships=False)
 class NestedSerializer(NestedBase):
 
+    serialize_reverse_relationships = True
+    # (field value, exists)
+    not_found = None, False
     skip_serialization = ()
     related_field_classes = (
         models.ManyToOneRel,
@@ -75,32 +86,34 @@ class NestedSerializer(NestedBase):
             # return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
 
     def get_field_val(self, obj, field_name, metadata, nesting_level):
-        not_found = None, False
         field = obj._meta.get_field(field_name)
         choices_fn = 'get_{}_display'.format(field_name)
         if hasattr(obj, choices_fn):
             return getattr(obj, choices_fn)(), True
         else:
             if self.is_related_field(field, field_name):
-                metadata['is_anon'] = True
-                reverse_qs = self.get_reverse_qs(obj, field_name)
-                if callable(reverse_qs):
-                    v = [
-                        self.recursive_to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
-                    ]
-                    # Always store metadata for reverse relationships even when there is zero relations.
-                    # Such way it minimizes the number of different metadata dicts for the same Model.
-                    self.metadata[self.treepath] = metadata
-                    if len(v) > 0:
-                        return v, True
+                if self.serialize_reverse_relationships:
+                    metadata['is_anon'] = True
+                    reverse_qs = self.get_reverse_qs(obj, field_name)
+                    if callable(reverse_qs):
+                        v = [
+                            self.recursive_to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
+                        ]
+                        # Always store metadata for reverse relationships even when there is zero relations.
+                        # Such way it minimizes the number of different metadata dicts for the same Model.
+                        self.metadata[self.treepath] = metadata
+                        if len(v) > 0:
+                            return v, True
+                        else:
+                            return self.not_found
                     else:
-                        return not_found
+                        return self.not_found
                 else:
-                    return not_found
+                    return self.not_found
             try:
                 return getattr(obj, field_name), True
             except AttributeError:
-                return not_found
+                return self.not_found
 
     def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
         field = obj._meta.get_field(field_name)
@@ -132,7 +145,7 @@ class NestedSerializer(NestedBase):
                 self.metadata[self.treepath] = metadata
                 return result
             else:
-                return None, False
+                return self.not_found
         else:
             if field_name in str_fields:
                 self.metadata[self.treepath] = {
@@ -142,7 +155,7 @@ class NestedSerializer(NestedBase):
                 }
                 return str_fields[field_name], True
             else:
-                return None, False
+                return self.not_found
 
     def get_str_val_dict(self, obj, str_fields):
         model_dict = {}
@@ -182,10 +195,20 @@ class NestedSerializer(NestedBase):
         else:
             return str(obj)
 
-    def to_dict(self, nesting_level=1):
+    def to_dict(self, nesting_level=1, serialize_reverse_relationships=None):
+        if isinstance(serialize_reverse_relationships, bool):
+            self.serialize_reverse_relationships = serialize_reverse_relationships
         return self.recursive_to_dict(self.obj, nesting_level)
 
 
+# Generates localized representation of previously serialized Django model from model_dict via supplied metadata.
+#
+# Usage:
+#   nl = NestedLocalizer(metadata=ns.metadata)
+#   pp.pprint(nl.localize_model_dict(model_dict))
+#   pp.pprint(nl.localize_model_dict(model_dict, is_anon=None))
+#   pp.pprint(nl.localize_model_dict(model_dict, is_anon=True))
+#   pp.pprint(nl.localize_model_dict(model_dict, is_anon=False))
 class NestedLocalizer(NestedBase):
 
     skip_localization = (
