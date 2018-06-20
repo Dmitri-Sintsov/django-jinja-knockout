@@ -10,7 +10,6 @@ from urllib.parse import urlencode
 
 from django.utils import formats, timezone
 from django.utils.functional import Promise
-from django.utils.encoding import force_text
 from django.utils.html import escape, mark_safe, format_html
 from django.forms.utils import flatatt
 try:
@@ -23,12 +22,7 @@ except ImportError:
     from django.core.urlresolvers import (
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
-try:
-    # Django 2.0.
-    from django.utils.encoding import force_text
-except ImportError:
-    from django.forms.utils import force_text
-from .utils.sdv import iter_enumerate, nested_update, get_cbv_from_dispatch_wrapper
+from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
 from .models import model_fields_verbose_names
 from .admin import empty_value_display

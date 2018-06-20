@@ -228,7 +228,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             if self.form is not None:
                 self.model = self.form._meta.model
             elif self.form_with_inline_formsets is not None:
-                form_class = self.form_with_inline_formsets(request).get_form_class()
+                form_class = self.form_with_inline_formsets(self.request).get_form_class()
                 if form_class is None:
                     raise ValueError('Neither a model class attribute nor form_with_inline_formsets defines model class')
                 self.model = form_class._meta.model
