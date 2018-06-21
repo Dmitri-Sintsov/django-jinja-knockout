@@ -276,13 +276,13 @@ def print_list_group(row, cb=escape, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
             tpl={
-                'elem': '<li{v_attrs}>{v}</li>\n',
-                'key': '<li{k_attrs}>{k}</li><li{v_attrs}>{v}</li>\n',
+                'elem': '<li{li_attrs}>{v}</li>\n',
+                'key': '<li{li_attrs}>{k}: <span{v_attrs}>{v}</span></li>\n',
                 'top': '<ul class="list-group">{}</ul>\n',
             },
             tpl_kwargs={
-                'v_attrs': {'class': 'list-group-item'},
-                'k_attrs': {'class': 'list-group-item bold'},
+                'li_attrs': {'class': 'list-group-item'},
+                'v_attrs': {'class': 'bold'},
             },
             cb=cb,
             show_keys=show_keys,

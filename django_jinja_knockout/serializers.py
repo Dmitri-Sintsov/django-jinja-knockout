@@ -40,6 +40,7 @@ class NestedBase:
 #   model_dict = ns.to_dict(nesting_level=2, serialize_reverse_relationships=False)
 class NestedSerializer(NestedBase):
 
+    model_class = None
     serialize_reverse_relationships = True
     # (field value, exists)
     not_found = None, False
@@ -53,8 +54,13 @@ class NestedSerializer(NestedBase):
 
     def __init__(self, obj):
         super().__init__()
+        if not self.is_valid_obj(obj):
+            raise ValueError('obj is instance of {}, should be instance of {}'.format(type(obj), self.model_class))
         self.obj = obj
         self.metadata = {}
+
+    def is_valid_obj(self, obj):
+        return self.model_class is None or isinstance(obj, self.model_class)
 
     def get_str_type(self, field):
         if field is None:
@@ -77,10 +83,13 @@ class NestedSerializer(NestedBase):
     def get_reverse_qs(self, obj, field_name):
         reverse_qs = sdv.get_nested(obj, [field_name + '_set', 'all'])
         if callable(reverse_qs):
-            return reverse_qs
+            return reverse_qs()
         else:
             reverse_qs = sdv.get_nested(obj, [field_name, 'all'])
-            return reverse_qs
+            if callable(reverse_qs):
+                return reverse_qs()
+            else:
+                return None
             # Commented out, obtaining the queryset such way does not provide reverse relationship JOIN.
             # field = obj._meta.get_field(field_name)
             # return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
@@ -95,9 +104,9 @@ class NestedSerializer(NestedBase):
                 if self.serialize_reverse_relationships:
                     metadata['is_anon'] = True
                     reverse_qs = self.get_reverse_qs(obj, field_name)
-                    if callable(reverse_qs):
+                    if reverse_qs is not None:
                         v = [
-                            self.recursive_to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs()
+                            self.recursive_to_dict(reverse_obj, nesting_level - 1) for reverse_obj in reverse_qs
                         ]
                         # Always store metadata for reverse relationships even when there is zero relations.
                         # Such way it minimizes the number of different metadata dicts for the same Model.
