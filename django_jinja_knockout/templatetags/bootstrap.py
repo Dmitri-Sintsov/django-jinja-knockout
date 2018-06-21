@@ -6,7 +6,7 @@ import bleach
 from django.utils.html import escape
 from django import forms
 from django_jinja import library
-from django.utils.text import format_lazy
+from ..tpl import format_lazy
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from ..widgets import DisplayText
