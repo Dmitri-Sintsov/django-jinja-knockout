@@ -22,6 +22,19 @@ except ImportError:
     from django.core.urlresolvers import (
         resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
     )
+try:
+    # Django>=1.11
+    from django.utils.text import format_lazy
+except ImportError:
+    # Django>=1.8,<=1.10
+    from django.utils.functional import lazy
+
+    def _format_lazy(format_string, *args, **kwargs):
+        return format_string.format(*args, **kwargs)
+
+    format_lazy = lazy(_format_lazy, str)
+
+
 from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
 from .utils.regex import finditer_with_separators
 from .models import model_fields_verbose_names
