@@ -239,9 +239,13 @@ class NestedLocalizer(NestedBase):
         if field_val in self.scalar_display:
             return self.scalar_display[field_val]
         elif metadata['type'] == 'DateTimeField':
-            return format_local_date(parse_datetime(field_val))
+            dt = parse_datetime(field_val)
+            return None if dt is None else format_local_date(dt)
         elif metadata['type'] == 'DateField':
-            return format_local_date(parse_date(field_val))
+            d = parse_date(field_val)
+            if d is None:
+                d = parse_datetime(field_val)
+            return None if d is None else format_local_date(d)
         else:
             return field_val
 
