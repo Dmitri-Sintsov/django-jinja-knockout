@@ -16,7 +16,7 @@ from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 
-from .. import tpl as qtpl
+from .. import tpl
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field, get_related_field_val, yield_model_fieldnames
 )
@@ -61,8 +61,10 @@ def error_response(request, html):
 def exception_response(request, e):
     if request.is_ajax() and settings.DEBUG:
         row = [(str(e), traceback.format_exc())]
-        html = qtpl.PrintList(
-            elem_tpl='<li style="white-space: pre-wrap;">{v}</li>\n'
+        html = tpl.PrintList(
+            tpl={
+                'elem': '<li style="white-space: pre-wrap;">{v}</li>\n',
+            },
         ).nested(row)
         return error_response(request, html)
     else:
@@ -202,7 +204,7 @@ class FormViewmodelsMixin():
         return {
             'view': 'popover_error',
             'id': bound_field.auto_id,
-            'message': qtpl.print_bs_labels(bound_field.errors)
+            'message': tpl.print_bs_labels(bound_field.errors)
         }
         """
 
@@ -504,7 +506,7 @@ class BaseFilterView(View, GetPostMixin):
         normalized_field = normalize_fk_fieldname(field)
         field_val = get_related_field_val(obj, field)
         if isinstance(field_val, models.Model) and hasattr(field_val, 'get_absolute_url'):
-            display_value = qtpl.ModelLinker(field_val).__html__()
+            display_value = tpl.ModelLinker(field_val).__html__()
         elif field in obj._display_value:
             display_value = obj._display_value[field]
         elif normalized_field in obj._display_value:
@@ -512,7 +514,7 @@ class BaseFilterView(View, GetPostMixin):
         else:
             display_value = field_val
         if isinstance(display_value, dict):
-            display_value = qtpl.print_list_group(display_value.values())
+            display_value = tpl.print_list_group(display_value.values())
         return display_value
 
     def init_class(self):

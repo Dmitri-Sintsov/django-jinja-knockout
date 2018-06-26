@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
-from .. import tpl as qtpl
+from .. import tpl
 from ..models import get_meta, get_verbose_name
 from .base import BaseFilterView
 
@@ -176,7 +176,7 @@ class FilterChoices:
             link['atts']['class'] = 'active'
             # Show toggling of choices for multiple choices only.
             if self.vm_filter['multiple_choices'] is True:
-                qtpl.add_css_classes_to_dict(link['atts'], 'bold')
+                tpl.add_css_classes_to_dict(link['atts'], 'bold')
                 link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link
 
@@ -380,7 +380,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 list_filter_querypart=list_filter_querypart
             )
         )
-        return qtpl.reverseq(
+        return tpl.reverseq(
             self.request.url_name,
             kwargs=self.kwargs,
             query=query
@@ -445,7 +445,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 viewname = self.request.url_name
             link_attrs = {
                 'class': 'halflings-before',
-                'href': qtpl.reverseq(
+                'href': tpl.reverseq(
                     viewname,
                     kwargs=kwargs,
                     query=self.get_negate_sort_order_querypart(

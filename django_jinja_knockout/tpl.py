@@ -66,6 +66,10 @@ class PrintList:
     PRINT_KEYS = 1
     PRINT_REPEATED_KEYS = 2
 
+    empty_values = (
+        None,
+        '',
+    )
     default_tpl = {
         'elem': '<li><div{attrs}>{v}</div></li>\n',
         'key': '<li><div{attrs}><div>{k}</div>{v}</div></li>',
@@ -77,11 +81,15 @@ class PrintList:
         tpl=None,
         tpl_kwargs: dict=None,
         cb=escape,
+        skip_empty=False,
         show_keys=None,
         i18n: dict=None,
         keypath=None
     ):
+        self.skip_empty = skip_empty
         self.tpl = {} if tpl is None else tpl
+        if 'top' not in self.tpl:
+            self.tpl['top'] = self.default_tpl['top']
         for typ in ('elem', 'key'):
             if typ not in self.tpl:
                 self.tpl[typ] = {'': self.default_tpl[typ]}
@@ -125,12 +133,13 @@ class PrintList:
                 format_kwargs = {}
             if isinstance(self.keypath, list):
                 self.keypath.append(key)
-            if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes, Promise)):
-                result.append(self.format_val(key, self.nested(elem), case, format_kwargs, cb=''))
-            else:
-                result.append(
-                    self.format_val(key, elem, case, format_kwargs)
-                )
+            if not self.skip_empty or elem not in self.empty_values:
+                if hasattr(elem, '__iter__') and not isinstance(elem, (str, bytes, Promise)):
+                    result.append(self.format_val(key, self.nested(elem), case, format_kwargs, cb=''))
+                else:
+                    result.append(
+                        self.format_val(key, elem, case, format_kwargs)
+                    )
             if isinstance(self.keypath, list):
                 self.keypath.pop()
             case = ''
@@ -272,7 +281,7 @@ def print_bs_well(row, cb=escape, show_keys=None, i18n=None):
     )
 
 
-def print_list_group(row, cb=escape, show_keys=None, i18n=None):
+def print_list_group(row, cb=escape, skip_empty=False, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
             tpl={
@@ -285,6 +294,7 @@ def print_list_group(row, cb=escape, show_keys=None, i18n=None):
                 'v_attrs': {'class': 'bold'},
             },
             cb=cb,
+            skip_empty=skip_empty,
             show_keys=show_keys,
             i18n=i18n
         ).nested(row)

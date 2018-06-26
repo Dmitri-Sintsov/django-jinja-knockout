@@ -13,7 +13,7 @@ from django.views.generic import TemplateView
 
 from ..validators import ViewmodelValidator
 from ..utils import sdv
-from .. import tpl as qtpl
+from .. import tpl
 from ..models import (
     get_meta, get_verbose_name, model_fields_verbose_names, model_values, get_object_description, yield_related_models
 )
@@ -115,7 +115,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
             query = {}
         kwargs = self.get_view_kwargs()
         kwargs[self.action_kwarg] = '/{}'.format(action)
-        return qtpl.reverseq(
+        return tpl.reverseq(
             self.request.url_name,
             kwargs=kwargs,
             query=query
@@ -293,7 +293,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     def render_object_desc(self, obj):
         i18n = self.get_all_verbose_names()
-        return qtpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
+        return tpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
 
     # Create one model object.
     def get_create_form(self):
@@ -900,7 +900,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     # 'type': 'fk' filter field with 'pageRoute' autodiscovery.
                     pageRouteKwargs = filter_def.get('pageRouteKwargs', {})
                     pageRouteKwargs['action'] = ''
-                    related_view = qtpl.resolve_cbv(filter_def['pageRoute'], pageRouteKwargs)
+                    related_view = tpl.resolve_cbv(filter_def['pageRoute'], pageRouteKwargs)
                     if 'fkGridOptions' not in grid_options:
                         grid_options['fkGridOptions'] = {}
                     field_fkGridOptions = deepcopy(filter_def)
