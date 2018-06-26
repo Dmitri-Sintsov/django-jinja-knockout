@@ -63,7 +63,7 @@ class RawSqlCompiler(SQLCompiler):
                 grouping.append(g_sql)
                 params.extend(g_params)
             if grouping:
-                if distinct_fields:
+                if self.query.distinct:
                     raise NotImplementedError(
                         "annotate() + distinct(fields) is not implemented.")
                 if not order_by:
