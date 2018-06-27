@@ -32,7 +32,7 @@ django-jinja-knockout
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
-Screenshot of `sample application`_:
+Screenshot of the `sample application`_:
 
 .. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_edit_inline.png
    :width: 740px
@@ -48,10 +48,12 @@ Please contribute to the localization of the project:
 * `django-jinja-knockout python localization`_
 * `django-jinja-knockout javascript localization`_
 
-Localization contributors:
+Localization:
 
+* Chinese: ``goldmonkey``
 * Dutch: ``Melvyn Sopacua``
 * Polish: ``pawelkoston``
+* Spanish: ``Julio Cesar Cabrera Cabrera``
 
 Key features
 ------------
@@ -94,14 +96,14 @@ effort, cleaner look and easily readable. Both also are very fast, Knockout.js t
 client-side, while Jinja2 estimated to be faster few times than built-in DTL templates, and is more powerful.
 
 When thinking of Angluar.js, not only I dislike curly braces in templates but also I believe that using such large
-framework for non-SPA applications is an overkill. And Django primary usage are non-SPA classical Web applications,
-which aren't "outdated" in any way - because such applications are much better indexable by web crawlers and Python is
-better language than Javascript in general and server-side has less glitches than browsers.
+framework for non-SPA applications is an overkill. Django primary usage are non-SPA classical Web applications, which
+aren't "outdated" in any way - because such applications are much better indexable by web crawlers and Python is better
+language than Javascript in general, and server-side has less glitches than browsers.
 
 My personal feeling is that Django itself lacks a bit heavier support of client-side Javascript out-of-box. Knockout.js
 would be great inclusion for ``empty_form`` handling and in ``django.admin``, considering it's small size.
 
-AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form``) are
+AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
 implemented via bundled client-side scripts.
 
 Major changes (version 0.7.0)
