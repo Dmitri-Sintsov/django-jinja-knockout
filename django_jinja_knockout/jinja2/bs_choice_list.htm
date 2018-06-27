@@ -2,14 +2,12 @@
 {% if navs is none -%}
     {% set navs = {} -%}
 {% endif -%}
+<div class="choice-list">
 {% if title is not none -%}
-<span class="choice-title">{{ title }}-</span>
+<span class="choice-title">{{ title }}</span>
 {% endif -%}
-{% set first_active_index = True -%}
-{% for nav in navs -%}
-    {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
-        {% if first_active_index -%}{% set first_active_index = False -%}{% else -%}, {% endif -%}<span class="choice-text">{{ nav.text }}</span>
-    {% endif -%}
-</li>
-{% endfor -%}
+{%- for nav in navs if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
+    {%- if loop.index > 1 -%}, {% endif -%}<span class="choice-text">{{ nav.text }}</span>
+{%- endfor -%}
+</div>
 {% endmacro -%}

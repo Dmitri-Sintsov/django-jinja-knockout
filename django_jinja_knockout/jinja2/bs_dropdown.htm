@@ -3,8 +3,13 @@
     {% set navs = {} -%}
 {% endif -%}
 {% if title is not none -%}
+{% set dropdown_atts = {'class': 'dropdown dropdown-choice'} -%}
+{% for nav in navs if nav.is_active_reset -%}
+{% else -%}
+    {% do tpl.add_css_classes_to_dict(dropdown_atts, 'active') -%}
+{% endfor -%}
 <ul class="nav nav-pills">
-    <li class="dropdown dropdown-choice">
+    <li{{ tpl.json_flatatt(dropdown_atts) }}>
         <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
         {{ title }} <span class="caret"></span>
         </a>

@@ -103,6 +103,7 @@ class FilterChoices:
             is_active = True
         if is_active:
             link['atts']['class'] = 'active'
+            link['is_active_reset'] = True
         else:
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         return link

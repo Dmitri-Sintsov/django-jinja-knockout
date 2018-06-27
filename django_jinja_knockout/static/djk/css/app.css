@@ -234,6 +234,10 @@ a.sort-inactive:before {
 	content: "\e150";
 }
 
+.choice-title:after {
+	content: ":";
+}
+
 .badge > a {
 	color: white;
 }
