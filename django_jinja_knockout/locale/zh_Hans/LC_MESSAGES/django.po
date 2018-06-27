@@ -1,114 +1,213 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# FULL NAME <EMAIL@ADDRESS>, 2015.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-26 16:10+0300\n"
-"PO-Revision-Date: 2015-10-28 12:09+0300\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: django-jinja-knockout python localization\n"
+"Language: zh-CN\n"
 
+#: 
 msgid "Yes"
-msgstr ""
+msgstr "是"
 
+#: 
 msgid "No"
-msgstr ""
+msgstr "否"
 
+#: 
 msgid "Home"
-msgstr ""
+msgstr "主页"
 
+#: 
 msgid "First page"
-msgstr ""
+msgstr "第一页"
 
+#: 
 msgid "Previous"
-msgstr ""
+msgstr "向前"
 
-#, python-format
+#: 
 msgid "Page %(number)d of %(numpages)d"
-msgstr ""
+msgstr "第%(number)d页 / 共%(numpages)d页"
 
+#: 
 msgid "Next"
-msgstr ""
+msgstr "向后"
 
+#: 
 msgid "Last page"
-msgstr ""
+msgstr "最后一页"
 
-#, python-format
+#: 
 msgid "Add \"%(verbose_name)s\""
-msgstr ""
+msgstr "增加 \"%(verbose_name)s\""
 
+#: 
 msgid "Close"
-msgstr ""
+msgstr "关闭"
 
+#: 
 msgid "Delete non-builtin records"
-msgstr ""
+msgstr "删除非内置记录"
 
+#: 
 msgid "Access to current url is denied"
-msgstr ""
+msgstr "拒绝访问当前地址"
 
-#, python-format
+#: 
 msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
-msgstr ""
+msgstr "发送电子邮件时出错： \"%(code)s\" \"%(msg)s\" "
 
+#: 
 msgid "Move"
-msgstr ""
+msgstr "移动"
 
+#: 
 msgid "Unknown action"
-msgstr ""
+msgstr "未知操作"
 
+#: 
 msgid "Action \"{}\" is not implemented"
-msgstr ""
+msgstr "操作\"{}\" 尚未实现"
 
-#, python-format
+#: 
 msgid "Action \"%(action)s\" is not allowed"
-msgstr ""
+msgstr "操作\"%(action)s\"不允许"
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" to display."
-msgstr ""
+msgstr "没有\"%(heading)s\"可以显示"
 
-#, python-format
+#: 
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
-msgstr ""
+msgstr "没有符合%(filters_str)s的\"%(heading)s\""
 
+#: 
+msgid "From"
+msgstr "从"
+
+#: 
+msgid "To"
+msgstr "到"
+
+#: 
+msgid "AJAX request error"
+msgstr "AJAX请求错误"
+
+#: 
+msgid "Undefined response view %s"
+msgstr "未定义响应视图%s"
+
+#: 
+msgid "Request error"
+msgstr "请求错误"
+
+#: 
+msgid "Choose year / decade."
+msgstr "选择年份或者期间"
+
+#: 
+msgid "Delete \"%s\""
+msgstr "删除\"%s\""
+
+#: 
+msgid "Are you sure you want to delete \"%s\" ?"
+msgstr "确定想要删除\"%s\"吗？"
+
+#: 
+msgid "Required"
+msgstr "必填"
+
+#: 
+msgid "Delete when saved"
+msgstr "保存后删除"
+
+#: 
+msgid "All"
+msgstr "全部"
+
+#: 
+msgid "Search"
+msgstr "搜索"
+
+#: 
+msgid "Remove selection"
+msgstr "删除所选项"
+
+#: 
+msgid "Apply"
+msgstr "应用"
+
+#: 
+msgid "N/A"
+msgstr "空"
+
+#: 
+msgid "Save"
+msgstr "保存"
+
+#: 
+msgid "Cancel"
+msgstr "取消"
+
+#: 
+msgid "Choose action"
+msgstr "选择一项操作"
+
+#: 
+msgid "Too big file size=%s, max_size=%s"
+msgstr "文件太大%s，最大%s"
+
+#: 
+msgid "Not allowed filter field: \"%(fieldname)s\""
+msgstr "不允许筛选字段：\"%(fieldname)s\""
+
+#: 
+msgid "Not allowed sorting order: \"%(sorting_order)s\""
+msgstr "不允许按\"%(sorting_order)s\"排序"
+
+#: 
 msgid "Not allowed filter field: \"{}\""
-msgstr ""
+msgstr "不允许筛选字段：\"{}\""
 
+#: 
 msgid "Not allowed sorting order: \"{}\""
-msgstr ""
+msgstr "不允许排序：\"{}\""
 
+#: 
 msgid "Invalid value of sorting order: {}"
-msgstr ""
+msgstr "无效的排序顺序：{}"
 
+#: 
 msgid "Invalid value of list filter: {}"
-msgstr ""
+msgstr "无效的筛选：{}"
 
+#: 
 msgid "Invalid type of sorting order"
-msgstr ""
+msgstr "无效的排序类型"
 
+#: 
 msgid "Invalid type of list filter"
-msgstr ""
+msgstr "无效的筛选类型"
 
+#: 
 msgid "Cannot determine the type of filter for the field \"{}\""
-msgstr ""
+msgstr "无法确定筛选字段\"{}\"的类型"
 
-msgid "Unsupported field lookup for filter field '%(field)s'"
-msgstr ""
+#: 
+msgid "'in' is the only supported field lookup for filter field '%(field)s'"
+msgstr "对于筛选字段'%(field)s'，只能使用'in'操作符"
 
+#: 
 msgid "Rows per page"
-msgstr ""
+msgstr "行每页"
 
+#: 
 msgid "Highlight mode"
-msgstr ""
+msgstr "高亮模式"
+
+#: 
+msgid "Unsupported field lookup for filter field '%(field)s'"
+msgstr "不支持对字段筛选"
+
