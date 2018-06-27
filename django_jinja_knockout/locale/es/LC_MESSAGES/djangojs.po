@@ -1,97 +1,106 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# FULL NAME <EMAIL@ADDRESS>, 2015.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-26 16:10+0300\n"
-"PO-Revision-Date: 2015-10-28 12:10+0300\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: django-jinja-knockout javascript localization\n"
+"Language: es\n"
 
+#: 
 msgid "No"
-msgstr ""
+msgstr "No"
 
+#: 
 msgid "Yes"
-msgstr ""
+msgstr "Si"
 
+#. significa lugar de procedencia de algo o alguien
+#: 
 msgid "From"
-msgstr ""
+msgstr "de donde"
 
+#: 
 msgid "To"
-msgstr ""
+msgstr "para"
 
+#: 
 msgid "AJAX request error"
-msgstr ""
+msgstr "Error de peticion AJAX"
 
-#, javascript-format
+#: 
 msgid "Undefined response view %s"
-msgstr ""
+msgstr "respuesta indefinida a Vista %s"
 
+#: 
 msgid "Request error"
-msgstr ""
+msgstr "error de peticion"
 
+#: 
 msgid "Choose year / decade."
-msgstr ""
+msgstr "Elige año/decada"
 
-#, javascript-format
+#: 
 msgid "Delete \"%s\""
-msgstr ""
+msgstr "Eliminar"
 
-#, javascript-format
+#: 
 msgid "Are you sure you want to delete \"%s\" ?"
-msgstr ""
+msgstr "Estas se guro que quieres eliminar  \"%s\" ?"
 
+#: 
 msgid "Required"
-msgstr ""
+msgstr "Requerido"
 
+#: 
 msgid "Delete when saved"
-msgstr ""
+msgstr "Eliminar al Guardar"
 
+#: 
 msgid "First page"
-msgstr ""
+msgstr "Primera Pagina"
 
+#: 
 msgid "Last page"
-msgstr ""
+msgstr "Ultima Pagina"
 
+#: 
 msgid "All"
-msgstr ""
+msgstr "Todo"
 
+#: 
 msgid "Search"
-msgstr ""
+msgstr "Busqueda"
 
+#: 
 msgid "Remove selection"
-msgstr ""
+msgstr "Eliminar seleccion"
 
+#: 
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
-msgid "Error"
-msgstr ""
-
+#: 
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
+#: 
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
+#: 
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
+#: 
 msgid "Choose action"
-msgstr ""
+msgstr "elegir accion"
 
-#, javascript-format
+#: 
 msgid "Too big file size=%s, max_size=%s"
-msgstr ""
+msgstr "Tamaño =%s de archivo demasiado grande,tamaño_maximo=%s"
+
+#: 
+msgid "Error"
+msgstr "Error"
+
