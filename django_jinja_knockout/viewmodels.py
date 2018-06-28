@@ -33,9 +33,11 @@ def to_vm_list(v):
 # List of client-side viewmodels, which can be serialized to json
 class vm_list(list):
 
-    def __init__(self, *initial_vms):
+    def __init__(self, *initial_vms, **kw_vm):
         for vm in initial_vms:
             self.append(vm)
+        if len(kw_vm) > 0:
+            self.append(kw_vm)
 
     def append_kw(self, **vm):
         self.append(vm)

@@ -1085,26 +1085,21 @@ App.vmRouter = new App.ViewModelRouter({
         App.initClient($selector, 'dispose');
         $selector.remove();
     },
+    'text': function(response) {
+        var $selector = $.select(response.selector);
+        var text = document.createTextNode(response.text);
+        $selector.empty().append(text);
+    },
     'html': function(response) {
-        var $selector = $(response.selector);
-        if ($selector.length === 0) {
-            console.log(
-                sprintf('html viewmodel selector not found: "%s"', response.selector)
-            );
-        }
+        var $selector = $.select(selector);
         App.initClient($selector.find('*'), 'dispose');
         var $html = $.contents(response.html);
         App.initClient($html);
         $selector.empty().append($html);
     },
     'replaceWith': function(response) {
-        var $selector = $(response.selector);
+        var $selector = $.select(response.selector);
         var $parent = $selector.parent();
-        if ($selector.length === 0) {
-            console.log(
-                sprintf('replaceWith viewmodel selector not found: "%s"', response.selector)
-            );
-        }
         App.initClientApply($selector, 'dispose');
         $selector.replaceWith(
             App.initClientMark(response.html)

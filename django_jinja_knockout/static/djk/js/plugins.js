@@ -52,6 +52,16 @@ $.id = function(id) {
     }
 };
 
+$.select = function(selector) {
+    var $selector = $(selector);
+    if ($selector.length === 0) {
+        console.log(
+            sprintf('selector is not found: "%s"', selector)
+        );
+    }
+    return $selector;
+};
+
 /**
  * OrderedDict element.
  */
