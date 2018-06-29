@@ -8,7 +8,7 @@ App.ModelFormActions = function(options) {
     this.init(options);
 };
 
-void function(ModelFormActions){
+void function(ModelFormActions) {
 
     /**
      * The same client-side AJAX form is used both to add new objects and to update existing ones.

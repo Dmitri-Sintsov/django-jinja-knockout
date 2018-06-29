@@ -142,8 +142,8 @@ ko_grid_body.htm
 *  Fixed ``ko_grid_body()`` macro not including underscore.js templates copied with different ``template_id`` when these
    templates were called from related underscore.js templates.
 
-ko-grid.js
-~~~~~~~~~~
+grid.js
+~~~~~~~
 * Reset filter now uses ``undefined`` value instead of ``null`` value because filtering by ``None`` value is now
   supported in ``KoGridView``.
 * ``App.ko.GridRow`` class ``toDisplayValue()`` method now automatically picks nested relation value from nested

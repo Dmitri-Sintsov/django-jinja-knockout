@@ -23,7 +23,7 @@ Quickstart
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
-.. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/plugins.js
+.. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -271,7 +271,7 @@ use the following Javascript code::
     })(App.CustomPopover.prototype);
 
 Real examples of inheritance are available in ``button-popover.js`` ``App.ButtonPopover`` class implementation and in
-``ko-grid.js``, including multi-level one::
+``grid.js``, including multi-level one::
 
     ActionTemplateDialog.inherit = function() {
         // First, import methods of direct ancestor.
@@ -760,7 +760,7 @@ views submodule
 
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
   class-based view.
-* ``KoGridView`` - together with ``ko_grid.js`` allows to create AJAX powered django.admin-like grids with filtering,
+* ``KoGridView`` - together with ``grid.js`` allows to create AJAX powered django.admin-like grids with filtering,
   sorting, search, CRUD actions and custom actions. See `grids documentation`_ for more details.
 
 widgets.py

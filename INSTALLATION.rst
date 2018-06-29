@@ -6,7 +6,7 @@ Installation
 * Django template language is supported via including Jinja2 templates from DTL templates. Pure Jinja2 projects are
   supported as well.
 
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/app.js
+.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _apps.DjkAppConfig: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/apps.py
 .. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
 .. _content types framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
@@ -22,7 +22,7 @@ Installation
 .. _jinja2/base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
-.. _ko_grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/js/front/ko_grid.js
+.. _grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _settings.ADMINS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ADMINS
 .. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
@@ -436,7 +436,7 @@ If your project base template uses ``Jinja2`` templating language, there are the
 
 * Extend your ``base.htm`` template from `jinja2/base_min.htm`_ template.
 * Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_. These are required to
-  run client-side scripts like `app.js`_ and `ko_grid.js`_.
+  run client-side scripts like `app.js`_ and `grid.js`_.
 
 If your project base template uses Djanto Template Language (``DTL``), there are the following possibilities:
 
