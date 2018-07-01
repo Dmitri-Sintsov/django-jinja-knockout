@@ -19,6 +19,45 @@ from .widgets import DisplayText
 from .viewmodels import to_json
 
 
+class Renderer:
+
+    template = None
+    obj_kwarg = None
+
+    def __init__(self, request, obj, context):
+        self.request = request
+        self.context = context
+        self.obj = obj
+
+    def get_template_context(self):
+        context = self.context
+        context[self.obj_kwarg] = self.obj
+        return context
+
+    def get_template_name(self):
+        return self.template
+
+    def __str__(self):
+        t = tpl_loader.get_template(self.get_template_name())
+        html = t.render(request=self.request, context=self.get_template_context())
+        return html
+
+
+class BaseFieldRenderer(Renderer):
+
+    obj_kwarg = 'field'
+
+
+class BaseFormRenderer(Renderer):
+
+    obj_kwarg = 'form'
+
+
+class BaseFormsetRenderer(Renderer):
+
+    obj_kwarg = 'formset'
+
+
 # Form with field classes stylized for bootstrap3. #
 class BootstrapModelForm(forms.ModelForm):
 
