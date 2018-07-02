@@ -1,5 +1,4 @@
 import string
-from .utils import sdv
 from io import StringIO
 import lxml.html
 from lxml.etree import tostring
@@ -14,6 +13,7 @@ from django.template import loader as tpl_loader
 
 from .apps import DjkAppConfig
 from .context_processors import LAYOUT_CLASSES
+from .utils import sdv
 from .templatetags.bootstrap import add_input_classes_to_field
 from .widgets import DisplayText
 from .viewmodels import to_json
@@ -22,12 +22,12 @@ from .viewmodels import to_json
 class Renderer:
 
     template = None
-    obj_kwarg = None
+    obj_kwarg = 'obj'
 
-    def __init__(self, request, obj, context):
+    def __init__(self, request, obj, context=None):
         self.request = request
-        self.context = context
         self.obj = obj
+        self.context = {} if context is None else context
 
     def get_template_context(self):
         context = self.context
@@ -43,19 +43,28 @@ class Renderer:
         return html
 
 
-class BaseFieldRenderer(Renderer):
-
-    obj_kwarg = 'field'
-
-
-class BaseFormRenderer(Renderer):
-
+class FormBodyRenderer(Renderer):
     obj_kwarg = 'form'
+    template = 'render_form_body.htm'
 
 
-class BaseFormsetRenderer(Renderer):
+class RelatedFormRenderer(Renderer):
 
-    obj_kwarg = 'formset'
+    obj_kwarg = 'related_form'
+    template = 'render_related_form.htm'
+
+    def ioc_render_form_body(self):
+        return FormBodyRenderer(self.request, self.obj)
+
+    def get_template_context(self):
+        context = super().get_template_context()
+        render_form_body = self.ioc_render_form_body()
+        render_form_body.context.update({
+            'form': self.obj,
+            'field_classes': self.context['html']['layout_classes']
+        })
+        context['render_form_body'] = render_form_body
+        return context
 
 
 # Form with field classes stylized for bootstrap3. #
@@ -264,11 +273,15 @@ class FormWithInlineFormsets:
     def get_instance_when_form_invalid(self):
         return None
 
-    # Note that 'GET' mode form can be generateed in AJAX 'POST' request,
-    # thus method argument value should be hardcoded, not filled from current request.
+    def ioc_related_form_renderer(self, form):
+        return RelatedFormRenderer(self.request, form)
+
+    # Note that 'GET' mode form can be generated in AJAX 'POST' request,
+    # thus method argument value should be hardcoded, not filled from the current request.
     def prepare_form(self, form, method):
         if hasattr(form, 'set_request') and callable(form.set_request):
             form.set_request(self.request)
+        form.Meta.renderer = self.ioc_related_form_renderer(form)
 
     def get_formset_inline_title(self, formset):
         return None

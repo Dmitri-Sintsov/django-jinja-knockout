@@ -1,7 +1,6 @@
 {#
  # One or zero ModelForm with one or multiple one to many related inline formsets
  #}
-{% from 'bs_form_body.htm' import bs_form_body with context -%}
 {% macro bs_inline_formsets(related_form, formsets, action, html) -%}
 {% if formsets|get_type != 'list' -%}
 {{ raise('"formsets" argument should be the list of formsets') }}
@@ -18,7 +17,7 @@
 {% if action == '' -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
-{% set table_classes = 'table table-bordered table-responsive' -%}
+{% do html.update({'table_classes': 'table table-bordered table-responsive'}) -%}
 <div{{ tpl.json_flatatt(wrapper_atts) }}>
     {% if html.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
@@ -38,26 +37,11 @@
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% endif -%}
         {% if related_form -%}
-        <div class="panel-body default-padding">
-            {% if action == '' -%}
-            {# DisplayText fields use tr/td #}
-            <table class="{{ table_classes }}">
-                <colgroup>
-                    <col class="{{ html.layout_classes.label }}">
-                    <col class="{{ html.layout_classes.field }}">
-                </colgroup>
-            {% endif -%}
-            {% if caller -%}
-                {{ caller({'related_form_begin': related_form, 'html': html}) }}
-            {% endif -%}
-            {{ bs_form_body(related_form, html.layout_classes) }}
-            {% if caller -%}
-                {{ caller({'related_form_end': related_form, 'html': html}) }}
-            {% endif -%}
-            {% if action == '' -%}
-            </table>
-            {% endif -%}
-        </div>
+            {% do related_form.Meta.renderer.context.update({
+                'action': action,
+                'html': html,
+            }) -%}
+            {{ related_form.Meta.renderer.__str__() }}
         {% endif -%}
         {% for formset in formsets -%}
             {% if formset.inline_title is defined -%}
@@ -80,7 +64,7 @@
                     </div>
                 {% endif -%}
                 {% if action == '' -%}
-                    <table class="{{ table_classes }}">
+                    <table class="{{ html.table_classes }}">
                         <colgroup>
                             <col class="{{ html.layout_classes.label }}">
                             <col class="{{ html.layout_classes.field }}">
