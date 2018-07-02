@@ -1,7 +1,6 @@
 {% if field_classes is none -%}
     {% set field_classes = {} -%}
 {% endif -%}
-{% from 'bs_field.htm' import bs_field with context -%}
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {# <div class="alert alert-info debug">
         Visible fields for {{ form._meta.model }}:
@@ -27,5 +26,5 @@
         {{ field|safe }}
     {% endfor -%}
     {% for field in form.visible_fields() -%}
-        {{ bs_field(field, field_classes) }}
+        {{ field.renderer.__str__() }}
     {% endfor -%}

@@ -43,9 +43,23 @@ class Renderer:
         return html
 
 
+class FieldRenderer(Renderer):
+
+    template = 'render_field.htm'
+    obj_kwarg = 'field'
+
+
 class FormBodyRenderer(Renderer):
     obj_kwarg = 'form'
     template = 'render_form_body.htm'
+
+    def ioc_render_field(self, field):
+        return FieldRenderer(self.request, field)
+
+    def ioc_fields(self, field_classes):
+        for field in self.obj:
+            field.renderer = self.ioc_render_field(field)
+            field.renderer.context['classes'] = field_classes
 
 
 class RelatedFormRenderer(Renderer):
@@ -59,10 +73,7 @@ class RelatedFormRenderer(Renderer):
     def get_template_context(self):
         context = super().get_template_context()
         render_form_body = self.ioc_render_form_body()
-        render_form_body.context.update({
-            'form': self.obj,
-            'field_classes': self.context['html']['layout_classes']
-        })
+        render_form_body.ioc_fields(self.context['html']['layout_classes'])
         context['render_form_body'] = render_form_body
         return context
 
