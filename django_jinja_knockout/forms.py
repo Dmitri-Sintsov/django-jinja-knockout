@@ -1,3 +1,4 @@
+from copy import copy
 import string
 from io import StringIO
 import lxml.html
@@ -14,7 +15,7 @@ from django.template import loader as tpl_loader
 from .apps import DjkAppConfig
 from .context_processors import LAYOUT_CLASSES
 from .utils import sdv
-from .templatetags.bootstrap import add_input_classes_to_field
+from .templatetags import bootstrap
 from .widgets import DisplayText
 from .viewmodels import to_json
 
@@ -22,17 +23,18 @@ from .viewmodels import to_json
 class Renderer:
 
     template = None
-    obj_kwarg = 'obj'
+    obj_kwarg = None
 
-    def __init__(self, request, obj, context=None):
+    def __init__(self, request, context=None):
         self.request = request
-        self.obj = obj
         self.context = {} if context is None else context
+        self.obj = context[self.obj_kwarg] if self.obj_kwarg is not None and self.obj_kwarg in context else None
+
+    def update_context(self, data):
+        sdv.nested_update(self.context, data)
 
     def get_template_context(self):
-        context = self.context
-        context[self.obj_kwarg] = self.obj
-        return context
+        return self.context
 
     def get_template_name(self):
         return self.template
@@ -45,21 +47,59 @@ class Renderer:
 
 class FieldRenderer(Renderer):
 
-    template = 'render_field.htm'
     obj_kwarg = 'field'
+    template = 'render_field.htm'
+    default_classes = {
+        'label': 'col-md-2',
+        'field': 'col-md-6',
+        'multiple_type': '',
+    }
+
+    def get_template_name(self):
+        displaytext_layout = bootstrap.get_displaytext_layout(self.obj)
+        if displaytext_layout == 'table':
+            return 'render_field_displaytext.htm'
+        elif displaytext_layout == 'div':
+            return 'render_field_standard.htm'
+        elif bootstrap.is_checkbox(self.obj):
+            return 'render_field_checkbox.htm'
+        elif bootstrap.is_multiple_checkbox(self.obj):
+            self.update_context({
+                'classes': {
+                    'multiple_type': 'checkbox'
+                }
+            })
+            return 'render_field_multiple.htm'
+        elif bootstrap.is_radio(self.obj):
+            self.update_context({
+                'classes': {
+                    'multiple_type': 'radio'
+                }
+            })
+            return 'render_field_multiple.htm'
+        else:
+            return 'render_field_standard.htm'
+
+    def set_classes(self, classes=None):
+        if classes is None:
+            classes = {}
+        _classes = copy(self.default_classes)
+        _classes.update(classes)
+        self.context['classes'] = _classes
 
 
 class FormBodyRenderer(Renderer):
+
     obj_kwarg = 'form'
     template = 'render_form_body.htm'
 
     def ioc_render_field(self, field):
-        return FieldRenderer(self.request, field)
+        return FieldRenderer(self.request, {'field': field})
 
     def ioc_fields(self, field_classes):
         for field in self.obj:
             field.renderer = self.ioc_render_field(field)
-            field.renderer.context['classes'] = field_classes
+            field.renderer.set_classes(field_classes)
 
 
 class RelatedFormRenderer(Renderer):
@@ -68,7 +108,7 @@ class RelatedFormRenderer(Renderer):
     template = 'render_related_form.htm'
 
     def ioc_render_form_body(self):
-        return FormBodyRenderer(self.request, self.obj)
+        return FormBodyRenderer(self.request, {'form': self.obj})
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -96,10 +136,10 @@ class BootstrapModelForm(forms.ModelForm):
         for fieldname, field in self.fields.items():
             if hasattr(self.Meta, 'fields'):
                 if self.Meta.fields == '__all__' or fieldname in self.Meta.fields:
-                    add_input_classes_to_field(field)
+                    bootstrap.add_input_classes_to_field(field)
             else:
                 # Support for ModelForm which has Meta.exclude but no Meta.fields.
-                add_input_classes_to_field(field)
+                bootstrap.add_input_classes_to_field(field)
             # sdv.dbg('label',self.fields[field].label)
 
 
@@ -285,7 +325,7 @@ class FormWithInlineFormsets:
         return None
 
     def ioc_related_form_renderer(self, form):
-        return RelatedFormRenderer(self.request, form)
+        return RelatedFormRenderer(self.request, {'related_form': form})
 
     # Note that 'GET' mode form can be generated in AJAX 'POST' request,
     # thus method argument value should be hardcoded, not filled from the current request.

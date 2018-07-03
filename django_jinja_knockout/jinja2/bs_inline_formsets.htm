@@ -37,7 +37,7 @@
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% endif -%}
         {% if related_form -%}
-            {% do related_form.Meta.renderer.context.update({
+            {% do related_form.Meta.renderer.update_context({
                 'action': action,
                 'html': html,
             }) -%}

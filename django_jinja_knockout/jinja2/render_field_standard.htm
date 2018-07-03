@@ -1,0 +1,22 @@
+<div class="row form-group{% if field.errors -%} has-error{% endif -%}">
+    {% set label_att={'class': 'control-label ' + classes.label} -%}
+    {% if field.auto_id -%}
+        {% do label_att.update({'for': field.auto_id}) -%}
+    {% endif -%}
+    {% if field.field.required -%}
+        {% do tpl.add_css_classes_to_dict(label_att, 'required') -%}
+    {% endif -%}
+    <label{{ tpl.json_flatatt(label_att) }}>{{ field.label }}</label>
+
+    <div class="field {{ classes.field }}">
+        {{ field|safe }}
+        {% for error in field.errors -%}
+        <div class="alert alert-warning {{ form.error_css_class }}">{{ error }}</div>
+        {% endfor -%}
+        {% if field.help_text -%}
+        <p class="help-block">
+            {{ field.help_text|safe }}
+        </p>
+        {% endif -%}
+    </div>
+</div>
