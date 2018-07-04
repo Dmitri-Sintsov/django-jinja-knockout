@@ -7,6 +7,7 @@ from lxml.etree import tostring
 from django.http import QueryDict
 from django.conf import settings
 from django.db import transaction
+from django.middleware.csrf import get_token
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -92,9 +93,10 @@ class FormBodyRenderer(Renderer):
 
     obj_kwarg = 'form'
     template = 'render_form_body.htm'
+    field_renderer_cls = FieldRenderer
 
     def ioc_render_field(self, field):
-        return FieldRenderer(self.request, {'field': field})
+        return self.field_renderer_cls(self.request, {'field': field})
 
     def ioc_fields(self, field_classes):
         for field in self.obj:
@@ -106,9 +108,13 @@ class RelatedFormRenderer(Renderer):
 
     obj_kwarg = 'related_form'
     template = 'render_related_form.htm'
+    form_body_renderer_cls = FormBodyRenderer
 
     def ioc_render_form_body(self):
-        return FormBodyRenderer(self.request, {'form': self.obj})
+        return self.form_body_renderer_cls(self.request, {
+            'csrf_token': get_token(self.request),
+            'form': self.obj,
+        })
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -118,8 +124,52 @@ class RelatedFormRenderer(Renderer):
         return context
 
 
+class InlineFormRenderer(Renderer):
+
+    obj_kwarg = 'form'
+    template = 'render_inline_form.htm'
+
+    def set_html_attrs(self, html_attrs):
+        self.update_context({
+            'html': html_attrs,
+        })
+
+
+class FormsetRenderer(Renderer):
+
+    obj_kwarg = 'formset'
+    template = 'render_formset.htm'
+    inline_form_renderer_cls = InlineFormRenderer
+
+    def ioc_render_inline_form(self, form):
+        renderer_cls = getattr(form.Meta, 'renderers', {}).get('inline', self.inline_form_renderer_cls)
+        return renderer_cls(self.request, {'form': form})
+
+    def ioc_forms(self, html_attrs):
+        for form in self.obj:
+            renderer = self.ioc_render_inline_form(form)
+            renderer.set_html_attrs(html_attrs)
+            break
+        for form in self.obj:
+            if not hasattr(form.Meta, 'renderer'):
+                form.Meta.renderer = {}
+            form.Meta.renderer['inline'] = renderer
+
+    def get_template_context(self):
+        context = super().get_template_context()
+        self.ioc_forms(self.context['html'])
+        return context
+
+
 # Form with field classes stylized for bootstrap3. #
 class BootstrapModelForm(forms.ModelForm):
+
+    class Meta:
+        renderers = {
+            'related': RelatedFormRenderer,
+            'inline': InlineFormRenderer,
+            'standalone': None
+        }
 
     def __init__(self, *args, **kwargs):
         """
@@ -294,6 +344,8 @@ class FormWithInlineFormsets:
     FormClass = None
     FormsetClasses = None
     prefix = None
+    related_form_renderer_cls = RelatedFormRenderer
+    formset_renderer_cls = FormsetRenderer
 
     def __init__(self, request, form_class=None, formset_classes=None, create=False, prefix=None):
         if self.FormClass is None:
@@ -325,14 +377,20 @@ class FormWithInlineFormsets:
         return None
 
     def ioc_related_form_renderer(self, form):
-        return RelatedFormRenderer(self.request, {'related_form': form})
+        renderer_cls = getattr(form.Meta, 'renderers', {}).get('related', self.related_form_renderer_cls)
+        return renderer_cls(self.request, {'related_form': form})
 
     # Note that 'GET' mode form can be generated in AJAX 'POST' request,
     # thus method argument value should be hardcoded, not filled from the current request.
     def prepare_form(self, form, method):
         if hasattr(form, 'set_request') and callable(form.set_request):
             form.set_request(self.request)
-        form.Meta.renderer = self.ioc_related_form_renderer(form)
+        if not hasattr(form.Meta, 'renderer'):
+            form.Meta.renderer = {}
+        form.Meta.renderer['related'] = self.ioc_related_form_renderer(form)
+
+    def ioc_formset_renderer(self, formset):
+        return self.formset_renderer_cls(self.request, {'formset': formset})
 
     def get_formset_inline_title(self, formset):
         return None
@@ -340,6 +398,7 @@ class FormWithInlineFormsets:
     # Note that 'GET' mode formset can be generateed in AJAX 'POST' request,
     # thus method argument value should be hardcoded, not filled from current request.
     def prepare_formset(self, formset, method):
+        formset.renderer = self.ioc_formset_renderer(formset)
         inline_title = self.get_formset_inline_title(formset)
         if inline_title is not None:
             formset.inline_title = inline_title
