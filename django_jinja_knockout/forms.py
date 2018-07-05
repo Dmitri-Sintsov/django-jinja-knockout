@@ -129,11 +129,6 @@ class InlineFormRenderer(Renderer):
     obj_kwarg = 'form'
     template = 'render_inline_form.htm'
 
-    def set_html_attrs(self, html_attrs):
-        self.update_context({
-            'html': html_attrs,
-        })
-
 
 class FormsetRenderer(Renderer):
 
@@ -145,10 +140,10 @@ class FormsetRenderer(Renderer):
         renderer_cls = getattr(form.Meta, 'renderers', {}).get('inline', self.inline_form_renderer_cls)
         return renderer_cls(self.request, {'form': form})
 
-    def ioc_forms(self, html_attrs):
+    def ioc_forms(self, context):
         for form in self.obj:
             renderer = self.ioc_render_inline_form(form)
-            renderer.set_html_attrs(html_attrs)
+            renderer.update_context(context)
             break
         for form in self.obj:
             if not hasattr(form.Meta, 'renderer'):
@@ -157,7 +152,10 @@ class FormsetRenderer(Renderer):
 
     def get_template_context(self):
         context = super().get_template_context()
-        self.ioc_forms(self.context['html'])
+        self.ioc_forms({
+            'action': self.context['action'],
+            'html': self.context['html'],
+        })
         return context
 
 
@@ -166,9 +164,9 @@ class BootstrapModelForm(forms.ModelForm):
 
     class Meta:
         renderers = {
-            'related': RelatedFormRenderer,
             'inline': InlineFormRenderer,
-            'standalone': None
+            'related': RelatedFormRenderer,
+            'standalone': None,
         }
 
     def __init__(self, *args, **kwargs):

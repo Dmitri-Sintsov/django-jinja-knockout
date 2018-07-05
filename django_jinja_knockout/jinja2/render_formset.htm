@@ -23,16 +23,17 @@
                     {% if caller -%}
                         {{ caller({'inline_form_begin': form, 'html': html}) }}
                     {% endif -%}
-                    {% set formset_index = loop.index0 -%}
                     {% if formset.can_delete -%}
-                        {% if formset_index < formset.min_num -%}
+                        {% if loop.index0 < formset.min_num -%}
                             {% do html.update({'formset_form_class': 'form-required'}) -%}
                         {% else -%}
                             {% do html.update({'formset_form_class': 'form-optional'}) -%}
                         {% endif -%}
                     {% endif -%}
-                    {% include 'bs_formset_form.htm' %}
-                    {# form.Meta.renderer['inline'].__str__() #}
+                    {# set formset_index = loop.index0 #}
+                    {# include 'bs_formset_form.htm' #}
+                    {% do form.Meta.renderer['inline'].update_context({'formset_index': loop.index0}) -%}
+                    {{ form.Meta.renderer['inline'].__str__() }}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'html': html}) }}
                     {% endif -%}
