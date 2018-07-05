@@ -23,17 +23,24 @@
                     {% if caller -%}
                         {{ caller({'inline_form_begin': form, 'html': html}) }}
                     {% endif -%}
+                    {% set formset_form_class = '' -%}
                     {% if formset.can_delete -%}
                         {% if loop.index0 < formset.min_num -%}
-                            {% do html.update({'formset_form_class': 'form-required'}) -%}
+                            {% set formset_form_class = 'form-required' -%}
                         {% else -%}
-                            {% do html.update({'formset_form_class': 'form-optional'}) -%}
+                            {% set formset_form_class = 'form-optional' -%}
                         {% endif -%}
                     {% endif -%}
-                    {# set formset_index = loop.index0 #}
-                    {# include 'bs_formset_form.htm' #}
-                    {% do form.Meta.renderer['inline'].update_context({'formset_index': loop.index0}) -%}
-                    {{ form.Meta.renderer['inline'].__str__() }}
+                    {% do html.update({'formset_form_class': formset_form_class}) -%}
+                    {% set formset_index = loop.index0 -%}
+                    {% include 'bs_formset_form.htm' %}
+                    {# do form.Meta.renderer['inline'].update_context({
+                        'formset_index': loop.index0,
+                        'html': {
+                            'formset_form_class': formset_form_class,
+                        }
+                    }) -%}
+                    {{ form.Meta.renderer['inline'].__str__() #}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'html': html}) }}
                     {% endif -%}
