@@ -45,14 +45,16 @@ Do not forget to update to latest ESR when running the tests.
 class BaseSeleniumCommands(AutomationCommands):
 
     DEFAULT_SLEEP_TIME = 3
-
+    SAVE_COMMANDS_HTML = False
     sync_commands_list = []
+
 
     def __init__(self, *args, **kwargs):
         self.testcase = kwargs.pop('testcase')
         self.selenium = self.testcase.selenium
         super().__init__(*args, **kwargs)
         self.logged_error = False
+        self.command_index = 0
         self.history = []
         self.last_sync_command_key = -1
         # self.sleep_between_commands = 1.2
@@ -98,14 +100,26 @@ class BaseSeleniumCommands(AutomationCommands):
         return self.context
 
     def log_command(self, operation, args, kwargs):
-        print('Operation: {}'.format(operation), end='')
+        op_args = [operation]
+        op_format = 'Operation: {}'
         if len(args) > 0:
-            print(' \\ args: {}'.format(repr(args)), end='')
+            op_args.append(repr(args))
+            op_format += ' \\ args: {}'
         if len(kwargs) > 0:
-            print(' \\ kwargs: {}'.format(repr(kwargs)), end='')
+            op_args.append(repr(kwargs))
+            op_format += ' \\ kwargs: {}'
+        print(op_format.format(*op_args), end='')
         print(' \\ Nesting level: current = {}, previous = {}'.format(
             self.nesting_level, self.prev_nesting_level
         ))
+        if self.SAVE_COMMANDS_HTML:
+            html_filename = os.path.join(
+                settings.BASE_DIR,
+                'logs',
+                'command_{:4d}_{}.html'.format(self.command_index, op_args[0])
+            )
+            with open(html_filename, "w") as f:
+                f.write(self.selenium.page_source)
 
     def exec_command(self, operation, *args, **kwargs):
         try:
@@ -119,6 +133,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 if unsleep_time > 0:
                     self._sleep(unsleep_time)
                     print('Unsleep time: {}'.format(unsleep_time))
+            self.command_index += 1
             return result, exec_time
         except WebDriverException as e:
             batch_exec_time = e.exec_time
@@ -149,6 +164,7 @@ class BaseSeleniumCommands(AutomationCommands):
                     except WebDriverException as e:
                         self.log_error(e)
                         raise e
+                self.command_index += 1
                 return self.context, batch_exec_time
             self.log_error(e)
             raise e
