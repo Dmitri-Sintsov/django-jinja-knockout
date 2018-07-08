@@ -31,16 +31,14 @@
                             {% set formset_form_class = 'form-optional' -%}
                         {% endif -%}
                     {% endif -%}
-                    {% do html.update({'formset_form_class': formset_form_class}) -%}
-                    {% set formset_index = loop.index0 -%}
-                    {% include 'bs_formset_form.htm' %}
-                    {# do form.Meta.renderer['inline'].update_context({
+                    {% do form.Meta.renderer['inline'].update_context({
+                        'form': form,
                         'formset_index': loop.index0,
                         'html': {
                             'formset_form_class': formset_form_class,
                         }
                     }) -%}
-                    {{ form.Meta.renderer['inline'].__str__() #}
+                    {{ form.Meta.renderer['inline'].__str__() }}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'html': html}) }}
                     {% endif -%}

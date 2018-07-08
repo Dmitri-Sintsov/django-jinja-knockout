@@ -46,6 +46,7 @@ class Renderer:
         return html
 
 
+# Separate instance stored into field.renderer.
 class FieldRenderer(Renderer):
 
     obj_kwarg = 'field'
@@ -104,6 +105,7 @@ class FormBodyRenderer(Renderer):
             field.renderer.set_classes(field_classes)
 
 
+# Shared instance stored into form.Meta.renderer.
 class RelatedFormRenderer(Renderer):
 
     obj_kwarg = 'related_form'
@@ -124,12 +126,14 @@ class RelatedFormRenderer(Renderer):
         return context
 
 
+# Shared instance stored into form.Meta.renderer.
 class InlineFormRenderer(Renderer):
 
     obj_kwarg = 'form'
     template = 'render_inline_form.htm'
 
 
+# Separate instance stored into formset.renderer.
 class FormsetRenderer(Renderer):
 
     obj_kwarg = 'formset'
