@@ -269,19 +269,21 @@ def set_empty_template(formset, request, html: dict=None):
 def set_knockout_template(formset, request, html: dict=None):
     if html is None:
         html = {}
-    t = tpl_loader.get_template('bs_formset_form.htm')
     _html = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
         'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
     }
     _html.update(html)
-    empty_form = t.render(request=request, context={
-        'form': formset.empty_form,
-        'html': _html
+    empty_form = formset.empty_form
+    renderer_cls = getattr(empty_form.Meta, 'render_inline_cls', BootstrapModelForm.Meta.render_inline_cls)
+    renderer = renderer_cls(request, context={
+        'form': empty_form,
+        'html': _html,
     })
-    # return str(empty_form)
-    html = lxml.html.parse(StringIO(empty_form))
+    empty_form_str = renderer.__str__()
+    # return str(empty_form_str)
+    html = lxml.html.parse(StringIO(empty_form_str))
     for element in html.xpath("//*[@id or @name or @for]"):
         # sdv.dbg('element', element)
         data_bind_args = []
