@@ -1,9 +1,11 @@
+import glob
 import re
 import os
 import sys
 import time
 from collections import namedtuple
 from importlib import import_module
+from urllib.parse import urlparse, urlunparse
 
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
@@ -18,6 +20,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 from django.core.management import call_command
+from django.middleware.csrf import get_token
 
 from .automation import AutomationCommands
 from .testing_components import FormCommands, ComponentCommands, DialogCommands, GridCommands
@@ -108,18 +111,30 @@ class BaseSeleniumCommands(AutomationCommands):
         if len(kwargs) > 0:
             op_args.append(repr(kwargs))
             op_format += ' \\ kwargs: {}'
-        print(op_format.format(*op_args), end='')
+        op_str = op_format.format(*op_args)
+        print(op_str, end='')
         print(' \\ Nesting level: current = {}, previous = {}'.format(
             self.nesting_level, self.prev_nesting_level
         ))
+
         if self.SAVE_COMMANDS_HTML:
+            # Remove previous command log files, if any.
+            if self.command_index == 0:
+                for cmd_file in glob.glob(os.path.join(settings.BASE_DIR, 'logs', 'command_*.html')):
+                    os.remove(cmd_file)
             html_filename = os.path.join(
                 settings.BASE_DIR,
                 'logs',
-                'command_{:4d}_{}.html'.format(self.command_index, op_args[0])
+                'command_{:04d}_{}.html'.format(self.command_index, op_args[0])
             )
-            with open(html_filename, "w") as f:
-                f.write(self.selenium.page_source)
+            with open(html_filename, "w") as cmd_file:
+                parse_result = list(urlparse(self.selenium.current_url))
+                if parse_result[1] != '':
+                    # Remove arbitrary network port, used by Selenium driver from the logged url.
+                    parse_result[1] = 'localhost'
+                cmd_file.write('<!-- {} -->\n<!-- {} -->\n'.format(op_str, urlunparse(parse_result)))
+                csrf_token = get_token()
+                cmd_file.write(self.selenium.page_source)
 
     def exec_command(self, operation, *args, **kwargs):
         try:

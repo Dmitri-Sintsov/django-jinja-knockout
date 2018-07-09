@@ -28,10 +28,12 @@ class Renderer:
 
     def __init__(self, request, context=None):
         self.request = request
-        self.context = {} if context is None else context
+        # Shallow copy.
+        self.context = {} if context is None else context.copy()
         self.obj = context[self.obj_kwarg] if self.obj_kwarg is not None and self.obj_kwarg in context else None
 
     def update_context(self, data):
+        # Shallow copy.
         sdv.nested_update(self.context, data)
 
     def get_template_context(self):
@@ -105,7 +107,7 @@ class FormBodyRenderer(Renderer):
             field.renderer.set_classes(field_classes)
 
 
-# Shared instance stored into form.Meta.renderer.
+# Separate instance stored into form._renderer['related'].
 class RelatedFormRenderer(Renderer):
 
     obj_kwarg = 'related_form'
@@ -126,7 +128,7 @@ class RelatedFormRenderer(Renderer):
         return context
 
 
-# Shared instance stored into form.Meta.renderer.
+# Separate instance stored into form._renderer['inline'].
 class InlineFormRenderer(Renderer):
 
     obj_kwarg = 'form'
@@ -141,18 +143,16 @@ class FormsetRenderer(Renderer):
     inline_form_renderer_cls = InlineFormRenderer
 
     def ioc_render_inline_form(self, form):
-        renderer_cls = getattr(form.Meta, 'renderers', {}).get('inline', self.inline_form_renderer_cls)
+        renderer_cls = getattr(form.Meta, 'render_inline_cls', self.inline_form_renderer_cls)
         return renderer_cls(self.request, {'form': form})
 
     def ioc_forms(self, context):
         for form in self.obj:
             renderer = self.ioc_render_inline_form(form)
             renderer.update_context(context)
-            break
-        for form in self.obj:
-            if not hasattr(form.Meta, 'renderer'):
-                form.Meta.renderer = {}
-            form.Meta.renderer['inline'] = renderer
+            if '_renderer' not in form:
+                form._renderer = {}
+            form._renderer['inline'] = renderer
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -167,11 +167,9 @@ class FormsetRenderer(Renderer):
 class BootstrapModelForm(forms.ModelForm):
 
     class Meta:
-        renderers = {
-            'inline': InlineFormRenderer,
-            'related': RelatedFormRenderer,
-            'standalone': None,
-        }
+        render_inline_cls = InlineFormRenderer
+        render_related_cls = RelatedFormRenderer
+        render_standalone_cls =  None
 
     def __init__(self, *args, **kwargs):
         """
@@ -379,7 +377,7 @@ class FormWithInlineFormsets:
         return None
 
     def ioc_related_form_renderer(self, form):
-        renderer_cls = getattr(form.Meta, 'renderers', {}).get('related', self.related_form_renderer_cls)
+        renderer_cls = getattr(form.Meta, 'render_related_cls', self.related_form_renderer_cls)
         return renderer_cls(self.request, {'related_form': form})
 
     # Note that 'GET' mode form can be generated in AJAX 'POST' request,
@@ -387,9 +385,9 @@ class FormWithInlineFormsets:
     def prepare_form(self, form, method):
         if hasattr(form, 'set_request') and callable(form.set_request):
             form.set_request(self.request)
-        if not hasattr(form.Meta, 'renderer'):
-            form.Meta.renderer = {}
-        form.Meta.renderer['related'] = self.ioc_related_form_renderer(form)
+        if '_renderer' not in form:
+            form._renderer = {}
+        form._renderer['related'] = self.ioc_related_form_renderer(form)
 
     def ioc_formset_renderer(self, formset):
         return self.formset_renderer_cls(self.request, {'formset': formset})

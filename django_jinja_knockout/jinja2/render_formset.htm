@@ -31,14 +31,13 @@
                             {% set formset_form_class = 'form-optional' -%}
                         {% endif -%}
                     {% endif -%}
-                    {% do form.Meta.renderer['inline'].update_context({
-                        'form': form,
+                    {% do form._renderer['inline'].update_context({
                         'formset_index': loop.index0,
                         'html': {
                             'formset_form_class': formset_form_class,
                         }
                     }) -%}
-                    {{ form.Meta.renderer['inline'].__str__() }}
+                    {{ form._renderer['inline'].__str__() }}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'html': html}) }}
                     {% endif -%}
