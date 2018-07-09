@@ -20,7 +20,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 from django.core.management import call_command
-from django.middleware.csrf import get_token
+# from django.middleware.csrf import get_token
 
 from .automation import AutomationCommands
 from .testing_components import FormCommands, ComponentCommands, DialogCommands, GridCommands
@@ -50,7 +50,6 @@ class BaseSeleniumCommands(AutomationCommands):
     DEFAULT_SLEEP_TIME = 3
     SAVE_COMMANDS_HTML = False
     sync_commands_list = []
-
 
     def __init__(self, *args, **kwargs):
         self.testcase = kwargs.pop('testcase')
@@ -133,7 +132,8 @@ class BaseSeleniumCommands(AutomationCommands):
                     # Remove arbitrary network port, used by Selenium driver from the logged url.
                     parse_result[1] = 'localhost'
                 cmd_file.write('<!-- {} -->\n<!-- {} -->\n'.format(op_str, urlunparse(parse_result)))
-                csrf_token = get_token()
+                # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
+                # csrf_token = get_token()
                 cmd_file.write(self.selenium.page_source)
 
     def exec_command(self, operation, *args, **kwargs):
