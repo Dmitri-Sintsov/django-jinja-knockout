@@ -1,13 +1,13 @@
 {% from 'bs_form_body.htm' import bs_form_body with context -%}
 {# @note: Also called in forms.set_knockout_template #}
-{% if not html.layout_classes -%}
-    {% do html.update({'layout_classes': layout_classes}) -%}
+{% if not opts.layout_classes -%}
+    {% do opts.update({'layout_classes': layout_classes}) -%}
 {% endif -%}
 {% if action == '' -%}
     {# DisplayText fields may use tr/td when displaying as tables or div when embedded into "normal" forms. #}
     {% if formset_index == 0 -%}
     <tr>
-        <th colspan="2">{{ html.inline_title }}</th>
+        <th colspan="2">{{ opts.inline_title }}</th>
     </tr>
     {% else -%}
     <tr>
@@ -15,15 +15,15 @@
     </tr>
     {% endif -%}
 {% else -%}
-{% if not html.formset_form_class -%}
-    {% do html.update({'formset_form_class': ''}) -%}
+{% if not opts.formset_form_class -%}
+    {% do opts.update({'formset_form_class': ''}) -%}
 {% endif -%}
-<div class="formset-form-wrap {{ html.formset_form_class }}">
+<div class="formset-form-wrap {{ opts.formset_form_class }}">
     <div class="panel panel-default inline-formset-wrap">
-        <div class="panel-heading"><h3 class="panel-title">{{ html.inline_title }}</h3></div>
+        <div class="panel-heading"><h3 class="panel-title">{{ opts.inline_title }}</h3></div>
         <div class="panel-body">
 {% endif -%}
-            {{ bs_form_body(form, html.layout_classes) }}
+            {{ bs_form_body(form, opts.layout_classes) }}
 {% if action != '' -%}
         </div>
     </div>

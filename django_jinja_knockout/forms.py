@@ -48,7 +48,7 @@ class Renderer:
         return html
 
 
-# Separate instance stored into field.renderer.
+# Instance is stored into field.renderer.
 class FieldRenderer(Renderer):
 
     obj_kwarg = 'field'
@@ -102,12 +102,12 @@ class FormBodyRenderer(Renderer):
         return self.field_renderer_cls(self.request, {'field': field})
 
     def ioc_fields(self, field_classes):
-        for field in self.obj:
+        for field in self.obj.visible_fields():
             field.renderer = self.ioc_render_field(field)
             field.renderer.set_classes(field_classes)
 
 
-# Separate instance stored into form._renderer['related'].
+# Instance is stored into form._renderer['related'].
 class RelatedFormRenderer(Renderer):
 
     obj_kwarg = 'related_form'
@@ -123,9 +123,19 @@ class RelatedFormRenderer(Renderer):
     def get_template_context(self):
         context = super().get_template_context()
         render_form_body = self.ioc_render_form_body()
-        render_form_body.ioc_fields(self.context['html']['layout_classes'])
+        if 'opts' not in self.context:
+            self.context['opts'] = {}
+        layout_classes = self.context['opts'].get('layout_classes', LAYOUT_CLASSES)
+        render_form_body.ioc_fields(layout_classes)
         context['render_form_body'] = render_form_body
         return context
+
+
+# Instance is stored info form._renderer['standalone'].
+class StandaloneFormRenderer(RelatedFormRenderer):
+
+    obj_kwarg = 'form'
+    template = 'render_form.htm'
 
 
 # Separate instance stored into form._renderer['inline'].
@@ -158,7 +168,7 @@ class FormsetRenderer(Renderer):
         context = super().get_template_context()
         self.ioc_forms({
             'action': self.context['action'],
-            'html': self.context['html'],
+            'opts': self.context['opts'],
         })
         return context
 
@@ -169,7 +179,7 @@ class BootstrapModelForm(forms.ModelForm):
     class Meta:
         render_inline_cls = InlineFormRenderer
         render_related_cls = RelatedFormRenderer
-        render_standalone_cls =  None
+        render_standalone_cls = StandaloneFormRenderer
 
     def __init__(self, *args, **kwargs):
         """
@@ -265,21 +275,37 @@ def set_empty_template(formset, request, html: dict=None):
     return None
 
 
+def ioc_form_renderer(request, typ, context):
+    form = context['form']
+    if '_renderer' not in form:
+        form._renderer = {}
+    if typ in form._renderer:
+        renderer = form.__renderer[typ]
+        renderer.update_context(context)
+        return renderer
+    else:
+        renderer_cls_name = 'render_{}_cls'.format(typ)
+        renderer_cls = getattr(
+            getattr(form, 'Meta', None), renderer_cls_name, getattr(BootstrapModelForm.Meta, renderer_cls_name)
+        )
+        renderer = renderer_cls(request, context=context)
+        form._renderer[typ] = renderer
+        return renderer
+
+
 # Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request, html: dict=None):
-    if html is None:
-        html = {}
-    _html = {
+def set_knockout_template(formset, request, opts: dict=None):
+    if opts is None:
+        opts = {}
+    _opts = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
         'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
     }
-    _html.update(html)
-    empty_form = formset.empty_form
-    renderer_cls = getattr(empty_form.Meta, 'render_inline_cls', BootstrapModelForm.Meta.render_inline_cls)
-    renderer = renderer_cls(request, context={
-        'form': empty_form,
-        'html': _html,
+    _opts.update(opts)
+    renderer = ioc_form_renderer(request, 'inline', {
+        'form': formset.empty_form,
+        'opts': _opts,
     })
     empty_form_str = renderer.__str__()
     # return str(empty_form_str)

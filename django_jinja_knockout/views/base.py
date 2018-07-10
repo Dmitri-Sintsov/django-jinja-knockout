@@ -199,7 +199,7 @@ class FormViewmodelsMixin():
             'id': bound_field.auto_id,
             'messages': list((escape(message) for message in bound_field.errors))
         }
-        # Alternative version, different from 'bs_field.htm' macro rendering.
+        # Alternative version, different from FieldRenderer default rendering.
         """
         return {
             'view': 'popover_error',

@@ -392,7 +392,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             'form': ff.form,
             'formsets': ff.formsets,
             'action': self.get_action_url(form_action, query=action_query),
-            'html': self.get_bs_form_opts()
+            'opts': self.get_bs_form_opts()
         })
         if verbose_name is None:
             verbose_name = get_verbose_name(ff.get_form_class().Meta.model)

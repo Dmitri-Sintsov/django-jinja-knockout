@@ -118,7 +118,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
                 'form': ff.form,
                 'formsets': ff.formsets,
                 'action': self.get_form_action_url(),
-                'html': self.get_bs_form_opts()
+                'opts': self.get_bs_form_opts()
             })
             vms = vm_list(
                 {

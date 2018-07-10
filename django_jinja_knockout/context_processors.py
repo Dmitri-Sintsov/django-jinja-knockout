@@ -8,6 +8,7 @@ from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 
+from . import forms
 from .models import get_verbose_name
 from .middleware import ContextMiddlewareCompat
 from . import tpl
@@ -86,6 +87,7 @@ class TemplateContextProcessor():
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
+            'ioc_form_renderer': forms.ioc_form_renderer,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
             'list': list,

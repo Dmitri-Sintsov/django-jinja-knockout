@@ -15,7 +15,7 @@
 ) -%}
 
 {{ bs_inline_formsets(
-    related_form=form, formsets=formsets, action=view.get_form_action_url(), html=view.get_bs_form_opts()
+    related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
 ) }}
 
 {% endcall -%}

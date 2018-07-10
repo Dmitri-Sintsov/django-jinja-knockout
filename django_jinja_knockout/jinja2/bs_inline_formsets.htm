@@ -1,29 +1,32 @@
 {#
  # One or zero ModelForm with one or multiple one to many related inline formsets
  #}
-{% macro bs_inline_formsets(related_form, formsets, action, html) -%}
+{% macro bs_inline_formsets(related_form, formsets, action, opts) -%}
 {% if formsets|get_type != 'list' -%}
 {{ raise('"formsets" argument should be the list of formsets') }}
 {% endif -%}
 {% set wrapper_atts = {
     'class': 'formsets panel panel-default default-padding'
 } -%}
-{% if not html.layout_classes -%}
-    {% do html.update({'layout_classes': layout_classes}) -%}
+{% if not opts -%}
+    {% set opts = {} -%}
 {% endif -%}
-{% if html.class -%}
-    {% do tpl.add_css_classes_to_dict(wrapper_atts, html.class) -%}
+{% if not opts.layout_classes -%}
+    {% do opts.update({'layout_classes': layout_classes}) -%}
+{% endif -%}
+{% if opts.class -%}
+    {% do tpl.add_css_classes_to_dict(wrapper_atts, opts.class) -%}
 {% endif -%}
 {% if action == '' -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
-{% do html.update({'table_classes': 'table table-bordered table-responsive'}) -%}
+{% do opts.update({'table_classes': 'table table-bordered table-responsive'}) -%}
 <div{{ tpl.json_flatatt(wrapper_atts) }}>
-    {% if html.title is defined -%}
-    <div class="panel-heading"><h3 class="panel-title">{{ html.title }}</h3></div>
+    {% if opts.title is defined -%}
+    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     {% endif -%}
     {% if action != '' -%}
-        {% if html.is_ajax -%}
+        {% if opts.is_ajax -%}
             {% set atts = {'data-url': action, 'class': 'ajax-form'} -%}
         {% else -%}
             {% set atts = {'action': action} -%}
@@ -39,25 +42,25 @@
         {% if related_form -%}
             {% do related_form._renderer['related'].update_context({
                 'action': action,
-                'html': html,
+                'opts': opts,
             }) -%}
             {{ related_form._renderer['related'].__str__() }}
         {% endif -%}
         {% for formset in formsets -%}
             {% if formset.inline_title is defined -%}
-                {% do html.update({'inline_title': formset.inline_title}) -%}
+                {% do opts.update({'inline_title': formset.inline_title}) -%}
             {% else -%}
-                {% do html.update({'inline_title': formset.model._meta.verbose_name}) -%}
+                {% do opts.update({'inline_title': formset.model._meta.verbose_name}) -%}
             {% endif -%}
             {% do formset.renderer.update_context({
                 'action': action,
-                'html': html,
+                'opts': opts,
                 'loop': loop,
             }) -%}
             {{ formset.renderer.__str__() }}
         {% endfor -%}
-        {% if html.submit_text is defined -%}
-        <button type="submit" class="btn btn-primary">{{ html.submit_text }}</button>
+        {% if opts.submit_text is defined -%}
+        <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
         {% endif -%}
         {% if caller -%}
             {{ caller({'buttons': True}) }}
@@ -73,6 +76,6 @@
 </div>
 {% endmacro -%}
 {% if _render_ -%}
-{% call(kwargs) bs_inline_formsets(form, formsets, action, html) -%}
+{% call(kwargs) bs_inline_formsets(form, formsets, action, opts) -%}
 {% endcall -%}
 {% endif -%}

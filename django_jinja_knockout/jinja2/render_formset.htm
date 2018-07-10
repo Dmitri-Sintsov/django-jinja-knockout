@@ -1,5 +1,5 @@
             {% if caller -%}
-                {{ caller({'formset_begin': formset, 'html': html}) }}
+                {{ caller({'formset_begin': formset, 'opts': opts}) }}
             {% endif -%}
             <div class="formset default-padding">
                 <div class="management-form">
@@ -13,15 +13,15 @@
                     </div>
                 {% endif -%}
                 {% if action == '' -%}
-                    <table class="{{ html.table_classes }}">
+                    <table class="{{ opts.table_classes }}">
                         <colgroup>
-                            <col class="{{ html.layout_classes.label }}">
-                            <col class="{{ html.layout_classes.field }}">
+                            <col class="{{ opts.layout_classes.label }}">
+                            <col class="{{ opts.layout_classes.field }}">
                         </colgroup>
                 {% endif -%}
                 {% for form in formset -%}
                     {% if caller -%}
-                        {{ caller({'inline_form_begin': form, 'html': html}) }}
+                        {{ caller({'inline_form_begin': form, 'opts': opts}) }}
                     {% endif -%}
                     {% set formset_form_class = '' -%}
                     {% if formset.can_delete -%}
@@ -33,13 +33,13 @@
                     {% endif -%}
                     {% do form._renderer['inline'].update_context({
                         'formset_index': loop.index0,
-                        'html': {
+                        'opts': {
                             'formset_form_class': formset_form_class,
                         }
                     }) -%}
                     {{ form._renderer['inline'].__str__() }}
                     {% if caller -%}
-                        {{ caller({'inline_form_end': form, 'html': html}) }}
+                        {{ caller({'inline_form_end': form, 'opts': opts}) }}
                     {% endif -%}
                 {% endfor -%}
                 {% if action == '' -%}
@@ -50,10 +50,10 @@
                     <div data-bind="anonymous_template: {'base-selector': '.formsets', 'template-index': {{ loop.index0 }}}"></div>
                 </div>
                 <button class="btn btn-info btn-sm" data-bind="click: addForm, visible: hasMoreForms">
-                    {{ _('Add "%(verbose_name)s"', verbose_name=html.inline_title) }}
+                    {{ _('Add "%(verbose_name)s"', verbose_name=opts.inline_title) }}
                 </button>
                 {% endif -%}
             </div>
             {% if caller -%}
-                {{ caller({'formset_end': formset, 'html': html}) }}
+                {{ caller({'formset_end': formset, 'opts': opts}) }}
             {% endif -%}
