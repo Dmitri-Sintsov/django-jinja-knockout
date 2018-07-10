@@ -1,0 +1,41 @@
+<div class="panel panel-default {{ opts.class }}">
+    {% if opts.title is defined -%}
+    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    {% endif -%}
+    <div class="panel-body">
+        {% if action != '' -%}
+        {% if opts.is_ajax -%}
+            {% set atts = {'data-url': action, 'class': 'ajax-form'} -%}
+        {% else -%}
+            {% set atts = {'action': action} -%}
+        {% endif -%}
+        {% do atts.update({
+            'method': method,
+            'enctype': "multipart/form-data",
+            'role': 'form'
+        }) -%}
+        <form{{ tpl.json_flatatt(atts) }}>
+        {% endif -%}
+            {% if action == '' -%}
+            {# DisplayText fields use tr/td #}
+            <table class="table table-bordered table-responsive">
+                <colgroup>
+                    <col class="{{ opts.layout_classes.label }}">
+                    <col class="{{ opts.layout_classes.field }}">
+                </colgroup>
+            {% endif -%}
+            {{ render_form_body.__str__() }}
+            {% if action == '' -%}
+            </table>
+            {% endif -%}
+            {% if opts.submit_text is defined -%}
+            <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
+            {% endif -%}
+            {% if caller -%}
+                {{ caller() }}
+            {% endif -%}
+        {% if action != '' -%}
+        </form>
+        {% endif -%}
+    </div>
+</div>
