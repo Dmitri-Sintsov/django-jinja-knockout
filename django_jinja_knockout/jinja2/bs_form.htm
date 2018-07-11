@@ -9,12 +9,10 @@
 {% if not opts.class -%}
     {% do opts.update({'class': ''}) -%}
 {% endif -%}
-{% do ioc_form_renderer(request, 'standalone', {
-    'form': form,
+{{ render_form(request, 'standalone', form, {
     'action': action,
     'opts': opts,
-}) -%}
-{{ form._renderer['standalone'].__str__() }}
+}) }}
 {% endmacro -%}
 {% if _render_ -%}
 {{ bs_form(form, action, opts) }}

@@ -1,6 +1,5 @@
 {% extends "base.htm" -%}
 {% from 'bs_page_header.htm' import bs_page_header with context -%}
-{% from 'bs_form_body.htm' import bs_form_body with context -%}
 
 {% block main -%}
 {{ bs_page_header(_("E-mail Addresses")) }}
@@ -53,7 +52,7 @@
     <div class="panel-heading"><h3 class="panel-title">{{ _("Add E-mail Address") }}</h3></div>
     <div class="panel-body">
         <form role="form" method="post" action="{{ url('account_email') }}" class="add_email">
-            {{ bs_form_body(form) }}
+            {{ render_form(request, 'body', form) }}
             <button class="btn btn-primary" name="action_add" type="submit">{{ _("Add E-mail") }}</button>
         </form>
     </div>

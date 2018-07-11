@@ -24,7 +24,7 @@
                     <col class="{{ opts.layout_classes.field }}">
                 </colgroup>
             {% endif -%}
-            {{ render_form_body.__str__() }}
+            {{ form._renderer['body'].__str__() }}
             {% if action == '' -%}
             </table>
             {% endif -%}

@@ -87,7 +87,7 @@ class TemplateContextProcessor():
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
-            'ioc_form_renderer': forms.ioc_form_renderer,
+            'render_form': forms.render_form,
             'isinstance': isinstance,
             'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
             'list': list,

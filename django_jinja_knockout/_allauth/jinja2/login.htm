@@ -1,5 +1,4 @@
 {% extends "base.htm" %}
-{% from 'bs_form_body.htm' import bs_form_body with context %}
 
 {% block main %}
 
@@ -11,7 +10,7 @@
     <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
     <div class="panel-body">
         <form role="form" class="login" method="POST" action="{{ url('account_login') }}">
-            {{ bs_form_body(form) }}
+            {{ render_form(request, 'body', form) }}
             {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
             {% endif %}
