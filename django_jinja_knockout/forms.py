@@ -85,6 +85,7 @@ class FieldRenderer(Renderer):
             return 'render_field_standard.htm'
 
     def set_classes(self, classes=None):
+        bootstrap.add_input_classes_to_field(self.obj.field)
         if classes is None:
             classes = {}
         _classes = copy(self.default_classes)
@@ -208,7 +209,7 @@ class FormsetRenderer(Renderer):
         return context
 
 
-# Form with field classes stylized for bootstrap3. #
+# Form with field classes stylized for bootstrap3.
 class BootstrapModelForm(forms.ModelForm):
 
     class Meta:
@@ -218,25 +219,10 @@ class BootstrapModelForm(forms.ModelForm):
         render_standalone_cls = StandaloneFormRenderer
 
     def __init__(self, *args, **kwargs):
-        """
-        for field in Meta.fields:
-            if field not in Meta.labels:
-                Meta.labels[field] = Meta.model._meta.get_field(field).verbose_name.title()
-            if field not in Meta.widgets:
-                Meta.widgets[field] = forms.TextInput(attrs={'class': 'form-control'})
-        """
         super().__init__(*args, **kwargs)
         # Automatically make current http request available as .request attribute of form instance.
         ContextMiddleware = DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
-        for fieldname, field in self.fields.items():
-            if hasattr(self.Meta, 'fields'):
-                if self.Meta.fields == '__all__' or fieldname in self.Meta.fields:
-                    bootstrap.add_input_classes_to_field(field)
-            else:
-                # Support for ModelForm which has Meta.exclude but no Meta.fields.
-                bootstrap.add_input_classes_to_field(field)
-            # sdv.dbg('label',self.fields[field].label)
 
 
 # Set all default (implicit) widgets to DisplayText.
