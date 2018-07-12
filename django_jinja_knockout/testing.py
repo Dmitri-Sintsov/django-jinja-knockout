@@ -48,7 +48,7 @@ Do not forget to update to latest ESR when running the tests.
 class BaseSeleniumCommands(AutomationCommands):
 
     DEFAULT_SLEEP_TIME = 3
-    SAVE_COMMANDS_HTML = False
+    SAVE_COMMANDS_HTML = 0
     sync_commands_list = []
 
     def __init__(self, *args, **kwargs):
@@ -116,7 +116,7 @@ class BaseSeleniumCommands(AutomationCommands):
             self.nesting_level, self.prev_nesting_level
         ))
 
-        if self.SAVE_COMMANDS_HTML:
+        if self.SAVE_COMMANDS_HTML > 0:
             # Remove previous command log files, if any.
             if self.command_index == 0:
                 for cmd_file in glob.glob(os.path.join(settings.BASE_DIR, 'logs', 'command_*.html')):
@@ -132,9 +132,22 @@ class BaseSeleniumCommands(AutomationCommands):
                     # Remove arbitrary network port, used by Selenium driver from the logged url.
                     parse_result[1] = 'localhost'
                 cmd_file.write('<!-- {} -->\n<!-- {} -->\n'.format(op_str, urlunparse(parse_result)))
-                # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
-                # csrf_token = get_token()
-                cmd_file.write(self.selenium.page_source)
+                stripped_source = self.selenium.page_source
+                if self.SAVE_COMMANDS_HTML > 1:
+                    # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
+                    # csrf_token = get_token()
+                    for sub in [
+                        (
+                            r'"csrfToken": "([\dA-Za-z]+)"',
+                            '"csrfToken": ""'
+                        ),
+                        (
+                            r'name="csrfmiddlewaretoken" value="([\dA-Za-z]+)"',
+                            'name="csrfmiddlewaretoken" value=""'
+                        ),
+                    ]:
+                        stripped_source = re.sub(*sub, stripped_source)
+                cmd_file.write(stripped_source)
 
     def exec_command(self, operation, *args, **kwargs):
         try:
