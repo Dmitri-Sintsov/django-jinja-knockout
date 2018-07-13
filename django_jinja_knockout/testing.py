@@ -147,6 +147,10 @@ class BaseSeleniumCommands(AutomationCommands):
                         ),
                     ]:
                         stripped_source = re.sub(*sub, stripped_source)
+                    if self.SAVE_COMMANDS_HTML > 2:
+                        stripped_source = '\n'.join(
+                            [line.strip() for line in stripped_source.splitlines() if line.strip() != '']
+                        )
                 cmd_file.write(stripped_source)
 
     def exec_command(self, operation, *args, **kwargs):
