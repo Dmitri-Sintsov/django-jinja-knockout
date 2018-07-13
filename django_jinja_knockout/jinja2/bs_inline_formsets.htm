@@ -42,6 +42,7 @@
         {% if related_form -%}
             {% do related_form._renderer['related'].update_context({
                 'action': action,
+                'caller': caller,
                 'opts': opts,
             }) -%}
             {{ related_form._renderer['related'].__str__() }}
@@ -54,6 +55,7 @@
             {% endif -%}
             {% do formset.renderer.update_context({
                 'action': action,
+                'caller': caller,
                 'opts': opts,
                 'loop': loop,
             }) -%}

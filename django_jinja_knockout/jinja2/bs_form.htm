@@ -12,6 +12,7 @@
 {{ render_form(request, 'standalone', form, {
     'action': action,
     'opts': opts,
+    'method': method,
 }) }}
 {% endmacro -%}
 {% if _render_ -%}
