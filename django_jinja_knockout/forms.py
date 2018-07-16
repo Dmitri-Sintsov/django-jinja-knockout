@@ -92,11 +92,20 @@ class FieldRenderer(Renderer):
         self.context['classes'] = _classes
 
 
-def ioc_form_renderer(request, typ, context, default_cls=None):
+def get_form_renderer(typ, form, default_cls=None):
     renderer_cls_name = 'render_{}_cls'.format(typ)
-    if default_cls is None:
-        default_cls = getattr(BootstrapModelForm.Meta, renderer_cls_name)
-    form = context[default_cls.obj_kwarg]
+    renderer_cls = getattr(
+        getattr(form, 'Meta', None), renderer_cls_name, default_cls
+    )
+    return get_form_renderer(typ, BootstrapModelForm) if renderer_cls is None else renderer_cls
+
+
+def ioc_form_renderer(request, typ, context, obj_kwarg=None, default_cls=None):
+    if obj_kwarg is None:
+        if default_cls is None:
+            default_cls = get_form_renderer(typ, BootstrapModelForm)
+        obj_kwarg = default_cls.obj_kwarg
+    form = context[obj_kwarg]
     if '_renderer' not in form:
         form._renderer = {}
     if typ in form._renderer:
@@ -104,19 +113,18 @@ def ioc_form_renderer(request, typ, context, default_cls=None):
         renderer.update_context(context)
         return renderer
     else:
-        renderer_cls = getattr(
-            getattr(form, 'Meta', None), renderer_cls_name, default_cls
-        )
+        renderer_cls = get_form_renderer(typ, form, default_cls)
         renderer = renderer_cls(request, context=context)
         form._renderer[typ] = renderer
         return renderer
 
 
 def render_form(request, typ, form, context=None):
+    obj_kwarg = get_form_renderer(typ, BootstrapModelForm).obj_kwarg
     if context is None:
         context = {}
-    context['form'] = form
-    return ioc_form_renderer(request, typ, context).__str__()
+    context[obj_kwarg] = form
+    return ioc_form_renderer(request, typ, context, obj_kwarg=obj_kwarg).__str__()
 
 
 # Instance is stored into form._renderer['body']
@@ -125,6 +133,9 @@ class FormBodyRenderer(Renderer):
     obj_kwarg = 'form'
     template = 'render_form_body.htm'
     field_renderer_cls = FieldRenderer
+
+    def get_template_name(self):
+        return getattr(self.obj, 'body_template', self.template)
 
     def ioc_render_field(self, field):
         return self.field_renderer_cls(self.request, {'field': field})
@@ -146,6 +157,9 @@ class RelatedFormRenderer(Renderer):
     template = 'render_related_form.htm'
     form_body_renderer_cls = FormBodyRenderer
 
+    def get_template_name(self):
+        return getattr(self.obj, 'related_template', self.template)
+
     def ioc_render_form_body(self, layout_classes):
         return ioc_form_renderer(
             self.request, 'body', {
@@ -153,7 +167,7 @@ class RelatedFormRenderer(Renderer):
                 'layout_classes': layout_classes,
                 'form': self.obj,
             },
-            self.form_body_renderer_cls
+            default_cls=self.form_body_renderer_cls
         )
 
     def get_template_context(self):
@@ -171,12 +185,18 @@ class StandaloneFormRenderer(RelatedFormRenderer):
     obj_kwarg = 'form'
     template = 'render_form.htm'
 
+    def get_template_name(self):
+        return getattr(self.obj, 'standalone_template', self.template)
+
 
 # Instance is stored into form._renderer['inline'].
 class InlineFormRenderer(Renderer):
 
     obj_kwarg = 'form'
     template = 'render_inline_form.htm'
+
+    def get_template_name(self):
+        return getattr(self.obj, 'inline_template', self.template)
 
 
 # Instance is stored into formset.renderer.
@@ -191,13 +211,16 @@ class FormsetRenderer(Renderer):
             self.request, 'inline', {
                 'form': form
             },
-            self.inline_form_renderer_cls
+            default_cls=self.inline_form_renderer_cls
         )
 
     def ioc_forms(self, context):
         for form in self.obj:
             renderer = self.ioc_render_inline_form(form)
             renderer.update_context(context)
+
+    def get_template_name(self):
+        return getattr(self.obj, 'template', self.template)
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -411,7 +434,7 @@ class FormWithInlineFormsets:
             self.request, 'related', {
                 'related_form': form
             },
-            self.related_form_renderer_cls
+            default_cls=self.related_form_renderer_cls
         )
 
     # Note that 'GET' mode form can be generated in AJAX 'POST' request,
