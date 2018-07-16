@@ -32,7 +32,8 @@ def is_select_multiple_field(model_field):
 
 
 def add_input_classes_to_field(model_field):
-    classnames = model_field.widget.attrs.get('class', '').split(' ')
+    classes = model_field.widget.attrs.get('class', '').strip()
+    classnames = [] if classes == '' else classes.split(' ')
     # Do not add 'form-control' to bootstrap checkbox / radio, otherwise
     # they will look ugly.
     if 'form-control' not in classnames and is_visible_field(model_field) and not is_triggered_field(model_field):

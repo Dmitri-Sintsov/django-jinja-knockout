@@ -91,7 +91,7 @@ Optional caller support.
 }) }}
 {% else -%}
 <div{{ tpl.json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
-<a name="{{ fragment_name }}"></a>
+{% if fragment_name is defined -%}<a name="{{ fragment_name }}"></a>{% endif -%}
     <div{{ tpl.json_flatatt(_template_dom_attrs) }}>
     </div>
 </div>

@@ -16,6 +16,10 @@ from . import tpl
 LAYOUT_CLASSES = {'label': 'col-md-3', 'field': 'col-md-7'}
 
 
+def get_layout_classes():
+    return getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
+
+
 def raise_exception(msg):
     raise Exception(msg)
 
@@ -89,7 +93,7 @@ class TemplateContextProcessor():
             'format_html': format_html,
             'render_form': forms.render_form,
             'isinstance': isinstance,
-            'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES),
+            'layout_classes': get_layout_classes(),
             'list': list,
             'mark_safe': mark_safe,
             'messages': get_messages(self.HttpRequest),

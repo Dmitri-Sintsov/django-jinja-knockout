@@ -5,7 +5,6 @@ import lxml.html
 from lxml.etree import tostring
 
 from django.http import QueryDict
-from django.conf import settings
 from django.db import transaction
 from django.middleware.csrf import get_token
 from django import forms
@@ -14,7 +13,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.template import loader as tpl_loader
 
 from .apps import DjkAppConfig
-from .context_processors import LAYOUT_CLASSES
+from .context_processors import get_layout_classes
 from .utils import sdv
 from .templatetags import bootstrap
 from .widgets import DisplayText
@@ -136,7 +135,7 @@ class FormBodyRenderer(Renderer):
             field.renderer.set_classes(field_classes)
 
     def __str__(self):
-        self.ioc_fields(self.context.get('layout_classes', LAYOUT_CLASSES))
+        self.ioc_fields(self.context.get('layout_classes', get_layout_classes()))
         return super().__str__()
 
 
@@ -161,7 +160,7 @@ class RelatedFormRenderer(Renderer):
         context = super().get_template_context()
         if 'opts' not in self.context:
             self.context['opts'] = {}
-        layout_classes = self.context['opts'].get('layout_classes', LAYOUT_CLASSES)
+        layout_classes = self.context['opts'].get('layout_classes', get_layout_classes())
         self.ioc_render_form_body(layout_classes)
         return context
 
@@ -304,7 +303,7 @@ def set_knockout_template(formset, request, opts: dict=None):
     _opts = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
-        'layout_classes': getattr(settings, 'LAYOUT_CLASSES', LAYOUT_CLASSES)
+        'layout_classes': get_layout_classes()
     }
     _opts.update(opts)
     renderer = render_form(request, 'inline', formset.empty_form, {
