@@ -1,6 +1,9 @@
-{% macro bs_dropdown(title=None, navs=None) -%}
+{% macro bs_dropdown(title=None, navs=None, menu_attrs=None) -%}
 {% if navs is none -%}
     {% set navs = {} -%}
+{% endif -%}
+{% if menu_attrs is none -%}
+    {% set menu_attrs = {'class': 'dropdown-menu dropdown-menu-right'} -%}
 {% endif -%}
 {% if title is not none -%}
 {% set dropdown_atts = {'class': 'dropdown dropdown-choice'} -%}
@@ -14,7 +17,7 @@
         {{ title }} <span class="caret"></span>
         </a>
 {% endif -%}
-        <ul class="dropdown-menu dropdown-menu-right">
+        <ul{{ tpl.json_flatatt(menu_attrs) }}>
             {% for nav in navs -%}
             <li {{ tpl.json_flatatt(nav.atts) }}>
                 {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}

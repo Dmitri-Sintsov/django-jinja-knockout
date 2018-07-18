@@ -2465,7 +2465,31 @@ $.fn.component = function() {
 App.initClientHooks.push({
     init: function($selector) {
         App.bindTemplates($selector);
-        $selector.findSelf('[data-toggle="popover"]').popover({container: 'body'});
+        $selector.findSelf('[data-toggle="popover"]').popover({
+            container: 'body',
+            html : $(this).data('html'),
+            placement: $(this).data('placement'),
+            content: function() {
+                var content = $(this).data("popoverContent");
+                if (content !== undefined) {
+                    var body = $(content).children(".popover-body");
+                    if (body.length > 0) {
+                        return body.html()
+                    }
+                }
+                return $(this).data('content');
+            },
+            title: function() {
+                var content = $(this).data("popoverContent");
+                if (content !== undefined) {
+                    var title = $(content).children(".popover-title");
+                    if (title.length > 0) {
+                        return title.html()
+                    }
+                }
+                return $(this).attr('title');
+            },
+        });
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
         $selector.highlightListUrl(window.location);
         App.SelectMultipleAutoSize($selector);

@@ -1,16 +1,20 @@
 {# http://getbootstrap.com/javascript/#tabs #}
-{% macro bs_tabs(tabs=None, attrs=None) -%}
+{% macro bs_tabs(tabs=None, tabs_attrs=None, content_attrs=None) -%}
 {% if tabs is none -%}
     {% set tabs = [] -%}
 {% endif -%}
-{% if attrs is none -%}
-    {% set attrs = {} -%}
+{% if tabs_attrs is none -%}
+    {% set tabs_attrs = {} -%}
 {% endif -%}
-{% if 'role' not in attrs -%}
-    {% do attrs.update({'role': "tablist"}) -%}
+{% if 'role' not in tabs_attrs -%}
+    {% do tabs_attrs.update({'role': "tablist"}) -%}
 {% endif -%}
-{% do tpl.add_css_classes_to_dict(attrs, "nav nav-tabs") -%}
-<ul {{ tpl.json_flatatt(attrs) }}>
+{% do tpl.add_css_classes_to_dict(tabs_attrs, "nav nav-tabs") -%}
+{% if content_attrs is none -%}
+    {% set content_attrs = {} -%}
+{% endif -%}
+{% do tpl.add_css_classes_to_dict(content_attrs,  "tab-content") -%}
+<ul {{ tpl.json_flatatt(tabs_attrs) }}>
 {% for tab in tabs -%}
     {% set li_atts = {'role': 'presentation'} -%}
     {% if tab.is_active -%}
@@ -37,7 +41,7 @@
 {% if caller -%}
     {{ caller() }}
 {% endif -%}
-<div class="tab-content">
+<div{{ tpl.json_flatatt(content_attrs) }}>
 {% for tab in tabs -%}
     {% set div_atts = {
         'role': 'tabpanel',
