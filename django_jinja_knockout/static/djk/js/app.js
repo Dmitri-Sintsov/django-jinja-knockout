@@ -1091,7 +1091,7 @@ App.vmRouter = new App.ViewModelRouter({
         $selector.empty().append(text);
     },
     'html': function(response) {
-        var $selector = $.select(selector);
+        var $selector = $.select(response.selector);
         App.initClient($selector.find('*'), 'dispose');
         var $html = $.contents(response.html);
         App.initClient($html);
