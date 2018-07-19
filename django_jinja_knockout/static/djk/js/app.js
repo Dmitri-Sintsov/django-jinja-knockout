@@ -2488,8 +2488,14 @@ App.initClientHooks.push({
                     return $(this).attr('title');
                 },
             }).on("hidden.bs.popover", function(e) {
-                var $content = $popover.data('bs.popover').$tip.find('.popover-content');
-                App.initClient($content, 'dispose');
+                if ($popover.data("contentTemplate") !== undefined) {
+                    var $tip = App.propGet($popover.data('bs.popover'), '$tip');
+                    if ($tip !== undefined) {
+                        var $content = $tip.find('.popover-content');
+                        App.initClient($content, 'dispose');
+                        $tip.find('.popover-content').empty();
+                    }
+                }
             });
         });
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
