@@ -2462,33 +2462,35 @@ $.fn.component = function() {
     return component;
 };
 
+
 App.initClientHooks.push({
     init: function($selector) {
         App.bindTemplates($selector);
-        $selector.findSelf('[data-toggle="popover"]').popover({
-            container: 'body',
-            html : $(this).data('html'),
-            placement: $(this).data('placement'),
-            content: function() {
-                var content = $(this).data("popoverContent");
-                if (content !== undefined) {
-                    var body = $(content).children(".popover-body");
-                    if (body.length > 0) {
-                        return body.html()
+        $selector.findSelf('[data-toggle="popover"]').each(function(k, v) {
+            var $popover = $(v);
+            $popover.popover({
+                container: 'body',
+                html : $(this).data('html'),
+                placement: $(this).data('placement'),
+                content: function() {
+                    var template = $(this).data("contentTemplate");
+                    if (template !== undefined) {
+                        var options = $(this).data("contentTemplateOptions");
+                        var processor = App.globalIoc['App.Tpl'](options);
+                        var $content = processor.domTemplate(template);
+                        App.initClient($content);
+                        return $content;
+                    } else {
+                        return $(this).data('content');
                     }
-                }
-                return $(this).data('content');
-            },
-            title: function() {
-                var content = $(this).data("popoverContent");
-                if (content !== undefined) {
-                    var title = $(content).children(".popover-title");
-                    if (title.length > 0) {
-                        return title.html()
-                    }
-                }
-                return $(this).attr('title');
-            },
+                },
+                title: function() {
+                    return $(this).attr('title');
+                },
+            }).on("hidden.bs.popover", function(e) {
+                var $content = $popover.data('bs.popover').$tip.find('.popover-content');
+                App.initClient($content, 'dispose');
+            });
         });
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
         $selector.highlightListUrl(window.location);
