@@ -109,7 +109,7 @@ def ioc_form_renderer(request, typ, context, obj_kwarg=None, default_cls=None):
     if '_renderer' not in form:
         form._renderer = {}
     if typ in form._renderer:
-        renderer = form.__renderer[typ]
+        renderer = form._renderer[typ]
         renderer.update_context(context)
         return renderer
     else:

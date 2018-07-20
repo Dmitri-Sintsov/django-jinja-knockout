@@ -40,12 +40,11 @@
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% endif -%}
         {% if related_form -%}
-            {% do related_form._renderer['related'].update_context({
+            {{ render_form(request, 'related', related_form, {
                 'action': action,
                 'caller': caller,
                 'opts': opts,
-            }) -%}
-            {{ related_form._renderer['related'].__str__() }}
+            }) }}
         {% endif -%}
         {% for formset in formsets -%}
             {% if formset.inline_title is defined -%}
