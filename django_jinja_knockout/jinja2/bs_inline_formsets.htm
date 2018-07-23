@@ -25,6 +25,9 @@
     {% if opts.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     {% endif -%}
+    {% if caller -%}
+        {{ caller({'ff_heading': related_form, 'opts': opts}) }}
+    {% endif -%}
     {% if action != '' -%}
         {% if opts.is_ajax -%}
             {% set atts = {'data-url': action, 'class': 'ajax-form'} -%}
@@ -58,7 +61,7 @@
                 'opts': opts,
                 'loop': loop,
             }) -%}
-            {{ formset.renderer.__str__() }}
+            {{ formset.renderer() }}
         {% endfor -%}
         {% if opts.submit_text is defined -%}
         <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>

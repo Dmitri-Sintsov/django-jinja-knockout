@@ -46,6 +46,10 @@ class Renderer:
         html = t.render(request=self.request, context=self.get_template_context())
         return html
 
+    def __call__(self, *args, **kwargs):
+        self.update_context(kwargs)
+        return self.__str__()
+
 
 # Instance is stored into field.renderer.
 class FieldRenderer(Renderer):
@@ -307,7 +311,7 @@ class WidgetInstancesMixin(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
+        for field in self.fields.values():
             if hasattr(self, 'instance'):
                 field.widget.instance = self.instance
             if hasattr(self, 'request'):

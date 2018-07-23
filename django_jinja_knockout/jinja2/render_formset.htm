@@ -37,7 +37,7 @@
                             'formset_form_class': formset_form_class,
                         }
                     }) -%}
-                    {{ form._renderer['inline'].__str__() }}
+                    {{ form._renderer['inline']() }}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'opts': opts}) }}
                     {% endif -%}
