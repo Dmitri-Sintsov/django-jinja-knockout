@@ -63,6 +63,8 @@ class FieldRenderer(Renderer):
     }
 
     def get_template_name(self):
+        if hasattr(self.obj.field, 'render_template'):
+            return self.obj.field.render_template
         displaytext_layout = bootstrap.get_displaytext_layout(self.obj)
         if displaytext_layout == 'table':
             return 'render_field_displaytext.htm'
@@ -142,7 +144,9 @@ class FormBodyRenderer(Renderer):
         return getattr(self.obj, 'body_template', self.template)
 
     def ioc_render_field(self, field):
-        return self.field_renderer_cls(self.request, {'field': field})
+        # Note: field.field is not a typo but an access to ModelField from BoundField.
+        renderer_cls = getattr(field.field, 'renderer_cls', self.field_renderer_cls)
+        return renderer_cls(self.request, {'field': field})
 
     def ioc_fields(self, field_classes):
         for field in self.obj.visible_fields():
