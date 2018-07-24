@@ -38,17 +38,30 @@ class Renderer:
     def get_template_context(self):
         return self.context
 
+    def get_template_basedir(self):
+        return ''
+
     def get_template_name(self):
-        return self.template
+        return self.get_template_basedir() + self.template
 
     def __str__(self):
-        t = tpl_loader.get_template(self.get_template_name())
-        html = t.render(request=self.request, context=self.get_template_context())
-        return html
+        template_name = self.get_template_name()
+        if template_name is None:
+            return str(self.obj)
+        else:
+            t = tpl_loader.get_template(template_name)
+            html = t.render(request=self.request, context=self.get_template_context())
+            return html
 
     def __call__(self, *args, **kwargs):
         self.update_context(kwargs)
         return self.__str__()
+
+
+class DisplayTextRendrer(Renderer):
+
+    def get_template_basedir(self):
+        return '' if self.context.get('action', None) != '' else 'display/'
 
 
 # Instance is stored into field.renderer.
@@ -159,14 +172,15 @@ class FormBodyRenderer(Renderer):
 
 
 # Instance is stored into form._renderer['related'].
-class RelatedFormRenderer(Renderer):
+class RelatedFormRenderer(DisplayTextRendrer):
 
     obj_kwarg = 'related_form'
     template = 'render_related_form.htm'
     form_body_renderer_cls = FormBodyRenderer
 
     def get_template_name(self):
-        return getattr(self.obj, 'related_template', self.template)
+        template_name = super().get_template_name()
+        return getattr(self.obj, 'relared_template', template_name)
 
     def ioc_render_form_body(self, layout_classes):
         return ioc_form_renderer(
@@ -194,17 +208,19 @@ class StandaloneFormRenderer(RelatedFormRenderer):
     template = 'render_form.htm'
 
     def get_template_name(self):
-        return getattr(self.obj, 'standalone_template', self.template)
+        template_name = super().get_template_name()
+        return getattr(self.obj, 'standalone_template', template_name)
 
 
 # Instance is stored into form._renderer['inline'].
-class InlineFormRenderer(Renderer):
+class InlineFormRenderer(DisplayTextRendrer):
 
     obj_kwarg = 'form'
     template = 'render_inline_form.htm'
 
     def get_template_name(self):
-        return getattr(self.obj, 'inline_template', self.template)
+        template_name = super().get_template_name()
+        return getattr(self.obj, 'inline_template', template_name)
 
 
 # Instance is stored into formset.renderer.

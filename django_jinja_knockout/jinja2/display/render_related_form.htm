@@ -1,4 +1,9 @@
 <div class="panel-body default-padding">
+    <table class="{{ opts.table_classes }}">
+        <colgroup>
+            <col class="{{ opts.layout_classes.label }}">
+            <col class="{{ opts.layout_classes.field }}">
+        </colgroup>
     {% if caller -%}
         {{ caller({'related_form_begin': related_form, 'opts': opts}) }}
     {% endif -%}
@@ -6,4 +11,5 @@
     {% if caller -%}
         {{ caller({'related_form_end': related_form, 'opts': opts}) }}
     {% endif -%}
+    </table>
 </div>

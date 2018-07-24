@@ -1,0 +1,17 @@
+<div class="panel panel-default {{ opts.class }}">
+    {% if opts.title is defined -%}
+    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    {% endif -%}
+    <div class="panel-body">
+        <table class="table table-bordered table-responsive">
+            <colgroup>
+                <col class="{{ opts.layout_classes.label }}">
+                <col class="{{ opts.layout_classes.field }}">
+            </colgroup>
+            {{ form._renderer['body']() }}
+        </table>
+        {% if caller -%}
+            {{ caller() }}
+        {% endif -%}
+    </div>
+</div>
