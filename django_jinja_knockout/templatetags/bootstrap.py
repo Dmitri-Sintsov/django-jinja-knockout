@@ -67,7 +67,7 @@ def is_displaytext(field):
 
 
 @library.filter
-def get_displaytext_layout(field):
+def get_display_layout(field):
     return field.field.widget.layout if is_displaytext_field(field.field) else ''
 
 

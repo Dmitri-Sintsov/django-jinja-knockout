@@ -91,6 +91,7 @@ class TemplateContextProcessor():
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
+            'render_fields': forms.render_fields,
             'render_form': forms.render_form,
             'isinstance': isinstance,
             'layout_classes': get_layout_classes(),

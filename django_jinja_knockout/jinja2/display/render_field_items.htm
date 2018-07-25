@@ -1,0 +1,4 @@
+{% set field_html -%}{{ field|safe }}{% endset -%}
+{% if not field.field.widget.skip_output -%}
+<div><span>{{ field.label }}</span>: <span>{{ field_html|safe }}</span></div>
+{% endif -%}

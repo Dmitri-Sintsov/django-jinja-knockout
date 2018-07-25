@@ -1,4 +1,6 @@
+{% if action != '' -%}
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endif -%}
 {# <div class="alert alert-info debug">
     Visible fields for {{ form._meta.model }}:
     {% for field in form.visible_fields() -%}

@@ -1,7 +1,7 @@
 {% set field_html -%}{{ field|safe }}{% endset -%}
 {% if not field.field.widget.skip_output -%}
 <tr>
-    {% set label_att = {'class': classes.label + ' success'} -%}
+    {% set label_att = {'class': classes.label} -%}
     {% if field.auto_id -%}
         {% do label_att.update({'for': field.auto_id}) -%}
     {% endif -%}
@@ -12,9 +12,9 @@
 
     <td class="info {{ classes.field }}">
         {{ field_html|safe }}
-        {% for error in field.errors -%}
+        {# for error in field.errors -%}
         <div class="alert alert-warning">{{ error }}</div>
-        {% endfor -%}
+        {% endfor -#}
         {% if field.help_text -%}
         <p class="help-block">
             {{ field.help_text|safe }}

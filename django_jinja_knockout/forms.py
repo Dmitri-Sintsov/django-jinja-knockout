@@ -4,6 +4,7 @@ from io import StringIO
 import lxml.html
 from lxml.etree import tostring
 
+from django.utils.html import mark_safe
 from django.http import QueryDict
 from django.db import transaction
 from django.middleware.csrf import get_token
@@ -75,13 +76,21 @@ class FieldRenderer(Renderer):
         'multiple_type': '',
     }
 
+    def __init__(self, request, context=None):
+        super().__init__(request, context)
+        self.display_layout = None
+
+    def get_template_basedir(self):
+        self.display_layout = bootstrap.get_display_layout(self.obj)
+        return '' if self.display_layout != 'table' else 'display/'
+
     def get_template_name(self):
+        basedir = self.get_template_basedir()
         if hasattr(self.obj.field, 'render_template'):
-            return self.obj.field.render_template
-        displaytext_layout = bootstrap.get_displaytext_layout(self.obj)
-        if displaytext_layout == 'table':
-            return 'render_field_displaytext.htm'
-        elif displaytext_layout == 'div':
+            return basedir + self.obj.field.render_template
+        if self.display_layout == 'table':
+            return basedir + 'render_field.htm'
+        elif self.display_layout == 'div':
             return 'render_field_standard.htm'
         elif bootstrap.is_checkbox(self.obj):
             return 'render_field_checkbox.htm'
@@ -146,6 +155,10 @@ def render_form(request, typ, form, context=None):
     return ioc_form_renderer(request, typ, context, obj_kwarg=obj_kwarg).__str__()
 
 
+def render_fields(form, *fields):
+    return mark_safe(''.join(form[field].renderer() for field in fields))
+
+
 # Instance is stored into form._renderer['body']
 class FormBodyRenderer(Renderer):
 
@@ -185,6 +198,7 @@ class RelatedFormRenderer(DisplayRenderer):
     def ioc_render_form_body(self, layout_classes):
         return ioc_form_renderer(
             self.request, 'body', {
+                'action': self.context['action'],
                 'csrf_token': get_token(self.request),
                 'layout_classes': layout_classes,
                 'form': self.obj,
@@ -263,12 +277,18 @@ class BootstrapModelForm(forms.ModelForm):
         render_inline_cls = InlineFormRenderer
         render_related_cls = RelatedFormRenderer
         render_standalone_cls = StandaloneFormRenderer
+        field_templates = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Automatically make current http request available as .request attribute of form instance.
         ContextMiddleware = DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
+
+        if hasattr(self.Meta, 'field_templates'):
+            for field_name in self.Meta.field_templates:
+                if field_name in self.fields:
+                    self.fields[field_name].render_template = self.Meta.field_templates[field_name]
 
 
 # Set all default (implicit) widgets to DisplayText.
