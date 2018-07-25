@@ -1,7 +1,7 @@
 {% set field_html -%}{{ field|safe }}{% endset -%}
 {% if not field.field.widget.skip_output -%}
 <tr>
-    {% set label_att = {'class': classes.label} -%}
+    {% set label_att = {'class': classes.label + ' success'} -%}
     {% if field.auto_id -%}
         {% do label_att.update({'for': field.auto_id}) -%}
     {% endif -%}
