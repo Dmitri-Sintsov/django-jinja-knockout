@@ -152,7 +152,7 @@ class DisplayText(Widget):
 
     def render_scalar(self, final_attrs, value, display_value):
         return format_html(
-            '<div{}>{}</div>',
+            '<span{}>{}</span>',
             flatatt(final_attrs),
             self.get_text(display_value)
         )
@@ -264,11 +264,11 @@ class ForeignKeyGridWidget(DisplayText):
         else:
             js_class_path = 'App.FkGridWidget'
         return format_html(
-            '<div {wrapper_attrs}>'
+            '<span {wrapper_attrs}>'
             '<input {final_attrs}/>'
-            '<div class="fk-display preformatted">{display_value}</div>'
+            '<span class="fk-display preformatted">{display_value}</span>'
             '<button class="fk-choose btn btn-info default-margin">{change}</button>'
-            '</div>',
+            '</span>',
             wrapper_attrs=flatatt({
                 'class': 'component',
                 'data-component-class': js_class_path,
