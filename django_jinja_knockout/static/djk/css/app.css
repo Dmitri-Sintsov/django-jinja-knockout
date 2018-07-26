@@ -162,6 +162,17 @@ tr.cells-no-border > td, tr.cells-no-border > th {
 	border: none !important;
 }
 
+.display-table {
+	display: table; 
+}
+.display-table > div { 
+	display: table-row; 
+}
+.display-table > div > div { 
+	display: table-cell;
+	padding: 0.5em;
+}
+
 .label-gray {
 	color: gray;
 	background: transparent;
