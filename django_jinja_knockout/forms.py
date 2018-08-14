@@ -5,12 +5,15 @@ import lxml.html
 from lxml.etree import tostring
 
 from django.utils.html import mark_safe
+from django.utils.functional import SimpleLazyObject
+from django.utils.encoding import smart_text
 from django.http import QueryDict
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.template import loader as tpl_loader
+from django.middleware import csrf
 
 from .apps import DjkAppConfig
 from .context_processors import get_layout_classes
@@ -35,6 +38,22 @@ class Renderer:
         # Shallow copy.
         sdv.nested_update(self.context, data)
 
+    # Caches context processors variables per request,
+    # instead of calling context processors per each Renderer.__str__().
+    def get_processors_context(self, template):
+        if not hasattr(self.request, 'processors_context'):
+            def get_csrf_token():
+                token = csrf.get_token(self.request)
+                return 'NOTPROVIDED' if token is None else smart_text(token)
+            context = {
+                'request': self.request,
+                'csrf_token': SimpleLazyObject(get_csrf_token)
+            }
+            for processor in template.backend.context_processors:
+                context.update(processor(self.request))
+            self.request.processors_context = context
+        return self.request.processors_context
+
     def get_template_context(self):
         return self.context
 
@@ -50,7 +69,11 @@ class Renderer:
             return str(self.obj)
         else:
             t = tpl_loader.get_template(template_name)
-            html = t.render(request=self.request, context=self.get_template_context())
+            context = self.get_template_context()
+            context.update(self.get_processors_context(t))
+            html = mark_safe(t.template.render(context))
+            # Non-cached processors context version is commented out.
+            # html = t.render(request=self.request, context=self.get_template_context())
             return html
 
     def __call__(self, *args, **kwargs):
