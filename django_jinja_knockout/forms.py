@@ -7,7 +7,6 @@ from lxml.etree import tostring
 from django.utils.html import mark_safe
 from django.http import QueryDict
 from django.db import transaction
-from django.middleware.csrf import get_token
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -199,7 +198,6 @@ class RelatedFormRenderer(DisplayRenderer):
         return ioc_form_renderer(
             self.request, 'body', {
                 'action': self.context['action'],
-                'csrf_token': get_token(self.request),
                 'layout_classes': layout_classes,
                 'form': self.obj,
             },
