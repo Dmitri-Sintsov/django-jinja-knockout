@@ -42,6 +42,7 @@ class NestedSerializer(NestedBase):
 
     model_class = None
     serialize_reverse_relationships = True
+    include_autofields = True
     # (field value, exists)
     not_found = None, False
     skip_serialization = ()
@@ -79,6 +80,9 @@ class NestedSerializer(NestedBase):
 
     def is_related_field(self, field, field_name):
         return isinstance(field, self.related_field_classes) and not isinstance(field, models.OneToOneRel)
+
+    def is_extra_str_field(self, field, field_name):
+        return self.include_autofields and isinstance(field, models.AutoField)
 
     def get_reverse_qs(self, obj, field_name):
         reverse_qs = sdv.get_nested(obj, [field_name + '_set', 'all'])
@@ -166,22 +170,27 @@ class NestedSerializer(NestedBase):
             else:
                 return self.not_found
 
+    def push_str_field(self, model_dict, field, field_name, val, metadata):
+        self.push_path(field_name)
+        self.metadata[self.treepath] = metadata
+        model_dict[field_name] = val
+        if isinstance(val, dict) and isinstance(field, models.Model):
+            self.get_str_val_dict(field, val)
+        self.pop_path()
+
     def get_str_val_dict(self, obj, str_fields):
         model_dict = {}
         verbose_names = model_fields_meta(obj, 'verbose_name')
-        for field_name, val in str_fields.items():
-            field = getattr(obj, field_name, None)
-            if field_name in verbose_names:
-                self.push_path(field_name)
-                self.metadata[self.treepath] = {
+        for field_name in verbose_names:
+            field = obj._meta.get_field(field_name)
+            if field_name in str_fields or self.is_extra_str_field(field, field_name):
+                val = str_fields.get(field_name, getattr(obj, field_name))
+                metadata = {
                     'verbose_name': str(verbose_names[field_name]),
-                    'is_anon': True,
-                    'type': self.get_str_type(field),
+                    'is_anon': field_name in str_fields,
+                    'type': self.get_str_type(val if field_name in str_fields else field),
                 }
-                model_dict[field_name] = val
-                if isinstance(val, dict) and isinstance(field, models.Model):
-                    self.get_str_val_dict(field, val)
-                self.pop_path()
+                self.push_str_field(model_dict, field, field_name, val, metadata)
         return model_dict
 
     def recursive_to_dict(self, obj, nesting_level):
