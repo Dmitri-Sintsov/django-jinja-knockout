@@ -430,7 +430,7 @@ def format_local_date(value, short_format=True, to_local_time=True, tz_name=None
 
 
 def verbose_date(value, **kwargs):
-    return format_local_date(value, short_format=False, **kwargs)
+    return '-' if value is None else format_local_date(value, short_format=False, **kwargs)
 
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
