@@ -1,4 +1,5 @@
 from collections import OrderedDict, ValuesView, Mapping
+import re
 import sys
 import os
 import inspect
@@ -24,6 +25,16 @@ def str_to_numeric(val):
     except ValueError:
         return val
     return float_val
+
+
+def get_str_type(obj, only_class_name=False):
+    if obj is None:
+        return None
+    else:
+        path = str(type(obj))
+        mtch = re.search(r"<\w*?\s*?'(.*?)'>", path)
+        result = path if mtch is None else mtch.group(1)
+        return result.split('.')[-1] if only_class_name else result
 
 
 def reverse_enumerate(iterable):
@@ -72,6 +83,17 @@ def get_nested(nested_data, map_list, default_value=None):
         else:
             return default_value
     return nested_data
+
+
+def set_nested(d, map_list, value):
+    if not isinstance(map_list, (list, tuple)):
+        map_list = [map_list]
+
+    for key in map_list[:-1]:
+        if key not in d:
+            d[key] = {}
+        d = d[key]
+    d[map_list[-1]] = value
 
 
 def nested_values(d):

@@ -1,5 +1,4 @@
 import datetime
-import re
 
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils.dateparse import parse_date, parse_datetime
@@ -63,17 +62,10 @@ class NestedSerializer(NestedBase):
     def is_valid_obj(self, obj):
         return self.model_class is None or isinstance(obj, self.model_class)
 
+    # Returns only class name, instead of full module path.
+    # Override in the ancestor class, in case full module path is required to be stored in the metadata.
     def get_str_type(self, field):
-        if field is None:
-            return None
-        else:
-            path = str(type(field))
-            mtch = re.search(r"<\w*?\s*?'(.*?)'>", path)
-            if mtch is None:
-                return path
-            else:
-                grp = mtch.group(1).split('.')
-                return grp[-1]
+        return sdv.get_str_type(field, only_class_name=True)
 
     def is_serializable_field(self, field, field_name):
         return not isinstance(field, self.skip_serialization) and field_name != 'password'
@@ -170,13 +162,21 @@ class NestedSerializer(NestedBase):
             else:
                 return self.not_found
 
-    def push_str_field(self, model_dict, field, field_name, val, metadata):
-        self.push_path(field_name)
+    def push_str_field(self, model_dict, field, field_path, val, metadata):
+        if isinstance(field_path, (list, tuple)):
+            for field_name in field_path:
+                self.push_path(field_name)
+        else:
+            self.push_path(field_path)
         self.metadata[self.treepath] = metadata
-        model_dict[field_name] = val
+        sdv.set_nested(model_dict, field_path, val)
         if isinstance(val, dict) and isinstance(field, models.Model):
             self.get_str_val_dict(field, val)
-        self.pop_path()
+        if isinstance(field_path, (list, tuple)):
+            for i in range(len(field_path)):
+                self.pop_path()
+        else:
+            self.pop_path()
 
     def get_str_val_dict(self, obj, str_fields):
         model_dict = {}
