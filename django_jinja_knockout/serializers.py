@@ -10,6 +10,29 @@ from .utils import sdv
 from .models import model_fields_meta
 
 
+class ObjDict(dict):
+
+    def __init__(self, obj, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.obj = obj
+        self.update(obj.get_str_fields() if self.has_str_fields() else {})
+
+    def has_str_fields(self):
+        return hasattr(self.obj, 'get_str_fields')
+
+    def get_field(self, field_name):
+        return self.obj._meta.get_field(field_name)
+
+    def is_anon(self, field_name):
+        return field_name in self
+
+    def get_field_val(self, field_name):
+        return self.get(field_name, getattr(self.obj, field_name))
+
+    def get_verbose_names(self):
+        return model_fields_meta(self.obj, 'verbose_name')
+
+
 class NestedBase:
 
     def __init__(self):
@@ -58,6 +81,9 @@ class NestedSerializer(NestedBase):
             raise ValueError('obj is instance of {}, should be instance of {}'.format(type(obj), self.model_class))
         self.obj = obj
         self.metadata = {}
+
+    def ioc_objdict(self, obj):
+        return ObjDict(obj)
 
     def is_valid_obj(self, obj):
         return self.model_class is None or isinstance(obj, self.model_class)
@@ -120,18 +146,18 @@ class NestedSerializer(NestedBase):
             except AttributeError:
                 return self.not_found
 
-    def field_to_dict(self, obj, field_name, verbose_name, nesting_level, str_fields):
-        field = obj._meta.get_field(field_name)
+    def field_to_dict(self, od, field_name, verbose_name, nesting_level):
+        field = od.get_field(field_name)
         if field_name == verbose_name and isinstance(field, models.ForeignKey):
             # Localize related field model verbose_name, if any.
             verbose_name = sdv.get_nested(field, ['related_model', '_meta', 'verbose_name'], verbose_name)
         metadata = {
             'verbose_name': str(verbose_name),
-            'is_anon': field_name in str_fields,
+            'is_anon': field_name in od,
             'type': self.get_str_type(field),
         }
         if self.is_serializable_field(field, field_name):
-            v, exists = self.get_field_val(obj, field_name, metadata, nesting_level)
+            v, exists = self.get_field_val(od.obj, field_name, metadata, nesting_level)
             if exists:
                 if isinstance(v, list):
                     result = v, exists
@@ -141,8 +167,8 @@ class NestedSerializer(NestedBase):
                     result = v.isoformat(), True
                 elif isinstance(v, (int, float, type(None), bool, str)):
                     result = v, True
-                elif field_name in str_fields:
-                    result = str_fields[field_name], True
+                elif field_name in od:
+                    result = od[field_name], True
                     metadata['type'] = self.get_str_type(v)
                 else:
                     # Not a valid JSON type
@@ -152,13 +178,13 @@ class NestedSerializer(NestedBase):
             else:
                 return self.not_found
         else:
-            if field_name in str_fields:
+            if field_name in od:
                 self.metadata[self.treepath] = {
                     'verbose_name': str(verbose_name),
                     'is_anon': True,
-                    'type': self.get_str_type(str_fields[field_name]),
+                    'type': self.get_str_type(od[field_name]),
                 }
-                return str_fields[field_name], True
+                return od[field_name], True
             else:
                 return self.not_found
 
@@ -171,44 +197,44 @@ class NestedSerializer(NestedBase):
         self.metadata[self.treepath] = metadata
         sdv.set_nested(model_dict, field_path, val)
         if isinstance(val, dict) and isinstance(field, models.Model):
-            self.get_str_val_dict(field, val)
+            od = self.ioc_objdict(field)
+            od.clear()
+            od.update(val)
+            self.get_str_val_dict(od)
         if isinstance(field_path, (list, tuple)):
-            for i in range(len(field_path)):
+            for _i in range(len(field_path)):
                 self.pop_path()
         else:
             self.pop_path()
 
-    def get_str_val_dict(self, obj, str_fields):
+    def get_str_val_dict(self, od):
         model_dict = {}
-        verbose_names = model_fields_meta(obj, 'verbose_name')
+        verbose_names = od.get_verbose_names()
         for field_name in verbose_names:
-            field = obj._meta.get_field(field_name)
-            if field_name in str_fields or self.is_extra_str_field(field, field_name):
-                val = str_fields.get(field_name, getattr(obj, field_name))
+            field = od.get_field(field_name)
+            if field_name in od or self.is_extra_str_field(field, field_name):
+                val = od.get_field_val(field_name)
                 metadata = {
                     'verbose_name': str(verbose_names[field_name]),
-                    'is_anon': field_name in str_fields,
-                    'type': self.get_str_type(val if field_name in str_fields else field),
+                    'is_anon': field_name in od,
+                    'type': self.get_str_type(val if field_name in od else field),
                 }
                 self.push_str_field(model_dict, field, field_name, val, metadata)
         return model_dict
 
     def recursive_to_dict(self, obj, nesting_level):
+        od = self.ioc_objdict(obj)
         if nesting_level > 0:
             model_dict = {}
-            if hasattr(obj, 'get_str_fields'):
-                str_fields = obj.get_str_fields()
-            else:
-                str_fields = {}
             for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
                 self.push_path(field_name)
-                val, exists = self.field_to_dict(obj, field_name, verbose_name, nesting_level, str_fields)
+                val, exists = self.field_to_dict(od, field_name, verbose_name, nesting_level)
                 self.pop_path()
                 if exists:
                     model_dict[field_name] = val
             return model_dict
-        elif hasattr(obj, 'get_str_fields'):
-            model_dict = self.get_str_val_dict(obj, obj.get_str_fields())
+        elif od.has_str_fields():
+            model_dict = self.get_str_val_dict(od)
             return model_dict if len(model_dict) > 0 else str(obj)
         else:
             return str(obj)
