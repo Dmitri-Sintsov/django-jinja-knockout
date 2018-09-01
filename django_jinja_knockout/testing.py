@@ -371,7 +371,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.element_to_be_clickable((by, key))
             )
-        except WebDriverException as e:
+        except WebDriverException:
             self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
                 EC.presence_of_element_located((by, key))
             )

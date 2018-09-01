@@ -82,10 +82,10 @@ class ViewmodelValidator:
         errmsg = self.get_msg('load_json_ids')
         try:
             ids = json.loads(self._val)
-            if type(ids) is not list or len(ids) == 0:
+            if not isinstance(ids, list) or len(ids) == 0:
                 raise ValueError(errmsg)
             for id in ids:
-                if type(id) is not int:
+                if not isinstance(id, int):
                     raise ValueError(errmsg)
         except (TypeError, ValueError) as e:
             self.add_error(str(e))

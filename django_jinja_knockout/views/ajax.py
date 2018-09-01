@@ -76,9 +76,9 @@ class ViewmodelView(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         result = super().dispatch(request, *args, **kwargs)
-        if type(result) is dict:
+        if isinstance(result, dict):
             result = vm_list(result)
-        if type(result) is vm_list:
+        if isinstance(result, vm_list):
             self.process_success_vm_list(result)
         return result
 
@@ -122,7 +122,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         )
 
     def get_action(self, action_name):
-        for type, actions_map in self.actions.items():
+        for actions_map in self.actions.values():
             if action_name in actions_map:
                 return actions_map[action_name]
         return None

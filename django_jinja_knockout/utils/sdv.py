@@ -59,7 +59,7 @@ def yield_ordered(iterable):
             yield key, val
     elif isinstance(iterable, list):
         for key, val in enumerate(iterable):
-            if type(key) is not int:
+            if not isinstance(key, int):
                 raise ValueError('Iterable is not linear')
             elif isinstance(val, tuple) and len(val) == 2:
                 yield val
@@ -75,10 +75,10 @@ def get_nested(nested_data, map_list, default_value=None):
         map_list = [map_list]
 
     for key in map_list:
-        if (isinstance(nested_data, (list, tuple)) and type(key) is int and key < len(nested_data) and key >= 0) or \
+        if (isinstance(nested_data, (list, tuple)) and isinstance(key, int) and key < len(nested_data) and key >= 0) or \
                 (isinstance(nested_data, dict) and key in nested_data):
             nested_data = nested_data[key]
-        elif type(key) is str and hasattr(nested_data, key):
+        elif isinstance(key, str) and hasattr(nested_data, key):
             nested_data = getattr(nested_data, key)
         else:
             return default_value

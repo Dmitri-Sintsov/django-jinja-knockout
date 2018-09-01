@@ -512,9 +512,9 @@ class ListQuerySet(ValuesQuerySetMixin):
         hashes = set()
 
         def is_new_hash(row):
-            hash = tuple(self._get_row_attr(row, attr) for attr in field_names)
-            if hash not in hashes:
-                hashes.add(hash)
+            hsh = tuple(self._get_row_attr(row, attr) for attr in field_names)
+            if hsh not in hashes:
+                hashes.add(hsh)
                 return True
             else:
                 return False

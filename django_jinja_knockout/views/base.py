@@ -102,7 +102,7 @@ def prepare_bs_navs(navs, request):
             nav['atts']['class'] = ''
     if not has_active:
         # Select active nav tab according to request.path, if any.
-        for key, nav in enumerate(navs):
+        for nav in navs:
             if nav['url'] == request.path:
                 nav['atts']['class'] += ' active'
             nav['atts']['class'].strip()
@@ -406,7 +406,7 @@ class BaseFilterView(View, GetPostMixin):
                 yield column
 
     def get_grid_fields_attnames(self):
-        return [field[0] if type(field) is tuple else field for field in self.yield_fields()]
+        return [field[0] if isinstance(field, tuple) else field for field in self.yield_fields()]
 
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitly defined in self.grid_fields attribute,
@@ -702,7 +702,7 @@ class BaseFilterView(View, GetPostMixin):
         return current_list_filter
 
     def get_current_list_filter(self, request_list_filter):
-        if type(request_list_filter) is not dict:
+        if not isinstance(request_list_filter, dict):
             self.report_error('Invalid type of list filter')
         current_list_filter = FuncArgs()
         for fieldname, values in request_list_filter.items():
@@ -751,7 +751,7 @@ class BaseFilterView(View, GetPostMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
-        if type(sort_order) is not list:
+        if not isinstance(sort_order, list):
             self.report_error('Invalid type of sorting order')
         # Tuple is not suitable because json.dumps() converts Python tuples to json lists.
         stripped_order = [order.lstrip('-') for order in sort_order]

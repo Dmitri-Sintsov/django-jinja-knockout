@@ -17,9 +17,9 @@ from django_jinja_knockout.views.list import (
 
 
 __all__ = [
-    auth_redirect, error_response, exception_response, prepare_bs_navs,
-    FormatTitleMixin, BsTabsMixin, ContextDataMixin, FormViewmodelsMixin, BaseFilterView,
-    ViewmodelView, ActionsView, ModelFormActionsView, KoGridView, KoGridInline,
-    FormDetailView, FormWithInlineFormsetsMixin, InlineCreateView, InlineDetailView, InlineCrudView,
-    FoldingPaginationMixin, ListSortingView
+    'auth_redirect', 'error_response', 'exception_response', 'prepare_bs_navs',
+    'FormatTitleMixin', 'BsTabsMixin', 'ContextDataMixin', 'FormViewmodelsMixin', 'BaseFilterView',
+    'ViewmodelView', 'ActionsView', 'ModelFormActionsView', 'KoGridView', 'KoGridInline',
+    'FormDetailView', 'FormWithInlineFormsetsMixin', 'InlineCreateView', 'InlineDetailView', 'InlineCrudView',
+    'FoldingPaginationMixin', 'ListSortingView',
 ]

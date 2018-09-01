@@ -26,7 +26,7 @@ def send_admin_mail_delay(subject, message=None, *args, **kwargs):
     try:
         # Try to send mail in background (if Celery is available).
         send_admin_mail_task.delay(subject, message, *args, **kwargs)
-    except Exception as e:
+    except Exception:
         # If Celery is not running or is improperly configured, try to send mail immediately.
         send_admin_mail(subject, message, *args, **kwargs)
 

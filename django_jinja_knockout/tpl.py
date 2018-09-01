@@ -454,7 +454,7 @@ def resolve_cbv(url_name, kwargs):
 def get_formatted_url(url_name):
     try:
         return reverse(url_name)
-    except NoReverseMatch as e:
+    except NoReverseMatch:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)
         # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.

@@ -51,7 +51,7 @@ def get_related_field_val(obj, fieldname, strict_related=True):
 
 
 def get_related_field(obj, fieldname):
-    if type(obj) is str:
+    if isinstance(obj, str):
         related_obj = apps.get_model(*obj.split('.'))
     else:
         related_obj = obj

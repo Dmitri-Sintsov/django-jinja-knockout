@@ -400,7 +400,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         if self.request_list_filter[fieldname] == choice:
             return True
         if isinstance(self.request_list_filter[fieldname], dict):
-            for field_lookup, choices in self.request_list_filter[fieldname].items():
+            for choices in self.request_list_filter[fieldname].values():
                 if choice in choices:
                     return True
         return False

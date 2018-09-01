@@ -14,7 +14,7 @@ def onload_vm_list(dct, new_value=None):
     if new_value is not None:
         dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
         return dct[KEY]
-    if type(dct.get(KEY)) is vm_list:
+    if isinstance(dct.get(KEY), vm_list):
         return dct[KEY]
     else:
         dct[KEY] = vm_list(*dct.get(KEY, []))
@@ -43,18 +43,18 @@ class vm_list(list):
         self.append(vm)
 
     def append(self, p_object):
-        if type(p_object) is not dict:
+        if not isinstance(p_object, dict):
             raise ValueError('Only dict can be appended to vm_list')
         super().append(p_object)
 
     def insert(self, index, p_object):
-        if type(p_object) is not dict:
+        if not isinstance(p_object, dict):
             raise ValueError('Only dict can be appended to vm_list')
         super().insert(index, p_object)
 
     def extend(self, iterable):
         for vm in iterable:
-            if type(vm) is not dict:
+            if not isinstance(vm, dict):
                 raise ValueError('Only dict can be appended to vm_list')
         super().extend(iterable)
 
