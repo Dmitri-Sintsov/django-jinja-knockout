@@ -16,6 +16,7 @@ from django.test.client import RequestFactory
 from .utils import sdv
 from .utils.modules import get_fqn
 from .tpl import format_html_attrs
+from .validators import ViewmodelValidator
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, onload_vm_list, has_vm_list
 
@@ -401,9 +402,16 @@ class ContextMiddleware(RouterMiddleware):
                 if isinstance(result, HttpResponse):
                     return result
                 else:
-                    return JsonResponse(
-                        result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type=content_type
-                    )
+                    try:
+                        return JsonResponse(
+                            result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type=content_type
+                        )
+                    except TypeError as e:
+                        if getattr(settings, 'DEBUG', False):
+                            # Validate invalid JSON to simplify debugging.
+                            ViewmodelValidator().val(result).is_serializable_json().flush()
+                        else:
+                            raise e
             else:
                 return result
         except Exception as e:
