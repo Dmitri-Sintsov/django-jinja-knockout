@@ -409,7 +409,7 @@ class ContextMiddleware(RouterMiddleware):
                         if getattr(settings, 'DEBUG', False):
                             # Validate invalid JSON to simplify debugging.
                             from .validators import ViewmodelValidator
-                            ViewmodelValidator().val(result).is_serializable_json().flush()
+                            ViewmodelValidator().val(result).validate_json().flush()
                         else:
                             raise e
             else:
