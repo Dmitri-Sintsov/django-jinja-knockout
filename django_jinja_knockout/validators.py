@@ -51,10 +51,10 @@ class ViewmodelFormatting:
             raise ImmediateJsonResponse(self.vms)
         return self
 
-    def get_vm(self, key, format_kwargs=None, extra=None):
-        if format_kwargs is None:
-            format_kwargs = {}
-        message = self.format_msg(key, format_kwargs)
+    def fix_data(self, key, data=None):
+        return False
+
+    def get_vm(self, message):
         if self.auto_id is None:
             vm = {
                 'view': 'alert_error',
@@ -68,10 +68,20 @@ class ViewmodelFormatting:
             }
         return vm
 
+    def format_vm(self, key, format_kwargs=None, extra=None):
+        if format_kwargs is None:
+            format_kwargs = {}
+        message = self.format_msg(key, format_kwargs)
+        return self.get_vm(message)
+
+    def add_vm(self, vm):
+        self.vms.append(vm)
+        return self
+
     def add_error(self, key, format_kwargs=None, extra=None):
-        vm = self.get_vm(key, format_kwargs, extra)
+        vm = self.format_vm(key, format_kwargs, extra)
         if vm is not None:
-            self.vms.append(vm)
+            self.add_vm(vm)
         return self
 
 
@@ -109,12 +119,15 @@ class ViewmodelValidator(ViewmodelFormatting):
             ids = json.loads(self._val)
             if not isinstance(ids, list) or len(ids) == 0:
                 raise ValueError(errmsg)
-            for id in ids:
-                if not isinstance(id, int):
+            for k, id in enumerate(ids):
+                if not isinstance(id, int) and not self.fix_data('load_json_ids', data={
+                    'ids': ids,
+                    'k': k,
+                }):
                     raise ValueError(errmsg)
         except (TypeError, ValueError) as e:
-            self.add_vm(str(e))
-            return self
+            vm = self.get_vm(str(e))
+            return self.add_vm(vm)
         self._val = ids
         return self
 
@@ -125,32 +138,38 @@ class ViewmodelValidator(ViewmodelFormatting):
             for k, v in val.items() if isinstance(val, dict) else enumerate(val):
                 self.key_path.append(str(k))
                 if not isinstance(k, self.json_serializable):
-                    self.add_error('invalid_json_key', {
-                        'key_path': ' / '.join(self.key_path),
-                        'key_type': sdv.get_str_type(k),
-                    }, extra={
+                    extra = {
                         'val': val,
                         'k': k,
-                    })
+                    }
+                    if not self.fix_data('invalid_json_key', data=extra):
+                        self.add_error('invalid_json_key', {
+                            'key_path': ' / '.join(self.key_path),
+                            'key_type': sdv.get_str_type(k),
+                        }, extra)
                 if isinstance(v, (dict, list, tuple)):
                     self._validate_json(v)
                 elif not isinstance(v, self.json_serializable):
-                    self.add_error('invalid_json_val', {
-                        'key_path': ' / '.join(self.key_path),
-                        'val_type': sdv.get_str_type(v),
-                    }, extra={
+                    extra = {
                         'val': val,
                         'k': k,
-                    })
+                    }
+                    if not self.fix_data('invalid_json_val', data=extra):
+                        self.add_error('invalid_json_val', {
+                            'key_path': ' / '.join(self.key_path),
+                            'val_type': sdv.get_str_type(v),
+                        }, extra)
                 self.key_path.pop()
         else:
-            self.add_error('invalid_json_val', {
-                'key_path': ' / '.join(self.key_path),
-                'val_type': sdv.get_str_type(v),
-            }, extra={
+            extra = {
                 'val': val,
                 'k': k,
-            })
+            }
+            if not self.fix_data('invalid_json_val', data=extra):
+                self.add_error('invalid_json_val', {
+                    'key_path': ' / '.join(self.key_path),
+                    'val_type': sdv.get_str_type(v),
+                }, extra)
 
     def validate_json(self):
         self.key_path = []
