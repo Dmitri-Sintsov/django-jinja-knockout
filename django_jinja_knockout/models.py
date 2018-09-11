@@ -168,14 +168,6 @@ def get_object_description(obj):
         return [str(obj)]
 
 
-# Get selected choice str from the list of defined choices for Django model field choices.
-def get_choice_str(choices, selected_choice):
-    for choice, choice_str in choices:
-        if choice == selected_choice:
-            return choice_str
-    return None
-
-
 # Check whether actual file of FileField exists (is not deleted / moved out).
 def file_exists(obj):
     return obj.storage.exists(obj.name)

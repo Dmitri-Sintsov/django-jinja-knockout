@@ -13,6 +13,14 @@ def call_prop(prop):
     return prop() if callable(prop) else prop
 
 
+# Get selected choice str from the list of defined choices for Django model field choices.
+def get_choice_str(choices, selected_choice):
+    for choice, choice_str in choices:
+        if choice == selected_choice:
+            return choice_str
+    return None
+
+
 def str_to_numeric(val):
     try:
         int_val = int(val)
