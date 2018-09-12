@@ -25,8 +25,9 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
     this.serversideFormsCount = serversideFormsCount;
     this.maxFormsCount = maxFormsCount;
     this.hasMoreForms = ko.pureComputed(function () {
-        return typeof this.maxFormsCount === 'undefined' ||
+        var result = typeof this.maxFormsCount === 'undefined' ||
             this.getTotalFormsCount() < this.maxFormsCount;
+        return result;
     }, this);
     this.addForm = function(data, event) {
         var formsCount = this.getTotalFormsCount();
