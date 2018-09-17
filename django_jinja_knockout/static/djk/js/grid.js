@@ -1342,12 +1342,15 @@ void function(Grid) {
         this.propCall('ownerCtrl.onChildGridFirstLoad');
     };
 
-    Grid.runComponent = function(element) {
-        this.applyBindings(element);
+    Grid.runComponent = function($selector) {
+        var self = this;
+        $selector.each(function(k, v) {
+            self.applyBindings(v);
+        });
         this.firstLoad();
     };
 
-    Grid.removeComponent = function(element) {
+    Grid.removeComponent = function($selector) {
         // todo: implement
     };
 
@@ -2487,6 +2490,11 @@ void function(Grid) {
         this.actions.performLastAction(actionOptions);
     };
 
+    Grid.performAction = function(actionName, actionType, actionOptions) {
+        var koAction = this.getKoAction(actionName, actionType);
+        this.performKoAction(koAction, actionOptions)
+    };
+
     // Returns only enabled actions for particular App.ko.GridRow instance of the specified actionType.
     Grid.getEnabledActions = function(koRow, actionType) {
         var enabledActions = [];
@@ -2763,16 +2771,16 @@ void function(GridDialog) {
     GridDialog.template = 'ko_grid_body';
 
     GridDialog.create = function(options) {
-        this.componentElement = null;
+        this.componentSelector = null;
         this._super._call('create', options);
     };
 
-    GridDialog.runComponent = function(elem) {
-        this.componentElement = elem;
+    GridDialog.runComponent = function($selector) {
+        this.componentSelector = $selector;
         this.show();
     };
 
-    GridDialog.removeComponent = function(elem) {
+    GridDialog.removeComponent = function($selector) {
         // todo: implement
     };
 
@@ -2839,12 +2847,12 @@ void function(GridDialog) {
     GridDialog.onHide = function() {
         this.grid.cleanBindings(this.bdialog.getModal());
         this.propCall('owner.onGridDialogHide');
-        if (this.componentElement !== null) {
+        if (this.componentSelector !== null) {
             delete this.grid;
             delete this.bdialog;
-            var desc = App.components.unbind(this.componentElement);
+            var desc = App.components.unbind(this.componentSelector);
             if (typeof desc.event !== 'undefined') {
-                App.components.add(this.componentElement, desc.event);
+                App.components.add(this.componentSelector, desc.event);
             }
         }
     };
@@ -2901,9 +2909,9 @@ void function(FkGridWidget) {
         });
     };
 
-    FkGridWidget.runComponent = function(element) {
+    FkGridWidget.runComponent = function($selector) {
         var self = this;
-        this.$element = $(element);
+        this.$element = $selector;
         this.$element.find('.fk-choose').on('click', function(ev) {
             ev.preventDefault();
             self.gridDialog.show();
@@ -2911,7 +2919,7 @@ void function(FkGridWidget) {
         });
     };
 
-    FkGridWidget.removeComponent = function(element) {
+    FkGridWidget.removeComponent = function($selector) {
         // todo: implement
     };
 

@@ -478,7 +478,7 @@ void function(Dialog) {
         }
     };
 
-    Dialog.runComponent = function(elem) {
+    Dialog.runComponent = function($selector) {
         this.show();
     };
 
@@ -2371,6 +2371,14 @@ void function(Components) {
         }
     };
 
+    Components.getSelector = function(elem) {
+        var $selector = $(elem);
+        if ($selector.data('componentSelector') !== undefined) {
+            $selector = $($selector.data('componentSelector'));
+        }
+        return $selector;
+    };
+
     Components.bind = function(desc, elem) {
         var freeIdx = this.list.indexOf(null);
         if (freeIdx  === -1) {
@@ -2384,11 +2392,14 @@ void function(Components) {
     Components.add = function(elem, evt) {
         var self = this;
         var desc;
+        var $selector = this.getSelector(elem);
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
             if (desc.component !== null) {
-                this.bind(desc, elem)
-                desc.component.runComponent(elem);
+                $selector.each(function(k, elem) {
+                    self.bind(desc, elem);
+                });
+                desc.component.runComponent($selector);
             }
         } else {
             desc = {'event': evt};
@@ -2396,17 +2407,19 @@ void function(Components) {
                 try {
                     // Re-use already bound component, if any.
                     var component = self.get(elem);
-                    component.runComponent(elem);
+                    component.runComponent($selector);
                 } catch (e) {
                     desc.component = self.create(elem);
                     if (desc.component !== null) {
-                        self.bind(desc, elem)
-                        desc.component.runComponent(elem);
+                        $selector.each(function(k, elem) {
+                            self.bind(desc, elem);
+                        });
+                        desc.component.runComponent($selector);
                     }
                 }
             };
             if (desc.component !== null) {
-                $(elem).on(desc.event, desc.handler);
+                $selector.on(desc.event, desc.handler);
             }
         }
     };
@@ -2428,16 +2441,20 @@ void function(Components) {
         return this.get(elem);
     };
 
-    Components.unbind = function(elem) {
-        var component = this.get(elem);
-        var componentIdx = $(elem).data('componentIdx');
-        component.removeComponent(elem);
-        var desc = this.list[componentIdx];
+    Components.unbind = function($selector) {
+        var self = this;
+        var desc = {event: undefined};
+        $selector.each(function(k, elem) {
+            var component = self.get(elem);
+            var componentIdx = $(elem).data('componentIdx');
+            var desc = self.list[componentIdx];
+            $(elem).removeData('componentIdx');
+        });
         if (typeof desc.event !== 'undefined') {
-            $(elem).unbind(desc.event, desc.handler);
+            $selector.unbind(desc.event, desc.handler);
         }
+        component.removeComponent($selector);
         this.list[componentIdx] = null;
-        $(elem).removeData('componentIdx');
         return desc;
     };
 
