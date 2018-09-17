@@ -2444,6 +2444,7 @@ void function(Components) {
     Components.unbind = function($selector) {
         var self = this;
         var desc = {event: undefined};
+        var component = undefined;
         $selector.each(function(k, elem) {
             var component = self.get(elem);
             var componentIdx = $(elem).data('componentIdx');
@@ -2453,8 +2454,10 @@ void function(Components) {
         if (typeof desc.event !== 'undefined') {
             $selector.unbind(desc.event, desc.handler);
         }
-        component.removeComponent($selector);
-        this.list[componentIdx] = null;
+        if (component !== undefined) {
+            component.removeComponent($selector);
+            this.list[componentIdx] = null;
+        }
         return desc;
     };
 
