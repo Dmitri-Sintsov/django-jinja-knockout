@@ -46,11 +46,12 @@ class MockRequestFactory(RequestFactory):
 class ScriptList(list):
 
     def __iter__(self):
-        for element in super().__iter__():
-            url = str(element).strip()
-            parsed = urlsplit(url)
-            yield parsed.path
-            # yield '{}?{}#{}'.format(parsed.path, parsed.query, parsed.fragment)
+        included_urls = {}
+        for url in super().__iter__():
+            if url not in included_urls:
+                parsed = urlsplit(url)
+                included_urls[url] = True
+                yield parsed.path
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
