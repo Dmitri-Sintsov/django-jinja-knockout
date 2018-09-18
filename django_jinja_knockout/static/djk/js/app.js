@@ -2379,14 +2379,17 @@ void function(Components) {
         return $selector;
     };
 
-    Components.bind = function(desc, elem) {
+    Components.getFreeIdx = function() {
         var freeIdx = this.list.indexOf(null);
         if (freeIdx  === -1) {
             freeIdx = this.list.length;
         }
-        $(elem).data('componentIdx', freeIdx);
-        this.list[freeIdx] = desc;
         return freeIdx;
+    };
+
+    Components.bind = function(desc, elem, componentIdx) {
+        $(elem).data('componentIdx', componentIdx);
+        this.list[componentIdx] = desc;
     };
 
     Components.add = function(elem, evt) {
@@ -2396,8 +2399,9 @@ void function(Components) {
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
             if (desc.component !== null) {
+                var freeIdx = this.getFreeIdx();
                 $selector.each(function(k, elem) {
-                    self.bind(desc, elem);
+                    self.bind(desc, elem, freeIdx);
                 });
                 desc.component.runComponent($selector);
             }
@@ -2411,8 +2415,9 @@ void function(Components) {
                 } catch (e) {
                     desc.component = self.create(elem);
                     if (desc.component !== null) {
+                        var freeIdx = self.getFreeIdx();
                         $selector.each(function(k, elem) {
-                            self.bind(desc, elem);
+                            self.bind(desc, elem, freeIdx);
                         });
                         desc.component.runComponent($selector);
                     }
@@ -2443,12 +2448,21 @@ void function(Components) {
 
     Components.unbind = function($selector) {
         var self = this;
-        var desc = {event: undefined};
+        var desc = {};
         var component = undefined;
+        var componentIdx = undefined;
         $selector.each(function(k, elem) {
-            var component = self.get(elem);
-            var componentIdx = $(elem).data('componentIdx');
-            var desc = self.list[componentIdx];
+            component = self.get(elem);
+            if (componentIdx === undefined) {
+                componentIdx = $(elem).data('componentIdx')
+                desc = self.list[componentIdx];
+            } else if (componentIdx !== $(elem).data('componentIdx')) {
+                throw new Error(sprintf(
+                    'Current DOM subtree componentIdx "%s" is not equal previous DOM subtree componentIdx "%s"',
+                    $(elem).data('componentIdx'),
+                    componentIdx
+                ));
+            }
             $(elem).removeData('componentIdx');
         });
         if (typeof desc.event !== 'undefined') {
