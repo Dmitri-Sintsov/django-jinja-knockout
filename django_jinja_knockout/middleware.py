@@ -2,6 +2,7 @@ import json
 import pytz
 import re
 import threading
+from urllib.parse import urlsplit
 
 import django
 from django.core.serializers.json import DjangoJSONEncoder
@@ -40,6 +41,16 @@ class MockRequestFactory(RequestFactory):
             # Fix host validation in django.http.request.HttpRequest.get_host()
             settings.ALLOWED_HOSTS.append(environ['SERVER_NAME'])
         return environ
+
+
+class ScriptList(list):
+
+    def __iter__(self):
+        for element in super().__iter__():
+            url = str(element).strip()
+            parsed = urlsplit(url)
+            yield parsed.path
+            # yield '{}?{}#{}'.format(parsed.path, parsed.query, parsed.fragment)
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
@@ -151,7 +162,8 @@ class RouterMiddleware(ContextMiddlewareCompat):
                 timezone.activate(pytz.timezone(tz_name))
 
         self.__class__._threadmap[threading.get_ident()] = request
-
+        # Simple script loader.
+        request.custom_scripts = ScriptList()
         # Optional server-side injected JSON.
         request.client_data = {}
         """

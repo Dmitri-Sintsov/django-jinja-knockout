@@ -25,29 +25,7 @@ Setup underscore.js template args (stored to template_dom_attrs as json at later
 Setup url name kwargs both for tpl.resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
 
 -#}
-{% set view_kwargs = {} -%}
-{% if grid_options.pageRouteKwargsKeys -%}
-    {% for key in grid_options.pageRouteKwargsKeys -%}
-        {% if key in request.view_kwargs -%}
-            {% do view_kwargs.update({key: request.view_kwargs[key]}) -%}
-        {% endif -%}
-    {% endfor -%}
-{% endif -%}
-{% if grid_options.pageRouteKwargs -%}
-    {% do view_kwargs.update(grid_options.pageRouteKwargs) -%}
-{% endif -%}
-{% if view_kwargs|length > 0 -%}
-    {% do sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs}) -%}
-{% endif -%}
-{% do view_kwargs.update({'action': ''}) -%}
-{% set view = tpl.resolve_cbv(grid_options.pageRoute, view_kwargs) -%}
-{#
-
-Setup final _grid_options (component options).
-
--#}
-{% set _grid_options = view.discover_grid_options(request) -%}
-{% do _grid_options.update(grid_options) -%}
+{% set _grid_options = tpl.discover_grid_options(request, grid_options) -%}
 {#
 
 Setup wrapper dom_attrs.

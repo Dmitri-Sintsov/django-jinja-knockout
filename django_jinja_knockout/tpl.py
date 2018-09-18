@@ -35,7 +35,7 @@ except ImportError:
     format_lazy = lazy(_format_lazy, str)
 
 
-from .utils.sdv import iter_enumerate, get_cbv_from_dispatch_wrapper
+from .utils import sdv
 from .utils.regex import finditer_with_separators
 from .models import model_fields_verbose_names
 from .admin import empty_value_display
@@ -109,7 +109,7 @@ class PrintList:
 
     def nested(self, row):
         result = []
-        gen = iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS)
+        gen = sdv.iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS)
         try:
             case = 'first'
             gen.__next__()
@@ -119,7 +119,7 @@ class PrintList:
                 case = 'single'
         except StopIteration:
             pass
-        for definition in iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+        for definition in sdv.iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
             # When row element value is a tuple, it's elements define key / elem / format_kwargs.
             # Dict key, value pairs are supported, however the row of tuples allows to use repeated keys
             # and to apply custom format kwargs to selective cells.
@@ -345,7 +345,7 @@ def flatten_dict(d: dict, separator=' › ', only_keys=None, enclosure_fmt='({})
 def recursive_join(lst, separator=' › ', enclosure_fmt='({})'):
     return separator.join([
         enclosure_fmt.format(recursive_join(v, separator, enclosure_fmt)) if isinstance(v, (dict, list)) else v
-        for k, v in iter_enumerate(lst)
+        for k, v in sdv.iter_enumerate(lst)
     ])
 
 
@@ -447,7 +447,7 @@ def resolve_cbv(url_name, kwargs):
     view_fn = resolve(url)[0]
     if not hasattr(view_fn, '__wrapped__'):
         return view_fn
-    return get_cbv_from_dispatch_wrapper(view_fn)
+    return sdv.get_cbv_from_dispatch_wrapper(view_fn)
 
 
 # Convert url matching supplied url_name from regex named parameters (?P<arg>\w+) to sprintf named formatters %(arg)s.
@@ -569,3 +569,20 @@ class ContentTypeLinker(ModelLinker):
 
     def get_str_obj_type(self):
         return str(empty_value_display if self.obj_type is None else self.obj_type)
+
+# Discover grid component options from the current request / grid view.
+def discover_grid_options(request, grid_options):
+    view_kwargs = {}
+    if 'pageRouteKwargsKeys' in grid_options:
+        for key in grid_options['pageRouteKwargsKeys']:
+            if key in request.view_kwargs:
+                view_kwargs[key] = request.view_kwargs[key]
+    if 'pageRouteKwargs' in grid_options:
+        view_kwargs.update(grid_options['pageRouteKwargs'])
+    if len(view_kwargs) > 0:
+        sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs})
+    view_kwargs['action'] = ''
+    view = resolve_cbv(grid_options['pageRoute'], view_kwargs)
+    _grid_options = view.discover_grid_options(request)
+    _grid_options.update(grid_options)
+    return _grid_options
