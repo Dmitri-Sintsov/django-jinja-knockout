@@ -69,7 +69,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     def get_model(self):
         return getattr(self, 'model', None)
 
-    def create_model(self, *args, **kwargs):
+    def create_model(self):
         self.model = self.get_model()
         form_class = None
         if self.model is None:
@@ -77,7 +77,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
             self.model = form_class._meta.model
         return form_class
 
-    def create_ff(self, *args, **kwargs):
+    def create_ff(self):
         self.ff = self.get_form_with_inline_formsets(self.request)
         form_class = self.ff.get_form_class()
         return form_class
@@ -169,18 +169,23 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
     def get_object_from_url(self):
         raise NotImplementedError('Abstract method')
 
+    def dispatch(self, request, *args, **kwargs):
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
+        # Define __class__.model to have self.object value populated before self.create_ff is called,
+        # to setup self.ff dynamically based on self.object value.
+        form_class = self.create_model()
+        self.object = self.get_object_from_url()
+        if form_class is None:
+            self.create_ff()
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         """
         Handles GET requests and instantiates blank versions of the form
         and its inline formsets.
         """
-        self.request = request
-        # Define __class__.model to have self.object value populated before self.create_ff is called,
-        # to setup self.ff dynamically based on self.object value.
-        form_class = self.create_model(*args, **kwargs)
-        self.object = self.get_object_from_url()
-        if form_class is None:
-            self.create_ff(*args, **kwargs)
         self.ff.get(instance=self.object)
         return self.render_to_response(
             self.get_context_data(form=self.ff.form, formsets=self.ff.formsets)
@@ -192,13 +197,6 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         formsets with the passed POST variables and then checking them for
         validity.
         """
-        self.request = request
-        # Define __class__.model to have self.object value populated before self.create_ff is called,
-        # to setup self.ff dynamically based on self.object value.
-        form_class = self.create_model(*args, **kwargs)
-        self.object = self.get_object_from_url()
-        if form_class is None:
-            self.create_ff(*args, **kwargs)
         self.object = self.ff.save(instance=self.object)
         if self.object is not None:
             return self.form_valid(self.ff.form, self.ff.formsets)
