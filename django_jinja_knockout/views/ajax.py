@@ -423,13 +423,16 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             'prefix': self.get_prefix(),
         }
 
-    def get_action_query(self, obj):
-        return {'pk_val': obj.pk}
+    def get_action_query(self, action, obj=None):
+        return {} if obj is None else {'pk_val': obj.pk}
 
     def action_create_form(self):
         form_class = self.get_create_form()
         form = form_class(**self.get_form_kwargs(form_class))
-        return self.vm_form(form)
+        return self.vm_form(
+            form,
+            action_query=self.get_action_query('create_form', None)
+        )
 
     def action_edit_form(self, obj=None):
         """
@@ -442,14 +445,17 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.vm_form(
             form,
             verbose_name=self.render_object_desc(self.instance),
-            action_query=self.get_action_query(self.instance)
+            action_query=self.get_action_query('edit_form', self.instance)
         )
 
     def action_create_inline(self):
         ff_class = self.get_create_form_with_inline_formsets()
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get()
-        return self.vm_inline(ff)
+        return self.vm_inline(
+            ff,
+            action_query=self.get_action_query('create_inline', None)
+        )
 
     def action_edit_inline(self, obj=None):
         """
@@ -463,7 +469,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.vm_inline(
             ff,
             verbose_name=self.render_object_desc(self.instance),
-            action_query=self.get_action_query(self.instance)
+            action_query=self.get_action_query('edit_inline', self.instance)
         )
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
