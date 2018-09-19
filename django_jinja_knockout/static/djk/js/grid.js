@@ -1344,6 +1344,7 @@ void function(Grid) {
 
     Grid.runComponent = function($selector) {
         var self = this;
+        this.componentSelector = $selector;
         $selector.each(function(k, v) {
             self.applyBindings(v);
         });
