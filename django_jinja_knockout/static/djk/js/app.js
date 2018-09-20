@@ -2102,15 +2102,28 @@ App.createInstances = function(readyInstances) {
     }
 };
 
+/**
+ * Warning: does not parse the querystring, so the same script still could be included via the different querystring.
+ */
+App.assertUniqueScripts = function() {
+    var scripts = {};
+    $(document).find('script[src]').each(function(k, v) {
+        var src = $(v).prop('src');
+        if (typeof scripts[src] !== 'undefined') {
+            throw new Error(sprintf('Multiple inclusion of the same script: "%s"', src));
+        } else {
+            scripts[src] = true;
+        }
+    });
+};
+
 // Late initialization allows to patch / replace classes in user scripts.
 App.readyInstances = {
     'App.queryString': {'QueryString' : []},
     'App.components': {'App.Components': []},
 };
-App.documentReadyHooks = [];
-
-$(document)
-.ready(function() {
+App.documentReadyHooks = [function() {
+    App.assertUniqueScripts();
     var m = moment();
     Cookies.set('local_tz', parseInt(m.zone() / 60));
     App.createInstances(App.readyInstances);
@@ -2125,6 +2138,9 @@ $(document)
         // Execute server-side injected initial viewmodels, if any.
         App.vmRouter.respond(App.clientData.onloadViewModels);
     }
+}];
+
+$(document).ready(function() {
     for (var i = 0; i < App.documentReadyHooks.length; i++) {
         App.documentReadyHooks[i]();
     }
@@ -2560,14 +2576,27 @@ App.initClientHooks.push({
 });
 
 /**
- * Automatic App.ko class instantiation by 'component' css class.
+ * Automatic class instantiation by 'component' css class.
+ * Mostly is used to instantinate App.ko classes, but is not limited to.
  *
  */
 App.initClientHooks.push(function($selector) {
-    _.each($selector.findSelf('.component'), function(v) {
-        if ($(v).hasClass('component')) {
-            var evt = $(v).data('event');
-            App.components.add(v, evt);
+    var $components = $selector.findSelf('.component');
+    $components.each(function(k, elem) {
+        if ($(elem).hasClass('component')) {
+            // Prevent nested .component subtrees from being initialized multiple times.
+            var $ancestors = $(elem).parents('.component');
+            var hasOuterSelf = false;
+            $ancestors.each(function(l, anc) {
+                if ($components.index($(anc)) !== -1) {
+                    hasOuterSelf = true;
+                    return false;
+                }
+            });
+            if (!hasOuterSelf) {
+                var evt = $(elem).data('event');
+                App.components.add(elem, evt);
+            }
         }
     });
 });
