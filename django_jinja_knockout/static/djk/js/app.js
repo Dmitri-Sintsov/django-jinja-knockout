@@ -2387,12 +2387,41 @@ void function(Components) {
         }
     };
 
+    // Do not rebind nested components multiple times.
+    Components.detachNestedComponents = function() {
+        this.$nestedComponents.each(function(k, v) {
+            var $v = $(v);
+            var $tmpElem = $('<span>')
+            .addClass('nested-component-stub')
+            .data('nestedComponentIdx', k);
+            $v.after($tmpElem);
+            $v.data('isDetachedComponent', true).detach();
+        });
+    };
+
+    Components.reattachNestedComponents = function($selector) {
+        var self = this;
+        $selector.find('.nested-component-stub').each(function() {
+            var $this = $(this);
+            var $detachedComponent = $(self.$nestedComponents[$this.data('nestedComponentIdx')]);
+            $detachedComponent.removeData('isDetachedComponent');
+            $this.replaceWith($detachedComponent);
+        });
+    };
+
     Components.getSelector = function(elem) {
         var $selector = $(elem);
+        this.$nestedComponents = [];
         if ($selector.data('componentSelector') !== undefined) {
-            $selector = $($selector.data('componentSelector'));
+            // The developer should ensure there are no nested components when using sparce components.
+            return $($selector.data('componentSelector'));
+        } else {
+            this.$nestedComponents = $selector.find('.component');
+            if (this.$nestedComponents.length > 0) {
+                this.detachNestedComponents();
+            }
+            return $selector;
         }
-        return $selector;
     };
 
     Components.getFreeIdx = function() {
@@ -2420,6 +2449,7 @@ void function(Components) {
                     self.bind(desc, elem, freeIdx);
                 });
                 desc.component.runComponent($selector);
+                this.reattachNestedComponents($selector);
             }
         } else {
             desc = {'event': evt};
@@ -2436,6 +2466,7 @@ void function(Components) {
                             self.bind(desc, elem, freeIdx);
                         });
                         desc.component.runComponent($selector);
+                        self.reattachNestedComponents($selector);
                     }
                 }
             };
@@ -2581,22 +2612,11 @@ App.initClientHooks.push({
  *
  */
 App.initClientHooks.push(function($selector) {
-    var $components = $selector.findSelf('.component');
-    $components.each(function(k, elem) {
-        if ($(elem).hasClass('component')) {
-            // Prevent nested .component subtrees from being initialized multiple times.
-            var $ancestors = $(elem).parents('.component');
-            var hasOuterSelf = false;
-            $ancestors.each(function(l, anc) {
-                if ($components.index($(anc)) !== -1) {
-                    hasOuterSelf = true;
-                    return false;
-                }
-            });
-            if (!hasOuterSelf) {
-                var evt = $(elem).data('event');
-                App.components.add(elem, evt);
-            }
+    _.each($selector.findSelf('.component'), function(v) {
+        // Do not add nested detached .component nodes.
+        if ($(v).hasClass('component') && $(v).data('isDetachedComponent') !== true) {
+            var evt = $(v).data('event');
+            App.components.add(v, evt);
         }
     });
 });
