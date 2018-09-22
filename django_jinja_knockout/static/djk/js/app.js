@@ -2344,6 +2344,62 @@ App.newClassFromPath = function(classPath, classPathArgs) {
     return self
 };
 
+App.ComponentManager = function(options) {
+    this.init(options);
+};
+
+/**
+ * Nested components support.
+ */
+void function(ComponentManager) {
+
+    ComponentManager.init = function(options) {
+        this.elem = options.elem;
+        this.$nestedComponents = [];
+    };
+
+    ComponentManager.getSelector = function(elem) {
+        this.$selector = $(elem);
+        if (this.$selector.data('componentSelector') !== undefined) {
+            // The developer should ensure there are no nested components when using sparce components.
+            this.$selector = $(this.$selector.data('componentSelector'));
+        } else {
+            this.$nestedComponents = this.$selector.find('.component');
+            if (this.$nestedComponents.length > 0) {
+                this.detachNestedComponents();
+            }
+            return this.$selector;
+        }
+    };
+
+    ComponentManager.each = function(fn) {
+        return this.$selector.each(fn);
+    };
+
+    // Do not rebind nested components multiple times.
+    ComponentManager.detachNestedComponents = function() {
+        this.$nestedComponents.each(function(k, v) {
+            var $v = $(v);
+            var $tmpElem = $('<span>')
+            .addClass('nested-component-stub')
+            .data('nestedComponentIdx', k);
+            $v.after($tmpElem);
+            $v.data('isDetachedComponent', true).detach();
+        });
+    };
+
+    ComponentManager.reattachNestedComponents = function() {
+        var self = this;
+        this.$selector.find('.nested-component-stub').each(function() {
+            var $this = $(this);
+            var $detachedComponent = $(self.$nestedComponents[$this.data('nestedComponentIdx')]);
+            $detachedComponent.removeData('isDetachedComponent');
+            $this.replaceWith($detachedComponent);
+        });
+    };
+
+}(App.ComponentManager.prototype);
+
 /**
  * Auto-instantiated Javascript classes bound to selected DOM elements.
  * Primarily used with Knockout.js bindings, although is not limited to.
@@ -2387,43 +2443,6 @@ void function(Components) {
         }
     };
 
-    // Do not rebind nested components multiple times.
-    Components.detachNestedComponents = function() {
-        this.$nestedComponents.each(function(k, v) {
-            var $v = $(v);
-            var $tmpElem = $('<span>')
-            .addClass('nested-component-stub')
-            .data('nestedComponentIdx', k);
-            $v.after($tmpElem);
-            $v.data('isDetachedComponent', true).detach();
-        });
-    };
-
-    Components.reattachNestedComponents = function($selector) {
-        var self = this;
-        $selector.find('.nested-component-stub').each(function() {
-            var $this = $(this);
-            var $detachedComponent = $(self.$nestedComponents[$this.data('nestedComponentIdx')]);
-            $detachedComponent.removeData('isDetachedComponent');
-            $this.replaceWith($detachedComponent);
-        });
-    };
-
-    Components.getSelector = function(elem) {
-        var $selector = $(elem);
-        this.$nestedComponents = [];
-        if ($selector.data('componentSelector') !== undefined) {
-            // The developer should ensure there are no nested components when using sparce components.
-            return $($selector.data('componentSelector'));
-        } else {
-            this.$nestedComponents = $selector.find('.component');
-            if (this.$nestedComponents.length > 0) {
-                this.detachNestedComponents();
-            }
-            return $selector;
-        }
-    };
-
     Components.getFreeIdx = function() {
         var freeIdx = this.list.indexOf(null);
         if (freeIdx  === -1) {
@@ -2437,19 +2456,25 @@ void function(Components) {
         this.list[componentIdx] = desc;
     };
 
+    Components.run = function(desc, cm) {
+        var self = this;
+        var freeIdx = this.getFreeIdx();
+        cm.each(function(k, elem) {
+            self.bind(desc, elem, freeIdx);
+        });
+        desc.component.runComponent(cm.$selector);
+        cm.reattachNestedComponents();
+    };
+
     Components.add = function(elem, evt) {
         var self = this;
         var desc;
-        var $selector = this.getSelector(elem);
+        var cm = new App.ComponentManager({'elem': elem});
+        var $selector = cm.getSelector(elem);
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
             if (desc.component !== null) {
-                var freeIdx = this.getFreeIdx();
-                $selector.each(function(k, elem) {
-                    self.bind(desc, elem, freeIdx);
-                });
-                desc.component.runComponent($selector);
-                this.reattachNestedComponents($selector);
+                this.run(desc, cm);
             }
         } else {
             desc = {'event': evt};
@@ -2461,12 +2486,7 @@ void function(Components) {
                 } catch (e) {
                     desc.component = self.create(elem);
                     if (desc.component !== null) {
-                        var freeIdx = self.getFreeIdx();
-                        $selector.each(function(k, elem) {
-                            self.bind(desc, elem, freeIdx);
-                        });
-                        desc.component.runComponent($selector);
-                        self.reattachNestedComponents($selector);
+                        self.run(desc, cm);
                     }
                 }
             };
