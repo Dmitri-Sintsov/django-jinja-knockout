@@ -138,7 +138,7 @@ $.parseUrl = function(url) {
       result[props[i]] = parser[props[i]];
     }
     // IE pathname fix.
-    result['pathname'] = (parser.pathname.charAt(0) !== '/' ? '/' : '') + parser.pathname;
+    result.pathname = (parser.pathname.charAt(0) !== '/' ? '/' : '') + parser.pathname;
     // IE lt 11 does not support .remove().
     if (typeof parser.remove === 'function') {
         parser.remove();
