@@ -127,6 +127,22 @@ $.contents = function(contents) {
     return $('<span>').html(contents).contents();
 };
 
+$.parseUrl = function(url) {
+    var result = {};
+    var parser = document.createElement("a");
+    parser.href = url;
+    // IE8..9 fix.
+    parser.href = parser.href;
+    var props = ['host', 'hostname', 'hash', 'href', 'port', 'protocol', 'search'];
+    for (var i = 0; i < props.length; i++) {
+      result[props[i]] = parser[props[i]];
+    }
+    // IE pathname fix.
+    result['pathname'] = (parser.pathname.charAt(0) !== "/" ? "/" : "") + parser.pathname;
+    parser.remove();
+    return result;
+};
+
 // Bind instance of Javascript object to DOM element.
 $.fn.addInstance = function(key, instance) {
     return this.each(function() {
@@ -768,6 +784,14 @@ $.fn.linkPreview = function(method) {
 
 
 $.fn.highlightListUrl = function(location) {
+    if (location === undefined) {
+        var url = $(document.body).data('highlightUrl');
+        if (url !== undefined) {
+            location = $.parseUrl(url);
+        } else {
+            location = window.location;
+        }
+    }
     var $anchors = this.findSelf('ul.auto-highlight > li > a');
     var exactMatches = [];
     var searchMatches = [];

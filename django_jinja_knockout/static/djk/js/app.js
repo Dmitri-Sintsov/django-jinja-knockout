@@ -2130,7 +2130,7 @@ App.documentReadyHooks = [function() {
     App.initClient(document);
     App.initTabPane();
     $(window).on('hashchange', function() {
-        $(document).highlightListUrl(window.location);
+        $(document).highlightListUrl();
     });
     if (typeof App.clientData === 'undefined') {
         console.log('@note: client_data middleware is disabled at server side.')
@@ -2350,6 +2350,13 @@ App.ComponentManager = function(options) {
 
 /**
  * Nested components support.
+ * Detaches / reattaches innter component DOM nodes to avoid overlapped binding of outer component.
+ *
+ * Supported:
+ *     single DOM subtree nested components;
+ *     sparse components which may include single DOM subtree nested components;
+ * Unsupported:
+ *     nested sparse components;
  */
 void function(ComponentManager) {
 
@@ -2361,15 +2368,14 @@ void function(ComponentManager) {
     ComponentManager.getSelector = function(elem) {
         this.$selector = $(elem);
         if (this.$selector.data('componentSelector') !== undefined) {
-            // The developer should ensure there are no nested components when using sparce components.
+            // Sparse component that contains separate multiple DOM subtrees.
             this.$selector = $(this.$selector.data('componentSelector'));
-        } else {
-            this.$nestedComponents = this.$selector.find('.component');
-            if (this.$nestedComponents.length > 0) {
-                this.detachNestedComponents();
-            }
-            return this.$selector;
         }
+        this.$nestedComponents = this.$selector.find('.component');
+        if (this.$nestedComponents.length > 0) {
+            this.detachNestedComponents();
+        }
+        return this.$selector;
     };
 
     ComponentManager.each = function(fn) {
@@ -2403,10 +2409,11 @@ void function(ComponentManager) {
 /**
  * Auto-instantiated Javascript classes bound to selected DOM elements.
  * Primarily used with Knockout.js bindings, although is not limited to.
- * 'data-component-class' html5 attribute is used as Javascript class path;
- * 'data-component-options' html5 attribute is used as an argument of class constructor;
- * 'data-event' html5 attribute optionally specifies DOM event used to instantiate class;
- *     otherwise, the class is instantiated when DOM is ready;
+ *     'data-component-class' html5 attribute used as Javascript class path;
+ *     'data-component-options' html5 attribute used as an argument of class constructor;
+ *     'data-component-selector' html5 attribute used to define sparse component selector;
+ *     'data-event' html5 attribute optionally specifies DOM event used to instantiate class;
+ *         otherwise, the class is instantiated when DOM is ready;
  */
 App.Components = function() {
     this.init();
@@ -2456,6 +2463,11 @@ void function(Components) {
         this.list[componentIdx] = desc;
     };
 
+    /**
+     * Note: when using nested components instantiated via DOM events, inner components will be detached
+     * until the outer DOM event handler fires. To avoid that do not use 'data-event' attribute, attach the DOM handlers
+     * in component.runComponent() code instead.
+     */
     Components.run = function(desc, cm) {
         var self = this;
         var freeIdx = this.getFreeIdx();
@@ -2564,43 +2576,49 @@ $.fn.component = function() {
 };
 
 
+/**
+ * Instantiation of bootstrap popover which optionally supports underscore.js templates.
+ */
+App.ContentPopover = function(k, v) {
+    var $popover = $(v);
+    $popover.popover({
+        container: 'body',
+        html : $(this).data('html'),
+        placement: $(this).data('placement'),
+        content: function() {
+            var template = $(this).data("contentTemplate");
+            if (template !== undefined) {
+                var options = $(this).data("contentTemplateOptions");
+                var processor = App.globalIoc['App.Tpl'](options);
+                var $content = processor.domTemplate(template);
+                App.initClient($content);
+                return $content;
+            } else {
+                return $(this).data('content');
+            }
+        },
+        title: function() {
+            return $(this).attr('title');
+        },
+    }).on("hidden.bs.popover", function(e) {
+        if ($popover.data("contentTemplate") !== undefined) {
+            var $tip = App.propGet($popover.data('bs.popover'), '$tip');
+            if ($tip !== undefined) {
+                var $content = $tip.find('.popover-content');
+                App.initClient($content, 'dispose');
+                $tip.find('.popover-content').empty();
+            }
+        }
+    });
+};
+
+
 App.initClientHooks.push({
     init: function($selector) {
         App.bindTemplates($selector);
-        $selector.findSelf('[data-toggle="popover"]').each(function(k, v) {
-            var $popover = $(v);
-            $popover.popover({
-                container: 'body',
-                html : $(this).data('html'),
-                placement: $(this).data('placement'),
-                content: function() {
-                    var template = $(this).data("contentTemplate");
-                    if (template !== undefined) {
-                        var options = $(this).data("contentTemplateOptions");
-                        var processor = App.globalIoc['App.Tpl'](options);
-                        var $content = processor.domTemplate(template);
-                        App.initClient($content);
-                        return $content;
-                    } else {
-                        return $(this).data('content');
-                    }
-                },
-                title: function() {
-                    return $(this).attr('title');
-                },
-            }).on("hidden.bs.popover", function(e) {
-                if ($popover.data("contentTemplate") !== undefined) {
-                    var $tip = App.propGet($popover.data('bs.popover'), '$tip');
-                    if ($tip !== undefined) {
-                        var $content = $tip.find('.popover-content');
-                        App.initClient($content, 'dispose');
-                        $tip.find('.popover-content').empty();
-                    }
-                }
-            });
-        });
+        $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
-        $selector.highlightListUrl(window.location);
+        $selector.highlightListUrl();
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
         new App.AjaxForms($selector).init();
