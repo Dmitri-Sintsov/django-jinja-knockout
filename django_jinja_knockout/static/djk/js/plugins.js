@@ -133,9 +133,9 @@ $.parseUrl = function(url) {
     parser.href = url;
     // IE8..9 fix.
     parser.href = parser.href;
-    var props = ['host', 'hostname', 'hash', 'href', 'port', 'protocol', 'search'];
+    var props = ['protocol', 'host', 'hostname', 'port', 'href', 'hash', 'search'];
     for (var i = 0; i < props.length; i++) {
-      result[props[i]] = parser[props[i]];
+        result[props[i]] = parser[props[i]];
     }
     // IE pathname fix.
     result.pathname = (parser.pathname.charAt(0) !== '/' ? '/' : '') + parser.pathname;
