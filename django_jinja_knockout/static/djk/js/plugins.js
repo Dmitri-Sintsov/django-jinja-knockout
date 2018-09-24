@@ -129,7 +129,7 @@ $.contents = function(contents) {
 
 $.parseUrl = function(url) {
     var result = {};
-    var parser = document.createElement("a");
+    var parser = document.createElement('a');
     parser.href = url;
     // IE8..9 fix.
     parser.href = parser.href;
@@ -138,8 +138,11 @@ $.parseUrl = function(url) {
       result[props[i]] = parser[props[i]];
     }
     // IE pathname fix.
-    result['pathname'] = (parser.pathname.charAt(0) !== "/" ? "/" : "") + parser.pathname;
-    parser.remove();
+    result['pathname'] = (parser.pathname.charAt(0) !== '/' ? '/' : '') + parser.pathname;
+    // IE lt 11 does not support .remove().
+    if (typeof parser.remove === 'function') {
+        parser.remove();
+    }
     return result;
 };
 
