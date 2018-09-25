@@ -1771,13 +1771,14 @@ void function(Tpl) {
     };
 
     Tpl.renderSubTemplates = function() {
+        var self = this;
         var $result = this.domTemplate(this.tplId);
         var topNodeCount = 0;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
         $result.each(function(k, v) {
             if ($(v).prop('nodeType') === 1) {
                 if (++topNodeCount > 1) {
-                    throw "Template '" + this.tplId + "' expanded contents should have only one top DOM tag.";
+                    throw "Template '" + self.tplId + "' expanded contents should contain the single top DOM tag.";
                 }
             }
         });
