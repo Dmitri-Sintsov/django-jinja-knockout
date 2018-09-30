@@ -1644,6 +1644,7 @@ App.compileTemplate = function(tplId) {
  * 'data-template-id' : DOM id of underscore.js template to expand recursively.
  * 'data-template-args' : optional data to be used to control the logic flow of current underscore.js template via
  *     App.Tpl.get() method available as self.get() in template source code.
+ * 'data-template-args-nesting': set to false to disable inheritance of data-template-args attribute by inner templates.
  *
  * todo: Add .flatatt() to easily manipulate DOM attrs in templates.
  */
