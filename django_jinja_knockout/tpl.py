@@ -473,7 +473,7 @@ def json_flatatt(atts):
     _atts = atts
     has_atts = False
     for k, v in atts.items():
-        if isinstance(v, (tuple, list, dict)):
+        if isinstance(v, (tuple, list, dict, bool)):
             if not has_atts:
                 has_atts = True
                 _atts = copy(atts)
