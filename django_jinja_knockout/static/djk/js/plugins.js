@@ -317,6 +317,12 @@ $.fn.findSelf = function(selector) {
         result.add(this) : result;
 };
 
+$.fn.hrefButtons = function() {
+    this.find('button[data-href]').on('click', function(ev) {
+        window.location.href = $(this).data('href');
+    });
+};
+
 $.fn.scrollableParent = function() {
     var $parents = this.parents();
 

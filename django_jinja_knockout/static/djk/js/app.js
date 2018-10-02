@@ -2620,6 +2620,7 @@ App.initClientHooks.push({
         App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
+        $selector.hrefButtons();
         $selector.highlightListUrl();
         App.SelectMultipleAutoSize($selector);
         new App.DatetimeWidget($selector).init();
