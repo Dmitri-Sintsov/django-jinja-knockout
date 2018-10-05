@@ -1634,6 +1634,73 @@ App.compileTemplate = function(tplId) {
 
 
 /**
+ * Tags convertor which is executed during App.initClient() content ready and for each expanded underscore.js template.
+ * Allows to convert <panel-success> to <div class="panel panel-success"> with preserving of additional attributes.
+ */
+App.TransformTags = function() {
+    this.init();
+};
+
+void function(TransformTags) {
+
+    TransformTags.init = function() {
+        // Upper case keys only!
+        this.tags = {
+            // Shortcut attrs for underscore.js templates:
+            // _* is converted to data-template-*
+            'TPL': function(elem, tagName) {
+                /**
+                 * Removing the shortcut attrs is not necessary,
+                 * because the tag will be replaced by template content anyway.
+                 */
+                for (var i = 0; i < elem.attributes.length; i++) {
+                    var name = elem.attributes[i].name;
+                    if (name.charAt(0) === '_') {
+                        elem.setAttribute(
+                            'data-template-' + name.substr(1), elem.attributes[i].value
+                        );
+                    }
+                }
+                return $(elem);
+            },
+        };
+    };
+
+    TransformTags.add = function(tagName, fn) {
+        this.tags[tagName] = fn;
+        return this;
+    };
+
+    TransformTags.applyTag = function(elem) {
+        var tagName = $(elem).prop('tagName');
+        if (tagName !== undefined) {
+            var $result = this.tags[tagName].call(this, elem, tagName);
+            // todo: does not work.
+            $result.show();
+        };
+    };
+
+    TransformTags.perform = function(selector) {
+        var self = this;
+        var $selector = $(selector);
+        var tagNames = _.keys(this.tags)
+        var tagsSelector = tagNames.join(',');
+        $.each($selector, function() {
+            if (tagNames.indexOf($(this).prop('tagName')) !== -1) {
+                self.applyTag(this);
+            }
+        });
+        $selector.find(tagsSelector).each(function() {
+            self.applyTag(this);
+        });
+    };
+
+}(App.TransformTags.prototype);
+
+App.transformTags = new App.TransformTags();
+
+
+/**
  * underscore.js templates default processor (default class binding),
  * available in underscore templates as self.
  *
@@ -1746,6 +1813,7 @@ void function(Tpl) {
         var self = this;
         var contents = self.expandTemplate(tplId);
         var $result = $.contents(contents);
+        App.transformTags.perform($result);
         // Load recursive nested templates, if any.
         $result.each(function(k, v) {
             var $node = $(v);
@@ -1830,6 +1898,7 @@ void function(Tpl) {
     };
 
 }(App.Tpl.prototype);
+
 
 /**
  * Recursive underscore.js template autoloading with template self instance binding.
@@ -2617,6 +2686,7 @@ App.ContentPopover = function(k, v) {
 
 App.initClientHooks.push({
     init: function($selector) {
+        App.transformTags.perform($selector);
         App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();

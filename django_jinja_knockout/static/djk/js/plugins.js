@@ -321,6 +321,7 @@ $.fn.hrefButtons = function() {
     this.find('button[data-href]').on('click', function(ev) {
         window.location.href = $(this).data('href');
     });
+    return this;
 };
 
 $.fn.scrollableParent = function() {
