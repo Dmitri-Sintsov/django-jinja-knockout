@@ -43,15 +43,11 @@ class MockRequestFactory(RequestFactory):
         return environ
 
 
-class ScriptList(list):
+class ScriptList(sdv.UniqueIterList):
 
-    def __iter__(self):
-        included_urls = {}
-        for url in super().__iter__():
-            if url not in included_urls:
-                parsed = urlsplit(url)
-                included_urls[url] = True
-                yield parsed.path
+    def iter_callback(self, val):
+        parsed = urlsplit(val)
+        return parsed.path
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):

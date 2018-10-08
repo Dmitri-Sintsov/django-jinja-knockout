@@ -197,3 +197,17 @@ class FuncArgs:
                 return meth(**self.kwargs)
             else:
                 return meth()
+
+
+class UniqueIterList(list):
+
+    def iter_callback(self, val):
+        return val
+
+    def __iter__(self):
+        included_items = set()
+        for item in super().__iter__():
+            item_map = self.iter_callback(item)
+            if item_map not in included_items:
+                included_items.add(item_map)
+                yield item_map
