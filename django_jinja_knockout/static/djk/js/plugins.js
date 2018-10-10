@@ -317,8 +317,8 @@ $.fn.findSelf = function(selector) {
         result.add(this) : result;
 };
 
-$.fn.hrefButtons = function() {
-    this.find('button[data-href]').on('click', function(ev) {
+$.fn.dataHref = function() {
+    this.findSelf('[data-href]').on('click', function(ev) {
         window.location.href = $(this).data('href');
     });
     return this;
