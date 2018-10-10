@@ -400,3 +400,11 @@ table > tbody > tr.grid-new-row.warning > td,
 table > tbody > tr.grid-new-row > td.warning {
 	background-color: #FEF9E5; /* original: fcf8e3 */
 }
+
+/* Support for App.TransformTags */
+panel-heading,
+panel-title,
+panel-body,
+panel-footer {
+    visibility: hidden;
+}

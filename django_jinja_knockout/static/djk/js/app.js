@@ -1643,6 +1643,14 @@ App.TransformTags = function() {
 
 void function(TransformTags) {
 
+    TransformTags.tagNameToClassName = function(elem, tagName) {
+        return $(elem).replaceWithTag('div').addClass(tagName.toLowerCase());
+    };
+
+    TransformTags.bsPanel = function(elem, tagName) {
+        return this.tagNameToClassName(elem, tagName).addClass('panel');
+    };
+
     TransformTags.init = function() {
         // Upper case keys only!
         this.tags = {
@@ -1655,13 +1663,24 @@ void function(TransformTags) {
                  */
                 for (var i = 0; i < elem.attributes.length; i++) {
                     var name = elem.attributes[i].name;
-                    if (name.charAt(0) === '_') {
+                    if (name.substr(0, 2) === 't-') {
                         elem.setAttribute(
-                            'data-template-' + name.substr(1), elem.attributes[i].value
+                            'data-template-' + name.substr(2), elem.attributes[i].value
                         );
                     }
                 }
                 return $(elem);
+            },
+            'PANEL-PRIMARY': TransformTags.bsPanel,
+            'PANEL-SUCCESS': TransformTags.bsPanel,
+            'PANEL-INFO': TransformTags.bsPanel,
+            'PANEL-WARNING': TransformTags.bsPanel,
+            'PANEL-DANGER': TransformTags.bsPanel,
+            'PANEL-HEADING': TransformTags.tagNameToClassName,
+            'PANEL-BODY': TransformTags.tagNameToClassName,
+            'PANEL-FOOTER': TransformTags.tagNameToClassName,
+            'PANEL-TITLE': function(elem, tagName) {
+                return $(elem).replaceWithTag('h3').addClass(tagName.toLowerCase());
             },
         };
     };
@@ -1675,9 +1694,8 @@ void function(TransformTags) {
         var tagName = $(elem).prop('tagName');
         if (tagName !== undefined) {
             var $result = this.tags[tagName].call(this, elem, tagName);
-            // todo: does not work.
-            $result.show();
         };
+        return $result;
     };
 
     TransformTags.perform = function(selector) {
@@ -1685,14 +1703,29 @@ void function(TransformTags) {
         var $selector = $(selector);
         var tagNames = _.keys(this.tags)
         var tagsSelector = tagNames.join(',');
-        $.each($selector, function() {
-            if (tagNames.indexOf($(this).prop('tagName')) !== -1) {
-                self.applyTag(this);
+        var nodes = [];
+        // Transform the nested tags from the innermost to the outermost order.
+        $selector.find(tagsSelector).each(function() {
+            nodes.push({node: this, depth: -$(this).parents().length});
+        });
+        nodes = _.sortBy(nodes, 'depth');
+        for (var i = 0; i < nodes.length; i++) {
+            this.applyTag(nodes[i].node);
+        }
+        // Transform top tags.
+        $.each($selector, function(k, v) {
+            if (tagNames.indexOf($(v).prop('tagName')) !== -1) {
+                var $result = self.applyTag(v);
+                if ($(v).parents().length > 0) {
+                    // Top tag belongs to the subtree.
+                    $(v).replaceWith($result);
+                } else {
+                    // Top tag is the root of the subtree (template expansion).
+                    $selector[k] = $result[0];
+                }
             }
         });
-        $selector.find(tagsSelector).each(function() {
-            self.applyTag(this);
-        });
+        return $selector;
     };
 
 }(App.TransformTags.prototype);
@@ -1813,7 +1846,7 @@ void function(Tpl) {
         var self = this;
         var contents = self.expandTemplate(tplId);
         var $result = $.contents(contents);
-        App.transformTags.perform($result);
+        $result = App.transformTags.perform($result);
         // Load recursive nested templates, if any.
         $result.each(function(k, v) {
             var $node = $(v);

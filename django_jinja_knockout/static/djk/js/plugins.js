@@ -317,6 +317,21 @@ $.fn.findSelf = function(selector) {
         result.add(this) : result;
 };
 
+$.fn.replaceWithTag = function(tagName) {
+    var result = [];
+    this.each(function() {
+        var newElem = $('<' + tagName + '>').get(0);
+        for (var i = 0; i < this.attributes.length; i++) {
+            newElem.setAttribute(
+                this.attributes[i].name, this.attributes[i].value
+            );
+        }
+        newElem = $(this).wrapInner(newElem).children(0).unwrap().get(0);
+        result.push(newElem);
+    });
+    return $(result);
+};
+
 $.fn.dataHref = function() {
     this.findSelf('[data-href]').on('click', function(ev) {
         window.location.href = $(this).data('href');
