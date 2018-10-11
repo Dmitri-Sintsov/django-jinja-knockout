@@ -1690,7 +1690,7 @@ void function(TransformTags) {
         return this;
     };
 
-    TransformTags.applyTag = function(elem) {
+    TransformTags.convertTag = function(elem) {
         var tagName = $(elem).prop('tagName');
         if (tagName !== undefined) {
             var $result = this.tags[tagName].call(this, elem, tagName);
@@ -1698,7 +1698,7 @@ void function(TransformTags) {
         return $result;
     };
 
-    TransformTags.perform = function(selector) {
+    TransformTags.applyTags = function(selector) {
         var self = this;
         var $selector = $(selector);
         var tagNames = _.keys(this.tags)
@@ -1710,12 +1710,12 @@ void function(TransformTags) {
         });
         nodes = _.sortBy(nodes, 'depth');
         for (var i = 0; i < nodes.length; i++) {
-            this.applyTag(nodes[i].node);
+            this.convertTag(nodes[i].node);
         }
         // Transform top tags.
         $.each($selector, function(k, v) {
             if (tagNames.indexOf($(v).prop('tagName')) !== -1) {
-                var $result = self.applyTag(v);
+                var $result = self.convertTag(v);
                 if ($(v).parents().length > 0) {
                     // Top tag belongs to the subtree.
                     $(v).replaceWith($result);
@@ -1768,11 +1768,12 @@ void function(Tpl) {
         this.templates = _options.templates;
     };
 
-    Tpl.inheritProcessor = function($selector, clone) {
+    Tpl.inheritProcessor = function(elem, clone) {
+        var $elem = $(elem);
         var child;
         // There is no instance supplied. Load from classPath.
-        var classPath = $selector.data('templateClass');
-        var templateOptions = $selector.data('templateOptions');
+        var classPath = $elem.data('templateClass');
+        var templateOptions = $elem.data('templateOptions');
         if (classPath === undefined && templateOptions === undefined) {
             if (clone === true) {
                 child = this.cloneProcessor();
@@ -1846,7 +1847,7 @@ void function(Tpl) {
         var self = this;
         var contents = self.expandTemplate(tplId);
         var $result = $.contents(contents);
-        $result = App.transformTags.perform($result);
+        $result = App.transformTags.applyTags($result);
         // Load recursive nested templates, if any.
         $result.each(function(k, v) {
             var $node = $(v);
@@ -1876,18 +1877,24 @@ void function(Tpl) {
         var self = this;
         var $result = this.domTemplate(this.tplId);
         var topNodeCount = 0;
+        var topNode = undefined;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
         $result.each(function(k, v) {
             if ($(v).prop('nodeType') === 1) {
+                topNode = v;
                 if (++topNodeCount > 1) {
                     throw "Template '" + self.tplId + "' expanded contents should contain the single top DOM tag.";
                 }
             }
         });
-        return $result;
+        return {
+            'nodes': $result,
+            'topNode': topNode,
+        };
     };
 
-    Tpl.prependTemplates = function($target, $ancestors) {
+    Tpl.prependTemplates = function(target, $ancestors) {
+        var $target = $(target);
         this.tplId = $target.attr('data-template-id');
         if (this.tplId === undefined) {
             console.log('skipped undefined data-template-id for $target: ' + $target.prop('outerHTML'));
@@ -1899,8 +1906,22 @@ void function(Tpl) {
             this.extendData(
                 this.getTemplateData($target.data('templateArgs'))
             );
-            var $subTemplates = this.renderSubTemplates();
-            $target.prepend($subTemplates);
+            var subTemplates = this.renderSubTemplates();
+            /**
+             * If there are any non 'data-template-*' attributes in target node, copy these to subTemplates top node.
+             */
+            if (subTemplates.topNode !== undefined) {
+                for (var i = 0; i < target.attributes.length; i++) {
+                    var name = target.attributes[i].name;
+                    if (name.substr(0, 14) !== 'data-template-' &&
+                            name.substr(0, 2) !== 't-') {
+                        subTemplates.topNode.setAttribute(
+                            name, target.attributes[i].value
+                        );
+                    }
+                }
+            }
+            $target.prepend(subTemplates.nodes);
         }
     };
 
@@ -1921,12 +1942,12 @@ void function(Tpl) {
         $ancestors = _.sortBy($ancestors, 'length');
         // Expand innermost templates first, outermost last.
         for (var k = $ancestors.length - 1; k >= 0; k--) {
-            var $target = $targets.eq($ancestors[k]._targetKey);
-            var ancestorTpl = this.inheritProcessor($target);
-            ancestorTpl.prependTemplates($target, $ancestors[k]);
+            var target = $targets.get($ancestors[k]._targetKey);
+            var ancestorTpl = this.inheritProcessor(target);
+            ancestorTpl.prependTemplates(target, $ancestors[k]);
         };
-        $targets.each(function(k, currentTarget) {
-            $(currentTarget).contents().unwrap();
+        $targets.each(function() {
+            $(this).contents().unwrap();
         });
     };
 
@@ -1937,10 +1958,12 @@ void function(Tpl) {
  * Recursive underscore.js template autoloading with template self instance binding.
  */
 App.bindTemplates = function($selector, tpl) {
-    if (typeof tpl === 'undefined') {
-        tpl = App.globalIoc['App.Tpl']().inheritProcessor($selector, false);
-    }
-    tpl.loadTemplates($selector);
+    $selector.each(function() {
+        if (typeof tpl === 'undefined') {
+            tpl = App.globalIoc['App.Tpl']().inheritProcessor(this, false);
+        }
+        tpl.loadTemplates($(this));
+    });
 };
 
 App.initClientHooks = [];
@@ -2719,7 +2742,7 @@ App.ContentPopover = function(k, v) {
 
 App.initClientHooks.push({
     init: function($selector) {
-        App.transformTags.perform($selector);
+        App.transformTags.applyTags($selector);
         App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
         $selector.findSelf('[data-toggle="tooltip"]').tooltip();
