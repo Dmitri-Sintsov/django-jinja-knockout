@@ -1913,7 +1913,9 @@ void function(Tpl) {
             if (subTemplates.topNode !== undefined) {
                 for (var i = 0; i < target.attributes.length; i++) {
                     var name = target.attributes[i].name;
-                    if (name.substr(0, 14) !== 'data-template-' &&
+                    if (name === 'class') {
+                        $(subTemplates.topNode).addClass(target.attributes[i].value);
+                    } else if (name.substr(0, 14) !== 'data-template-' &&
                             name.substr(0, 2) !== 't-') {
                         subTemplates.topNode.setAttribute(
                             name, target.attributes[i].value

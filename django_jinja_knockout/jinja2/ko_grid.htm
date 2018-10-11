@@ -1,16 +1,13 @@
-{% macro ko_grid(grid_options, template_args=None, wrapper_dom_attrs=None, template_dom_attrs=None) -%}
+{% macro ko_grid(grid_options, template_args=None, dom_attrs=None) -%}
 {% if template_args is none -%}
     {% set template_args = {} -%}
 {% endif -%}
-{% if wrapper_dom_attrs is none -%}
-    {% set wrapper_dom_attrs = {} -%}
-{% endif -%}
-{% if template_dom_attrs is none -%}
-    {% set template_dom_attrs = {} -%}
+{% if dom_attrs is none -%}
+    {% set dom_attrs = {} -%}
 {% endif -%}
 {#
 
-Setup underscore.js template args (stored to template_dom_attrs as json at later step).
+Setup underscore.js template args (stored to dom_attrs as json at later step).
 
 -#}
 {%- set _template_args = {
@@ -28,33 +25,34 @@ Setup url name kwargs both for tpl.resolve_cbv() and as grid_options.pageRoute /
 {% set _grid_options = tpl.discover_grid_options(request, grid_options) -%}
 {#
 
-Setup wrapper dom_attrs.
+Setup component dom_attrs.
 
 -#}
-{% do tpl.add_css_classes_to_dict(wrapper_dom_attrs, 'component') -%}
+{% do tpl.add_css_classes_to_dict(dom_attrs, 'component') -%}
 {% if 'classPath' in _grid_options -%}
-    {% do wrapper_dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
+    {% do dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
     {% do _grid_options.pop('classPath') -%}
 {% else -%}
-    {% do wrapper_dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
+    {% do dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
 {% endif -%}
-{% if 'name' in wrapper_dom_attrs -%}
-    {% set fragment_name = wrapper_dom_attrs['name'] -%}
-    {% do wrapper_dom_attrs.pop('name') -%}
-{% elif 'id' in wrapper_dom_attrs -%}
-    {% set fragment_name = wrapper_dom_attrs['id'] -%}
+{% do dom_attrs.update({'data-component-options': _grid_options}) -%}
+{% if 'name' in dom_attrs -%}
+    {% set fragment_name = dom_attrs['name'] -%}
+    {% do dom_attrs.pop('name') -%}
+{% elif 'id' in dom_attrs -%}
+    {% set fragment_name = dom_attrs['id'] -%}
 {% endif -%}
 {#
 
 Setup template dom_attrs.
 
 -#}
-{% set _template_dom_attrs = {
+{% set _dom_attrs = {
     'data-template-id': 'ko_grid_body',
     'data-template-args': _template_args,
     'data-template-options': {'meta_is_grid': True},
 } -%}
-{% do sdv.nested_update(_template_dom_attrs, template_dom_attrs) -%}
+{% do sdv.nested_update(_dom_attrs, dom_attrs) -%}
 {#
 
 Optional caller support.
@@ -62,16 +60,12 @@ Optional caller support.
 -#}
 {% if caller -%}
 {{ caller({
-    'wrapper_dom_attrs': wrapper_dom_attrs,
-    '_grid_options': _grid_options,
     'fragment_name': fragment_name,
-    '_template_dom_attrs': _template_dom_attrs
+    '_dom_attrs': _dom_attrs
 }) }}
 {% else -%}
-<div{{ tpl.json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
 {% if fragment_name is defined -%}<a name="{{ fragment_name }}"></a>{% endif -%}
-    <div{{ tpl.json_flatatt(_template_dom_attrs) }}>
-    </div>
+<div{{ tpl.json_flatatt(_dom_attrs) }}>
 </div>
 {% endif -%}
 {% endmacro -%}
@@ -79,16 +73,12 @@ Optional caller support.
     {% if not template_args is defined -%}
         {% set template_args = {} -%}
     {% endif -%}
-    {% if not wrapper_dom_attrs is defined -%}
-        {% set wrapper_dom_attrs = {} -%}
-    {% endif -%}
-    {% if not template_dom_attrs is defined -%}
-        {% set template_dom_attrs = {} -%}
+    {% if not dom_attrs is defined -%}
+        {% set dom_attrs = {} -%}
     {% endif -%}
     {{ ko_grid(
         grid_options,
         template_args=template_args,
-        wrapper_dom_attrs=wrapper_dom_attrs,
-        template_dom_attrs=template_dom_attrs
+        dom_attrs=dom_attrs,
     ) }}
 {% endif -%}
