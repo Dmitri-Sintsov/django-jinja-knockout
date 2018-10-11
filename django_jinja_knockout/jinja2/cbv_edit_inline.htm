@@ -1,7 +1,6 @@
 {% extends 'base.htm' -%}
 {% from 'bs_navs.htm' import bs_navs with context -%}
 {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context -%}
-{% from 'bs_panel.htm' import bs_panel with context -%}
 
 {% block main -%}
 
@@ -9,16 +8,14 @@
 {{ bs_navs(main_navs) }}
 {% endif -%}
 
-{% call bs_panel(
-    type='primary',
-    heading=view.get_heading(),
-) -%}
-
-{{ bs_inline_formsets(
-    related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
-) }}
-
-{% endcall -%}
+<panel-primary>
+    <panel-heading>{{ view.get_heading() }}</panel-heading>
+    <panel-body>
+        {{ bs_inline_formsets(
+            related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
+        ) }}
+    </panel-body>
+</panel-primary>
 
 {% endblock main -%}
 
