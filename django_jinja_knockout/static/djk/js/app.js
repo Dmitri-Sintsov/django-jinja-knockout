@@ -1671,6 +1671,7 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
+            'PANEL-DEFAULT': TransformTags.bsPanel,
             'PANEL-PRIMARY': TransformTags.bsPanel,
             'PANEL-SUCCESS': TransformTags.bsPanel,
             'PANEL-INFO': TransformTags.bsPanel,
