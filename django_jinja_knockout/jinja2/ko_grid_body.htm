@@ -26,8 +26,8 @@
 
 {% if 'ko_range_filter' in _include_ids -%}
 <script type="text/template" id="ko_range_filter">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <panel-default>
+        <panel-body>
             <div class="row form-group">
                 <label data-bind="text: meta.from" class="control-label col-md-4" for="id_range_from"></label>
                 <div class="field col-md-6">
@@ -38,8 +38,8 @@
                     <input data-bind="textInput: to, attr: fieldAttrs" id="id_range_to" name="range_to">
                 </div>
             </div>
-        </div>
-    </div>
+        </panel-body>
+    </panel-default>
 </script>
 {% endif -%}
 
@@ -55,8 +55,8 @@
 {% if 'ko_action_form' in _include_ids -%}
 <!-- 'ko_action_form' template is not actual template but a skeleton of action template for App.ActionTemplateDialog class. -->
 <script type="text/template" id="ko_action_form">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <panel-default>
+        <panel-body>
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                 <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: actions.getCsrfToken()">
                 <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
@@ -66,8 +66,8 @@
                     </div>
                 </div>
             </form>
-        </div>
-    </div>
+        </panel-body>
+    </panel-default>
 </script>
 {% endif -%}
 
@@ -176,14 +176,14 @@
 
 {% if 'ko_grid_no_results' in _include_ids -%}
 <script language="text/template" id="ko_grid_no_results">
-    <div class="panel panel-default">
-        <div class="panel-heading">
+    <panel-default>
+        <panel-heading>
             {{ _(
                 'No %(verbose_name)s found matching the query',
                 verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
             )) }}.
-        </div>
-    </div>
+        </panel-heading>
+    </panel-default>
 </script>
 {% endif -%}
 
@@ -272,8 +272,8 @@
 <script type="text/template" id="ko_grid_body">
     <div <% if (self.get('show_title')) { %> class="panel panel-<%= self.get('panel_type') %>" <% } %>>
         <% if (self.get('show_title')) { %>
-        <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
-        <div class="panel-body">
+        <panel-heading data-bind="text: meta.verboseNamePlural"></panel-heading>
+        <panel-body>
         <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
             <div data-template-id="ko_grid_nav"></div>
@@ -286,7 +286,7 @@
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
         <% if (self.get('show_title')) { %>
-        </div>
+        </panel-body>
         <% } %>
     </div>
 </script>
@@ -313,17 +313,17 @@
 
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
-    <div class="panel panel-default">
-        <div class="panel-heading flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
+    <panel-default>
+        <panel-heading class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
             <div data-bind="text: $data"></div>
-        </div>
-        <div class="panel-body">
+        </panel-heading>
+        <panel-body>
             <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
             <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
                 <option data-bind="attr: {value: $data}">
             </datalist>
-        </div>
-    </div>
+        </panel-body>
+    </panel-default>
 </script>
 {% endif -%}
 
