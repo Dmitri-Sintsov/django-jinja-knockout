@@ -27,6 +27,7 @@ class Renderer:
 
     template = None
     obj_kwarg = None
+    obj_template_attr = None
 
     def __init__(self, request, context=None):
         self.request = request
@@ -58,10 +59,13 @@ class Renderer:
         return self.context
 
     def get_template_basedir(self):
-        return ''
+        return 'render/'
 
     def get_template_name(self):
-        return self.get_template_basedir() + self.template
+        template_name = self.template \
+            if self.obj_template_attr is None \
+            else getattr(self.obj, self.obj_template_attr, self.template)
+        return self.get_template_basedir() + template_name
 
     def __str__(self):
         template_name = self.get_template_name()
@@ -84,14 +88,14 @@ class Renderer:
 class DisplayRenderer(Renderer):
 
     def get_template_basedir(self):
-        return '' if self.context.get('action', None) != '' else 'display/'
+        return 'render/' if self.context.get('action', None) != '' else 'render/display/'
 
 
 # Instance is stored into field.renderer.
 class FieldRenderer(Renderer):
 
     obj_kwarg = 'field'
-    template = 'render_field.htm'
+    template = 'field.htm'
     default_classes = {
         'label': 'col-md-2',
         'field': 'col-md-6',
@@ -104,34 +108,34 @@ class FieldRenderer(Renderer):
 
     def get_template_basedir(self):
         self.display_layout = bootstrap.get_display_layout(self.obj)
-        return '' if self.display_layout != 'table' else 'display/'
+        return 'render/' if self.display_layout != 'table' else 'render/display/'
 
     def get_template_name(self):
         basedir = self.get_template_basedir()
         if hasattr(self.obj.field, 'render_template'):
             return basedir + self.obj.field.render_template
         if self.display_layout == 'table':
-            return basedir + 'render_field.htm'
+            return basedir + 'field.htm'
         elif self.display_layout == 'div':
-            return 'render_field_standard.htm'
+            return basedir + 'field_standard.htm'
         elif bootstrap.is_checkbox(self.obj):
-            return 'render_field_checkbox.htm'
+            return basedir + 'field_checkbox.htm'
         elif bootstrap.is_multiple_checkbox(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'checkbox'
                 }
             })
-            return 'render_field_multiple.htm'
+            return basedir + 'field_multiple.htm'
         elif bootstrap.is_radio(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'radio'
                 }
             })
-            return 'render_field_multiple.htm'
+            return basedir + 'field_multiple.htm'
         else:
-            return 'render_field_standard.htm'
+            return basedir + 'field_standard.htm'
 
     def set_classes(self, classes=None):
         bootstrap.add_input_classes_to_field(self.obj.field)
@@ -185,11 +189,9 @@ def render_fields(form, *fields):
 class FormBodyRenderer(Renderer):
 
     obj_kwarg = 'form'
-    template = 'render_form_body.htm'
+    obj_template_attr = 'body_template'
+    template = 'form_body.htm'
     field_renderer_cls = FieldRenderer
-
-    def get_template_name(self):
-        return getattr(self.obj, 'body_template', self.template)
 
     def ioc_render_field(self, field):
         # Note: field.field is not a typo but an access to ModelField from BoundField.
@@ -210,12 +212,9 @@ class FormBodyRenderer(Renderer):
 class RelatedFormRenderer(DisplayRenderer):
 
     obj_kwarg = 'related_form'
-    template = 'render_related_form.htm'
+    obj_template_attr = 'related_template'
+    template = 'related_form.htm'
     form_body_renderer_cls = FormBodyRenderer
-
-    def get_template_name(self):
-        template_name = getattr(self.obj, 'related_template', self.template)
-        return self.get_template_basedir() + template_name
 
     def ioc_render_form_body(self, layout_classes):
         return ioc_form_renderer(
@@ -240,29 +239,24 @@ class RelatedFormRenderer(DisplayRenderer):
 class StandaloneFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
-    template = 'render_form.htm'
-
-    def get_template_name(self):
-        template_name = getattr(self.obj, 'standalone_template', self.template)
-        return self.get_template_basedir() + template_name
+    obj_template_attr = 'standalone_template'
+    template = 'form.htm'
 
 
 # Instance is stored into form._renderer['inline'].
 class InlineFormRenderer(DisplayRenderer):
 
     obj_kwarg = 'form'
-    template = 'render_inline_form.htm'
-
-    def get_template_name(self):
-        template_name = getattr(self.obj, 'inline_template', self.template)
-        return self.get_template_basedir() + template_name
+    obj_template_attr = 'inline_template'
+    template = 'inline_form.htm'
 
 
 # Instance is stored into formset.renderer.
 class FormsetRenderer(Renderer):
 
     obj_kwarg = 'formset'
-    template = 'render_formset.htm'
+    obj_template_attr = 'template'
+    template = 'formset.htm'
     inline_form_renderer_cls = InlineFormRenderer
 
     def ioc_render_inline_form(self, form):
@@ -277,9 +271,6 @@ class FormsetRenderer(Renderer):
         for form in self.obj:
             renderer = self.ioc_render_inline_form(form)
             renderer.update_context(context)
-
-    def get_template_name(self):
-        return getattr(self.obj, 'template', self.template)
 
     def get_template_context(self):
         context = super().get_template_context()
