@@ -1634,8 +1634,11 @@ App.compileTemplate = function(tplId) {
 
 
 /**
- * Tags convertor which is executed during App.initClient() content ready and for each expanded underscore.js template.
- * Allows to convert <panel-success> to <div class="panel panel-success"> with preserving of additional attributes.
+ * Tags converter which is executed during App.initClient() content ready and for each expanded underscore.js template.
+ * Converts <panel-success id="panel1" class="my-panel"> to <div id="panel1" class="panel panel-success my-panel">
+ * Note:
+ *   Using custom tags with initial page content may produce flickering, because these are not native browser custom tags.
+ *   Using custom tags in templates is encouraged and produces no extra flickering.
  */
 App.TransformTags = function() {
     this.init();

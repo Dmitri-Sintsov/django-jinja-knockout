@@ -3,9 +3,11 @@
 {% from 'bs_filters.htm' import bs_filters with context -%}
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
-<panel-primary>
-    <panel-heading>{{ view.get_heading() }}</panel-heading>
-    <panel-body>
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ view.get_heading() }}</h3>
+    </div>
+    <div class="panel-body">
         {% for field in view.allowed_filter_fields -%}
             {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
         {% endfor -%}
@@ -56,8 +58,8 @@
             {{ bs_pagination(cbv=view, page_obj=page_obj) }}
         {% endif -%}
 
-    </panel-body>
-</panel-primary>
+    </div>
+</div>
 
 {% endmacro -%}
 {% if _render_ -%}

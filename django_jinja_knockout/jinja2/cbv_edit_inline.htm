@@ -8,14 +8,16 @@
 {{ bs_navs(main_navs) }}
 {% endif -%}
 
-<panel-primary>
-    <panel-heading>{{ view.get_heading() }}</panel-heading>
-    <panel-body>
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ view.get_heading() }}</h3>
+    </div>
+    <div class="panel-body">
         {{ bs_inline_formsets(
             related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
         ) }}
-    </panel-body>
-</panel-primary>
+    </div>
+</div>
 
 {% endblock main -%}
 
