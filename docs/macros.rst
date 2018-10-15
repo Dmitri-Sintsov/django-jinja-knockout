@@ -3,11 +3,16 @@ Jinja2 macros
 ==============
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
+.. _bs_breadcrumbs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
+.. _bs_choice_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
+.. _bs_dropdown(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_form_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form_body.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
+.. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
+.. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 
 .. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
 .. _App.TabPane sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.TabPane
@@ -220,6 +225,40 @@ Wrapping each form of formset with div with custom attributes (to process these 
 Bootstrap macros
 ----------------
 
+bs_breadcrumbs()
+~~~~~~~~~~~~~~~~
+
+`bs_breadcrumbs()`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
+``ListSortingView`` class `.get_filter_args()`_ call::
+
+    {% for field in view.allowed_filter_fields -%}
+        {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
+    {% endfor -%}
+
+bs_choice_list()
+~~~~~~~~~~~~~~~~
+
+`bs_choice_list()`_ macro generates the flat list of the currently selected filter choices from the result of
+``ListSortingView`` class `.get_filter_args()`_ call::
+
+    {% for field in view.allowed_filter_fields -%}
+        {{ bs_choice_list(*view.get_filter_args(field)) }}
+    {% endfor -%}
+
+bs_dropdown()
+~~~~~~~~~~~~~
+
+`bs_dropdown()`_ macro generates bootstrap dropdown of the current filter choices from the result of
+``ListSortingView`` class `.get_filter_args()`_ call::
+
+    {% for field in view.allowed_filter_fields -%}
+        {{ bs_dropdown(*view.get_filter_args(field)) }}
+    {% endfor -%}
+
+
+bs_tabs()
+~~~~~~~~~
+
 `bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App.TabPane`` class,
 defined in `app.js`_:
 
@@ -232,15 +271,21 @@ defined in `app.js`_:
 djk_sample demo project has `bs_tabs() sample`_ / `App.TabPane sample`_ which places grids into bootstrap tabs.
 
 
-The only argument of `bs_tabs()`_ macro is the list. Each element of the list should be dict that defines content of
-each tab. The following mandarory key-value pairs are required:
+The first mandatory argument of `bs_tabs()`_ macro is the ``tabs`` list. Each element of the ``tabs`` list should be the
+dict that defines content of each tab. The following mandarory key-value pairs are required:
 
 * ``id`` - the value of window.location.hash for current tab;
 * ``title`` - title of current tab;
-* ``html`` - html of tab pane. Use Jinja 2.8 ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
+* ``html`` - html of tab pane. Use Jinja 2.8+ ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
   such as grid, ModelForm, inline formset and so on;
 
 Optional key-value pairs:
 
 * ``is_active`` - set to ``True`` when current tab has to be selected by default;
 * ``tooltip`` - optional tooltip for the tab link;
+
+The second optional argument of `bs_tabs()`_ macro is ``tabs_attrs`` dict which defines `tpl.json_flatatt()`_ HTML
+attributes for the tabs wrapper tag, which is `ul.nav.nav-tabs` by default.
+
+The third optional argument of `bs_tabs()`_ macro is ``content_attrs`` dict which defines `tpl.json_flatatt()`_ HTML
+attributes for the tabs content tag, which is `div.tab-content` by default.

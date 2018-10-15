@@ -93,8 +93,8 @@ So I switched to Jinja2, thank to Django 1.8+ built-in support of this templatin
 https://github.com/niwinz/django-jinja which simplifies Jinja2 integration. I took further step, providing DTL tag
 library to include Jinja2 templates into DTL templates.
 
-So, basically in this project two great templating engines (client-side https://github.com/knockout/knockout and
-server-side https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
+In this project two great templating engines (client-side https://github.com/knockout/knockout and server-side
+https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
 effort, cleaner look and easily readable. Both also are very fast, Knockout.js templates being one of the fastest at
 client-side, while Jinja2 estimated to be faster few times than built-in DTL templates, and is more powerful.
 
