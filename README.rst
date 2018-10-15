@@ -41,7 +41,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Django 1.8, 1.9, 1.10, 1.11, 2.0, 2.1 support. Python 3.4 / 3.5 / 3.6 support.
+* Django 1.8, 1.9, 1.10, 1.11, 2.0, 2.1 support. Python 3.5 / 3.6 / 3.7 support.
 
 Please contribute to the localization of the project:
 
@@ -59,21 +59,23 @@ Key features
 ------------
 
 * AJAX based django.admin-like grids (paginated datatables) with sorting / filters and custom actions.
-* Supports existing Django templates (DTL).
-* `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ integration into Django projects.
+* Integrates Jinja2 into existing Django templates (DTL).
+* `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
+* Default template renderers for Django forms / related forms / inline formsets with the possibility to override these
+  to customize the visual layout.
 * ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget``-like functionality to select ``ModelForm`` foreign key
   field value via AJAX query / response.
 * Django raw queries with ``filter()`` / ``exclude()`` / ``order()`` / ``values()`` / ``values_list()`` and SQL slicing
   support via ``FilteredRawQuerySet``, suitable for usage in ``ListView`` / ``ListSortingView`` / ``KoGridView`` derived
   classes.
-* ``ListQuerySet`` to query Python lists.
+* ``ListQuerySet`` to query Python lists, including ``prefetch_related()`` results.
 * Jinja2 templates can be integrated into existing Django templates via custom template library tag::
 
     {% extends 'base_min.html' %}
     {% load jinja %}
-    {% load staticfiles %}
+    {% load static %}
 
     {% block main %}
     {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
@@ -84,11 +86,12 @@ Overview
 
 Templating languages are my favorite topic in programming. I love semantically organic way of HTML templating in
 Knockout.js that uses html5 "data-bind" JSON-like attributes instead of semantically alien double braces, which
-conflicts almost every server-side templating language out there (including DTL and Jinja2).
+conflicts to almost every server-side templating language (including DTL and Jinja2).
 
 When developing with Django, I felt a lack of more powerful server-side templating when used built-in DTL templates.
 So I switched to Jinja2, thank to Django 1.8+ built-in support of this templating engine and to great project
-https://github.com/niwinz/django-jinja which simplifies Jinja2 integration.
+https://github.com/niwinz/django-jinja which simplifies Jinja2 integration. I took further step, providing DTL tag
+library to include Jinja2 templates into DTL templates.
 
 So, basically in this project two great templating engines (client-side https://github.com/knockout/knockout and
 server-side https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
@@ -105,6 +108,11 @@ would be great inclusion for ``empty_form`` handling and in ``django.admin``, co
 
 AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
 implemented via bundled client-side scripts.
+
+Major changes (version 0.8.0)
+-----------------------------
+Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
+custom template or via inheriting the renderer class.
 
 Major changes (version 0.7.0)
 -----------------------------

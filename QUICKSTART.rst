@@ -317,8 +317,15 @@ Functions to manipulate css classes in Jinja2 templates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ``add_css_classes()`` - similar to jQuery ``$.addClass()`` function;
-* ``add_css_classes_to_dict()`` - similar to previous one but automatically uses 'class' key value of supplied dict
-  by default, which is handy to use processed dictionary as argument of Django ``flatatt()`` call.
+* ``has_css_classes()`` - similar to jQuery ``$.hasClass()`` function;
+* ``remove_css_classes()`` - similar to jQuery ``$.removeClass()`` function;
+
+Next are the methods that alter 'class' key value of the supplied dict, where the dict argument later is passed to
+Django ``flatatt()`` call / ``tpl.json_flatatt()`` call:
+
+* ``add_css_classes_to_dict()``
+* ``has_css_classes_in_dict()``
+* ``remove_css_classes_from_dict()``
 
 Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
