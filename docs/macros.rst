@@ -12,6 +12,7 @@ Jinja2 macros
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
 .. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
+.. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 
 .. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
@@ -38,10 +39,13 @@ ModelForms
     {% endblock main %}
 
 Note that the `bs_form()`_ macro also generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
-with the heading / body. If you want to generate form body only (usual Django approach), use `bs_form_body()`_ macro
-instead::
+with the heading / body. If you want to generate form body only (usual Django approach), call `render_form()`_ template
+context function instead::
 
-    {{ bs_form_body(form) }}
+    {{ render_form(request, 'body', form) }}
+
+To read more about `render_form()`_ template context function and built-in form / inline formsets renderers, see
+:doc:`forms`.
 
 .. highlight:: python
 
