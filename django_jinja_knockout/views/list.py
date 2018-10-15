@@ -87,27 +87,6 @@ class FilterChoices:
         # Text names of the currently selected filters.
         self.display = []
 
-    def get_reset_link(self, curr_list_filter):
-        # Reset filter.
-        link = {
-            'atts': {},
-            'text': _('All'),
-        }
-        is_active = False
-        if self.view.current_list_filter.kwargs is None:
-            is_active = True
-            curr_list_filter = {}
-        elif self.filter_field in curr_list_filter:
-            del curr_list_filter[self.filter_field]
-        else:
-            is_active = True
-        if is_active:
-            link['atts']['class'] = 'active'
-            link['is_active_reset'] = True
-        else:
-            link['url'] = self.view.get_reverse_query(curr_list_filter)
-        return link
-
     def switch_choice(self, curr_list_filter, value):
         is_added = False
         in_filter = []
@@ -156,6 +135,27 @@ class FilterChoices:
             is_added = True
             curr_list_filter[self.filter_field] = value
         return is_added
+
+    def get_reset_link(self, curr_list_filter):
+        # Reset filter.
+        link = {
+            'atts': {},
+            'text': _('All'),
+        }
+        is_active = False
+        if self.view.current_list_filter.kwargs is None:
+            is_active = True
+            curr_list_filter = {}
+        elif self.filter_field in curr_list_filter:
+            del curr_list_filter[self.filter_field]
+        else:
+            is_active = True
+        if is_active:
+            link['atts']['class'] = 'active'
+            link['is_active_reset'] = True
+        else:
+            link['url'] = self.view.get_reverse_query(curr_list_filter)
+        return link
 
     def get_link(self, choice_def, curr_list_filter):
         # Toggle choices for multiple choices only.
