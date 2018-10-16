@@ -3,7 +3,6 @@ Jinja2 macros
 ==============
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
-.. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+bootstrapmodelform
 .. _bs_breadcrumbs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
 .. _bs_choice_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
 .. _bs_dropdown(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
@@ -39,7 +38,16 @@ ModelForms
 
     {% endblock main %}
 
-Note that the `bs_form()`_ macro also generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
+Since the introduction of form renderers in version 0.8.0, `bs_form()`_ macro become a simple compatibility wrapper,
+while the actial HTML code of form is generated with the following `render_form()`_ call::
+
+    {{ render_form(request, 'standalone', form, {
+        'action': action,
+        'opts': opts,
+        'method': method,
+    }) }}
+
+Note that the `bs_form()`_ macro generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
 with the heading / body. If you want to generate form body only (usual Django approach), call `render_form()`_ template
 context function instead::
 
@@ -47,24 +55,6 @@ context function instead::
 
 To read more about `render_form()`_ template context function and built-in form / inline formsets renderers, see
 :doc:`forms`.
-
-.. highlight:: python
-
-To have Bootstrap3 attributes to be applied to the form fields it's also recommended to inherit ``ModelForm`` class from
-`BootstrapModelForm`_, which provides default attributes for the built-in renderer classes::
-
-    from django_jinja_knockout.forms import BootstrapModelForm
-
-    class ProfileForm(BootstrapModelForm):
-
-        class Meta:
-            model = Profile
-            exclude = ('age',)
-            fields = '__all__'
-
-although one may setup the renderers and / or render templates in the ``ModelForm`` derived class, not having to inherit
-from `BootstrapModelForm`_.
-
 
 Inline formsets
 ---------------

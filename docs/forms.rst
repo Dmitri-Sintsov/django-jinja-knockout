@@ -2,6 +2,30 @@
 Forms
 ======
 
+.. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+bootstrapmodelform
+.. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
+.. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
+
+Renderers
+---------
+
+.. highlight:: python
+
+While it's possible to use renderers with ordinary Django ``ModelForm`` class, still the recommended way is to derive
+model form class from `RendererModelForm`_ class::
+
+    from django_jinja_knockout.forms import RendererModelForm
+
+    class ProfileForm(RendererModelForm):
+
+        class Meta:
+            model = Profile
+            exclude = ('age',)
+            fields = '__all__'
+
+By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
+renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap3 attributes.
+
 AJAX forms processing
 ---------------------
 
