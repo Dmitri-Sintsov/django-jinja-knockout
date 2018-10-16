@@ -123,7 +123,7 @@ Bootstrap 3 table::
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=[], action='', html={
+    bs_inline_formsets(related_form=form, formsets=[], action='', opts={
         'class': 'project',
         'title': form.instance,
         'submit_text': 'My submit button'

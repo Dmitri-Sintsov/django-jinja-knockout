@@ -456,7 +456,7 @@ Do not forget that Jinja2 does not support extending included templates.
 Template engines can be mixed with inclusion of Jinja2 templates from DTL templates like this::
 
     {% jinja 'bs_navs.htm' with _render_=1 navs=main_navs %}
-    {% jinja 'bs_inline_formsets.htm' with _render_=1 related_form=form formsets=formsets action=view.get_form_action_url html=view.get_bs_form_opts %}
+    {% jinja 'bs_inline_formsets.htm' with _render_=1 related_form=form formsets=formsets action=view.get_form_action_url opts=view.get_bs_form_opts %}
     {% jinja 'bs_list.htm' with _render_=1 view=view object_list=object_list is_paginated=is_paginated page_obj=page_obj %}
     {% jinja 'ko_grid.htm' with _render_=1 grid_options=club_grid_options %}
     {% jinja 'ko_grid_body.htm' with _render_=1 %}

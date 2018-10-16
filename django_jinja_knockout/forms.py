@@ -281,26 +281,31 @@ class FormsetRenderer(Renderer):
         return context
 
 
-# Form with field classes stylized for bootstrap3.
-class BootstrapModelForm(forms.ModelForm):
+# Form which includes self.request and supports optional override of the field renderers.
+class RendererModelForm(forms.ModelForm):
 
     class Meta:
-        render_body_cls = FormBodyRenderer
-        render_inline_cls = InlineFormRenderer
-        render_related_cls = RelatedFormRenderer
-        render_standalone_cls = StandaloneFormRenderer
         field_templates = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Automatically make current http request available as .request attribute of form instance.
-        ContextMiddleware = DjkAppConfig.get_context_middleware()
-        self.request = ContextMiddleware.get_request()
-
+        context_middleware = DjkAppConfig.get_context_middleware()
+        self.request = context_middleware.get_request()
         if hasattr(self.Meta, 'field_templates'):
             for field_name in self.Meta.field_templates:
                 if field_name in self.fields:
                     self.fields[field_name].render_template = self.Meta.field_templates[field_name]
+
+
+# Form with default renderers stylized for bootstrap3.
+class BootstrapModelForm(RendererModelForm):
+
+    class Meta(RendererModelForm.Meta):
+        render_body_cls = FormBodyRenderer
+        render_inline_cls = InlineFormRenderer
+        render_related_cls = RelatedFormRenderer
+        render_standalone_cls = StandaloneFormRenderer
 
 
 # Set all default (implicit) widgets to DisplayText.

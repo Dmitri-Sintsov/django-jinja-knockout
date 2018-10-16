@@ -3,15 +3,16 @@ Jinja2 macros
 ==============
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
+.. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+bootstrapmodelform
 .. _bs_breadcrumbs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
 .. _bs_choice_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
 .. _bs_dropdown(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
-.. _bs_form_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form_body.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
 .. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
+.. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 
@@ -49,8 +50,8 @@ To read more about `render_form()`_ template context function and built-in form 
 
 .. highlight:: python
 
-To have Bootstrap3 attributes to be applied to form fields it's also advisable to inherit ``ModelForm`` class from
-``BootstrapModelForm``::
+To have Bootstrap3 attributes to be applied to the form fields it's also recommended to inherit ``ModelForm`` class from
+`BootstrapModelForm`_, which provides default attributes for the built-in renderer classes::
 
     from django_jinja_knockout.forms import BootstrapModelForm
 
@@ -60,6 +61,10 @@ To have Bootstrap3 attributes to be applied to form fields it's also advisable t
             model = Profile
             exclude = ('age',)
             fields = '__all__'
+
+although one may setup the renderers and / or render templates in the ``ModelForm`` derived class, not having to inherit
+from `BootstrapModelForm`_.
+
 
 Inline formsets
 ---------------
@@ -76,7 +81,7 @@ Also it has support for inserting custom content between individual forms of for
 Example of form with inline formsets rendering::
 
     {{
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('add_project', project_id=project.pk), html={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=url('add_project', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
         'title': request.view_title,
@@ -90,16 +95,15 @@ Example of form with inline formsets rendering::
 
 Changing bootstrap grid layout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-One may use ``'layout_classes'`` key of the following macros ``highlighted`` arguments:
+One may use the custom `layout_classes`_ value as the key of the following macros ``opts`` dict argument:
 
-* bs_inline_formsets( related_form, formsets, action, ``html`` )
-* bs_form_body( form, ``field_classes`` )
-* bs_field( field, ``classes`` = {} )
+* bs_form(form, action, opts, method='post')
+* bs_inline_formsets(related_form, formsets, action, opts)
 
 to alter default Bootstrap 3 inline form grid width, for example::
 
     {{
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), html={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
         'title': request.view_title,
@@ -109,9 +113,11 @@ to alter default Bootstrap 3 inline form grid width, for example::
         }
     }) }}
 
-Default value of Bootstrap inline grid layout classes, defined in `bs_field()`_ macro, is::
+Default value of Bootstrap inline grid layout classes is defined in `context_processor` module ``LAYOUT_CLASSES`` variable::
 
-    {'label': 'col-md-2', 'field': 'col-md-6'}
+    {'label': 'col-md-3', 'field': 'col-md-7'}
+
+and can be overriden via `settings` module ``LAYOUT_CLASSES`` variable.
 
 Inserting custom content
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +155,7 @@ specified::
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), html={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
         'title': request.view_title,
@@ -179,7 +185,7 @@ rendering related ``projectmember_set`` inline formset::
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action='', html={
+    bs_inline_formsets(related_form=form, formsets=formsets, action='', opts={
         'class': 'project',
         'title': form.instance,
         'submit_text': 'Review project'
@@ -208,7 +214,7 @@ rendering related ``projectmember_set`` inline formset::
 Wrapping each form of formset with div with custom attributes (to process these in custom Javascript)::
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), html={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
         'title': form.instance,
