@@ -9,8 +9,11 @@ from datetime import date, datetime
 from urllib.parse import urlencode
 
 from django.utils import formats, timezone
-from django.utils.functional import Promise
+from django.utils.encoding import smart_text
+from django.utils.functional import Promise, SimpleLazyObject
 from django.utils.html import escape, mark_safe, format_html
+from django.middleware import csrf
+from django.template import loader as tpl_loader
 from django.forms.utils import flatatt
 try:
     # Django>=1.11
@@ -57,6 +60,68 @@ def repeat_insert(s: str, separator: str=' ', each: int=3):
 def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
     reversed_insert = repeat_insert(s[::-1], separator, each)
     return reversed_insert[::-1]
+
+
+class Renderer:
+
+    template = None
+    obj_kwarg = None
+    obj_template_attr = None
+
+    def __init__(self, request, context=None):
+        self.request = request
+        # Shallow copy.
+        self.context = {} if context is None else context.copy()
+        self.obj = context[self.obj_kwarg] if self.obj_kwarg is not None and self.obj_kwarg in context else None
+
+    def update_context(self, data):
+        # Shallow copy.
+        sdv.nested_update(self.context, data)
+
+    # Caches context processors variables per request,
+    # instead of calling context processors per each Renderer.__str__().
+    def get_processors_context(self, template):
+        if not hasattr(self.request, 'processors_context'):
+            def get_csrf_token():
+                token = csrf.get_token(self.request)
+                return 'NOTPROVIDED' if token is None else smart_text(token)
+            context = {
+                'request': self.request,
+                'csrf_token': SimpleLazyObject(get_csrf_token)
+            }
+            for processor in template.backend.context_processors:
+                context.update(processor(self.request))
+            self.request.processors_context = context
+        return self.request.processors_context
+
+    def get_template_context(self):
+        return self.context
+
+    def get_template_basedir(self):
+        return 'render/'
+
+    def get_template_name(self):
+        template_name = self.template \
+            if self.obj_template_attr is None \
+            else getattr(self.obj, self.obj_template_attr, self.template)
+        return self.get_template_basedir() + template_name
+
+    def __str__(self):
+        template_name = self.get_template_name()
+        if template_name is None:
+            return str(self.obj)
+        else:
+            t = tpl_loader.get_template(template_name)
+            context = self.get_template_context()
+            context.update(self.get_processors_context(t))
+            html = mark_safe(t.template.render(context))
+            # Non-cached processors context version is commented out.
+            # html = t.render(request=self.request, context=self.get_template_context())
+            return html
+
+    def __call__(self, *args, **kwargs):
+        self.update_context(kwargs)
+        return self.__str__()
 
 
 # Print nested HTML list.
@@ -460,7 +525,7 @@ def get_formatted_url(url_name):
         # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
         for url_def in urlresolver.reverse_dict.getlist(url_name):
             matches = url_def[0]
-            for sprintf_url, named_parameters in matches:
+            for sprintf_url, _named_parameters in matches:
                 return '{}{}'.format(get_script_prefix(), sprintf_url)
         raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
 
@@ -569,6 +634,7 @@ class ContentTypeLinker(ModelLinker):
 
     def get_str_obj_type(self):
         return str(empty_value_display if self.obj_type is None else self.obj_type)
+
 
 # Discover grid component options from the current request / grid view.
 def discover_grid_options(request, grid_options):
