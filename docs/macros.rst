@@ -23,6 +23,11 @@ Jinja2 macros
 ModelForms
 ----------
 
+.. _macros_bs_form:
+
+bs_form()
+~~~~~~~~~
+
 `bs_form()`_ macro allows to generate html representation of ``ModelForm``::
 
     {% extends 'base_min.htm' %}
@@ -58,6 +63,12 @@ To read more about `render_form()`_ template context function and built-in form 
 
 Inline formsets
 ---------------
+
+.. _macros_bs_inline_formsets:
+
+bs_inline_formsets()
+~~~~~~~~~~~~~~~~~~~~
+
 `bs_inline_formsets()`_ is a macro that supports html rendering of one or zero Django ``ModelForm`` with one or multiple
 related inline formsets. It also supports two types of rendering layouts:
 

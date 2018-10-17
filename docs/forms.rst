@@ -3,11 +3,121 @@ Forms
 ======
 
 .. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+bootstrapmodelform
+.. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+fieldrenderer
+.. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formbodyrenderer
+.. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formsetrenderer
+.. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+inlineformrenderer
+.. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+relatedformrenderer
+.. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+renderer
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
+.. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+standaloneformrenderer
 
 Renderers
 ---------
+
+Since version 0.8.0, django-jinja-knockout uses `Renderer`_ derived classes to display Django model forms and inline
+formsets. Recent versions of Django utilize renderers with templates to display form field widgets. There are some
+packages that use renderers with templates to generate the whole forms. In addition to that, django-jinja-knockout uses
+renderers to generate the formsets with the related forms, which follows Django DRY approach. There is a possibility to
+override the displayed HTML partially or completely.
+
+The base `Renderer`_ class is located in `tpl` module and is not tied to any field / form / formset. It may be used in
+any template context.
+
+The instance of `Renderer`_ holds the following related data:
+
+* ``self.obj`` - a Python object that should be displayed
+* ``.get_template_name()`` - method to obtain a DTL or Jinja2 template name, which could be hardcoded via ``.template``
+  class attribute, or can be dynamically generated depending on the current value of ``self.obj``. See `FieldRenderer`_
+  for example of dynamic template name generation based on ``self.obj`` value, where ``self.obj`` is an instance of
+  model form field
+* ``self.context`` - a Python dict with template context that will be passed to the rendered template
+
+Such way the instance of `Renderer`_ encapsulates the object, the template with it's context to convert ``self.obj``
+into string / HTML representation. Basically it's a smart extensible string formatter. See ``.__str__()`` and
+``.__call__()`` methods of `Renderer`_ class for the implementation.
+
+The built-in renderers support both ordinary input fields POST forms (non-AJAX and AJAX versions) and the display forms
+(read-only forms).
+
+Multiple objects should not re-use the same `Renderer`_ derived instance: instead the renderers of nested objects are
+nested into each other (object composition). Here is the complete list of nested hierarchies of the built-in renderers:
+
+.. highlight:: jinja
+
+FormBodyRenderer
+~~~~~~~~~~~~~~~~
+Renders only the form body, no ``<form>`` tag, similar to how Django converts form to string.
+
+Default `FieldRenderer`_ attached to form fields will apply bootstrap HTML to the form fields / form field labels.
+
+* `FormBodyRenderer`_
+
+  * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+In Jinja2 template call `render_form()`_ template context function::
+
+    {{ render_form(request, 'body', form, opts) }}
+
+StandaloneFormRenderer
+~~~~~~~~~~~~~~~~~~~~~~
+Standalone form renderer includes the whole form with the body (fields, field labels), ``<form>`` tag, wrapped into
+bootstrap3 panel tags. It's a complete form with separate visual look which could be directly submitted to view.
+
+Render the instance of model form:
+
+* `StandaloneFormRenderer`_
+
+  * `FormBodyRenderer`_
+
+    * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+In Jinja2 template call :ref:`macros_bs_form` macro or call `render_form()`_ template context function::
+
+    {{ render_form(request, 'standalone', form, {
+        'action': action,
+        'opts': opts,
+        'method': method,
+    }) }}
+
+Rendering FormWithInlineFormsets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To render `FormWithInlineFormsets class`_, in Jinja2 template call :ref:`macros_bs_inline_formsets` macro, which calls
+the following hierarchy of renderers:
+
+* `RelatedFormRenderer`_
+
+  * `FormBodyRenderer`_
+
+    * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+* `FormsetRenderer`_ (1)
+
+  * `InlineFormRenderer`_ (1)
+
+    * `FormBodyRenderer`_ (1)
+
+      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+  * `InlineFormRenderer`_ (n)
+
+    * `FormBodyRenderer`_ (n)
+
+      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+* `FormsetRenderer`_ (n)
+
+  * `InlineFormRenderer`_ (n)
+
+    * `FormBodyRenderer`_ (n)
+
+      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+Note that is not an inheritance hierarchy but an object composition hierarchy.
+
+RendererModelForm
+~~~~~~~~~~~~~~~~~
 
 .. highlight:: python
 
