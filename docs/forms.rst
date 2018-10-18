@@ -7,10 +7,12 @@ Forms
 .. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formbodyrenderer
 .. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formsetrenderer
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+inlineformrenderer
+.. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
 .. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+relatedformrenderer
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+renderer
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
+.. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+standaloneformrenderer
 
 Renderers
@@ -142,6 +144,24 @@ Single formset is rendered with the following call::
 
     {{ formset.renderer() }}
 
+opts argument
+~~~~~~~~~~~~~
+``opts`` dict argument optionally passed to :ref:`macros_bs_form` / :ref:`macros_bs_inline_formsets` macros /
+`render_form()`_ template context function / form renderers support the following keys:
+
+* ``class`` - CSS class of bootstrap panel form wrapper;
+* ``is_ajax`` - bool, whether the form should be submitted via AJAX - by default is `False`; see `AJAX forms processing`_
+  for more info;
+* `layout_classes`_ - change default boostrap grid layout width for field labels / field inputs. See
+  :ref:`macros_layout_classes` for more details;
+* ``submit_text`` - text of form submit button; if not defined, no button will be displayed;
+* ``title`` - text of bootstrap panel title form wrapper; if not defined, no title will be displayed;
+
+Some attributes are used only by some renderers:
+
+* ``inline_title`` - the title of inline form, which could be different from ``title`` of related / standalone form;
+* ``table_classes`` - CSS classes of form table wrapper for `Displaying read-only "forms"`_;
+
 RendererModelForm
 ~~~~~~~~~~~~~~~~~
 
@@ -161,6 +181,58 @@ form class from `RendererModelForm`_ class::
 
 By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
 renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap3 attributes.
+
+Rendering customization
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The most simpliest way to customize form is to override / extend one of the default model form templates via
+overriding `RendererModelForm`_ template attributes, for example to change inline form wrapper::
+
+    class EquipmentForm(RendererModelForm):
+
+        inline_template = 'inline_equipment_form.htm'
+
+To change field templates one should override `RendererModelForm`_ ``Meta`` class ``field_templates`` dict attribute::
+
+    class ClubMemberDisplayForm(WidgetInstancesMixin, RendererModelForm, metaclass=DisplayModelMetaclass):
+
+        inline_template = 'inline_form_chevron.htm'
+        body_template = 'form_body_club_group_member_display.htm'
+
+        class Meta:
+
+            model = ClubMember
+
+            fields = [
+                'role',
+                'profile',
+                'note',
+            ]
+            field_templates = {
+                'role': 'field_items.htm',
+                'note': 'field_items.htm',
+            }
+
+To change formset template, one should set the value of formset class attribute like this::
+
+    ClubEquipmentFormSet = ko_inlineformset_factory(
+        Club, Equipment, form=EquipmentForm, extra=0, min_num=1, max_num=5, can_delete=True
+    )
+    ClubEquipmentFormSet.template = 'club_equipment_formset.htm'
+
+See `renderer template samples`_ in ``djk-sample`` project for the example of simple customization of default templates.
+
+For more advanced customization, one may override `BootstrapModelForm`_ ``Meta`` class default renderer attributes::
+
+    class MyModelForm(BootstrapModelForm):
+
+        class Meta(BootstrapModelForm.Meta):
+            render_body_cls = MyFormBodyRenderer
+            # render_inline_cls = MyInlineFormRenderer
+            # render_related_cls = MyRelatedFormRenderer
+            render_standalone_cls = MyStandaloneFormRenderer
+
+but in most of the cases overriding the templates is enough.
 
 AJAX forms processing
 ---------------------

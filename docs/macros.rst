@@ -94,6 +94,8 @@ Example of form with inline formsets rendering::
 * `bs_inline_formsets()`_ also supports ``{% call() bs_inline_formsets() %}`` syntax for complex formatting of formsets
   which is unused in this simplified example.
 
+.. _macros_layout_classes:
+
 Changing bootstrap grid layout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 One may use the custom `layout_classes`_ value as the key of the following macros ``opts`` dict argument:

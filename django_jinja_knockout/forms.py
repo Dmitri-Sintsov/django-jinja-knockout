@@ -216,8 +216,14 @@ class FormsetRenderer(Renderer):
         return context
 
 
-# Form which includes self.request and supports optional override of the field renderers.
+# Form with self.request and attributes for renderer templates, which can be overriden in derived class.
 class RendererModelForm(forms.ModelForm):
+
+    # None value means that the default template from renderer class will be used.
+    body_template = None
+    standalone_template = None
+    related_template = None
+    inline_template = None
 
     class Meta:
         field_templates = {}
@@ -233,7 +239,7 @@ class RendererModelForm(forms.ModelForm):
                     self.fields[field_name].render_template = self.Meta.field_templates[field_name]
 
 
-# Form with default renderers stylized for bootstrap3.
+# Form with default renderers stylized for bootstrap3 which can be overriden in derived class.
 class BootstrapModelForm(RendererModelForm):
 
     class Meta(RendererModelForm.Meta):

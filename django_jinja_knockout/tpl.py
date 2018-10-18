@@ -101,9 +101,11 @@ class Renderer:
         return 'render/'
 
     def get_template_name(self):
-        template_name = self.template \
-            if self.obj_template_attr is None \
-            else getattr(self.obj, self.obj_template_attr, self.template)
+        if self.obj_template_attr is None:
+            template_name = self.template
+        else:
+            obj_template = getattr(self.obj, self.obj_template_attr, self.template)
+            template_name = self.template if obj_template is None else obj_template
         return self.get_template_basedir() + template_name
 
     def __str__(self):

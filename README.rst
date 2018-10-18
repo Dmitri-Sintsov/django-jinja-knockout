@@ -8,7 +8,7 @@ django-jinja-knockout
 .. _Bootstrap 3: http://getbootstrap.com/
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
-.. _sample application: https://github.com/Dmitri-Sintsov/djk-sample
+.. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
 .. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
@@ -32,7 +32,7 @@ django-jinja-knockout
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
-Screenshot of the `sample application`_:
+Screenshot of the `sample project`_:
 
 .. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_edit_inline.png
    :width: 740px
