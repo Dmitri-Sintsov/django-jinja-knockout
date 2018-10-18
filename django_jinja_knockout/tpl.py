@@ -84,7 +84,7 @@ class Renderer:
         if not hasattr(self.request, 'processors_context'):
             def get_csrf_token():
                 token = csrf.get_token(self.request)
-                return 'NOTPROVIDED' if token is None else smart_text(token)
+                return 'NOT_PROVIDED' if token is None else smart_text(token)
             context = {
                 'request': self.request,
                 'csrf_token': SimpleLazyObject(get_csrf_token)

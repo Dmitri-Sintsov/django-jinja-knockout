@@ -19,38 +19,60 @@ Renderers
 Since version 0.8.0, django-jinja-knockout uses `Renderer`_ derived classes to display Django model forms and inline
 formsets. Recent versions of Django utilize renderers with templates to display form field widgets. There are some
 packages that use renderers with templates to generate the whole forms. In addition to that, django-jinja-knockout uses
-renderers to generate the formsets with the related forms, which follows Django DRY approach. There is a possibility to
-override the displayed HTML partially or completely.
+renderers to generate the formsets with the related forms, which follows Django DRY approach. It's possible to override
+the displayed HTML partially or completely.
 
 The base `Renderer`_ class is located in `tpl` module and is not tied to any field / form / formset. It may be used in
 any template context.
 
 The instance of `Renderer`_ holds the following related data:
 
-* ``self.obj`` - a Python object that should be displayed
+* ``self.obj`` - a Python object that should be displayed (converted to HTML / string);
 * ``.get_template_name()`` - method to obtain a DTL or Jinja2 template name, which could be hardcoded via ``.template``
-  class attribute, or can be dynamically generated depending on the current value of ``self.obj``. See `FieldRenderer`_
-  for example of dynamic template name generation based on ``self.obj`` value, where ``self.obj`` is an instance of
-  model form field
-* ``self.context`` - a Python dict with template context that will be passed to the rendered template
+  class attribute, or can be dynamically generated depending on the current value of ``self.obj``.
 
-Such way the instance of `Renderer`_ encapsulates the object, the template with it's context to convert ``self.obj``
-into string / HTML representation. Basically it's a smart extensible string formatter. See ``.__str__()`` and
-``.__call__()`` methods of `Renderer`_ class for the implementation.
+  See `FieldRenderer`_ for example of dynamic template name generation based on ``self.obj`` value, where ``self.obj``
+  is an instance of model form field;
+* ``self.context`` - a Python dict with template context that will be passed to the rendered template;
+
+The instance of `Renderer`_ encapsulates the object and the template with it's context to convert ``self.obj`` to
+string / HTML representation. Basically, it's an extensible string formatter. See ``.__str__()`` and ``.__call__()``
+methods of `Renderer`_ class for the implementation.
 
 The built-in renderers support both ordinary input fields POST forms (non-AJAX and AJAX versions) and the display forms
-(read-only forms).
+(read-only forms): `Displaying read-only "forms"`_.
 
 Multiple objects should not re-use the same `Renderer`_ derived instance: instead the renderers of nested objects are
 nested into each other (object composition). Here is the complete list of nested hierarchies of the built-in renderers:
 
 .. highlight:: jinja
 
+FieldRenderer
+~~~~~~~~~~~~~
+Renders model form field.
+
+Default `FieldRenderer`_ attached to each form field will apply bootstrap HTML to the form fields / form field labels.
+It supports both input fields POST forms (non-AJAX and AJAX versions) and the display forms (read-only forms):
+`Displaying read-only "forms"`_. Templates are chosen dynamically depending on the field type.
+
+The instance of `FieldRenderer`_ is attached to each visible form field. By default the form fields are rendered this
+way::
+
+    {% for field in form.visible_fields() -%}
+        {{ field.renderer() }}
+    {% endfor -%}
+
+It's possible to render "raw" field with::
+
+    {{ field }}
+
+and to render the list of selected fields with::
+
+    {{ render_fields(form, 'field1', 'fieldN') }}
+
 FormBodyRenderer
 ~~~~~~~~~~~~~~~~
 Renders only the form body, no ``<form>`` tag, similar to how Django converts form to string.
-
-Default `FieldRenderer`_ attached to form fields will apply bootstrap HTML to the form fields / form field labels.
 
 * `FormBodyRenderer`_
 
@@ -63,9 +85,9 @@ In Jinja2 template call `render_form()`_ template context function::
 StandaloneFormRenderer
 ~~~~~~~~~~~~~~~~~~~~~~
 Standalone form renderer includes the whole form with the body (fields, field labels), ``<form>`` tag, wrapped into
-bootstrap3 panel tags. It's a complete form with separate visual look which could be directly submitted to view.
+bootstrap3 panel tags. It's a complete HTML form with separate visual look which could be directly submitted to view.
 
-Render the instance of model form:
+Renders the instance of model form:
 
 * `StandaloneFormRenderer`_
 
@@ -114,15 +136,19 @@ the following hierarchy of renderers:
 
       * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
-Note that is not an inheritance hierarchy but an object composition hierarchy.
+Note that is the composition hierarchy of instances, not a class inheritance hierarchy.
+
+Single formset is rendered with the following call::
+
+    {{ formset.renderer() }}
 
 RendererModelForm
 ~~~~~~~~~~~~~~~~~
 
 .. highlight:: python
 
-While it's possible to use renderers with ordinary Django ``ModelForm`` class, still the recommended way is to derive
-model form class from `RendererModelForm`_ class::
+While it's possible to use renderers with ordinary Django ``ModelForm`` class, the recommended way is to derive model
+form class from `RendererModelForm`_ class::
 
     from django_jinja_knockout.forms import RendererModelForm
 
@@ -165,7 +191,7 @@ If your class-based views extends one of the following view classes::
     django_jinja_knockout.views.InlineCreateView
     # Next view is suitable both for updating ModelForms with inline formsets
     # as well for displaying read-only forms with forms.DisplayModelMetaclass.
-    django_jinja_knockout.views.InlineDetailView
+    django_jinja_knockout.views.InlineCrudView
 
 .. highlight:: jinja
 
@@ -256,20 +282,19 @@ Bootstrap 3 table::
     {% extends 'base_min.htm' %}
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 
-    {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=[], action='', opts={
-        'class': 'project',
-        'title': form.instance,
-        'submit_text': 'My submit button'
-    }) %}
-
-    {% endcall %}
+    {{
+        bs_inline_formsets(related_form=form, formsets=[], action='', opts={
+            'class': 'project',
+            'title': form.get_title(),
+        })
+    }}
 
 .. highlight:: python
 
-Such "forms" do not contain ``<input>`` elements and thus cannot be submitted, additionally you may use::
+Such "forms" do not contain ``<input>`` elements and thus cannot be submitted, additionally you may inherit
+from ``UnchangeableModelMixin``::
 
-    django_jinja_knockout.forms.UnchangableModelMixin
+    from django_jinja_knockout.forms import UnchangeableModelMixin
 
 to make sure bound model instances cannot be updated via custom script submission (Greasemonkey?).
 
