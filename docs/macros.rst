@@ -10,8 +10,10 @@ Jinja2 macros
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
+.. _club_list_with_component.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_list_with_component.htm
 .. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
+.. _ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+listsortingview
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 
@@ -242,7 +244,7 @@ bs_breadcrumbs()
 ~~~~~~~~~~~~~~~~
 
 `bs_breadcrumbs()`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
-``ListSortingView`` class `.get_filter_args()`_ call::
+`ListSortingView`_ class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
@@ -252,7 +254,7 @@ bs_choice_list()
 ~~~~~~~~~~~~~~~~
 
 `bs_choice_list()`_ macro generates the flat list of the currently selected filter choices from the result of
-``ListSortingView`` class `.get_filter_args()`_ call::
+`ListSortingView`_ class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_choice_list(*view.get_filter_args(field)) }}
@@ -262,12 +264,24 @@ bs_dropdown()
 ~~~~~~~~~~~~~
 
 `bs_dropdown()`_ macro generates bootstrap dropdown of the current filter choices from the result of
-``ListSortingView`` class `.get_filter_args()`_ call::
+`ListSortingView`_ class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_dropdown(*view.get_filter_args(field)) }}
     {% endfor -%}
 
+bs_filters()
+~~~~~~~~~~~~
+
+Displays the list of `ListSortingView`_ filters which produce empty queryset::
+
+    {{ bs_filters(**view.get_no_match_kwargs()) }}
+
+bs_list()
+~~~~~~~~~
+
+Displays current page of the supplied queryset with pagination links stylized for bootstrap. For the example of
+customizing `ListSortingView`_ filters / pagination see djk-sample `club_list_with_component.htm`_ Jinja2 template.
 
 bs_tabs()
 ~~~~~~~~~

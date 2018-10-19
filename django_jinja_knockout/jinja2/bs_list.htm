@@ -8,10 +8,13 @@
         <h3 class="panel-title">{{ view.get_heading() }}</h3>
     </div>
     <div class="panel-body">
-        {% for field in view.allowed_filter_fields -%}
-            {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
-        {% endfor -%}
-
+        {% if caller and 'has_filters' in caller.arguments -%}
+            {{ caller(has_filters=True) }}
+        {% else -%}
+            {% for field in view.allowed_filter_fields -%}
+                {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
+            {% endfor -%}
+        {% endif -%}
         {% if object_list -%}
             <table {{ tpl.json_flatatt(view.get_table_attrs()) }}>
             {% for obj in object_list -%}
@@ -49,13 +52,21 @@
         {% else -%}
             <div class="jumbotron">
                 <div class="default-padding">
+                {% if caller and 'has_no_match' in caller.arguments -%}
+                    {{ caller(has_no_match=True) }}
+                {% else -%}
                     {{ bs_filters(**view.get_no_match_kwargs()) }}
+                {% endif -%}
                 </div>
             </div>
         {% endif -%}
 
         {% if object_list and is_paginated -%}
-            {{ bs_pagination(cbv=view, page_obj=page_obj) }}
+            {% if caller and 'has_pagination' in caller.arguments -%}
+                {{ caller(has_pagination=True) }}
+            {% else -%}
+                {{ bs_pagination(cbv=view, page_obj=page_obj) }}
+            {% endif -%}
         {% endif -%}
 
     </div>
