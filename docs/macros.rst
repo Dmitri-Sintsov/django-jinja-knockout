@@ -280,8 +280,35 @@ Displays the list of `ListSortingView`_ filters which produce empty queryset::
 bs_list()
 ~~~~~~~~~
 
-Displays current page of the supplied queryset with pagination links stylized for bootstrap. For the example of
-customizing `ListSortingView`_ filters / pagination see djk-sample `club_list_with_component.htm`_ Jinja2 template.
+Displays current page of the supplied ``ListView`` / `ListSortingView`_  view instance ``object_list`` (queryset) with
+``page_obj`` pagination links stylized for bootstrap. It supports optional call wrapper. Call wrapper supports three
+optional arguments to provide three optional caller sections. To override all three ``has_filters``, ``has_no_match``,
+``has_pagination`` caller sections::
+
+    {% call(has_filters, has_no_match, has_pagination) bs_list(view, object_list, is_paginated, page_obj) -%}
+        {% if has_filters -%}
+            {# insert custom filters layout here #}
+        {% elif has_no_match -%}
+            {# insert custom filters layout here #}
+        {% elif has_pagination -%}
+            {# insert custom pagination layout here #}
+        {% endif -%}
+    {% endcall -%}
+
+To override just one ``has_filters`` caller section::
+
+    {% call(has_filters) bs_list(view, object_list, is_paginated, page_obj) -%}
+        {% if has_filters -%}
+            {# insert custom filters layout here #}
+        {% endif -%}
+    {% endcall -%}
+
+No override (no call)::
+
+    bs_list(view, object_list, is_paginated, page_obj)
+
+For the example of customizing `ListSortingView`_ has_filters section / has_pagination section see djk-sample
+`club_list_with_component.htm`_ Jinja2 template.
 
 bs_tabs()
 ~~~~~~~~~
@@ -296,7 +323,6 @@ defined in `app.js`_:
   dynamic components, such as grids.
 
 djk_sample demo project has `bs_tabs() sample`_ / `App.TabPane sample`_ which places grids into bootstrap tabs.
-
 
 The first mandatory argument of `bs_tabs()`_ macro is the ``tabs`` list. Each element of the ``tabs`` list should be the
 dict that defines content of each tab. The following mandarory key-value pairs are required:
