@@ -11,3 +11,4 @@ Contents:
    forms
    macros
    viewmodels
+   views

@@ -15,17 +15,20 @@ Quickstart
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _DisplayText sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_text_method&type=
 .. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+.. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
-.. _grids documentation: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
+.. _ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+listsortingview
+.. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
 .. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
+.. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
@@ -36,7 +39,7 @@ app.js / tooltips.js
 
 Viewmodels (client-side response routing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-See `viewmodels`_ for detailed explanation.
+See `viewmodels`_ for the detailed explanation.
 
 * Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
   attributes without defining DOM event handler and implicit callback.
@@ -54,7 +57,7 @@ Simplifying AJAX calls
 * ``App.routeUrl`` - mapping of Django server-side route urls to client-side Javascript.
 * ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
 * ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
-  By default requires only an ``is_ajax=True`` argument of ``bs_form()`` / ``bs_inline_formsets()`` Jinja2 macros.
+  By default requires only an ``is_ajax=True`` argument of `bs_form()`_ / `bs_inline_formsets()`_ Jinja2 macros.
   The whole process of server-side to client-side validation errors mapping is performed by
   ``FormWithInlineFormsetsMixin.form_valid()`` / ``form_invalid()`` methods, defined in ``django_jinja_knockout.views``.
   Also supports class-based view ``get_success_url()`` automatic client-side redirect on success.
@@ -220,15 +223,19 @@ Then to subscribe that method to this.meta.rowsPerPage() changes::
 
     this.subscribeToMethod(['meta', 'rowsPerPage']);
 
-An example of temporary unsubscription / subscription to method, used to alter observable value without an observation::
+An example of temporary unsubscription / subscription to the method, used to alter observable value without the
+execution of an observation handler::
 
     Grid.listCallback = function(data) {
         // ... skipped ...
-        // Temporarily disable meta.rowsPerPage() subscription.
+        // Temporarily disable meta.rowsPerPage() subscription:
         this.disposeMethod(['meta', 'rowsPerPage']);
+
+        // Update observable data but .on_meta_rowsPerPage() will not be executed:
         this.meta.prevRowsPerPage = this.meta.rowsPerPage();
         this.meta.rowsPerPage(data.rowsPerPage);
-        // Re-enable meta.rowsPerPage() subscription.
+
+        // Re-enable meta.rowsPerPage() subscription:
         this.subscribeToMethod(['meta', 'rowsPerPage']);
         // ... skipped ...
     }
@@ -347,9 +354,12 @@ Injection of server-side data into loaded page
 
 Injection of Django url routes into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* ``App.conf.url`` - Python tuple from ``context_processors.TemplateContextProcessor.CLIENT_ROUTES`` defines selected
-  list of Django url routes mapped to Javascript object to be used with AJAX requests from Javascript (to do not have
-  hard-coded app urls in Javascript code). Since version 0.2.0, also supports url names with kwargs.
+* ``App.conf.url`` - JSON-ified Python set from ``context_processors.TemplateContextProcessor`` module ``CLIENT_ROUTES``
+  variable that defines selected list of Django url routes mapped to Javascript object to be used with AJAX requests
+  from Javascript. It allows not to have hard-coded app urls in Javascript code. Since version 0.2.0, it supports url
+  names with kwargs.
+
+  Read `viewmodels`_ documentation how to add custom client-side urls (``client_routes``) per view.
 
 Contenttypes framework helpers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -393,6 +403,8 @@ Miscelaneous
 
 forms.py / formsets.js
 ----------------------
+See `forms`_ for the detailed explanation.
+
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3. Since version 0.4.0 it also always has
   ``request`` attribute for convenience to be used in ``clean()`` method and so on.
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
@@ -481,38 +493,6 @@ the application (for example to pass it to celery task)::
 
     ContextMiddleware.get_request_timezone()
 
-Views kwargs
-~~~~~~~~~~~~
-
-Views are secured with urls that deny access to anonymous / inactive users by default. Anonymous views require explicit
-permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
-
-    from my_app.views import signup
-    # ...
-    url(r'^signup/$', signup, name='signup', kwargs={'allow_anonymous': True})
-
-Optional checks for AJAX requests and / or specific Django permission::
-
-    from my_app.views import check_project
-    # ...
-    url(r'^check-project/$', check_project, name='check_project', kwargs={
-        'ajax': True, 'permission_required': 'my_app.project_can_add'
-    })
-
-View title is optionally defined as url kwargs ``'view_title'`` key value::
-
-    from my_app.views import signup
-    # ...
-    url(r'^signup/$', signup, name='signup', kwargs={'view_title': 'Sign me up', 'allow_anonymous': True})
-
-.. highlight:: jinja
-
-to be used in generic Jinja2 templates (one template per many views)::
-
-    {{ request.view_title }}
-
-View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
-
 .. highlight:: python
 
 Request mock-up
@@ -534,7 +514,7 @@ Mini-router
 ~~~~~~~~~~~
 
 Since version 0.7.0 inherited middleware classes (see :ref:`installation_djk_middleware` settings) support built-in mini
-router, which could be used to implement CBV-like logic in middleware class itself, either via string match or via
+router, which could be used to implement CBV-like logic in middleware class itself, either via string match or via the
 regexp::
 
     class ContextMiddleware(RouterMiddleware):
@@ -602,7 +582,7 @@ FilteredRawQuerySet
 It supports ``.filter()`` / ``.exclude()`` / ``.order_by()`` / ``values()`` / ``values_list()``
 queryset methods and also SQL-level slicing which is much more efficient than Python slicing of ``RawQuerySet``.
 
-These methods are used by filtering / ordering code in ``ListSortingView`` and ``KoGridView`` class-based views.
+These methods are used by filtering / ordering code in `ListSortingView`_ and `KoGridView`_ class-based views.
 
 See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
 raw query which has ``LEFT JOIN`` statement.
@@ -720,55 +700,11 @@ Internally ``str_dict()`` uses lower level ``flatten_dict()`` function which is 
 viewmodels.py
 -------------
 Server-side Python functions and classes to manipulate lists of client-side viewmodels. Mostly are used with AJAX JSON
-responses and in ``app.js`` client-side response routing.
+responses and in ``app.js`` client-side response routing. Read `viewmodels`_ documentation for more info.
 
 views submodule
 ---------------
-.. highlight:: python
-
-* ``auth_redirect()`` - authorization required response with redirect to login. Supports next' url query argument.
-  Supports JSON viewmodel response.
-* ``error_response()`` / ``exception_response()`` - wrappers around ``django.http.HttpResponseBadRequest`` to allow JSON
-  viewmodel response in AJAX requests in case of error / exception occured.
-* ``cbv_decorator()`` - may be used to check class-based views permissions.
-* ``prepare_bs_navs()`` - used to highlight current url in Bootstrap 3 navbars.
-* ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
-  ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
-* ``FoldingPaginationMixin`` - ``ListView`` / ``ListSortingView`` mixin that enables advanced pagination in
-  ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
-* ``FormWithInlineFormsetsMixin`` - CBV mixin with built-in support of ``django_jinja_knockout.forms``
-  ``FormWithInlineFormsets``.
-  There is one ``ModelForm`` and one or many related ``BaseInlineFormset``. ``ModelForm`` also is optional (can be
-  ``None``). Also supports client-side addition and removal of inline forms via Knockout.js custom bindings. HTML
-  rendering usually is performed with Bootstrap 3 Jinja2 ``bs_inline_formsets()`` macro.
-* ``InlineCreateView`` - CBV view to create new models with one to many related models.
-* ``InlineDetailView`` - CBV view to display or to update models with one to many related models. Suitable both for
-  CREATE and for VIEW actions, last case via ``ModelForm`` with ``metaclass=DisplayModelMetaclass``.
-* ``ListSortingView`` - ``ListView`` with built-in support of sorting and field filtering::
-
-    from django_jinja_knockout.views import ListSortingView
-
-    from .models import Club
-
-    class ClubList(ListSortingView):
-
-        model = Club
-        allowed_sort_orders = '__all__'
-        allowed_filter_fields = {
-            # None value will autodetect field filter choices, when possible.
-            'category': None,
-        }
-        grid_fields = [
-            'title',
-            'category',
-            'foundation_date',
-        ]
-
-
-* ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
-  class-based view.
-* ``KoGridView`` - together with ``grid.js`` allows to create AJAX powered django.admin-like grids with filtering,
-  sorting, search, CRUD actions and custom actions. See `grids documentation`_ for more details.
+See `views`_ for the detailed explanation.
 
 widgets.py
 ----------

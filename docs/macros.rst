@@ -10,13 +10,13 @@ Jinja2 macros
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
+.. _cbv_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_list.htm
 .. _club_list_with_component.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_list_with_component.htm
 .. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
-.. _ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+listsortingview
+.. _prepare_bs_navs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=prepare_bs_navs
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
-
 .. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
 .. _App.TabPane sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.TabPane
 
@@ -244,7 +244,7 @@ bs_breadcrumbs()
 ~~~~~~~~~~~~~~~~
 
 `bs_breadcrumbs()`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
-`ListSortingView`_ class `.get_filter_args()`_ call::
+:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
@@ -254,7 +254,7 @@ bs_choice_list()
 ~~~~~~~~~~~~~~~~
 
 `bs_choice_list()`_ macro generates the flat list of the currently selected filter choices from the result of
-`ListSortingView`_ class `.get_filter_args()`_ call::
+:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_choice_list(*view.get_filter_args(field)) }}
@@ -264,7 +264,7 @@ bs_dropdown()
 ~~~~~~~~~~~~~
 
 `bs_dropdown()`_ macro generates bootstrap dropdown of the current filter choices from the result of
-`ListSortingView`_ class `.get_filter_args()`_ call::
+:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_dropdown(*view.get_filter_args(field)) }}
@@ -273,17 +273,18 @@ bs_dropdown()
 bs_filters()
 ~~~~~~~~~~~~
 
-Displays the list of `ListSortingView`_ filters which produce empty queryset::
+Displays the list of :ref:`quickstart_listsortingview` filters which produce empty queryset::
 
     {{ bs_filters(**view.get_no_match_kwargs()) }}
 
 bs_list()
 ~~~~~~~~~
 
-Displays current page of the supplied ``ListView`` / `ListSortingView`_  view instance ``object_list`` (queryset) with
-``page_obj`` pagination links stylized for bootstrap. It supports optional call wrapper. Call wrapper supports three
-optional arguments to provide three optional caller sections. To override all three ``has_filters``, ``has_no_match``,
-``has_pagination`` caller sections::
+Displays current page of the supplied ``ListView`` / :ref:`quickstart_listsortingview`  view instance ``object_list``
+(queryset) with ``page_obj`` paginator links stylized for bootstrap. It has the optional call wrapper which supports
+three optional arguments to provide three optional caller sections: ``has_filters``, ``has_no_match``, ``has_pagination``.
+
+To override all of the caller sections::
 
     {% call(has_filters, has_no_match, has_pagination) bs_list(view, object_list, is_paginated, page_obj) -%}
         {% if has_filters -%}
@@ -303,18 +304,25 @@ To override just one ``has_filters`` caller section::
         {% endif -%}
     {% endcall -%}
 
-No override (no call)::
+No override (no call) see `cbv_list.htm`_ for example::
 
-    bs_list(view, object_list, is_paginated, page_obj)
+    {{ bs_list(view, object_list, is_paginated, page_obj) }}
 
-For the example of customizing `ListSortingView`_ has_filters section / has_pagination section see djk-sample
-`club_list_with_component.htm`_ Jinja2 template.
+For the example of customizing :ref:`quickstart_listsortingview` has_filters section / has_pagination section see the
+djk-sample `club_list_with_component.htm`_ Jinja2 template.
+
+bs_navs()
+~~~~~~~~~
+This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`quickstart_bstabsmixin` template
+context ``main_navs`` variable to display automatically switched server-side boostrap navigation tabs. Do not confuse to
+`bs_tabs()`_ macro, which is similar but switches between tabs is performed at the client-side via ``App.TabPane``
+Javascript class.
 
 bs_tabs()
 ~~~~~~~~~
 
-`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App.TabPane`` class,
-defined in `app.js`_:
+`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App.TabPane`` Javascript
+class, defined in `app.js`_:
 
 * ``.show()`` method enables automatic switching of bootstrap tab panes upon page load and via window.location.hash
   change. Hash change may occur programmatically from user script, or via clicking the anchor with matching hash name.
