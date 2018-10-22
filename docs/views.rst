@@ -1,12 +1,35 @@
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
+.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 
 Views kwargs
-~~~~~~~~~~~~
+------------
 
-Views are secured by the middleware with urls that deny access to anonymous / inactive users by default. Anonymous views
-require explicit permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
+The built-in middleware is applied only to the views which belong to modules (Django apps) registered in project
+``settings`` module ``DJK_APPS`` variable like this::
+
+    DJK_APPS = (
+        'my_app',
+    )
+
+    INSTALLED_APPS = (
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'django.contrib.sites',
+        'django_jinja',
+        'django_jinja.contrib._humanize',
+        'django_jinja_knockout',
+    ) + DJK_APPS
+
+See ``djk-sample`` `settings.py`_ for the complete example.
+
+``DJK_APPS`` views are secured by the middleware with urls that deny access to anonymous / inactive users by default.
+Anonymous views require explicit permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
 
     from my_app.views import signup
     # ...
@@ -34,16 +57,10 @@ to be used in generic Jinja2 templates (one template per many views)::
 
 View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
 
-* ``auth_redirect()`` - authorization required response with redirect to login. Supports 'next' url query argument.
-  Supports JSON viewmodel response.
-* ``error_response()`` / ``exception_response()`` - wrappers around ``django.http.HttpResponseBadRequest`` to allow JSON
-  viewmodel response in AJAX requests in case of error / exception occured.
-* ``cbv_decorator()`` - may be used to check class-based views permissions.
-* ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
-  class-based view.
+.. highlight:: python
 
 FormWithInlineFormsetsMixin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 The base class for the set of class-based views that create / edit the related form with the inline formsets with
 built-in support of ``django_jinja_knockout.forms`` module ``FormWithInlineFormsets`` class.
 
@@ -61,13 +78,13 @@ The following views inherit this class:
 .. _views_bstabsmixin:
 
 BsTabsMixin
-~~~~~~~~~~~
+-----------
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
   ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
 * ``prepare_bs_navs()`` - used to highlight current url in Bootstrap 3 navbars.
 
-To implement server-side tabs navigation, one should define the class inherited from :ref:`views_bstabsmixin`
-and to define custom `.get_main_navs()`_ method of this class. For the example::
+To implement server-side tabs navigation, one should define class inherited from `BsTabsMixin`_ with custom
+`.get_main_navs()`_ method of this class. For the example::
 
     class ClubNavsMixin(BsTabsMixin):
 
@@ -116,8 +133,9 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
 .. _views_listsortingview:
 
 ListSortingView
-~~~~~~~~~~~~~~~
-* `ListSortingView`_ - ``ListView`` with built-in support of sorting and field filtering::
+---------------
+
+`ListSortingView`_ is a ``ListView`` with built-in support of sorting and field filtering::
 
     from django_jinja_knockout.views import ListSortingView
 
@@ -140,5 +158,15 @@ ListSortingView
 * ``FoldingPaginationMixin`` - ``ListView`` / `ListSortingView`_ mixin that enables advanced pagination in
   ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
 
+Useful methods / classes of the views module
+--------------------------------------------
+
+* ``auth_redirect()`` - authorization required response with redirect to login. Supports 'next' url query argument.
+  Supports JSON viewmodel response.
+* ``error_response()`` / ``exception_response()`` - wrappers around ``django.http.HttpResponseBadRequest`` to allow JSON
+  viewmodel response in AJAX requests in case of error / exception occured.
+* ``cbv_decorator()`` - may be used to check class-based views permissions.
+* ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
+  class-based view.
 * `KoGridView`_ - together with ``grid.js`` allows to create AJAX powered django.admin-like datatables with filtering,
   sorting, search, CRUD actions and custom actions. See :doc:`grids` for more details.
