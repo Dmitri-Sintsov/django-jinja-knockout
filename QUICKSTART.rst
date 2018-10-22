@@ -15,7 +15,6 @@ Quickstart
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _DisplayText sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_text_method&type=
 .. _field lookups: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
-.. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _FilteredRawQuerySet sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=FilteredRawQuerySet
@@ -24,12 +23,9 @@ Quickstart
 .. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
 .. _ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+listsortingview
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
-.. _macros: https://django-jinja-knockout.readthedocs.io/en/latest/macros.html
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
-.. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
-.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Key features overview
 
@@ -39,7 +35,7 @@ app.js / tooltips.js
 
 Viewmodels (client-side response routing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-See `viewmodels`_ for the detailed explanation.
+See :doc:`viewmodels` for the detailed explanation.
 
 * Separates AJAX calls from their callback processing, allowing to specify AJAX routes in button html5 data
   attributes without defining DOM event handler and implicit callback.
@@ -359,7 +355,7 @@ Injection of Django url routes into loaded page
   from Javascript. It allows not to have hard-coded app urls in Javascript code. Since version 0.2.0, it supports url
   names with kwargs.
 
-  Read `viewmodels`_ documentation how to add custom client-side urls (``client_routes``) per view.
+  Read :doc:`viewmodels` documentation how to add custom client-side urls (``client_routes``) per view.
 
 Contenttypes framework helpers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -403,7 +399,7 @@ Miscelaneous
 
 forms.py / formsets.js
 ----------------------
-See `forms`_ for the detailed explanation.
+See :doc:`forms` for the detailed explanation.
 
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3. Since version 0.4.0 it also always has
   ``request`` attribute for convenience to be used in ``clean()`` method and so on.
@@ -485,7 +481,7 @@ Access to current HTTP request instance anywhere in form / formset / field widge
   POST arguments can be initialized via ``ContextMiddleware`` class ``.mock_request()`` method, before calling
   ``.get_request()``.
 
-Support optional client-side `viewmodels`_ injection from current user session.
+Support optional client-side :doc:`viewmodels` injection from current user session.
 
 Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
 Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
@@ -700,11 +696,11 @@ Internally ``str_dict()`` uses lower level ``flatten_dict()`` function which is 
 viewmodels.py
 -------------
 Server-side Python functions and classes to manipulate lists of client-side viewmodels. Mostly are used with AJAX JSON
-responses and in ``app.js`` client-side response routing. Read `viewmodels`_ documentation for more info.
+responses and in ``app.js`` client-side response routing. Read :doc:`viewmodels` documentation for more info.
 
 views submodule
 ---------------
-See `views`_ for the detailed explanation.
+See :doc:`views` for the detailed explanation.
 
 widgets.py
 ----------
@@ -726,7 +722,7 @@ widgets.py
 
   Widget allows to specify custom formatting callback to display complex fields, including foreign relationships,
   pre-defined string mapping for scalar ``True`` / ``False`` / ``None`` and layout override for `bs_form()`_ /
-  `bs_inline_formsets()`_ Jinja2 `macros`_. Note that it's possible to call these macros from Django language
+  `bs_inline_formsets()`_ :doc:`macros`. Note that it's possible to call these macros from Django language
   templates like this::
 
     {% jinja 'bs_form.htm' with _render_=1 form=form action=view_action opts=opts %}
@@ -781,8 +777,8 @@ emails with attachments. In case sendmail error is occured, error message can be
 
 When there is no form submitted or it's undesirable to add form's non-field error, ``request`` named argument of
 ``.flush()`` may be supplied instead. It also works with both AJAX and non-AJAX views. AJAX views would use client-side
-`viewmodels`_, displaying error messages in BootstrapDialog window. Non-AJAX views would use Django messaging framework
-to display sendmail errors::
+:doc:`viewmodels`, displaying error messages in BootstrapDialog window. Non-AJAX views would use Django messaging
+framework to display sendmail errors::
 
     from django_jinja_knockout.utils.mail import EmailQueue
 

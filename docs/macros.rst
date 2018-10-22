@@ -244,7 +244,7 @@ bs_breadcrumbs()
 ~~~~~~~~~~~~~~~~
 
 `bs_breadcrumbs()`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
-:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
+:ref:`views_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
@@ -254,7 +254,7 @@ bs_choice_list()
 ~~~~~~~~~~~~~~~~
 
 `bs_choice_list()`_ macro generates the flat list of the currently selected filter choices from the result of
-:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
+:ref:`views_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_choice_list(*view.get_filter_args(field)) }}
@@ -264,7 +264,7 @@ bs_dropdown()
 ~~~~~~~~~~~~~
 
 `bs_dropdown()`_ macro generates bootstrap dropdown of the current filter choices from the result of
-:ref:`quickstart_listsortingview` class `.get_filter_args()`_ call::
+:ref:`views_listsortingview` class `.get_filter_args()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
         {{ bs_dropdown(*view.get_filter_args(field)) }}
@@ -273,14 +273,14 @@ bs_dropdown()
 bs_filters()
 ~~~~~~~~~~~~
 
-Displays the list of :ref:`quickstart_listsortingview` filters which produce empty queryset::
+Displays the list of :ref:`views_listsortingview` filters which produce empty queryset::
 
     {{ bs_filters(**view.get_no_match_kwargs()) }}
 
 bs_list()
 ~~~~~~~~~
 
-Displays current page of the supplied ``ListView`` / :ref:`quickstart_listsortingview`  view instance ``object_list``
+Displays current page of the supplied ``ListView`` / :ref:`views_listsortingview`  view instance ``object_list``
 (queryset) with ``page_obj`` paginator links stylized for bootstrap. It has the optional call wrapper which supports
 three optional arguments to provide three optional caller sections: ``has_filters``, ``has_no_match``, ``has_pagination``.
 
@@ -308,13 +308,13 @@ No override (no call) see `cbv_list.htm`_ for example::
 
     {{ bs_list(view, object_list, is_paginated, page_obj) }}
 
-For the example of customizing :ref:`quickstart_listsortingview` has_filters section / has_pagination section see the
+For the example of customizing :ref:`views_listsortingview` has_filters section / has_pagination section see the
 djk-sample `club_list_with_component.htm`_ Jinja2 template.
 
 bs_navs()
 ~~~~~~~~~
-This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`quickstart_bstabsmixin` template
-context ``main_navs`` variable to display automatically switched server-side boostrap navigation tabs. Do not confuse to
+This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`views_bstabsmixin` template context
+``main_navs`` variable to display automatically switched server-side boostrap navigation tabs. Do not confuse to
 `bs_tabs()`_ macro, which is similar but switches between tabs is performed at the client-side via ``App.TabPane``
 Javascript class.
 

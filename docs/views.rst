@@ -58,7 +58,7 @@ The following views inherit this class:
 * ``InlineDetailView`` - CBV view to display or to update models with one to many related models. Suitable both for
   CREATE and for VIEW actions, last case via ``ModelForm`` with ``metaclass=DisplayModelMetaclass``.
 
-.. _quickstart_bstabsmixin:
+.. _views_bstabsmixin:
 
 BsTabsMixin
 ~~~~~~~~~~~
@@ -66,7 +66,7 @@ BsTabsMixin
   ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
 * ``prepare_bs_navs()`` - used to highlight current url in Bootstrap 3 navbars.
 
-To implement server-side tabs navigation, one should define the class inherited from :ref:`quickstart_bstabsmixin`
+To implement server-side tabs navigation, one should define the class inherited from :ref:`views_bstabsmixin`
 and to define custom `.get_main_navs()`_ method of this class. For the example::
 
     class ClubNavsMixin(BsTabsMixin):
@@ -113,7 +113,7 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
         def get_success_url(self):
             return reverse('club_detail', kwargs={'club_id': self.object.pk})
 
-.. _quickstart_listsortingview:
+.. _views_listsortingview:
 
 ListSortingView
 ~~~~~~~~~~~~~~~
