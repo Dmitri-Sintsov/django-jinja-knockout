@@ -1,3 +1,7 @@
+==============
+Built-in views
+==============
+
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
@@ -57,12 +61,21 @@ to be used in generic Jinja2 templates (one template per many views)::
 
 View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
 
-.. highlight:: python
+
+.. _views_formwithinlineformsetsmixin:
 
 FormWithInlineFormsetsMixin
 ---------------------------
+
+.. highlight:: python
+
 The base class for the set of class-based views that create / edit the related form with the inline formsets with
 built-in support of ``django_jinja_knockout.forms`` module ``FormWithInlineFormsets`` class.
+
+It supports both non-AJAX and AJAX form submission and validation. AJAX validation and AJAX success action is performed
+with built-in extensible :doc:`viewmodels`. By default it supports class-based view ``.get_success_url()`` automatic
+client-side redirect on success which can be replaced to another AJAX viewmodel handler via overriding this method in
+derived view class.
 
 Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
 supported via Knockout.js custom bindings with XSS protection. HTML rendering usually is performed with Bootstrap 3
