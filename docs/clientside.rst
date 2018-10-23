@@ -21,6 +21,7 @@ Implements client-side helper classes, including:
 * `Underscore.js templates`_
 * `Components`_
 * `Multiple level Javascript class inheritance`_
+* ``App.Dialog`` BootstrapDialog wrapper.
 
 Client-side initialization
 --------------------------
@@ -100,11 +101,8 @@ Simplifying AJAX calls
   Supports multiple Django POST routes for the same AJAX form via multiple ``input[type="submit"]`` buttons in the
   generated form html body.
 
-* ``App.Dialog`` BootstrapDialog wrapper.
 * ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django and allow to export named Django
   urls like ``url(name='my_url_name')`` to be used in client-side code directly.
-
-.. _quickstart_underscore_js_templates:
 
 Global IoC
 ----------
@@ -123,6 +121,8 @@ global instances in user scripts like this::
         }
     }};
 
+.. _clientside_underscore_js_templates:
+
 Underscore.js templates
 -----------------------
 Underscore.js templates can be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction with
@@ -130,7 +130,7 @@ Knockout.js templates to generate components, for example AJAX grids (Django dat
 
 Since version 0.5.0 template processor was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
 template processor class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom template processor class
-could override one of (sub)templates loading methods ``expandTemplate()`` or ``compileTemplate()``.
+could override one of the (sub)templates loading methods ``.expandTemplate()`` or ``.compileTemplate()``.
 
 In the underscore.js template execution context, the instance of `App.Tpl`_ class is available as ``self`` variable.
 Thus calling `App.Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
@@ -144,7 +144,7 @@ Internally template processor is used for optional client-side overriding of def
 * ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
 * ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
-* ``App.bindTemplates`` - templates class factory used by `App.initClient`_ autoinitialization of DOM nodes.
+* ``App.bindTemplates`` - templates class factory used by `App.initClient`_ auto-initialization of DOM nodes.
 
 The following html5 data attributes are used by `App.Tpl`_ template processor:
 
@@ -162,6 +162,11 @@ The following html5 data attributes are used by `App.Tpl`_ template processor:
 
     * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow.
     * ``.templates`` - key map of template ids to optionally substitute template names.
+
+Since version 0.8.0, the DOM attributes of the template holder tag different from ``data-template-*`` are copied to the
+root DOM node of the expanded template. This allows to get the rid of template wrapper when using the templates as
+the foundation of components. For example datatables / grid templates do not use separate wrapper tag anymore and thus
+become simpler.
 
 Components
 ----------
@@ -189,10 +194,8 @@ passed as constructor argument.
 JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
 is generated in Jinja2 macro, such as `ko_grid()`_::
 
-    <div{{ tpl.json_flatatt(wrapper_dom_attrs) }} data-component-options='{{ _grid_options|escapejs(True) }}'>
-    <a name="{{ fragment_name }}"></a>
-        <div{{ tpl.json_flatatt(_template_dom_attrs) }}>
-        </div>
+    {% if fragment_name is defined -%}<a name="{{ fragment_name }}"></a>{% endif -%}
+    <div{{ tpl.json_flatatt(_dom_attrs) }}>
     </div>
 
 .. highlight:: javascript
@@ -223,7 +226,7 @@ Then in your component shutdown code call ``App.components`` instance ``.unbind(
         }
     };
 
-See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX grids via click events.
+See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
 
 Because ``App.GridDialog`` class constructor may have many options, including dynamically-generated ones, it's
 preferable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.

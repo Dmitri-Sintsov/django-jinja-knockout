@@ -334,14 +334,15 @@ class via `App.components`_ class instance `.add()` method to make grid "alive".
 * Optional ``template_args`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
   which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
   visually long enough so we turn on vertical scrolling for these via ``"vscroll":`` ``true`` (which is off by default).
-* Optional ``wrapper_dom_attrs`` argument is used to set extra DOM attributes of component template. It passes the value
-  of component DOM id attribute which may then be used to get the instance of component (instance of ``App.ko.Grid``
-  class). It is especially useful in pages which define multiple grids (datatables) that interact to each other. See
-  `Grids interaction`_ for more details.
-* Optional ``template_dom_attrs`` argument allows to pass custom values of template ``data-template-id``,
-  ``data-template-args``, ``data-template-options`` html attributes used by template processor ``App.Tpl``.
-  See :ref:`quickstart_underscore_js_templates` for more detail on these attributes usage. See also
-  `member_grid_tabs.htm`_ for the example.
+* Optional ``dom_attrs`` argument is used to set extra DOM attributes of the component template:
+
+  It may provide the value of component DOM ``id`` attribute which may then be used to get the instance of component
+  (instance of ``App.ko.Grid`` class). It is especially useful in the pages which define multiple grids (datatables)
+  that interact to each other. See `Grids interaction`_ for more details.
+
+  It also allows to pass custom values of template ``data-template-id``, ``data-template-args``, ``data-template-options``
+  html attributes used by template processor ``App.Tpl``. See :ref:`clientside_underscore_js_templates` for more detail
+  on these attributes usage. See also `member_grid_tabs.htm`_ for the example of overriding the template.
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
 * See `app.js`_ `App.components`_ instance for the details of client-side components implementation.
@@ -1330,9 +1331,9 @@ nodes of ``App.ko.Grid`` component. This feature is rarely used since version 0.
 offers more simpler ways to override root ``ko_grid_body`` underscore.js template at client-side.
 
 It is possible to override some or all underscore.js templates of ``App.ko.Grid`` component. ``ko_grid()`` macro allows
-to override built-in grid templates with custom ones by providing ``template_dom_attrs`` argument with
-``'data-template-options'`` attribute key / values. In the example just below ``'member_ko_grid_filter_choices'`` and
-``'member_ko_grid_body'`` will be called instead of default templates.
+to override built-in grid templates with custom ones by providing ``dom_attrs`` argument with ``'data-template-options'``
+attribute key / values. In the example just below ``'member_ko_grid_filter_choices'`` and ``'member_ko_grid_body'``
+will be called instead of default templates.
 
 When custom grid templates are defined, one may wish not to include unused standard grid templates. To include only
 selected standard grid templates, there are optional arguments of ``ko_grid_body()`` Jinja2 macro with the lists of
@@ -1369,10 +1370,8 @@ Full code::
             template_args={
                 'vscroll': True
             },
-            wrapper_dom_attrs={
-                'id': 'member_grid'
-            },
-            template_dom_attrs={
+            dom_attrs={
+                'id': 'member_grid',
                 'data-template-options': {
                     'templates': {
                         'ko_grid_body': 'member_ko_grid_body',
@@ -1768,7 +1767,7 @@ template)::
             'pageRoute': 'club_member_grid',
             'pageRouteKwargs': {'club_id': club_id},
         },
-        wrapper_dom_attrs={
+        dom_attrs={
             'id': 'club_member_grid'
         }
     ) }}
@@ -1910,7 +1909,7 @@ To make sure ``ClubMemberGrid`` action ``'list'`` respects ``allowed_filter_fiel
             'pageRoute': 'club_member_grid',
             'separateMeta': True,
         },
-        wrapper_dom_attrs={
+        dom_attrs={
             'id': 'club_member_grid'
         }
     ) }}
@@ -1975,7 +1974,7 @@ When one supplies custom initial ordering of rows that does not match default Dj
             'pageRoute': 'club_grid_with_action_logging',
             'defaultOrderBy': {'foundation_date': '-'},
         },
-        wrapper_dom_attrs={
+        dom_attrs={
             'id': 'club_grid'
         }
     ) }}
@@ -3160,7 +3159,7 @@ method::
             this.meta.user_name = ko.observable();
         };
 
-        Model1Grid.uiActionTypes = ['button', 'click', 'glyphicon', 'button_bottom'];
+        Model1Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon', 'button_bottom'];
 
         Model1Grid.iocGridActions = function(options) {
             return new App.Model1GridActions(options);
@@ -3220,10 +3219,8 @@ And the final step is to generate client-side component in Jinja2 template with 
         grid_options={
             'pageRoute': 'model1_grid',
         },
-        wrapper_dom_attrs={
-            'id': 'model1_grid'
-        },
-        template_dom_attrs={
+        dom_attrs={
+            'id': 'model1_grid',
             'data-template-options': {
                 'templates': {
                     'ko_grid_body': 'model1_ko_grid_body',
