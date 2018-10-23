@@ -277,21 +277,22 @@ ko_grid() macro
 Jinja2 macro ``ko_grid()`` generates html code of client-side component which looks like this in the generated page
 html::
 
-    <div class="component" data-component-class="App.ko.ClubGrid" id="club_grid"
-        data-component-options='{"defaultOrderBy": {"foundation_date": "-"}, "pageRoute": "club_grid_with_action_logging"}'>
-        <a name="club_grid"></a>
-        <div data-template-args="{'show_pagination': true, 'show_title': true, 'vscroll': true}"
-            data-template-id="ko_grid_body"
-            data-template-options="{'meta_is_grid': true}">
-        </div>
+    <a name="club_grid"></a>
+    <div class="component"
+        data-component-class="App.ko.ClubGrid"
+        id="club_grid"
+        data-component-options='{"defaultOrderBy": {"foundation_date": "-"}, "pageRoute": "club_grid_with_action_logging"}'
+        data-template-args="{'show_pagination': true, 'show_title': true, 'vscroll': true}"
+        data-template-id="ko_grid_body"
+        data-template-options="{'meta_is_grid': true}">
     </div>
 
 The code is inserted into web page body block. This HTML is not the full DOM subtree of grid but an initial stub.
 It will be automatically expanded with the content of `underscore.js template`_ with name ``ko_grid_body`` by
-`App.bindTemplates`_ called in `App.initClientHooks`_.
+`App.bindTemplates`_ called in `App.initClientHooks`_. See :ref:`clientside_underscore_js_templates` for more details.
 
-At next step, expanded DOM subtree will be automatically bound to newly created instance of ``App.ko.Grid`` Javascript
-class via `App.components`_ class instance `.add()` method to make grid "alive".
+At the next step, expanded DOM subtree will be automatically bound to newly created instance of ``App.ko.Grid``
+Javascript class via `App.components`_ class instance `.add()` method to make the grid "alive".
 
 ``ko_grid()`` macro accepts the following kwargs:
 
