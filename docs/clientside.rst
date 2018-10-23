@@ -1,8 +1,10 @@
 ===================
 Client-side support
 ===================
+.. _App.documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
+.. _App.initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClient+%3D+function
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
@@ -18,6 +20,23 @@ Implements client-side helper classes, including:
 * `Underscore.js templates`_
 * `Components`_
 * `Multiple level Javascript class inheritance`_
+
+Client-side initialization
+--------------------------
+There are two different hooks / methods of client-side initialization.
+
+One is for non-AJAX ``$(document).ready()`` page content, another one is for AJAX content and dynamic Underscore.js /
+Knockout.js template content.
+
+``$(document).ready()`` event handler uses it's own hook system with `App.documentReadyHooks`_ function list, to do not
+interfere with external scripts code.
+
+AJAX content from the viewmodels / Underscore.js / Knockout.js templates has the dynamic styles / event handlers /
+plugins applied separately via `App.initClient`_ Javascript class instance.
+
+Custom ``'formset:added'`` jQuery event automatically supports client initialization, eg form field classes / form field
+event handlers when the new form is added to inline formset dynamically.
+
 
 Viewmodels (client-side response routing)
 -----------------------------------------
@@ -52,13 +71,6 @@ Simplifying AJAX calls
 * ``App.Dialog`` BootstrapDialog wrapper.
 * ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django and allow to export named Django
   urls like ``url(name='my_url_name')`` to be used in client-side code directly.
-
-* Client initialization performed separately from ``$(document).ready()`` initialization, because client initialization
-  also may be used for dynamically added HTML DOM content (from AJAX response or via Knockout.js templates).
-  For example, custom ``'formset:added'`` jQuery event automatically supports client initialization (field classes /
-  field event handlers) when new form is added to inline formset dynamically.
-* ``$(document).ready()`` event handler uses it's own hook system for plugins, to do not interfere with external scripts
-  code.
 
 .. _quickstart_underscore_js_templates:
 
@@ -100,7 +112,7 @@ Internally template processor is used for optional client-side overriding of def
 * ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
 * ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
-* ``App.bindTemplates`` - templates class factory used by ``App.initClient`` autoinitialization of DOM nodes.
+* ``App.bindTemplates`` - templates class factory used by `App.initClient`_ autoinitialization of DOM nodes.
 
 The following html5 data attributes are used by `App.Tpl`_ template processor:
 
@@ -279,7 +291,7 @@ jQuery plugins
 * ``$.autogrow`` plugin to automatically expand text lines of textarea elements;
 * ``$.linkPreview`` plugin to preview outer links in secured html5 iframes;
 * ``$.scroller`` plugin - AJAX driven infinite vertical scroller;
-* ``$.fn.replaceWithTag`` plugin to replace HTML tag with another one, used by ``App.initClient`` and by
+* ``$.fn.replaceWithTag`` plugin to replace HTML tag with another one, used by `App.initClient`_ and by
   `Underscore.js templates`_ to create custom tags.
 
 .. highlight:: html
