@@ -1,9 +1,12 @@
-=====
-Grids
-=====
+==================
+Datatables / Grids
+==================
 
 .. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
+
+.. _the source code: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout
+.. _the sample project code: https://github.com/Dmitri-Sintsov/djk-sample/
 
 .. _base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
 .. _base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
@@ -3269,7 +3272,7 @@ actions attached directly to datatable pagination list.
 
 Grids API
 ---------
-Todo: implement. See `Grids`_ documentation and sample project at https://github.com/Dmitri-Sintsov/djk-sample/
+Todo: implement. See `the source code`_ and `the sample project code`_.
 
 * App.FilterDialog
 * App.GridDialog

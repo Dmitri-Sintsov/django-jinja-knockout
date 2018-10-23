@@ -1,4 +1,5 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ActionsView
+.. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
 .. _GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=GridActionsMixin
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ViewmodelView
@@ -173,7 +174,7 @@ ListSortingView
             'foundation_date',
         ]
 
-* ``FoldingPaginationMixin`` - ``ListView`` / `ListSortingView`_ mixin that enables advanced pagination in
+* `FoldingPaginationMixin`_ - ``ListView`` / `ListSortingView`_ mixin that enables advanced pagination in
   ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
 
 Viewmodels views and actions views
