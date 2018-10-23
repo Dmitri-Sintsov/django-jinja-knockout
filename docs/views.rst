@@ -1,3 +1,8 @@
+.. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ActionsView
+.. _GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=GridActionsMixin
+.. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
+.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ViewmodelView
+
 ==============
 Built-in views
 ==============
@@ -170,6 +175,19 @@ ListSortingView
 
 * ``FoldingPaginationMixin`` - ``ListView`` / `ListSortingView`_ mixin that enables advanced pagination in
   ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
+
+Viewmodels views and actions views
+----------------------------------
+* `ViewmodelView`_ - base view; GET request usually generates html template, POST - returns AJAX viewmodels. It
+  is the base class for the following built-in classes:
+
+* `ActionsView`_ - implements AJAX actions router and their viewmodels responses. Actions allow to perform different
+  AJAX POST requests to the same view. The responses are the AJAX viewmodels.
+* `ModelFormActionsView`_ - implements AJAX actions specific to Django ModelForm / inline formsets handling: rendering
+  form / validating / saving. It is also the base class for grids (datatables) actions, because the editing of datatables
+  includes form editing via `GridActionsMixin`_.
+
+For the more detailed explanation of these views see :ref:`viewmodels_ajax_actions`.
 
 Useful methods / classes of the views module
 --------------------------------------------
