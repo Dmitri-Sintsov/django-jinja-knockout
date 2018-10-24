@@ -1,6 +1,8 @@
 ===================
 Client-side support
 ===================
+.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.components
+.. _App.ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.componentmanager
 .. _App.documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
@@ -12,6 +14,7 @@ Client-side support
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
+.. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
 app.js
 ------
@@ -170,7 +173,7 @@ become simpler.
 
 Components
 ----------
-``App.Components`` class allows to automatically instantiate Javascript classes by their string path specified in
+`App.Components`_ class allows to automatically instantiate Javascript classes by their string path specified in
 element's ``data-component-class`` html5 attribute and bind these to that element. It is used to provide Knockout.js
 ``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to that.
 
@@ -211,7 +214,7 @@ like this::
         this.doStuff();
     };
 
-Then in your component shutdown code call ``App.components`` instance ``.unbind()`` method, then ``.add()`` method::
+Then in your component shutdown code call `App.components`_ instance ``.unbind()`` method, then ``.add()`` method::
 
     MyComponent.onHide = function() {
         // Run your shutdown code ...
@@ -229,14 +232,101 @@ Then in your component shutdown code call ``App.components`` instance ``.unbind(
 
 See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
 
-Because ``App.GridDialog`` class constructor may have many options, including dynamically-generated ones, it's
+Because `App.GridDialog`_ class constructor may have many options, including dynamically-generated ones, it's
 preferable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
 
 Search for `data-component-class`_ in djk-sample code for the examples of both document ready and button click
 component binding.
 
+Since version 0.8.0, components use `App.ComponentManager`_ class which provides the support for nested components and
+for sparse components.
+
+Nested components
+~~~~~~~~~~~~~~~~~
+
+.. highlight:: html
+
+Since version 0.8.0 it's possible to nest component DOM nodes recursively unlimited times::
+
+    <div class="component" data-component-class="App.ko.Grid">
+        <input type="button" value="Grid button" data-bind="click: onClick()">
+        <div class="component" data-component-class="App.MyComponent">
+            <input type="button" value="My component button" data-bind="click: onClick()">
+        </div>
+    </div>
+
+The Knockout.js bindings will be provided correctly to ``App.ko.Grid`` class instance ``onClick()`` method for the
+``Grid button`` and to ``App.MyComponent`` class instance ``onClick()`` method for the ``My component button``.
+
+Note that to achieve nested binding, DOM subtrees of nested components are detached until the outer components are run.
+Thus, in case the outer component is run on some event, for example ``data-event="click"``, nested component nodes will
+be hidden until outer component is run via the click event. Thus it's advised to think carefully when using nested
+components running on events, while the default document ready nested components have no such possible limitation.
+
+The limitation is not so big, however because most of the components have dynamic content populated only when they run.
+
+See the demo project example of nested datatable grid component: `member_grid_tabs.htm`_.
+
+Sparse components
+~~~~~~~~~~~~~~~~~
+
+.. highlight:: jinja
+
+In some cases the advanced layout of the page requires one component to be bound to the multiple separate DOM subtrees
+of the page. In such case sparse components may be used. To specify sparse component, add ``data-component-selector``
+HTML attribute to it with the jQuery selector that should select sparse DOM nodes bound to that component.
+
+Let's define the datatable grid::
+
+    {{
+        ko_grid(
+            grid_options={
+                'classPath': 'App.ko.ClubEditGrid',
+                'pageRoute': 'club_edit_grid',
+                'pageRouteKwargs': {'club_id': view.kwargs['club_id']},
+            },
+            dom_attrs={
+                'id': 'club_edit_grid',
+                'class': 'club-edit-grid',
+                'data-component-selector': '.club-edit-grid',
+            }
+        )
+    }}
+
+
+.. highlight:: html
+
+Let's define separate row list and the action button to add new row for this grid located in arbitrary location of the
+page::
+
+    <div class="club-edit-grid">
+        <div data-bind="visible:gridRows().length > 0" style="display: none;">
+            <h3>Grid rows:</h3>
+            <ul class="auto-highlight" data-bind="foreach: {data: $('#club_edit_grid').component().gridRows, as: 'row'}">
+                <li>
+                    <a data-bind="text: row.displayValues.name, attr: {href: App.routeUrl('member_detail', {member_id: row.values.member_id})}"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div>This div is the separate content that is not bound to the component.</div>
+    <div class="club-edit-grid">
+        <button class="btn-choice btn-info club-edit-grid" data-bind="click: function() { this.performAction('create_inline'); }">
+            <span class="glyphicon glyphicon-plus"></span> Add row
+        </button>
+    </div>
+
+When the document DOM will be ready, ``App.ClubEditGrid`` class will be bound to three DOM subtrees, one is generated
+via ``ko_grid()`` Jinja2 macro and two located inside separate ``<div class="club-edit-grid">`` wrappers.
+
+Sparse components may also include inner non-sparse (single DOM subtree) nested components. Nesting of sparse components
+is unsupported.
+
 Knockout.js subscriber
 ----------------------
+
+.. highlight:: javascript
+
 Since version 0.7.0, there is Javascript class `App.ko.Subscriber`_ which may be used as mixin to Knockout.js viewmodels
 classes to control viewmodel methods subscriptions. To add mixin to your class::
 

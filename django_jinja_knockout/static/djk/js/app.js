@@ -2488,7 +2488,7 @@ App.ComponentManager = function(options) {
 
 /**
  * Nested components support.
- * Detaches / reattaches innter component DOM nodes to avoid overlapped binding of outer component.
+ * Detaches / reattaches inner component DOM nodes to avoid overlapped binding of outer component.
  *
  * Supported:
  *     single DOM subtree nested components;
