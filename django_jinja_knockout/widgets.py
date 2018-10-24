@@ -264,12 +264,12 @@ class ForeignKeyGridWidget(DisplayText):
         else:
             js_class_path = 'App.FkGridWidget'
         return format_html(
-            '<span {wrapper_attrs}>'
+            '<span {component_attrs}>'
             '<input {final_attrs}/>'
             '<span class="fk-display preformatted">{display_value}</span>'
             '<button class="fk-choose btn btn-info default-margin">{change}</button>'
             '</span>',
-            wrapper_attrs=flatatt({
+            component_attrs=flatatt({
                 'class': 'component',
                 'data-component-class': js_class_path,
                 'data-component-options': to_json(self.grid_options),

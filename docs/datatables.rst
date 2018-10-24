@@ -1,6 +1,6 @@
-==================
-Datatables / Grids
-==================
+==========
+Datatables
+==========
 
 .. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
@@ -62,13 +62,16 @@ Datatables / Grids
 Introduction
 ------------
 Client-side `grid.js`_ script and server-side `views.ajax.KoGridView`_ Python class provide possibility to create
-AJAX-powered grids (datatables) for Django models, similar to traditional ``django.contrib.admin`` built-in module which
-implements such functionality with traditional server-side HTML generation, using underscore.js / knockout.js
-client-side templates instead. As both libraries are small-size and are cached by browsers, HTTP traffic is minimized.
+AJAX-powered datatables (grids) for Django models, using underscore.js / knockout.js client-side templates.
+
+It makes datatables from Django models similar to traditional ``django.contrib.admin`` built-in module, but provides the
+advantages of HTTP traffic minimization, multiple / nested widgets and custom client-side features such as compound
+columns.
 
 `views.ajax.KoGridView`_ and `views.list.ListSortingView`_ have common ancestor class `views.base.BaseFilterView`_,
 which allows to partially share the functionality between AJAX datatables and traditional paginated lists, although
-currently grids (datatables) are more featured and support wider variety of model field filters.
+currently datatables (grids) are more featured and support wider variety of model field filters. See :doc:`views` for
+more info about `views.list.ListSortingView`_.
 
 `knockout.js`_ viewmodels are used to display / update AJAX datatables.
 
@@ -81,18 +84,19 @@ There are key advantages of using AJAX calls to render Django Model datatables:
   another datatable when current datatable is updated). See `Grids interaction`_.
 * Custom filters / form widgets that may utilize nested AJAX datatables. See `Grid fields`_, `Filter fields`_.
 * In-place CRUD actions for grid rows via associated ``ModelForm`` and / or inline formsets with AJAX submission
-  directly via BootstrapDialog. See `Standard grid actions`_, `ForeignKeyGridWidget`_.
+  directly via BootstrapDialog. See `Standard actions`_, `ForeignKeyGridWidget`_.
 
 Besides pagination of model data rows, default CRUD actions are supported and can be easily enabled for grids datatables.
-Custom grid actions both for the whole grid as well as for specific columns can be implemented by inheriting / extending
+Custom grid actions for the whole grid as well as for the specific columns can be implemented by inheriting / extending
 ``App.ko.Grid`` Javascript class and / or `views.ajax.KoGridView`_ Python class.
 
-Possible ways of grid usage
----------------------------
-* AJAX grids (datatables) injected into Jinja2 templates as client-side components with `ko_grid() macro`_.
+Possible ways of usage
+----------------------
+* AJAX datatables (grids) injected into Jinja2 templates as client-side components with `ko_grid() macro`_.
 * Optional `Foreign key filter`_ for AJAX grid components.
-* Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget``-like functionality for
+* Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget`` - like functionality for
   ``ModelForm`` to select foreign key field value via AJAX query / response.
+* Pop-up AJAX datatable browser via `App.GridDialog`_.
 
 Inheritance chain
 -----------------
@@ -103,9 +107,9 @@ The current version >=0.7.0 inheritance chain is:
 * ``ModelFormActionsView(ActionsView, FormViewmodelsMixin)`` - AJAX actions to display / edit Django ModelForm / inline
   formsets;
 * ``GridActionsMixin(ModelFormActionsView)`` - AJAX actions to display / process ModelForm datatable (grid);
-* ``KoGridView(BaseFilterView, GridActionsMixin)`` - includes all the actions and functionality from above classes and
-  adds common code base for paginated datatables - ``BaseFilterView`` also used by non-AJAX `views.list.ListSortingView`_
-  .
+* ``KoGridView(BaseFilterView, GridActionsMixin)`` - includes all the actions and functionality from the above classes
+  and adds common code base for paginated datatables - ``BaseFilterView`` also used by non-AJAX `views.list.ListSortingView`_
+  (see :doc:`views`).
 
 Models used in this documentation
 ---------------------------------
@@ -205,8 +209,8 @@ This documentation refers to Django models with one to many relationship defined
             str_fields = self.get_str_fields()
             return str_dict(str_fields)
 
-Simplest grid
--------------
+Simplest datatable
+------------------
 
 If you have Django model created and migrated, then it is quite easy to add grid for that model to Django app Jinja2
 template, providing your templates are inherited from `base_min.htm`_, or based on a custom-based template which
@@ -319,13 +323,14 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
     * ``searchPlaceholder`` - text to display when search field is empty.
     * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
     * ``showSelection`` - enable selection of single rows (one model instance of grid).
-    * ``ownerCtrl`` - used internally to embed client-side parts of grids (datatables) into another classes, for example
+    * ``ownerCtrl`` - used internally to embed client-side parts of datatables (grids) into another classes, for example
       into `ForeignKeyGridWidget`_ dialogs and `Foreign key filter`_. The value of this option should be the instance of
       Javascript class, thus it is unused in server-side ``ko_grid()`` macro and should be provided in the inherited
       client-side class instead.
 
-      * See `Customizing visual display of grid fields at client-side`_ for a simple example of grid inheritance.
-      * See `App.GridDialog`_ code for the example of ``ownerCtrl`` usage.
+      * See `Customizing visual display of fields at client-side`_ for a simple example of grid inheritance.
+      * See `App.GridDialog`_ code for the example of embedding grid into another Javascript class via ``ownerCtrl``
+        property.
 
     * ``selectMultipleRows`` - set to ``True`` to enable multiple rows selection. Can be used to perform action with
       querysets of models, not just one Model instance. Use ``objects = self.get_queryset_for_action()`` in Django
@@ -338,7 +343,7 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
 * Optional ``dom_attrs`` argument is used to set extra DOM attributes of the component template:
 
   It may provide the value of component DOM ``id`` attribute which may then be used to get the instance of component
-  (instance of ``App.ko.Grid`` class). It is especially useful in the pages which define multiple grids (datatables)
+  (instance of ``App.ko.Grid`` class). It is especially useful in the pages which define multiple datatables (grids)
   that interact to each other. See `Grids interaction`_ for more details.
 
   It also allows to pass custom values of template ``data-template-id``, ``data-template-args``, ``data-template-options``
@@ -358,10 +363,10 @@ as ``ko_grid_body``) that are applied automatically to each grid component DOM n
 ``ko_grid()`` Jinja2 macro.
 
 Then `cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `grid.js`_. The script is not
-so small, and datatables are not always displayed at each Django page, so it is not included in `base_min.htm`_
-``bottom_scripts`` block by default to make total pages traffic lower. However, it's size is well-justified knowing
-that it is loaded just once for all grids of the site. Usually it's cached at client-side by browser, which reduces
-quite a lot of HTTP traffic for grid pagination and grid actions.
+so small, and datatables are not always displayed at each Django page, so it is not included into `base_min.htm`_
+``bottom_scripts`` block by default. However, it's size is well-justified knowing that it is loaded just once for all
+grids of the site. Usually it's cached at client-side by the browser, which reduces quite a lot of HTTP traffic for grid
+pagination and grid actions.
 
 .. highlight:: jinja
 
@@ -387,8 +392,8 @@ Since version 0.4.1, ``ko_grid_body()`` macro includes two versions of filter fi
     }}
 
   ``exclude_ids`` argument saves a bit of html removing unused underscore.js templates from the resulting page.
-  It is also possible to have multiple grids datatables with different styles of filters at the same page, in such case
-  do not use ``exclude_ids`` argument.
+  It is also possible to have multiple grids datatables with different styles of filters at the same page. In such case
+  ``exclude_ids`` argument should not be used.
   There is `cbv_grid_breadcrumbs.htm`_ Jinja2 macro that could be used as ``template_name`` value of ``KoGridView``
   derived grid class attribute to use breadcrumb-style filters. See sample project `club_app.views_ajax`_ for the
   example.
@@ -567,7 +572,7 @@ Nested verbose field names
 
 .. highlight:: python
 
-Since version 0.5.0, grids datatables and grid-based classes like `ForeignKeyGridWidget`_ support displaying verbose /
+Since version 0.5.0, grid datatables and grid-based classes like `ForeignKeyGridWidget`_ support displaying verbose /
 localized field names of Django model instances with their values, including foreign key related model fields. It is
 supported in the following cases:
 
@@ -656,8 +661,8 @@ initialize grid ``related_models`` class level property as the list of tuple pai
 To override automatic collecting of Django model verbose field names, one has to define Django model @classmethod
 ``get_fields_i18n``, which should return a dict with keys as field names and values as their verbose / localized names.
 
-Customizing visual display of grid fields at client-side
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Customizing visual display of fields at client-side
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: javascript
 
@@ -1431,15 +1436,15 @@ Full code::
 
 See `member_grid_tabs.htm`_, `member-grid.js`_, `club_app.views_ajax`_ for the complete example.
 
-===================
-Grid action routing
-===================
+==============
+Action routing
+==============
 
 .. highlight:: python
 
-Grids (datatables) support arbitrary number of built-in and custom actions besides standard CRUD. Thus grid requests do
+Datatables (grids) support arbitrary number of built-in and custom actions besides standard CRUD. Thus grid requests do
 not use HTTP method routing such as PUT DELETE, which would be too limiting approach. All of grid actions are performed
-as HTTP POST; Django class-based view kwarg ``action`` value is used for routing in ``urls.py``::
+as HTTP POST; Django class-based view kwarg ``action`` value in ``urls.py`` is used to determine the current action::
 
     from my_app.views import Model1Grid
 
@@ -1760,8 +1765,8 @@ Then, grid class may filter base queryset according to received ``club_id`` view
 
 .. highlight:: jinja
 
-Jinja2 template should contain component generation like this (do not forget to pass ``club_id`` when rendering the
-template)::
+The component template should provide the options with specified view kwargs values. One have to pass proper initial
+``pageRouteKwargs`` ``club_id`` key / value when rendering the template::
 
     {{ ko_grid(
         grid_options={
@@ -1794,11 +1799,11 @@ widgets may be filtered as well::
             }),
         ])
 
-=====================
-Standard grid actions
-=====================
+================
+Standard actions
+================
 
-Since version 0.6.0 grids (datatables) are based on generic `views.ActionsView`_ class which allows to interact with
+Since version 0.6.0 datatables (grids) are based on generic `views.ActionsView`_ class which allows to interact with
 any client-side AJAX component. See :ref:`viewmodels_ajax_actions` for more info.
 
 By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
@@ -1831,7 +1836,7 @@ Returns AJAX response data:
 * verbose names of associated Django model fields and related models verbose field names, see
   `Nested verbose field names`_ (``'meta.listOptions'`` / ``'meta.fkNestedListOptions'``);
 * name of primary key field ``'meta.pkField'`` that is used in different parts of ``App.ko.Grid`` to address grid rows;
-* list of defined grid actions, See `Standard grid actions`_, `Grid action routing`_, `Grid custom action types`_;
+* list of defined grid actions, See `Standard actions`_, `Action routing`_, `Custom action types`_;
 * allowed grid fields (list of grid columns), see `Grid configuration`_;
 * field filters which will be displayed in top navigation bar of grid client-side component via ``'ko_grid_nav'``
   underscore.js template, see `Filter fields`_;
@@ -2777,7 +2782,7 @@ and finally to define ``'profile_fk_widget_grid'`` url name in ``urls.py``::
         # kwargs={'ajax': True, 'permission_required': 'club_app.change_profile'}),
         kwargs={'ajax': True}),
 
-Typical usage of ModelForm such as ``MemberForm`` is to perform CRUD actions in views (or grids datatables) with Django
+Typical usage of ModelForm such as ``MemberForm`` is to perform CRUD actions in views or in grids datatables with Django
 model instances. In such case do not forget to inject url name of ``'profile_fk_widget_grid'`` to client-side for AJAX
 requests to work automatically.
 
@@ -2864,12 +2869,12 @@ Since version 0.2.0 it's possible to include Jinja2 templates from Django templa
 * See `club_grid.html`_ for example of grid templates generation in Django Template Language.
 
 The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to the definition of
-``'fkGridOptions'`` value for `Foreign key filter`_. Both embed grids (datatables) inside BootstrapDialog, with the
+``'fkGridOptions'`` value for `Foreign key filter`_. Both embed datatables (grids) inside BootstrapDialog, with the
 following differences:
 
 * ``'fk' filter`` limits grid queryset.
 * ``ForeignKeyGridWidget`` is used to set foreign key value, to be later submitted via ``ModelForm``, including
-  traditional HTML request / response and AJAX request / :doc:`viewmodels`.
+  traditional HTML request / response and AJAX request. See :doc:`viewmodels` / :doc:`views`.
 
 Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
 component class instead of ``App.ko.Grid`` component class.
@@ -3077,9 +3082,9 @@ Here is the code of grid AJAX callbacks::
 * Full code of client-side part is available in `club-grid.js`_ script.
 * See also ``dom_attrs`` argument of `ko_grid() macro`_ for explanation how grid component DOM id is set.
 
-========================
-Grid custom action types
-========================
+===================
+Custom action types
+===================
 .. highlight:: python
 
 It is possible to define new grid action types. However to display these at client-side one has to use custom templates,

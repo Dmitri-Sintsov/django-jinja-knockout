@@ -201,4 +201,4 @@ Useful methods / classes of the views module
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
   class-based view.
 * `KoGridView`_ - together with ``grid.js`` allows to create AJAX powered django.admin-like datatables with filtering,
-  sorting, search, CRUD actions and custom actions. See :doc:`grids` for more details.
+  sorting, search, CRUD actions and custom actions. See :doc:`datatables` for more details.

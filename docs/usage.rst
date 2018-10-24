@@ -8,7 +8,7 @@ Contents:
    :maxdepth: 2
 
    clientside
-   grids
+   datatables
    forms
    macros
    viewmodels

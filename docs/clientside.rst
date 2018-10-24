@@ -65,7 +65,7 @@ To call all the chain of 'dispose' handlers::
     App.initClient($selector, 'dispose');
 
 Note that the handlers usually are callled automatically, except for grid rows where one has to use grid .useInitClient
-option to enable .initClient() call for grid rows DOM. See :doc:`grids` for more info.
+option to enable .initClient() call for grid rows DOM. See :doc:`datatables` for more info.
 
 Custom ``'formset:added'`` jQuery event automatically supports client initialization, eg form field classes / form field
 event handlers when the new form is added to inline formset dynamically.

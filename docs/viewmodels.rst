@@ -594,8 +594,8 @@ AJAX actions
 ------------
 Since version 0.6.0, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
 `App.Actions`_ at client-side, which utilize the same viewmodel handler for multiple actions. It allows to better
-structurize AJAX code. `ModelFormActionsView`_ and `KoGridView`_ (see :doc:`grids`) inherit from `ActionsView`_, while
-client-side `App.ModelFormActions`_ and `App.GridActions`_ (see :doc:`grids`) inherit from `App.Actions`_.
+structurize AJAX code. `ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side
+`App.ModelFormActions`_ and `App.GridActions`_ inherit from `App.Actions`_. See (see :doc:`datatables`) for more info.
 
 Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel_name`` Python attribute /
 `App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
@@ -700,6 +700,6 @@ Custom grid actions should be inherited from both ``App.GridActions`` and it's b
         this.init(options);
     };
 
-For more detailed example of using viewmodel actions routing, see see :doc:`grids` section
+For more detailed example of using viewmodel actions routing, see see :doc:`datatables` section
 :ref:`grids_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_ and
 by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
