@@ -2423,11 +2423,11 @@ void function(Grid) {
         }
         this.hasSelectAllRows(this.checkAllRowsSelected());
         // Temporarily disable meta.rowsPerPage() subscription.
-        this.disposeMethod(['meta', 'rowsPerPage']);
+        this.disposeMethod('meta.rowsPerPage');
         this.meta.prevRowsPerPage = this.meta.rowsPerPage();
         this.meta.rowsPerPage(data.rowsPerPage);
         // Re-enable meta.rowsPerPage() subscription.
-        this.subscribeToMethod(['meta', 'rowsPerPage']);
+        this.subscribeToMethod('meta.rowsPerPage');
         // Set grid pagination viewmodels.
         this.setKoPagination(data.totalPages, data.page);
     };
