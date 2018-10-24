@@ -2108,6 +2108,14 @@ App.post = function(route, data, options) {
 };
 
 
+App.propChain = function(propChain) {
+    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
+        return propChain.split(/\./);
+    } else {
+        return propChain;
+    }
+};
+
 /**
  * A supplementary function to App.propGet() which gets the immediate parent of property instead of it's value.
  * This allows to check the type of property before accessing it.
@@ -2115,9 +2123,7 @@ App.post = function(route, data, options) {
 App.propGetParent = function(self, propChain) {
     var prop = self;
     var propName;
-    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
-        propChain = propChain.split(/\./);;
-    }
+    propChain = App.propChain(propChain);
     if (_.isArray(propChain)) {
         propName = propChain[propChain.length - 1];
         for (var i = 0; i < propChain.length - 1; i++) {
@@ -2138,9 +2144,7 @@ App.propGetParent = function(self, propChain) {
 
 App.propSet = function(self, propChain, val) {
     var prop = (self === null)? window : self;
-    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
-        propChain = propChain.split(/\./);;
-    }
+    propChain = App.propChain(propChain);
     if (_.isArray(propChain)) {
         for (var i = 0; i < propChain.length - 1; i++) {
             var propName = propChain[i];
@@ -2292,6 +2296,7 @@ App.ko.Subscriber = function() {};
 void function(Subscriber) {
 
     Subscriber.getPropSubscription = function(propChain, methodChain) {
+        propChain = App.propChain(propChain);
         if (typeof methodChain === 'undefined') {
             var propHash = (typeof propChain === 'string') ? $.capitalize(propChain) : '_' + propChain.join('_');
             methodChain = 'on' + propHash;

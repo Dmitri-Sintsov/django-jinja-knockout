@@ -180,7 +180,8 @@ Since version 0.3.0, components can be also instantiated via target element even
 To enable that, define ``data-event`` html5 attribute on target element. For example, to bind component classes to
 button 'click' / 'hover'::
 
-    <button class="component" data-event="click"
+    <button class="component"
+        data-event="click"
         data-component-class="App.GridDialog"
         data-component-options='{"filterOptions": {"pageRoute": "club_member_grid"}}'>
         Click to see project list
@@ -253,7 +254,7 @@ Which changes should be notified to viewmodel method::
 
 Then to subscribe that method to this.meta.rowsPerPage() changes::
 
-    this.subscribeToMethod(['meta', 'rowsPerPage']);
+    this.subscribeToMethod('meta.rowsPerPage');
 
 An example of temporary unsubscription / subscription to the method, used to alter observable value without the
 execution of an observation handler::
@@ -261,14 +262,14 @@ execution of an observation handler::
     Grid.listCallback = function(data) {
         // ... skipped ...
         // Temporarily disable meta.rowsPerPage() subscription:
-        this.disposeMethod(['meta', 'rowsPerPage']);
+        this.disposeMethod('meta.rowsPerPage');
 
         // Update observable data but .on_meta_rowsPerPage() will not be executed:
         this.meta.prevRowsPerPage = this.meta.rowsPerPage();
         this.meta.rowsPerPage(data.rowsPerPage);
 
         // Re-enable meta.rowsPerPage() subscription:
-        this.subscribeToMethod(['meta', 'rowsPerPage']);
+        this.subscribeToMethod('meta.rowsPerPage');
         // ... skipped ...
     }
 
