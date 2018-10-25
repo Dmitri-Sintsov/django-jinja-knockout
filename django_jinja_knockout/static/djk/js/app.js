@@ -381,6 +381,25 @@ void function(Dialog) {
     Dialog.autoEmpty = true;
     Dialog.initClient = false;
 
+    /**
+     * Convert string / nested object to jQuery object.
+     */
+    Dialog.renderObject = function(obj) {
+        if (obj instanceof jQuery) {
+            return obj;
+        } else {
+            if (typeof obj === 'object') {
+                var $content = $('<div>');
+                return App.renderNestedList(
+                    $content, obj, this.getNestedListOptions()
+                );
+            } else {
+                return $.contents(obj);
+            }
+        }
+    };
+
+
     Dialog.create = function(options) {
         var self = this;
         if (typeof options !== 'object') {
@@ -431,18 +450,14 @@ void function(Dialog) {
         }
         if (typeof this.dialogOptions.title === 'undefined') {
             this.dialogOptions.title = this.getDialogTitle();
+        } else {
+            this.dialogOptions.title = this.renderObject(this.dialogOptions.title);
         }
         // Do not forget to escape from XSS.
         if (typeof this.dialogOptions.message === 'undefined') {
             this.dialogOptions.message = this.createDialogContent();
-        } else if (!(this.dialogOptions.message instanceof jQuery)) {
-            if (typeof this.dialogOptions.message === 'object') {
-                var $content = $('<div>');
-                this.dialogOptions.message = App.renderNestedList(
-                    $content, this.dialogOptions.message, this.getNestedListOptions()
-                );
-            }
-            this.dialogOptions.message = $.contents(this.dialogOptions.message);
+        } else {
+            this.dialogOptions.message = this.renderObject(this.dialogOptions.message);
         }
         if (typeof this.dialogOptions.method !== 'undefined') {
             this.showMethod = this.dialogOptions.method;
