@@ -9,6 +9,7 @@
 .. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
+.. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
@@ -310,7 +311,7 @@ Such code have many disadvantages:
 Enter client-side viewmodels response routing: to execute AJAX post via button click, the following Jinja2 template
 code is enough::
 
-    <button class="button btn btn-default" data-route="my_url_name">
+    <button class="button btn btn-default" data-route="button-click">
         Save your form template
     </button>
 
@@ -322,9 +323,11 @@ kwargs key ``is_ajax`` to ``True`` (optional step)::
 
     from my_app.views import button_click
     # ...
-    url(r'^button-click/$', button_click, name='my_url_name', kwargs={'ajax': True}),
+    url(r'^button-click/$', button_click, name='button-click', kwargs={'ajax': True}),
 
-register AJAX client-side route (url name) in ``context_processors.py``::
+Client-side routes
+~~~~~~~~~~~~~~~~~~
+Register AJAX client-side route (url name) in ``context_processors.py``::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
 
@@ -332,14 +335,14 @@ register AJAX client-side route (url name) in ``context_processors.py``::
     class TemplateContextProcessor(BaseContextProcessor):
 
         CLIENT_ROUTES = (
-            ('my_url_name', True),
+            ('button-click', True),
         )
 
 
     def template_context_processor(HttpRequest=None):
         return TemplateContextProcessor(HttpRequest).get_context_data()
 
-and return the list of viewmodels in my_app/views.py::
+Return the list of viewmodels in my_app/views.py::
 
     from django_jinja_knockout.viewmodels import vm_list
 
@@ -354,9 +357,15 @@ and return the list of viewmodels in my_app/views.py::
                 })
         })
 
+Register ``button-click`` url mapped to my_app.views.button_click in your ``urls.py``::
+
+    from my_app.views import button_click
+    # ...
+    url(r'^button-click/$', button_click, name='button-click', 'allow_anonymous': True, 'is_ajax': True}),
+
 that's all.
 
-If your Django view which maps to ``'my_url_name'`` returns standard client-side viewmodels only, just like in the
+If your Django view which maps to ``button-click`` returns standard client-side viewmodels only, just like in the
 example above, you do not even have to modify a single bit of your Javascript code.
 
 Since version 0.2.0, it is possible to specify client-side routes per view, not having to define them globally
@@ -364,7 +373,7 @@ in template context processor::
 
     def my_view(request):
         request.client_routes.extend([
-            'my_url_name'
+            'button-click'
         ])
 
 and per class-based view::
@@ -399,7 +408,7 @@ Also it is possible to specify view handler function bind context via ``.add()``
 It is also possible to override the value of context for viewmodel handler dynamically with ``App.post()`` optional
 ``bindContext`` argument::
 
-    App.post('my_url_name', postData, bindContext);
+    App.post('button-click', postData, bindContext);
 
 That allows to use method prototypes bound to different instances of the same Javascript class::
 
@@ -594,26 +603,31 @@ AJAX actions
 ------------
 Since version 0.6.0, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
 `App.Actions`_ at client-side, which utilize the same viewmodel handler for multiple actions. It allows to better
-structurize AJAX code. `ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side
-`App.ModelFormActions`_ and `App.GridActions`_ inherit from `App.Actions`_. See (see :doc:`datatables`) for more info.
+structurize AJAX code and to build the client-server AJAX interaction easily.
 
-Viewmodel router defines own (our) viewmodel name as `ActionsView`_ ``.viewmodel_name`` Python attribute /
-`App.Actions`_ ``.viewModelName`` Javascript property. By default it has value ``action`` but inherited classes may
-change it's name; for example grid datatables use ``grid_page`` as viewmodel name.
+`ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `App.ModelFormActions`_ and
+`App.GridActions`_ inherit from `App.Actions`_. See (see :doc:`datatables`) for more info.
 
-The viewmodels which have different names are not processed by ``App.Actions`` directly. Instead, they are routed to
-standard viewmodel handlers, added with `App.vmRouter`_ methods - see `Defining custom viewmodel handlers`_ section.
+Viewmodel router defines own (our) viewmodel name as Python `ActionsView`_ class ``.viewmodel_name`` attribute /
+Javascript `App.Actions`_ class ``.viewModelName`` property. By default it has value ``action`` but the derived classes
+may change it's name; for example grid datatables use ``grid_page`` as the viewmodel name.
+
+The viewmodels which have non-matching names are not processed by ``App.Actions`` directly. Instead, they are routed to
+standard viewmodel handlers, added via `App.vmRouter`_ methods - see `Defining custom viewmodel handlers`_ section.
 Such way standard built-in viewmodel handlers are not ignored. For example server-side exception reporting is done with
-``alert_error`` viewmodel handler (`app.js`_), while AJAX form validation errors with ``form_error`` viewmodel handler
-(`tooltips.js`_).
-
-.. highlight:: python
+``alert_error`` viewmodel handler (`app.js`_), while AJAX form validation errors are produced via ``form_error``
+viewmodel handler (`tooltips.js`_).
 
 The difference between handling AJAX viewmodels with `App.vmRouter`_ (see `Defining custom viewmodel handlers`_) and
 AJAX actions is that the later shares the same viewmodel handler by routing multiple actions to separate methods of
 `App.Actions`_ class or it's descendant.
 
-For example, server-side part of AJAX action ``edit_form`` is defined as `ModelFormActionsView`_ method
+Custom actions at the server-side
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: python
+
+Server-side part of AJAX action with name ``edit_form`` is defined as `ModelFormActionsView`_ method
 ``action_edit_form``::
 
     def action_edit_form(self):
@@ -624,13 +638,143 @@ For example, server-side part of AJAX action ``edit_form`` is defined as `ModelF
             form, verbose_name=self.render_object_desc(obj), action_query={'pk_val': obj.pk}
         )
 
-This server-side action part generates AJAX html form, but it can be arbitrary AJAX data passed back to client-side as
+This server-side action part generates AJAX html form, but it can be arbitrary AJAX data passed back to client-side via
 one or multiple viewmodels.
+
+To implement custom server-side actions, one has to inherit class-based view class from `ActionsView`_ or it's
+descendants like `ModelFormActionsView`_ or `KoGridView`_ (see also :doc:`datatables`), then to define the action
+via overriding ``.get_actions()`` method then defining ``action_my_action`` method of the inherited view. Here is
+the example of defining two custom actions, ``save_equipment`` and ``add_equipment`` at the server-side::
+
+    class ClubEquipmentGrid(KoGridView):
+
+        def get_actions(self):
+            actions = super().get_actions()
+            actions['built_in']['save_equipment'] = {}
+            actions['glyphicon']['add_equipment'] = {
+                'localName': _('Add club equipment'),
+                'css': 'glyphicon-wrench',
+            }
+            return actions
+
+        # Creates AJAX ClubEquipmentForm bound to particular Club instance.
+        def action_add_equipment(self):
+            club = self.get_object_for_action()
+            if club is None:
+                return vm_list({
+                    'view': 'alert_error',
+                    'title': 'Error',
+                    'message': 'Unknown instance of Club'
+                })
+            equipment_form = ClubEquipmentForm(initial={'club': club.pk})
+            # Generate equipment_form viewmodel
+            vms = self.vm_form(
+                equipment_form, form_action='save_equipment'
+            )
+            return vms
+
+        # Validates and saves the Equipment model instance via bound ClubEquipmentForm.
+        def action_save_equipment(self):
+            form = ClubEquipmentForm(self.request.POST)
+            if not form.is_valid():
+                form_vms = vm_list()
+                self.add_form_viewmodels(form, form_vms)
+                return form_vms
+            equipment = form.save()
+            club = equipment.club
+            club.last_update = timezone.now()
+            club.save()
+            # Instantiate related EquipmentGrid to use it's .postprocess_qs() method
+            # to update it's row via grid viewmodel 'prepend_rows' key value.
+            equipment_grid = EquipmentGrid()
+            equipment_grid.request = self.request
+            equipment_grid.init_class()
+            return vm_list({
+                'update_rows': self.postprocess_qs([club]),
+                # return grid rows for client-side EquipmentGrid component .updatePage(),
+                'equipment_grid_view': {
+                    'prepend_rows': equipment_grid.postprocess_qs([equipment])
+                }
+            })
+
+Note that the ``form_action`` argument of ``vm_form()`` method overrides default action name for the generated form.
+
+See the complete example: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
+
+The execution path of the action
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: javascript
 
-To implement or to override client-side processing of AJAX action response, one should implement custom Javascript
-class, inherited from `App.Actions`_ (or from `App.GridActions`_ in case of custom grid datatables)::
+The execution of action usually is initiated in the browser via the DOM event / knockout.js binding or is programmatically
+invoked in Javascript via the `App.Actions`_ inherited class ``perform`` method::
+
+    var myActions = new App.MyActions({
+        route: 'my-action-view',
+        actions: {
+            'my_action': {},
+        }
+    });
+    myActions.perform('my_action', actionOptions, ajaxCallback)
+
+``actionOptions`` and ``ajaxCallback`` arguments are the optional ones.
+
+See `Client-side routes`_ how to define ``my-action-view`` route at the server-side.
+
+In case there is ``perform_my_action`` method defined in ``App.MyActions`` Javascript class, it will be called first.
+
+If there is no ``perform_my_action`` method defined, ``.ajax()`` method will execute AJAX POST request with options /
+queryargs to the Django url ``my-action-view`` with optional arguments, provided via ``actionOptions`` parameter and
+optionally set via ``queryargs__my_action`` method when available.
+
+Django ``MyActionView`` view class should have ``my_action`` action defined in such case
+(`Custom actions at the server-side`_).
+
+Custom ``perform_my_action`` method could execute some client-side Javascript code first then call ``.ajax()`` method
+manually to execute Django view code, or just perform a pure client-side action only.
+
+In case ``App.MyActions`` class ``.ajax()`` method was called, the resulting viewmodel will be passed to
+``App.MyActions`` class ``callback_my_action`` method, in case it's defined in custom derived ``App.MyActions``. That
+makes the chain of AJAX action complete.
+
+Overriding action callback
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: python
+
+Server-side part of action chain could also override callback method, routing to another action instead of the default
+callback by prodiving `callback_action`_ key value of the viewmodel in the response. For example to conditionally
+"redirect" to another action callback for edit inline actions of `KoGridView` derived class::
+
+    def action_edit_inline(self):
+        # Use qs = self.get_queryset_for_action() in case multiple objects are selected in the datatable.
+        obj = self.get_object_for_action()
+        if obj.is_editable:
+            if obj.is_invalid:
+                return {
+                    'view': 'alert_error',
+                    'title': obj.get_str_fields(),
+                    'message': tpl.format_html('<div>Invalid object={}</div>', obj.pk)
+                }
+            else:
+                title = obj.get_str_fields()
+                # App.MyAction.callback_read_only_object() will be called instead of the default
+                # App.MyAction.callback_edit_inline().
+                return {
+                    'callback_action': '_read_only_object',
+                    'title': title,
+                }
+        else:
+            return super().action_edit_inline()
+
+
+Custom actions at the client-side
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: javascript
+
+To implement or to override client-side processing of AJAX action response, one should define custom Javascript class,
+inherited from `App.Actions`_ (or from `App.GridActions`_ in case of custom grid datatables)::
 
     App.MyModelFormActions = function(options) {
         $.inherit(App.Actions.prototype, this);
@@ -651,7 +795,7 @@ Client-side part of ``edit_form`` action response, which receives AJAX viewmodel
 
     })(App.MyModelFormActions.prototype);
 
-Client-side `App.Actions`_ descendant classes can optionally add queryargs to AJAX HTTP request with
+Client-side `App.Actions`_ descendant classes can optionally add queryargs to AJAX HTTP request in a custom
 ``queryargs_ACTION_NAME`` method::
 
     MyFormActions.queryargs_edit_form = function(options) {
@@ -672,8 +816,8 @@ part (client-only actions) by defining ``perform_ACTION_NAME`` method::
 
 .. highlight:: jinja
 
-For such client-only actions ``App.ActionTemplateDialog`` utilizes underscore.js or knockout.js (when two way binding is
-required) template like this::
+For such client-only actions ``App.ActionTemplateDialog`` utilizes underscore.js templates for one-way binding, or
+knockout.js templates when two way binding is required. Here is the sample template ::
 
     <script type="text/template" id="my_form_template">
         <div class="panel panel-default">
@@ -692,7 +836,7 @@ required) template like this::
 
 .. highlight:: javascript
 
-Custom grid actions should be inherited from both ``App.GridActions`` and it's base class ``App.Actions``::
+Custom grid actions should inherit from both ``App.GridActions`` and it's base class ``App.Actions``::
 
     App.MyGridActions = function(options) {
         $.inherit(App.GridActions.prototype, this);
