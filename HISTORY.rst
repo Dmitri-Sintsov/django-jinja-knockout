@@ -225,7 +225,7 @@ Alternative breadcrumbs layout of field filters widgets.
   response.
   ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels suppports this functionality when ``message`` option
   has ``object`` type value.
-* ``App.getClassFromPath`` / ``App.newClassFromPath`` is used by ``App.Tpl`` class factories.
+* ``App.objByPath`` / ``App.newClassByPath`` is used by ``App.Tpl`` class factories.
 * ``App.ko.Grid.iocKoFilter_*`` methods now are orthogonal thus are easier to override.
 * Grid dialogs default hotkeys (``Escape``, ``Enter``).
 * ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu. ``ListQuerySet``

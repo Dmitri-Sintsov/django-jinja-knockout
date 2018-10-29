@@ -2434,7 +2434,7 @@ void function(Grid) {
 
     Grid.iocKoAction = function(options) {
         var classPath = App.propGet(options.actDef, 'classPath', 'App.ko.Action');
-        return new App.newClassFromPath(classPath, [options]);
+        return new App.newClassByPath(classPath, [options]);
     };
 
     Grid.setKoActionTypes = function(metaActions) {
@@ -2820,12 +2820,12 @@ void function(GridDialog) {
             options
         );
         if (typeof options.classPath === 'string') {
-            var gridClass = App.getClassFromPath(options.classPath);
+            var gridClass = App.objByPath(options.classPath);
             return new gridClass(options);
         } else if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(options);
         } else if (typeof this.dialogOptions.iocGrid === 'string') {
-            var gridClass = App.getClassFromPath(this.dialogOptions.iocGrid);
+            var gridClass = App.objByPath(this.dialogOptions.iocGrid);
             return new gridClass(options);
         } else {
             return new App.ko.Grid(options);

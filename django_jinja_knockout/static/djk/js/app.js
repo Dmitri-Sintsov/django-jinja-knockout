@@ -18,6 +18,151 @@ if (typeof window.App === 'undefined') {
 
 App = window.App;
 
+/**
+ * Property addressing via arrays / dot-separated strings.
+ * propChain is the relative property to specified object, propPath is the absolute (from window).
+ */
+App.propChain = function(propChain) {
+    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
+        return propChain.split(/\./);
+    } else {
+        return propChain;
+    }
+};
+
+/**
+ * A supplementary function to App.propGet() which gets the immediate parent of property instead of it's value.
+ * This allows to check the type of property before accessing it.
+ */
+App.propGetParent = function(self, propChain) {
+    var prop = self;
+    var propName;
+    propChain = App.propChain(propChain);
+    if (_.isArray(propChain)) {
+        propName = propChain[propChain.length - 1];
+        for (var i = 0; i < propChain.length - 1; i++) {
+            if (typeof prop[propChain[i]] !== 'object') {
+                return {obj: undefined};
+            }
+            prop = prop[propChain[i]];
+        }
+    } else {
+        propName = propChain;
+    }
+    var parent = {
+        obj: prop,
+        childName: propName,
+    };
+    return parent;
+};
+
+App.propSet = function(self, propChain, val) {
+    var prop = (self === null)? window : self;
+    propChain = App.propChain(propChain);
+    if (_.isArray(propChain)) {
+        for (var i = 0; i < propChain.length - 1; i++) {
+            var propName = propChain[i];
+            if (typeof prop === 'undefined') {
+                prop = {};
+            }
+            if (!$.isMapping(prop)) {
+                return false;
+            }
+            prop = prop[propName];
+        }
+        propName = propChain[i];
+    } else {
+        propName = propChain;
+    }
+    if (typeof prop === 'undefined') {
+        prop = {};
+    }
+    if (!$.isMapping(prop)) {
+        return false;
+    }
+    prop[propName] = val;
+    return true;
+};
+
+/**
+ * Usage:
+ *   App.propGet(this, 'propName');
+ *   ...
+ *   App.propGet(someInstance, ['propName1', 'propNameN'], 'defaultValue');
+ *   ...
+ *   App.propGet(someInstance, 'propName1.propNameN', 'defaultValue');
+ */
+App.propGet = function(self, propChain, defVal, get_context) {
+    var prop = (self === null)? window : self;
+    if (!$.isMapping(prop)) {
+        return defVal;
+    }
+    var parent = App.propGetParent(prop, propChain);
+    if ($.isMapping(parent.obj)) {
+        var propType = typeof parent.obj[parent.childName];
+        if (propType !== 'undefined') {
+            var propVal = parent.obj[parent.childName];
+            if (propType === 'function' && get_context !== undefined) {
+                /**
+                 * See also App.ViewModelRouter which uses the same object keys to specify function context.
+                 * Javascript cannot .apply() to bound function without implicitly specifying context,
+                 * thus next code is commented out:
+                 */
+                // return _.bind(propVal, parent.obj);
+                return function() { return {'context': parent.obj, 'fn': propVal } };
+            }
+            return propVal;
+        }
+    }
+    return defVal;
+};
+
+/**
+ * Usage:
+ *   MyClass.prototype.propCall = App.propCall;
+ *   ...
+ *   this.propCall('prop1.prop2.fn', arg1, .. argn);
+ *
+ *   or use _.bind() or .bindTo() to change this.
+ */
+App.propCall = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var propChain = args.shift();
+    var propVal = App.propGet(this, propChain, null, true);
+    if (typeof propVal === 'function') {
+        var prop = propVal();
+        return prop.fn.apply(prop.context, args);
+    } else {
+        return propVal;
+    }
+};
+
+App.propByPath = function(propPath) {
+    return App.propGet(window, propPath);
+};
+
+App.objByPath = function(propPath, typ) {
+    if (typ === undefined) {
+        typ = 'function';
+    }
+    var obj = App.propByPath(propPath);
+    if (typeof obj !== typ) {
+        throw sprintf('Invalid type "%s" (required "%s") for the propPath: "%s"', typeof obj, typ, propPath);
+    }
+    return obj;
+};
+
+// http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+App.newClassByPath = function(classPath, classPathArgs) {
+    if (classPathArgs === undefined) {
+        classPathArgs = [];
+    }
+    var cls = App.objByPath(classPath, 'function');
+    var self = Object.create(cls.prototype);
+    cls.apply(self, classPathArgs);
+    return self
+};
+
 App.previousErrorHandler = window.onerror;
 window.onerror = function(messageOrEvent, source, lineno, colno, error) {
     if (typeof App.previousErrorHandler === 'function') {
@@ -907,7 +1052,7 @@ void function(ViewModelRouter) {
             fn.apply(bindContext, [viewModel, this]);
         } else {
             if (typeof fn === 'string') {
-                App.newClassFromPath(fn, [viewModel, this]);
+                App.newClassByPath(fn, [viewModel, this]);
             } else {
                 fn(viewModel, this);
             }
@@ -1804,7 +1949,7 @@ void function(Tpl) {
             if (classPath === undefined) {
                 child = App.globalIoc['App.Tpl'](options);
             } else {
-                child = App.newClassFromPath(classPath, [options]);
+                child = App.newClassByPath(classPath, [options]);
             }
             child.inheritProps(this);
         }
@@ -2122,120 +2267,6 @@ App.post = function(route, data, options) {
     ).fail(App.showAjaxError);
 };
 
-
-App.propChain = function(propChain) {
-    if (typeof propChain === 'string' && propChain.indexOf('.') !== -1) {
-        return propChain.split(/\./);
-    } else {
-        return propChain;
-    }
-};
-
-/**
- * A supplementary function to App.propGet() which gets the immediate parent of property instead of it's value.
- * This allows to check the type of property before accessing it.
- */
-App.propGetParent = function(self, propChain) {
-    var prop = self;
-    var propName;
-    propChain = App.propChain(propChain);
-    if (_.isArray(propChain)) {
-        propName = propChain[propChain.length - 1];
-        for (var i = 0; i < propChain.length - 1; i++) {
-            if (typeof prop[propChain[i]] !== 'object') {
-                return {obj: undefined};
-            }
-            prop = prop[propChain[i]];
-        }
-    } else {
-        propName = propChain;
-    }
-    var parent = {
-        obj: prop,
-        childName: propName,
-    };
-    return parent;
-};
-
-App.propSet = function(self, propChain, val) {
-    var prop = (self === null)? window : self;
-    propChain = App.propChain(propChain);
-    if (_.isArray(propChain)) {
-        for (var i = 0; i < propChain.length - 1; i++) {
-            var propName = propChain[i];
-            if (typeof prop === 'undefined') {
-                prop = {};
-            }
-            if (!$.isMapping(prop)) {
-                return false;
-            }
-            prop = prop[propName];
-        }
-        propName = propChain[i];
-    } else {
-        propName = propChain;
-    }
-    if (typeof prop === 'undefined') {
-        prop = {};
-    }
-    if (!$.isMapping(prop)) {
-        return false;
-    }
-    prop[propName] = val;
-    return true;
-};
-
-/**
- * Usage:
- *   App.propGet(this, 'propName');
- *   ...
- *   App.propGet(someInstance, ['propName1', 'propName2', 'propNameN'], 'defaultValue');
- */
-App.propGet = function(self, propChain, defVal, get_context) {
-    var prop = (self === null)? window : self;
-    if (!$.isMapping(prop)) {
-        return defVal;
-    }
-    var parent = App.propGetParent(prop, propChain);
-    if ($.isMapping(parent.obj)) {
-        var propType = typeof parent.obj[parent.childName];
-        if (propType !== 'undefined') {
-            var propVal = parent.obj[parent.childName];
-            if (propType === 'function' && typeof get_context !== 'undefined') {
-                /**
-                 * See also App.ViewModelRouter which uses the same object keys to specify function context.
-                 * Javascript cannot .apply() to bound function without implicitly specifying context,
-                 * thus next code is commented out:
-                 */
-                // return _.bind(propVal, parent.obj);
-                return function() { return {'context': parent.obj, 'fn': propVal } };
-            }
-            return propVal;
-        }
-    }
-    return defVal;
-};
-
-/**
- * Usage:
- *   MyClass.prototype.propCall = App.propCall;
- *   ...
- *   this.propCall('prop1.prop2.fn', arg1, .. argn);
- *
- *   or use _.bind() or .bindTo() to change this.
- */
-App.propCall = function() {
-    var args = Array.prototype.slice.call(arguments);
-    var propChain = args.shift();
-    var propVal = App.propGet(this, propChain, null, true);
-    if (typeof propVal === 'function') {
-        var prop = propVal();
-        return prop.fn.apply(prop.context, args);
-    } else {
-        return propVal;
-    }
-};
-
 App.createInstances = function(readyInstances) {
     for (var instancePath in readyInstances) {
         if (readyInstances.hasOwnProperty(instancePath)) {
@@ -2246,7 +2277,7 @@ App.createInstances = function(readyInstances) {
                     if (!_.isArray(args)) {
                         args = [args];
                     }
-                    var instance = App.newClassFromPath(classPath, args);
+                    var instance = App.newClassByPath(classPath, args);
                     App.propSet(null, instancePath, instance);
                 }
             }
@@ -2468,35 +2499,6 @@ ko.bindingHandlers.scroller = {
 };
 
 
-App.propByPath = function(path) {
-    var pathArr = path.split(/\./g);
-    var obj = window;
-    for (var i = 0; i < pathArr.length - 1; i++) {
-        if (typeof obj[pathArr[i]] !== 'object') {
-            throw sprintf('Skipping unknown property path: %s', path);
-        }
-        obj = obj[pathArr[i]];
-    }
-    obj = obj[pathArr[i]];
-    return obj;
-};
-
-App.getClassFromPath = function(classPath) {
-    var cls = App.propByPath(classPath);
-    if (typeof cls !== 'function') {
-        throw sprintf('Skipping unknown classPath: %s', classPath);
-    }
-    return cls;
-};
-
-// http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
-App.newClassFromPath = function(classPath, classPathArgs) {
-    var cls = App.getClassFromPath(classPath);
-    var self = Object.create(cls.prototype);
-    cls.apply(self, classPathArgs);
-    return self
-};
-
 App.ComponentManager = function(options) {
     this.init(options);
 };
@@ -2597,7 +2599,7 @@ void function(Components) {
             if (classPath === undefined) {
                 throw 'Undefined data-component-class classPath.';
             }
-            var cls = App.getClassFromPath(classPath);
+            var cls = App.objByPath(classPath, 'function');
             var component = new cls(options);
             return component;
         }
