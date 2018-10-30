@@ -727,7 +727,7 @@ If there is no ``perform_my_action`` method defined, ``.ajax()`` method will exe
 queryargs to the Django url ``my-action-view`` with optional arguments, provided via ``actionOptions`` parameter and
 optionally set via ``queryargs__my_action`` method when available.
 
-Django ``MyActionView`` view class should have ``my_action`` action defined in such case
+Django ``MyActionsView`` view class should have ``my_action`` action defined in such case
 (`Custom actions at the server-side`_).
 
 Custom ``perform_my_action`` method could execute some client-side Javascript code first then call ``.ajax()`` method
@@ -742,9 +742,19 @@ Overriding action callback
 
 .. highlight:: python
 
-Server-side part of action chain could also override callback method, routing to another action instead of the default
-callback by prodiving `callback_action`_ key value of the viewmodel in the response. For example to conditionally
-"redirect" to another action callback for edit inline actions of `KoGridView` derived class::
+The possible interpretation of the the server-side `ActionsView`_ class ``action_my_action`` method result
+(AJAX response):
+
+* ``None`` - the default client-side `App.Actions`_ class ``callback_my_action`` method will be called, no arguments
+  passed to it except the default ``viewmodel_name``;
+* ``False`` - the default client-side `App.Actions`_ class ``callback_my_action`` will be suppressed, not called at all;
+* ``list`` / ``dict`` - the result will be converted to `vm_list`_; in case the viewmodel ``view`` key is omitted or
+  contains the default ``self.viewmodel_name`` value, the default client-side `App.Actions`_ class ``callback_my_action``
+  method will be called, the rest of viewmodels (if any) will be processed by the `App.vmRouter`_;
+* `special case`: override callback method by routing to another `App.Actions`_ class ``callback_another_action``
+  instead of the default callback by providing `callback_action`_ key with the value ``another_action`` in the
+  viewmodel dict response. For example to conditionally "redirect" to another action callback for ``edit_inline``
+  action in a `KoGridView`_ derived class::
 
     def action_edit_inline(self):
         # Use qs = self.get_queryset_for_action() in case multiple objects are selected in the datatable.
@@ -759,9 +769,9 @@ callback by prodiving `callback_action`_ key value of the viewmodel in the respo
             else:
                 title = obj.get_str_fields()
                 # App.MyAction.callback_read_only_object() will be called instead of the default
-                # App.MyAction.callback_edit_inline().
+                # App.MyAction.callback_edit_inline() with this dict viewmodel as the argument.
                 return {
-                    'callback_action': '_read_only_object',
+                    'callback_action': 'read_only_object',
                     'title': title,
                 }
         else:
