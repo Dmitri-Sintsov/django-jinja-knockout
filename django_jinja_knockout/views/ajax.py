@@ -193,6 +193,10 @@ class ActionsView(ViewmodelView, GetPostMixin):
             handler = self.action_is_denied
         result = handler()
         if result is None:
+            # Will process client-side App.Actions class "callback_{viewmodel_name}"  method.
+            result = vm_list(view=self.viewmodel_name)
+        elif result is False:
+            # Will suppress client-side App.Actions class "callback_{viewmodel_name}" method.
             result = vm_list()
         elif not isinstance(result, list):
             result = vm_list(result)
