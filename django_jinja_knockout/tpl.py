@@ -639,18 +639,17 @@ class ContentTypeLinker(ModelLinker):
 
 
 # Discover grid component options from the current request / grid view.
-def discover_grid_options(request, grid_options):
+def discover_grid_options(request, template_options):
     view_kwargs = {}
-    if 'pageRouteKwargsKeys' in grid_options:
-        for key in grid_options['pageRouteKwargsKeys']:
+    if 'pageRouteKwargsKeys' in template_options:
+        for key in template_options['pageRouteKwargsKeys']:
             if key in request.view_kwargs:
                 view_kwargs[key] = request.view_kwargs[key]
-    if 'pageRouteKwargs' in grid_options:
-        view_kwargs.update(grid_options['pageRouteKwargs'])
+    if 'pageRouteKwargs' in template_options:
+        view_kwargs.update(template_options['pageRouteKwargs'])
     if len(view_kwargs) > 0:
-        sdv.nested_update(grid_options, {'pageRouteKwargs': view_kwargs})
+        sdv.nested_update(template_options, {'pageRouteKwargs': view_kwargs})
     view_kwargs['action'] = ''
-    view = resolve_cbv(grid_options['pageRoute'], view_kwargs)
-    _grid_options = view.discover_grid_options(request)
-    _grid_options.update(grid_options)
-    return _grid_options
+    view = resolve_cbv(template_options['pageRoute'], view_kwargs)
+    grid_options = view.discover_grid_options(request, template_options)
+    return grid_options

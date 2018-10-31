@@ -891,7 +891,9 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         return self.postprocess_qs(qs)
 
     @classmethod
-    def discover_grid_options(cls, request):
+    def discover_grid_options(cls, request, template_options=None):
+        if template_options is None:
+            template_options = {}
         grid_options = {
             'rowsPerPage': cls.objects_per_page
         }
@@ -904,6 +906,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             view.request = request
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
             view.kwargs = getattr(request, 'view_kwargs', {})
+            view.set_template_options(template_options)
             view_allowed_filter_fields = view.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
@@ -919,9 +922,14 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     # Apply relations to fkGridOptions recursively.
                     field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
-            return grid_options
-        else:
-            return grid_options
+        grid_options.update(template_options)
+        return grid_options
+
+    # template_options are set only for the .get_allowed_filter_fields() custom autodetection.
+    # They are unused by default.
+    # They are not available for the consequent AJAX requests.
+    def set_template_options(self, template_options):
+        self.template_options = template_options
 
     def get_exclude_fields(self):
         if self.__class__.exclude_fields is None:
