@@ -20,6 +20,9 @@
     {% if tab.is_active -%}
         {% do li_atts.update({'class': 'active'}) -%}
     {% endif -%}
+    {% if tab.template_id is defined -%}
+        {% do li_atts.update({'data-tab-template': tab.template_id}) -%}
+    {% endif -%}
     {% set a_atts = {
         'href': '#' + tab.id,
         'aria-controls': tab.id,
@@ -41,7 +44,7 @@
 {% if caller -%}
     {{ caller() }}
 {% endif -%}
-<div{{ tpl.json_flatatt(content_attrs) }}>
+<div {{ tpl.json_flatatt(content_attrs) }}>
 {% for tab in tabs -%}
     {% set div_atts = {
         'role': 'tabpanel',
@@ -53,7 +56,11 @@
     {% endif -%}
     <div {{ tpl.json_flatatt(div_atts) }}>
         <a name="{{ tab.id }}"></a>
-        {{ tab.html|safe }}
+        {% if tab.html -%}
+            {{ tab.html|safe }}
+        {% else -%}
+        <div class="template-holder"></div>
+        {% endif -%}
     </div>
 {% endfor -%}
 </div>

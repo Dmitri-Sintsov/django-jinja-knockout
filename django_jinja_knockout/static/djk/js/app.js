@@ -425,7 +425,7 @@ App._TabPane = function (hash) {
 void function(_TabPane) {
 
     _TabPane.exists = function() {
-        return App.propGet(this, ['anchor', 'length'], 0) > 0;
+        return App.propGet(this, 'anchor.length', 0) > 0;
     };
 
     _TabPane.setLocation = function() {
@@ -437,6 +437,15 @@ void function(_TabPane) {
 
     _TabPane.switchTo = function() {
         if (this.exists()) {
+            var tabTemplate = this.tab.data('tabTemplate');
+            if (tabTemplate !== undefined) {
+                var templateHolder = this.pane.find('.template-holder');
+                if (templateHolder.length > 0) {
+                    var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
+                    templateHolder.replaceWith(tpl);
+                    App.initClient(this.pane);
+                }
+            }
             this.anchor.tab('show');
             var highlightClass = this.tab.data('highlightClass');
             if (highlightClass !== undefined) {
