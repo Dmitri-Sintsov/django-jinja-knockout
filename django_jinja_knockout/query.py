@@ -18,6 +18,23 @@ from django.db.models.query import RawQuerySet, QuerySet
 from .models import get_related_field_val
 
 
+class RichComparator:
+
+    def __init__(self, val):
+        self.val = val
+
+    def __lt__(self, other):
+        if self.val is None:
+            return other.val is not None
+        elif self.val is False:
+            return other.val is not False
+        else:
+            return str(self.val) < str(other.val)
+
+    def __eq__(self, other):
+        return self.val == other.val
+
+
 class RawSqlCompiler(SQLCompiler):
 
     def __init__(self, query, connection, using):
@@ -166,6 +183,7 @@ class FilteredRawQuery(RawQuery):
 
 class ValuesQuerySetMixin:
 
+    # Span relationships emulation (for the prefetched data).
     def _get_row_attr(self, row, attr):
         if '__' in attr:
             value = row
@@ -505,7 +523,10 @@ class ListQuerySet(ValuesQuerySetMixin):
         for fieldname in reversed(field_names):
             canon_name = fieldname.lstrip('-')
             is_desc = fieldname.startswith('-')
-            c.list.sort(key=attrgetter(canon_name), reverse=is_desc)
+            if '__' in canon_name:
+                c.list.sort(key=lambda row: RichComparator(self._get_row_attr(row, canon_name)), reverse=is_desc)
+            else:
+                c.list.sort(key=attrgetter(canon_name), reverse=is_desc)
         return c
 
     def distinct(self, *field_names):

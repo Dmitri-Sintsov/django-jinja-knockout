@@ -528,6 +528,8 @@ void function(Dialog) {
 
     /**
      * Convert string / nested object to jQuery object.
+     * Note that HTML string content is supported.
+     * Be sure to encode 'title' / 'message' HTML at the server-side to prevent XSS.
      */
     Dialog.renderObject = function(obj) {
         if (obj instanceof jQuery) {
