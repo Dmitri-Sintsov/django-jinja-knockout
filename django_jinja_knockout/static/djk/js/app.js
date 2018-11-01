@@ -18,6 +18,12 @@ if (typeof window.App === 'undefined') {
 
 App = window.App;
 
+// Runtime script shared objects.
+App.bag = {};
+
+// Knockout,js bindings.
+App.ko = {};
+
 /**
  * Property addressing via arrays / dot-separated strings.
  * propChain is the relative property to specified object, propPath is the absolute (from window).
@@ -408,7 +414,7 @@ App.blockTags = {
  * Bootstrap tabs management class.
  */
 App._TabPane = function (hash) {
-    if (typeof hash === 'undefined') {
+    if (hash === undefined) {
         hash = window.location.hash;
     }
     this.cleanHash = hash.split(/^#/g).pop();
@@ -428,6 +434,10 @@ void function(_TabPane) {
         return App.propGet(this, 'anchor.length', 0) > 0;
     };
 
+    _TabPane.isActive = function() {
+        return this.exists() && this.tab.hasClass('active');
+    };
+
     _TabPane.setLocation = function() {
         if (this.exists()) {
             window.location.hash = '#' + this.cleanHash;
@@ -435,17 +445,21 @@ void function(_TabPane) {
         return this;
     };
 
+    _TabPane.loadTemplate = function() {
+        var tabTemplate = this.tab.data('tabTemplate');
+        if (tabTemplate !== undefined) {
+            var templateHolder = this.pane.find('.template-holder');
+            if (templateHolder.length > 0) {
+                var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
+                templateHolder.replaceWith(tpl);
+                App.initClient(this.pane);
+            }
+        }
+    };
+
     _TabPane.switchTo = function() {
         if (this.exists()) {
-            var tabTemplate = this.tab.data('tabTemplate');
-            if (tabTemplate !== undefined) {
-                var templateHolder = this.pane.find('.template-holder');
-                if (templateHolder.length > 0) {
-                    var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
-                    templateHolder.replaceWith(tpl);
-                    App.initClient(this.pane);
-                }
-            }
+            this.loadTemplate();
             this.anchor.tab('show');
             var highlightClass = this.tab.data('highlightClass');
             if (highlightClass !== undefined) {
@@ -497,10 +511,27 @@ void function(_TabPane) {
 
 }(App._TabPane.prototype);
 
-
 App.TabPane = function(hash) {
     return new App._TabPane(hash);
 };
+
+App.TabList = function(options) {};
+
+void function(TabList) {
+
+    TabList.runComponent = function($selector) {
+        this.$componentSelector = $selector;
+        // Change hash upon pane activation
+        this.$componentSelector.find('a[role="tab"]').on('click', function() {
+            var href = $(this).attr('href');
+            if (href !== undefined && href.match(/^#/)) {
+                window.location.hash = href;
+            }
+        });
+    };
+
+}(App.TabList.prototype);
+
 
 // https://github.com/linuxfoundation/cii-best-practices-badge/issues/218
 App.initTabPane = function() {
@@ -508,15 +539,7 @@ App.initTabPane = function() {
     $(window).on('hashchange', function() {
         App.TabPane().switchTo();
     });
-    // Change hash upon pane activation
-    $('a[role="tab"]').on('click', function() {
-        var href = $(this).attr('href');
-        if (typeof href !== 'undefined' && href.match(/^#/)) {
-            window.location.hash = href;
-        }
-    });
-}
-
+};
 
 /**
  * BootstrapDialog wrapper.
@@ -935,12 +958,6 @@ void function(Actions) {
 
 }(App.Actions.prototype);
 
-
-// Runtime script shared objects.
-App.bag = {};
-
-// Knockout,js bindings.
-App.ko = {};
 
 App.getSelector = function(selector) {
     return (typeof selector === 'undefined') ?

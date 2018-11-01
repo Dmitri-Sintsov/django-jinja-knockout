@@ -263,7 +263,7 @@ def print_table(
 
 def print_brackets(row, cb=escape, show_keys=None, i18n=None):
     # See app.css how .conditional-display can be displayed as block element or inline element
-    # via outer .display-block / .display-inline classes.
+    # via the outer .display-block / .display-inline classes.
     return mark_safe(
         PrintList(
             tpl={
@@ -454,6 +454,12 @@ def has_css_classes_in_dict(element, classnames, key='class'):
 
 def add_css_classes_to_dict(element, classnames, key='class'):
     result = add_css_classes(element.get(key, ''), classnames)
+    if result is not None:
+        element[key] = result
+
+
+def prepend_css_classes_to_dict(element, classnames, key='class'):
+    result = add_css_classes(classnames, element.get(key, ''))
     if result is not None:
         element[key] = result
 
