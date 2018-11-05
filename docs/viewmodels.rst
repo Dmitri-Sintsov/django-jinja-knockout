@@ -855,5 +855,5 @@ Custom grid actions should inherit from both ``App.GridActions`` and it's base c
     };
 
 For more detailed example of using viewmodel actions routing, see see :doc:`datatables` section
-:ref:`grids_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_ and
-by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
+:ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_
+and by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.

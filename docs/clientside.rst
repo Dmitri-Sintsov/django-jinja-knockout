@@ -185,6 +185,8 @@ before they are attached to the page DOM.
 It is possivle to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
 ``fn`` to `App.TransformTags`_ class ``add()`` method.
 
+.. _clientside_components:
+
 Components
 ----------
 `App.Components`_ class allows to automatically instantiate Javascript classes by their string path specified in

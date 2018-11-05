@@ -273,6 +273,8 @@ One may extend this template to customize grid, which we will do later.
 
 Take a note that two Jinja2 macros are imported. Let's explain their purpose.
 
+.. _datatables_ko_grid_macro:
+
 ko_grid() macro
 ~~~~~~~~~~~~~~~
 
@@ -1511,7 +1513,7 @@ Here is the example of action implementation::
 `views`_ module has many built-in actions implemented, while `club_app.views_ajax`_ has some examples of custom
 actions code.
 
-.. _grids_client_side_action_routing:
+.. _datatables_client_side_action_routing:
 
 Client-side action routing
 --------------------------

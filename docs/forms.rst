@@ -363,7 +363,7 @@ Bootstrap 3 table::
 
 .. highlight:: python
 
-Such "forms" do not contain ``<input>`` elements and thus cannot be submitted, additionally you may inherit
+Such "forms" do not contain ``<input>`` elements and thus cannot be submitted. Additionally you may inherit
 from ``UnchangeableModelMixin``::
 
     from django_jinja_knockout.forms import UnchangeableModelMixin

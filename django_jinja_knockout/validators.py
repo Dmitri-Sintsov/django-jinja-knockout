@@ -5,6 +5,7 @@ from django.utils.functional import Promise
 from .utils import sdv
 from .viewmodels import vm_list
 
+
 class ViewmodelFormatting:
 
     json_serializable = (str, int, float, bool, type(None), date, datetime, Promise)

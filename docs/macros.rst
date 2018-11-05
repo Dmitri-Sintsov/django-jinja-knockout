@@ -314,21 +314,26 @@ djk-sample `club_list_with_component.htm`_ Jinja2 template.
 bs_navs()
 ~~~~~~~~~
 This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`views_bstabsmixin` template context
-``main_navs`` variable to display automatically switched server-side boostrap navigation tabs. Do not confuse to
+``main_navs`` variable to display automatically switched server-side bootstrap navigation tabs. Do not confuse to
 `bs_tabs()`_ macro, which is similar but switches between tabs is performed at the client-side via ``App.TabPane``
 Javascript class.
 
 bs_tabs()
 ~~~~~~~~~
 
-`bs_tabs()`_ macro simplifies generation of bootstrap tabs. It has client-side support via ``App.TabPane`` Javascript
-class, defined in `app.js`_:
+`bs_tabs()`_ macro creates ``App.TabList`` Javascript component which manages client-side bootstrap tabs. Internally
+it uses ``App._TabPane`` Javascript class. Both classes are defined in `app.js`_. Let's explain some methods of
+``App._TabPane`` class:
 
-* ``.show()`` method enables automatic switching of bootstrap tab panes upon page load and via window.location.hash
+* ``.switchTo()`` method enables automatic switching of bootstrap tab panes upon page load and via window.location.hash
   change. Hash change may occur programmatically from user script, or via clicking the anchor with matching hash name.
 * ``.highlight()`` method provides permanent or temporary highlighting of displayed bootstrap tab, to indicate that
-  it's contents was updated / changed. That is particularly useful when `bs_tabs()`_ is used together with AJAX
-  dynamic components, such as grids.
+  it's contents was updated / changed. This is particularly useful when `bs_tabs()`_ is used together with AJAX
+  dynamic components, such as datatables.
+* ``.loadTemplate()`` method allows one-time filling of tab content from the specified ``template_id`` attribute of
+  `bs_tabs()`_ macro. It allows to delay AJAX calls of the template components until the user actually clicked on the
+  tab, instead of performing all AJAX calls even for the inivisible tabs at once. Which is useful for the long lists
+  of tabs with :ref:`datatables_ko_grid_macro` generated datatable component for example.
 
 djk_sample demo project has `bs_tabs() sample`_ / `App.TabPane sample`_ which places grids into bootstrap tabs.
 
@@ -337,8 +342,15 @@ dict that defines content of each tab. The following mandarory key-value pairs a
 
 * ``id`` - the value of window.location.hash for current tab;
 * ``title`` - title of current tab;
+
+The following keys are mutually exclusive:
+
 * ``html`` - html of tab pane. Use Jinja 2.8+ ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
   such as grid, ModelForm, inline formset and so on;
+* ``template_id`` - since version 0.8.0 one may specifify underscore.js template id which will be expanded to tab pane
+  when the user switches to that pane, instead of ``html`` which loads the content to the tab immediately. It may be
+  used to delay loading of Javascript components, eg. datatables (grids). See :ref:`clientside_underscore_js_templates`
+  and :ref:`clientside_components` for more info.
 
 Optional key-value pairs:
 

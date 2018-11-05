@@ -100,7 +100,8 @@ BsTabsMixin
 -----------
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
   ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
-* ``prepare_bs_navs()`` - used to highlight current url in Bootstrap 3 navbars.
+* ``prepare_bs_navs()`` - highlight current url in Bootstrap 3 navbars. Since version 0.8.0 it's possible to override
+  the highlighted navbar link by specifying navs[]['attrs']['class'] = 'active' value.
 
 To implement server-side tabs navigation, one should define class inherited from `BsTabsMixin`_ with custom
 `.get_main_navs()`_ method of this class. For the example::
