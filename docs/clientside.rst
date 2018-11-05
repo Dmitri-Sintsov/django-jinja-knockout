@@ -10,6 +10,7 @@ Client-side support
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks+%3D+function
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
+.. _App.TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=transformtags
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
@@ -170,6 +171,19 @@ Since version 0.8.0, the DOM attributes of the template holder tag different fro
 root DOM node of the expanded template. This allows to get the rid of template wrapper when using the templates as
 the foundation of components. For example datatables / grid templates do not use separate wrapper tag anymore and thus
 become simpler.
+
+Custom tags
+~~~~~~~~~~~
+Since verison 0.8.0, the built-in template processor supports custom tags via `App.TransformTags`_ Javascript class
+``applyTags()`` method. By default there are the ``PANEL-*`` tags registered, which are transformed to bootstrap panels.
+
+Custom tags are also applied via `App.initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
+However because the custom tags are not browser-native, such usage of custom tags is not recommended as extra flicker
+may occur. Such flicker never occurs in built-in `Underscore.js templates`_, because the template tags are substituted
+before they are attached to the page DOM.
+
+It is possivle to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
+``fn`` to `App.TransformTags`_ class ``add()`` method.
 
 Components
 ----------
