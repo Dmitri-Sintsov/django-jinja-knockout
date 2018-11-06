@@ -38,20 +38,7 @@ The built-in middleware is applied only to the views which belong to modules (Dj
 
 See ``djk-sample`` `settings.py`_ for the complete example.
 
-``DJK_APPS`` views are secured by the middleware with urls that deny access to anonymous / inactive users by default.
-Anonymous views require explicit permission defined as ``url()`` extra kwargs per each view in ``urls.py``::
-
-    from my_app.views import signup
-    # ...
-    url(r'^signup/$', signup, name='signup', kwargs={'allow_anonymous': True})
-
-Optional checks for AJAX requests and / or specific Django permission::
-
-    from my_app.views import check_project
-    # ...
-    url(r'^check-project/$', check_project, name='check_project', kwargs={
-        'ajax': True, 'permission_required': 'my_app.project_can_add'
-    })
+See also :ref:`middleware_installation`, :ref:`middleware_security`.
 
 View title is optionally defined as url kwargs ``'view_title'`` key value::
 

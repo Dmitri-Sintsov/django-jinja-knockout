@@ -15,7 +15,6 @@ Quickstart
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
-.. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
 
 Key features overview
 
@@ -179,76 +178,8 @@ This is often an pre-requisite to have contenttypes framework running correctly.
 
 middleware.py
 -------------
-.. highlight:: python
 
-Get currently used middleware class::
-
-    from django_jinja_knockout.apps import DjkAppConfig
-
-    ContextMiddleware = DjkAppConfig.get_context_middleware()
-
-* Middleware is extendable (inheritable), which allows to implement your own features via overloaded methods. That's why
-  ``DjkAppConfig`` is used to resolve ``ContextMiddleware`` class instead of direct import. Such way extended
-  ``ContextMiddleware`` class specified via ``settings.DJK_MIDDLEWARE`` will be used instead of original version.
-* Direct import from ``django_jinja_knockout.middleware`` or from ``my_project.middleware`` is possible but is not
-  encouraged as wrong version of middleware may be used.
-
-Access to current HTTP request instance anywhere in form / formset / field widget code::
-
-    request = ContextMiddleware.get_request()
-
-* Real HTTP request instance will be loaded when running as web server.
-* Fake request will be created when running in console (for example in the management commands). Fake request HTTP GET /
-  POST arguments can be initialized via ``ContextMiddleware`` class ``.mock_request()`` method, before calling
-  ``.get_request()``.
-
-Support optional client-side :doc:`viewmodels` injection from current user session.
-
-Automatic timezone detection and activation from browser (which should be faster than using maxmind geoip database).
-Also since version 0.3.0 it's possible to get timezone name string from current browser http request to use in
-the application (for example to pass it to celery task)::
-
-    ContextMiddleware.get_request_timezone()
-
-.. highlight:: python
-
-Request mock-up
-~~~~~~~~~~~~~~~
-
-Since version 0.7.0 it is possivble to mock-up requests in console mode (management commands) to resolve reverse URLs
-fully qualified names like this::
-
-    from django_jinja_knockout.apps import DjkAppConfig
-    request = DjkAppConfig.get_context_middleware().get_request()
-    from django_jinja_knockout.tpl import reverseq
-    # Will return fully-qualified URL for the specified route with query string appended:
-    reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
-
-By default domain name is taken from current configured Django `site`_. Otherwise either ``settings``. ``DOMAIN_NAME``
-or ``settings``. ``ALLOWED_HOSTS`` should be set to autodetect current domain name.
-
-Mini-router
-~~~~~~~~~~~
-
-Since version 0.7.0 inherited middleware classes (see :ref:`installation_djk_middleware` settings) support built-in mini
-router, which could be used to implement CBV-like logic in middleware class itself, either via string match or via the
-regexp::
-
-    class ContextMiddleware(RouterMiddleware):
-
-        routes_str = {
-            '/-djk-js-error-/': 'log_js_error',
-        }
-        routes_re = [
-            # (r'^/-djk-js-(?P<action>/?\w*)-/', 'log_js_error'),
-        ]
-
-        def log_js_error(self):
-            from .log import send_admin_mail_delay
-            vms = vm_list()
-            # ... skipped ...
-            return JsonResponse(vms)
-
+See :doc:`middleware`.
 
 models.py
 ---------

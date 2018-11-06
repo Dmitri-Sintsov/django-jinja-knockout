@@ -481,8 +481,10 @@ instead::
         tpl.reverseq('post_like', kwargs={'feed_id': feed.id}, query={'type': 'upvote'})
     }}">
 
-Non-AJAX server-side invocation of client-side viewmodels.
-----------------------------------------------------------
+.. _viewmodels_non-ajax_server-side_invocation:
+
+Non-AJAX server-side invocation of client-side viewmodels
+---------------------------------------------------------
 
 Besides direct client-side invocation of viewmodels via `app.js`_ ``App.vmRouter.respond()`` method, and AJAX POST /
 AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with

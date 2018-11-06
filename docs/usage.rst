@@ -11,5 +11,6 @@ Contents:
    datatables
    forms
    macros
+   middleware
    viewmodels
    views
