@@ -31,7 +31,11 @@ def auth_redirect(request):
         # Will use viewmodel framework to display client-side alert.
         return JsonResponse({
             'view': 'alert_error',
-            'message': _u('Access to current url is denied')
+            'message': format_html(
+                '<div>{}</div><div>{}</div>',
+                _u('Access to current url is denied'),
+                request.build_absolute_uri(),
+            )
         })
     # Borrowed from django.contrib.auth.decorators.user_passes_test()
     path = request.build_absolute_uri()
