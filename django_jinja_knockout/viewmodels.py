@@ -63,7 +63,7 @@ class vm_list(list):
             self.insert(0, vm)
 
 # Next functions may be used with ordinary lists or as methods of vm_list,
-# because list of viewmodels might be instance of ordinary list or vm_list.
+# because the list of viewmodels may be an instance of ordinary list or an instance of vm_list.
 
 
 def find_by_keys(self, *match_vm_keys):

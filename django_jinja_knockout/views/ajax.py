@@ -91,6 +91,14 @@ class ActionsView(ViewmodelView, GetPostMixin):
     action_kwarg = 'action'
     default_action_name = 'meta'
 
+    def filter_our_viewmodels(self, vms):
+        if isinstance(vms, list):
+            for vm in vms:
+                if vm.get('view', self.viewmodel_name) == self.viewmodel_name:
+                    yield vm
+        elif isinstance(vms, dict):
+            yield from self.filter_our_viewmodels([vms])
+
     def get_actions(self):
         return {
             'built_in': OrderedDict([
