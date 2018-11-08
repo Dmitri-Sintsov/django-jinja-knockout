@@ -318,6 +318,8 @@ This macro takes the result of `prepare_bs_navs`_ function or the result of :ref
 `bs_tabs()`_ macro, which is similar but switches between tabs is performed at the client-side via ``App.TabPane``
 Javascript class.
 
+.. _macros_bs_tabs:
+
 bs_tabs()
 ~~~~~~~~~
 

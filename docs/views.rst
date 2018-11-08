@@ -1,4 +1,5 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ActionsView
+.. _ajax_refresh: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ajax_refresh
 .. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
 .. _GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=GridActionsMixin
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
@@ -69,6 +70,11 @@ It supports both non-AJAX and AJAX form submission and validation. AJAX validati
 with built-in extensible :doc:`viewmodels`. By default it supports class-based view ``.get_success_url()`` automatic
 client-side redirect on success which can be replaced to another AJAX viewmodel handler via overriding this method in
 derived view class.
+
+Since version 0.7.1, setting class attribute `ajax_refresh`_ value to ``True`` causes the successful AJAX submission of
+the form with the inline formsets to refresh the form HTML with just saved values instead of ``.get_success_url()``
+redirect to another url. That is useful when the additional client-side processing is required, or when the form is the
+part of some component, like :ref:`macros_bs_tabs` tab.
 
 Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
 supported via Knockout.js custom bindings with XSS protection. HTML rendering usually is performed with Bootstrap 3
