@@ -522,7 +522,15 @@ void function(TabList) {
     TabList.runComponent = function($selector) {
         this.$componentSelector = $selector;
         // Change hash upon pane activation
-        this.$componentSelector.find('a[role="tab"]').on('click', function() {
+        this.$componentSelector.find('a[role="tab"]')
+        .each(function() {
+            var href = $(this).attr('href');
+            var tabPane = App.TabPane(href);
+            if (tabPane.isActive()) {
+                tabPane.loadTemplate();
+            }
+        })
+        .on('click', function() {
             var href = $(this).attr('href');
             if (href !== undefined && href.match(/^#/)) {
                 window.location.hash = href;
