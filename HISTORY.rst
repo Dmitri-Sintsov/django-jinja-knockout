@@ -276,3 +276,14 @@ Alternative breadcrumbs layout of field filters widgets.
   and in background celery tasks via `reverseq()`_ calls when sites framework is correctly set up.
 * ``ast_eval`` templage tag.
 * Headless Chrome Selenium webdriver support.
+
+0.8.0
+-----
+Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
+custom template or via inheriting the renderer class.
+
+Underscore.js templates support attribute merging and custom tags.
+
+Nested / sparse client-side components.
+
+Nested serializer.

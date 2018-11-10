@@ -82,4 +82,5 @@ Implements django.admin -like widget to select the foreign key value.
 
 See :ref:`datatables_foreignkeygridwidget` for the detailed explanation.
 
-.. image: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_change_or_create_foreign_key_for_inline_form.png
+.. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_change_or_create_foreign_key_for_inline_form.png
+   :width: 740px

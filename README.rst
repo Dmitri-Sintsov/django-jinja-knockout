@@ -58,7 +58,7 @@ Localization:
 Key features
 ------------
 
-* AJAX based django.admin-like grids (paginated datatables) with sorting / filters and custom actions.
+* AJAX based django.admin-like paginated datatables (grids) with sorting / filters and custom actions.
 * Integrates Jinja2 into existing Django templates (DTL).
 * `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
@@ -114,16 +114,22 @@ Major changes (version 0.8.0)
 Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
 custom template or via inheriting the renderer class.
 
+Underscore.js templates support attribute merging and custom tags.
+
+Nested / sparse client-side components.
+
+Nested serializer.
+
 Major changes (version 0.7.0)
 -----------------------------
-Grids (datatables) now have new type of action ``'pagination'``. There are two built-in actions of this type
-implemented: ``'rows_per_page'`` and ``'switch_highlight'``.
+Datatables now have new type of action ``'pagination'``. There are two built-in actions of this type implemented:
+``'rows_per_page'`` and ``'switch_highlight'``.
 
-Grids (datatables) support compound columns for better utilization of the display space. That allows to display more
-data columns, including foreign relations at the screen.
+Datatables support compound columns for better utilization of the display space. That allows to display more data
+columns, including foreign relations at the screen.
 
-Grids ``glyphicon`` actions are rendered in the single column of datatable, instead of each action per column for better
-utilization of the display space.
+Datatables ``glyphicon`` actions are rendered in the single column of datatable, instead of each action per column for
+better utilization of the display space.
 
 Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts with third party assets.
 
@@ -173,8 +179,8 @@ Displaying verbose field names in grid rows, grid row actions and in ``ForeignKe
 
 Clean-up of client-side components code.
 
-Better support for grids that use RAW queries with ``LEFT JOIN``, which may have multiple rows with the same ``pkVal``
-=== ``null``.
+Better support for datatable grids that use RAW queries with ``LEFT JOIN``, which may have multiple rows with the same
+``pkVal`` equal to ``null``.
 
 Improvements in Selenium automation testing: better handling of automation commands, more of commands implemented,
 much larger test coverage.
@@ -194,7 +200,7 @@ loading / saving which allows to skip already debugged parts of tests, saving de
 filter), support for ``in`` query for ``choice`` filter value via the list of values.
 
 Even better support of optional Django model ``get_str_fields()`` method in ``DisplayText`` widget and in Knockout.js
-grids.
+datatable grids.
 
 Various bugfixes.
 
