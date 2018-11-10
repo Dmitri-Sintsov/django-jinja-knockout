@@ -13,6 +13,7 @@ Contents:
 
    installation
    usage
+   grids
    contributing
    authors
    history

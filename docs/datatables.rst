@@ -324,6 +324,7 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
 
     * ``searchPlaceholder`` - text to display when search field is empty.
     * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
+    * ``showCompoundKeys`` - boolean, whether the names of compound columns should be displayed;
     * ``showSelection`` - enable selection of single rows (one model instance of grid).
     * ``ownerCtrl`` - used internally to embed client-side parts of datatables (grids) into another classes, for example
       into `ForeignKeyGridWidget`_ dialogs and `Foreign key filter`_. The value of this option should be the instance of
@@ -1544,7 +1545,7 @@ When bound DOM element is clicked, these interactive actions invoke ``App.ko.Act
 visual action Knockout.js viewmodel, which calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing
 the same ``App.Actions.perform()`` method::
 
-    Action.doAction = function(options, actionOptions)
+    Actions.doAction = function(options, actionOptions)
 
 * ``'options' argument`` of object type may pass key ``'gridRow'`` which value is the instance of ``App.ko.GridRow``
   class that will be used as interactive action target row. It is used by interactive actions that are related to
@@ -1575,8 +1576,22 @@ Javascript invocation of interacive action with specified target grid row when g
   ``actionOptions`` argument, usually to extend queryargs of action AJAX POST request, but might be used to pass custom
   data to client-side actions as well.
 
+Since version 0.8.0, there is ``App.ko.Grid`` class ``.performAction()`` method to invoke the datatable action::
+
+    App.ko.Grid.performAction = function(actionName, actionType, actionOptions)
+
+.. highlight:: html
+
+To bind the action invocation to datatable template button::
+
+    <button class="btn-choice btn-info club-edit-grid" data-bind="click: function() { this.performAction('create_inline'); }">
+        <span class="glyphicon glyphicon-plus"></span> Add row
+    </button>
+
 Action queryargs
 ~~~~~~~~~~~~~~~~
+
+.. highlight:: javascript
 
 Here is the example of ``'list'`` action AJAX request queryargs population::
 
