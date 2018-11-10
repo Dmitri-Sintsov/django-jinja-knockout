@@ -1,11 +1,3 @@
-=============
-Installation
-=============
-
-* `django-jinja-knockout` 0.4.3 supports Python 3.4 / 3.5 / 3.6, Django 1.8 / 1.9 / 1.10 / 1.11.
-* Django template language is supported via including Jinja2 templates from DTL templates. Pure Jinja2 projects are
-  supported as well.
-
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _apps.DjkAppConfig: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/apps.py
 .. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
@@ -23,6 +15,8 @@ Installation
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
+.. _README: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/README.rst
+.. _release: https://github.com/Dmitri-Sintsov/django-jinja-knockout/releases
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _settings.ADMINS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ADMINS
 .. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
@@ -31,12 +25,21 @@ Installation
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
+=============
+Installation
+=============
+
+* See `README`_ for the list of the currently supported Python / Django versions (master / development version), or the
+  ``README`` for the specific `release`_.
+* Django template language is supported via including Jinja2 templates from DTL templates. Pure Jinja2 projects are
+  supported as well.
+
 Virtual environment
 -------------------
 
 .. highlight:: bash
 
-Inside virtualenv of your Django 1.8 / 1.9 / 1.10 project, install `django-jinja-knockout`::
+Inside virtualenv of your Django project, install `django-jinja-knockout`::
 
     python3 -m pip install django-jinja-knockout
 

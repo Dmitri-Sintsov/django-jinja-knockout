@@ -12,7 +12,6 @@ Contents:
    :maxdepth: 2
 
    installation
-   quickstart
    usage
    contributing
    authors

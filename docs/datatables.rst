@@ -2676,6 +2676,8 @@ Completely different way of generating form with pure client-side underscore.js 
 action (no AJAX callback is required to generate form HTML) is implemented in `Client-side actions`_ section of the
 documentation.
 
+.. _datatables_foreignkeygridwidget:
+
 ====================
 ForeignKeyGridWidget
 ====================
