@@ -16,8 +16,6 @@ required features.
 
 Any non-trivial contribution will be recorded in authors list.
 
-* This reusable Django application supports Django 1.8 / 1.9 / 1.10 and Python 3.4 / 3.5. I do not have enough time
-  to backport it to support Python 2.7.
 * Unit tests are partially implemented in `djk-sample`_ project which is used as showcase / testing project. `Selenium`_
   is used to test client-side parts of ``django-jinja-knockout``.
 * The app is used in large enough project which is tested via actual manual work by real end-users.
@@ -84,9 +82,6 @@ Fork the `django_jinja_knockout`_ repo on GitHub.
     $ cd django-jinja-knockout
     $ python3 -m pip install -U -r requirements.txt
 
-See also the following link, if you are using Ubuntu 14.04:
-https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
-
 Note that without `Django`_ installed, there is not much of usage for this pluggable app.
 
 * Create a branch for local development::
@@ -95,11 +90,11 @@ Note that without `Django`_ installed, there is not much of usage for this plugg
 
 Now you can make your changes locally.
 
-* There is no no continuous integration yet. Automated tests are partially implemented in `djk-sample unit tests`_.
-  Check that your changes passes flake8::
+* Automated tests are partially implemented in `djk-sample unit tests`_.
+* Check that your changes passes flake8::
 
-    $ pip3 install flake8
-    $ flake8 django_jinja_knockout tests
+    $ pip3 install flake8 flake8-bugbear
+    $ flake8 --ignore E501 django_jinja_knockout
 
 Then run the tests in `djk-sample unit tests`_
 
@@ -115,9 +110,9 @@ Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
 `django_jinja_knockout`_ reusable application could always use more documentation, whether as part of the
-official docs, in docstrings (but please not very long bloated ones).
+official docs or in docstrings (but please not very long bloated ones).
 
-Especially because I am not native English speaker, though I try my best to avoid mistakes.
+Especially because I am not a native English speaker, though I try my best to avoid mistakes.
 
 To check documentation changes install sphinx::
 
@@ -134,7 +129,7 @@ Pull Request Guidelines
 
 1. It would be great if the pull request included automated tests for `djk-sample`_.
 2. If the pull request adds functionality, the docs should be updated. Implement new functionality into a function /
-   class / method with a docstring. Major and important features should be briefly described in README.rst /
+   class / method with a docstring. Major and important features should be briefly described in the README.rst /
    QUICKSTART.rst. Detailed documentation is not required but is welcomed and should be implemented in separate rst
    file.
-3. The pull request should work for Python 3.4 / 3.5 Django 1.8 / 1.9 / 1.10 at least.
+3. The pull request should work for Python 3 / Django LTS at least.

@@ -1,3 +1,11 @@
+.. _clientside: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html
+.. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
+.. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
+.. _installation: https://django-jinja-knockout.readthedocs.io/en/latest/installation.html
+.. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
+.. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
+.. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
+
 Key features overview
 ---------------------
 
@@ -5,7 +13,7 @@ Client-side
 -----------
 
 There are lots of client-side Javascript included into the package that automates many of the functionality. See the
-:doc:`clientside` for more info.
+`clientside`_ for more info.
 
 admin.py
 --------
@@ -16,7 +24,7 @@ admin.py
 
 forms.py / formsets.js
 ----------------------
-See :doc:`forms` for the detailed explanation.
+See `forms`_ for the detailed explanation.
 
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3. Since version 0.4.0 it also always has
   ``request`` attribute for convenience to be used in ``clean()`` method and so on.
@@ -57,7 +65,7 @@ of the model like this::
                         'is_anon': is_anon
                     })
 
-then add app which has ``Specialization`` model into settings.DJK_APPS list. See :doc:`installation` for more info
+then add app which has ``Specialization`` model into settings.DJK_APPS list. See `installation`_ for more info
 about ``DJK_APPS`` list.
 
 .. highlight:: bash
@@ -76,7 +84,7 @@ This is often an pre-requisite to have contenttypes framework running correctly.
 middleware.py
 -------------
 
-See :doc:`middleware`.
+See `middleware`_.
 
 models.py
 ---------
@@ -118,8 +126,8 @@ models.py
 viewmodels.py
 -------------
 Server-side Python functions and classes to manipulate lists of client-side viewmodels. Mostly are used with AJAX JSON
-responses and in ``app.js`` client-side response routing. Read :doc:`viewmodels` documentation for more info.
+responses and in ``app.js`` client-side response routing. Read `viewmodels`_ documentation for more info.
 
 views submodule
 ---------------
-See :doc:`views` for the detailed explanation.
+See `views`_ for the detailed explanation.
