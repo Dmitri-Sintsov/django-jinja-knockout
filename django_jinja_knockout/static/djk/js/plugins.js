@@ -1062,25 +1062,3 @@ $.fn.scroller = function(method) {
         }
     }[method].call(this);
 };
-
-$.fn.findAttachedComponents = function() {
-    var result = [];
-    this.findSelf('.component').each(function() {
-        // Do not add nested detached .component nodes.
-        if ($(this).hasClass('component') && $(this).data('isDetachedComponent') !== true) {
-            result.push(this);
-        }
-    });
-    return $(result);
-};
-
-$.fn.findRunningComponents = function() {
-    var result = [];
-    this.findAttachedComponents().each(function() {
-        // Do not add already unbound .component nodes.
-        if ($(this).data('componentIdx') !== undefined) {
-            result.push(this);
-        }
-    });
-    return $(result);
-};
