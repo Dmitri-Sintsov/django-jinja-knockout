@@ -967,12 +967,6 @@ void function(Actions) {
 }(App.Actions.prototype);
 
 
-App.getSelector = function(selector) {
-    return (typeof selector === 'undefined') ?
-        $(document) :
-        $(selector);
-};
-
 /**
  * https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
  */
@@ -2225,7 +2219,7 @@ App.initClientMark = function(html) {
 };
 
 App.initClientApply = function(selector, method) {
-    var $selector = App.getSelector(selector);
+    var $selector = $(selector);
     if (typeof method === 'undefined') {
         method = 'init';
     }
@@ -2562,10 +2556,6 @@ void function(ComponentManager) {
             // Sparse component that contains separate multiple DOM subtrees.
             this.$selector = $(this.$selector.data('componentSelector'));
         }
-        this.$nestedComponents = this.$selector.find('.component');
-        if (this.$nestedComponents.length > 0) {
-            this.detachNestedComponents();
-        }
         return this.$selector;
     };
 
@@ -2575,6 +2565,7 @@ void function(ComponentManager) {
 
     // Do not rebind nested components multiple times.
     ComponentManager.detachNestedComponents = function() {
+        this.$nestedComponents = this.$selector.find('.component');
         this.$nestedComponents.each(function(k, v) {
             var $v = $(v);
             var $tmpElem = $('<span>')
@@ -2674,6 +2665,7 @@ void function(Components) {
         var desc;
         var cm = new App.ComponentManager({'elem': elem});
         var $selector = cm.getSelector(elem);
+        cm.detachNestedComponents();
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
             if (desc.component !== null) {
@@ -2842,12 +2834,19 @@ App.initClientHooks.push({
  * Mostly is used to instantinate App.ko classes, but is not limited to.
  *
  */
-App.initClientHooks.push(function($selector) {
-    _.each($selector.findSelf('.component'), function(v) {
-        // Do not add nested detached .component nodes.
-        if ($(v).hasClass('component') && $(v).data('isDetachedComponent') !== true) {
-            var evt = $(v).data('event');
-            App.components.add(v, evt);
-        }
-    });
+App.initClientHooks.push({
+    init: function($selector) {
+        $selector.findAttachedComponents().each(function() {
+            var evt = $(this).data('event');
+            App.components.add(this, evt);
+        });
+    },
+    dispose: function($selector) {
+        $selector.findRunningComponents().each(function() {
+            var cm = new App.ComponentManager({'elem': this});
+            var $componentSelector = cm.getSelector(this);
+            // Note: sparse components can potentially unbind the DOM subtrees outside of dispose $selector.
+            App.components.unbind($componentSelector);
+        });
+    }
 });
