@@ -2720,7 +2720,7 @@ void function(Components) {
                 desc = self.list[componentIdx];
             } else if (componentIdx !== $(elem).data('componentIdx')) {
                 throw new Error(sprintf(
-                    'Current DOM subtree componentIdx "%s" is not equal previous DOM subtree componentIdx "%s"',
+                    'Current DOM subtree componentIdx "%s" does not match previous DOM subtree componentIdx "%s"',
                     $(elem).data('componentIdx'),
                     componentIdx
                 ));
