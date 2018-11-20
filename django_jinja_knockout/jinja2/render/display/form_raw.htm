@@ -1,0 +1,10 @@
+<table class="table table-bordered table-responsive">
+    <colgroup>
+        <col class="{{ opts.layout_classes.label }}">
+        <col class="{{ opts.layout_classes.field }}">
+    </colgroup>
+    {{ form._renderer['body']() }}
+</table>
+{% if caller -%}
+    {{ caller() }}
+{% endif -%}

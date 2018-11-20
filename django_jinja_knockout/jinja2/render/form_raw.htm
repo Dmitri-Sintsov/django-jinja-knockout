@@ -1,0 +1,19 @@
+{% if opts.is_ajax -%}
+    {% set atts = {'data-url': action, 'class': 'ajax-form'} -%}
+{% else -%}
+    {% set atts = {'action': action} -%}
+{% endif -%}
+{% do atts.update({
+    'method': method,
+    'enctype': "multipart/form-data",
+    'role': 'form'
+}) -%}
+<form{{ tpl.json_flatatt(atts) }}>
+    {{ form._renderer['body']() }}
+    {% if opts.submit_text is defined -%}
+    <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
+    {% endif -%}
+    {% if caller -%}
+        {{ caller() }}
+    {% endif -%}
+</form>

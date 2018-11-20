@@ -175,6 +175,7 @@ class StandaloneFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
     obj_template_attr = 'standalone_template'
+    # Set form.standalone_template = 'form_raw.htm' to render form without the panel.
     template = 'form.htm'
 
 
