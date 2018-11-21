@@ -121,7 +121,7 @@ def render_fields(form, *fields):
 
 
 # Instance is stored into form._renderer['body']
-class FormBodyRenderer(Renderer):
+class FormBodyRenderer(DisplayRenderer):
 
     obj_kwarg = 'form'
     obj_template_attr = 'body_template'
@@ -198,7 +198,7 @@ class FormsetRenderer(Renderer):
     def ioc_render_inline_form(self, form):
         return ioc_form_renderer(
             self.request, 'inline', {
-                'form': form
+                'form': form,
             },
             default_cls=self.inline_form_renderer_cls
         )
