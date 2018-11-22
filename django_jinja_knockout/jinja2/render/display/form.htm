@@ -3,6 +3,12 @@
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     {% endif -%}
     <div class="panel-body">
-        {% include 'render/display/form_raw.htm' with context -%}
+        <table class="table table-bordered table-responsive">
+            <colgroup>
+                <col class="{{ opts.layout_classes.label }}">
+                <col class="{{ opts.layout_classes.field }}">
+            </colgroup>
+            {% include 'render/display/form_raw.htm' with context -%}
+        </table>
     </div>
 </div>

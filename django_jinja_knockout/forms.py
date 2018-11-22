@@ -155,6 +155,7 @@ class RelatedFormRenderer(DisplayRenderer):
         return ioc_form_renderer(
             self.request, 'body', {
                 'action': self.context['action'],
+                'caller': self.context['caller'],
                 'layout_classes': layout_classes,
                 'form': self.obj,
             },
@@ -198,6 +199,7 @@ class FormsetRenderer(Renderer):
     def ioc_render_inline_form(self, form):
         return ioc_form_renderer(
             self.request, 'inline', {
+                'caller': self.context['caller'],
                 'form': form,
             },
             default_cls=self.inline_form_renderer_cls
@@ -435,7 +437,7 @@ class FormWithInlineFormsets:
     def ioc_related_form_renderer(self, form):
         return ioc_form_renderer(
             self.request, 'related', {
-                'related_form': form
+                'related_form': form,
             },
             default_cls=self.related_form_renderer_cls
         )
@@ -448,7 +450,9 @@ class FormWithInlineFormsets:
         self.ioc_related_form_renderer(form)
 
     def ioc_formset_renderer(self, formset):
-        return self.formset_renderer_cls(self.request, {'formset': formset})
+        return self.formset_renderer_cls(self.request, {
+            'formset': formset,
+        })
 
     def get_formset_inline_title(self, formset):
         return None

@@ -14,6 +14,6 @@
     <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
     {% endif -%}
     {% if caller -%}
-        {{ caller() }}
+        {{ caller({'buttons': True}) }}
     {% endif -%}
 </form>
