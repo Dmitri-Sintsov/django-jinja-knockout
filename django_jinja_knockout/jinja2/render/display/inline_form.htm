@@ -12,7 +12,4 @@
     <th colspan="2"></th>
 </tr>
 {% endif -%}
-{{ render_form(request, 'body', form, {
-    'action': action,
-    'layout_classes': opts.layout_classes
-}) }}
+{{ form._renderer['body']() }}

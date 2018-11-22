@@ -9,10 +9,7 @@
     <div class="panel panel-default inline-formset-wrap">
         <div class="panel-heading"><h3 class="panel-title">{{ opts.inline_title }}</h3></div>
         <div class="panel-body">
-            {{ render_form(request, 'body', form, {
-                'action': action,
-                'layout_classes': opts.layout_classes
-            }) }}
+            {{ form._renderer['body']() }}
         </div>
     </div>
 </div>

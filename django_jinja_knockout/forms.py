@@ -181,7 +181,7 @@ class StandaloneFormRenderer(RelatedFormRenderer):
 
 
 # Instance is stored into form._renderer['inline'].
-class InlineFormRenderer(DisplayRenderer):
+class InlineFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
     obj_template_attr = 'inline_template'
@@ -304,7 +304,10 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         if attrs is None:
             attrs = {}
         bases = bases + (UnchangeableModelMixin,)
-        attrs['formfield_callback'] = display_model_formfield_callback
+        attrs.update({
+            'formfield_callback': display_model_formfield_callback,
+            'default_action': '',
+        })
         return ModelFormMetaclass.__new__(mcs, name, bases, attrs)
 
 
@@ -331,10 +334,16 @@ def set_knockout_template(formset, request, opts: dict=None):
     _opts = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
-        'layout_classes': get_layout_classes()
+        'layout_classes': get_layout_classes(),
     }
     _opts.update(opts)
+    # Note: inline renderer does not need real form action, thus '?' default value is provided.
+    # The valid action value is used in outer bs_inline_formsets() form tag only, which calls the inline renderer.
+    # However, the renderer context 'action' value is used to determine whether this is display-only form (action == '')
+    # or is the real submittable form with inputs (action != '').
     renderer = render_form(request, 'inline', formset.empty_form, {
+        'caller': {},
+        'action': getattr(formset.empty_form, 'default_action', '?'),
         'opts': _opts,
     })
     empty_form_str = renderer.__str__()
