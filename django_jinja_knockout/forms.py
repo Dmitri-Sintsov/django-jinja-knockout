@@ -45,7 +45,7 @@ class FieldRenderer(Renderer):
     def get_template_dir(self):
         self.display_layout = bootstrap.get_display_layout(self.obj)
         template_dir = 'render/' if self.display_layout != 'table' else 'render/display/'
-        return getattr(self.obj, 'template_dir', template_dir)
+        return getattr(self.obj.field, 'template_dir', template_dir)
 
     def get_template_name(self):
         template_dir = self.get_template_dir()
