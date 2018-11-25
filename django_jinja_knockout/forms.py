@@ -20,10 +20,11 @@ from .widgets import DisplayText
 from .viewmodels import to_json
 
 
-class DisplayRenderer(Renderer):
+class RelativeRenderer(Renderer):
 
-    def get_template_basedir(self):
-        return 'render/' if self.context.get('action', None) != '' else 'render/display/'
+    def get_template_dir(self):
+        template_dir = getattr(self.context.get(self.obj_kwarg, None), 'template_dir', 'render/')
+        return template_dir
 
 
 # Instance is stored into field.renderer.
@@ -41,36 +42,37 @@ class FieldRenderer(Renderer):
         super().__init__(request, context)
         self.display_layout = None
 
-    def get_template_basedir(self):
+    def get_template_dir(self):
         self.display_layout = bootstrap.get_display_layout(self.obj)
-        return 'render/' if self.display_layout != 'table' else 'render/display/'
+        template_dir = 'render/' if self.display_layout != 'table' else 'render/display/'
+        return getattr(self.obj, 'template_dir', template_dir)
 
     def get_template_name(self):
-        basedir = self.get_template_basedir()
+        template_dir = self.get_template_dir()
         if hasattr(self.obj.field, 'render_template'):
-            return basedir + self.obj.field.render_template
+            return template_dir + self.obj.field.render_template
         if self.display_layout == 'table':
-            return basedir + 'field.htm'
+            return template_dir + 'field.htm'
         elif self.display_layout == 'div':
-            return basedir + 'field_standard.htm'
+            return template_dir + 'field_standard.htm'
         elif bootstrap.is_checkbox(self.obj):
-            return basedir + 'field_checkbox.htm'
+            return template_dir + 'field_checkbox.htm'
         elif bootstrap.is_multiple_checkbox(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'checkbox'
                 }
             })
-            return basedir + 'field_multiple.htm'
+            return template_dir + 'field_multiple.htm'
         elif bootstrap.is_radio(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'radio'
                 }
             })
-            return basedir + 'field_multiple.htm'
+            return template_dir + 'field_multiple.htm'
         else:
-            return basedir + 'field_standard.htm'
+            return template_dir + 'field_standard.htm'
 
     def set_classes(self, classes=None):
         bootstrap.add_input_classes_to_field(self.obj.field)
@@ -121,7 +123,7 @@ def render_fields(form, *fields):
 
 
 # Instance is stored into form._renderer['body']
-class FormBodyRenderer(DisplayRenderer):
+class FormBodyRenderer(RelativeRenderer):
 
     obj_kwarg = 'form'
     obj_template_attr = 'body_template'
@@ -144,7 +146,7 @@ class FormBodyRenderer(DisplayRenderer):
 
 
 # Instance is stored into form._renderer['related'].
-class RelatedFormRenderer(DisplayRenderer):
+class RelatedFormRenderer(RelativeRenderer):
 
     obj_kwarg = 'related_form'
     obj_template_attr = 'related_template'
@@ -154,7 +156,6 @@ class RelatedFormRenderer(DisplayRenderer):
     def ioc_render_form_body(self, layout_classes):
         return ioc_form_renderer(
             self.request, 'body', {
-                'action': self.context['action'],
                 'caller': self.context['caller'],
                 'layout_classes': layout_classes,
                 'form': self.obj,
@@ -213,7 +214,6 @@ class FormsetRenderer(Renderer):
     def get_template_context(self):
         context = super().get_template_context()
         self.ioc_forms({
-            'action': self.context['action'],
             'opts': self.context['opts'],
         })
         return context
@@ -304,10 +304,9 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         if attrs is None:
             attrs = {}
         bases = bases + (UnchangeableModelMixin,)
-        attrs.update({
-            'formfield_callback': display_model_formfield_callback,
-            'default_action': '',
-        })
+        attrs['formfield_callback'] = display_model_formfield_callback
+        if 'template_dir' not in attrs:
+            attrs['template_dir'] = 'render/display/'
         return ModelFormMetaclass.__new__(mcs, name, bases, attrs)
 
 
@@ -337,13 +336,8 @@ def set_knockout_template(formset, request, opts: dict=None):
         'layout_classes': get_layout_classes(),
     }
     _opts.update(opts)
-    # Note: inline renderer does not need real form action, thus '?' default value is provided.
-    # The valid action value is used in outer bs_inline_formsets() form tag only, which calls the inline renderer.
-    # However, the renderer context 'action' value is used to determine whether this is display-only form (action == '')
-    # or is the real submittable form with inputs (action != '').
     renderer = render_form(request, 'inline', formset.empty_form, {
         'caller': {},
-        'action': getattr(formset.empty_form, 'default_action', '?'),
         'opts': _opts,
     })
     empty_form_str = renderer.__str__()

@@ -97,7 +97,7 @@ class Renderer:
     def get_template_context(self):
         return self.context
 
-    def get_template_basedir(self):
+    def get_template_dir(self):
         return 'render/'
 
     def get_template_name(self):
@@ -106,7 +106,7 @@ class Renderer:
         else:
             obj_template = getattr(self.obj, self.obj_template_attr, self.template)
             template_name = self.template if obj_template is None else obj_template
-        return self.get_template_basedir() + template_name
+        return self.get_template_dir() + template_name
 
     def __str__(self):
         template_name = self.get_template_name()
