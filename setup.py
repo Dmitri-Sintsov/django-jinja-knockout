@@ -53,7 +53,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=install_reqs,
-    license="GPL-3.0",
+    license="LGPL-3.0",
     zip_safe=False,
     keywords='django jinja knockout.js ajax forms grid datagrid datatables'.split(),
     classifiers=[
