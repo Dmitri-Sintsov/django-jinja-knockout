@@ -1825,9 +1825,10 @@ App.compileTemplate = function(tplId) {
 
 /**
  * Tags converter which is executed during App.initClient() content ready and for each expanded underscore.js template.
- * Converts <panel-success id="panel1" class="my-panel"> to <div id="panel1" class="panel panel-success my-panel">
+ * Converts <card-success id="panel1" class="my-panel"> to <div id="panel1" class="card text-white bg-success my-panel">
  * Note:
  *   Using custom tags with initial page content may produce flickering, because these are not native browser custom tags.
+ *     To prevent such flickering, setup similar CSS rules for custom tags to the substituted ones.
  *   Using custom tags in templates is encouraged and produces no extra flickering.
  */
 App.TransformTags = function() {
@@ -1841,7 +1842,8 @@ void function(TransformTags) {
     };
 
     TransformTags.bsPanel = function(elem, tagName) {
-        return this.tagNameToClassName(elem, tagName).addClass('panel');
+        var typ = tagName.split(/-/)[1];
+        return this.tagNameToClassName(elem, 'PANEL-' + typ).addClass('panel');
     };
 
     TransformTags.init = function() {
@@ -1864,12 +1866,12 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
-            'PANEL-DEFAULT': TransformTags.bsPanel,
-            'PANEL-PRIMARY': TransformTags.bsPanel,
-            'PANEL-SUCCESS': TransformTags.bsPanel,
-            'PANEL-INFO': TransformTags.bsPanel,
-            'PANEL-WARNING': TransformTags.bsPanel,
-            'PANEL-DANGER': TransformTags.bsPanel,
+            'CARD-DEFAULT': TransformTags.bsPanel,
+            'CARD-PRIMARY': TransformTags.bsPanel,
+            'CARD-SUCCESS': TransformTags.bsPanel,
+            'CARD-INFO': TransformTags.bsPanel,
+            'CARD-WARNING': TransformTags.bsPanel,
+            'CARD-DANGER': TransformTags.bsPanel,
             'PANEL-HEADING': TransformTags.tagNameToClassName,
             'PANEL-BODY': TransformTags.tagNameToClassName,
             'PANEL-FOOTER': TransformTags.tagNameToClassName,

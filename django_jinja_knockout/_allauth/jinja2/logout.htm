@@ -8,7 +8,7 @@
     {{ _('Are you sure you want to sign out?') }}
 </div>
 
-<div class="panel panel-default">
+<card-default>
     <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
     <div class="panel-body">
         <form role="form" method="post" action="{{ url('account_logout') }}">
@@ -19,6 +19,6 @@
             <button class="btn btn-primary" type="submit">{{ _('Sign Out') }}</button>
         </form>
     </div>
-</div>
+</card-default>
 
 {% endblock main %}

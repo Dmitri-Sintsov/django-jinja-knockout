@@ -6,7 +6,7 @@
 {{ raise('"formsets" argument should be the list of formsets') }}
 {% endif -%}
 {% set wrapper_atts = {
-    'class': 'formsets panel panel-default default-padding'
+    'class': 'formsets default-padding'
 } -%}
 {% if not opts -%}
     {% set opts = {} -%}
@@ -21,7 +21,7 @@
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
 {% do opts.update({'table_classes': 'table table-bordered table-responsive'}) -%}
-<div{{ tpl.json_flatatt(wrapper_atts) }}>
+<card-default {{ tpl.json_flatatt(wrapper_atts) }}>
     {% if opts.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     {% endif -%}
@@ -77,7 +77,7 @@
         <textarea class="ko-template">{{ formset.knockout_template }}</textarea>
         {% endif -%}
     {% endfor -%}
-</div>
+</card-default>
 {% endmacro -%}
 {% if _render_ -%}
 {% call(kwargs) bs_inline_formsets(form, formsets, action, opts) -%}

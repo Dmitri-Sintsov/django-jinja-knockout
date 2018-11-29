@@ -8,7 +8,7 @@
 {{ bs_navs(main_navs) }}
 {% endif -%}
 
-<div class="panel panel-primary">
+<card-primary>
     <div class="panel-heading">
         <h3 class="panel-title">{{ view.get_heading() }}</h3>
     </div>
@@ -17,7 +17,7 @@
             related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
         ) }}
     </div>
-</div>
+</card-primary>
 
 {% endblock main -%}
 

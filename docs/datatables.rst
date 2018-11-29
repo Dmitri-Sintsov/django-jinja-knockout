@@ -1398,7 +1398,7 @@ Full code::
         {{ ko_grid_body() }}
 
         <script type="text/template" id="member_ko_grid_body">
-            <div class="panel panel-primary">
+            <card-primary>
                 <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
                 <div class="panel-body">
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
@@ -1413,7 +1413,7 @@ Full code::
                     </div>
                 </div>
                 <div data-template-id="ko_grid_pagination"></div>
-            </div>
+            </card-primary>
         </script>
 
         <script type="text/template" id="member_ko_grid_filter_choices">
@@ -1736,7 +1736,7 @@ Where the ``'member_note_form'`` template could be like this, based on ``ko_acti
 `ko_grid_body.htm`_::
 
     <script type="text/template" id="member_note_form">
-        <div class="panel panel-default">
+        <card-default">
             <div class="panel-body">
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
@@ -1749,7 +1749,7 @@ Where the ``'member_note_form'`` template could be like this, based on ``ko_acti
                     </div>
                 </form>
             </div>
-        </div>
+        </card-default>
     </script>
 
 which may include any custom Knockout.js properties / observables bound to current grid instance. That allows to prodice
@@ -3260,7 +3260,7 @@ And the final step is to generate client-side component in Jinja2 template with 
         {{ ko_grid_body() }}
 
         <script type="text/template" id="model1_ko_grid_body">
-            <div class="panel panel-primary">
+            <card-primary>
                 <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
                 <div class="panel-body">
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
@@ -3274,7 +3274,7 @@ And the final step is to generate client-side component in Jinja2 template with 
                         </button>
                     <!-- /ko -->
                 </div>
-            </div>
+            </card-primary>
         </script>
 
         <script src="{{ static_hash('djk/js/grid.js') }}"></script>

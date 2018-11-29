@@ -3,7 +3,7 @@
 {% from 'bs_filters.htm' import bs_filters with context -%}
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
-<div class="panel panel-primary">
+<card-primary>
     <div class="panel-heading">
         <h3 class="panel-title">{{ view.get_heading() }}</h3>
     </div>
@@ -70,7 +70,7 @@
         {% endif -%}
 
     </div>
-</div>
+</card-primary>
 
 {% endmacro -%}
 {% if _render_ -%}

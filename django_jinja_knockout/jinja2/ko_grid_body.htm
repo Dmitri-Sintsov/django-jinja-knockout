@@ -26,7 +26,7 @@
 
 {% if 'ko_range_filter' in _include_ids -%}
 <script type="text/template" id="ko_range_filter">
-    <panel-default>
+    <card-default>
         <panel-body>
             <div class="row form-group">
                 <label data-bind="text: meta.from" class="control-label col-md-4" for="id_range_from"></label>
@@ -39,7 +39,7 @@
                 </div>
             </div>
         </panel-body>
-    </panel-default>
+    </card-default>
 </script>
 {% endif -%}
 
@@ -55,7 +55,7 @@
 {% if 'ko_action_form' in _include_ids -%}
 <!-- 'ko_action_form' template is not actual template but a skeleton of action template for App.ActionTemplateDialog class. -->
 <script type="text/template" id="ko_action_form">
-    <panel-default>
+    <card-default>
         <panel-body>
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                 <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: actions.getCsrfToken()">
@@ -67,7 +67,7 @@
                 </div>
             </form>
         </panel-body>
-    </panel-default>
+    </card-default>
 </script>
 {% endif -%}
 
@@ -176,14 +176,14 @@
 
 {% if 'ko_grid_no_results' in _include_ids -%}
 <script language="text/template" id="ko_grid_no_results">
-    <panel-default>
+    <card-default>
         <panel-heading>
             {{ _(
                 'No %(verbose_name)s found matching the query',
                 verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
             )) }}.
         </panel-heading>
-    </panel-default>
+    </card-default>
 </script>
 {% endif -%}
 
@@ -313,7 +313,7 @@
 
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
-    <panel-default>
+    <card-default>
         <panel-heading class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
             <div data-bind="text: $data"></div>
         </panel-heading>
@@ -323,7 +323,7 @@
                 <option data-bind="attr: {value: $data}">
             </datalist>
         </panel-body>
-    </panel-default>
+    </card-default>
 </script>
 {% endif -%}
 

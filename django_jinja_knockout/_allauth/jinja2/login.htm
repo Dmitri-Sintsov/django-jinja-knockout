@@ -6,7 +6,7 @@
 
 <p>{{ _('If you have not created an account yet, then please <a href="%(signup_url)s">sign up</a> first.', signup_url=signup_url) }}</p>
 
-<div class="panel panel-default">
+<card-default>
     <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
     <div class="panel-body">
         <form role="form" class="login" method="POST" action="{{ url('account_login') }}">
@@ -18,6 +18,6 @@
             <button class="btn btn-primary" type="submit">{{ _("Sign In") }}</button>
         </form>
     </div>
-</div>
+</card-default>
 
 {% endblock main %}

@@ -12,7 +12,7 @@
     email=confirmation.email_address.email
 ) %}
 
-<div class="panel panel-default">
+<card-default>
     <div class="panel-heading"><h3 class="panel-title">{{ panel_title }}</h3></div>
     <div class="panel-body">
         <form role="form" method="post" action="{{ url('account_confirm_email', confirmation.key) }}">
@@ -20,7 +20,7 @@
             <button class="btn btn-primary" type="submit">{{ _('Confirm') }}</button>
         </form>
     </div>
-</div>
+</card-default>
 
 {% else %}
 

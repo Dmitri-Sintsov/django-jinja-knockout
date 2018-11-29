@@ -5,7 +5,7 @@
 {{ bs_page_header(_("E-mail Addresses")) }}
 {% if request.user.emailaddress_set.exists() -%}
 
-<div class="panel panel-default">
+<card-default>
     <div class="panel-heading"><h3 class="panel-title">{{ _('The following e-mail addresses are associated with your account:') }}</h3></div>
     <div class="panel-body">
         <form role="form" action="{{ url('account_email') }}" class="email_list" method="post">
@@ -39,7 +39,7 @@
             </fieldset>
         </form>
     </div>
-</div>
+</card-default>
 
 {% else -%}
 <div class="jumbotrion">
@@ -48,7 +48,7 @@
 {% endif -%}
 
 
-<div class="panel panel-default">
+<card-default>
     <div class="panel-heading"><h3 class="panel-title">{{ _("Add E-mail Address") }}</h3></div>
     <div class="panel-body">
         <form role="form" method="post" action="{{ url('account_email') }}" class="add_email">
@@ -56,7 +56,7 @@
             <button class="btn btn-primary" name="action_add" type="submit">{{ _("Add E-mail") }}</button>
         </form>
     </div>
-</div>
+</card-default>
 
 {% endblock main -%}
 

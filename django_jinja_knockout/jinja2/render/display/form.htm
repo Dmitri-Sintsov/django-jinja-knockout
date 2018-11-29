@@ -1,4 +1,4 @@
-<div class="panel panel-default {{ opts.class }}">
+<card-default class="{{ opts.class }}">
     {% if opts.title is defined -%}
     <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
     {% endif -%}
@@ -11,4 +11,4 @@
             {% include 'render/display/form_raw.htm' with context -%}
         </table>
     </div>
-</div>
+</card-default>
