@@ -2,7 +2,7 @@
     {% if opts.title is defined -%}
     <card-header><h3 class="panel-title">{{ opts.title }}</h3></card-header>
     {% endif -%}
-    <div class="panel-body">
+    <card-body>
         <table class="table table-bordered table-responsive">
             <colgroup>
                 <col class="{{ opts.layout_classes.label }}">
@@ -10,5 +10,5 @@
             </colgroup>
             {% include 'render/display/form_raw.htm' with context -%}
         </table>
-    </div>
+    </card-body>
 </card-default>

@@ -1861,9 +1861,6 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
-            'PANEL-BODY': function(elem, tagName) {
-                return this.toTag(elem, 'div', tagName.toLowerCase());
-            },
             'PANEL-FOOTER': function(elem, tagName) {
                 return this.toTag(elem, 'div', tagName.toLowerCase());
             },

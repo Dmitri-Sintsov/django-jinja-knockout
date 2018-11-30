@@ -6,7 +6,7 @@
 
 <card-default>
     <card-header><h3 class="panel-title">{{ request.view_title }}</h3></card-header>
-    <div class="panel-body">
+    <card-body>
         <form role="form" class="signup" id="signup_form" method="post" action="{{ url('account_signup') }}">
             {{ render_form(request, 'body', form) }}
             {% if redirect_field_value %}
@@ -14,7 +14,7 @@
             {% endif %}
             <button class="btn btn-primary" type="submit">{{ _("Sign Up") }} &raquo;</button>
         </form>
-    </div>
+    </card-body>
 </card-default>
 
 {% endblock main %}

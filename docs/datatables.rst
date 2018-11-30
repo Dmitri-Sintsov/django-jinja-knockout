@@ -1400,7 +1400,7 @@ Full code::
         <script type="text/template" id="member_ko_grid_body">
             <card-primary>
                 <card-header data-bind="text: meta.verboseNamePlural"></card-header>
-                <div class="panel-body">
+                <card-body>
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
                     <div data-template-id="member_ko_grid_nav"></div>
                     <!-- /ko -->
@@ -1411,7 +1411,7 @@ Full code::
                             Change endorsement
                         </button>
                     </div>
-                </div>
+                </card-body>
                 <div data-template-id="ko_grid_pagination"></div>
             </card-primary>
         </script>
@@ -1737,7 +1737,7 @@ Where the ``'member_note_form'`` template could be like this, based on ``ko_acti
 
     <script type="text/template" id="member_note_form">
         <card-default">
-            <div class="panel-body">
+            <card-body>
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': gridActions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                     <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
@@ -1748,7 +1748,7 @@ Where the ``'member_note_form'`` template could be like this, based on ``ko_acti
                         </div>
                     </div>
                 </form>
-            </div>
+            </card-body>
         </card-default>
     </script>
 
@@ -3262,7 +3262,7 @@ And the final step is to generate client-side component in Jinja2 template with 
         <script type="text/template" id="model1_ko_grid_body">
             <card-primary>
                 <card-header data-bind="text: meta.verboseNamePlural"></card-header>
-                <div class="panel-body">
+                <card-body>
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
                     <div data-template-id="model1_ko_grid_nav"></div>
                     <!-- /ko -->
@@ -3273,7 +3273,7 @@ And the final step is to generate client-side component in Jinja2 template with 
                             <span data-bind="text: $data.localName"></span>
                         </button>
                     <!-- /ko -->
-                </div>
+                </card-body>
             </card-primary>
         </script>
 

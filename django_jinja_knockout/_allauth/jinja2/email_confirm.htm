@@ -14,12 +14,12 @@
 
 <card-default>
     <card-header><h3 class="panel-title">{{ panel_title }}</h3></card-header>
-    <div class="panel-body">
+    <card-body>
         <form role="form" method="post" action="{{ url('account_confirm_email', confirmation.key) }}">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button class="btn btn-primary" type="submit">{{ _('Confirm') }}</button>
         </form>
-    </div>
+    </card-body>
 </card-default>
 
 {% else %}

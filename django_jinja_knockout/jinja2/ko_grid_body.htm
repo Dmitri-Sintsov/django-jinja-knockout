@@ -27,7 +27,7 @@
 {% if 'ko_range_filter' in _include_ids -%}
 <script type="text/template" id="ko_range_filter">
     <card-default>
-        <panel-body>
+        <card-body>
             <div class="row form-group">
                 <label data-bind="text: meta.from" class="control-label col-md-4" for="id_range_from"></label>
                 <div class="field col-md-6">
@@ -38,7 +38,7 @@
                     <input data-bind="textInput: to, attr: fieldAttrs" id="id_range_to" name="range_to">
                 </div>
             </div>
-        </panel-body>
+        </card-body>
     </card-default>
 </script>
 {% endif -%}
@@ -56,7 +56,7 @@
 <!-- 'ko_action_form' template is not actual template but a skeleton of action template for App.ActionTemplateDialog class. -->
 <script type="text/template" id="ko_action_form">
     <card-default>
-        <panel-body>
+        <card-body>
             <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                 <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: actions.getCsrfToken()">
                 <input type="hidden" name="pk_val" data-bind="value: getLastPkVal()">
@@ -66,7 +66,7 @@
                     </div>
                 </div>
             </form>
-        </panel-body>
+        </card-body>
     </card-default>
 </script>
 {% endif -%}
@@ -273,7 +273,7 @@
     <div <% if (self.get('show_title')) { %> class="panel panel-<%= self.get('panel_type') %>" <% } %>>
         <% if (self.get('show_title')) { %>
         <card-header data-bind="text: meta.verboseNamePlural"></card-header>
-        <panel-body>
+        <card-body>
         <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
             <div data-template-id="ko_grid_nav"></div>
@@ -286,7 +286,7 @@
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
         <% if (self.get('show_title')) { %>
-        </panel-body>
+        </card-body>
         <% } %>
     </div>
 </script>
@@ -317,12 +317,12 @@
         <card-header class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
             <div data-bind="text: $data"></div>
         </card-header>
-        <panel-body>
+        <card-body>
             <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
             <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
                 <option data-bind="attr: {value: $data}">
             </datalist>
-        </panel-body>
+        </card-body>
     </card-default>
 </script>
 {% endif -%}

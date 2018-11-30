@@ -15,13 +15,13 @@
             </h4>
         </card-header>
         <div style="" aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
-            <div class="panel-body">
+            <card-body>
             {% if header is not none -%}
                 {{ caller() }}
             {% else -%}
                 {{ caller('body') }}
             {% endif -%}
-            </div>
+            </card-body>
         </div>
     </card-primary>
 </div>

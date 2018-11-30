@@ -12,11 +12,11 @@
     <card-header>
         <h3 class="panel-title">{{ view.get_heading() }}</h3>
     </card-header>
-    <div class="panel-body">
+    <card-body>
         {{ bs_inline_formsets(
             related_form=form, formsets=formsets, action=view.get_form_action_url(), opts=view.get_bs_form_opts()
         ) }}
-    </div>
+    </card-body>
 </card-primary>
 
 {% endblock main -%}

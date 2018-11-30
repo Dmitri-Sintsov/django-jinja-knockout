@@ -7,7 +7,7 @@
 
 <card-default>
     <card-header><h3 class="panel-title">{{ _('The following e-mail addresses are associated with your account:') }}</h3></card-header>
-    <div class="panel-body">
+    <card-body>
         <form role="form" action="{{ url('account_email') }}" class="email_list" method="post">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <fieldset class="blockLabels">
@@ -38,7 +38,7 @@
 
             </fieldset>
         </form>
-    </div>
+    </card-body>
 </card-default>
 
 {% else -%}
@@ -50,12 +50,12 @@
 
 <card-default>
     <card-header><h3 class="panel-title">{{ _("Add E-mail Address") }}</h3></card-header>
-    <div class="panel-body">
+    <card-body>
         <form role="form" method="post" action="{{ url('account_email') }}" class="add_email">
             {{ render_form(request, 'body', form) }}
             <button class="btn btn-primary" name="action_add" type="submit">{{ _("Add E-mail") }}</button>
         </form>
-    </div>
+    </card-body>
 </card-default>
 
 {% endblock main -%}
