@@ -23,7 +23,7 @@
 {% do opts.update({'table_classes': 'table table-bordered table-responsive'}) -%}
 <card-default {{ tpl.json_flatatt(wrapper_atts) }}>
     {% if opts.title is defined -%}
-    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    <card-header><h3 class="panel-title">{{ opts.title }}</h3></card-header>
     {% endif -%}
     {% if caller -%}
         {{ caller({'ff_heading': related_form, 'opts': opts}) }}

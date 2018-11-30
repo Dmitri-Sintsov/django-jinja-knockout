@@ -4,9 +4,9 @@
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
 <card-primary>
-    <div class="panel-heading">
+    <card-header>
         <h3 class="panel-title">{{ view.get_heading() }}</h3>
-    </div>
+    </card-header>
     <div class="panel-body">
         {% if caller and 'has_filters' in caller.arguments -%}
             {{ caller(has_filters=True) }}

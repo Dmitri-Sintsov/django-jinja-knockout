@@ -1399,7 +1399,7 @@ Full code::
 
         <script type="text/template" id="member_ko_grid_body">
             <card-primary>
-                <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+                <card-header data-bind="text: meta.verboseNamePlural"></card-header>
                 <div class="panel-body">
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
                     <div data-template-id="member_ko_grid_nav"></div>
@@ -3261,7 +3261,7 @@ And the final step is to generate client-side component in Jinja2 template with 
 
         <script type="text/template" id="model1_ko_grid_body">
             <card-primary>
-                <div data-bind="text: meta.verboseNamePlural" class="panel-heading"></div>
+                <card-header data-bind="text: meta.verboseNamePlural"></card-header>
                 <div class="panel-body">
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
                     <div data-template-id="model1_ko_grid_nav"></div>

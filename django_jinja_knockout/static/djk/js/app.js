@@ -1837,8 +1837,8 @@ App.TransformTags = function() {
 
 void function(TransformTags) {
 
-    TransformTags.tagNameToClassName = function(elem, tagName) {
-        return $(elem).replaceWithTag('div').addClass(tagName.toLowerCase());
+    TransformTags.toTag = function(elem, tag, cssClasses) {
+        return $(elem).replaceWithTag(tag).addClass(cssClasses);
     };
 
     TransformTags.init = function() {
@@ -1861,11 +1861,14 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
-            'PANEL-HEADING': TransformTags.tagNameToClassName,
-            'PANEL-BODY': TransformTags.tagNameToClassName,
-            'PANEL-FOOTER': TransformTags.tagNameToClassName,
+            'PANEL-BODY': function(elem, tagName) {
+                return this.toTag(elem, 'div', tagName.toLowerCase());
+            },
+            'PANEL-FOOTER': function(elem, tagName) {
+                return this.toTag(elem, 'div', tagName.toLowerCase());
+            },
             'PANEL-TITLE': function(elem, tagName) {
-                return $(elem).replaceWithTag('h3').addClass(tagName.toLowerCase());
+                return this.toTag(elem, 'div', tagName.toLowerCase());
             },
         };
     };

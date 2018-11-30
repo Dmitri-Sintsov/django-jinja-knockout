@@ -177,12 +177,12 @@
 {% if 'ko_grid_no_results' in _include_ids -%}
 <script language="text/template" id="ko_grid_no_results">
     <card-default>
-        <panel-heading>
+        <card-header>
             {{ _(
                 'No %(verbose_name)s found matching the query',
                 verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
             )) }}.
-        </panel-heading>
+        </card-header>
     </card-default>
 </script>
 {% endif -%}
@@ -272,7 +272,7 @@
 <script type="text/template" id="ko_grid_body">
     <div <% if (self.get('show_title')) { %> class="panel panel-<%= self.get('panel_type') %>" <% } %>>
         <% if (self.get('show_title')) { %>
-        <panel-heading data-bind="text: meta.verboseNamePlural"></panel-heading>
+        <card-header data-bind="text: meta.verboseNamePlural"></card-header>
         <panel-body>
         <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
@@ -314,9 +314,9 @@
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
     <card-default>
-        <panel-heading class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
+        <card-header class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
             <div data-bind="text: $data"></div>
-        </panel-heading>
+        </card-header>
         <panel-body>
             <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
             <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">

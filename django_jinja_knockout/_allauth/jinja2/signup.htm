@@ -5,7 +5,7 @@
 <p>{{ _('Already have an account? Then please <a href="%(login_url)s">sign in</a>.', login_url=login_url) }}</p>
 
 <card-default>
-    <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
+    <card-header><h3 class="panel-title">{{ request.view_title }}</h3></card-header>
     <div class="panel-body">
         <form role="form" class="signup" id="signup_form" method="post" action="{{ url('account_signup') }}">
             {{ render_form(request, 'body', form) }}
