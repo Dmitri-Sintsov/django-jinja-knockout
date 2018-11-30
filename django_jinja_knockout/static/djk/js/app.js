@@ -1841,11 +1841,6 @@ void function(TransformTags) {
         return $(elem).replaceWithTag('div').addClass(tagName.toLowerCase());
     };
 
-    TransformTags.bsPanel = function(elem, tagName) {
-        var typ = tagName.split(/-/)[1];
-        return this.tagNameToClassName(elem, 'PANEL-' + typ).addClass('panel');
-    };
-
     TransformTags.init = function() {
         // Upper case keys only!
         this.tags = {
@@ -1866,12 +1861,6 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
-            'CARD-DEFAULT': TransformTags.bsPanel,
-            'CARD-PRIMARY': TransformTags.bsPanel,
-            'CARD-SUCCESS': TransformTags.bsPanel,
-            'CARD-INFO': TransformTags.bsPanel,
-            'CARD-WARNING': TransformTags.bsPanel,
-            'CARD-DANGER': TransformTags.bsPanel,
             'PANEL-HEADING': TransformTags.tagNameToClassName,
             'PANEL-BODY': TransformTags.tagNameToClassName,
             'PANEL-FOOTER': TransformTags.tagNameToClassName,
@@ -1881,8 +1870,12 @@ void function(TransformTags) {
         };
     };
 
-    TransformTags.add = function(tagName, fn) {
-        this.tags[tagName] = fn;
+    TransformTags.add = function(tags) {
+        for (var tagName in tags) {
+            if (tags.hasOwnProperty(tagName)) {
+                this.tags[tagName] = tags[tagName];
+            }
+        }
         return this;
     };
 
@@ -1925,8 +1918,6 @@ void function(TransformTags) {
     };
 
 }(App.TransformTags.prototype);
-
-App.transformTags = new App.TransformTags();
 
 
 /**
