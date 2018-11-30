@@ -5,7 +5,7 @@
 
 <card-primary>
     <card-header>
-        <h3 class="panel-title">{{ view.get_heading() }}</h3>
+        <card-title>{{ view.get_heading() }}</card-title>
     </card-header>
     <card-body>
         {% if caller and 'has_filters' in caller.arguments -%}

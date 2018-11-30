@@ -7,7 +7,9 @@
 {% endif -%}
 <div class="formset-form-wrap {{ opts.formset_form_class }}">
     <card-default class="inline-formset-wrap">
-        <card-header><h3 class="panel-title">{{ opts.inline_title }}</h3></card-header>
+        <card-header>
+            <card-title>{{ opts.inline_title }}</card-title>
+        </card-header>
         <card-body>
             {{ form._renderer['body']() }}
         </card-body>

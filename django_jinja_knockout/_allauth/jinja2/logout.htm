@@ -9,7 +9,9 @@
 </div>
 
 <card-default>
-    <card-header><h3 class="panel-title">{{ request.view_title }}</h3></card-header>
+    <card-header>
+        <card-title>{{ request.view_title }}</card-title>
+    </card-header>
     <card-body>
         <form role="form" method="post" action="{{ url('account_logout') }}">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

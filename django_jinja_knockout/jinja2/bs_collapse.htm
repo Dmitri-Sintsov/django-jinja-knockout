@@ -3,7 +3,7 @@
 <div class="panel-group" id="{{ accordion_id }}">
     <card-primary>
         <card-header>
-            <h4 class="panel-title">
+            <card-title>
                 <button class="btn btn-large btn-info accordion-toggle" data-toggle="collapse" data-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
                     <span class="glyphicon glyphicon-plus"></span>
                 </button>
@@ -12,7 +12,7 @@
                 {% else -%}
                     {{ caller('header') }}
                 {% endif -%}
-            </h4>
+            </card-title>
         </card-header>
         <div style="" aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
             <card-body>

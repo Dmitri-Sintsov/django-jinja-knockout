@@ -1,6 +1,8 @@
 <card-default class="{{ opts.class }}">
     {% if opts.title is defined -%}
-    <card-header><h3 class="panel-title">{{ opts.title }}</h3></card-header>
+    <card-header>
+        <card-title>{{ opts.title }}</card-title>
+    </card-header>
     {% endif -%}
     <card-body>
         <table class="table table-bordered table-responsive">

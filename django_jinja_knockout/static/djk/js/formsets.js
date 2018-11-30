@@ -54,7 +54,7 @@ void function(Formset) {
 
     Formset.deleteFormHandler = function($elements) {
         var self = this;
-        var formModelName = $elements.find('.panel-title:first').html();
+        var formModelName = $elements.find(App.ui.cardTitleSelector).html();
         // Attach event handler to newly added form delete input.
         $elements.findSelf('input[name$="-DELETE"]')
         .on('change', function(ev) {
