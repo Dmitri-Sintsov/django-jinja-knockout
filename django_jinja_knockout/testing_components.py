@@ -268,7 +268,7 @@ class GridCommands:
     def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
         grid_filter = self.relative_by_xpath(
             self.context.component,
-            './/*[@data-bind="foreach: gridFilters"]//li[@class="bold" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
+            './/*[@data-bind="foreach: gridFilters"]//li[@class="bold pr-2" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
             filter_name
         )
         for filter_choice in filter_choices:

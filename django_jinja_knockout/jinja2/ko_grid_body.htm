@@ -91,10 +91,10 @@
 <script type="text/template" id="ko_grid_breadcrumb_filter_choices">
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
-            <li class="bold" data-bind="text: name"></li>
+            <li class="bold pr-2" data-bind="text: name"></li>
             <!-- ko foreach: choices -->
-            <li data-bind="css: {active: is_active()}">
-                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            <li data-bind="css: {active: is_active(), 'breadcrumb-item': true}">
+                <a data-bind="css: {bold: is_active(), 'breadcrumb-item': true}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
             </li>
             <!-- /ko -->
         </ol>
@@ -116,7 +116,7 @@
 <script type="text/template" id="ko_grid_breadcrumb_filter_popup">
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
-            <li>
+            <li class="breadcrumb-item">
                 <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
                     <span data-bind="text: name"></span> <b class="caret"></b>
                 </a>
