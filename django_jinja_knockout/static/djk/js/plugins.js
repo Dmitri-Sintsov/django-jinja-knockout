@@ -821,7 +821,9 @@ $.fn.highlightListUrl = function(location) {
     var exactMatches = [];
     var searchMatches = [];
     var pathnameMatches = [];
-    $anchors.parent('li').removeClass('active');
+    $anchors.each(function() {
+        App.ui.highlightNav(this, false);
+    });
     $anchors.each(function(k, a) {
         var a_pathname = a.pathname;
         if (a_pathname.match(/^[\/]/) === null) {
@@ -847,12 +849,12 @@ $.fn.highlightListUrl = function(location) {
     });
     if (exactMatches.length > 0) {
         for (var i = 0; i < exactMatches.length; i++) {
-            $(exactMatches[i]).parent('li').addClass('active');
+            App.ui.highlightNav(exactMatches[i], true);
         }
     } else if (searchMatches.length === 1) {
-        $(searchMatches[0]).parent('li').addClass('active');
+        App.ui.highlightNav(searchMatches[0], true);
     } else if (pathnameMatches.length === 1) {
-        $(pathnameMatches[0]).parent('li').addClass('active');
+        App.ui.highlightNav(pathnameMatches[0], true);
     }
 };
 
