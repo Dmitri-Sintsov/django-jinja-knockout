@@ -171,8 +171,9 @@ void function(FieldTooltip) {
             this.$messageTarget
               .attr('title', this.messages.join('\n'));
             this.$messageTarget.tooltip({
-                'container': 'body',
-                'placement': 'bottom'
+                container: 'body',
+                html: false,
+                placement: 'bottom'
             });
             this.destroyed = false;
             this.$cssTarget.addClass('validation-error');

@@ -73,12 +73,12 @@
 
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
+        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
         <ul data-bind="foreach: choices" class="dropdown-menu">
-            <li data-bind="css: {active: is_active()}">
+            <li data-bind="css: {active: is_active(), 'dropdown-item': true}">
                 <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
             </li>
         </ul>
@@ -104,8 +104,8 @@
 
 {% if 'ko_grid_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_popup">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle" data-toggle="dropdown" href="#">
+    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
+        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
     </li>
@@ -128,18 +128,18 @@
 
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
-    <form data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0" class="navbar-form navbar-left">
+    <form-inline data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
         <div data-bind="if: meta.hasSearch()" class="form-group">
             <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
             <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
         </div>
         <!-- ko foreach: actionTypes['button'] -->
-            <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
+            <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
                 <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
                 <span data-bind="text: $data.localName"></span>
             </button>
         <!-- /ko -->
-    </form>
+    </form-inline>
 </script>
 {% endif -%}
 

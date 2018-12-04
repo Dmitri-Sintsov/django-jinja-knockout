@@ -2810,7 +2810,7 @@ App.initClientHooks.push({
         App.transformTags.applyTags($selector);
         App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
-        $selector.findSelf('[data-toggle="tooltip"]').tooltip();
+        $selector.findSelf('[data-toggle="tooltip"]').tooltip({html: false});
         $selector.dataHref();
         $selector.highlightListUrl();
         App.SelectMultipleAutoSize($selector);

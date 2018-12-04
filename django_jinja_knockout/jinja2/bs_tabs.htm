@@ -18,7 +18,10 @@
 {% do tpl.prepend_css_classes_to_dict(content_attrs,  'tab-content') -%}
 <ul {{ tpl.json_flatatt(_tabs_attrs) }}>
 {% for tab in tabs -%}
-    {% set li_atts = {'role': 'presentation'} -%}
+    {% set li_atts = {
+        'class': 'nav-item',
+        'role': 'presentation'
+    } -%}
     {% if tab.is_active -%}
         {% do li_atts.update({'class': 'active'}) -%}
     {% endif -%}
@@ -28,6 +31,7 @@
     {% set a_atts = {
         'href': '#' + tab.id,
         'aria-controls': tab.id,
+        'class': 'nav-link',
         'role': 'tab',
         'data-toggle': 'tab'
     } -%}
@@ -35,7 +39,8 @@
         {% do li_atts.update({
             'data-toggle': 'tooltip',
             'data-placement': 'bottom',
-            'title': tab.tooltip
+            'data-html': 'false',
+            'title': tab.tooltip,
         }) -%}
     {% endif -%}
     <li {{ tpl.json_flatatt(li_atts) }}>
