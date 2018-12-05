@@ -378,37 +378,6 @@ App.renderNestedList = function(element, value, options) {
     return App.globalIoc['App.NestedList'](options).render(element, value);
 };
 
-App.blockTags = {
-    list: [
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted br-after',
-        },
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item list-group-item-warning preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted br-after',
-        },
-    ],
-    badges: [
-        {
-            enclosureTag: '<div>',
-            enclosureClasses: 'well well-condensed well-sm',
-            itemTag: '<span>',
-            itemClasses: 'badge preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-white preformatted',
-        }
-    ]
-};
-
 
 /**
  * Bootstrap tabs management class.
