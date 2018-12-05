@@ -15,45 +15,45 @@
 <ul class="pagination">
 {% if view is defined and view.selected_pages -%}
     {% for page_num, is_active, link_text in view.selected_pages -%}
-    {% set li_atts = {} -%}
+    {% set li_atts = {'class': 'page-item'} -%}
     {% if is_active -%}
         {% do tpl.add_css_classes_to_dict(li_atts, 'active') -%}
     {% endif -%}
     <li{{ tpl.json_flatatt(li_atts) }}>
         {% do query.update({'page': page_num}) -%}
         {% if is_active -%}
-            <a href="#">{{ link_text }}</a>
+            <a class="page-link" href="#">{{ link_text }}</a>
         {% else -%}
-            <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ link_text }}</a>
+            <a class="page-link" href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ link_text }}</a>
         {% endif -%}
     </li>
     {% endfor -%}
 {% else -%}
     {% if page_obj.number - 1 > 1 -%}
-    <li>
+    <li class="page-item">
         {% do query.update({'page' : 1}) -%}
-        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
+        <a class="page-link" href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('First page') }}</a>
     </li>
     {% endif -%}
     {% if page_obj.has_previous() -%}
-    <li>
+    <li class="page-item">
         {% do query.update({'page' : page_obj.previous_page_number()}) -%}
-        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
+        <a class="page-link" href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Previous') }}</a>
     </li>
     {% endif -%}
-    <li class="active">
-        <a href="#">{{ _('Page %(number)d of %(numpages)d', number=page_obj.number, numpages=page_obj.paginator.num_pages) }}</a>
+    <li class="page-item active">
+        <a class="page-link" href="#">{{ _('Page %(number)d of %(numpages)d', number=page_obj.number, numpages=page_obj.paginator.num_pages) }}</a>
     </li>
     {% if page_obj.has_next() -%}
-    <li>
+    <li class="page-item">
         {% do query.update({'page' : page_obj.next_page_number()}) -%}
-        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
+        <a class="page-link" href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Next') }}</a>
     </li>
     {% endif -%}
     {% if page_obj.number + 1 < page_obj.paginator.num_pages -%}
-    <li>
+    <li class="page-item">
         {% do query.update({'page' : page_obj.paginator.num_pages}) -%}
-        <a href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
+        <a class="page-link" href="{{ tpl.reverseq(url_name, kwargs=kwargs, query=query) }}">{{ _('Last page') }}</a>
     </li>
     {% endif -%}
 {% endif -%}

@@ -297,13 +297,13 @@
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
         <ul class="pagination">
             <!-- ko foreach: actionTypes['pagination'] -->
-                <li data-bind="click: function() { doAction(); }">
-                    <span class="halflings glyphicon" data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}"></span>
+                <li data-bind="click: function() { doAction(); }" class="page-item">
+                    <span data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}" class="page-link halflings glyphicon mr-2"></span>
                 </li>
             <!-- /ko -->
             <!-- ko foreach: gridPages -->
-            <li data-bind="css:{active: isActive}">
-                <a data-bind="text:title, click: onPagination" name="#"></a>
+            <li data-bind="css:{active: isActive}" class="page-item">
+                <a data-bind="text:title, click: onPagination" name="#" class="page-link" ></a>
             </li>
             <!-- /ko -->
         </ul>
