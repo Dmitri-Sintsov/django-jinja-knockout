@@ -146,16 +146,18 @@
 {% if 'ko_grid_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_nav">
     <navbar-default>
-        <div class="container-fluid grid-controls">
-            <ul data-bind="foreach: gridFilters" class="nav navbar-nav">
+        <div class="container-fluid">
+            <ul class="nav navbar-nav grid-controls">
+                <!-- ko foreach: gridFilters -->
                 <!-- ko if: choices === undefined -->
                 <div data-template-id="ko_grid_filter_popup"></div>
                 <!-- /ko -->
                 <!-- ko if: choices !== undefined -->
                 <div data-template-id="ko_grid_filter_choices"></div>
                 <!-- /ko -->
+                <!-- /ko -->
+                <div data-template-id="ko_grid_search"></div>
             </ul>
-            <div data-template-id="ko_grid_search"></div>
         </div>
     </navbar-default>
 </script>
