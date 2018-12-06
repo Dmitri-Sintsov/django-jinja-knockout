@@ -43,6 +43,15 @@ from .utils.regex import finditer_with_separators
 from .models import model_fields_verbose_names
 from .admin import empty_value_display
 
+from djk_ui.tpl import (  # noqa: F401 imported but unused, used in Jinja2 templates
+    print_bs_labels, print_bs_badges, print_bs_well, print_list_group, print_badge_list_group
+)
+
+
+PRINT_NO_KEYS = 0
+PRINT_KEYS = 1
+PRINT_REPEATED_KEYS = 2
+
 
 def limitstr(value, maxlen=50, suffix='...'):
     s = str(value)
@@ -51,13 +60,13 @@ def limitstr(value, maxlen=50, suffix='...'):
 
 # Insert separator to s between each specified left to right.
 @ensure_annotations
-def repeat_insert(s: str, separator: str=' ', each: int=3):
+def repeat_insert(s: str, separator: str = ' ', each: int = 3):
     return ' '.join(s[i:i + each] for i in range(0, len(s), each))
 
 
 # Insert separator to s between each specified right to left.
 @ensure_annotations
-def repeat_insert_rtl(s: str, separator: str=' ', each: int=3):
+def repeat_insert_rtl(s: str, separator: str = ' ', each: int = 3):
     reversed_insert = repeat_insert(s[::-1], separator, each)
     return reversed_insert[::-1]
 
@@ -129,10 +138,6 @@ class Renderer:
 # Print nested HTML list.
 class PrintList:
 
-    PRINT_NO_KEYS = 0
-    PRINT_KEYS = 1
-    PRINT_REPEATED_KEYS = 2
-
     empty_values = (
         None,
         '',
@@ -146,11 +151,11 @@ class PrintList:
     def __init__(
         self,
         tpl=None,
-        tpl_kwargs: dict=None,
+        tpl_kwargs: dict = None,
         cb=escape,
         skip_empty=False,
         show_keys=None,
-        i18n: dict=None,
+        i18n: dict = None,
         keypath=None
     ):
         self.skip_empty = skip_empty
@@ -169,14 +174,14 @@ class PrintList:
         if 'attrs' not in self.tpl_kwargs:
             self.tpl_kwargs['attrs'] = {}
         self.cb = cb
-        self.show_keys = self.PRINT_NO_KEYS if show_keys is None else show_keys
+        self.show_keys = PRINT_NO_KEYS if show_keys is None else show_keys
         self.i18n = {} if i18n is None else i18n
         # Set keypath kwarg to False to skip keypath nesting keys.
         self.keypath = [] if keypath is None else keypath
 
     def nested(self, row):
         result = []
-        gen = sdv.iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS)
+        gen = sdv.iter_enumerate(row, self.show_keys == PRINT_REPEATED_KEYS)
         try:
             case = 'first'
             gen.__next__()
@@ -186,7 +191,7 @@ class PrintList:
                 case = 'single'
         except StopIteration:
             pass
-        for definition in sdv.iter_enumerate(row, self.show_keys == self.PRINT_REPEATED_KEYS):
+        for definition in sdv.iter_enumerate(row, self.show_keys == PRINT_REPEATED_KEYS):
             # When row element value is a tuple, it's elements define key / elem / format_kwargs.
             # Dict key, value pairs are supported, however the row of tuples allows to use repeated keys
             # and to apply custom format kwargs to selective cells.
@@ -225,7 +230,7 @@ class PrintList:
                 format_kwargs[k] = to_json(attrs) if k.endswith('_json') else json_flatatt(attrs)
             else:
                 format_kwargs[k] = attrs
-        if self.show_keys > self.PRINT_NO_KEYS and not isinstance(key, int):
+        if self.show_keys > PRINT_NO_KEYS and not isinstance(key, int):
             if isinstance(self.keypath, list) and all(isinstance(v, str) for v in self.keypath):
                 local_keypath = '›'.join(self.keypath)
                 key_val = self.i18n.get(local_keypath, key)
@@ -279,106 +284,6 @@ def print_brackets(row, cb=escape, show_keys=None, i18n=None):
                 'top': '{}',
             },
             tpl_kwargs={
-            },
-            cb=cb,
-            show_keys=show_keys,
-            i18n=i18n
-        ).nested(row)
-    )
-
-
-def print_bs_labels(row, bs_type='info', cb=escape, show_keys=None, i18n=None):
-    # See app.css how .conditional-display can be displayed as block element or inline element
-    # via outer .display-block / .display-inline classes.
-    return mark_safe(
-        PrintList(
-            tpl={
-                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
-                'key': '<span{attrs}>{k}: {v}</span><span class="conditional-display"></span>',
-                'top': '{}',
-            },
-            tpl_kwargs={'attrs': {'class': 'label label-' + bs_type + ' preformatted'}},
-            cb=cb,
-            show_keys=show_keys,
-            i18n=i18n
-        ).nested(row)
-    )
-
-
-def print_bs_badges(row, cb=escape, show_keys=None, i18n=None):
-    # See app.css how .conditional-display can be displayed as block element or inline element
-    # via outer .display-block / .display-inline classes.
-    return mark_safe(
-        PrintList(
-            tpl={
-                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
-                'key': '<span{attrs}><div{k_attrs}>{k}:</div> {v}</span><span class="conditional-display"></span>',
-                'top': '{}',
-            },
-            tpl_kwargs={
-                'attrs': {'class': "badge preformatted"},
-                'k_attrs': {'class': "label label-info label-white preformatted"}
-            },
-            cb=cb,
-            show_keys=show_keys,
-            i18n=i18n
-        ).nested(row)
-    )
-
-
-def print_bs_well(row, cb=escape, show_keys=None, i18n=None):
-    # See app.css how .conditional-display can be displayed as block element or inline element
-    # via outer .display-block / .display-inline classes.
-    return mark_safe(
-        PrintList(
-            tpl={
-                'elem': '<span{attrs}>{v}</span><span class="conditional-display"></span>',
-                'key': ('<span{attrs}><div{k_attrs}>{k}:</div> {v}</span>'
-                        '<span class="conditional-display"></span>'),
-                'top': '<div class="well well-condensed well-sm">{}</div>',
-            },
-            tpl_kwargs={
-                'attrs': {'class': "badge preformatted"},
-                'k_attrs': {'class': "label label-info label-white preformatted"}
-            },
-            cb=cb,
-            show_keys=show_keys,
-            i18n=i18n
-        ).nested(row)
-    )
-
-
-def print_list_group(row, cb=escape, skip_empty=False, show_keys=None, i18n=None):
-    return mark_safe(
-        PrintList(
-            tpl={
-                'elem': '<li{li_attrs}>{v}</li>\n',
-                'key': '<li{li_attrs}>{k}: <span{v_attrs}>{v}</span></li>\n',
-                'top': '<ul class="list-group">{}</ul>\n',
-            },
-            tpl_kwargs={
-                'li_attrs': {'class': 'list-group-item'},
-                'v_attrs': {'class': 'bold'},
-            },
-            cb=cb,
-            skip_empty=skip_empty,
-            show_keys=show_keys,
-            i18n=i18n
-        ).nested(row)
-    )
-
-
-def print_badge_list_group(row, cb=escape, show_keys=None, i18n=None):
-    return mark_safe(
-        PrintList(
-            tpl={
-                'elem': '<li{v_attrs}>{v}</li>\n',
-                'key': '<li{v_attrs}><span{k_attrs}>{k}</span>{v}</li>\n',
-                'top': '<ul class="list-group">{}</ul>\n',
-            },
-            tpl_kwargs={
-                'v_attrs': {'class': 'list-group-item'},
-                'k_attrs': {'class': "badge preformatted"},
             },
             cb=cb,
             show_keys=show_keys,
