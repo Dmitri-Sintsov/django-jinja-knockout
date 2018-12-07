@@ -128,18 +128,20 @@
 
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
-    <form-inline data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
-        <div data-bind="if: meta.hasSearch()" class="form-group">
-            <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-            <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
-        </div>
-        <!-- ko foreach: actionTypes['button'] -->
-            <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
-                <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
-                <span data-bind="text: $data.localName"></span>
-            </button>
-        <!-- /ko -->
-    </form-inline>
+    <li class="nav-item">
+        <form-inline data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
+            <div data-bind="if: meta.hasSearch()" class="form-group">
+                <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
+                <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
+            </div>
+            <!-- ko foreach: actionTypes['button'] -->
+                <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
+                    <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
+                    <span data-bind="text: $data.localName"></span>
+                </button>
+            <!-- /ko -->
+        </form-inline>
+    </li>
 </script>
 {% endif -%}
 
