@@ -35,6 +35,10 @@ body {
 	padding: 0.2em;
 }
 
+.fs-85 {
+	font-size: 85%;
+}
+
 .well-condensed {
 	margin: 5px;
 }

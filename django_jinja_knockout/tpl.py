@@ -143,8 +143,8 @@ class PrintList:
         '',
     )
     default_tpl = {
-        'elem': '<li><div{attrs}>{v}</div></li>\n',
-        'key': '<li><div{attrs}><div>{k}</div>{v}</div></li>',
+        'v': '<li><div{attrs}>{v}</div></li>\n',
+        'kv': '<li><div{attrs}><div>{k}</div>{v}</div></li>',
         'top': '<ul>{}</ul>\n',
     }
 
@@ -162,7 +162,7 @@ class PrintList:
         self.tpl = {} if tpl is None else tpl
         if 'top' not in self.tpl:
             self.tpl['top'] = self.default_tpl['top']
-        for typ in ('elem', 'key'):
+        for typ in ('v', 'kv'):
             if typ not in self.tpl:
                 self.tpl[typ] = {'': self.default_tpl[typ]}
             elif isinstance(self.tpl[typ], str):
@@ -237,9 +237,9 @@ class PrintList:
             else:
                 key_val = self.i18n.get(key, key)
             format_kwargs['k'] = self.cb(key_val) if callable(self.cb) else str(key_val)
-            tpl = self.tpl['key'][case]
+            tpl = self.tpl['kv'][case]
         else:
-            tpl = self.tpl['elem'][case]
+            tpl = self.tpl['v'][case]
         return tpl.format(**format_kwargs)
 
 
@@ -248,14 +248,14 @@ def print_table(
         rows,
         top_tpl='<table>{}</table>\n',
         row_tpl='<tr>{}</tr>\n',
-        key_tpl='<td><div{attrs}><div>{k}</div>{v}</div></td>\n',
-        elem_tpl='<td><div{attrs}>{v}</div></td>\n',
+        kv_tpl='<td><div{attrs}><div>{k}</div>{v}</div></td>\n',
+        v_tpl='<td><div{attrs}>{v}</div></td>\n',
         cb=escape, show_keys=None, i18n=None
 ):
     print_list = PrintList(
         tpl={
-            'elem': elem_tpl,
-            'key': key_tpl,
+            'v': v_tpl,
+            'kv': kv_tpl,
             'top': row_tpl,
         },
         cb=cb, show_keys=show_keys, i18n=i18n
@@ -272,11 +272,11 @@ def print_brackets(row, cb=escape, show_keys=None, i18n=None):
     return mark_safe(
         PrintList(
             tpl={
-                'elem': {
+                'v': {
                     '': ', {v}',
                     'first': '{v}',
                 },
-                'key': {
+                'kv': {
                     '': ' › {k}: ({v})',
                     'first': '{k}: ({v})',
                     'single': '{k}: {v}',
