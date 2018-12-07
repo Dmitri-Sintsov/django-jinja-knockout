@@ -66,7 +66,7 @@ void function(ClosablePopover) {
         this.$target
         .off('mouseenter', this.onMouseEnter)
         .off('click', this.onClick);
-        this.$target.popover('destroy');
+        App.ui.disposePopover(this.$target.popover);
     };
 
     ClosablePopover.getThisOverrides = function() {

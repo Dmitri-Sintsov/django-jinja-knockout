@@ -119,7 +119,7 @@ void function(FieldPopover) {
         _popover.data("bs.popover").options.content = $errmsg;
         this.$messageTarget.popover(self.status);
         this.onDestroy = function(ev) {
-            self.$messageTarget.popover('destroy');
+            App.ui.disposePopover(self.$messageTarget);
         };
         this.onBlur = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'hide') {
@@ -144,7 +144,7 @@ void function(FieldPopover) {
             .off('blur', this.onBlur)
             .off('focus', this.onFocus);
             // https://github.com/twbs/bootstrap/issues/20511
-            this.$messageTarget.popover('destroy');
+            App.ui.disposePopover(this.$messageTarget.popover);
             this.destroyed = true;
         }
     };

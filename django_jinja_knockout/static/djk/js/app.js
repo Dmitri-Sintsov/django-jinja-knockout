@@ -2803,7 +2803,7 @@ App.initClientHooks.push({
         new App.AjaxButton($selector).destroy();
         new App.AjaxForms($selector).destroy();
         new App.DatetimeWidget($selector).destroy();
-        $selector.findSelf('[data-toggle="popover"]').popover('destroy');
+        App.ui.disposePopover($selector.findSelf('[data-toggle="popover"]'));
     }
 });
 
