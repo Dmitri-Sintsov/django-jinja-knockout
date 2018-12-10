@@ -3,6 +3,8 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView
 from django.utils.html import format_html
 
+from djk_ui.views import detail_edit as djk_ui_detail_edit
+
 from .base import FormatTitleMixin, FormViewmodelsMixin
 
 from ..utils.sdv import str_to_numeric
@@ -17,7 +19,7 @@ class FormDetailView(FormatTitleMixin, UpdateView):
 
 
 # See also https://github.com/AndrewIngram/django-extra-views
-class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
+class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin, FormViewmodelsMixin):
 
     # Only related form without formsets.
     form = None
@@ -43,7 +45,7 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         return self.get_form_action_url()
 
     # Do not just remove bs_form() options.
-    # BootstrapDialog panel might render with overlapped layout without these options.
+    # BootstrapDialog card might render with overlapped layout without these options.
     def get_bs_form_opts(self):
         return {}
         """
@@ -81,11 +83,6 @@ class FormWithInlineFormsetsMixin(FormViewmodelsMixin):
         self.ff = self.get_form_with_inline_formsets(self.request)
         form_class = self.ff.get_form_class()
         return form_class
-
-    def get_ajax_refresh_selector(self):
-        return '.formsets.panel:has([data-url="{}"])'.format(
-            escape_css_selector(self.get_form_action_url())
-        )
 
     def get_alert_title(self):
         return format_html(

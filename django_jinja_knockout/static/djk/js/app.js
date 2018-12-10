@@ -1400,7 +1400,7 @@ void function(DatetimeWidget) {
     // @static method
     DatetimeWidget.open = function(ev) {
         var $target = $(ev.target);
-        $target.closest('.input-group-addon')
+        $target.closest('.input-group-append')
         .prev('.date-control, .datetime-control')
         .trigger('click');
     };
@@ -1411,7 +1411,7 @@ void function(DatetimeWidget) {
         }
         this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
         this.$dateControls.after(
-            '<span class="input-group-addon pointer"><span class="glyphicon glyphicon-calendar"></span></span>'
+            '<div class="input-group-append input-group-addon pointer"><div class="input-group-text glyphicon glyphicon-calendar"></div></div>'
         );
         var formatFix = App.propGet(DatetimeWidget.formatFixes, App.conf.languageCode);
         // Date field widget.
@@ -1440,7 +1440,7 @@ void function(DatetimeWidget) {
         // Picker window button help.
         this.$parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
         // Icon clicking.
-        this.$dateControls.next('.input-group-addon').on('click', DatetimeWidget.open);
+        this.$dateControls.next('.input-group-append').on('click', DatetimeWidget.open);
         return this;
     };
 
@@ -1449,7 +1449,7 @@ void function(DatetimeWidget) {
         if (!this.has()) {
             return;
         }
-        this.$dateControls.next('.input-group-addon').off('click', DatetimeWidget.open);
+        this.$dateControls.next('.input-group-append').off('click', DatetimeWidget.open);
         // https://github.com/Eonasdan/bootstrap-datetimepicker/issues/573
         _.each(this.$parent.find('.datetime-control, .date-control'), function(v) {
             var dtp = $(v).data("DateTimePicker");

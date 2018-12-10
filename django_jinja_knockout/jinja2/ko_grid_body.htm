@@ -274,25 +274,33 @@
 
 {% if 'ko_grid_body' in _include_ids -%}
 <script type="text/template" id="ko_grid_body">
-    <div <% if (self.get('show_title')) { %> class="panel panel-<%= self.get('panel_type') %>" <% } %>>
-        <% if (self.get('show_title')) { %>
+    <% if (!self.get('show_title')) { %>
+    <div>
+    <% } else { %>
+    <card-<%= self.get('card_type') %>>
         <card-header data-bind="text: meta.verboseNamePlural"></card-header>
         <card-body>
-        <% } %>
+    <% } %>
             <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
             <div data-template-id="ko_grid_nav"></div>
             <!-- /ko -->
             <div data-template-id="ko_grid_table"></div>
+        <% if (self.get('show_title')) { %>
+        </card-body>
+        <card-footer>
+        <% } %>
         <% if (self.get('show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         <% } %>
             <!-- ko if: actionTypes['button_footer']().length > 0 -->
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
-        <% if (self.get('show_title')) { %>
-        </card-body>
-        <% } %>
+    <% if (self.get('show_title')) { %>
+        </card-footer>
+    </card-<%= self.get('card_type') %>>
+    <% } else { %>
     </div>
+    <% } %>
 </script>
 {% endif -%}
 

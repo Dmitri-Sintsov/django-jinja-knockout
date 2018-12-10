@@ -6,7 +6,7 @@
 
 {% if confirmation %}
 
-{% set panel_title=_(
+{% set card_title=_(
     'Please confirm that <a href="mailto:%(email)s">%(email)s</a> is an e-mail address for user %(user_display)s.',
     user_display=confirmation.email_address.user,
     email=confirmation.email_address.email
@@ -14,7 +14,7 @@
 
 <card-default>
     <card-header>
-        <card-title>{{ panel_title }}</card-title>
+        <card-title>{{ card_title }}</card-title>
     </card-header>
     <card-body>
         <form role="form" method="post" action="{{ url('account_confirm_email', confirmation.key) }}">
