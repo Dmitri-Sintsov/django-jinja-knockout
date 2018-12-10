@@ -2862,8 +2862,11 @@ void function(GridDialog) {
         var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
+        $footer.find('button').addClass('m-1');
+        $footer.wrapInner('<div class="d-flex justify-content-end"><span class="buttons"></span></div>');
         var $gridPagination = this.iocTemplateProcessor().domTemplate('ko_grid_pagination');
-        $footer.prepend($gridPagination);
+        // $gridPagination = $gridPagination.wrapAll('<div class="pagination-wrap"></div>').parent();
+        $footer.find('.buttons').prepend($gridPagination);
         if (this.wasOpened) {
             this.recreateContent();
         } else {
