@@ -4,6 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
 
+from djk_ui import testing_components as djk_ui_testing_components
+
 from .tpl import reverseq
 
 
@@ -62,7 +64,7 @@ class ComponentCommands:
         return self._click()
 
 
-class DialogCommands:
+class DialogCommands(djk_ui_testing_components.DialogCommands):
 
     def _to_top_bootstrap_dialog(self):
         WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
@@ -103,17 +105,6 @@ class DialogCommands:
             'to_top_bootstrap_dialog',
             'dialog_relative_by_xpath', (
                 './/div[@class="bootstrap-dialog-body"]//button[contains(., {})]',
-                button_title,
-            ),
-            'click',
-        )
-
-    def _dialog_footer_button_click(self, button_title):
-        return self.exec(
-            # 'to_active_element',
-            'to_top_bootstrap_dialog',
-            'dialog_relative_by_xpath', (
-                './/div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
                 button_title,
             ),
             'click',
