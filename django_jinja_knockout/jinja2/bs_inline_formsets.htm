@@ -17,7 +17,7 @@
 {% if action == '' -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
-{% do opts.update({'table_classes': 'table table-bordered table-responsive'}) -%}
+{% do opts.update({'table_classes': 'table table-bordered table-responsive display-table'}) -%}
 <card-default {{ tpl.json_flatatt(wrapper_atts) }}>
     {% if opts.title is defined -%}
     <card-header>
