@@ -11,9 +11,6 @@
 {% if not opts -%}
     {% set opts = {} -%}
 {% endif -%}
-{% if not opts.layout_classes -%}
-    {% do opts.update({'layout_classes': layout_classes}) -%}
-{% endif -%}
 {% if opts.class -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, opts.class) -%}
 {% endif -%}

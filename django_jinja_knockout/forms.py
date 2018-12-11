@@ -4,6 +4,7 @@ from io import StringIO
 import lxml.html
 from lxml.etree import tostring
 
+from django.conf import settings
 from django.utils.html import mark_safe
 from django.http import QueryDict
 from django.db import transaction
@@ -11,8 +12,9 @@ from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 
+from djk_ui import conf as djk_ui_conf
+
 from .apps import DjkAppConfig
-from .context_processors import get_layout_classes
 from .utils import sdv
 from .templatetags import bootstrap
 from .tpl import Renderer
@@ -20,11 +22,20 @@ from .widgets import DisplayText
 from .viewmodels import to_json
 
 
+def get_layout_classes():
+    return getattr(settings, 'LAYOUT_CLASSES', djk_ui_conf.LAYOUT_CLASSES)
+
+
 class RelativeRenderer(Renderer):
 
     def get_template_dir(self):
         template_dir = getattr(self.context.get(self.obj_kwarg, None), 'template_dir', 'render/')
         return template_dir
+
+    def get_layout_classes(self):
+        layout_type = getattr(self.context.get(self.obj_kwarg, None), 'layout_type', '')
+        layout_classes = get_layout_classes()
+        return layout_classes[layout_type]
 
 
 # Instance is stored into field.renderer.
@@ -141,7 +152,7 @@ class FormBodyRenderer(RelativeRenderer):
             field.renderer.set_classes(field_classes)
 
     def __str__(self):
-        self.ioc_fields(self.context.get('layout_classes', get_layout_classes()))
+        self.ioc_fields(self.context.get('layout_classes', self.get_layout_classes()))
         return super().__str__()
 
 
@@ -153,11 +164,11 @@ class RelatedFormRenderer(RelativeRenderer):
     template = 'related_form.htm'
     form_body_renderer_cls = FormBodyRenderer
 
-    def ioc_render_form_body(self, layout_classes):
+    def ioc_render_form_body(self, opts):
         return ioc_form_renderer(
             self.request, 'body', {
                 'caller': self.context['caller'],
-                'layout_classes': layout_classes,
+                'opts': opts,
                 'form': self.obj,
             },
             default_cls=self.form_body_renderer_cls
@@ -167,8 +178,9 @@ class RelatedFormRenderer(RelativeRenderer):
         context = super().get_template_context()
         if 'opts' not in self.context:
             self.context['opts'] = {}
-        layout_classes = self.context['opts'].get('layout_classes', get_layout_classes())
-        self.ioc_render_form_body(layout_classes)
+        if 'layout_classes' not in self.context['opts']:
+            self.context['opts']['layout_classes'] = self.context['opts'].get('layout_classes', self.get_layout_classes())
+        self.ioc_render_form_body(self.context['opts'])
         return context
 
 
@@ -307,6 +319,8 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         attrs['formfield_callback'] = display_model_formfield_callback
         if 'template_dir' not in attrs:
             attrs['template_dir'] = 'render/display/'
+        if 'layout_type' not in attrs:
+            attrs['layout_type'] = 'display'
         return ModelFormMetaclass.__new__(mcs, name, bases, attrs)
 
 
@@ -322,18 +336,18 @@ class WidgetInstancesMixin(forms.ModelForm):
 
 
 # Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #
-def set_empty_template(formset, request, html: dict=None):
+def set_empty_template(formset, request, html: dict = None):
     return None
 
 
 # Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request, opts: dict=None):
+def set_knockout_template(formset, request, opts: dict = None):
     if opts is None:
         opts = {}
     _opts = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
-        'layout_classes': get_layout_classes(),
+        'layout_classes': get_layout_classes()[''],
     }
     _opts.update(opts)
     renderer = render_form(request, 'inline', formset.empty_form, {

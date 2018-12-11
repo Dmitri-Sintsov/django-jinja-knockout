@@ -2,9 +2,6 @@
 {% if not opts -%}
     {% set opts = {} -%}
 {% endif -%}
-{% if not opts.layout_classes -%}
-    {% do opts.update({'layout_classes': layout_classes}) -%}
-{% endif -%}
 {% if not opts.class -%}
     {% do opts.update({'class': ''}) -%}
 {% endif -%}

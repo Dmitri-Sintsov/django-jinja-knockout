@@ -1,7 +1,4 @@
 {# @note: Also called in forms.set_knockout_template #}
-{% if not opts.layout_classes -%}
-    {% do opts.update({'layout_classes': layout_classes}) -%}
-{% endif -%}
 {% if not opts.formset_form_class -%}
     {% do opts.update({'formset_form_class': ''}) -%}
 {% endif -%}
