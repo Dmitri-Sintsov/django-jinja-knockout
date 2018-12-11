@@ -285,10 +285,6 @@
             <div data-template-id="ko_grid_nav"></div>
             <!-- /ko -->
             <div data-template-id="ko_grid_table"></div>
-        <% if (self.get('show_title')) { %>
-        </card-body>
-        <card-footer>
-        <% } %>
         <% if (self.get('show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         <% } %>
@@ -296,7 +292,7 @@
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
     <% if (self.get('show_title')) { %>
-        </card-footer>
+        </card-body>
     </card-<%= self.get('card_type') %>>
     <% } else { %>
     </div>
@@ -306,8 +302,8 @@
 
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
-    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper default-padding">
-        <ul class="pagination">
+    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper">
+        <ul class="pagination default-margin">
             <!-- ko foreach: actionTypes['pagination'] -->
                 <li data-bind="click: function() { doAction(); }" class="page-item">
                     <span data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}" class="page-link halflings glyphicon mr-2"></span>
