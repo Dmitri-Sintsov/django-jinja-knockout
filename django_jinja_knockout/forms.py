@@ -38,7 +38,7 @@ class RelativeRenderer(Renderer):
         return layout_classes[layout_type]
 
 
-# Instance is stored into field.renderer.
+# The instance is stored into field.renderer.
 class FieldRenderer(Renderer):
 
     obj_kwarg = 'field'
@@ -133,7 +133,7 @@ def render_fields(form, *fields):
     return mark_safe(''.join(form[field].renderer() for field in fields))
 
 
-# Instance is stored into form._renderer['body']
+# The instance is stored into form._renderer['body']
 class FormBodyRenderer(RelativeRenderer):
 
     obj_kwarg = 'form'
@@ -156,7 +156,7 @@ class FormBodyRenderer(RelativeRenderer):
         return super().__str__()
 
 
-# Instance is stored into form._renderer['related'].
+# The instance is stored into form._renderer['related'].
 class RelatedFormRenderer(RelativeRenderer):
 
     obj_kwarg = 'related_form'
@@ -184,7 +184,7 @@ class RelatedFormRenderer(RelativeRenderer):
         return context
 
 
-# Instance is stored info form._renderer['standalone'].
+# The instance is stored info form._renderer['standalone'].
 class StandaloneFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
@@ -193,7 +193,7 @@ class StandaloneFormRenderer(RelatedFormRenderer):
     template = 'form.htm'
 
 
-# Instance is stored into form._renderer['inline'].
+# The instance is stored into form._renderer['inline'].
 class InlineFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
@@ -201,7 +201,7 @@ class InlineFormRenderer(RelatedFormRenderer):
     template = 'inline_form.htm'
 
 
-# Instance is stored into formset.renderer.
+# The instance is stored into formset.renderer.
 class FormsetRenderer(Renderer):
 
     obj_kwarg = 'formset'
