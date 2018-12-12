@@ -1426,36 +1426,7 @@ void function(Grid) {
             //   0 - do not highlight,
             //   1 - highlight columns,
             //   2 - highlight rows,
-            highlightModeRules: [
-                {
-                    'none': {
-                        direction: null,
-                        header: '',
-                        cycler: [],
-                    }
-                },
-                {
-                    'cycleColumns': {
-                        direction: 0,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'cycleRows': {
-                        direction: 1,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'linearRows': {
-                        direction: 1,
-                        header: '',
-                        cycler: ['linear-white'],
-                    }
-                },
-            ],
+            highlightModeRules: App.ui.highlightModeRules,
             rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,

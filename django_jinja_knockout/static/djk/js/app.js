@@ -528,7 +528,7 @@ App.Dialog = function(options) {
 void function(Dialog) {
 
     Dialog.type = BootstrapDialog.TYPE_WARNING;
-    Dialog.size = BootstrapDialog.SIZE_NORMAL;
+    Dialog.size = null;
     Dialog.template = undefined;
     // Make sure to set .isClosable = false in child class when implementing unconditional confirmation dialogs.
     Dialog.isClosable = true;
@@ -579,7 +579,7 @@ void function(Dialog) {
             // BootstrapDialog.SIZE_SMALL
             // BootstrapDialog.SIZE_WIDE
             // BootstrapDialog.SIZE_LARGE
-            size: this.size,
+            size: (this.size === null) ? App.ui.defaultDialogSize : this.size,
             onshow: function(bdialog) {
                 self.bdialog = bdialog;
                 bdialog._owner = self;

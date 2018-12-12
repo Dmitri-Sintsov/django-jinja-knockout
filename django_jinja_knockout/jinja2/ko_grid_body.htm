@@ -326,7 +326,7 @@
             <div data-bind="text: $data"></div>
         </card-header>
         <card-body>
-            <input type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
+            <input class="w-100" type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
             <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
                 <option data-bind="attr: {value: $data}">
             </datalist>
