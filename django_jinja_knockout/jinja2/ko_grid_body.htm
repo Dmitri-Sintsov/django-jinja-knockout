@@ -73,13 +73,13 @@
 
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
-    <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
+    <li data-bind="grid_filter, click: onDropdownClick.bind($data), css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
+        <a aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
         <ul data-bind="foreach: choices" class="dropdown-menu">
-            <li data-bind="css: {active: is_active(), 'dropdown-item': true}">
-                <a data-bind="text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+            <li data-bind="click: onLoadFilter.bind($data), css: {active: is_active(), 'dropdown-item': true}">
+                <a data-bind="text: name, grid_filter_choice" name="#"></a>
             </li>
         </ul>
     </li>
