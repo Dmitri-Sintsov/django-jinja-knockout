@@ -754,7 +754,7 @@ void function(Dialog) {
     };
 
     Dialog.getNestedListOptions = function() {
-        var options = {blockTags: App.blockTags.badges};
+        var options = {blockTags: App.ui.dialogBlockTags};
         if (this.dialogOptions.nestedListOptions !== 'undefined') {
             options = $.extend(options, this.dialogOptions.nestedListOptions);
         }

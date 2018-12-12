@@ -1135,7 +1135,7 @@ void function(GridActions) {
         this.callback_create_form(viewModel);
     };
 
-    GridActions.blockTags = App.blockTags.badges;
+    GridActions.blockTags = null;
 
     /**
      * Get rendering options with localized / verbose model field names, including nested relationships
@@ -1145,7 +1145,7 @@ void function(GridActions) {
         // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
-            {blockTags: this.blockTags},
+            {blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges},
             this.grid.meta.fkNestedListOptions,
             this.grid.meta.listOptions
         );
@@ -2834,10 +2834,12 @@ void function(GridDialog) {
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
         $footer.find('button').addClass('m-1');
-        $footer.wrapInner('<div class="d-flex justify-content-end"><span class="buttons"></span></div>');
+        if (App.ui.version === 4) {
+            $footer.wrapInner('<div class="row m-1"></div>');
+        }
         var $gridPagination = this.iocTemplateProcessor().domTemplate('ko_grid_pagination');
         // $gridPagination = $gridPagination.wrapAll('<div class="pagination-wrap"></div>').parent();
-        $footer.find('.buttons').prepend($gridPagination);
+        $footer.prepend($gridPagination);
         if (this.wasOpened) {
             this.recreateContent();
         } else {
