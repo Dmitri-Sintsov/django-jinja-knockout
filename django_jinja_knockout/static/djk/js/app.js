@@ -1368,9 +1368,9 @@ App.SelectMultipleAutoSize = function($selector) {
     });
 };
 
-App.DatetimeWidget = function($parent) {
+App.DatetimeWidget = function($selector) {
     $.inherit(App.ui.DatetimeWidget.prototype, this);
-    this.create($parent);
+    this.create($selector);
 };
 
 void function(DatetimeWidget) {
@@ -1384,8 +1384,8 @@ void function(DatetimeWidget) {
         }
     };
 
-    DatetimeWidget.create = function($parent) {
-        this.$parent = $parent;
+    DatetimeWidget.create = function($selector) {
+        this.$selector = $selector;
     };
 
     DatetimeWidget.has = function() {
@@ -1394,7 +1394,7 @@ void function(DatetimeWidget) {
             return false;
         }
         // Field wrapper with icon.
-        this.$dateControls = this.$parent.find('.date-control, .datetime-control');
+        this.$dateControls = this.$selector.find('.date-control, .datetime-control');
         return this.$dateControls.length > 0;
     };
 
@@ -1404,29 +1404,6 @@ void function(DatetimeWidget) {
         $target.closest('.input-group-append')
         .prev('.date-control, .datetime-control')
         .trigger('click');
-    };
-
-    // Does not restore DOM into original state, just prevents memory leaks.
-    DatetimeWidget.destroy = function() {
-        if (!this.has()) {
-            return;
-        }
-        this.$dateControls.next('.input-group-append').off('click', DatetimeWidget.open);
-        // https://github.com/Eonasdan/bootstrap-datetimepicker/issues/573
-        _.each(this.$parent.find('.datetime-control, .date-control'), function(v) {
-            var dtp = $(v).data("DateTimePicker");
-            // If $.datetimepicker() was added dynamically as empty_form of inline formset,
-            // there is no related instance stored in html5 data.
-            if (dtp !== undefined) {
-                dtp.widget.remove();
-            } else {
-                /*
-                $(v).datetimepicker({language: App.conf.languageCode});
-                var dtp = $(v).data("DateTimePicker");
-                dtp.widget.remove();
-                */
-            }
-        });
     };
 
 }(App.DatetimeWidget.prototype);
