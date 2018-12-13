@@ -1369,6 +1369,7 @@ App.SelectMultipleAutoSize = function($selector) {
 };
 
 App.DatetimeWidget = function($parent) {
+    $.inherit(App.ui.DatetimeWidget.prototype, this);
     this.create($parent);
 };
 
@@ -1393,7 +1394,7 @@ void function(DatetimeWidget) {
             return false;
         }
         // Field wrapper with icon.
-        this.$dateControls = this.$parent.find('.date-control, .datetime-control')
+        this.$dateControls = this.$parent.find('.date-control, .datetime-control');
         return this.$dateControls.length > 0;
     };
 
@@ -1403,45 +1404,6 @@ void function(DatetimeWidget) {
         $target.closest('.input-group-append')
         .prev('.date-control, .datetime-control')
         .trigger('click');
-    };
-
-    DatetimeWidget.init = function() {
-        if (!this.has()) {
-            return;
-        }
-        this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
-        this.$dateControls.after(
-            '<div class="input-group-append input-group-addon pointer"><div class="input-group-text glyphicon glyphicon-calendar"></div></div>'
-        );
-        var formatFix = App.propGet(DatetimeWidget.formatFixes, App.conf.languageCode);
-        // Date field widget.
-        var options = {
-            pickTime: false,
-            language: App.conf.languageCode,
-            icons: {
-                date: 'calendar'
-            }
-        };
-        if (formatFix !== undefined) {
-            options.format = formatFix.date;
-        }
-        this.$parent.find('.date-control').datetimepicker(options);
-        // Datetime field widget.
-        options = {
-            language: App.conf.languageCode,
-            icons: {
-                date: 'calendar'
-            }
-        };
-        if (formatFix !== undefined) {
-            options.format = formatFix.datetime;
-        }
-        this.$parent.find('.datetime-control').datetimepicker(options);
-        // Picker window button help.
-        this.$parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
-        // Icon clicking.
-        this.$dateControls.next('.input-group-append').on('click', DatetimeWidget.open);
-        return this;
     };
 
     // Does not restore DOM into original state, just prevents memory leaks.
@@ -2294,7 +2256,7 @@ App.readyInstances = {
 App.documentReadyHooks = [function() {
     App.assertUniqueScripts();
     var m = moment();
-    Cookies.set('local_tz', parseInt(m.zone() / 60));
+    Cookies.set('local_tz', parseInt(-m.utcOffset() / 60));
     App.createInstances(App.readyInstances);
     App.initClient(document);
     App.initTabPane();
