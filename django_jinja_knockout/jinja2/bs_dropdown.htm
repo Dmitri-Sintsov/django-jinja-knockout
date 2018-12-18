@@ -19,11 +19,13 @@
 {% endif -%}
         <ul{{ tpl.json_flatatt(menu_attrs) }}>
             {% for nav in navs -%}
+            {% do tpl.add_css_classes_to_dict(nav.atts, 'nav-item') -%}
             <li {{ tpl.json_flatatt(nav.atts) }}>
+                {% set a_atts = {'class': 'nav-link'} -%}
                 {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
-                    {% set a_atts = {'name': '#'} -%}
+                    {% do a_atts.update({'name': '#'}) -%}
                 {% else -%}
-                    {% set a_atts = {'href': nav['url'] } -%}
+                    {% do a_atts.update({'href': nav['url'] }) -%}
                 {% endif -%}
                 <a{{ tpl.json_flatatt(a_atts)}}>{{ nav.text }}</a>
             </li>
