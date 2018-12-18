@@ -3,11 +3,11 @@
 {% from 'bs_filters.htm' import bs_filters with context -%}
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
-<div class="panel panel-primary">
-    <div class="panel-heading">
-        <h3 class="panel-title">{{ view.get_heading() }}</h3>
-    </div>
-    <div class="panel-body">
+<card-primary>
+    <card-header>
+        <card-title>{{ view.get_heading() }}</card-title>
+    </card-header>
+    <card-body>
         {% if caller and 'has_filters' in caller.arguments -%}
             {{ caller(has_filters=True) }}
         {% else -%}
@@ -69,8 +69,8 @@
             {% endif -%}
         {% endif -%}
 
-    </div>
-</div>
+    </card-body>
+</card-primary>
 
 {% endmacro -%}
 {% if _render_ -%}

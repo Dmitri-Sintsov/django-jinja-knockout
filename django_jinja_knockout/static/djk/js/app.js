@@ -378,37 +378,6 @@ App.renderNestedList = function(element, value, options) {
     return App.globalIoc['App.NestedList'](options).render(element, value);
 };
 
-App.blockTags = {
-    list: [
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted br-after',
-        },
-        {
-            enclosureTag: '<ul>',
-            enclosureClasses: 'list-group',
-            itemTag: '<li>',
-            itemClasses: 'condensed list-group-item list-group-item-warning preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-gray preformatted br-after',
-        },
-    ],
-    badges: [
-        {
-            enclosureTag: '<div>',
-            enclosureClasses: 'well well-condensed well-sm',
-            itemTag: '<span>',
-            itemClasses: 'badge preformatted',
-            localKeyTag: '<div>',
-            localKeyClasses: 'label label-info label-white preformatted',
-        }
-    ]
-};
-
 
 /**
  * Bootstrap tabs management class.
@@ -559,7 +528,7 @@ App.Dialog = function(options) {
 void function(Dialog) {
 
     Dialog.type = BootstrapDialog.TYPE_WARNING;
-    Dialog.size = BootstrapDialog.SIZE_NORMAL;
+    Dialog.size = null;
     Dialog.template = undefined;
     // Make sure to set .isClosable = false in child class when implementing unconditional confirmation dialogs.
     Dialog.isClosable = true;
@@ -610,7 +579,7 @@ void function(Dialog) {
             // BootstrapDialog.SIZE_SMALL
             // BootstrapDialog.SIZE_WIDE
             // BootstrapDialog.SIZE_LARGE
-            size: this.size,
+            size: (this.size === null) ? App.ui.defaultDialogSize : this.size,
             onshow: function(bdialog) {
                 self.bdialog = bdialog;
                 bdialog._owner = self;
@@ -785,7 +754,7 @@ void function(Dialog) {
     };
 
     Dialog.getNestedListOptions = function() {
-        var options = {blockTags: App.blockTags.badges};
+        var options = {blockTags: App.ui.dialogBlockTags};
         if (this.dialogOptions.nestedListOptions !== 'undefined') {
             options = $.extend(options, this.dialogOptions.nestedListOptions);
         }
@@ -1399,8 +1368,9 @@ App.SelectMultipleAutoSize = function($selector) {
     });
 };
 
-App.DatetimeWidget = function($parent) {
-    this.create($parent);
+App.DatetimeWidget = function($selector) {
+    $.inherit(App.ui.DatetimeWidget.prototype, this);
+    this.create($selector);
 };
 
 void function(DatetimeWidget) {
@@ -1414,8 +1384,8 @@ void function(DatetimeWidget) {
         }
     };
 
-    DatetimeWidget.create = function($parent) {
-        this.$parent = $parent;
+    DatetimeWidget.create = function($selector) {
+        this.$selector = $selector;
     };
 
     DatetimeWidget.has = function() {
@@ -1424,78 +1394,16 @@ void function(DatetimeWidget) {
             return false;
         }
         // Field wrapper with icon.
-        this.$dateControls = this.$parent.find('.date-control, .datetime-control')
+        this.$dateControls = this.$selector.find('.date-control, .datetime-control');
         return this.$dateControls.length > 0;
     };
 
     // @static method
     DatetimeWidget.open = function(ev) {
         var $target = $(ev.target);
-        $target.closest('.input-group-addon')
+        $target.closest('.input-group-append')
         .prev('.date-control, .datetime-control')
         .trigger('click');
-    };
-
-    DatetimeWidget.init = function() {
-        if (!this.has()) {
-            return;
-        }
-        this.$dateControls.wrap('<div class="input-group date datetimepicker"></div>');
-        this.$dateControls.after(
-            '<span class="input-group-addon pointer"><span class="glyphicon glyphicon-calendar"></span></span>'
-        );
-        var formatFix = App.propGet(DatetimeWidget.formatFixes, App.conf.languageCode);
-        // Date field widget.
-        var options = {
-            pickTime: false,
-            language: App.conf.languageCode,
-            icons: {
-                date: 'calendar'
-            }
-        };
-        if (formatFix !== undefined) {
-            options.format = formatFix.date;
-        }
-        this.$parent.find('.date-control').datetimepicker(options);
-        // Datetime field widget.
-        options = {
-            language: App.conf.languageCode,
-            icons: {
-                date: 'calendar'
-            }
-        };
-        if (formatFix !== undefined) {
-            options.format = formatFix.datetime;
-        }
-        this.$parent.find('.datetime-control').datetimepicker(options);
-        // Picker window button help.
-        this.$parent.find('.picker-switch').prop('title', App.trans('Choose year / decade.'));
-        // Icon clicking.
-        this.$dateControls.next('.input-group-addon').on('click', DatetimeWidget.open);
-        return this;
-    };
-
-    // Does not restore DOM into original state, just prevents memory leaks.
-    DatetimeWidget.destroy = function() {
-        if (!this.has()) {
-            return;
-        }
-        this.$dateControls.next('.input-group-addon').off('click', DatetimeWidget.open);
-        // https://github.com/Eonasdan/bootstrap-datetimepicker/issues/573
-        _.each(this.$parent.find('.datetime-control, .date-control'), function(v) {
-            var dtp = $(v).data("DateTimePicker");
-            // If $.datetimepicker() was added dynamically as empty_form of inline formset,
-            // there is no related instance stored in html5 data.
-            if (dtp !== undefined) {
-                dtp.widget.remove();
-            } else {
-                /*
-                $(v).datetimepicker({language: App.conf.languageCode});
-                var dtp = $(v).data("DateTimePicker");
-                dtp.widget.remove();
-                */
-            }
-        });
     };
 
 }(App.DatetimeWidget.prototype);
@@ -1825,9 +1733,10 @@ App.compileTemplate = function(tplId) {
 
 /**
  * Tags converter which is executed during App.initClient() content ready and for each expanded underscore.js template.
- * Converts <panel-success id="panel1" class="my-panel"> to <div id="panel1" class="panel panel-success my-panel">
+ * Converts <card-success id="panel1" class="my-panel"> to <div id="panel1" class="card text-white bg-success my-panel">
  * Note:
  *   Using custom tags with initial page content may produce flickering, because these are not native browser custom tags.
+ *     To prevent such flickering, setup similar CSS rules for custom tags to the substituted ones.
  *   Using custom tags in templates is encouraged and produces no extra flickering.
  */
 App.TransformTags = function() {
@@ -1836,12 +1745,8 @@ App.TransformTags = function() {
 
 void function(TransformTags) {
 
-    TransformTags.tagNameToClassName = function(elem, tagName) {
-        return $(elem).replaceWithTag('div').addClass(tagName.toLowerCase());
-    };
-
-    TransformTags.bsPanel = function(elem, tagName) {
-        return this.tagNameToClassName(elem, tagName).addClass('panel');
+    TransformTags.toTag = function(elem, tag, cssClasses) {
+        return $(elem).replaceWithTag(tag).addClass(cssClasses);
     };
 
     TransformTags.init = function() {
@@ -1864,23 +1769,15 @@ void function(TransformTags) {
                 }
                 return $(elem);
             },
-            'PANEL-DEFAULT': TransformTags.bsPanel,
-            'PANEL-PRIMARY': TransformTags.bsPanel,
-            'PANEL-SUCCESS': TransformTags.bsPanel,
-            'PANEL-INFO': TransformTags.bsPanel,
-            'PANEL-WARNING': TransformTags.bsPanel,
-            'PANEL-DANGER': TransformTags.bsPanel,
-            'PANEL-HEADING': TransformTags.tagNameToClassName,
-            'PANEL-BODY': TransformTags.tagNameToClassName,
-            'PANEL-FOOTER': TransformTags.tagNameToClassName,
-            'PANEL-TITLE': function(elem, tagName) {
-                return $(elem).replaceWithTag('h3').addClass(tagName.toLowerCase());
-            },
         };
     };
 
-    TransformTags.add = function(tagName, fn) {
-        this.tags[tagName] = fn;
+    TransformTags.add = function(tags) {
+        for (var tagName in tags) {
+            if (tags.hasOwnProperty(tagName)) {
+                this.tags[tagName] = tags[tagName];
+            }
+        }
         return this;
     };
 
@@ -1923,8 +1820,6 @@ void function(TransformTags) {
     };
 
 }(App.TransformTags.prototype);
-
-App.transformTags = new App.TransformTags();
 
 
 /**
@@ -2338,7 +2233,7 @@ App.readyInstances = {
 App.documentReadyHooks = [function() {
     App.assertUniqueScripts();
     var m = moment();
-    Cookies.set('local_tz', parseInt(m.zone() / 60));
+    Cookies.set('local_tz', parseInt(-m.utcOffset() / 60));
     App.createInstances(App.readyInstances);
     App.initClient(document);
     App.initTabPane();
@@ -2823,7 +2718,7 @@ App.initClientHooks.push({
         App.transformTags.applyTags($selector);
         App.bindTemplates($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
-        $selector.findSelf('[data-toggle="tooltip"]').tooltip();
+        $selector.findSelf('[data-toggle="tooltip"]').tooltip({html: false});
         $selector.dataHref();
         $selector.highlightListUrl();
         App.SelectMultipleAutoSize($selector);
@@ -2847,7 +2742,7 @@ App.initClientHooks.push({
         new App.AjaxButton($selector).destroy();
         new App.AjaxForms($selector).destroy();
         new App.DatetimeWidget($selector).destroy();
-        $selector.findSelf('[data-toggle="popover"]').popover('destroy');
+        App.ui.disposePopover($selector.findSelf('[data-toggle="popover"]'));
     }
 });
 

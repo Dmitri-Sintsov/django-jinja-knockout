@@ -346,7 +346,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.model.objects.filter(pk__in=pks)
 
     # Do not just remove bs_form() options.
-    # BootstrapDialog panel might render with overlapped layout without these options.
+    # BootstrapDialog card might render with overlapped layout without these options.
     def get_bs_form_opts(self):
         return {
             'is_ajax': True,

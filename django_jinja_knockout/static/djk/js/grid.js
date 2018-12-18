@@ -1135,7 +1135,7 @@ void function(GridActions) {
         this.callback_create_form(viewModel);
     };
 
-    GridActions.blockTags = App.blockTags.badges;
+    GridActions.blockTags = null;
 
     /**
      * Get rendering options with localized / verbose model field names, including nested relationships
@@ -1145,7 +1145,7 @@ void function(GridActions) {
         // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
-            {blockTags: this.blockTags},
+            {blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges},
             this.grid.meta.fkNestedListOptions,
             this.grid.meta.listOptions
         );
@@ -1426,36 +1426,7 @@ void function(Grid) {
             //   0 - do not highlight,
             //   1 - highlight columns,
             //   2 - highlight rows,
-            highlightModeRules: [
-                {
-                    'none': {
-                        direction: null,
-                        header: '',
-                        cycler: [],
-                    }
-                },
-                {
-                    'cycleColumns': {
-                        direction: 0,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'cycleRows': {
-                        direction: 1,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'linearRows': {
-                        direction: 1,
-                        header: '',
-                        cycler: ['linear-white'],
-                    }
-                },
-            ],
+            highlightModeRules: App.ui.highlightModeRules,
             rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
@@ -2862,7 +2833,12 @@ void function(GridDialog) {
         var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
+        $footer.find('button').addClass('m-1');
+        if (App.ui.version === 4) {
+            $footer.wrapInner('<div class="row m-1"></div>');
+        }
         var $gridPagination = this.iocTemplateProcessor().domTemplate('ko_grid_pagination');
+        // $gridPagination = $gridPagination.wrapAll('<div class="pagination-wrap"></div>').parent();
         $footer.prepend($gridPagination);
         if (this.wasOpened) {
             this.recreateContent();

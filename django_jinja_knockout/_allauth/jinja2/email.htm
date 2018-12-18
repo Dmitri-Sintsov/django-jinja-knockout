@@ -5,9 +5,11 @@
 {{ bs_page_header(_("E-mail Addresses")) }}
 {% if request.user.emailaddress_set.exists() -%}
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h3 class="panel-title">{{ _('The following e-mail addresses are associated with your account:') }}</h3></div>
-    <div class="panel-body">
+<card-default>
+    <card-header>
+        <card-title>{{ _('The following e-mail addresses are associated with your account:') }}</card-title>
+    </card-header>
+    <card-body>
         <form role="form" action="{{ url('account_email') }}" class="email_list" method="post">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <fieldset class="blockLabels">
@@ -38,8 +40,8 @@
 
             </fieldset>
         </form>
-    </div>
-</div>
+    </card-body>
+</card-default>
 
 {% else -%}
 <div class="jumbotrion">
@@ -48,15 +50,17 @@
 {% endif -%}
 
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h3 class="panel-title">{{ _("Add E-mail Address") }}</h3></div>
-    <div class="panel-body">
+<card-default>
+    <card-header>
+        <card-title>{{ _("Add E-mail Address") }}</card-title>
+    </card-header>
+    <card-body>
         <form role="form" method="post" action="{{ url('account_email') }}" class="add_email">
             {{ render_form(request, 'body', form) }}
             <button class="btn btn-primary" name="action_add" type="submit">{{ _("Add E-mail") }}</button>
         </form>
-    </div>
-</div>
+    </card-body>
+</card-default>
 
 {% endblock main -%}
 

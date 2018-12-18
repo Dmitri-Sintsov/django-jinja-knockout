@@ -6,13 +6,10 @@
 {{ raise('"formsets" argument should be the list of formsets') }}
 {% endif -%}
 {% set wrapper_atts = {
-    'class': 'formsets panel panel-default default-padding'
+    'class': 'formsets default-padding'
 } -%}
 {% if not opts -%}
     {% set opts = {} -%}
-{% endif -%}
-{% if not opts.layout_classes -%}
-    {% do opts.update({'layout_classes': layout_classes}) -%}
 {% endif -%}
 {% if opts.class -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, opts.class) -%}
@@ -20,10 +17,12 @@
 {% if action == '' -%}
     {% do tpl.add_css_classes_to_dict(wrapper_atts, 'display-only') -%}
 {% endif -%}
-{% do opts.update({'table_classes': 'table table-bordered table-responsive'}) -%}
-<div{{ tpl.json_flatatt(wrapper_atts) }}>
+{% do opts.update({'table_classes': 'table table-bordered table-responsive display-table'}) -%}
+<card-default {{ tpl.json_flatatt(wrapper_atts) }}>
     {% if opts.title is defined -%}
-    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    <card-header>
+        <card-title>{{ opts.title }}</card-title>
+    </card-header>
     {% endif -%}
     {% if caller -%}
         {{ caller({'ff_heading': related_form, 'opts': opts}) }}
@@ -77,7 +76,7 @@
         <textarea class="ko-template">{{ formset.knockout_template }}</textarea>
         {% endif -%}
     {% endfor -%}
-</div>
+</card-default>
 {% endmacro -%}
 {% if _render_ -%}
 {% call(kwargs) bs_inline_formsets(form, formsets, action, opts) -%}

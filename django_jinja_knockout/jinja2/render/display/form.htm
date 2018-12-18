@@ -1,14 +1,16 @@
-<div class="panel panel-default {{ opts.class }}">
+<card-default class="{{ opts.class }}">
     {% if opts.title is defined -%}
-    <div class="panel-heading"><h3 class="panel-title">{{ opts.title }}</h3></div>
+    <card-header>
+        <card-title>{{ opts.title }}</card-title>
+    </card-header>
     {% endif -%}
-    <div class="panel-body">
-        <table class="table table-bordered table-responsive">
+    <card-body>
+        <table class="table table-bordered table-responsive display-table">
             <colgroup>
                 <col class="{{ opts.layout_classes.label }}">
                 <col class="{{ opts.layout_classes.field }}">
             </colgroup>
             {% include 'render/display/form_raw.htm' with context -%}
         </table>
-    </div>
-</div>
+    </card-body>
+</card-default>

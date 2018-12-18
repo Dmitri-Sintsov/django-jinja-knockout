@@ -832,8 +832,8 @@ For such client-only actions ``App.ActionTemplateDialog`` utilizes underscore.js
 knockout.js templates when two way binding is required. Here is the sample template ::
 
     <script type="text/template" id="my_form_template">
-        <div class="panel panel-default">
-            <div class="panel-body">
+        <card-default>
+            <card-body>
                 <form class="ajax-form" enctype="multipart/form-data" method="post" role="form" data-bind="attr: {'data-url': actions.getLastActionUrl()}">
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                     <div class="jumbotron">
@@ -842,8 +842,8 @@ knockout.js templates when two way binding is required. Here is the sample templ
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+            </card-body>
+        </card-default>
     </script>
 
 .. highlight:: javascript

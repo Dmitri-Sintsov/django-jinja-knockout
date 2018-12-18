@@ -1,3 +1,4 @@
+{% from 'bs_nav_items.htm' import bs_nav_items with context -%}
 {%- macro bs_navs(navs=None, attrs=None) -%}
 {% if navs is none -%}
     {% set navs = [] -%}
@@ -6,20 +7,7 @@
     {% set attrs = {'class': 'nav nav-tabs'} -%}
 {% endif -%}
 <ul {{ tpl.json_flatatt(attrs) }}>
-{% for nav in navs -%}
-    {% set li_atts = {} -%}
-    {% if nav.atts is defined -%}
-        {% do li_atts.update(nav.atts) -%}
-    {% endif -%}
-    {% if nav.tooltip -%}
-        {% do li_atts.update({
-            'data-toggle': 'tooltip',
-            'data-placement': 'bottom',
-            'title': nav.tooltip
-        }) -%}
-    {% endif -%}
-    <li {{ tpl.json_flatatt(li_atts) }}><a href="{{ nav.url }}">{{ nav.text }}</a></li>
-{% endfor -%}
+    {{ bs_nav_items(navs) }}
 </ul>
 {% endmacro -%}
 {% if _render_ -%}

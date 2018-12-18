@@ -46,7 +46,7 @@ class OptionalWidget(MultiWidget):
 class PrefillDropdown(Widget):
     # todo: convert to template
     outer_html = (
-        '<span class="prefill-field input-group-addon pointer" {attrs}>'
+        '<span class="prefill-field input-group-append input-group-addon pointer" {attrs}>'
         '<div class="dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">'
         '<span class="glyphicon glyphicon-chevron-down"></span>'
         '</div>'

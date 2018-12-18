@@ -4,13 +4,16 @@
 {% endif -%}
 <ol class="breadcrumb">
     {% if title is not none -%}
-    <li class="bold">{{ title }}:</li>
+    <li class="bold pr-2">{{ title }}:</li>
     {% endif -%}
     {% for nav in navs -%}
+    {% do tpl.add_css_classes_to_dict(nav.atts, 'breadcrumb-item') -%}
     <li {{ tpl.json_flatatt(nav.atts) }}>
-        {% if not tpl.has_css_classes_in_dict(nav.atts, 'active') -%}<a href="{{ nav.url }}">{% endif -%}
+        {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
         {{ nav.text }}
-        {% if not tpl.has_css_classes_in_dict(nav.atts, 'active') -%}</a>{% endif -%}
+        {% else -%}
+        <a href="{{ nav.url }}">{{ nav.text }}</a>
+        {% endif -%}
     </li>
     {% endfor -%}
 </ol>
