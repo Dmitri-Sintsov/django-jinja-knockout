@@ -842,8 +842,8 @@ void function(GridRow) {
 
     GridRow.getSelectionCss = function() {
         return {
-            'glyphicon-check': this.isSelectedRow(),
-            'glyphicon-unchecked': !this.isSelectedRow(),
+            'iconui-check': this.isSelectedRow(),
+            'iconui-unchecked': !this.isSelectedRow(),
             'pointer': true,
         };
     };
@@ -1079,7 +1079,7 @@ void function(GridActions) {
         return {
             'delete': {
                 'localName': App.trans('Remove'),
-                'type': 'glyphicon',
+                'type': 'iconui',
                 'glyph': 'remove',
                 'enabled': false
             }
@@ -1108,7 +1108,7 @@ void function(GridActions) {
             owner: this.grid,
             buttons: [
                 {
-                    icon: 'glyphicon glyphicon-ok',
+                    icon: 'iconui iconui-ok',
                     label: App.trans('Ok'),
                     hotkey: 27,
                     cssClass: 'btn-success',
@@ -1410,7 +1410,7 @@ void function(Grid) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon'];
+    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui'];
 
     Grid.init = function(options) {
         $.inherit(App.ko.Subscriber.prototype, this);
@@ -1478,11 +1478,11 @@ void function(Grid) {
         this.selectedRowsPks = [];
         this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
-        this.glyphiconColumns = ko.computed(function() {
-            return (this.actionTypes['glyphicon']().length === 0) ? 0 : 1
+        this.iconuiColumns = ko.computed(function() {
+            return (this.actionTypes['iconui']().length === 0) ? 0 : 1
         }, this);
         this.totalColumns = ko.computed(function() {
-            var totalColumns = this.gridColumns().length + this.glyphiconColumns();
+            var totalColumns = this.gridColumns().length + this.iconuiColumns();
             if (this.options.showSelection) {
                 totalColumns++;
             }
@@ -1560,8 +1560,8 @@ void function(Grid) {
 
     Grid.getSelectAllRowsCss = function() {
         return {
-            'glyphicon-check': this.hasSelectAllRows(),
-            'glyphicon-unchecked': !this.hasSelectAllRows(),
+            'iconui-check': this.hasSelectAllRows(),
+            'iconui-unchecked': !this.hasSelectAllRows(),
             'pointer': true,
         };
     };
@@ -2543,7 +2543,7 @@ void function(Grid) {
 }(App.ko.Grid.prototype);
 
 /**
- * Visual representation of grid action. Should be used to display / trigger button / glyphicon actions.
+ * Visual representation of grid action. Should be used to display / trigger button / iconui actions.
  * Do not confuse with App.Actions / App.GridActions which is the abstraction layer for AJAX handling of viewmodels.
  */
 App.ko.Action = function(options) {

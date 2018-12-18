@@ -136,7 +136,7 @@
             </div>
             <!-- ko foreach: actionTypes['button'] -->
                 <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
-                    <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
+                    <span class="iconui" data-bind="css: actionCss('iconui')"></span>
                     <span data-bind="text: $data.localName"></span>
                 </button>
             <!-- /ko -->
@@ -170,7 +170,7 @@
     <div class="navbar navbar-left">
         <!-- ko foreach: actionTypes['button_footer'] -->
         <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
-            <span class="glyphicon" data-bind="css: actionCss('glyphicon')"></span>
+            <span class="iconui" data-bind="css: actionCss('iconui')"></span>
             <span data-bind="text: $data.localName"></span>
         </button>
         <!-- /ko -->
@@ -200,10 +200,10 @@
                     <tr data-bind="css: headerCss">
                         <!-- ko if: options.showSelection -->
                         <th data-bind="if: options.selectMultipleRows" class="grid-glyph-cell">
-                            <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="halflings glyphicon glyphicon-unchecked"></span>
+                            <span data-bind="css: selectAllRowsCss, click: onSelectAllRows" class="iconui-ctrl iconui iconui-unchecked"></span>
                         </th>
                         <!-- /ko -->
-                        <!-- ko if: glyphiconColumns() -->
+                        <!-- ko if: iconuiColumns() -->
                         <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
                         <!-- ko foreach: gridColumns -->
@@ -214,7 +214,7 @@
                                 grid_order_by,
                                 click: onSwitchOrder,
                                 css: orderCss
-                            " class="halflings-before" name="#"></a>
+                            " class="iconui-ctrl-before" name="#"></a>
                             <!-- /ko -->
                             <!-- ko if: !isSortedColumn() -->
                             <div data-bind="text: name"></div>
@@ -233,18 +233,18 @@
                     <tr data-bind="grid_row, css: rowCss">
                         <!-- ko if: $parent.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
-                            <span data-bind="css: selectionCss" class="halflings glyphicon"></span>
+                            <span data-bind="css: selectionCss" class="iconui-ctrl iconui"></span>
                         </td>
                         <!-- /ko -->
-                        <!-- ko if: $parent.glyphiconColumns() -->
+                        <!-- ko if: $parent.iconuiColumns() -->
                         <td class="grid-glyph-cell grid-glypicon-actions">
-                            <!-- ko foreach: $parent.actionTypes['glyphicon'] -->
+                            <!-- ko foreach: $parent.actionTypes['iconui'] -->
                                 <!-- ko if: $parent.observeEnabledAction($data) -->
                                 <span data-bind="
                                     css: actionCss(),
                                     attr: {title: $data.localName},
                                     click: function() { doForRow($parent); }
-                                " class="halflings glyphicon pointer"></span>
+                                " class="iconui-ctrl iconui pointer"></span>
                                 <!-- /ko -->
                             <!-- /ko -->
                         </td>
@@ -306,7 +306,7 @@
         <ul class="pagination flex-wrap default-margin">
             <!-- ko foreach: actionTypes['pagination'] -->
                 <li data-bind="click: function() { doAction(); }" class="page-item">
-                    <span data-bind="css: actionCss('glyphicon'), attr: {title: $data.localName}" class="page-link halflings glyphicon mr-2"></span>
+                    <span data-bind="css: actionCss('iconui'), attr: {title: $data.localName}" class="page-link iconui-ctrl iconui mr-2"></span>
                 </li>
             <!-- /ko -->
             <!-- ko foreach: gridPages -->

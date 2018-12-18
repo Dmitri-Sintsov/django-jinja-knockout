@@ -186,12 +186,12 @@ class GridCommands:
         self.context = self._grid_row_relative_by_xpath(
             './/td[@data-bind="click: onSelect"]/span'
         )
-        if 'glyphicon-unchecked' in self.parse_css_classes(self.context.element):
+        if 'iconui-unchecked' in self.parse_css_classes(self.context.element):
             return self._click()
         else:
             return self.context
 
-    def _grid_row_glyphicon_action(self, action_name):
+    def _grid_row_iconui_action(self, action_name):
         return self.exec(
             'grid_row_relative_by_xpath', (
                 './/td[contains(@class, "grid-glypicon-actions")]/span[@title={}]',
@@ -216,7 +216,7 @@ class GridCommands:
     def _grid_order_by(self, verbose_name):
         return self.exec(
             'component_relative_by_xpath', (
-                './/thead//a[contains(@class, "halflings-before") and contains(@class, "sort-") and text() = {}]',
+                './/thead//a[contains(@class, "iconui-ctrl-before") and contains(@class, "sort-") and text() = {}]',
                 verbose_name,
             ),
             'click',

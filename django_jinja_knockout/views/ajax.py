@@ -585,7 +585,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'localName': _('Add'),
                     'css': {
                         'button': 'btn-primary',
-                        'glyphicon': 'glyphicon-plus'
+                        'iconui': 'iconui-plus'
                     },
                     'enabled': any([
                         self.get_create_form()
@@ -595,7 +595,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'localName': _('Add'),
                     'css': {
                         'button': 'btn-primary',
-                        'glyphicon': 'glyphicon-plus'
+                        'iconui': 'iconui-plus'
                     },
                     'enabled': any([
                         self.get_create_form_with_inline_formsets()
@@ -608,7 +608,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'classPath': 'App.ko.RowsPerPageAction',
                     'localName': _('Rows per page'),
                     'css': {
-                        'glyphicon': 'glyphicon-th-list'
+                        'iconui': 'iconui-th-list'
                     },
                     'range': {
                         'min': MIN_OBJECTS_PER_PAGE,
@@ -620,7 +620,7 @@ class GridActionsMixin(ModelFormActionsView):
                 ('switch_highlight', {
                     'localName': _('Highlight mode'),
                     'css': {
-                        'glyphicon': 'glyphicon-th'
+                        'iconui': 'iconui-th'
                     },
                     'enabled': self.enable_switch_highlight
                 })
@@ -648,11 +648,11 @@ class GridActionsMixin(ModelFormActionsView):
                     ])
                 })
             ]),
-            'glyphicon': OrderedDict([
+            'iconui': OrderedDict([
                 # Delete one or many model object.
                 ('delete', {
                     'localName': _('Remove'),
-                    'css': 'glyphicon-remove',
+                    'css': 'iconui-remove',
                     'enabled': self.enable_deletion
                 })
             ])

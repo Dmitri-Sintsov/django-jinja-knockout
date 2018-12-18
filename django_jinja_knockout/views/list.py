@@ -445,7 +445,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             if viewname is None:
                 viewname = self.request.url_name
             link_attrs = {
-                'class': 'halflings-before',
+                'class': 'iconui-ctrl-before',
                 'href': tpl.reverseq(
                     viewname,
                     kwargs=kwargs,

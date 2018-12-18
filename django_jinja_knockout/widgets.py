@@ -48,7 +48,7 @@ class PrefillDropdown(Widget):
     outer_html = (
         '<span class="prefill-field input-group-append input-group-addon pointer" {attrs}>'
         '<div class="dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">'
-        '<span class="glyphicon glyphicon-chevron-down"></span>'
+        '<span class="iconui iconui-chevron-down"></span>'
         '</div>'
         '<ul class="dropdown-menu dropdown-menu-right dropdown-menu-vscroll">{content}</ul>'
         '</span>'

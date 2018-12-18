@@ -527,14 +527,14 @@ $.fn.prefillField = function(method) {
 
     function showDropdown(ev) {
         var $invoker = $(ev.relatedTarget);
-        $invoker.children('.glyphicon')
-        .removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        $invoker.children('.iconui')
+        .removeClass('iconui-chevron-down').addClass('iconui-chevron-up');
     };
 
     function hideDropdown(ev) {
         var $invoker = $(ev.relatedTarget);
-        $invoker.children('.glyphicon')
-        .removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        $invoker.children('.iconui')
+        .removeClass('iconui-chevron-up').addClass('iconui-chevron-down');
     };
 
     return {
