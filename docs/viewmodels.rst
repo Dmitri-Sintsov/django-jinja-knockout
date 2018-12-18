@@ -653,9 +653,9 @@ the example of defining two custom actions, ``save_equipment`` and ``add_equipme
         def get_actions(self):
             actions = super().get_actions()
             actions['built_in']['save_equipment'] = {}
-            actions['glyphicon']['add_equipment'] = {
+            actions['iconui']['add_equipment'] = {
                 'localName': _('Add club equipment'),
-                'css': 'glyphicon-wrench',
+                'css': 'iconui-wrench',
             }
             return actions
 

@@ -328,7 +328,7 @@ page::
     <div>This div is the separate content that is not bound to the component.</div>
     <div class="club-edit-grid">
         <button class="btn-choice btn-info club-edit-grid" data-bind="click: function() { this.performAction('create_inline'); }">
-            <span class="glyphicon glyphicon-plus"></span> Add row
+            <span class="iconui iconui-plus"></span> Add row
         </button>
     </div>
 

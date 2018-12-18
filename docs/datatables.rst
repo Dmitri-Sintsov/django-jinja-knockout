@@ -1538,8 +1538,8 @@ Actions are invoked via Javascript ``App.Actions.perform()`` method::
   To add queryargs to some action, implement ``queryargs_NAME`` method, where ``NAME`` is actual name of action.
 * ``'ajaxCallback' argument``: optional function closure that will be executed when action is complete;
 
-Interactive actions (action types ``'button'`` / ``'glyphicon'``) are also represented by instances of ``App.ko.Action``
-Javascript class, which is used to setup CSS classes of bound DOM element button or glyphicon in `ko_grid_body.htm`_.
+Interactive actions (action types ``'button'`` / ``'iconui'``) are also represented by instances of ``App.ko.Action``
+Javascript class, which is used to setup CSS classes of bound DOM element button or iconui in `ko_grid_body.htm`_.
 
 When bound DOM element is clicked, these interactive actions invoke ``App.ko.Action.doAction()`` method for particular
 visual action Knockout.js viewmodel, which calls chain of ``App.ko.Grid`` / ``App.GridActions`` methods, finally issuing
@@ -1585,7 +1585,7 @@ Since version 0.8.0, there is ``App.ko.Grid`` class ``.performAction()`` method 
 To bind the action invocation to datatable template button::
 
     <button class="btn-choice btn-info club-edit-grid" data-bind="click: function() { this.performAction('create_inline'); }">
-        <span class="glyphicon glyphicon-plus"></span> Add row
+        <span class="iconui iconui-plus"></span> Add row
     </button>
 
 Action queryargs
@@ -1840,7 +1840,7 @@ Action type 'built_in'
 ----------------------
 
 Actions that are supposed to be used internally without generation of associated invocation elements (buttons,
-glyphicons).
+iconuis).
 
 'meta' action
 ~~~~~~~~~~~~~
@@ -2377,12 +2377,12 @@ model instance. Returned viewmodel ``last_action`` property value is set to ``'s
 Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
 
-See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
+See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'iconui'``
 types.
 
 Action type 'pagination'
 ------------------------
-This type of actions is available since version 0.7.0. These actions add glyphicon buttons directly to pagination
+This type of actions is available since version 0.7.0. These actions add iconui buttons directly to pagination
 control of current grid (datatable). They may be applied to the whole grid or to the selected grid rows, similarly to
 `Action type 'button'`_.
 
@@ -2454,16 +2454,16 @@ providing custom list of ``highlightModeRules`` values in overriden (inherited) 
 Traditional (non-AJAX) request `views.list.ListSortingView`_ also supports ``highlight_mode`` attribute with similar
 highlighting settings, but no dynamical change of current highlight mode.
 
-Action type 'glyphicon'
+Action type 'iconui'
 -----------------------
 These actions are designed to process already displayed grid (datatable) row, associated to existing Django model. Their
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
-are visually displayed as bootstrap glyphicon links in separate columns of grid.
+are visually displayed as iconui links in separate columns of grid.
 
-Since version 0.7.0 glyphicon actions are rendered in the single column of datatable, instead of each action per column
+Since version 0.7.0 iconui actions are rendered in the single column of datatable, instead of each action per column
 for better utilization of the display space.
 
-By default there is no ``glyphicon`` type actions enabled. But there is one standard action of such type implemented
+By default there is no ``iconui`` type actions enabled. But there is one standard action of such type implemented
 for ``KoGridView``: `'delete' action`_.
 
 'delete' action
@@ -2506,7 +2506,7 @@ or disabled per grid class - if one considers to check the user permissions::
         def get_actions(self):
             enable_deletion = self.request.user.has_perm('club_app.delete_manufacturer')
             actions = super().get_actions()
-            actions['glyphicon']['delete']['enabled'] = enable_deletion
+            actions['iconui']['delete']['enabled'] = enable_deletion
             actions['built_in']['delete_confirmed']['enabled'] = enable_deletion
             return actions
 
@@ -2519,17 +2519,17 @@ The action itself is defined in `views.GridActionsMixin`_ class::
             # Delete one or many model object.
             ('delete', {
                 'localName': _('Remove'),
-                'css': 'glyphicon-remove',
+                'css': 'iconui-remove',
                 'enabled': self.enable_deletion
             })
         ])
 
-See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'glyphicon'``
+See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'iconui'``
 types.
 
 .. highlight:: python
 
-Imagine one grid having custom glyphicon action defined like this::
+Imagine one grid having custom iconui action defined like this::
 
     class MemberGrid(KoGridView):
         model = Member
@@ -2537,15 +2537,15 @@ Imagine one grid having custom glyphicon action defined like this::
 
         def get_actions(self):
             actions = super().get_actions()
-            actions['glyphicon']['quick_endorse'] = {
+            actions['iconui']['quick_endorse'] = {
                 'localName': _('Quick endorsement'),
-                'css': 'glyphicon-cloud-upload',
+                'css': 'iconui-cloud-upload',
             }
             return actions
 
 
 Grid rows may selectively enable / disable their actions on the fly with visual updates. It is especially important to
-actions of type ``'glyphicon'``, because these are always visible in grid columns.
+actions of type ``'iconui'``, because these are always visible in grid columns.
 
 .. highlight:: javascript
 
@@ -2585,7 +2585,7 @@ To implement online visibility update of grid row actions one should override cl
 
     })(App.ko.MemberGrid.prototype);
 
-This way action of ``glyphicon`` type with ``'quick_endorse'`` name will be displayed as link only when associated
+This way action of ``iconui`` type with ``'quick_endorse'`` name will be displayed as link only when associated
 Django model instance field name ``is_endorsed`` has value ``true``. Otherwise the link to action will be hidden.
 Updating grid rows via ``App.ko.Grid`` class ``updatePage()`` method will cause visual re-draw of available grid rows
 actions display.
@@ -2622,7 +2622,7 @@ First step to add new action is to override ``get_actions()`` method in Django g
             }
             return actions
 
-To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
+To create new action ``'ask_user'`` of ``'iconui'`` type instead::
 
     from django_jinja_knockout.views import KoGridView
     from .models import Profile
@@ -2635,10 +2635,10 @@ To create new action ``'ask_user'`` of ``'glyphicon'`` type instead::
 
         def get_actions(self):
             actions = super().get_actions()
-            action_type = 'glyphicon'
+            action_type = 'iconui'
             actions[action_type]['ask_user'] = {
                 'localName': _('Ask user'),
-                'css': 'glyphicon-user',
+                'css': 'iconui-user',
             }
             return actions
 
@@ -2928,9 +2928,9 @@ pagination and optional search / filtering - not having to load the whole querys
         def get_actions(self):
             actions = super().get_actions()
             actions['built_in']['save_equipment'] = {}
-            actions['glyphicon']['add_equipment'] = {
+            actions['iconui']['add_equipment'] = {
                 'localName': _('Add club equipment'),
-                'css': 'glyphicon-wrench',
+                'css': 'iconui-wrench',
             }
             return actions
 
@@ -3129,7 +3129,7 @@ definition(s)::
                     'localName': _('Approve user'),
                     'css': {
                         'button': 'btn-warning',
-                        'glyphicon': 'glyphicon-user'
+                        'iconui': 'iconui-user'
                     },
                 })
             ])
@@ -3184,7 +3184,7 @@ method::
             this.meta.user_name = ko.observable();
         };
 
-        Model1Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon', 'button_bottom'];
+        Model1Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui', 'button_bottom'];
 
         Model1Grid.iocGridActions = function(options) {
             return new App.Model1GridActions(options);
@@ -3269,7 +3269,7 @@ And the final step is to generate client-side component in Jinja2 template with 
                     <div data-template-id="model1_ko_grid_table"></div>
                     <!-- ko foreach: actionTypes['button_bottom'] -->
                         <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
-                            <span class="glyphicon" data-bind="css: getKoCss('glyphicon')"></span>
+                            <span class="iconui" data-bind="css: getKoCss('iconui')"></span>
                             <span data-bind="text: $data.localName"></span>
                         </button>
                     <!-- /ko -->
@@ -3289,7 +3289,7 @@ Since version 0.6.0, there is built-in `Action type 'button_footer'`_ available,
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
 
-Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add glyphicon buttons with grid
+Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add iconui buttons with grid
 actions attached directly to datatable pagination list.
 
 Grids API
