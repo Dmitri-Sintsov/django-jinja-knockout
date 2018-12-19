@@ -64,7 +64,7 @@ class PrefillDropdown(Widget):
         if 'id' in self.attrs:
             self.attrs['id'] += '-PREFILL_CHOICES'
         output = []
-        for i, choice in enumerate(self.choices):
+        for _i, choice in enumerate(self.choices):
             choice_value, choice_label = choice
             output.append(
                 format_html(self.inner_html, choice_value=choice_value, choice_label=choice_label)
@@ -113,7 +113,18 @@ class PrefillWidget(Widget):
 # Read-only widget for existing models.
 class DisplayText(Widget):
 
-    def __init__(self, attrs=None, scalar_display=None, get_text_fn=None, get_text_method=None, layout='table'):
+    print_list_tpl = {
+        # @note: when changing to ['tpl']['v'], one has to set flatatt() name index.
+        'top': '<ul{0}>{1}</ul>\n',
+        'v': '<li class="list-group-item preformatted">{v}</li>\n',
+    }
+
+    def __init__(
+            self, attrs=None, scalar_display=None, get_text_fn=None, get_text_method=None, layout='table',
+            print_list_tpl=None
+    ):
+        if print_list_tpl is not None:
+            self.print_list_tpl = print_list_tpl
         self.name = None
         self.skip_output = False
         self.scalar_display = {
@@ -141,12 +152,10 @@ class DisplayText(Widget):
         add_css_classes_to_dict(final_attrs, 'preformatted')
 
     def render_list(self, final_attrs, values, display_values):
+        print_list_tpl = self.print_list_tpl.copy()
+        print_list_tpl['top'] = print_list_tpl['top'].format(flatatt(final_attrs), '{0}')
         return PrintList(
-            tpl={
-                # @note: when changing to ['tpl']['elem'], one has to set flatatt() name index.
-                'top': '<ul{0}>{1}</ul>\n'.format(flatatt(final_attrs), '{0}'),
-                'elem': '<li class="list-group-item preformatted">{v}</li>\n',
-            },
+            tpl=print_list_tpl,
             cb=lambda value: self.get_text(value)
         ).nested(display_values)
 

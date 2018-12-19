@@ -5,7 +5,7 @@ import lxml.html
 from lxml.etree import tostring
 
 from django.conf import settings
-from django.utils.html import mark_safe
+from django.utils.html import format_html, mark_safe
 from django.http import QueryDict
 from django.db import transaction
 from django import forms
@@ -145,13 +145,23 @@ class FormBodyRenderer(RelativeRenderer):
         renderer_cls = getattr(field.field, 'renderer_cls', self.field_renderer_cls)
         return renderer_cls(self.request, {'field': field})
 
-    def ioc_fields(self, field_classes):
+    def ioc_fields(self):
+        field_classes = self.context.get('layout_classes', self.get_layout_classes())
         for field in self.obj.visible_fields():
             field.renderer = self.ioc_render_field(field)
             field.renderer.set_classes(field_classes)
 
+    def render_raw(self):
+        self.ioc_fields()
+        output = ''.join([
+            format_html(
+                '<div><div>{}</div><div>{}</div></div>', field.label, field.renderer.render_raw()
+            ) for field in self.obj.visible_fields()
+        ])
+        return mark_safe(output)
+
     def __str__(self):
-        self.ioc_fields(self.context.get('layout_classes', self.get_layout_classes()))
+        self.ioc_fields()
         return super().__str__()
 
 
@@ -222,9 +232,10 @@ class FormsetRenderer(Renderer):
         )
 
     def ioc_forms(self, context):
-        for form in self.obj:
+        for idx, form in enumerate(self.obj):
             renderer = self.ioc_render_inline_form(form)
             renderer.update_context(context)
+            renderer.update_context({'formset_index': idx})
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -232,6 +243,13 @@ class FormsetRenderer(Renderer):
             'opts': self.context.get('opts', {}),
         })
         return context
+
+    def render_raw(self):
+        context = self.get_template_context()
+        output = ''.join([
+            form._renderer['inline']() for form in self.obj
+        ])
+        return mark_safe(output)
 
 
 # Form with self.request and attributes for renderer templates, which can be overriden in derived class.
