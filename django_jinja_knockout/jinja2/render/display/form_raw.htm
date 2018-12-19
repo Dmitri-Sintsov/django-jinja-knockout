@@ -1,7 +1,0 @@
-{% if caller -%}
-    {{ caller({'before_body': True}) }}
-{% endif -%}
-{{ form._renderer['body']() }}
-{% if caller -%}
-    {{ caller({'after_body': True}) }}
-{% endif -%}

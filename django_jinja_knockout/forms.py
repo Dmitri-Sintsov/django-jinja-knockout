@@ -59,31 +59,30 @@ class FieldRenderer(Renderer):
         return getattr(self.obj.field, 'template_dir', template_dir)
 
     def get_template_name(self):
-        template_dir = self.get_template_dir()
         if hasattr(self.obj.field, 'render_template'):
-            return template_dir + self.obj.field.render_template
+            return self.obj.field.render_template
         if self.display_layout == 'table':
-            return template_dir + 'field.htm'
+            return 'field.htm'
         elif self.display_layout == 'div':
-            return template_dir + 'field_standard.htm'
+            return 'field_standard.htm'
         elif bootstrap.is_checkbox(self.obj):
-            return template_dir + 'field_checkbox.htm'
+            return 'field_checkbox.htm'
         elif bootstrap.is_multiple_checkbox(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'checkbox'
                 }
             })
-            return template_dir + 'field_multiple.htm'
+            return 'field_multiple.htm'
         elif bootstrap.is_radio(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'radio'
                 }
             })
-            return template_dir + 'field_multiple.htm'
+            return 'field_multiple.htm'
         else:
-            return template_dir + 'field_standard.htm'
+            return 'field_standard.htm'
 
     def set_classes(self, classes=None):
         bootstrap.add_input_classes_to_field(self.obj.field)
@@ -167,12 +166,16 @@ class RelatedFormRenderer(RelativeRenderer):
     def ioc_render_form_body(self, opts):
         return ioc_form_renderer(
             self.request, 'body', {
-                'caller': self.context['caller'],
+                'caller': self.context.get('caller'),
                 'opts': opts,
                 'form': self.obj,
             },
             default_cls=self.form_body_renderer_cls
         )
+
+    def render_raw(self):
+        context = self.get_template_context()
+        return context[self.obj_kwarg]._renderer['body']()
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -212,7 +215,7 @@ class FormsetRenderer(Renderer):
     def ioc_render_inline_form(self, form):
         return ioc_form_renderer(
             self.request, 'inline', {
-                'caller': self.context['caller'],
+                'caller': self.context.get('caller'),
                 'form': form,
             },
             default_cls=self.inline_form_renderer_cls
@@ -226,7 +229,7 @@ class FormsetRenderer(Renderer):
     def get_template_context(self):
         context = super().get_template_context()
         self.ioc_forms({
-            'opts': self.context['opts'],
+            'opts': self.context.get('opts', {}),
         })
         return context
 

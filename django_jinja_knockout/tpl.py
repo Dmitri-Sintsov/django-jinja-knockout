@@ -115,20 +115,23 @@ class Renderer:
         else:
             obj_template = getattr(self.obj, self.obj_template_attr, self.template)
             template_name = self.template if obj_template is None else obj_template
-        return self.get_template_dir() + template_name
+        return template_name
+
+    def render_raw(self):
+        return str(self.obj)
 
     def __str__(self):
         template_name = self.get_template_name()
-        if template_name is None:
-            return str(self.obj)
-        else:
-            t = tpl_loader.get_template(template_name)
-            context = self.get_template_context()
-            context.update(self.get_processors_context(t))
-            html = mark_safe(t.template.render(context))
-            # Non-cached processors context version is commented out.
-            # html = t.render(request=self.request, context=self.get_template_context())
-            return html
+        if template_name == '':
+            return self.render_raw()
+        template_path = self.get_template_dir() + self.get_template_name()
+        t = tpl_loader.get_template(template_path)
+        context = self.get_template_context()
+        context.update(self.get_processors_context(t))
+        html = mark_safe(t.template.render(context))
+        # Non-cached processors context version is commented out.
+        # html = t.render(request=self.request, context=self.get_template_context())
+        return html
 
     def __call__(self, *args, **kwargs):
         self.update_context(kwargs)
