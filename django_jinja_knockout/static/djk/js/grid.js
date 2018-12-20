@@ -2742,6 +2742,10 @@ void function(GridDialog) {
 
     GridDialog.template = 'ko_grid_body';
 
+    /**
+     * Pass grid options as options.filterOptions argument.
+     * Override grid class to custom one by passing options.iocGrid argument.
+     */
     GridDialog.create = function(options) {
         this.componentSelector = null;
         this._super._call('create', options);
