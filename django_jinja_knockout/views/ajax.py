@@ -235,7 +235,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_default_action_name(self):
         return 'edit_inline' if self.form is None else 'edit_form'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         if self.model is None:
             if self.form is not None:
                 self.model = self.form._meta.model
@@ -246,7 +246,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 self.model = form_class._meta.model
             else:
                 raise ValueError('model class attribute is undefined')
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def get_actions(self):
         return {

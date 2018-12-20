@@ -119,9 +119,9 @@ class FormatTitleMixin:
 
     format_view_title = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self.view_title_is_formatted = False
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def format_title(self, *args):
         if self.format_view_title and not self.view_title_is_formatted:
@@ -384,8 +384,8 @@ class BaseFilterView(View, GetPostMixin):
     search_fields = None
     model = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.pk_field = None
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = {}
