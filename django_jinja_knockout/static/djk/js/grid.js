@@ -198,13 +198,18 @@ void function(GridColumn) {
         });
     };
 
+    GridColumn.getCellContainer = function(columnOrder) {
+        return $('<div>', {
+            'class': 'grid-cell',
+            'data-caption': columnOrder.name,
+        });
+    };
+
     GridColumn.getCompoundCells = function(gridRow) {
+        var self = this;
         var cells = [];
         _.map(this.columnOrders(), function(columnOrder) {
-            var $container = $('<div>', {
-                'class': 'grid-cell',
-                'data-caption': columnOrder.name,
-            });
+            var $container = self.getCellContainer(columnOrder);
             columnOrder.renderRowValue(
                 $container[0], ko.utils.unwrapObservable(
                     gridRow.displayValues[columnOrder.field]
