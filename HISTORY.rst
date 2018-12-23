@@ -146,8 +146,8 @@ grid.js
 ~~~~~~~
 * Reset filter now uses ``undefined`` value instead of ``null`` value because filtering by ``None`` value is now
   supported in ``KoGridView``.
-* ``App.ko.GridRow`` class ``toDisplayValue()`` method now automatically picks nested relation value from nested
-  ``strFields`` value, when available. That allows to traverse nested ``get_str_fields()`` values automatically.
+* ``App.ko.GridRow`` class ``display()`` method now automatically picks nested relation value from nested  ``strFields``
+  value, when available. That allows to traverse nested ``get_str_fields()`` values automatically.
 
   See ``getDisplayValue()`` method for the implementation.
 * Allow to click nested elements of row cells when these are enclosed into anchors.

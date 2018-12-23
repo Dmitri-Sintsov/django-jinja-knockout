@@ -669,9 +669,9 @@ Customizing visual display of fields at client-side
 
 .. highlight:: javascript
 
-To alter visual representation of grid row cells, one should override ``App.ko.GridRow.toDisplayValue()`` Javascript
-class method, to implement custom display layout of field values at client-side. The same method also can be used to
-generate condensed representations of long text values via Boostrap popovers, or even to display fields as form inputs:
+To alter visual representation of grid row cells, one should override ``App.ko.GridRow`` Javascript class ``.display()``
+method, to implement custom display layout of field values at client-side. The same method also can be used to generate
+condensed representations of long text values via Boostrap popovers, or even to display fields as form inputs:
 using grid as paginated AJAX form - (which is also possible but requires writing custom ``underscore.js`` grid layout
 templates, partially covered in modifying_visual_layout_of_grid_)::
 
@@ -686,8 +686,8 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
         MemberGridRow.useInitClient = true;
 
-        MemberGridRow.toDisplayValue = function(value, field) {
-            var displayValue = this._super._call('toDisplayValue', value, field);
+        MemberGridRow.display = function(field) {
+            var displayValue = this._super._call('display', field);
             switch (field) {
             case 'role':
                 // Display field value as bootstrap label.
@@ -748,8 +748,8 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
 See `member-grid.js`_ for full-size example.
 
-``App.ko.GridRow.toDisplayValue()`` method used in `grid.js`_ ``grid_row_value`` binding supports the following types
-of values:
+``App.ko.GridRow`` class ``.display()`` method used in `grid.js`_ ``grid_row_value`` binding supports the following
+types of values:
 
 .. highlight:: python
 
@@ -790,7 +790,7 @@ property. See `'list' action`_ for more info.
 
 * Scalar values will be placed into grid cells via ``jQuery.html()`` WITHOUT XSS protection. Usually these values are
   server-side Django generated strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the
-  implementation in the version 0.2.0 of `grid.js`_::
+  sample implementation in the version 0.2.0 of `grid.js`_::
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
@@ -1439,6 +1439,63 @@ Full code::
 
 See `member_grid_tabs.htm`_, `member-grid.js`_, `club_app.views_ajax`_ for the complete example.
 
+It's also possible to use different layout for the different cells of datatable row via custom ``ko_grid_table``
+template. In such case not even override of ``App.ko.GridRow`` class ``.display()`` method is required; also it's
+possible to combile both ways to generate custom output::
+
+    <script type="text/template" id="agenda_ko_grid_table">
+        <div class="agenda-wrapper" data-top="true">
+            <div data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
+                <div data-bind="grid_row">
+                    <div class="agenda-image">
+                        <a data-bind="attr: {href: $data.display('document').href}" class="link-preview" target="_blank" data-tip-css='{"z-index": 2000}'>
+                            <img data-bind="attr: {src: $data.display('document').icon, alt: $data.display('document').text}" class="agenda-image">
+                        </a>
+                    </div>
+                    <div class="agenda-description">
+                        <span data-bind="text: $data.display('upload_date')"></span> /
+                        <span data-bind="text: $data.display('is_latest')"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="jumbotron default-padding" data-bind="visible: gridRows().length === 0">
+                <div data-template-id="ko_grid_no_results"></div>
+            </div>
+        </div>
+    </script>
+
+
+.. highlight:: python
+
+Where ``document.href`` / ``document.text`` display values are generated at server-side in ``AgendaGrid`` class
+``get_row_str_fields()`` method::
+
+    class AgendaGrid(KoGridView):
+
+        model = AgendaFileRevision
+        enable_switch_highlight = False
+        grid_fields = [
+            'document',
+            'upload_date',
+            'is_latest',
+        ]
+        allowed_sort_orders = [
+            'upload_date',
+        ]
+        allowed_filter_fields = OrderedDict([
+            ('upload_date', None),
+            ('is_latest', None),
+        ])
+
+        def get_row_str_fields(self, obj, row=None):
+            str_fields = super().get_row_str_fields(obj, row)
+            str_fields['document'] = {
+                'href': obj.document.url,
+                'text': obj.file.basename
+            }
+            return str_fields
+
+
 ==============
 Action routing
 ==============
@@ -1888,7 +1945,7 @@ grid cell).
 
 ``str_fields`` are populated at server-side for each grid row via `views.KoGridView`_ class
 ``.get_row_str_fields()`` method and are converted to client-side ``display values`` in ``App.ko.GridRow`` class
-``toDisplayValue()`` method.
+``display()`` method.
 
 Both methods can be overridden in ancestor classes to customize field values output. When associated Django model has
 `get_str_fields()`_ method defined, it will be used to get ``str_fields`` for each row by default.
