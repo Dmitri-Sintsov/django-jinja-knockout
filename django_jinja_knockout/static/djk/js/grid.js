@@ -795,8 +795,11 @@ void function(GridRow) {
         return undefined;
     };
 
-    // Descendant could format it's own displayValue, including html content.
-    GridRow.toDisplayValue = function(value, field) {
+    /**
+     * Descendant could format it's own displayValue, including html content.
+     */
+    GridRow.display = function(field) {
+        var value = this.getValue(field);
         var displayValue;
         var markSafe = this.ownerGrid.isMarkSafeField(field);
         // Automatic server-side formatting.
@@ -828,7 +831,7 @@ void function(GridRow) {
     // Support jQuery objects as display values.
     // Wraps display value into ko.observable(), when needed.
     GridRow.wrapDisplayValue  = function(value, field) {
-        var displayValue = this.toDisplayValue(value, field);
+        var displayValue = this.display(field);
         return this.observeDisplayValue ? ko.observable(displayValue) : displayValue;
     };
 
