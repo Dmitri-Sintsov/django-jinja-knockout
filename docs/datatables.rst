@@ -748,7 +748,7 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
 See `member-grid.js`_ for full-size example.
 
-``App.ko.GridRow`` class ``.display()`` method used in `grid.js`_ ``grid_row_value`` binding supports the following
+``App.ko.GridRow`` class ``.display()`` method used in `grid.js`_ ``grid_compound_cell`` binding supports the following
 types of values:
 
 .. highlight:: python
@@ -1440,21 +1440,21 @@ Full code::
 See `member_grid_tabs.htm`_, `member-grid.js`_, `club_app.views_ajax`_ for the complete example.
 
 It's also possible to use different layout for the different cells of datatable row via custom ``ko_grid_table``
-template. In such case not even override of ``App.ko.GridRow`` class ``.display()`` method is required; also it's
-possible to combile both ways to generate custom output::
+template. Since version 0.8.0, there is ``val()`` method of grid row to access raw data values (eg. html attributes)
+and ``grid_cell`` binding to render individial (non-compound) row cells::
 
     <script type="text/template" id="agenda_ko_grid_table">
         <div class="agenda-wrapper" data-top="true">
             <div data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
                 <div data-bind="grid_row">
                     <div class="agenda-image">
-                        <a data-bind="attr: {href: $data.display('document').href}" class="link-preview" target="_blank" data-tip-css='{"z-index": 2000}'>
-                            <img data-bind="attr: {src: $data.display('document').icon, alt: $data.display('document').text}" class="agenda-image">
+                        <a data-bind="attr: {href: $data.val('document').href}" class="link-preview" target="_blank" data-tip-css='{"z-index": 2000}'>
+                            <img data-bind="attr: {src: $data.val('document').icon, alt: $data.val('document').text}" class="agenda-image">
                         </a>
                     </div>
                     <div class="agenda-description">
-                        <span data-bind="text: $data.display('upload_date')"></span> /
-                        <span data-bind="text: $data.display('is_latest')"></span>
+                        <span data-bind="grid_cell: 'upload_date'"></span> /
+                        <span data-bind="grid_cell: 'is_latest'"></span>
                     </div>
                 </div>
             </div>
@@ -1467,8 +1467,8 @@ possible to combile both ways to generate custom output::
 
 .. highlight:: python
 
-Where ``document.href`` / ``document.text`` display values are generated at server-side in ``AgendaGrid`` class
-``get_row_str_fields()`` method::
+Where ``document.href`` / ``document.text`` display values (str_fields) are generated at server-side in ``AgendaGrid``
+Python class ``get_row_str_fields()`` method::
 
     class AgendaGrid(KoGridView):
 
