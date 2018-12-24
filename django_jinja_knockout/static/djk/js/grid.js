@@ -27,8 +27,11 @@ ko.bindingHandlers.grid_order_by = {
     }
 };
 
-// Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
-ko.bindingHandlers.grid_row_values = {
+/**
+ * Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
+ * Render current compound cell indicated by KoGridColumn value.
+ */
+ko.bindingHandlers.grid_compound_cell = {
     update:  function(element, valueAccessor, allBindings, koGridColumn, bindingContext) {
         koGridColumn.render({
             $element: $(element),
@@ -37,6 +40,17 @@ ko.bindingHandlers.grid_row_values = {
     }
 };
 
+/**
+ * Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
+ * Render single (non-compound) field cell, indicated by KoGridRow value and valueAccessor() as the field name.
+ */
+ko.bindingHandlers.grid_cell = {
+    update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
+        var koGridColumnOrder = koGridRow.ownerGrid.getKoGridColumn(valueAccessor()).order;
+        var displayValue = koGridRow.display(valueAccessor());
+        koGridColumnOrder.renderRowValue(element, displayValue);
+    }
+};
 
 /**
  * Grid column ordering control.
@@ -91,6 +105,13 @@ void function(GridColumnOrder) {
     };
 
     GridColumnOrder.blockTags = App.blockTags.list;
+
+    GridColumnOrder.getCellContainer = function() {
+        return $('<div>', {
+            'class': 'grid-cell',
+            'data-caption': this.name,
+        });
+    };
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
@@ -198,18 +219,11 @@ void function(GridColumn) {
         });
     };
 
-    GridColumn.getCellContainer = function(columnOrder) {
-        return $('<div>', {
-            'class': 'grid-cell',
-            'data-caption': columnOrder.name,
-        });
-    };
-
     GridColumn.getCompoundCells = function(gridRow) {
         var self = this;
         var cells = [];
         _.map(this.columnOrders(), function(columnOrder) {
-            var $container = self.getCellContainer(columnOrder);
+            var $container = columnOrder.getCellContainer();
             columnOrder.renderRowValue(
                 $container[0], ko.utils.unwrapObservable(
                     gridRow.displayValues[columnOrder.field]
@@ -793,6 +807,14 @@ void function(GridRow) {
             return App.propGet(this.strFields, related);
         }
         return undefined;
+    };
+
+    /**
+     * Low-level access for custom layout templates.
+     */
+    GridRow.val = function(field) {
+        var displayValue = this.getDisplayValue(field);
+        return (displayValue === undefined) ? this.getValue(field) : displayValue;
     };
 
     /**
