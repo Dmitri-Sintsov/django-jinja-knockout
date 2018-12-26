@@ -50,7 +50,7 @@ App.ModelFormDialog = function(options) {
 void function(ModelFormDialog) {
 
     ModelFormDialog.initClient = true;
-    ModelFormDialog.actionCssClass = 'glyphicon-save';
+    ModelFormDialog.actionCssClass = 'iconui-save';
 
     ModelFormDialog.create = function(options) {
         if (typeof options !== 'object') {
@@ -95,7 +95,7 @@ void function(ModelFormDialog) {
         var self = this;
         return [
             {
-                icon: 'glyphicon glyphicon-ban-circle',
+                icon: 'iconui iconui-ban-circle',
                 label: App.trans('Cancel'),
                 hotkey: 27,
                 cssClass: 'btn-default',
@@ -104,7 +104,7 @@ void function(ModelFormDialog) {
                 }
             },
             {
-                icon: 'glyphicon ' + this.actionCssClass,
+                icon: 'iconui ' + this.actionCssClass,
                 label: this.getActionLabel(),
                 cssClass: 'btn-primary submit',
                 action: function(bdialog) {
@@ -144,7 +144,7 @@ void function(ActionTemplateDialog) {
     ActionTemplateDialog.initClient = true;
     ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
     ActionTemplateDialog.templateId = 'ko_action_form';
-    ActionTemplateDialog.actionCssClass = 'glyphicon-plus';
+    ActionTemplateDialog.actionCssClass = 'iconui-plus';
 
     ActionTemplateDialog.inherit = function() {
         $.inherit(App.Dialog.prototype, this);

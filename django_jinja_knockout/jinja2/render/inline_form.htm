@@ -1,15 +1,14 @@
 {# @note: Also called in forms.set_knockout_template #}
-{% if not opts.layout_classes -%}
-    {% do opts.update({'layout_classes': layout_classes}) -%}
-{% endif -%}
 {% if not opts.formset_form_class -%}
     {% do opts.update({'formset_form_class': ''}) -%}
 {% endif -%}
 <div class="formset-form-wrap {{ opts.formset_form_class }}">
-    <div class="panel panel-default inline-formset-wrap">
-        <div class="panel-heading"><h3 class="panel-title">{{ opts.inline_title }}</h3></div>
-        <div class="panel-body">
+    <card-default class="inline-formset-wrap">
+        <card-header>
+            <card-title>{{ opts.inline_title }}</card-title>
+        </card-header>
+        <card-body>
             {{ form._renderer['body']() }}
-        </div>
-    </div>
+        </card-body>
+    </card-default>
 </div>

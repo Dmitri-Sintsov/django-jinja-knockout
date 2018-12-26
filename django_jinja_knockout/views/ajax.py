@@ -235,7 +235,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_default_action_name(self):
         return 'edit_inline' if self.form is None else 'edit_form'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         if self.model is None:
             if self.form is not None:
                 self.model = self.form._meta.model
@@ -246,7 +246,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 self.model = form_class._meta.model
             else:
                 raise ValueError('model class attribute is undefined')
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def get_actions(self):
         return {
@@ -346,7 +346,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.model.objects.filter(pk__in=pks)
 
     # Do not just remove bs_form() options.
-    # BootstrapDialog panel might render with overlapped layout without these options.
+    # BootstrapDialog card might render with overlapped layout without these options.
     def get_bs_form_opts(self):
         return {
             'is_ajax': True,
@@ -585,7 +585,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'localName': _('Add'),
                     'css': {
                         'button': 'btn-primary',
-                        'glyphicon': 'glyphicon-plus'
+                        'iconui': 'iconui-plus'
                     },
                     'enabled': any([
                         self.get_create_form()
@@ -595,7 +595,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'localName': _('Add'),
                     'css': {
                         'button': 'btn-primary',
-                        'glyphicon': 'glyphicon-plus'
+                        'iconui': 'iconui-plus'
                     },
                     'enabled': any([
                         self.get_create_form_with_inline_formsets()
@@ -608,7 +608,7 @@ class GridActionsMixin(ModelFormActionsView):
                     'classPath': 'App.ko.RowsPerPageAction',
                     'localName': _('Rows per page'),
                     'css': {
-                        'glyphicon': 'glyphicon-th-list'
+                        'iconui': 'iconui-th-list'
                     },
                     'range': {
                         'min': MIN_OBJECTS_PER_PAGE,
@@ -620,7 +620,7 @@ class GridActionsMixin(ModelFormActionsView):
                 ('switch_highlight', {
                     'localName': _('Highlight mode'),
                     'css': {
-                        'glyphicon': 'glyphicon-th'
+                        'iconui': 'iconui-th'
                     },
                     'enabled': self.enable_switch_highlight
                 })
@@ -648,11 +648,11 @@ class GridActionsMixin(ModelFormActionsView):
                     ])
                 })
             ]),
-            'glyphicon': OrderedDict([
+            'iconui': OrderedDict([
                 # Delete one or many model object.
                 ('delete', {
                     'localName': _('Remove'),
-                    'css': 'glyphicon-remove',
+                    'css': 'iconui-remove',
                     'enabled': self.enable_deletion
                 })
             ])

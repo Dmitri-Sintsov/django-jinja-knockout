@@ -4,6 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
 
+from djk_ui import testing_components as djk_ui_testing_components
+
 from .tpl import reverseq
 
 
@@ -62,7 +64,7 @@ class ComponentCommands:
         return self._click()
 
 
-class DialogCommands:
+class DialogCommands(djk_ui_testing_components.DialogCommands):
 
     def _to_top_bootstrap_dialog(self):
         WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
@@ -108,17 +110,6 @@ class DialogCommands:
             'click',
         )
 
-    def _dialog_footer_button_click(self, button_title):
-        return self.exec(
-            # 'to_active_element',
-            'to_top_bootstrap_dialog',
-            'dialog_relative_by_xpath', (
-                './/div[@class="bootstrap-dialog-footer"]//button[contains(., {})]',
-                button_title,
-            ),
-            'click',
-        )
-
     def _dialog_input_range_right(self, num):
         return self.exec(
             'dialog_relative_by_xpath', (
@@ -144,7 +135,7 @@ class GridCommands:
     def _grid_button_action(self, action_name):
         return self.exec(
             'component_relative_by_xpath', (
-                './/div[contains(concat(" ", @class, " "), " grid-controls ")]'
+                './/ul[contains(concat(" ", @class, " "), " grid-controls ")]'
                 '//span[text()={}]/parent::button',
                 action_name
             ),
@@ -195,12 +186,12 @@ class GridCommands:
         self.context = self._grid_row_relative_by_xpath(
             './/td[@data-bind="click: onSelect"]/span'
         )
-        if 'glyphicon-unchecked' in self.parse_css_classes(self.context.element):
+        if 'iconui-unchecked' in self.parse_css_classes(self.context.element):
             return self._click()
         else:
             return self.context
 
-    def _grid_row_glyphicon_action(self, action_name):
+    def _grid_row_iconui_action(self, action_name):
         return self.exec(
             'grid_row_relative_by_xpath', (
                 './/td[contains(@class, "grid-glypicon-actions")]/span[@title={}]',
@@ -225,7 +216,7 @@ class GridCommands:
     def _grid_order_by(self, verbose_name):
         return self.exec(
             'component_relative_by_xpath', (
-                './/thead//a[contains(@class, "halflings-before") and contains(@class, "sort-") and text() = {}]',
+                './/thead//a[contains(@class, "iconui-ctrl-before") and contains(@class, "sort-") and text() = {}]',
                 verbose_name,
             ),
             'click',
@@ -237,7 +228,7 @@ class GridCommands:
     def _grid_dropdown_filter_click(self, filter_name):
         return self.exec(
             'component_relative_by_xpath', (
-                './/*[@data-bind="foreach: gridFilters"]'
+                './/*[@class="nav navbar-nav grid-controls"]'
                 '//*[@data-bind="text: name" and text() = {}]'
                 '/ancestor::*[contains(@data-bind, "click: onDropdownClick.bind($data)")]',
                 filter_name
@@ -268,7 +259,7 @@ class GridCommands:
     def _grid_breadcrumb_filter_choices(self, filter_name, filter_choices):
         grid_filter = self.relative_by_xpath(
             self.context.component,
-            './/*[@data-bind="foreach: gridFilters"]//li[@class="bold" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
+            './/*[@class="nav navbar-nav grid-controls"]//li[@class="bold pr-2" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
             filter_name
         )
         for filter_choice in filter_choices:
@@ -286,7 +277,7 @@ class GridCommands:
     def _grid_tabs_filter_choices(self, filter_name, filter_choices):
         grid_filter = self.relative_by_xpath(
             self.context.component,
-            './/*[@data-bind="foreach: gridFilters"]//a[@data-bind="text: name" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
+            './/*[@class="nav navbar-nav grid-controls"]//a[@data-bind="text: name" and text() = {}]/ancestor::*[@data-bind="grid_filter"]',
             filter_name
         )
         for filter_choice in filter_choices:

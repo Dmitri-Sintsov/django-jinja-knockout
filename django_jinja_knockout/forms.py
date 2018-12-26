@@ -4,20 +4,26 @@ from io import StringIO
 import lxml.html
 from lxml.etree import tostring
 
-from django.utils.html import mark_safe
+from django.conf import settings
+from django.utils.html import format_html, mark_safe
 from django.http import QueryDict
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 
+from djk_ui import conf as djk_ui_conf
+
 from .apps import DjkAppConfig
-from .context_processors import get_layout_classes
 from .utils import sdv
 from .templatetags import bootstrap
 from .tpl import Renderer
 from .widgets import DisplayText
 from .viewmodels import to_json
+
+
+def get_layout_classes():
+    return getattr(settings, 'LAYOUT_CLASSES', djk_ui_conf.LAYOUT_CLASSES)
 
 
 class RelativeRenderer(Renderer):
@@ -26,8 +32,13 @@ class RelativeRenderer(Renderer):
         template_dir = getattr(self.context.get(self.obj_kwarg, None), 'template_dir', 'render/')
         return template_dir
 
+    def get_layout_classes(self):
+        layout_type = getattr(self.context.get(self.obj_kwarg, None), 'layout_type', '')
+        layout_classes = get_layout_classes()
+        return layout_classes[layout_type]
 
-# Instance is stored into field.renderer.
+
+# The instance is stored into field.renderer.
 class FieldRenderer(Renderer):
 
     obj_kwarg = 'field'
@@ -48,31 +59,30 @@ class FieldRenderer(Renderer):
         return getattr(self.obj.field, 'template_dir', template_dir)
 
     def get_template_name(self):
-        template_dir = self.get_template_dir()
         if hasattr(self.obj.field, 'render_template'):
-            return template_dir + self.obj.field.render_template
+            return self.obj.field.render_template
         if self.display_layout == 'table':
-            return template_dir + 'field.htm'
+            return 'field.htm'
         elif self.display_layout == 'div':
-            return template_dir + 'field_standard.htm'
+            return 'field_standard.htm'
         elif bootstrap.is_checkbox(self.obj):
-            return template_dir + 'field_checkbox.htm'
+            return 'field_checkbox.htm'
         elif bootstrap.is_multiple_checkbox(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'checkbox'
                 }
             })
-            return template_dir + 'field_multiple.htm'
+            return 'field_multiple.htm'
         elif bootstrap.is_radio(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'radio'
                 }
             })
-            return template_dir + 'field_multiple.htm'
+            return 'field_multiple.htm'
         else:
-            return template_dir + 'field_standard.htm'
+            return 'field_standard.htm'
 
     def set_classes(self, classes=None):
         bootstrap.add_input_classes_to_field(self.obj.field)
@@ -122,7 +132,7 @@ def render_fields(form, *fields):
     return mark_safe(''.join(form[field].renderer() for field in fields))
 
 
-# Instance is stored into form._renderer['body']
+# The instance is stored into form._renderer['body']
 class FormBodyRenderer(RelativeRenderer):
 
     obj_kwarg = 'form'
@@ -135,17 +145,27 @@ class FormBodyRenderer(RelativeRenderer):
         renderer_cls = getattr(field.field, 'renderer_cls', self.field_renderer_cls)
         return renderer_cls(self.request, {'field': field})
 
-    def ioc_fields(self, field_classes):
+    def ioc_fields(self):
+        field_classes = self.context.get('layout_classes', self.get_layout_classes())
         for field in self.obj.visible_fields():
             field.renderer = self.ioc_render_field(field)
             field.renderer.set_classes(field_classes)
 
+    def render_raw(self):
+        self.ioc_fields()
+        output = ''.join([
+            format_html(
+                '<div><div>{}</div><div>{}</div></div>', field.label, field.renderer.render_raw()
+            ) for field in self.obj.visible_fields()
+        ])
+        return mark_safe(output)
+
     def __str__(self):
-        self.ioc_fields(self.context.get('layout_classes', get_layout_classes()))
+        self.ioc_fields()
         return super().__str__()
 
 
-# Instance is stored into form._renderer['related'].
+# The instance is stored into form._renderer['related'].
 class RelatedFormRenderer(RelativeRenderer):
 
     obj_kwarg = 'related_form'
@@ -153,35 +173,40 @@ class RelatedFormRenderer(RelativeRenderer):
     template = 'related_form.htm'
     form_body_renderer_cls = FormBodyRenderer
 
-    def ioc_render_form_body(self, layout_classes):
+    def ioc_render_form_body(self, opts):
         return ioc_form_renderer(
             self.request, 'body', {
-                'caller': self.context['caller'],
-                'layout_classes': layout_classes,
+                'caller': self.context.get('caller'),
+                'opts': opts,
                 'form': self.obj,
             },
             default_cls=self.form_body_renderer_cls
         )
 
+    def render_raw(self):
+        context = self.get_template_context()
+        return context[self.obj_kwarg]._renderer['body']()
+
     def get_template_context(self):
         context = super().get_template_context()
         if 'opts' not in self.context:
             self.context['opts'] = {}
-        layout_classes = self.context['opts'].get('layout_classes', get_layout_classes())
-        self.ioc_render_form_body(layout_classes)
+        if 'layout_classes' not in self.context['opts']:
+            self.context['opts']['layout_classes'] = self.context['opts'].get('layout_classes', self.get_layout_classes())
+        self.ioc_render_form_body(self.context['opts'])
         return context
 
 
-# Instance is stored info form._renderer['standalone'].
+# The instance is stored info form._renderer['standalone'].
 class StandaloneFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
     obj_template_attr = 'standalone_template'
-    # Set form.standalone_template = 'form_raw.htm' to render form without the panel.
+    # Set form.standalone_template = 'form_raw.htm' to render form without the ui card.
     template = 'form.htm'
 
 
-# Instance is stored into form._renderer['inline'].
+# The instance is stored into form._renderer['inline'].
 class InlineFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
@@ -189,7 +214,7 @@ class InlineFormRenderer(RelatedFormRenderer):
     template = 'inline_form.htm'
 
 
-# Instance is stored into formset.renderer.
+# The instance is stored into formset.renderer.
 class FormsetRenderer(Renderer):
 
     obj_kwarg = 'formset'
@@ -200,23 +225,31 @@ class FormsetRenderer(Renderer):
     def ioc_render_inline_form(self, form):
         return ioc_form_renderer(
             self.request, 'inline', {
-                'caller': self.context['caller'],
+                'caller': self.context.get('caller'),
                 'form': form,
             },
             default_cls=self.inline_form_renderer_cls
         )
 
     def ioc_forms(self, context):
-        for form in self.obj:
+        for idx, form in enumerate(self.obj):
             renderer = self.ioc_render_inline_form(form)
             renderer.update_context(context)
+            renderer.update_context({'formset_index': idx})
 
     def get_template_context(self):
         context = super().get_template_context()
         self.ioc_forms({
-            'opts': self.context['opts'],
+            'opts': self.context.get('opts', {}),
         })
         return context
+
+    def render_raw(self):
+        context = self.get_template_context()
+        output = ''.join([
+            form._renderer['inline']() for form in self.obj
+        ])
+        return mark_safe(output)
 
 
 # Form with self.request and attributes for renderer templates, which can be overriden in derived class.
@@ -307,6 +340,8 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         attrs['formfield_callback'] = display_model_formfield_callback
         if 'template_dir' not in attrs:
             attrs['template_dir'] = 'render/display/'
+        if 'layout_type' not in attrs:
+            attrs['layout_type'] = 'display'
         return ModelFormMetaclass.__new__(mcs, name, bases, attrs)
 
 
@@ -322,18 +357,18 @@ class WidgetInstancesMixin(forms.ModelForm):
 
 
 # Used to generate fake empty_form template for display models formsets where real knockout.js template is unneeded. #
-def set_empty_template(formset, request, html: dict=None):
+def set_empty_template(formset, request, html: dict = None):
     return None
 
 
 # Monkey-patching methods for formset to support knockout.js version of empty_form #
-def set_knockout_template(formset, request, opts: dict=None):
+def set_knockout_template(formset, request, opts: dict = None):
     if opts is None:
         opts = {}
     _opts = {
         'formset_form_class': 'form-empty',
         'inline_title': getattr(formset, 'inline_title', formset.model._meta.verbose_name),
-        'layout_classes': get_layout_classes(),
+        'layout_classes': get_layout_classes()[''],
     }
     _opts.update(opts)
     renderer = render_form(request, 'inline', formset.empty_form, {

@@ -6,9 +6,11 @@
 
 <p>{{ _('If you have not created an account yet, then please <a href="%(signup_url)s">sign up</a> first.', signup_url=signup_url) }}</p>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h3 class="panel-title">{{ request.view_title }}</h3></div>
-    <div class="panel-body">
+<card-default>
+    <card-header>
+        <card-title>{{ request.view_title }}</card-title>
+    </card-header>
+    <card-body>
         <form role="form" class="login" method="POST" action="{{ url('account_login') }}">
             {{ render_form(request, 'body', form) }}
             {% if redirect_field_value %}
@@ -17,7 +19,7 @@
             <a class="button secondaryAction" href="{{ url('account_reset_password') }}">{{ _("Forgot Password?") }}</a>
             <button class="btn btn-primary" type="submit">{{ _("Sign In") }}</button>
         </form>
-    </div>
-</div>
+    </card-body>
+</card-default>
 
 {% endblock main %}

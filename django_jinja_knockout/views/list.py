@@ -22,8 +22,8 @@ class FoldingPaginationMixin:
     always_visible_links = False
     delta_visible_pages = 3
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.selected_pages = []
 
     def add_page(self, page_num, is_active, link_text):
@@ -259,8 +259,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     }
     data_caption = True
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.cycler_direction = self.highlight_mode_rules[self.highlight_mode].get('direction', None)
         self.cycler = self.highlight_mode_rules[self.highlight_mode].get('cycler', [])
         self.reported_error = None
@@ -445,7 +445,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             if viewname is None:
                 viewname = self.request.url_name
             link_attrs = {
-                'class': 'halflings-before',
+                'class': 'iconui-ctrl-before',
                 'href': tpl.reverseq(
                     viewname,
                     kwargs=kwargs,

@@ -2,6 +2,8 @@
 django-jinja-knockout
 =====================
 
+.. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
+.. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _celery: http://www.celeryproject.org/
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
@@ -111,6 +113,8 @@ implemented via bundled client-side scripts.
 
 Major changes (version 0.8.0)
 -----------------------------
+`Bootstrap 4`_ / `Bootstrap 3`_ support.
+
 Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
 custom template or via inheriting the renderer class.
 

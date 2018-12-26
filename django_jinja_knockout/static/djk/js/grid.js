@@ -27,8 +27,11 @@ ko.bindingHandlers.grid_order_by = {
     }
 };
 
-// Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
-ko.bindingHandlers.grid_row_values = {
+/**
+ * Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
+ * Render current compound cell indicated by KoGridColumn value.
+ */
+ko.bindingHandlers.grid_compound_cell = {
     update:  function(element, valueAccessor, allBindings, koGridColumn, bindingContext) {
         koGridColumn.render({
             $element: $(element),
@@ -37,6 +40,17 @@ ko.bindingHandlers.grid_row_values = {
     }
 };
 
+/**
+ * Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
+ * Render single (non-compound) field cell, indicated by KoGridRow value and valueAccessor() as the field name.
+ */
+ko.bindingHandlers.grid_cell = {
+    update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
+        var koGridColumnOrder = koGridRow.ownerGrid.getKoGridColumn(valueAccessor()).order;
+        var displayValue = koGridRow.display(valueAccessor());
+        koGridColumnOrder.renderRowValue(element, displayValue);
+    }
+};
 
 /**
  * Grid column ordering control.
@@ -91,6 +105,13 @@ void function(GridColumnOrder) {
     };
 
     GridColumnOrder.blockTags = App.blockTags.list;
+
+    GridColumnOrder.getCellContainer = function() {
+        return $('<div>', {
+            'class': 'grid-cell',
+            'data-caption': this.name,
+        });
+    };
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
@@ -199,12 +220,10 @@ void function(GridColumn) {
     };
 
     GridColumn.getCompoundCells = function(gridRow) {
+        var self = this;
         var cells = [];
         _.map(this.columnOrders(), function(columnOrder) {
-            var $container = $('<div>', {
-                'class': 'grid-cell',
-                'data-caption': columnOrder.name,
-            });
+            var $container = columnOrder.getCellContainer();
             columnOrder.renderRowValue(
                 $container[0], ko.utils.unwrapObservable(
                     gridRow.displayValues[columnOrder.field]
@@ -790,8 +809,19 @@ void function(GridRow) {
         return undefined;
     };
 
-    // Descendant could format it's own displayValue, including html content.
-    GridRow.toDisplayValue = function(value, field) {
+    /**
+     * Low-level access for custom layout templates.
+     */
+    GridRow.val = function(field) {
+        var displayValue = this.getDisplayValue(field);
+        return (displayValue === undefined) ? this.getValue(field) : displayValue;
+    };
+
+    /**
+     * Descendant could format it's own displayValue, including html content.
+     */
+    GridRow.display = function(field) {
+        var value = this.getValue(field);
         var displayValue;
         var markSafe = this.ownerGrid.isMarkSafeField(field);
         // Automatic server-side formatting.
@@ -823,7 +853,7 @@ void function(GridRow) {
     // Support jQuery objects as display values.
     // Wraps display value into ko.observable(), when needed.
     GridRow.wrapDisplayValue  = function(value, field) {
-        var displayValue = this.toDisplayValue(value, field);
+        var displayValue = this.display(field);
         return this.observeDisplayValue ? ko.observable(displayValue) : displayValue;
     };
 
@@ -842,8 +872,8 @@ void function(GridRow) {
 
     GridRow.getSelectionCss = function() {
         return {
-            'glyphicon-check': this.isSelectedRow(),
-            'glyphicon-unchecked': !this.isSelectedRow(),
+            'iconui-check': this.isSelectedRow(),
+            'iconui-unchecked': !this.isSelectedRow(),
             'pointer': true,
         };
     };
@@ -1079,7 +1109,7 @@ void function(GridActions) {
         return {
             'delete': {
                 'localName': App.trans('Remove'),
-                'type': 'glyphicon',
+                'type': 'iconui',
                 'glyph': 'remove',
                 'enabled': false
             }
@@ -1108,7 +1138,7 @@ void function(GridActions) {
             owner: this.grid,
             buttons: [
                 {
-                    icon: 'glyphicon glyphicon-ok',
+                    icon: 'iconui iconui-ok',
                     label: App.trans('Ok'),
                     hotkey: 27,
                     cssClass: 'btn-success',
@@ -1135,7 +1165,7 @@ void function(GridActions) {
         this.callback_create_form(viewModel);
     };
 
-    GridActions.blockTags = App.blockTags.badges;
+    GridActions.blockTags = null;
 
     /**
      * Get rendering options with localized / verbose model field names, including nested relationships
@@ -1145,7 +1175,7 @@ void function(GridActions) {
         // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
-            {blockTags: this.blockTags},
+            {blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges},
             this.grid.meta.fkNestedListOptions,
             this.grid.meta.listOptions
         );
@@ -1410,7 +1440,7 @@ void function(Grid) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'glyphicon'];
+    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui'];
 
     Grid.init = function(options) {
         $.inherit(App.ko.Subscriber.prototype, this);
@@ -1426,36 +1456,7 @@ void function(Grid) {
             //   0 - do not highlight,
             //   1 - highlight columns,
             //   2 - highlight rows,
-            highlightModeRules: [
-                {
-                    'none': {
-                        direction: null,
-                        header: '',
-                        cycler: [],
-                    }
-                },
-                {
-                    'cycleColumns': {
-                        direction: 0,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'cycleRows': {
-                        direction: 1,
-                        header: 'info',
-                        cycler: ['warning', ''],
-                    },
-                },
-                {
-                    'linearRows': {
-                        direction: 1,
-                        header: '',
-                        cycler: ['linear-white'],
-                    }
-                },
-            ],
+            highlightModeRules: App.ui.highlightModeRules,
             rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
@@ -1507,11 +1508,11 @@ void function(Grid) {
         this.selectedRowsPks = [];
         this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
-        this.glyphiconColumns = ko.computed(function() {
-            return (this.actionTypes['glyphicon']().length === 0) ? 0 : 1
+        this.iconuiColumns = ko.computed(function() {
+            return (this.actionTypes['iconui']().length === 0) ? 0 : 1
         }, this);
         this.totalColumns = ko.computed(function() {
-            var totalColumns = this.gridColumns().length + this.glyphiconColumns();
+            var totalColumns = this.gridColumns().length + this.iconuiColumns();
             if (this.options.showSelection) {
                 totalColumns++;
             }
@@ -1589,8 +1590,8 @@ void function(Grid) {
 
     Grid.getSelectAllRowsCss = function() {
         return {
-            'glyphicon-check': this.hasSelectAllRows(),
-            'glyphicon-unchecked': !this.hasSelectAllRows(),
+            'iconui-check': this.hasSelectAllRows(),
+            'iconui-unchecked': !this.hasSelectAllRows(),
             'pointer': true,
         };
     };
@@ -2572,7 +2573,7 @@ void function(Grid) {
 }(App.ko.Grid.prototype);
 
 /**
- * Visual representation of grid action. Should be used to display / trigger button / glyphicon actions.
+ * Visual representation of grid action. Should be used to display / trigger button / iconui actions.
  * Do not confuse with App.Actions / App.GridActions which is the abstraction layer for AJAX handling of viewmodels.
  */
 App.ko.Action = function(options) {
@@ -2771,6 +2772,10 @@ void function(GridDialog) {
 
     GridDialog.template = 'ko_grid_body';
 
+    /**
+     * Pass grid options as options.filterOptions argument.
+     * Override grid class to custom one by passing options.iocGrid argument.
+     */
     GridDialog.create = function(options) {
         this.componentSelector = null;
         this._super._call('create', options);
@@ -2862,7 +2867,12 @@ void function(GridDialog) {
         var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
+        $footer.find('button').addClass('m-1');
+        if (App.ui.version === 4) {
+            $footer.wrapInner('<div class="row m-1"></div>');
+        }
         var $gridPagination = this.iocTemplateProcessor().domTemplate('ko_grid_pagination');
+        // $gridPagination = $gridPagination.wrapAll('<div class="pagination-wrap"></div>').parent();
         $footer.prepend($gridPagination);
         if (this.wasOpened) {
             this.recreateContent();
