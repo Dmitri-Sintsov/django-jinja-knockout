@@ -415,13 +415,15 @@ void function(_TabPane) {
     };
 
     _TabPane.loadTemplate = function() {
-        var tabTemplate = this.tab.data('tabTemplate');
-        if (tabTemplate !== undefined) {
-            var templateHolder = this.pane.find('.template-holder');
-            if (templateHolder.length > 0) {
-                var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
-                templateHolder.replaceWith(tpl);
-                App.initClient(this.pane);
+        if (this.exists()) {
+            var tabTemplate = this.tab.data('tabTemplate');
+            if (tabTemplate !== undefined) {
+                var templateHolder = this.pane.find('.template-holder');
+                if (templateHolder.length > 0) {
+                    var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
+                    templateHolder.replaceWith(tpl);
+                    App.initClient(this.pane);
+                }
             }
         }
     };
