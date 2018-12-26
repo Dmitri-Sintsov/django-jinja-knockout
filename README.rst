@@ -7,7 +7,6 @@ django-jinja-knockout
 .. _celery: http://www.celeryproject.org/
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
-.. _Bootstrap 3: http://getbootstrap.com/
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
@@ -62,7 +61,7 @@ Key features
 
 * AJAX based django.admin-like paginated datatables (grids) with sorting / filters and custom actions.
 * Integrates Jinja2 into existing Django templates (DTL).
-* `Bootstrap 3`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
+* `Bootstrap 3`_ / `Bootstrap 4`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
 * Default template renderers for Django forms / related forms / inline formsets with the possibility to override these
