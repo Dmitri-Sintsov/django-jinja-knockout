@@ -10,15 +10,13 @@ jobs:
     steps:
       - checkout
       - run: |
-          .circleci/env.sh
-          (cd djk-sample && "$(pyenv root)/versions/3.6.8/bin/python3" -m tox -r -e py36-django-20-bs3)
+          .circleci/env.sh py36-django-20-bs3
   "bootstrap4":
     <<: *defaults
     steps:
       - checkout
       - run: |
-          .circleci/env.sh
-          (cd djk-sample && "$(pyenv root)/versions/3.6.8/bin/python3" -m tox -r -e py36-django-20-bs4)
+          .circleci/env.sh py36-django-20-bs4
 workflows:
   version: 2
   all_steps:

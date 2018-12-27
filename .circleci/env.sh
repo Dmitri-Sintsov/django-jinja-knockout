@@ -13,4 +13,5 @@ python3 --version
 # https://stackoverflow.com/questions/27849412/permissionerror-with-pip3
 python3 -m pip install -U pip wheel tox tox-pyenv setuptools --user
 git clone https://github.com/Dmitri-Sintsov/djk-sample.git
-
+cd djk-sample
+python3 -m tox -r -e "$1"
