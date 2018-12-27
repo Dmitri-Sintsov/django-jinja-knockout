@@ -35,6 +35,7 @@ https://github.com/alcaeus/bootstrap-table-responsive/blob/master/dist/css/boots
   .table-collapse tfoot > tr > td {
     display: block;
     border: none;
+    width: 100% !important;
   }
   .table-collapse tbody > tr > td.collapse-toggle {
     display: block;
