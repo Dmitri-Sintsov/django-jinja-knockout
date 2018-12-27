@@ -5,12 +5,14 @@
     </card-header>
     {% endif -%}
     <card-body>
-        <table class="table table-bordered table-responsive table-collapse">
-            <colgroup>
-                <col class="{{ opts.layout_classes.label }}">
-                <col class="{{ opts.layout_classes.field }}">
-            </colgroup>
-            {% include 'render/display/form_raw.htm' with context -%}
-        </table>
+        <div class="table-responsive">
+            <table class="table table-bordered table-collapse">
+                <colgroup>
+                    <col class="{{ opts.layout_classes.label }}">
+                    <col class="{{ opts.layout_classes.field }}">
+                </colgroup>
+                {% include 'render/display/form_raw.htm' with context -%}
+            </table>
+        </div>
     </card-body>
 </card-default>

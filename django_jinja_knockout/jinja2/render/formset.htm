@@ -13,11 +13,12 @@
                     </div>
                 {% endif -%}
                 {% if action == '' -%}
-                    <table class="{{ opts.table_classes }}">
-                        <colgroup>
-                            <col class="{{ opts.layout_classes.label }}">
-                            <col class="{{ opts.layout_classes.field }}">
-                        </colgroup>
+                    <div class="table-responsive">
+                        <table class="{{ opts.table_classes }}">
+                            <colgroup>
+                                <col class="{{ opts.layout_classes.label }}">
+                                <col class="{{ opts.layout_classes.field }}">
+                            </colgroup>
                 {% endif -%}
                 {% for form in formset -%}
                     {% if caller -%}
@@ -44,7 +45,8 @@
                     {% endif -%}
                 {% endfor -%}
                 {% if action == '' -%}
-                    </table>
+                        </table>
+                    </div>
                 {% endif -%}
                 {% if formset.knockout_template -%}
                 <div data-bind="foreach: {data: forms, afterRender: afterFormRendered}">
