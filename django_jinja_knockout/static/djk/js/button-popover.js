@@ -8,6 +8,10 @@ void function(ClosablePopover) {
 
     ClosablePopover.dataKey = 'ClosablePopover';
 
+    ClosablePopover.is = function(another) {
+        return this.$target.is(another.$target);
+    };
+
     ClosablePopover.create = function(popoverOptions) {
         var self = this;
         self.$target = $(popoverOptions.target);
@@ -51,15 +55,15 @@ void function(ClosablePopover) {
         .on('shown.bs.popover', function() {
             var id = $(this).attr('aria-describedby');
             self.popoverContent = $.id(id);
-            self.popoverContent.on('mouseleave', self.popoverLeave.bind(self));
+            self.popoverContent.on('mouseleave', self.leave.bind(self));
         })
         .on('mouseenter', self.onMouseEnter)
         .on('click', self.onClick);
     };
 
-    ClosablePopover.popoverLeave = function() {
+    ClosablePopover.leave = function() {
         this.$target.popover('hide');
-        this.popoverContent.off('mouseleave', this.popoverLeave);
+        this.popoverContent.off('mouseleave', this.leave);
     };
 
     ClosablePopover.destroy = function() {
@@ -93,7 +97,7 @@ void function(ClosablePopover) {
 
     ClosablePopover.hide = function(skippedPopover) {
         if (typeof skippedPopover !== 'undefined' &&
-                skippedPopover.$target.is(this.$target)) {
+                skippedPopover.is(this)) {
                 // Do not hide if self is current (skipped) popover to prevent flicker.
                 return;
         }
