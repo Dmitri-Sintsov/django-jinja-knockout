@@ -1670,7 +1670,7 @@ void function(AjaxForm) {
             this.$progressBar = $.contents(
                 '<div class="default-padding">' +
                 '<div class="progress active">' +
-                '<div class="progress-bar progress-bar-striped" style="width: 0%;"></div>' +
+                '<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>' +
                 '</div>' +
                 '</div>'
             );
