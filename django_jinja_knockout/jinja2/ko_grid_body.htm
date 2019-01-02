@@ -150,13 +150,7 @@
     <navbar-default>
         <div class="container-fluid">
             <ul class="nav navbar-nav grid-controls">
-                <!-- ko foreach: gridFilters -->
-                <!-- ko if: choices === undefined -->
-                <div data-template-id="ko_grid_filter_popup"></div>
-                <!-- /ko -->
-                <!-- ko if: choices !== undefined -->
-                <div data-template-id="ko_grid_filter_choices"></div>
-                <!-- /ko -->
+                <!-- ko template: {name: filterTemplateName, foreach: gridFilters} -->
                 <!-- /ko -->
                 <div data-template-id="ko_grid_search"></div>
             </ul>

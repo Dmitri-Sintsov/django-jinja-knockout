@@ -322,17 +322,26 @@ App.ko.AbstractGridFilter = function(options) {
 
 void function(AbstractGridFilter) {
 
+    AbstractGridFilter.templateName = '';
+
     AbstractGridFilter.init = function(options) {
         this.$dropdown = null;
         this.ownerGrid =  options.ownerGrid;
         this.field = options.field;
         this.name = options.name;
+        if (typeof options.templateName !== 'undefined') {
+            this.templateName = options.templateName;
+        }
         this.hasActiveChoices = ko.observable(false);
         // List of instances of current filter choices.
         this.choices = [];
         // One of this.choices, special 'reset all choice'.
         this.resetFilter = null;
         this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
+    };
+
+    AbstractGridFilter.getTemplateName = function() {
+        return this.templateName;
     };
 
     AbstractGridFilter.setDropdownElement = function($element) {
@@ -396,6 +405,8 @@ App.ko.GridFilter = function(options) {
 };
 
 void function(GridFilter) {
+
+    GridFilter.templateName = 'ko_grid_filter_choices';
 
     GridFilter.init = function(options) {
         this._super._call('init', options);
@@ -537,6 +548,8 @@ App.ko.FkGridFilter = function(options) {
 
 void function(FkGridFilter) {
 
+    FkGridFilter.templateName = 'ko_grid_filter_popup';
+
     FkGridFilter.init = function(options) {
         var gridDialogOptions = {};
         /**
@@ -634,6 +647,8 @@ App.ko.RangeFilter = function(options) {
 };
 
 void function(RangeFilter) {
+
+    RangeFilter.templateName = 'ko_grid_filter_popup';
 
     RangeFilter.init = function(options) {
         $.inherit(App.ko.Subscriber.prototype, this);
@@ -1445,6 +1460,7 @@ void function(Grid) {
     Grid.init = function(options) {
         $.inherit(App.ko.Subscriber.prototype, this);
         var self = this;
+        this.componentSelector = null;
         this.options = $.extend({
             alwaysShowPagination: true,
             ajaxParams: {},
@@ -2162,6 +2178,17 @@ void function(Grid) {
             options = {'pageRoute': options};
         }
         return options;
+    };
+
+    Grid.filterTemplateName = function(koFilter, bindingContext) {
+        var templateName = koFilter.getTemplateName();
+        var self = bindingContext.$parent;
+        if (self.componentSelector !== null) {
+            var substitutions = self.componentSelector.data('templateSubstitutions');
+            return App.propGet(substitutions, templateName, templateName);
+        } else {
+            return templateName;
+        }
     };
 
     Grid.iocKoFilter_fk = function(filter, options) {

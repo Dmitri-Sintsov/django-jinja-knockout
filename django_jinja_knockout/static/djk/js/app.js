@@ -2014,6 +2014,14 @@ void function(Tpl) {
                     }
                 }
             }
+            /**
+             * Some components, such as App.ko.Grid need to know which templates were substituted via $target node
+             * data-template-options attribute, so we store them into the another data attribute of top expanded node.
+             */
+            var substitutions = App.propGet($target.data('templateOptions'), 'templates');
+            if (typeof substitutions === 'object') {
+                $(subTemplates.topNode).data('templateSubstitutions', substitutions);
+            }
             $target.prepend(subTemplates.nodes);
         }
     };
