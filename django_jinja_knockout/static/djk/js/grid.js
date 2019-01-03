@@ -1466,6 +1466,7 @@ void function(Grid) {
             ajaxParams: {},
             // Overrides this.meta.orderBy value when not null.
             defaultOrderBy: null,
+            expandContents: false,
             fkGridOptions: {},
             highlightMode: 'cycleRows',
             // Currently available highlight directions:
@@ -2178,6 +2179,14 @@ void function(Grid) {
             options = {'pageRoute': options};
         }
         return options;
+    };
+
+    Grid.expandFilterContents = function(elements, koFilter) {
+        var self = koFilter.ownerGrid;
+        if (self.options.expandContents) {
+            var tpl = new App.Tpl();
+            return tpl.expandContents($(elements));
+        }
     };
 
     Grid.filterTemplateName = function(koFilter, bindingContext) {

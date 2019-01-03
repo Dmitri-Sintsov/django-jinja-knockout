@@ -1931,22 +1931,30 @@ void function(Tpl) {
     };
 
     /**
-     * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
-     * Template will be processed recursively.
+     * Recursively expand the jQuery contents with nested underscore templates.
      */
-    Tpl.domTemplate = function(tplId) {
+    Tpl.expandContents = function($contents) {
         var self = this;
-        var contents = self.expandTemplate(tplId);
-        var $result = $.contents(contents);
-        $result = App.transformTags.applyTags($result);
+        $contents = App.transformTags.applyTags($contents);
         // Load recursive nested templates, if any.
-        $result.each(function(k, v) {
+        $contents.each(function(k, v) {
             var $node = $(v);
             if ($node.prop('nodeType') === 1) {
                 self.loadTemplates($node);
             }
         });
-        return $result;
+        return $contents;
+    };
+
+    /**
+     * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
+     * Template will be processed recursively.
+     */
+    Tpl.domTemplate = function(tplId) {
+        var contents = this.expandTemplate(tplId);
+        var $contents = $.contents(contents);
+        $contents = this.expandContents($contents);
+        return $contents;
     };
 
     /**
@@ -1964,13 +1972,12 @@ void function(Tpl) {
         }
     };
 
-    Tpl.renderSubTemplates = function() {
+    Tpl.getTopNode = function($contents) {
         var self = this;
-        var $result = this.domTemplate(this.tplId);
-        var topNodeCount = 0;
         var topNode = undefined;
+        var topNodeCount = 0;
         // Make sure that template contents has only one top tag, otherwise .contents().unwrap() may fail sometimes.
-        $result.each(function(k, v) {
+        $contents.each(function(k, v) {
             if ($(v).prop('nodeType') === 1) {
                 topNode = v;
                 if (++topNodeCount > 1) {
@@ -1978,9 +1985,14 @@ void function(Tpl) {
                 }
             }
         });
+        return topNode;
+    };
+
+    Tpl.renderSubTemplates = function() {
+        var $contents = this.domTemplate(this.tplId);
         return {
-            'nodes': $result,
-            'topNode': topNode,
+            'nodes': $contents,
+            'topNode': this.getTopNode($contents),
         };
     };
 

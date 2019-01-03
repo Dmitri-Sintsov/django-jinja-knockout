@@ -150,7 +150,7 @@
     <navbar-default>
         <div class="container-fluid">
             <ul class="nav navbar-nav grid-controls">
-                <!-- ko template: {name: filterTemplateName, foreach: gridFilters} -->
+                <!-- ko template: {name: filterTemplateName, afterRender: expandFilterContents, foreach: gridFilters} -->
                 <!-- /ko -->
                 <div data-template-id="ko_grid_search"></div>
             </ul>
