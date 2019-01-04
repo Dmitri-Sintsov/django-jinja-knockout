@@ -179,6 +179,8 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
         // Convert to strings for more reliability.
         var data = {
             'url': window.location + '',
+            'referrer': document.referrer,
+            'userAgent': window.navigator.userAgent,
             'message': messageOrEvent + '',
             'source': source + '',
             'lineno': lineno + '',

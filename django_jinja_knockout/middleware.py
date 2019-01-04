@@ -277,6 +277,8 @@ class ContextMiddleware(RouterMiddleware):
     def log_js_error(self):
         from .log import send_admin_mail_delay
         body_keys = [
+            'referrer',
+            'userAgent',
             'message',
             'source',
             'lineno',
