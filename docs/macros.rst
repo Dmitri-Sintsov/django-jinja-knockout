@@ -105,7 +105,7 @@ One may use the custom `layout_classes`_ value as the key of the following macro
 * bs_form(form, action, opts, method='post')
 * bs_inline_formsets(related_form, formsets, action, opts)
 
-to alter default Bootstrap 3 inline form grid width, for example::
+to alter default Bootstrap 4 inline form grid width, for example::
 
     {{
     bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), opts={
@@ -114,15 +114,14 @@ to alter default Bootstrap 3 inline form grid width, for example::
         'title': request.view_title,
         'submit_text': 'Add candidate',
         'layout_classes': {
-            'label': 'col-md-4', 'field': 'col-md-4'
+            '': {
+                'label': 'col-md-4', 'field': 'col-md-6',
+            }
         }
     }) }}
 
-Default value of Bootstrap inline grid layout classes is defined in `context_processor` module ``LAYOUT_CLASSES`` variable::
-
-    {'label': 'col-md-3', 'field': 'col-md-7'}
-
-and can be overriden via `settings` module ``LAYOUT_CLASSES`` variable.
+Default value of Bootstrap inline grid layout classes is defined in ``djk_ui`` app :ref:`djk_ui_conf` module
+``LAYOUT_CLASSES`` variable.
 
 Inserting custom content
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -236,6 +235,7 @@ Wrapping each form of formset with div with custom attributes (to process these 
 
     {% endcall %}
 
+Since version 0.8.0, the more flexible approach could be to override :ref:`forms_renderers` templates instead.
 
 Bootstrap macros
 ----------------

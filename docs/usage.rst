@@ -19,6 +19,7 @@ Modules documentation
    clientside
    context_processors
    datatables
+   djk_ui
    forms
    macros
    middleware

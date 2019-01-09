@@ -16,6 +16,8 @@ Forms
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+standaloneformrenderer
 
+.. _forms_renderers:
+
 Renderers
 ---------
 
@@ -144,6 +146,8 @@ Note that is the composition hierarchy of instances, not a class inheritance hie
 Single formset is rendered with the following call::
 
     {{ formset.renderer() }}
+
+.. _forms_opts:
 
 opts argument
 ~~~~~~~~~~~~~
