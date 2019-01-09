@@ -175,14 +175,15 @@ become simpler.
 Custom tags
 ~~~~~~~~~~~
 Since verison 0.8.0, the built-in template processor supports custom tags via `App.TransformTags`_ Javascript class
-``applyTags()`` method. By default there are the ``PANEL-*`` tags registered, which are transformed to bootstrap panels.
+``applyTags()`` method. By default there are the ``CARD-*`` tags registered, which are transformed to bootstrap 4 cards
+or to bootstrap 3 panels.
 
 Custom tags are also applied via `App.initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
 However because the custom tags are not browser-native, such usage of custom tags is not recommended as extra flicker
 may occur. Such flicker never occurs in built-in `Underscore.js templates`_, because the template tags are substituted
 before they are attached to the page DOM.
 
-It is possivle to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
+It's possible to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
 ``fn`` to `App.TransformTags`_ class ``add()`` method.
 
 .. _clientside_components:

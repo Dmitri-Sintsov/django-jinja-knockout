@@ -12,6 +12,7 @@ Forms
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+renderer
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
+.. _.render_raw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=render_raw
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+standaloneformrenderer
 
@@ -220,9 +221,13 @@ To change formset template, one should set the value of formset class attribute 
     )
     ClubEquipmentFormSet.template = 'club_equipment_formset.htm'
 
-See `renderer template samples`_ in ``djk-sample`` project for the example of simple customization of default templates.
+It's also possible to use raw built-in rendering, which does not uses Jinja2 templates. To achieve that, set the
+template name value to empty string ''. In such case renderer instance `.render_raw()`_ method will be called to convert
+``self.obj`` with it's current context to the string. For more complex cases one may override `.render_raw()`_ method
+via inherited renderer class.
 
-For more advanced customization, one may override `BootstrapModelForm`_ ``Meta`` class default renderer attributes::
+To use custom renderer classes with model forms, one may override `BootstrapModelForm`_ ``Meta`` class default renderer
+attributes::
 
     class MyModelForm(BootstrapModelForm):
 
@@ -232,7 +237,9 @@ For more advanced customization, one may override `BootstrapModelForm`_ ``Meta``
             # render_related_cls = MyRelatedFormRenderer
             render_standalone_cls = MyStandaloneFormRenderer
 
-but in most of the cases overriding the templates is enough.
+but in most of the cases overriding the template names is enough.
+
+See `renderer template samples`_ in ``djk-sample`` project for the example of simple customization of default templates.
 
 AJAX forms processing
 ---------------------
