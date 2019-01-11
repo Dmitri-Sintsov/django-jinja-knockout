@@ -33,7 +33,7 @@ django-jinja-knockout
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
-.. image:: https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif
+.. image:: https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif
    :alt: Donate to support further development
    :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=EWVQRCWPUE652&source=url
 
