@@ -305,8 +305,8 @@ class ContextMiddleware(RouterMiddleware):
         else:
             vms.append({
                 'view': 'alert_error',
-                'subject': 'Unknown Javascript logging error',
-                'html_message': 'Missing required POST argument',
+                'title': 'Unknown Javascript logging error',
+                'message': 'Missing required POST argument',
             })
         return JsonResponse(vms)
 

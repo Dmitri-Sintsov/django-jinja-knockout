@@ -178,9 +178,9 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
         var stack = App.propGet(error, 'stack', null);
         // Convert to strings for more reliability.
         var data = {
-            'url': window.location + '',
-            'referrer': document.referrer,
-            'userAgent': window.navigator.userAgent,
+            'url': App.propGet(window, 'location') + '',
+            'referrer': App.propGet(document, 'referrer') + '',
+            'userAgent': App.propGet(window, 'navigator.userAgent') + '',
             'message': messageOrEvent + '',
             'source': source + '',
             'lineno': lineno + '',
