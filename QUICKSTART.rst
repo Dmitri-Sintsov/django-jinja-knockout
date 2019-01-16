@@ -1,19 +1,28 @@
 .. _clientside: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html
+.. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _installation: https://django-jinja-knockout.readthedocs.io/en/latest/installation.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
+.. _pretetch_related: https://docs.djangoproject.com/en/dev/ref/models/querysets/#prefetch-related
+.. _query.py: https://django-jinja-knockout.readthedocs.io/en/latest/query.html
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
 
 Key features overview
 ---------------------
 
+Datatables
+----------
+
+The packages includes server-side (Python) and client-side (Javascript) code to quickly create easy to use datatables
+with standard / custom actions, including adding, editing, deleting for Django models. See the `datatables`_ for more
+info.
+
 Client-side
 -----------
 
-There are lots of client-side Javascript included into the package that automates many of the functionality. See the
-`clientside`_ for more info.
+There are lots of client-side Javascript included into the package. See the `clientside`_ for more info.
 
 admin.py
 --------
@@ -108,7 +117,7 @@ models.py
     get_meta(profile, 'verbose_name_plural', 'user__username')
 
 * ``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
-  instance of particular Django model object. For example::
+  an instance of particular Django model object. For example::
 
     class Member(models.Model):
 
@@ -122,6 +131,23 @@ models.py
     role_str = sdv.get_choice_str(Member.ROLES, role_val)
 
 * ``file_exists()`` - checks whether Diango file field object exists in the filesystem.
+
+query.py
+--------
+* Allows to create raw Django querysets with filter methods such as filter() / order_by() / count().
+* Allows to convert Python lists to Django-like querysets, which is useful to filter the data received via
+  `pretetch_related`_ Django ORM reverse relation query.
+
+It makes possible to use raw SQL queries and Python lists as the arguments of datatable / filtered lists / paginators.
+See `query.py`_ for more info.
+
+serializers.py
+--------------
+Nested serializer for Django model instances with localization / internationalisation.
+
+tpl.py
+------
+Renderer class for recursive object context rendering. See `forms`_ for more info. Various formatting functions.
 
 viewmodels.py
 -------------

@@ -5,7 +5,7 @@ Usage
 =====
 
 The best way to understand how to use django-jinja-knockout features is to install `djk_sample`_ sample project and
-to examine it's source code. The code of sample project is compact enough, while many of the features are covered.
+to examine it's source code. The code of sample project is compact enough, while many of features are covered.
 
 .. include:: ../QUICKSTART.rst
 
