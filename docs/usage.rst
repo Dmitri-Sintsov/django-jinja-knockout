@@ -22,7 +22,9 @@ Modules documentation
    djk_ui
    forms
    macros
+   management_commands
    middleware
+   models
    query
    tpl
    utils_mail

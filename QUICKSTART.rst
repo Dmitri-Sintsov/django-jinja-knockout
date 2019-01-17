@@ -2,8 +2,9 @@
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
-.. _installation: https://django-jinja-knockout.readthedocs.io/en/latest/installation.html
+.. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
+.. _models: https://django-jinja-knockout.readthedocs.io/en/latest/models.html
 .. _pretetch_related: https://docs.djangoproject.com/en/dev/ref/models/querysets/#prefetch-related
 .. _query.py: https://django-jinja-knockout.readthedocs.io/en/latest/query.html
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -53,42 +54,8 @@ See `forms`_ for the detailed explanation.
 
 management/commands/djk_seed.py
 -------------------------------
-Implements optional ``djk_seed`` Django management command which may be used to seed initial data into managed models
-database tables after the migrations are complete. To enable model data seed after the migration, define ``seed`` method
-of the model like this::
 
-    class Specialization(models.Model):
-        BUILTIN_SPECIALIZATIONS = (
-            ('Administrator', False),
-            ('Manager', True),
-            ('Contractor', True),
-        )
-
-        @classmethod
-        def seed(cls, recreate=False):
-            if recreate or cls.objects.count() == 0:
-                # Setup default  list (only once).
-                for name, is_anon in cls.BUILTIN_SPECIALIZATIONS:
-                    cls.objects.update_or_create(name=name, defaults={
-                        'is_builtin': True,
-                        'is_anon': is_anon
-                    })
-
-then add app which has ``Specialization`` model into settings.DJK_APPS list. See `installation`_ for more info
-about ``DJK_APPS`` list.
-
-.. highlight:: bash
-
-After that run the console command::
-
-    ./manage.py djk_seed
-
-``djk_seed`` management command has ``--help`` option which describes possible use cases. For example it may create
-models content types for the selected Django apps, not running any post-migration seed::
-
-    ./manage.py djk_seed --create-content-types --skip-seeds
-
-This is often an pre-requisite to have contenttypes framework running correctly.
+See `management_commands`_.
 
 middleware.py
 -------------
@@ -98,39 +65,7 @@ See `middleware`_.
 models.py
 ---------
 
-.. highlight:: python
-
-* ``ContentTypeLinker`` class to simplify generation of contenttypes framework object links.
-* ``get_users_with_permission()`` - return the queryset of all users who have specified permission string, including
-  all three possible sources of such users (user permissions, group permissions and superusers).
-* Next functions allow to use parts of queryset functionality on single Django model object instances:
-
-  * ``get_related_field_val()`` / ``get_related_field()`` support quering of related field properties from supplied
-    model instance via specified string with double underscore-separated names, just like in Django querysets.
-  * ``model_values()`` - get the dict of model fields name / value pairs like queryset ``values()`` for one model
-    instance supplied.
-
-* ``get_meta()`` / ``get_verbose_name()`` - get meta property of Django model field by query string, including related
-  (foreign) and reverse-related fields::
-
-    get_verbose_name(profile, 'user__username')
-    get_meta(profile, 'verbose_name_plural', 'user__username')
-
-* ``get_choice_str()`` - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
-  an instance of particular Django model object. For example::
-
-    class Member(models.Model):
-
-        # ... skipped ...
-        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
-
-    from .models import Member
-    from django_jinja_knockout.models import get_choice_str
-
-    # ... skipped ...
-    role_str = sdv.get_choice_str(Member.ROLES, role_val)
-
-* ``file_exists()`` - checks whether Diango file field object exists in the filesystem.
+See `models`_ for more info.
 
 query.py
 --------
