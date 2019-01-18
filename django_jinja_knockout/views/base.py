@@ -93,23 +93,42 @@ def cbv_decorator(decorator):
     return inner
 
 
-def prepare_bs_navs(navs, request):
-    has_active = False
-    for nav in navs:
-        if 'atts' not in nav:
-            nav['atts'] = {}
-        if 'class' in nav['atts']:
-            css_classes = nav['atts']['class'].split(' ')
-            if 'active' in css_classes:
-                has_active = True
-        else:
-            nav['atts']['class'] = ''
-    if not has_active:
-        # Select active nav tab according to request.path, if any.
-        for nav in navs:
-            if nav['url'] == request.path:
-                nav['atts']['class'] += ' active'
-            nav['atts']['class'].strip()
+class NavsList(list):
+
+    def set_props(self, props):
+        if not hasattr(self, 'props'):
+            self.props = {}
+        if props is not None:
+            self.props.update(props)
+
+    def prepare(self, request):
+        has_active = False
+        for nav in self:
+            if 'atts' not in nav:
+                nav['atts'] = {}
+            if 'class' in nav['atts']:
+                css_classes = nav['atts']['class'].split(' ')
+                if 'active' in css_classes:
+                    has_active = True
+            else:
+                nav['atts']['class'] = ''
+        if not has_active:
+            # Select active nav tab according to request.path, if any.
+            for nav in self:
+                if nav['url'] == request.path:
+                    nav['atts']['class'] += ' active'
+                nav['atts']['class'].strip()
+
+    def __add__(self, other):
+        result = NavsList(list(self) + list(other))
+        result.set_props(getattr(self, 'props', None))
+        result.set_props(getattr(other, 'props', None))
+        return result
+
+    def reverse(self):
+        result = NavsList(reversed(self))
+        result.set_props(getattr(self, 'props', None))
+        return result
 
 
 # Supports both ancestors of DetailView and KoGridView.
@@ -151,7 +170,7 @@ class FormatTitleMixin:
 class BsTabsMixin(ContextMixin):
 
     def get_main_navs(self, request, object_id=None):
-        main_navs = []
+        main_navs = NavsList()
         """
         from django.urls import reverse
         main_navs.append({
@@ -169,7 +188,7 @@ class BsTabsMixin(ContextMixin):
         main_navs = self.get_main_navs(
             self.request, None if not hasattr(self, 'object') or self.object is None else self.object.pk
         )
-        prepare_bs_navs(main_navs, self.request)
+        main_navs.prepare(self.request)
         context_data['main_navs'] = main_navs
         return context_data
 
