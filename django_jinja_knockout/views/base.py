@@ -93,6 +93,28 @@ def cbv_decorator(decorator):
     return inner
 
 
+def prepare_bs_navs(navs, request):
+    has_active = False
+    for nav in navs:
+        if 'atts' not in nav:
+            nav['atts'] = {}
+        if 'class' in nav['atts']:
+            css_classes = nav['atts']['class'].split(' ')
+            if 'active' in css_classes:
+                has_active = True
+        else:
+            nav['atts']['class'] = ''
+    if not has_active:
+        # Select active nav tab according to request.path, if any.
+        for nav in navs:
+            if nav['url'] == request.path:
+                nav['atts']['class'] += ' active'
+            nav['atts']['class'].strip()
+
+
+# NavsList allows to pass extra props to templates, which enables further customization of menu,
+# for example different css classes depending on menu / context.
+# Ordinary Python list is supported by BsTabsMixin as well via prepare_bs_navs() function.
 class NavsList(list):
 
     def set_props(self, props):
@@ -102,32 +124,12 @@ class NavsList(list):
             self.props.update(props)
 
     def prepare(self, request):
-        has_active = False
-        for nav in self:
-            if 'atts' not in nav:
-                nav['atts'] = {}
-            if 'class' in nav['atts']:
-                css_classes = nav['atts']['class'].split(' ')
-                if 'active' in css_classes:
-                    has_active = True
-            else:
-                nav['atts']['class'] = ''
-        if not has_active:
-            # Select active nav tab according to request.path, if any.
-            for nav in self:
-                if nav['url'] == request.path:
-                    nav['atts']['class'] += ' active'
-                nav['atts']['class'].strip()
+        prepare_bs_navs(self, request)
 
     def __add__(self, other):
         result = NavsList(list(self) + list(other))
         result.set_props(getattr(self, 'props', None))
         result.set_props(getattr(other, 'props', None))
-        return result
-
-    def reverse(self):
-        result = NavsList(reversed(self))
-        result.set_props(getattr(self, 'props', None))
         return result
 
 
@@ -169,7 +171,7 @@ class FormatTitleMixin:
 # related CRUD views (see djk-sample for example).
 class BsTabsMixin(ContextMixin):
 
-    def get_main_navs(self, request, object_id=None):
+    def get_main_navs(self, object_id=None):
         main_navs = NavsList()
         """
         from django.urls import reverse
@@ -186,9 +188,12 @@ class BsTabsMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         main_navs = self.get_main_navs(
-            self.request, None if not hasattr(self, 'object') or self.object is None else self.object.pk
+            None if not hasattr(self, 'object') or self.object is None else self.object.pk
         )
-        main_navs.prepare(self.request)
+        if isinstance(main_navs, NavsList):
+            main_navs.prepare(self.request)
+        else:
+            prepare_bs_navs(main_navs)
         context_data['main_navs'] = main_navs
         return context_data
 

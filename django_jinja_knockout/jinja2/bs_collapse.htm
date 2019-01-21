@@ -1,7 +1,7 @@
 {# http://anvoz.github.io/bootstrap-tldr/ #}
 {% macro bs_collapse(accordion_id, header=None) -%}
 <div class="panel-group" id="{{ accordion_id }}">
-    <card-primary>
+    <card-default>
         <card-header>
             <card-title>
                 <button class="btn btn-large btn-info accordion-toggle" data-toggle="collapse" data-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
@@ -14,7 +14,7 @@
                 {% endif -%}
             </card-title>
         </card-header>
-        <div style="" aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
+        <div aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
             <card-body>
             {% if header is not none -%}
                 {{ caller() }}
@@ -23,6 +23,6 @@
             {% endif -%}
             </card-body>
         </div>
-    </card-primary>
+    </card-default>
 </div>
 {% endmacro -%}
