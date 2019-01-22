@@ -193,7 +193,7 @@ class BsTabsMixin(ContextMixin):
         if isinstance(main_navs, NavsList):
             main_navs.prepare(self.request)
         else:
-            prepare_bs_navs(main_navs)
+            prepare_bs_navs(main_navs, self.request)
         context_data['main_navs'] = main_navs
         return context_data
 

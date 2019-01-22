@@ -188,8 +188,8 @@
 {% if 'ko_grid_table' in _include_ids -%}
 <script type="text/template" id="ko_grid_table">
     <div data-top="true">
-        <div class="table-responsive <%= self.get('grid_wrapper_class') %>" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
-            <table class="table table-bordered table-hover table-collapse <%= self.get('grid_table_class') %>" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
+        <div class="table-responsive<%= self.padLeft('grid_wrapper_class') %>" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
+            <table class="table table-bordered table-hover table-collapse<%= self.padLeft('grid_table_class') %>" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
                     <tr data-bind="css: headerCss">
                         <!-- ko if: options.showSelection -->

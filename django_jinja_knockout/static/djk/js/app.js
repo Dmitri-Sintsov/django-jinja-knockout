@@ -169,6 +169,10 @@ App.newClassByPath = function(classPath, classPathArgs) {
     return self
 };
 
+App.jsErrorFilter = function(data) {
+    return true;
+};
+
 App.previousErrorHandler = window.onerror;
 window.onerror = function(messageOrEvent, source, lineno, colno, error) {
     if (typeof App.previousErrorHandler === 'function') {
@@ -188,7 +192,7 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
             'error': error + '',
             'stack': stack + '',
         };
-        if (App.conf.jsErrorsLogging) {
+        if (App.conf.jsErrorsLogging && App.jsErrorFilter(data)) {
             data.csrfmiddlewaretoken = App.conf.csrfToken;
             $.post('/-djk-js-error-/',
                 data,
@@ -1914,12 +1918,19 @@ void function(Tpl) {
         if (typeof varName !== 'string') {
             throw 'varName must be string';
         }
-        /*
-        if (typeof defaultValue === 'undefined') {
-            defaultValue = false;
-        }
-        */
         return (typeof this.data[varName] === 'undefined') ? defaultValue : this.data[varName];
+    };
+
+    Tpl.padLeft = function(varName, l) {
+        var val = this.get(varName);
+        if (val === undefined) {
+            return '';
+        } else {
+            if (l === undefined) {
+                l = ' ';
+            }
+            return l + val;
+        }
     };
 
     /**
