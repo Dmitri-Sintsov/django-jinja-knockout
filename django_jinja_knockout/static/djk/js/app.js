@@ -171,7 +171,7 @@ App.newClassByPath = function(classPath, classPathArgs) {
 
 App.jsErrorFilter = function(data) {
     // Do not log googlebot errors, it seems to have flawed interpretation.
-    return data.userAgent.indexOf('http://www.google.com/bot.html') === -1;
+    return data.userAgent.indexOf('Googlebot') === -1;
 };
 
 App.previousErrorHandler = window.onerror;
