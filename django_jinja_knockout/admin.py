@@ -87,7 +87,7 @@ def get_admin_url(model: models.Model, action='change'):
 
 # https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display
 # http://stackoverflow.com/questions/5330598/making-django-readonly-foreignkey-field-in-admin-render-as-a-link/
-def get_model_change_link(model, modelattrs: list=None, tag_attrs: dict=None):
+def get_model_change_link(model, modelattrs: list = None, tag_attrs: dict = None):
     if modelattrs is None:
         modelattrs = []
     if tag_attrs is None:

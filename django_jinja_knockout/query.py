@@ -249,7 +249,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def clone_raw_queryset(cls, raw_qs, filtered_qs=None, relation_map: dict=None):
+    def clone_raw_queryset(cls, raw_qs, filtered_qs=None, relation_map: dict = None):
         if relation_map is None:
             relation_map = {}
         if not isinstance(raw_qs, RawQuerySet):
@@ -411,7 +411,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0)) or
                 (isinstance(k, slice) and (k.start is None or k.start >= 0) and
-                 (k.stop is None or k.stop >= 0))), \
+                    (k.stop is None or k.stop >= 0))), \
             "Negative indexing is not supported."
 
         qs = self._clone()

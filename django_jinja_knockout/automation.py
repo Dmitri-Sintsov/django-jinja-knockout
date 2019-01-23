@@ -18,7 +18,7 @@ class AutomationCommands:
 
     @classmethod
     def yield_command_names(cls):
-        for name, value in inspect.getmembers(cls):
+        for name, _value in inspect.getmembers(cls):
             if callable(getattr(cls, name)) and name.startswith('_') and not name.startswith('__'):
                 yield name[1:]
 

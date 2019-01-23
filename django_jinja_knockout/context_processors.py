@@ -13,6 +13,7 @@ from .models import get_verbose_name
 from .middleware import ContextMiddlewareCompat
 from . import tpl
 
+
 def raise_exception(msg):
     raise Exception(msg)
 

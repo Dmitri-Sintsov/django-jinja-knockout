@@ -13,7 +13,7 @@ class ViewmodelFormatting:
     default_msgs = {
     }
 
-    def __init__(self, val=None, auto_id=None, msgs: dict=None):
+    def __init__(self, val=None, auto_id=None, msgs: dict = None):
         if msgs is None:
             msgs = {}
         self.vms = vm_list()

@@ -322,7 +322,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             )
         }
 
-    def get_current_sort_order_querypart(self, query: dict=None):
+    def get_current_sort_order_querypart(self, query: dict = None):
         if query is None:
             query = {}
         if self.current_sort_order is None:
@@ -338,7 +338,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def is_negate_sort_order(self, sort_order):
         return sort_order[0][0] == '-'
 
-    def get_negate_sort_order_querypart(self, sort_order, query: dict=None):
+    def get_negate_sort_order_querypart(self, sort_order, query: dict = None):
         if sort_order is None:
             return query
         if query is None:
@@ -355,7 +355,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_current_list_filter_querypart(self):
         return self.get_request_list_filter()
 
-    def get_list_filter_querypart(self, list_filter_querypart=None, query: dict=None):
+    def get_list_filter_querypart(self, list_filter_querypart=None, query: dict = None):
         if query is None:
             query = {}
         if list_filter_querypart is None or len(list_filter_querypart) == 0:
@@ -367,7 +367,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     # Methods with _querypart suffix are used to parse and return HTTP request querypart for current view state
     # of filtering / sorting, used in navigation and pagination.
-    def get_current_querypart(self, query: dict=None):
+    def get_current_querypart(self, query: dict = None):
         if query is None:
             query = {}
         return self.get_list_filter_querypart(
@@ -432,7 +432,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         filter_class = globals()[filter_classname](self, filter_field, vm_filter)
         return filter_class
 
-    def get_sort_order_link(self, sort_order, kwargs=None, query: dict=None, text=None, viewname=None):
+    def get_sort_order_link(self, sort_order, kwargs=None, query: dict = None, text=None, viewname=None):
         if type(sort_order) is str:
             sort_order = [sort_order]
         if query is None:

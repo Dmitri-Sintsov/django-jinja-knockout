@@ -76,7 +76,9 @@ class PrefillDropdown(Widget):
 
 class PrefillWidget(Widget):
 
-    def __init__(self, data_widget=None, widget_class=Textarea, attrs: dict=None, choices=None, choices_attrs: dict=None):
+    def __init__(
+            self, data_widget=None, widget_class=Textarea, attrs: dict = None, choices=None, choices_attrs: dict = None
+    ):
         # todo: Use templates instead of hardcoding.
         # todo: Support AJAX pulling the list of choices.
         if attrs is None:
@@ -236,7 +238,7 @@ class DisplayText(Widget):
 class ForeignKeyGridWidget(DisplayText):
 
     # Setting 'model' argument is required only for non-AJAX form submissions.
-    def __init__(self, attrs=None, scalar_display=None, model=None, grid_options: dict=None):
+    def __init__(self, attrs=None, scalar_display=None, model=None, grid_options: dict = None):
         if grid_options is None:
             grid_options = {}
         super().__init__(attrs=attrs, scalar_display=scalar_display, layout='div')

@@ -11,7 +11,7 @@ from ..middleware import ImmediateJsonResponse
 
 class SendmailQueue:
 
-    def __init__(self, defaults: dict=None):
+    def __init__(self, defaults: dict = None):
         if defaults is None:
             defaults = {}
         self.ioc = object()

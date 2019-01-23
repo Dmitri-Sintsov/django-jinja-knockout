@@ -8,7 +8,7 @@ from djk_ui.views import detail_edit as djk_ui_detail_edit
 from .base import FormatTitleMixin, FormViewmodelsMixin
 
 from ..utils.sdv import str_to_numeric
-from ..tpl import escape_css_selector, reverse
+from ..tpl import reverse
 from ..models import get_object_description, model_fields_verbose_names, get_verbose_name
 from ..viewmodels import vm_list
 
