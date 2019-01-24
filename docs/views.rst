@@ -77,8 +77,8 @@ redirect to another url. That is useful when the additional client-side processi
 part of some component, like :ref:`macros_bs_tabs` tab.
 
 Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
-supported via Knockout.js custom bindings with XSS protection. HTML rendering usually is performed with Bootstrap 3
-Jinja2 `bs_inline_formsets()`_ macro.
+supported via Knockout.js custom bindings with XSS protection. HTML rendering usually is performed with Jinja2
+`bs_inline_formsets()`_ macro.
 
 The following views inherit this class:
 
@@ -93,7 +93,7 @@ BsTabsMixin
 -----------
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
   ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
-* ``prepare_bs_navs()`` - highlight current url in Bootstrap 3 navbars. Since version 0.8.0 it's possible to override
+* ``prepare_bs_navs()`` - highlight current url of Bootstrap navbar. Since version 0.8.0 it's possible to override
   the highlighted navbar link by specifying navs[]['attrs']['class'] = 'active' value.
 
 To implement server-side tabs navigation, one should define class inherited from `BsTabsMixin`_ with custom

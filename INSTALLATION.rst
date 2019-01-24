@@ -7,9 +7,11 @@
 .. _django-allauth: https://github.com/pennersr/django-allauth
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _djk_sample.TemplateContextProcessor: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/context_processors.py
+.. _djk_ui: https://django-jinja-knockout.readthedocs.io/en/latest/djk_ui.html
 .. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
 .. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
-.. _jinja2/base_min.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_min.htm
+.. _jinja2/base_min.htm (bs3): https://github.com/Dmitri-Sintsov/djk-bootstrap3/blob/master/djk_ui/jinja2/base_min.htm
+.. _jinja2/base_min.htm (bs4): https://github.com/Dmitri-Sintsov/djk-bootstrap4/blob/master/djk_ui/jinja2/base_min.htm
 .. _jinja2/base_head.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_head.htm
 .. _jinja2/base_bottom_scripts.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_bottom_scripts.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
@@ -19,7 +21,8 @@
 .. _release: https://github.com/Dmitri-Sintsov/django-jinja-knockout/releases
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _settings.ADMINS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ADMINS
-.. _templates/base_min.html: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/templates/base_min.html
+.. _templates/base_min.html (bs3): https://github.com/Dmitri-Sintsov/djk-bootstrap3/blob/master/djk_ui/templates/base_min.html
+.. _templates/base_min.html (bs4): https://github.com/Dmitri-Sintsov/djk-bootstrap4/blob/master/djk_ui/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
@@ -83,6 +86,8 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
     # Order of installed apps is important for Django Template loader to find 'djk_sample/templates/base.html'
     # before original allauth 'base.html' is found, when allauth DTL templates are used instead of built-in
     # 'django_jinja_knockout._allauth' Jinja2 templates, thus DJK_APPS are included before 'allauth'.
+    # For the same reason, djk_ui app is included before django_jinja_knockout, to make it possivble to override
+    # any of django_jinja_knockout template / macro.
     INSTALLED_APPS = (
         'django.contrib.admin',
         'django.contrib.auth',
@@ -94,6 +99,7 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
         'django.contrib.sites',
         'django_jinja',
         'django_jinja.contrib._humanize',
+        'djk_ui',
         'django_jinja_knockout',
         'django_jinja_knockout._allauth',
     ) + DJK_APPS + \
@@ -103,6 +109,8 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
         # Required for socialaccount template tag library despite we do not use social login
         'allauth.socialaccount',
     )
+
+`djk_ui`_ app provides pluggable support for Bootstrap 3 / Bootstrap 4.
 
 `django-allauth`_ support is not mandatory but optional; just remove the following apps from ``INSTALLED_APPS`` in case
 you do not need it::
@@ -446,13 +454,13 @@ Integration of django-jinja-knockout into existing Django / Bootstrap 3 project
 
 If your project base template uses ``Jinja2`` templating language, there are the following possibilities:
 
-* Extend your ``base.htm`` template from `jinja2/base_min.htm`_ template.
+* Extend your ``base.htm`` template from `jinja2/base_min.htm (bs3)`_  / `jinja2/base_min.htm (bs4)`_ template.
 * Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_. These are required to
   run client-side scripts like `app.js`_ and `grid.js`_.
 
 If your project base template uses Djanto Template Language (``DTL``), there are the following possibilities:
 
-* Extend your ``base.html`` template from `templates/base_min.html`_ template.
+* Extend your ``base.html`` template from `templates/base_min.html (bs3)`_ / `templates/base_min.html (bs4)`_ template.
 * Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_ via
   ``{% load jinja %}`` template tag library to your ``DTL`` template::
 

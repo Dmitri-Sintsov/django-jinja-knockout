@@ -54,9 +54,9 @@ while the actial HTML code of form is generated with the following `render_form(
         'method': method,
     }) }}
 
-Note that the `bs_form()`_ macro generates html ``<form>`` tag and wraps the whole form into Bootstrap 3 panel
-with the heading / body. If you want to generate form body only (usual Django approach), call `render_form()`_ template
-context function instead::
+Note that the `bs_form()`_ macro generates html ``<form>`` tag and wraps the whole form into Bootstrap card with the
+heading / body. If you want to generate form body only (usual Django approach), call `render_form()`_ template context
+function instead::
 
     {{ render_form(request, 'body', form) }}
 

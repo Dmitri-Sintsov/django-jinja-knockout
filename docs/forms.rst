@@ -294,8 +294,8 @@ there is any. Such form will behave very similarly to usual non-AJAX submitted f
 1. AJAX response saves HTTP traffic.
 2. Instead of just redirecting to ``success_url``, one may perform custom actions, including displaying BootstrapDialog
    alerts and confirmations.
-3. app.js also includes Bootstrap 3 progress bar when form has file inputs. So when large files are uploaded, there
-   will be progress indicator updated, instead of just waiting when request completes.
+3. app.js also includes Bootstrap progress bar when form has file inputs. So when large files are uploaded, there will
+   be progress indicator updated, instead of just waiting until the request completes.
 
 .. highlight:: python
 
@@ -360,7 +360,7 @@ If form instance was instantiated from ``ModelForm`` class with ``DisplayModelMe
 .. highlight:: jinja
 
 one may use empty string as submit url value of ``action=''`` argument, to display ModelForm instance as read-only
-Bootstrap 3 table::
+Bootstrap table::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
@@ -403,7 +403,7 @@ In case related many to one inline formset ModelForms should be included into re
 
 
 ``DisplayText`` read-only field widget automatically supports lists as values of ``models.ManyToManyField`` fields,
-rendering these as Bootstrap 3 list-groups.
+rendering these as Bootstrap "list groups".
 
 Custom rendering of DisplayText form widgets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -175,8 +175,8 @@ become simpler.
 Custom tags
 ~~~~~~~~~~~
 Since verison 0.8.0, the built-in template processor supports custom tags via `App.TransformTags`_ Javascript class
-``applyTags()`` method. By default there are the ``CARD-*`` tags registered, which are transformed to bootstrap 4 cards
-or to bootstrap 3 panels.
+``applyTags()`` method. By default there are the ``CARD-*`` tags registered, which are transformed to Bootstrap 4 cards
+or to Bootstrap 3 panels.
 
 Custom tags are also applied via `App.initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
 However because the custom tags are not browser-native, such usage of custom tags is not recommended as extra flicker

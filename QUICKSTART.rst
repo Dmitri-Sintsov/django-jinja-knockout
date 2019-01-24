@@ -1,7 +1,6 @@
 .. _clientside: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
-.. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
 .. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
 .. _models: https://django-jinja-knockout.readthedocs.io/en/latest/models.html
@@ -16,14 +15,16 @@ Key features overview
 Datatables
 ----------
 
-The packages includes server-side (Python) and client-side (Javascript) code to quickly create easy to use datatables
-with standard / custom actions, including adding, editing, deleting for Django models. See the `datatables`_ for more
+The package includes server-side (Python) and client-side (Javascript) code to quickly create easy to use datatables
+with standard and custom actions for Django models, including adding, editing, deleting. See the `datatables`_ for more
 info.
 
 Client-side
 -----------
 
-There are lots of client-side Javascript included into the package. See the `clientside`_ for more info.
+There are lots of client-side Javascript included into the package. It includes ready to use components such as Django
+AJAX ModelForm / formset dialogs and AJAX datatables, nested templating with custom tags, client-side widget support and
+AJAX `viewmodels`_. See the `clientside`_ for more info.
 
 admin.py
 --------
@@ -36,7 +37,7 @@ forms.py / formsets.js
 ----------------------
 See `forms`_ for the detailed explanation.
 
-* ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap 3. Since version 0.4.0 it also always has
+* ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap. Since version 0.4.0 it also always has
   ``request`` attribute for convenience to be used in ``clean()`` method and so on.
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
 * ``WidgetInstancesMixin`` - Provides model instances bound to ``ModelForm`` in field widgets. It helps to make custom

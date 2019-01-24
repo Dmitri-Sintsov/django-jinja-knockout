@@ -1,3 +1,5 @@
+.. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
+
 ======
 Models
 ======
