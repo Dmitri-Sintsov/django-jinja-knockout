@@ -245,7 +245,7 @@ class FormsetRenderer(Renderer):
         return context
 
     def render_raw(self):
-        # context = self.get_template_context()
+        self.get_template_context()
         output = ''.join([
             form._renderer['inline']() for form in self.obj
         ])
