@@ -58,21 +58,6 @@ Injection of Django url routes into loaded page
 
   Read :doc:`viewmodels` documentation how to add custom client-side urls (``client_routes``) per view.
 
-Contenttypes framework helpers
-------------------------------
-.. highlight:: jinja
-
-* ``ContentTypeLinker`` class to easily generate contenttypes framework links in Jinja2 templates::
-
-    {% set ctl = ContentTypeLinker(object, 'content_type', 'object_id') %}
-    {% if ctl.url is not none %}
-        <a href="{{ ctl.url }}" title="{{ str(ctl.obj_type) }}" target="_blank">
-    {% endif %}
-        {{ ctl.description }}
-    {% if ctl.url is not none %}
-        </a>
-    {% endif %}
-
 Meta and formatting
 -------------------
 .. highlight:: python
@@ -88,15 +73,14 @@ Advanced url resolution, both forward and reverse
 * ``resolve_cbv()`` takes url_name and kwargs and returns a function view or a class-based view for these arguments,
   when available::
 
-    resolve_cbv(url_name, view_kwargs)
+    tpl.resolve_cbv(url_name, view_kwargs)
 
 * ``reverseq()`` allows to build reverse urls with optional query string specified as Python dict::
 
-    reverseq('my_url_name', kwargs={'project_id': project.pk}, query={'type': 'approved'})
+    tpl.reverseq('my_url_name', kwargs={'project_id': project.pk}, query={'type': 'approved'})
 
 Miscelaneous
 ------------
-* ``sdv_dbg()`` for optional template variable dump (debug).
+* ``sdv.dbg()`` for optional template variable dump (debug).
 * Context processor is inheritable which allows greater flexibility to implement your own custom features by
   overloading methods.
-

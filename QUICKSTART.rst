@@ -1,5 +1,6 @@
 .. _clientside: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
+.. _DJK_APPS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=djk_apps
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
@@ -60,8 +61,14 @@ See `management_commands`_.
 
 middleware.py
 -------------
-
-See `middleware`_.
+* Middleware is extendable (inheritable).
+* Client-side `viewmodels`_ via AJAX result and injected into html page / user session.
+* Automatic timezone detection and activation from the browser.
+* request.custom_scripts dynamic injection of client-side scripts.
+* `DJK_APPS`_ views require permission defined in urls.py by default.
+* Request mock-up.
+* Mini-router.
+* See `middleware`_ for more info.
 
 models.py
 ---------

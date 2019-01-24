@@ -28,6 +28,22 @@ String formatting
 * ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
   :doc:`utils_mail` ``SendmailQueue`` to convert HTML body of email message to text-only body.
 
+Contenttypes framework helpers
+------------------------------
+
+.. highlight:: jinja
+
+* ``ContentTypeLinker`` - class to simplify generation of contenttypes framework object links::
+
+    {% set ctl = tpl.ContentTypeLinker(object, 'content_type', 'object_id') %}
+    {% if ctl.url is not none %}
+        <a href="{{ ctl.url }}" title="{{ str(ctl.obj_type) }}" target="_blank">
+    {% endif %}
+        {{ ctl.description }}
+    {% if ctl.url is not none %}
+        </a>
+    {% endif %}
+
 Objects rendering
 -----------------
 
@@ -38,9 +54,10 @@ Objects rendering
 * ``reverseq()`` - construct url with query parameters from url name. Since version 0.4.0, when request instance is
   supplied, absolute url will be returned.
 
+.. highlight:: python
+
 * ``str_dict()`` - Django models could define `get_str_fields()`_ method which maps model instance field values to their
   formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate fields.
-
   If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
   ``str_dict()`` can be used to convert nested dict `get_str_fields()`_ values to flat strings in ``__str__()`` method::
 

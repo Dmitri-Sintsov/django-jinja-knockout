@@ -4,11 +4,10 @@
 Models
 ======
 
-This module contains the functions / classes to manipluate Django models.
+This module contains the functions / classes to manipulate Django models.
 
 .. highlight:: python
 
-* ``ContentTypeLinker`` class to simplify generation of contenttypes framework object links.
 * ``get_users_with_permission()`` - return the queryset of all users who have specified permission string, including
   all three possible sources of such users (user permissions, group permissions and superusers).
 * Next functions allow to use parts of queryset functionality on single Django model object instances:
