@@ -220,9 +220,7 @@ void function(ButtonPopover) {
     };
 
     ButtonPopover.getThisOverrides = function() {
-        var overrides = this._super._call('getThisOverrides');
-        overrides.push('clickPopoverButton');
-        return overrides;
+        return ['message', 'mouseEnterTarget', 'mouseClickTarget', 'closeButtonEvent', 'clickPopoverButton'];
     };
 
 }(App.ButtonPopover.prototype);
