@@ -429,6 +429,22 @@ Real examples of inheritance are available in ``button-popover.js`` ``App.Button
         this.getButtons = App.ModelFormDialog.prototype.getButtons;
     };
 
+Advanced popovers
+~~~~~~~~~~~~~~~~~
+App.ClosablePopover creates the popover with close button. The popover is shown when mouse enters the target area.
+It's possible to setup the list of related popovers to auto-close the rest of popovers besides the current one like this::
+
+    App.bag.messagingPopovers = [];
+
+    var messagingPopover = new App.ClosablePopover({
+        target: document.getElementById('notification_popover'),
+        message: 'Test',
+        relatedPopovers: App.bag.messagingPopovers,
+    });
+
+App.ButtonPopover creates closable popover with additional dialog button which allows to perform onclick action via
+overridable ``.clickPopoverButton()`` method.
+
 jQuery plugins
 ~~~~~~~~~~~~~~
 * ``$.autogrow`` plugin to automatically expand text lines of textarea elements;

@@ -219,4 +219,10 @@ void function(ButtonPopover) {
         this.hide();
     };
 
+    ButtonPopover.getThisOverrides = function() {
+        var overrides = this._super._call('getThisOverrides');
+        overrides.push('clickPopoverButton');
+        return overrides;
+    };
+
 }(App.ButtonPopover.prototype);
