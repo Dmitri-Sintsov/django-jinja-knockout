@@ -2,11 +2,16 @@
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _DJK_APPS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=djk_apps
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
+.. _get_str_fields(): https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=get_str_fields
 .. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
 .. _models: https://django-jinja-knockout.readthedocs.io/en/latest/models.html
 .. _pretetch_related: https://docs.djangoproject.com/en/dev/ref/models/querysets/#prefetch-related
+.. _PrintList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PrintList
+.. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
+.. _Renderers: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
 .. _query.py: https://django-jinja-knockout.readthedocs.io/en/latest/query.html
+.. _tpl: https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
 
@@ -17,15 +22,22 @@ Datatables
 ----------
 
 The package includes server-side (Python) and client-side (Javascript) code to quickly create easy to use datatables
-with standard and custom actions for Django models, including adding, editing, deleting. See the `datatables`_ for more
-info.
+with standard and custom actions for Django models, including adding, editing, deleting.
+
+See `datatables`_ for more info.
 
 Client-side
 -----------
 
-There are lots of client-side Javascript included into the package. It includes ready to use components such as Django
-AJAX ModelForm / formset dialogs and AJAX datatables, nested templating with custom tags, client-side widget support and
-AJAX `viewmodels`_. See the `clientside`_ for more info.
+There are lots of client-side Javascript included into the package. It includes ready to use components such as:
+
+* Django AJAX ModelForm / formset dialogs.
+* Django Models AJAX datatables.
+* Nested templating with custom tags.
+* Client-side widget support.
+* AJAX `viewmodels`_.
+
+See `clientside`_ for more info.
 
 admin.py
 --------
@@ -38,6 +50,9 @@ forms.py / formsets.js
 ----------------------
 See `forms`_ for the detailed explanation.
 
+* `Renderers`_ for forms / formsets / form fields.
+* AJAX form processing.
+* Display read-only "forms" (model views).
 * ``BootstrapModelForm`` - Form with field classes stylized for Bootstrap. Since version 0.4.0 it also always has
   ``request`` attribute for convenience to be used in ``clean()`` method and so on.
 * ``DisplayModelMetaclass`` - Metaclass used to create read-only "forms", to display models as html tables.
@@ -56,22 +71,28 @@ See `forms`_ for the detailed explanation.
 
 management/commands/djk_seed.py
 -------------------------------
+``djk_seed`` management command allows to execute post-migration Django model seeds.
 
-See `management_commands`_.
+See `management_commands`_ for more info.
 
 middleware.py
 -------------
 * Middleware is extendable (inheritable).
 * Client-side `viewmodels`_ via AJAX result and injected into html page / user session.
-* Automatic timezone detection and activation from the browser.
-* request.custom_scripts dynamic injection of client-side scripts.
+* Automatic timezone detection and timezone activation from the browser.
+* request.custom_scripts for dynamic injection of client-side scripts.
 * `DJK_APPS`_ views require permission defined in urls.py by default.
 * Request mock-up.
 * Mini-router.
-* See `middleware`_ for more info.
+
+See `middleware`_ for more info.
 
 models.py
 ---------
+* Get users with specific permissions.
+* Get related fields / related field values.
+* Model class / model object instance / fields metadata retrieval.
+* ``model_values()`` to get queryset ``.values()`` like dict for single Django model object instance.
 
 See `models`_ for more info.
 
@@ -81,16 +102,22 @@ query.py
 * Allows to convert Python lists to Django-like querysets, which is useful to filter the data received via
   `pretetch_related`_ Django ORM reverse relation query.
 
-It makes possible to use raw SQL queries and Python lists as the arguments of datatable / filtered lists / paginators.
+It makes possible to use raw SQL queries and Python lists as the arguments of datatables / filtered lists.
 See `query.py`_ for more info.
 
 serializers.py
 --------------
-Nested serializer for Django model instances with localization / internationalisation.
+Nested serializer for Django model instances with localization / internationalisation. Note that the serializer is
+written to create logs / archives of model object changes, it's unused by built-in viewmodels / datatables. Datatables
+use `get_str_fields()`_ instead.
 
 tpl.py
 ------
-Renderer class for recursive object context rendering. See `forms`_ for more info. Various formatting functions.
+* `Renderer`_ class for recursive object context rendering.
+* `PrintList`_ class for nested formatting of Python structures.
+* Various formatting functions.
+
+See `tpl`_ for more info.
 
 viewmodels.py
 -------------

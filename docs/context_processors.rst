@@ -5,8 +5,9 @@
 context_processors.py
 =====================
 
-Context processor provides the `tpl`_ / `utils.sdv`_ module to to Jinja2 template context, allowing to write more
-powerful templates. Additionally some functions / classes from another modules are loaded.
+Context processor injects the `tpl`_ / `utils.sdv`_ modules to to Jinja2 template context, allowing to write more
+powerful templates. Any function / class from these modules are immediately available in Jinja2 templates. Additionally
+some functions / classes from another modules are loaded.
 
 * `tpl`_ module implements functions / classes for advanced text / html formatting; see :doc:`tpl` for detailed
   information.

@@ -2,19 +2,19 @@
 Forms
 ======
 
-.. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+bootstrapmodelform
-.. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+fieldrenderer
-.. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formbodyrenderer
-.. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+formsetrenderer
-.. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+inlineformrenderer
+.. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=bootstrapmodelform
+.. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
+.. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
+.. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formsetrenderer
+.. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
-.. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+relatedformrenderer
-.. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+renderer
+.. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=relatedformrenderer
+.. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _.render_raw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=render_raw
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
-.. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+standaloneformrenderer
+.. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=standaloneformrenderer
 
 .. _forms_renderers:
 
