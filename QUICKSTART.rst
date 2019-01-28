@@ -31,8 +31,8 @@ Client-side
 
 There are lots of client-side Javascript included into the package. It includes ready to use components such as:
 
-* Django AJAX ModelForm / formset dialogs.
-* Django Models AJAX datatables.
+* Django ModelForm / Formset AJAX dialogs.
+* Django models AJAX datatables.
 * Nested templating with custom tags.
 * Client-side widget support.
 * AJAX `viewmodels`_.
@@ -48,8 +48,6 @@ admin.py
 
 forms.py / formsets.js
 ----------------------
-See `forms`_ for the detailed explanation.
-
 * `Renderers`_ for forms / formsets / form fields.
 * AJAX form processing.
 * Display read-only "forms" (model views).
@@ -68,20 +66,21 @@ See `forms`_ for the detailed explanation.
   read-only, while making newly added ones editable.
 * ``CustomFullClean`` / ``StripWhilespaceMixin`` mixins for Django forms.
 
+See `forms`_ for the detailed explanation.
 
 management/commands/djk_seed.py
 -------------------------------
-``djk_seed`` management command allows to execute post-migration Django model seeds.
+``djk_seed`` management command allows to execute post-migration database seeds for specified Django app / model.
 
 See `management_commands`_ for more info.
 
 middleware.py
 -------------
 * Middleware is extendable (inheritable).
-* Client-side `viewmodels`_ via AJAX result and injected into html page / user session.
+* Client-side `viewmodels`_ via AJAX result and / or injected into html page / user session.
 * Automatic timezone detection and timezone activation from the browser.
 * request.custom_scripts for dynamic injection of client-side scripts.
-* `DJK_APPS`_ views require permission defined in urls.py by default.
+* `DJK_APPS`_ views require permission defined in urls.py by default, which increases the default security.
 * Request mock-up.
 * Mini-router.
 
@@ -91,7 +90,7 @@ models.py
 ---------
 * Get users with specific permissions.
 * Get related fields / related field values.
-* Model class / model object instance / fields metadata retrieval.
+* Model class / model instance / model fields metadata retrieval.
 * ``model_values()`` to get queryset ``.values()`` like dict for single Django model object instance.
 
 See `models`_ for more info.
@@ -108,14 +107,16 @@ See `query.py`_ for more info.
 serializers.py
 --------------
 Nested serializer for Django model instances with localization / internationalisation. Note that the serializer is
-written to create logs / archives of model object changes, it's unused by built-in viewmodels / datatables. Datatables
-use `get_str_fields()`_ instead.
+written to create logs / archives of model object changes. It's unused by built-in viewmodels / datatables. Datatables
+use `get_str_fields()`_ model serialization method instead.
 
 tpl.py
 ------
 * `Renderer`_ class for recursive object context rendering.
-* `PrintList`_ class for nested formatting of Python structures.
-* Various formatting functions.
+* `PrintList`_ class for nested formatting of Python structures. Includes various formatting wrapper functions.
+* HTML / CSS manipulation in Python.
+* Date / url / JSON formatting.
+* Model / content type links formatters.
 
 See `tpl`_ for more info.
 
@@ -126,4 +127,12 @@ responses and in ``app.js`` client-side response routing. Read `viewmodels`_ doc
 
 views submodule
 ---------------
+* Permission / view title kwargs.
+* ``FormWithInlineFormsetsMixin`` - view / edit zero or one ModelForm with one or many related formsets. Supports
+  dynamic formset forms via ``formsets.js`` and ``set_knockout_template`` patching.
+* ``BsTabsMixin`` - insert additional context data to support Bootstrap navbars.
+* ``ContextDataMixin` - insert arbitrary context data via ``extra_context_data`` class attribute value.
+* ``ListSortingView`` - non-AJAX filtered / sorted ListView, with partial support of AJAX ``KoGridView`` settings.
+* AJAX views: ``ActionsView`` / ``ModelFormActionsView`` / ``KoGridView``
+
 See `views`_ for the detailed explanation.

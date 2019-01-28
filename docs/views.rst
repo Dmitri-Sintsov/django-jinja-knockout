@@ -1,8 +1,13 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ActionsView
 .. _ajax_refresh: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ajax_refresh
+.. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
+.. _.get_success_url(): https://docs.djangoproject.com/en/dev/ref/class-based-views/mixins-editing/#django.views.generic.edit.FormMixin.get_success_url
 .. _GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=GridActionsMixin
+.. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
+.. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
+.. _set_knockout_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=set_knockout_template
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ViewmodelView
 
 ==============
@@ -67,17 +72,18 @@ The base class for the set of class-based views that create / edit the related f
 built-in support of ``django_jinja_knockout.forms`` module ``FormWithInlineFormsets`` class.
 
 It supports both non-AJAX and AJAX form submission and validation. AJAX validation and AJAX success action is performed
-with built-in extensible :doc:`viewmodels`. By default it supports class-based view ``.get_success_url()`` automatic
+with built-in extensible :doc:`viewmodels`. By default AJAX supports class-based view `.get_success_url()`_ automatic
 client-side redirect on success which can be replaced to another AJAX viewmodel handler via overriding this method in
 derived view class.
 
 Since version 0.7.1, setting class attribute `ajax_refresh`_ value to ``True`` causes the successful AJAX submission of
-the form with the inline formsets to refresh the form HTML with just saved values instead of ``.get_success_url()``
+the form with the inline formsets to refresh the form HTML with just saved values instead of `.get_success_url()`_
 redirect to another url. That is useful when the additional client-side processing is required, or when the form is the
 part of some component, like :ref:`macros_bs_tabs` tab.
 
 Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
-supported via Knockout.js custom bindings with XSS protection. HTML rendering usually is performed with Jinja2
+supported via Knockout.js custom bindings with XSS protection, which are generated via `set_knockout_template`_ function
+that uses `InlineFormRenderer`_ with formset `empty_form`_. HTML rendering usually is performed with Jinja2
 `bs_inline_formsets()`_ macro.
 
 The following views inherit this class:
@@ -148,7 +154,7 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
 ListSortingView
 ---------------
 
-`ListSortingView`_ is a ``ListView`` with built-in support of sorting and field filtering::
+`ListSortingView`_ is a `ListView`_ with built-in support of sorting and field filtering::
 
     from django_jinja_knockout.views import ListSortingView
 
@@ -168,7 +174,7 @@ ListSortingView
             'foundation_date',
         ]
 
-* `FoldingPaginationMixin`_ - ``ListView`` / `ListSortingView`_ mixin that enables advanced pagination in
+* `FoldingPaginationMixin`_ - `ListView`_ / `ListSortingView`_ mixin that enables advanced pagination in
   ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
 
 Viewmodels views and actions views
@@ -182,7 +188,9 @@ Viewmodels views and actions views
   form / validating / saving. It is also the base class for grids (datatables) actions, because the editing of datatables
   includes form editing via `GridActionsMixin`_.
 
-For the more detailed explanation of these views see :ref:`viewmodels_ajax_actions`.
+For introduction to viewmodels, see :doc:`viewmodels`.
+
+For more detailed explanation of these views see :ref:`viewmodels_ajax_actions`.
 
 Useful methods / classes of the views module
 --------------------------------------------
