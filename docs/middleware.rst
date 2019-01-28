@@ -51,6 +51,7 @@ list::
         'django.contrib.sites',
         'django_jinja',
         'django_jinja.contrib._humanize',
+        'djk_ui',
         'django_jinja_knockout',
     ) + DJK_APPS
 

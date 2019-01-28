@@ -39,6 +39,7 @@ The built-in middleware is applied only to the views which belong to modules (Dj
         'django.contrib.sites',
         'django_jinja',
         'django_jinja.contrib._humanize',
+        'djk_ui',
         'django_jinja_knockout',
     ) + DJK_APPS
 

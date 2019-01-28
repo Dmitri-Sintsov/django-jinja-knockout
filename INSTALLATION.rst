@@ -10,6 +10,7 @@
 .. _djk_ui: https://django-jinja-knockout.readthedocs.io/en/latest/djk_ui.html
 .. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
 .. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
+.. _INSTALLED_APPS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-INSTALLED_APPS
 .. _jinja2/base_min.htm (bs3): https://github.com/Dmitri-Sintsov/djk-bootstrap3/blob/master/djk_ui/jinja2/base_min.htm
 .. _jinja2/base_min.htm (bs4): https://github.com/Dmitri-Sintsov/djk-bootstrap4/blob/master/djk_ui/jinja2/base_min.htm
 .. _jinja2/base_head.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/base_head.htm
@@ -63,7 +64,7 @@ One may use existing example of `settings.py`_ as the base to develop your own `
 DJK_APPS
 ~~~~~~~~
 
-``DJK_APPS`` list is the subset of ``INSTALLED_APPS`` list that defines project applications which views will be
+``DJK_APPS`` list is the subset of `INSTALLED_APPS`_ list that defines project applications which views will be
 processed by built-in `ContextMiddleware`_ class ``process_view()`` method via checking the result of
 ``is_our_module()`` method.
 
@@ -81,7 +82,7 @@ list of Django project's own applications like that::
 It increases the compatibility with external apps which views do not require to be processed by `django-jinja-knockout`
 `ContextMiddleware`_.
 
-Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_APPS`` in ``settings.py``::
+Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_APPS`_ in ``settings.py``::
 
     # Order of installed apps is important for Django Template loader to find 'djk_sample/templates/base.html'
     # before original allauth 'base.html' is found, when allauth DTL templates are used instead of built-in
@@ -112,7 +113,7 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to ``INSTALLED_
 
 `djk_ui`_ app provides pluggable support for Bootstrap 3 / Bootstrap 4.
 
-`django-allauth`_ support is not mandatory but optional; just remove the following apps from ``INSTALLED_APPS`` in case
+`django-allauth`_ support is not mandatory but optional; just remove the following apps from `INSTALLED_APPS`_ in case
 you do not need it::
 
     # The Django sites framework is required for 'allauth'
@@ -122,7 +123,8 @@ you do not need it::
     'allauth.socialaccount',
     'django_jinja_knockout._allauth',
 
-Built-in allauth DTL templates are supported without any modification. In such case next module is not required::
+Built-in allauth DTL templates are supported without any modification. In such case the next module may be removed
+from the list of `INSTALLED_APPS`_ as well::
 
     'django_jinja_knockout._allauth',
 
