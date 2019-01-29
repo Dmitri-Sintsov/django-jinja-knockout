@@ -671,7 +671,7 @@ Customizing visual display of fields at client-side
 
 To alter visual representation of grid row cells, one should override ``App.ko.GridRow`` Javascript class ``.display()``
 method, to implement custom display layout of field values at client-side. The same method also can be used to generate
-condensed representations of long text values via Boostrap popovers, or even to display fields as form inputs:
+condensed representations of long text values via Bootstrap popovers, or even to display fields as form inputs:
 using grid as paginated AJAX form - (which is also possible but requires writing custom ``underscore.js`` grid layout
 templates, partially covered in modifying_visual_layout_of_grid_)::
 
@@ -2360,7 +2360,7 @@ to `'create_inline' action`_ new row and `'edit_inline' action`_ existing grid r
             return Model1EditFormWithInlineFormsets
 
 * Server-side part of this action overrides the name of last execuded action by setting AJAX response viewmodel
-  ``last_action`` key to ``save_inline`` value, which specifies the action of BoostrapDialog form modal button.
+  ``last_action`` key to ``save_inline`` value, which specifies the action of BootstrapDialog form modal button.
   See `'create_form' action`_ description for more info about ``last_action`` key.
 * `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of
   ``template_name`` class property poitning to Jinja2 template which includes `formsets.js`_ by default.

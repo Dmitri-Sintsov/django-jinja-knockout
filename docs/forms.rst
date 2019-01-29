@@ -157,7 +157,7 @@ opts argument
 * ``class`` - CSS class of bootstrap panel form wrapper;
 * ``is_ajax`` - bool, whether the form should be submitted via AJAX - by default is `False`; see `AJAX forms processing`_
   for more info;
-* `layout_classes`_ - change default boostrap grid layout width for field labels / field inputs. See
+* `layout_classes`_ - change default Bootstrap grid layout width for field labels / field inputs. See
   :ref:`macros_layout_classes` for more details;
 * ``submit_text`` - text of form submit button; if not defined, no button will be displayed;
 * ``title`` - text of bootstrap panel title form wrapper; if not defined, no title will be displayed;

@@ -47,6 +47,12 @@ These default values can be overriden via the project `settings` module ``LAYOUT
 :ref:`forms_opts` for more info how layout classes are applied to form / formset renderers; see
 :ref:`macros_layout_classes` how layout classes are used in form / formset macros.
 
+.. _djk_ui_tpl:
+
+tpl.py
+------
+Contains nested list / dict formatters, specific to used Bootstrap version. See :doc:`tpl` for more info.
+
 Customization
 -------------
 This module implements both server-side (Python) and client-side (Javascript) parts of the code that differs between

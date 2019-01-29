@@ -1,5 +1,6 @@
 .. _clientside: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
+.. _discover_grid_options(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=discover_grid_options
 .. _DJK_APPS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=djk_apps
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
 .. _get_str_fields(): https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=get_str_fields
@@ -118,6 +119,7 @@ tpl.py
 * HTML / CSS manipulation in Python.
 * Date / url / JSON formatting.
 * Model / content type links formatters.
+* `discover_grid_options()`_ enables to embed :doc:`datatables` into arbitrary HTML DOM subtrees.
 
 See `tpl`_ for more info.
 
