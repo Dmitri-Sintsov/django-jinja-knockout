@@ -1,24 +1,23 @@
-.. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ActionsView
+.. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView
 .. _ajax_refresh: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ajax_refresh
+.. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
+.. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
 .. _.get_success_url(): https://docs.djangoproject.com/en/dev/ref/class-based-views/mixins-editing/#django.views.generic.edit.FormMixin.get_success_url
 .. _GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=GridActionsMixin
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
+.. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=kogridview
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
-.. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
+.. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView
 .. _NavsList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NavsList
+.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _set_knockout_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=set_knockout_template
-.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ViewmodelView
+.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView
 
 ==============
 Built-in views
 ==============
-
-.. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
-.. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
-.. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+kogridview
-.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 
 Views kwargs
 ------------
@@ -198,6 +197,12 @@ For introduction to viewmodels, see :doc:`viewmodels`.
 
 For more detailed explanation of these views see :ref:`viewmodels_ajax_actions`.
 
+Datatables
+----------
+
+* `KoGridView`_ - together with ``grid.js`` allows to create AJAX powered django.admin-like datatables with filtering,
+  sorting, search, CRUD actions and custom actions. See :doc:`datatables` for more details.
+
 Useful methods / classes of the views module
 --------------------------------------------
 
@@ -208,5 +213,3 @@ Useful methods / classes of the views module
 * ``cbv_decorator()`` - may be used to check class-based views permissions.
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
   class-based view.
-* `KoGridView`_ - together with ``grid.js`` allows to create AJAX powered django.admin-like datatables with filtering,
-  sorting, search, CRUD actions and custom actions. See :doc:`datatables` for more details.
