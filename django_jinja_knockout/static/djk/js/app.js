@@ -169,8 +169,12 @@ App.newClassByPath = function(classPath, classPathArgs) {
     return self
 };
 
+/**
+ * Do not log googlebot errors, because it has flawed interpreter which constantly produces errors, unavailable in
+ * Selenium tests.
+ */
 App.jsErrorFilter = function(data) {
-    return true;
+    return data.userAgent.indexOf('Googlebot') === -1;
 };
 
 App.previousErrorHandler = window.onerror;
