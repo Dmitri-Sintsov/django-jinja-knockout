@@ -7,6 +7,7 @@
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ModelFormActionsView
+.. _NavsList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NavsList
 .. _set_knockout_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=set_knockout_template
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=class+ViewmodelView
 
@@ -99,7 +100,7 @@ The following views inherit this class:
 BsTabsMixin
 -----------
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
-  ``bs_navs()`` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
+  :ref:`macros_bs_navs` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
 * ``prepare_bs_navs()`` - highlight current url of Bootstrap navbar. Since version 0.8.0 it's possible to override
   the highlighted navbar link by specifying navs[]['attrs']['class'] = 'active' value.
 
@@ -149,6 +150,10 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
 
         def get_success_url(self):
             return reverse('club_detail', kwargs={'club_id': self.object.pk})
+
+Since v0.8.0, ``main_navs`` may be the instance of `NavsList`_ type, which holds ``props`` dict attribute, allowing to
+pass extra data to Jinja2 template which then would call :ref:`macros_bs_navs` Jinja2 macro. That allows to set CSS
+styles dynamically via `NavsList`_ ``props``.
 
 .. _views_listsortingview:
 

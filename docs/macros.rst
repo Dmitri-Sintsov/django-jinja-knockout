@@ -311,6 +311,8 @@ No override (no call) see `cbv_list.htm`_ for example::
 For the example of customizing :ref:`views_listsortingview` has_filters section / has_pagination section see the
 djk-sample `club_list_with_component.htm`_ Jinja2 template.
 
+.. _macros_bs_navs:
+
 bs_navs()
 ~~~~~~~~~
 This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`views_bstabsmixin` template context

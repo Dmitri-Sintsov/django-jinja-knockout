@@ -11,6 +11,7 @@
 .. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
 .. _Renderers: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
 .. _query.py: https://django-jinja-knockout.readthedocs.io/en/latest/query.html
+.. _utils.sdv: https://django-jinja-knockout.readthedocs.io/en/latest/utils_sdv.html
 .. _tpl: https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://django-jinja-knockout.readthedocs.io/en/latest/views.html
@@ -119,6 +120,18 @@ tpl.py
 * Model / content type links formatters.
 
 See `tpl`_ for more info.
+
+utils/sdv.py
+------------
+Low-level helper functions:
+
+* Class / model helpers.
+* Debug logging.
+* Iteration.
+* Nested data structures access.
+* String conversion.
+
+See `utils.sdv`_ for more info.
 
 viewmodels.py
 -------------
