@@ -1,6 +1,6 @@
 .. _get_choice_str(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_choice_str
 .. _get_FOO_display(): https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display
-.. _nested_update: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=nested_update
+.. _nested_update(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=nested_update
 
 ============
 utils/sdv.py
@@ -67,17 +67,18 @@ For example::
 
 Iteration
 ---------
-* ``reverse_enumerate``
-* ``iter_enumerate``
-* ``yield_ordered``
-* ``UniqueIterList``
+* ``reverse_enumerate()``
+* ``iter_enumerate()`` - enumerates both dicts, lists and tuples of lists (dict-like structures with repeated keys) in
+  unified way.
+* ``yield_ordered()`` - ordered enumeration of dicts (Python 3.6+) / OrderedDict / lists.
+* ``UniqueIterList`` - removes duplicate items from the list during the iteration.
 
 String helpers
 --------------
-* ``str_to_numeric`` - convert string to numeric value, when possible
+* ``str_to_numeric`` - convert string to numeric value, when possible.
 
 Nested data structures access
 -----------------------------
-* ``get_nested`` / ``set_nested`` / ``nested_values`` for nested data with mixed lists / dicts.
-* `nested_update`_ recursive update of Python dict. Used in :doc:`datatables` extended classes to update ``super()``
+* ``get_nested()`` / ``set_nested()`` / ``nested_values()`` for nested data with mixed lists / dicts.
+* `nested_update()`_ recursive update of Python dict. Used in :doc:`datatables` extended classes to update ``super()``
   ``.get_actions()`` action dict.

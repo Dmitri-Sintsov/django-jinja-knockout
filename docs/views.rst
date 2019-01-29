@@ -152,8 +152,8 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
             return reverse('club_detail', kwargs={'club_id': self.object.pk})
 
 Since v0.8.0, ``main_navs`` may be the instance of `NavsList`_ type, which holds ``props`` dict attribute, allowing to
-pass extra data to Jinja2 template which then would call :ref:`macros_bs_navs` Jinja2 macro. That allows to set CSS
-styles dynamically via `NavsList`_ ``props``.
+pass extra data to Jinja2 template which then would call :ref:`macros_bs_navs` Jinja2 macro. That allows to set the
+navbar menu CSS styles dynamically via `NavsList`_ ``props``.
 
 .. _views_listsortingview:
 
