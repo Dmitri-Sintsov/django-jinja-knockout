@@ -196,7 +196,9 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
             'error': error + '',
             'stack': stack + '',
         };
-        if (App.conf.jsErrorsLogging && App.jsErrorFilter(data)) {
+        data.filter = App.jsErrorFilter(data);
+        if (App.conf.jsErrorsLogging && data.filter) {
+            data.filter = App.jsErrorFilter + ' -> ' + data.filter;
             data.csrfmiddlewaretoken = App.conf.csrfToken;
             $.post('/-djk-js-error-/',
                 data,

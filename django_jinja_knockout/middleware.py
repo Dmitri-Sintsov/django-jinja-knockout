@@ -285,6 +285,7 @@ class ContextMiddleware(RouterMiddleware):
             'colno',
             'error',
             'stack',
+            'filter',
         ]
         vms = vm_list()
         if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
