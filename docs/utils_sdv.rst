@@ -6,11 +6,35 @@
 utils/sdv.py
 ============
 
-Debug logging
--------------
-
 Contains helper functions internally used by django-jinja-knockout. Some of these might be useful in Django project
 modules.
+
+Class / model helpers
+---------------------
+* ``get_object_members()``
+* ``get_class_that_defined_method()``
+* ``extend_instance()`` - allows to dynamically add mixin class to class instance. Can be used to dynamically add
+  different :ref:`views_BsTabsMixin` ancestors to create context-aware navbar menus.
+* ``FuncArgs`` - class which instance may hold args / kwargs which then may be applied to the specified method.
+* ``get_str_type()`` - get string of type for the specified object.
+* `get_choice_str()`_ - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
+  an instance of particular Django model object.
+
+For example::
+
+    class Member(models.Model):
+
+        # ... skipped ...
+        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
+
+    from .models import Member
+    from django_jinja_knockout.models import get_choice_str
+
+    # ... skipped ...
+    role_str = sdv.get_choice_str(Member.ROLES, role_val)
+
+Debug logging
+-------------
 
 ``dbg()`` - dumps ``value`` into text log file `'sdv_out.py3'` under ``name`` label. To setup log file path specify the
 ``LOGPATH`` value in Django project ``settings.py`` like that::
@@ -41,30 +65,6 @@ When Project.save() method will be executed, `'sdv_out.py3'` log file will conta
 
 Where ``9`` was the value of ``self.pk``.
 
-Class / model helpers
----------------------
-* ``get_object_members()``
-* ``get_class_that_defined_method()``
-* ``extend_instance()`` - allows to dynamically add mixin class to class instance. Can be used to dynamically add
-  different :ref:`views_BsTabsMixin` ancestors to create context-aware navbar menus.
-* ``FuncArgs`` - class which instance may hold args / kwargs which then may be applied to the specified method.
-* ``get_str_type()`` - get string of type for the specified object.
-* `get_choice_str()`_ - Similar to Django model built-in magic method `get_FOO_display()`_ but does not require to have
-  an instance of particular Django model object.
-
-For example::
-
-    class Member(models.Model):
-
-        # ... skipped ...
-        role = models.IntegerField(choices=ROLES, default=ROLE_MEMBER, verbose_name='Member role')
-
-    from .models import Member
-    from django_jinja_knockout.models import get_choice_str
-
-    # ... skipped ...
-    role_str = sdv.get_choice_str(Member.ROLES, role_val)
-
 Iteration
 ---------
 * ``reverse_enumerate()``
@@ -73,12 +73,12 @@ Iteration
 * ``yield_ordered()`` - ordered enumeration of dicts (Python 3.6+) / OrderedDict / lists.
 * ``UniqueIterList`` - removes duplicate items from the list during the iteration.
 
-String helpers
---------------
-* ``str_to_numeric`` - convert string to numeric value, when possible.
-
 Nested data structures access
 -----------------------------
 * ``get_nested()`` / ``set_nested()`` / ``nested_values()`` for nested data with mixed lists / dicts.
 * `nested_update()`_ recursive update of Python dict. Used in :doc:`datatables` extended classes to update ``super()``
   ``.get_actions()`` action dict.
+
+String helpers
+--------------
+* ``str_to_numeric`` - convert string to numeric value, when possible.

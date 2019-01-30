@@ -36,24 +36,6 @@ Since version 0.8.0, `Renderer`_ class is implemented which is internally used t
 Django modelforms. See :ref:`forms_renderers` for more detail, although it's usage is not limited to forms as it
 supports rendering of any object with it's related context data and template with the possible nesting of renderers.
 
-String manipulation
--------------------
-
-* ``limitstr()`` - cut string after specified length.
-* ``repeat_insert()`` - separate string every nth character with specified separator characters.
-
-String formatting
------------------
-
-* `json_flatatt()`_ - similar to Django `flatatt()`_, but converts dict / list / tuple / bool HTML attribute
-  values to JSON string. Used in :doc:`macros`.
-* `format_html_attrs()`_ - similar to Django `format_html()`_, but converts dict / list / tuple / bool HTML attribute
-  values to JSON string. Used to generate :ref:`clientside_components`.
-* ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
-* ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
-  :doc:`utils_mail` ``SendmailQueue`` to convert HTML body of email message to text-only body.
-* ``to_json()`` - converts Python structures to JSON utf-8 string.
-
 Contenttypes framework helpers
 ------------------------------
 
@@ -69,6 +51,21 @@ Contenttypes framework helpers
     {% if ctl.url is not none %}
         </a>
     {% endif %}
+
+Manipulation with css classes
+-----------------------------
+
+* ``escape_css_selector()`` - can be used with server-generated AJAX viewmodels or in Selenium tests.
+* ``add_css_classes()`` - similar to client-side ``jQuery`` `.addClass()`_;
+* ``has_css_classes()`` - similar to client-side ``jQuery`` `.hasClass()`_;
+* ``remove_css_classes()`` - similar to client-side ``jQuery`` `.removeClass()`_;
+
+Optimized for usage as argument of ``Django`` `flatatt()`_:
+
+* ``add_css_classes_to_dict()`` - adds CSS classes to the end of the string
+* ``has_css_classes_in_dict()``
+* ``prepend_css_classes_to_dict()`` - adds CSS classes to the begin of the string
+* ``remove_css_classes_from_dict()``
 
 Objects rendering
 -----------------
@@ -118,20 +115,23 @@ Objects rendering
 
 Internally `str_dict()`_ uses lower level ``flatten_dict()`` function which is defined in the same module.
 
-Manipulation with css classes
------------------------------
+String manipulation
+-------------------
 
-* ``escape_css_selector()`` - can be used with server-generated AJAX viewmodels or in Selenium tests.
-* ``add_css_classes()`` - similar to client-side ``jQuery`` `.addClass()`_;
-* ``has_css_classes()`` - similar to client-side ``jQuery`` `.hasClass()`_;
-* ``remove_css_classes()`` - similar to client-side ``jQuery`` `.removeClass()`_;
+* ``limitstr()`` - cut string after specified length.
+* ``repeat_insert()`` - separate string every nth character with specified separator characters.
 
-Optimized for usage as argument of ``Django`` `flatatt()`_:
+String formatting
+-----------------
 
-* ``add_css_classes_to_dict()`` - adds CSS classes to the end of the string
-* ``has_css_classes_in_dict()``
-* ``prepend_css_classes_to_dict()`` - adds CSS classes to the begin of the string
-* ``remove_css_classes_from_dict()``
+* `json_flatatt()`_ - similar to Django `flatatt()`_, but converts dict / list / tuple / bool HTML attribute
+  values to JSON string. Used in :doc:`macros`.
+* `format_html_attrs()`_ - similar to Django `format_html()`_, but converts dict / list / tuple / bool HTML attribute
+  values to JSON string. Used to generate :ref:`clientside_components`.
+* ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
+* ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
+  :doc:`utils_mail` ``SendmailQueue`` to convert HTML body of email message to text-only body.
+* ``to_json()`` - converts Python structures to JSON utf-8 string.
 
 URL resolution
 --------------
