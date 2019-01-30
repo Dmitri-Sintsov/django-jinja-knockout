@@ -106,6 +106,8 @@ query.py
 It makes possible to use raw SQL queries and Python lists as the arguments of datatables / filtered lists.
 See `query.py`_ for more info.
 
+.. _quickstart_serializers:
+
 serializers.py
 --------------
 Nested serializer for Django model instances with localization / internationalisation. Note that the serializer is

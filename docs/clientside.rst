@@ -167,10 +167,17 @@ The following html5 data attributes are used by `App.Tpl`_ template processor:
     * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow.
     * ``.templates`` - key map of template ids to optionally substitute template names.
 
+.. _clientside_attributes_merging:
+
+Template attributes merging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Since version 0.8.0, the DOM attributes of the template holder tag different from ``data-template-*`` are copied to the
 root DOM node of the expanded template. This allows to get the rid of template wrapper when using the templates as
 the foundation of components. For example datatables / grid templates do not use separate wrapper tag anymore and thus
 become simpler.
+
+.. _clientside_custom_tags:
 
 Custom tags
 ~~~~~~~~~~~
@@ -258,6 +265,8 @@ component binding.
 Since version 0.8.0, components use `App.ComponentManager`_ class which provides the support for nested components and
 for sparse components.
 
+.. _clientside_nested_components:
+
 Nested components
 ~~~~~~~~~~~~~~~~~
 
@@ -283,6 +292,8 @@ components running on events, while the default document ready nested components
 The limitation is not so big, however because most of the components have dynamic content populated only when they run.
 
 See the demo project example of nested datatable grid component: `member_grid_tabs.htm`_.
+
+.. _clientside_sparse_components:
 
 Sparse components
 ~~~~~~~~~~~~~~~~~

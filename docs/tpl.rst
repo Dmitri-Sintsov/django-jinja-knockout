@@ -1,9 +1,12 @@
+.. _.addClass(): https://api.jquery.com/addclass/
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.html.format_html
 .. _format_html_attrs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=format_html_attrs
 .. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
 .. _json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 .. _PrintList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PrintList
+.. _readonly_fields: https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.readonly_fields
+.. _.removeClass(): https://api.jquery.com/removeclass/
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer
 .. _str_dict(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=str_dict
 
@@ -11,9 +14,16 @@
 tpl.py
 ======
 
-Various formatting functions, primarily to be used in ``django.admin`` ``admin.ModelAdmin`` classes ``readonly_fields``,
-Jinja2 templates and ``DisplayText`` :doc:`widgets`. Since version 0.8.0, the significant part of the module is
-implemented via :doc:`djk_ui` package.
+Various formatting functions, primarily to be used in:
+
+* ``admin.ModelAdmin`` classes `readonly_fields`_
+* :doc:`macros` and templates
+* :ref:`clientside_components`
+* ``DisplayText`` :doc:`widgets`
+
+Since version 0.8.0, the significant part of the module is implemented via :doc:`djk_ui` package.
+
+.. _tpl_renderer:
 
 Renderer
 --------
@@ -103,8 +113,8 @@ Internally `str_dict()`_ uses lower level ``flatten_dict()`` function which is d
 Manipulation with css classes
 -----------------------------
 
- * ``add_css_classes()`` - similar to client-side ``jQuery.addClass()``;
- * ``remove_css_classes()`` - similar to client-side ``jQuery.removeClass()``;
- * ``add_css_classes_to_dict()`` - optimized for usage as argument of ``django.forms.utils`` ``flatatt()``;
- * ``remove_css_classes_from_dict()`` - optimized for usage as argument of ``django.forms.utils`` ``flatatt()``;
- * ``escape_css_selector()`` - can be used with server-generated AJAX viewmodels or in Selenium tests.
+* ``add_css_classes()`` - similar to client-side ``jQuery`` `.addClass()`_;
+* ``remove_css_classes()`` - similar to client-side ``jQuery`` `.removeClass()`_;
+* ``add_css_classes_to_dict()`` - optimized for usage as argument of ``Django`` `flatatt()`_;
+* ``remove_css_classes_from_dict()`` - optimized for usage as argument of ``Django`` `flatatt()`_;
+* ``escape_css_selector()`` - can be used with server-generated AJAX viewmodels or in Selenium tests.

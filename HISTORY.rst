@@ -2,6 +2,8 @@
 
 .. _add_instance: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=add_instance
 .. _bs_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+.. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
+.. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _contenttypes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/contenttypes.py
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _djk_seed: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/management/commands/djk_seed.py
@@ -279,11 +281,9 @@ Alternative breadcrumbs layout of field filters widgets.
 
 0.8.0
 -----
-Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
-custom template or via inheriting the renderer class.
-
-Underscore.js templates support attribute merging and custom tags.
-
-Nested / sparse client-side components.
-
-Nested serializer.
+* Supports both `Bootstrap 4`_ and `Bootstrap 3`_ via pluggable djk_ui application.
+* Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized by providing
+  custom template or via inheriting from :ref:`tpl_renderer` class.
+* Underscore.js templates support :ref:`clientside_attributes_merging` and :ref:`clientside_custom_tags`.
+* :ref:`clientside_nested_components` / :ref:`clientside_sparse_components`.
+* Nested serializer (:ref:`quickstart_serializers`).

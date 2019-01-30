@@ -239,12 +239,12 @@ Now let's add an url name (route) in `urls.py`_::
 kwargs value HTTP routing to provide grid pagination and optional CRUD actions. Custom actions might be implemented
 via ancestor classes of ``KoGridView``.
 
-We assume that our grid may later define actions which can change ``Club`` table rows, thus our view requires
+We assume that our datatable grid may later define actions which can change ``Club`` table rows, thus our view requires
 ``club_app.change_club`` permission from built-in ``django.contrib.auth`` module.
 
 .. highlight:: jinja
 
-Our grid is works just with few lines of code, but where is the template that generated initial HTML content?
+Our datatable grid is works just with few lines of code, but where is the template that generated initial HTML content?
 
 By default, KoGridView uses built-in `cbv_grid.htm`_ template, which content looks like this::
 
