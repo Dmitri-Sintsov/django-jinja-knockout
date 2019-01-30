@@ -2,12 +2,16 @@
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.html.format_html
 .. _format_html_attrs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=format_html_attrs
-.. _get_str_fields(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_str_fields
+.. _get_absolute_url(): https://docs.djangoproject.com/en/dev/ref/models/instances/#get-absolute-url
+.. _.hasClass(): https://api.jquery.com/hasclass/
 .. _json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
+.. _namespaced urls: https://docs.djangoproject.com/en/dev/topics/http/urls/#url-namespaces-and-included-urlconfs
 .. _PrintList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PrintList
 .. _readonly_fields: https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.readonly_fields
 .. _.removeClass(): https://api.jquery.com/removeclass/
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer
+.. _.resolver_match: https://docs.djangoproject.com/en/dev/ref/request-response/#django.http.HttpRequest.resolver_match
+.. _sprintf.js: https://github.com/alexei/sprintf.js/
 .. _str_dict(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=str_dict
 
 ======
@@ -48,6 +52,7 @@ String formatting
 * ``format_local_date()`` - output localized ``Date`` / ``DateTime``.
 * ``html_to_text()`` - convert HTML fragment with anchor links into plain text with text links. It's used in
   :doc:`utils_mail` ``SendmailQueue`` to convert HTML body of email message to text-only body.
+* ``to_json()`` - converts Python structures to JSON utf-8 string.
 
 Contenttypes framework helpers
 ------------------------------
@@ -68,6 +73,8 @@ Contenttypes framework helpers
 Objects rendering
 -----------------
 
+* ``Str`` / ``ModelLinker`` - render Model links with descriptions which supports `get_absolute_url()`_ and
+  :ref:`get_str_fields()`;
 * `PrintList`_ class supports custom formatting of nested Python structures, including the mix of dicts and lists.
   There are some already setup function helpers which convert nested content to various (HTML) string representations,
   using `PrintList`_ class instances:
@@ -82,10 +89,11 @@ Objects rendering
 
 .. highlight:: python
 
-* `str_dict()`_ - Django models could define `get_str_fields()`_ method which maps model instance field values to their
-  formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate fields.
-  If these models have foreign keys pointing to another models which also have `get_str_fields()`_ defined,
-  `str_dict()`_ can be used to convert nested dict `get_str_fields()`_ values to flat strings in ``__str__()`` method::
+* `str_dict()`_ - Django models could define :ref:`get_str_fields()` method which maps model instance field values to
+  their formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate
+  fields. If these models have foreign keys pointing to another models which also have :ref:`get_str_fields()` defined,
+  `str_dict()`_ can be used to convert nested dict :ref:`get_str_fields()` values to flat strings in ``__str__()``
+  method::
 
     class Member(models.Model):
 
@@ -113,8 +121,27 @@ Internally `str_dict()`_ uses lower level ``flatten_dict()`` function which is d
 Manipulation with css classes
 -----------------------------
 
-* ``add_css_classes()`` - similar to client-side ``jQuery`` `.addClass()`_;
-* ``remove_css_classes()`` - similar to client-side ``jQuery`` `.removeClass()`_;
-* ``add_css_classes_to_dict()`` - optimized for usage as argument of ``Django`` `flatatt()`_;
-* ``remove_css_classes_from_dict()`` - optimized for usage as argument of ``Django`` `flatatt()`_;
 * ``escape_css_selector()`` - can be used with server-generated AJAX viewmodels or in Selenium tests.
+* ``add_css_classes()`` - similar to client-side ``jQuery`` `.addClass()`_;
+* ``has_css_classes()`` - similar to client-side ``jQuery`` `.hasClass()`_;
+* ``remove_css_classes()`` - similar to client-side ``jQuery`` `.removeClass()`_;
+
+Optimized for usage as argument of ``Django`` `flatatt()`_:
+
+* ``add_css_classes_to_dict()`` - adds CSS classes to the end of the string
+* ``has_css_classes_in_dict()``
+* ``prepend_css_classes_to_dict()`` - adds CSS classes to the begin of the string
+* ``remove_css_classes_from_dict()``
+
+URL resolution
+--------------
+* ``get_formatted_url()`` converts url with supplied ``url_name`` from regex named parameters eg. ``(?P<arg>\w+)`` to
+  ``sprintf()`` named formatters eg. ``%(arg)s``. Such urls are injected into client-side as
+  :ref:`viewmodels_client_side_routes` and then are resolved via the bundled `sprintf.js`_ library.
+* ``resolve_cbv()`` takes ``url_name`` and it's ``kwargs`` and returns a function view or a class-based view for these
+  arguments, when available::
+
+    tpl.resolve_cbv(url_name, view_kwargs)
+
+Current request's ``url_name`` can be obtained from the ``request`` `.resolver_match`_ ``.url_name``, or ``.view_name``
+for `namespaced urls`_.

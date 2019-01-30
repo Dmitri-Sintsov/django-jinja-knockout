@@ -325,6 +325,8 @@ kwargs key ``is_ajax`` to ``True`` (optional step)::
     # ...
     url(r'^button-click/$', button_click, name='button-click', kwargs={'ajax': True}),
 
+.. _viewmodels_client_side_routes:
+
 Client-side routes
 ~~~~~~~~~~~~~~~~~~
 Register AJAX client-side route (url name) in ``context_processors.py``::

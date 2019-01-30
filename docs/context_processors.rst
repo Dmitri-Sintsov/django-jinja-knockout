@@ -25,6 +25,7 @@ Next are the methods that alter 'class' key value of the supplied HTML attrs dic
 
 * ``tpl.add_css_classes_to_dict()``
 * ``tpl.has_css_classes_in_dict()``
+* ``tpl.prepend_css_classes_to_dict()``
 * ``tpl.remove_css_classes_from_dict()``
 
 Injection of server-side data into loaded page
@@ -71,12 +72,12 @@ Meta and formatting
 Advanced url resolution, both forward and reverse
 -------------------------------------------------
 
-* ``resolve_cbv()`` takes url_name and kwargs and returns a function view or a class-based view for these arguments,
+* ``tpl.resolve_cbv()`` takes url_name and kwargs and returns a function view or a class-based view for these arguments,
   when available::
 
     tpl.resolve_cbv(url_name, view_kwargs)
 
-* ``reverseq()`` allows to build reverse urls with optional query string specified as Python dict::
+* ``tpl.reverseq()`` allows to build reverse urls with optional query string specified as Python dict::
 
     tpl.reverseq('my_url_name', kwargs={'project_id': project.pk}, query={'type': 'approved'})
 

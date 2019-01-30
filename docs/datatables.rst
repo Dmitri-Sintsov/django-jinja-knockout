@@ -757,6 +757,9 @@ types of values:
 
 .. _get_str_fields():
 
+get_str_fields model formatting / serialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Nested list of values, which is automatically passed to client-side in AJAX response by ``KoGridView`` when current
   Django model has ``get_str_fields()`` method implemented. This method returns str() representation of some or all
   model fields::

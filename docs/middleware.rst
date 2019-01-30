@@ -145,9 +145,9 @@ fully qualified names like this::
 
     from django_jinja_knockout.apps import DjkAppConfig
     request = DjkAppConfig.get_context_middleware().get_request()
-    from django_jinja_knockout.tpl import reverseq
+    from django_jinja_knockout import tpl
     # Will return fully-qualified URL for the specified route with query string appended:
-    reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
+    tpl.reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
 
 By default domain name is taken from current configured Django `site`_. Otherwise either ``settings``. ``DOMAIN_NAME``
 or ``settings``. ``ALLOWED_HOSTS`` should be set to autodetect current domain name.
