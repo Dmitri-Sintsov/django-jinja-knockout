@@ -4,7 +4,7 @@
 # Setup ~/.pypirc at https://packaging.python.org/guides/migrating-to-pypi-org/
 # python setup.py sdist
 # pip3 install twine
-# twine upload -r test dist/django-jinja-knockout-0.6.0.tar.gz
+# twine upload -r test dist/django-jinja-knockout-0.8.0.tar.gz
 
 import os
 import sys
@@ -43,7 +43,7 @@ with open('requirements.txt', 'r') as f:
 setup(
     name='django-jinja-knockout',
     version=version,
-    description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX grids with CRUD and custom actions. Supports Django Templates.""",
+    description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX datatables with CRUD and custom actions. Supports Django Templates.""",
     long_description=readme + '\n\n' + history,
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
@@ -55,7 +55,7 @@ setup(
     install_requires=install_reqs,
     license="LGPL-3.0",
     zip_safe=False,
-    keywords='django jinja knockout.js ajax forms grid datagrid datatables'.split(),
+    keywords='django jinja knockout.js ajax forms datatables grid datagrid'.split(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
