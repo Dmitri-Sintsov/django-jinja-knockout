@@ -481,5 +481,5 @@ client-side scripts:
 
 tooltips.js
 -----------
-* Implements :doc:`viewmodels` for Bootstrap 3 tooltips and popovers. These viewmodels are used in client-side part of
+* Implements :doc:`viewmodels` for Bootstrap tooltips and popovers. These viewmodels are used in client-side part of
   AJAX forms validation, but not limited to.

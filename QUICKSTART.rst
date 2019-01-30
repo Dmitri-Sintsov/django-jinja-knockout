@@ -121,7 +121,7 @@ tpl.py
 * HTML / CSS manipulation in Python.
 * Date / url / JSON formatting.
 * Model / content type links formatters.
-* `discover_grid_options()`_ enables to embed :doc:`datatables` into arbitrary HTML DOM subtrees.
+* `discover_grid_options()`_ enables to embed `datatables`_ into arbitrary HTML DOM subtrees.
 
 See `tpl`_ for more info.
 
