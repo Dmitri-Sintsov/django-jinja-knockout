@@ -2,4 +2,4 @@
 Datatable grids
 ===============
 
-:doc:`datatables`
+See :doc:`datatables`

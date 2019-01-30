@@ -5,13 +5,19 @@ django-jinja-knockout
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _celery: http://www.celeryproject.org/
+.. _custom tags: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-custom-tags
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
-.. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
+.. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
+.. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
+.. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#tpl-renderer
 .. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
+.. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
+.. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
+.. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
 .. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
@@ -119,13 +125,13 @@ Major changes (version 0.8.0)
 `Bootstrap 4`_ / `Bootstrap 3`_ support.
 
 Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized via providing
-custom template or via inheriting the renderer class.
+custom template or via inheriting the `Renderer`_ class.
 
-Underscore.js templates support attribute merging and custom tags.
+Underscore.js templates support `template attributes merging`_ and `custom tags`_.
 
-Nested / sparse client-side components.
+`Nested components`_ and `Sparse components`_ at the client-side.
 
-Nested serializer.
+`Nested serializer`_.
 
 Major changes (version 0.7.0)
 -----------------------------

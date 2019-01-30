@@ -5,14 +5,20 @@
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _contenttypes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/contenttypes.py
+.. _custom tags: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-custom-tags
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _djk_seed: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/management/commands/djk_seed.py
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
 .. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=modelFormAction&utf8=%E2%9C%93
+.. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
+.. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
+.. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#tpl-renderer
 .. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
+.. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
+.. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _validators: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/validators.py
@@ -283,7 +289,7 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * Supports both `Bootstrap 4`_ and `Bootstrap 3`_ via pluggable djk_ui application.
 * Default rendering layouts for fields / forms / related forms / inline formsets, which can be customized by providing
-  custom template or via inheriting from :ref:`tpl_renderer` class.
-* Underscore.js templates support :ref:`clientside_attributes_merging` and :ref:`clientside_custom_tags`.
-* :ref:`clientside_nested_components` / :ref:`clientside_sparse_components`.
-* Nested serializer (:ref:`quickstart_serializers`).
+  custom template or via inheriting from `Renderer`_ class.
+* Underscore.js templates support `template attributes merging`_ and `custom tags`_.
+* `Nested components`_ and `Sparse components`_.
+* `Nested serializer`_.

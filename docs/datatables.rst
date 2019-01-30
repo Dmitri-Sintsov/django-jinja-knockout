@@ -405,6 +405,8 @@ Since version 0.4.1, ``ko_grid_body()`` macro includes two versions of filter fi
 Grid configuration
 ==================
 
+.. highlight:: python
+
 Let's see some more advanced grid sample for the ``club_app.models.Member``, Django view part::
 
     from django_jinja_knockout.views import KoGridView
