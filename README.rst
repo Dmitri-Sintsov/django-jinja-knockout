@@ -111,7 +111,7 @@ Uses:
 * https://github.com/mitsuhiko/jinja2
 * https://github.com/niwinz/django-jinja
 * Provides DTL tag library to include Jinja2 templates into DTL templates.
-* Knockout.js is used for XSS-safe ``empty_form`` handling.
+* Knockout.js is used to provide `datatables`_ and for XSS-safe ``empty_form`` handling.
 * AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
   implemented via bundled client-side scripts.
 
