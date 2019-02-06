@@ -112,8 +112,7 @@ Uses:
 * https://github.com/niwinz/django-jinja
 * Provides DTL tag library to include Jinja2 templates into DTL templates.
 * Knockout.js is used to provide `datatables`_ and for XSS-safe ``empty_form`` handling.
-* AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
-  implemented via bundled client-side scripts.
+* AJAX form validation, AJAX `viewmodels`_ response routing are implemented via bundled client-side scripts.
 
 Django primary usage are non-SPA classical Web applications, which aren't "outdated" in any way - because such
 applications are much better indexable by web crawlers and Python is better language than Javascript in general, also
