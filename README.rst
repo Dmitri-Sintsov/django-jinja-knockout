@@ -6,6 +6,7 @@ django-jinja-knockout
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _celery: http://www.celeryproject.org/
 .. _custom tags: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-custom-tags
+.. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _Knockout.js: http://knockoutjs.com/
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
@@ -69,7 +70,7 @@ Localization:
 Key features
 ------------
 
-* AJAX based django.admin-like paginated datatables (grids) with sorting / filters and custom actions.
+* AJAX based django.admin-like paginated `datatables`_ (grids) with sorting / filters and custom actions.
 * Integrates Jinja2 into existing Django templates (DTL).
 * `Bootstrap 3`_ / `Bootstrap 4`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
@@ -96,29 +97,27 @@ Overview
 --------
 
 Templating languages are my favorite topic in programming. I love semantically organic way of HTML templating in
-Knockout.js that uses html5 "data-bind" JSON-like attributes instead of semantically alien double braces, which
-conflicts to almost every server-side templating language (including DTL and Jinja2).
+Knockout.js that uses unobtrusive ``data-bind`` HTML attributes with JSON-like values, instead of semantically alien
+double braces, which produces conflicts to almost every server-side templating language (including DTL and Jinja2).
 
-When developing with Django, I felt a lack of more powerful server-side templating when used built-in DTL templates.
-So I switched to Jinja2, thank to Django 1.8+ built-in support of this templating engine and to great project
-https://github.com/niwinz/django-jinja which simplifies Jinja2 integration. I took further step, providing DTL tag
-library to include Jinja2 templates into DTL templates.
+In this project two great templating engines client-side Knockout.js and server-side Jinja2 meet together. That allows
+to write complex dynamic HTML code with less effort, cleaner look and easily readable. Both also are very fast,
+Knockout.js templates being one of the fastest at client-side, while Jinja2 estimated to be faster few times than the
+built-in DTL templates, and is more powerful.
 
-In this project two great templating engines (client-side https://github.com/knockout/knockout and server-side
-https://github.com/mitsuhiko/jinja2) meet together. That allows to write complex dynamic HTML code with less
-effort, cleaner look and easily readable. Both also are very fast, Knockout.js templates being one of the fastest at
-client-side, while Jinja2 estimated to be faster few times than built-in DTL templates, and is more powerful.
+Uses:
 
-When thinking of Angluar.js, not only I dislike curly braces in templates but also I believe that using such large
-framework for non-SPA applications is an overkill. Django primary usage are non-SPA classical Web applications, which
-aren't "outdated" in any way - because such applications are much better indexable by web crawlers and Python is better
-language than Javascript in general, and server-side has less glitches than browsers.
+* https://github.com/knockout/knockout
+* https://github.com/mitsuhiko/jinja2
+* https://github.com/niwinz/django-jinja
+* Provides DTL tag library to include Jinja2 templates into DTL templates.
+* Knockout.js is used for XSS-safe ``empty_form`` handling.
+* AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
+  implemented via bundled client-side scripts.
 
-My personal feeling is that Django itself lacks a bit heavier support of client-side Javascript out-of-box. Knockout.js
-would be great inclusion for ``empty_form`` handling and in ``django.admin``, considering it's small size.
-
-AJAX form validation, AJAX `viewmodels`_ response routing and Knockout.js processing of ``formset.empty_form`` are
-implemented via bundled client-side scripts.
+Django primary usage are non-SPA classical Web applications, which aren't "outdated" in any way - because such
+applications are much better indexable by web crawlers and Python is better language than Javascript in general, also
+server-side has less glitches than browsers.
 
 Major changes (version 0.8.0)
 -----------------------------
