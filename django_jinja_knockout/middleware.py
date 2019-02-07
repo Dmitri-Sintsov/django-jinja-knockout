@@ -5,7 +5,6 @@ import threading
 from urllib.parse import urlsplit
 
 import django
-from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.encoding import force_text
 from django.utils import timezone
@@ -16,7 +15,7 @@ from django.test.client import RequestFactory
 
 from .utils import sdv
 from .utils.modules import get_fqn
-from .tpl import format_html_attrs
+from .tpl import format_html_attrs, DjkJSONEncoder
 from .views import auth_redirect, error_response, exception_response
 from .viewmodels import vm_list, onload_vm_list, has_vm_list
 
@@ -48,17 +47,6 @@ class ScriptList(sdv.UniqueIterList):
     def iter_callback(self, val):
         parsed = urlsplit(val)
         return parsed.path
-
-
-class DjkJSONEncoder(DjangoJSONEncoder):
-
-    def default(self, o):
-        if isinstance(o, Promise):
-            # force_text() is used because django.contrib.auth.models.User incorporates the instances of
-            # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
-            return force_text(o)
-        else:
-            return super().default(o)
 
 
 class JsonResponse(HttpResponse):

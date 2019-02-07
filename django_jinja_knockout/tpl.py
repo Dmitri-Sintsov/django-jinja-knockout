@@ -3,11 +3,13 @@ import json
 import re
 import pytz
 import lxml.html
+from jinja2 import DebugUndefined
 from lxml import etree
 from ensure import ensure_annotations
 from datetime import date, datetime
 from urllib.parse import urlencode
 
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import formats, timezone
 from django.utils.encoding import smart_text
 from django.utils.functional import Promise, SimpleLazyObject
@@ -446,8 +448,21 @@ def get_formatted_url(url_name):
         raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
 
 
+class DjkJSONEncoder(DjangoJSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, Promise):
+            # force_text() is used because django.contrib.auth.models.User incorporates the instances of
+            # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
+            return force_text(o)
+        if isinstance(o, DebugUndefined):
+            return o.__str__()
+        else:
+            return super().default(o)
+
+
 def to_json(self):
-    return json.dumps(self, ensure_ascii=False)
+    return json.dumps(self, ensure_ascii=False, cls=DjkJSONEncoder)
 
 
 def json_flatatt(atts):
