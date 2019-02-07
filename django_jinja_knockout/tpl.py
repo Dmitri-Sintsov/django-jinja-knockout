@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import formats, timezone
-from django.utils.encoding import smart_text
+from django.utils.encoding import force_text, smart_text
 from django.utils.functional import Promise, SimpleLazyObject
 from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf

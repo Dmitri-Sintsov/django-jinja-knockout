@@ -6,7 +6,6 @@ from urllib.parse import urlsplit
 
 import django
 from django.utils.functional import Promise
-from django.utils.encoding import force_text
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
