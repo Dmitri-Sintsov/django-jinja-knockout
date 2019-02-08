@@ -2,7 +2,8 @@
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.html.format_html
 .. _format_html_attrs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=format_html_attrs
-.. _get_absolute_url(): https://docs.djangoproject.com/en/dev/ref/models/instances/#get-absolute-url
+.. _get_absolute_url() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_absolute_url
+.. _get_absolute_url() documentation: https://docs.djangoproject.com/en/dev/ref/models/instances/#get-absolute-url
 .. _.hasClass(): https://api.jquery.com/hasclass/
 .. _json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 .. _namespaced urls: https://docs.djangoproject.com/en/dev/topics/http/urls/#url-namespaces-and-included-urlconfs
@@ -70,8 +71,24 @@ Optimized for usage as argument of ``Django`` `flatatt()`_:
 Objects rendering
 -----------------
 
-* ``Str`` / ``ModelLinker`` - render Model links with descriptions which supports `get_absolute_url()`_ and
-  :ref:`get_str_fields()`;
+.. highlight:: python
+
+* ``Str`` - string with may have extra attributes. It's used with ``get_absolute_url()`` model method. See
+  `get_absolute_url() documentation`_ and `get_absolute_url() sample`_::
+
+    class Manufacturer(models.Model):
+
+        # ... skipped ...
+
+        title = models.CharField(max_length=64, unique=True, verbose_name='Title')
+
+        def get_absolute_url(self):
+            url = Str(reverse('club_detail', kwargs={'club_id': self.pk}))
+            url.text = str(self.title)
+            return url
+
+* ``ModelLinker`` - render Model links with descriptions which supports ``get_absolute_url()`` and
+  :ref:`get_str_fields()`.
 * `PrintList`_ class supports custom formatting of nested Python structures, including the mix of dicts and lists.
   There are some already setup function helpers which convert nested content to various (HTML) string representations,
   using `PrintList`_ class instances:
@@ -83,8 +100,6 @@ Objects rendering
   * ``print_bs_labels()`` - print HTML list as Bootstrap labels.
   * ``reverseq()`` - construct url with query parameters from url name. Since version 0.4.0, when request instance is
     supplied, absolute url will be returned.
-
-.. highlight:: python
 
 * `str_dict()`_ - Django models could define :ref:`get_str_fields()` method which maps model instance field values to
   their formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate

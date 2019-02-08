@@ -117,6 +117,10 @@ Models used in this documentation
 
 This documentation refers to Django models with one to many relationship defined in `club_app.models`_::
 
+    from django_jinja_knockout.tpl import Str
+
+    # ... skipped ...
+
     class Club(models.Model):
         CATEGORY_RECREATIONAL = 0
         CATEGORY_PROFESSIONAL = 1
@@ -141,8 +145,10 @@ This documentation refers to Django models with one to many relationship defined
                     self.foundation_date = timezone.now()
             super().save(*args, **kwargs)
 
-        def get_canonical_link(self):
-            return str(self.title), reverse('club_detail', kwargs={'club_id': self.pk})
+        def get_absolute_url(self):
+            url = Str(reverse('club_detail', kwargs={'club_id': self.pk}))
+            url.text = str(self.title)
+            return url
 
         def get_str_fields(self):
             return OrderedDict([
@@ -189,10 +195,11 @@ This documentation refers to Django models with one to many relationship defined
             verbose_name = 'Sport club member'
             verbose_name_plural = 'Sport club members'
 
-        def get_canonical_link(self):
+        def get_absolute_url(self):
+            url = Str(reverse('member_detail', kwargs={'member_id': self.pk}))
             str_fields = flatten_dict(self.get_str_fields(), enclosure_fmt=None)
-            return ' / '.join([str_fields['profile'], str_fields['club']]), \
-                   reverse('member_detail', kwargs={'member_id': self.pk})
+            url.text = ' / '.join([str_fields['profile'], str_fields['club']])
+            return url
 
         def get_str_fields(self):
             parts = OrderedDict([
@@ -1320,15 +1327,17 @@ calling ``get_contenttype_filter()`` method::
             return row
 
         # Optional formatting of virtual field (not required).
-        def get_row_str_fields(self, obj, row):
+        def get_row_str_fields(self, obj, row=None):
             str_fields = super().get_row_str_fields(obj, row)
             if str_fields is None:
                 str_fields = {}
             # Add formatted display of virtual field.
-            if hasattr(obj.content_object, 'get_canonical_link'):
-                str_fields['content_object'] = format_html(
-                    '<a href="{1}">{0}</a>',
-                    *obj.content_object.get_canonical_link()
+            if hasattr(obj.content_object, 'get_absolute_url'):
+                link = obj.content_object.get_absolute_url()
+                str_fields['content_type'] = format_html(
+                    '<a href="{}" target="_blank">{}</a>',
+                    link,
+                    str_fields['content_type']
                 )
             return str_fields
 
