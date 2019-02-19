@@ -5,7 +5,7 @@ import threading
 from urllib.parse import urlsplit
 
 import django
-from django.utils.functional import Promise
+# from django.utils.functional import Promise
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest

@@ -2,11 +2,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.apps import apps
 from django.db import models
 from django.db.models import Q
-# Django>=1.8
-from django.db.models.fields.related import ForeignObjectRel
-# Django>=1.9
-# from django.db.models.fields.reverse_related import ForeignObjectRel
-from django.db.models.fields.related import ForeignObject
+from django.db.models.fields.related import ForeignObject, ForeignObjectRel
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import ugettext_lazy as _
@@ -60,12 +56,7 @@ def get_related_field(obj, fieldname):
         fieldname = fieldpath.pop()
         for _fieldname in fieldpath:
             curr_field = related_obj._meta.get_field(_fieldname)
-            if hasattr(curr_field, 'related_model'):
-                # Django>=1.9
-                related_obj = curr_field.related_model
-            else:
-                # Django==1.8
-                related_obj = curr_field.rel.to
+            related_obj = curr_field.related_model
     return related_obj._meta.get_field(fieldname)
 
 

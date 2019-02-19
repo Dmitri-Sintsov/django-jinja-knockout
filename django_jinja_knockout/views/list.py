@@ -346,7 +346,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         # stripped_sort_order = self.strip_sort_order(sort_order)
         if self.current_sort_order == sort_order:
             # Negate current sort order.
-                sort_order = [self.negate_sort_order_key(order_key) for order_key in sort_order]
+            sort_order = [self.negate_sort_order_key(order_key) for order_key in sort_order]
         result = self.get_json_order_result(sort_order)
         result.update(query)
         return result

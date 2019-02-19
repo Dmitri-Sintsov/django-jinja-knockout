@@ -1,6 +1,5 @@
 from copy import copy
 import types
-import inspect
 from datetime import date, datetime
 
 from django.utils.translation import gettext as _
@@ -27,7 +26,7 @@ class OptionalWidget(MultiWidget):
         if attrs is None:
             attrs = {}
         add_css_classes_to_dict(attrs, 'optional-input')
-        # Separate classes for child widgets are unused because it seems that Django 1.8 does not support these.
+        # Separate classes for child widgets are unused because it seems that Django does not support these.
         # Ugly fix is provided in plugins.js instead.
         widgets = (CheckboxInput(), widget_class(),)
         super().__init__(widgets, attrs=attrs)
@@ -219,12 +218,7 @@ class DisplayText(Widget):
 
         is_list = isinstance(value, list)
         display_values = self.get_display_values(value) if is_list else self.get_display_values([value])
-        if 'base_attrs' in inspect.signature(self.build_attrs).parameters:
-            # Django>=1.11
-            final_attrs = self.build_attrs(attrs, {'name': name})
-        else:
-            # Django>=1.8,<=1.10
-            final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs = self.build_attrs(attrs, {'name': name})
         remove_css_classes_from_dict(final_attrs, 'form-control')
 
         if is_list:

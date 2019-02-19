@@ -293,3 +293,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * Underscore.js templates support `template attributes merging`_ and `custom tags`_.
 * `Nested components`_ and `Sparse components`_.
 * `Nested serializer`_.
+
+0.8.1
+-----
+* Dropped Django<=1.10 support. Added Django 2.2 support.

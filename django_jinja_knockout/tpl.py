@@ -17,28 +17,9 @@ from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
 from django.template import loader as tpl_loader
 from django.forms.utils import flatatt
-try:
-    # Django>=1.11
-    from django.urls import (
-        resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
-    )
-except ImportError:
-    # Django>=1.8,<=1.10
-    from django.core.urlresolvers import (
-        resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
-    )
-try:
-    # Django>=1.11
-    from django.utils.text import format_lazy
-except ImportError:
-    # Django>=1.8,<=1.10
-    from django.utils.functional import lazy
-
-    def _format_lazy(format_string, *args, **kwargs):
-        return format_string.format(*args, **kwargs)
-
-    format_lazy = lazy(_format_lazy, str)
-
+from django.urls import (
+    resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
+)
 
 from .utils import sdv
 from .utils.regex import finditer_with_separators
@@ -418,7 +399,7 @@ def verbose_date(value, **kwargs):
 
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
 def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None, request=None):
-    # https://docs.djangoproject.com/en/1.8/ref/urlresolvers/#reverse
+    # https://docs.djangoproject.com/en/dev/ref/urlresolvers/#reverse
     url = reverse(viewname, urlconf, args, kwargs, current_app)
     if query is not None:
         url += '?' + urlencode(query)
