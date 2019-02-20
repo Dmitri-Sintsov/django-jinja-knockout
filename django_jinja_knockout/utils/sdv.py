@@ -1,4 +1,5 @@
-from collections import OrderedDict, ValuesView, Mapping
+from collections import OrderedDict
+from collections.abc import ValuesView, Mapping
 import re
 import sys
 import os
