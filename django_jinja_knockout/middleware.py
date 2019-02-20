@@ -4,7 +4,6 @@ import re
 import threading
 from urllib.parse import urlsplit
 
-import django
 # from django.utils.functional import Promise
 from django.utils import timezone
 from django.conf import settings
@@ -22,7 +21,7 @@ from .viewmodels import vm_list, onload_vm_list, has_vm_list
 # from django_jinja_knockout.apps import DjkAppConfig
 # request = DjkAppConfig.get_context_middleware().get_request()
 # from django_jinja_knockout.tpl import reverseq
-# reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
+# reverseq('member_detail', kwargs={'member_id': 1}, request=request, query={'users': [1,2,3]})
 class MockRequestFactory(RequestFactory):
 
     def _base_environ(self, **request):
@@ -84,34 +83,82 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
         )
 
 
-class ContextMiddlewareCompat:
+class ThreadMiddleware:
 
-    def __init__(self, *args, **kwargs):
-        self.get_response = kwargs.get('get_response', args[0] if len(args) > 0 else None)
-        self.request = kwargs.pop('request', None)
+    _mock_request = None
+    _threadmap = {}
+
+    def __init__(self, get_response=None, request=None):
+        self.get_response = get_response
+        self.request = request
 
     def __call__(self, request):
+        self.__class__._threadmap[threading.get_ident()] = request
         response = None
-        if hasattr(self, 'process_request'):
-            response = self.process_request(request)
+        response = self.process_request(request)
         if not response:
+            # Will call self.process_view().
             response = self.get_response(request)
-        if hasattr(self, 'process_response'):
-            response = self.process_response(request, response)
+        self.__class__._threadmap.pop(threading.get_ident(), None)
         return response
 
+    def is_our_module(self, module):
+        for our_module in settings.DJK_APPS:
+            if module.startswith(our_module + '.'):
+                return True
+        return module.startswith('django_jinja_knockout.')
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if self.is_our_module(view_func.__module__):
+            self.djk_request(request)
+            result = self.djk_view(view_func, view_args, view_kwargs)
+            return result
+
+    def djk_request(self, request):
+        self.request = request
+
+    def djk_view(self, view_func, view_args, view_kwargs):
+        return view_func(self.request, *view_args, **view_kwargs)
+
     def is_authenticated(self):
-        user = self.request.user
-        return user.is_authenticated() if django.VERSION < (1, 10) else user.is_authenticated
+        return self.request.user.is_authenticated
 
     def get_user_id(self):
         return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
 
+    @classmethod
+    def is_active(cls):
+        return threading.get_ident() in cls._threadmap
 
-class RouterMiddleware(ContextMiddlewareCompat):
+    @classmethod
+    def mock_request_args(cls):
+        return 'post', '/', [], {
+            'secure': getattr(settings, 'SECURE_PROXY_SSL_HEADER', None) is not None
+        }
 
-    _mock_request = None
-    _threadmap = {}
+    # todo: complete url resolution and middleware / mock view.
+    # As mocks are more often used with forms, uses 'post' method by default.
+    # Call this method in child class with custom arguments before calling .get_request(), when needed.
+    @classmethod
+    def mock_request(cls, method_name='post', path='/', *args, **kwargs):
+        if cls._mock_request is None:
+            factory = MockRequestFactory()
+            factory_method = getattr(factory, method_name)
+            cls._mock_request = factory_method(path, *args, **kwargs)
+        return cls._mock_request
+
+    # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
+    @classmethod
+    def get_request(cls, *mock_request_args):
+        if cls.is_active():
+            return cls._threadmap[threading.get_ident()]
+        else:
+            method_name, path, args, kwargs = cls.mock_request_args() if len(mock_request_args) == 0 else mock_request_args
+            return cls.mock_request(method_name, path, *args, **kwargs)
+
+
+class RouterMiddleware(ThreadMiddleware):
+
     routes_str = {}
     routes_re = []
 
@@ -145,7 +192,8 @@ class RouterMiddleware(ContextMiddlewareCompat):
             if tz_name is not None:
                 timezone.activate(pytz.timezone(tz_name))
 
-        self.__class__._threadmap[threading.get_ident()] = request
+    def djk_request(self, request):
+        self.request = request
         # Simple script loader.
         request.custom_scripts = ScriptList()
         # Optional server-side injected JSON.
@@ -161,43 +209,6 @@ class RouterMiddleware(ContextMiddlewareCompat):
         if has_vm_list(request.session):
             vm_session = onload_vm_list(request.session)
             viewmodels.extend(vm_session)
-
-    def process_exception(self, request, exception):
-        self.__class__._threadmap.pop(threading.get_ident(), None)
-
-    def process_response(self, request, response):
-        self.__class__._threadmap.pop(threading.get_ident(), None)
-        return response
-
-    @classmethod
-    def is_active(cls):
-        return threading.get_ident() in cls._threadmap
-
-    @classmethod
-    def mock_request_args(cls):
-        return 'post', '/', [], {
-            'secure': getattr(settings, 'SECURE_PROXY_SSL_HEADER', None) is not None
-        }
-
-    # todo: complete url resolution and middleware / mock view.
-    # As mocks are more often used with forms, uses 'post' method by default.
-    # Call this method in child class with custom arguments before calling .get_request(), when needed.
-    @classmethod
-    def mock_request(cls, method_name='post', path='/', *args, **kwargs):
-        if cls._mock_request is None:
-            factory = MockRequestFactory()
-            factory_method = getattr(factory, method_name)
-            cls._mock_request = factory_method(path, *args, **kwargs)
-        return cls._mock_request
-
-    # http://stackoverflow.com/questions/16633952/is-there-a-way-to-access-the-context-from-everywhere-in-django
-    @classmethod
-    def get_request(cls, *mock_request_args):
-        if cls.is_active():
-            return cls._threadmap[threading.get_ident()]
-        else:
-            method_name, path, args, kwargs = cls.mock_request_args() if len(mock_request_args) == 0 else mock_request_args
-            return cls.mock_request(method_name, path, *args, **kwargs)
 
     @classmethod
     def get_request_timezone(cls, request=None):
@@ -365,37 +376,29 @@ class ContextMiddleware(RouterMiddleware):
     def after_acl(self):
         return True
 
-    def is_our_module(self, module):
-        for our_module in settings.DJK_APPS:
-            if module.startswith(our_module + '.'):
-                return True
-        return module.startswith('django_jinja_knockout.')
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        if not self.is_our_module(view_func.__module__):
-            return
+    def djk_view(self, view_func, view_args, view_kwargs):
         if hasattr(view_func, '__wrapped__'):
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
-                request.client_routes |= view_class.client_routes
+                self.request.client_routes |= view_class.client_routes
         self.view_func = view_func
         self.view_args = view_args
         self.view_kwargs = view_kwargs
 
         if self.before_acl() is not True:
             return None
-        acl_result = self.check_acl(request, view_kwargs)
+        acl_result = self.check_acl(self.request, view_kwargs)
         if acl_result is not True:
             return acl_result
         if self.after_acl() is not True:
             return None
 
         try:
-            result = view_func(request, *view_args, **view_kwargs)
-            if request.is_ajax():
+            result = view_func(self.request, *view_args, **view_kwargs)
+            if self.request.is_ajax():
                 # Todo: remove when IE9 support will expire.
                 # http://stackoverflow.com/questions/17701992/ie-iframe-doesnt-handle-application-json-response-properly
-                content_type = 'text/plain; charset = utf-8' if request.ie_ajax_iframe else 'application/json'
+                content_type = 'text/plain; charset = utf-8' if self.request.ie_ajax_iframe else 'application/json'
                 # @note: safe parameter enables json serializing for lists.
                 if isinstance(result, HttpResponse):
                     return result
@@ -415,11 +418,11 @@ class ContextMiddleware(RouterMiddleware):
                 return result
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
-                return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
+                return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
             elif isinstance(e, ImmediateHttpResponse):
                 return e.response
             else:
-                return exception_response(request, e)
+                return exception_response(self.request, e)
 
     """
     # http://stackoverflow.com/questions/5334176/help-with-process-template-response-django-middleware

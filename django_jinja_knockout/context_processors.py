@@ -10,7 +10,7 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 
 from . import forms
 from .models import get_verbose_name
-from .middleware import ContextMiddlewareCompat
+from .middleware import ThreadMiddleware
 from . import tpl
 
 
@@ -43,7 +43,7 @@ class TemplateContextProcessor():
             not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
 
     def get_user_id(self):
-        return ContextMiddlewareCompat(request=self.HttpRequest).get_user_id()
+        return ThreadMiddleware(request=self.HttpRequest).get_user_id()
 
     def get_client_routes(self):
         # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
