@@ -297,3 +297,5 @@ Alternative breadcrumbs layout of field filters widgets.
 0.8.1
 -----
 * Dropped Django<=1.10 support. Added Django 2.2 support.
+* Dropped IE9..10 support.
+
