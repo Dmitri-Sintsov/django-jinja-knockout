@@ -131,8 +131,6 @@ $.parseUrl = function(url) {
     var result = {};
     var parser = document.createElement('a');
     parser.href = url;
-    // IE8..9 fix.
-    parser.href = parser.href;
     var props = ['protocol', 'host', 'hostname', 'port', 'href', 'hash', 'search'];
     for (var i = 0; i < props.length; i++) {
         result[props[i]] = parser[props[i]];
@@ -258,7 +256,6 @@ void function(SuperChain) {
     };
 
     SuperChain.find = function(name) {
-        // IE9..10 do not have __proto__.
         // var instanceProto = this.instance.__proto__.
         var instanceProto = Object.getPrototypeOf(this.instance);
         return this._find(name, typeof instanceProto[name] !== 'undefined');
@@ -826,10 +823,6 @@ $.fn.highlightListUrl = function(location) {
     });
     $anchors.each(function(k, a) {
         var a_pathname = a.pathname;
-        if (a_pathname.match(/^[\/]/) === null) {
-            // IE9 fix. Remove when IE9 support becomes obsolete.
-            a_pathname = '/' + a_pathname;
-        }
         if (a_pathname === location.pathname &&
             a.port === location.port &&
             a.hostname === location.hostname &&

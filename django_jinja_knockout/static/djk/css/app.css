@@ -112,16 +112,12 @@ body {
 	background:
 		linear-gradient(to top, white 0%, #F4F4F4 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
 		linear-gradient(to bottom, white 0%, #F4F4F4 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
-		/* IE9 */
-		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#F4F4F4', endColorstr='#FFFFFF')";
 }
 
 tr.linear-white:hover {
 	background:
 		linear-gradient(to top, #F4F4F4 0%, white 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%),
 		linear-gradient(to bottom, #F4F4F4 0%, white 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
-		/* IE9 */
-		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#FFFFFF', endColorstr='#F4F4F4')";
 }
 
 table.table {

@@ -1649,10 +1649,6 @@ void function(AjaxForm) {
         return {
             'url': this.getUrl(),
             type: 'post',
-            // IE9 poor fake workaround.
-            data: {
-                "HTTP_X_REQUESTED_WITH": "XMLHttpRequest"
-            },
             dataType: 'json',
             beforeSubmit: function() {
                 self.beforeSubmit();
@@ -1712,13 +1708,8 @@ void function(AjaxForm) {
         this.setupProgressBar();
         this.ladder = new App.Ladder(this.$btn);
         this.$form.ajaxSubmit(this.options);
-        /**
-         * Commented out because IE9 does not support .setRequestHeader() (due to iframe emulation?).
-         * Patched in context middleware process_request() / process_view() at server-side instead.
-         */
-        // IE9 misses this header, causing django request.is_ajax() to fail.
-        // var jqXHR = $form.data('jqxhr');
-        // jqXHR.setRequestHeader("X_REQUESTED_WITH", "XMLHttpRequest");
+        var jqXHR = this.$form.data('jqxhr');
+        jqXHR.setRequestHeader('X_REQUESTED_WITH', 'XMLHttpRequest');
         return false;
     };
 

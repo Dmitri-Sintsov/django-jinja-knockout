@@ -178,14 +178,6 @@ class RouterMiddleware(ThreadMiddleware):
                 args = () if kwargs else match.groups()
                 return getattr(self, method_name)(*args, **kwargs)
 
-        # Todo: remove when IE9 support will expire.
-        request.ie_ajax_iframe = request.method == 'POST' and \
-            'HTTP_X_REQUESTED_WITH' not in request.META and \
-            'HTTP_X_REQUESTED_WITH' in request.POST
-        if request.ie_ajax_iframe:
-            # Fix IE9 not being able to post $.ajaxForm() with proper HTTP headers due to iframe emulation.
-            request.META['HTTP_X_REQUESTED_WITH'] = request.POST['HTTP_X_REQUESTED_WITH']
-
         # Get local timezone from browser and activate it.
         if getattr(settings, 'USE_JS_TIMEZONE', False):
             tz_name = self.__class__.get_request_timezone(request)
@@ -316,7 +308,6 @@ class ContextMiddleware(RouterMiddleware):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['ajax']
         if requires_ajax is True:
-            # todo: Check request.META['HTTP_USER_AGENT'] for IE9.
             if not request.is_ajax():
                 return error_response(request, 'AJAX request is required')
         elif requires_ajax is False:
@@ -396,16 +387,13 @@ class ContextMiddleware(RouterMiddleware):
         try:
             result = view_func(self.request, *view_args, **view_kwargs)
             if self.request.is_ajax():
-                # Todo: remove when IE9 support will expire.
-                # http://stackoverflow.com/questions/17701992/ie-iframe-doesnt-handle-application-json-response-properly
-                content_type = 'text/plain; charset = utf-8' if self.request.ie_ajax_iframe else 'application/json'
                 # @note: safe parameter enables json serializing for lists.
                 if isinstance(result, HttpResponse):
                     return result
                 else:
                     try:
                         return JsonResponse(
-                            result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type=content_type
+                            result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type='application/json'
                         )
                     except TypeError as e:
                         if getattr(settings, 'DEBUG', False):
