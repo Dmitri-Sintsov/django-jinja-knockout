@@ -71,12 +71,6 @@ class TemplateContextProcessor():
         for url_name, is_anon in self.get_client_routes():
             if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
                 client_conf['url'][url_name] = tpl.get_formatted_url(url_name)
-        """
-        from .tpl import (
-            add_css_classes, add_css_classes_to_dict, json_flatatt, resolve_cbv, reverseq, get_formatted_url,
-            ModelLinker, ContentTypeLinker
-        )
-        """
         return {
             'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
