@@ -60,6 +60,20 @@ class JsonResponse(HttpResponse):
         super(JsonResponse, self).__init__(content=data, **kwargs)
 
 
+def json_response(data):
+    try:
+        return JsonResponse(
+            data, encoder=DjkJSONEncoder, safe=not isinstance(data, list), content_type='application/json'
+        )
+    except TypeError as e:
+        if getattr(settings, 'DEBUG', False):
+            # Validate invalid JSON to simplify debugging.
+            from .validators import ViewmodelValidator
+            ViewmodelValidator().val(data).validate_json().flush()
+        else:
+            raise e
+
+
 class ImmediateHttpResponse(Exception):
     """
     This exception is used to interrupt the flow of processing to immediately
@@ -78,6 +92,7 @@ class ImmediateHttpResponse(Exception):
 class ImmediateJsonResponse(ImmediateHttpResponse):
 
     def __init__(self, response, content_type='application/json'):
+        # Do not use json_response() as it potentially can cause infinite recursion here.
         self._response = JsonResponse(
             response, encoder=DjkJSONEncoder, safe=not isinstance(response, list), content_type=content_type
         )
@@ -299,7 +314,7 @@ class ContextMiddleware(RouterMiddleware):
                 'title': 'Unknown Javascript logging error',
                 'message': 'Missing required POST argument',
             })
-        return JsonResponse(vms)
+        return json_response(vms)
 
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
@@ -385,25 +400,7 @@ class ContextMiddleware(RouterMiddleware):
             return None
 
         try:
-            result = view_func(self.request, *view_args, **view_kwargs)
-            if self.request.is_ajax():
-                # @note: safe parameter enables json serializing for lists.
-                if isinstance(result, HttpResponse):
-                    return result
-                else:
-                    try:
-                        return JsonResponse(
-                            result, encoder=DjkJSONEncoder, safe=not isinstance(result, list), content_type='application/json'
-                        )
-                    except TypeError as e:
-                        if getattr(settings, 'DEBUG', False):
-                            # Validate invalid JSON to simplify debugging.
-                            from .validators import ViewmodelValidator
-                            ViewmodelValidator().val(result).validate_json().flush()
-                        else:
-                            raise e
-            else:
-                return result
+            return view_func(self.request, *view_args, **view_kwargs)
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
                 return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')

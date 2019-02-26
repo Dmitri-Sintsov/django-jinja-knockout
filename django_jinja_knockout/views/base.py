@@ -16,6 +16,7 @@ from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 
+from .. import middleware
 from .. import tpl
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field, get_related_field_val, yield_model_fieldnames
@@ -26,10 +27,9 @@ from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 
 
 def auth_redirect(request):
-    from ..middleware import JsonResponse
     if request.is_ajax():
         # Will use viewmodel framework to display client-side alert.
-        return JsonResponse({
+        return middleware.json_response({
             'view': 'alert_error',
             'message': format_html(
                 '<div>{}</div><div>{}</div>',
@@ -52,9 +52,8 @@ def auth_redirect(request):
 
 
 def error_response(request, html):
-    from ..middleware import JsonResponse
     if request.is_ajax():
-        return JsonResponse({
+        return middleware.json_response({
             'view': 'alert_error',
             'message': html
         })

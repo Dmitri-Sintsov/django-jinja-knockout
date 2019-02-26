@@ -1,8 +1,10 @@
 from collections import OrderedDict
+from collections.abc import Sequence
 from copy import deepcopy
 from math import ceil
 from ensure import ensure_annotations
 
+from django.http.response import HttpResponseBase
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
@@ -11,6 +13,7 @@ from django.template import loader as tpl_loader
 from django.forms import model_to_dict
 from django.views.generic import TemplateView
 
+from .. import middleware
 from ..validators import ViewmodelValidator
 from ..utils import sdv
 from .. import tpl
@@ -52,7 +55,6 @@ class ViewmodelView(TemplateView):
     # Can be called as self.error(*vm_list) or as self.error(**viewmodel_kwargs).
     # todo: Optional error accumulation.
     def error(self, *args, **kwargs):
-        from ..middleware import ImmediateJsonResponse
         if 'ex' in kwargs:
             ex = kwargs.pop('ex')
             kwargs['messages'] = ex.messages if isinstance(ex, ValidationError) else [str(ex)]
@@ -61,7 +63,7 @@ class ViewmodelView(TemplateView):
         else:
             vms = vm_list(*args)
         self.process_error_vm_list(vms)
-        raise ImmediateJsonResponse(vms)
+        raise middleware.ImmediateJsonResponse(vms)
 
     # Respond with AJAX viewmodel (general non-form field error).
     def report_error(self, message, *args, **kwargs):
@@ -75,12 +77,14 @@ class ViewmodelView(TemplateView):
         )
 
     def dispatch(self, request, *args, **kwargs):
-        result = super().dispatch(request, *args, **kwargs)
-        if isinstance(result, dict):
-            result = vm_list(result)
-        if isinstance(result, vm_list):
-            self.process_success_vm_list(result)
-        return result
+        response = super().dispatch(request, *args, **kwargs)
+        if isinstance(response, dict):
+            response = vm_list(response)
+        if isinstance(response, vm_list):
+            self.process_success_vm_list(response)
+        if not isinstance(response, HttpResponseBase) and isinstance(response, Sequence):
+            response = middleware.json_response(response)
+        return response
 
 
 # ViewmodelView with actions router.
