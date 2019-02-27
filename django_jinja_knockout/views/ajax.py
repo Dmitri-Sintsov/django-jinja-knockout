@@ -1,19 +1,13 @@
 from collections import OrderedDict
-from collections.abc import Sequence, Mapping
 from copy import deepcopy
 from math import ceil
-from ensure import ensure_annotations
 
-from django.http.response import HttpResponseBase
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
 from django.forms import model_to_dict
-from django.views.generic import TemplateView
 
-from .. import middleware
 from ..validators import ViewmodelValidator
 from ..utils import sdv
 from .. import tpl
@@ -22,69 +16,11 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import BaseFilterView, GetPostMixin, FormViewmodelsMixin
+from .base import ViewmodelView, BaseFilterView, GetPostMixin, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
 MAX_OBJECTS_PER_PAGE = MIN_OBJECTS_PER_PAGE * 5
-
-
-# GET request usually generates html template, POST - returns AJAX viewmodels.
-class ViewmodelView(TemplateView):
-
-    @ensure_annotations
-    def process_error_viewmodel(self, viewmodel: dict):
-        if 'view' not in viewmodel:
-            viewmodel['view'] = 'alert_error'
-
-    @ensure_annotations
-    def process_error_vm_list(self, vms: vm_list):
-        for vm in vms:
-            self.process_error_viewmodel(vm)
-
-    @ensure_annotations
-    def process_success_viewmodel(self, viewmodel: dict):
-        if 'view' not in viewmodel:
-            viewmodel['view'] = 'alert'
-
-    @ensure_annotations
-    def process_success_vm_list(self, vms: vm_list):
-        for vm in vms:
-            self.process_success_viewmodel(vm)
-
-    # Can be called as self.error(*vm_list) or as self.error(**viewmodel_kwargs).
-    # todo: Optional error accumulation.
-    def error(self, *args, **kwargs):
-        if 'ex' in kwargs:
-            ex = kwargs.pop('ex')
-            kwargs['messages'] = ex.messages if isinstance(ex, ValidationError) else [str(ex)]
-        if len(kwargs) > 0:
-            vms = vm_list(dict(**kwargs))
-        else:
-            vms = vm_list(*args)
-        self.process_error_vm_list(vms)
-        raise middleware.ImmediateJsonResponse(vms)
-
-    # Respond with AJAX viewmodel (general non-form field error).
-    def report_error(self, message, *args, **kwargs):
-        title = kwargs.pop('title') if 'title' in kwargs else _('Error')
-        self.error(
-            # Do not remove view='alert_error' as child class may overload process_error_viewmodel() then supply wrong
-            # viewmodel name.
-            view='alert_error',
-            title=title,
-            message=format_html(_(message), *args, **kwargs)
-        )
-
-    def dispatch(self, request, *args, **kwargs):
-        response = super().dispatch(request, *args, **kwargs)
-        if isinstance(response, dict):
-            response = vm_list(response)
-        if isinstance(response, vm_list):
-            self.process_success_vm_list(response)
-        if not isinstance(response, HttpResponseBase) and isinstance(response, (Sequence, Mapping)):
-            response = middleware.json_response(response)
-        return response
 
 
 # ViewmodelView with actions router.

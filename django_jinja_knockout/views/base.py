@@ -1,6 +1,8 @@
 from collections import OrderedDict
+from collections.abc import Sequence, Mapping
 import json
 import traceback
+from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
@@ -9,9 +11,10 @@ from django import forms
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
+from django.http.response import HttpResponseBase
 from django.http import HttpResponseBadRequest
 from django.db import models
-from django.views.generic.base import ContextMixin, View
+from django.views.generic.base import ContextMixin, View, TemplateView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
@@ -132,6 +135,64 @@ class NavsList(list):
         return result
 
 
+# GET request usually generates html template, POST - returns AJAX viewmodels.
+class ViewmodelView(TemplateView):
+
+    @ensure_annotations
+    def process_error_viewmodel(self, viewmodel: dict):
+        if 'view' not in viewmodel:
+            viewmodel['view'] = 'alert_error'
+
+    @ensure_annotations
+    def process_error_vm_list(self, vms: vm_list):
+        for vm in vms:
+            self.process_error_viewmodel(vm)
+
+    @ensure_annotations
+    def process_success_viewmodel(self, viewmodel: dict):
+        if 'view' not in viewmodel:
+            viewmodel['view'] = 'alert'
+
+    @ensure_annotations
+    def process_success_vm_list(self, vms: vm_list):
+        for vm in vms:
+            self.process_success_viewmodel(vm)
+
+    # Can be called as self.error(*vm_list) or as self.error(**viewmodel_kwargs).
+    # todo: Optional error accumulation.
+    def error(self, *args, **kwargs):
+        if 'ex' in kwargs:
+            ex = kwargs.pop('ex')
+            kwargs['messages'] = ex.messages if isinstance(ex, ValidationError) else [str(ex)]
+        if len(kwargs) > 0:
+            vms = vm_list(dict(**kwargs))
+        else:
+            vms = vm_list(*args)
+        self.process_error_vm_list(vms)
+        raise middleware.ImmediateJsonResponse(vms)
+
+    # Respond with AJAX viewmodel (general non-form field error).
+    def report_error(self, message, *args, **kwargs):
+        title = kwargs.pop('title') if 'title' in kwargs else _('Error')
+        self.error(
+            # Do not remove view='alert_error' as child class may overload process_error_viewmodel() then supply wrong
+            # viewmodel name.
+            view='alert_error',
+            title=title,
+            message=format_html(_(message), *args, **kwargs)
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        if isinstance(response, dict):
+            response = vm_list(response)
+        if isinstance(response, vm_list):
+            self.process_success_vm_list(response)
+        if not isinstance(response, HttpResponseBase) and isinstance(response, (Sequence, Mapping)):
+            response = middleware.json_response(response)
+        return response
+
+
 # Supports both ancestors of DetailView and KoGridView.
 # DetailView and it's ancestors are supported automatically.
 # For KoGridView, one has to override .get() method and call .format_title() with appropriate args.
@@ -208,7 +269,7 @@ class ContextDataMixin(ContextMixin):
 
 
 # Forms and forms fields AJAX viewmodel response.
-class FormViewmodelsMixin():
+class FormViewmodelsMixin(ViewmodelView):
 
     def get_form_error_viewmodel(self, form):
         for bound_field in form:
