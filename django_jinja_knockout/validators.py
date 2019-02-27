@@ -95,7 +95,7 @@ class ViewmodelValidator(ViewmodelFormatting):
         'max_str': 'Length of the string {_len} is bigger than {minlen}',
         'load_json_ids': 'Not a non-empty JSON array of integer values',
         'invalid_json_key': 'Invalid JSON data, key path: {key_path}, key type: {key_type}',
-        'ivalid_json_val': 'Invalid JSON data, key path: {key_path}, val type: {val_type}',
+        'invalid_json_val': 'Invalid JSON data, key path: {key_path}, val type: {val_type}',
     }
 
     # Limit AJAX string argument to min / max length.

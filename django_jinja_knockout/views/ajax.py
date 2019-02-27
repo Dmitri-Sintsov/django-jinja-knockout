@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 from copy import deepcopy
 from math import ceil
 from ensure import ensure_annotations
@@ -82,7 +82,7 @@ class ViewmodelView(TemplateView):
             response = vm_list(response)
         if isinstance(response, vm_list):
             self.process_success_vm_list(response)
-        if not isinstance(response, HttpResponseBase) and isinstance(response, Sequence):
+        if not isinstance(response, HttpResponseBase) and isinstance(response, (Sequence, Mapping)):
             response = middleware.json_response(response)
         return response
 
