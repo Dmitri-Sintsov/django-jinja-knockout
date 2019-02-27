@@ -1207,13 +1207,17 @@ App.vmRouter = new App.ViewModelRouter({
         if (hash != window.location.hash) {
             // Hash changes are not refreshed automatically by default.
             $(window).on('hashchange', function() {
-                window.location.reload();
+                window.location.reload(true);
             });
         }
         if (typeof viewModel.query !== 'undefined') {
             href += '?' + $.param(viewModel.query);
         }
-        window.location.href = href;
+        if (window.location.href.indexOf(href) === window.location.href.length - href.length) {
+            window.location.reload(true);
+        } else {
+            window.location.href = href;
+        }
     },
     'post': function(viewModel) {
         App.post(viewModel.route, viewModel.data, viewModel.options);
