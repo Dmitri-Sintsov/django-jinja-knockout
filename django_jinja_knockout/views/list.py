@@ -382,7 +382,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             )
         )
         return tpl.reverseq(
-            self.request.resolver_match.url_name,
+            self.request.resolver_match.view_name,
             kwargs=self.kwargs,
             query=query
         )
@@ -443,7 +443,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             if kwargs is None:
                 kwargs = self.kwargs
             if viewname is None:
-                viewname = self.request.resolver_match.url_name
+                viewname = self.request.resolver_match.view_name
             link_attrs = {
                 'class': 'iconui-ctrl-before',
                 'href': tpl.reverseq(

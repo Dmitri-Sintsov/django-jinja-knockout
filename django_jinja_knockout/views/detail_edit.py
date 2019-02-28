@@ -34,7 +34,7 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
 
     def get_form_action_url(self, url_name=None, kwargs=None):
         if url_name is None:
-            url_name = self.request.resolver_match.url_name
+            url_name = self.request.resolver_match.view_name
         if kwargs is None:
             kwargs = self.kwargs
         return reverse(
