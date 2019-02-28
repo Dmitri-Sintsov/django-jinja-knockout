@@ -64,7 +64,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         kwargs = self.get_view_kwargs()
         kwargs[self.action_kwarg] = '/{}'.format(action)
         return tpl.reverseq(
-            self.request.url_name,
+            self.request.resolver_match.url_name,
             kwargs=kwargs,
             query=query
         )
@@ -121,7 +121,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
         )
 
     def get(self, request, *args, **kwargs):
-        request.client_routes.add(request.url_name)
+        request.client_routes.add(request.resolver_match.url_name)
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

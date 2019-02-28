@@ -368,11 +368,6 @@ class ContextMiddleware(RouterMiddleware):
         return True
 
     def before_acl(self):
-        if self.request.resolver_match is not None:
-            # required for CBV bs_pagination() to work correctly.
-            self.request.url_name = self.request.resolver_match.url_name
-        else:
-            self.request.url_name = None
         if 'view_title' in self.view_kwargs:
             # May be used by macro / template to build current page title.
             self.request.view_title = self.view_kwargs['view_title']

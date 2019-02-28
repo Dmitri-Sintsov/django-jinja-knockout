@@ -264,7 +264,7 @@ By default, KoGridView uses built-in `cbv_grid.htm`_ template, which content loo
     {{
     ko_grid(
         grid_options={
-            'pageRoute': view.request.url_name,
+            'pageRoute': view.request.resolver_match.url_name,
         }
     )
     }}
@@ -1387,7 +1387,7 @@ Full code::
         #}
         {{ ko_grid(
             grid_options={
-                'pageRoute': view.request.url_name,
+                'pageRoute': view.request.resolver_match.url_name,
                 'separateMeta': True,
             },
             template_args={

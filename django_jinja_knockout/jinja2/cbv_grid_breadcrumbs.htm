@@ -7,7 +7,7 @@
 {{
 ko_grid(
     grid_options={
-        'pageRoute': view.request.url_name,
+        'pageRoute': view.request.resolver_match.url_name,
         'pageRouteKwargs': view.kwargs,
     },
     dom_attrs={
