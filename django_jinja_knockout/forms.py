@@ -274,8 +274,11 @@ class RendererModelForm(forms.ModelForm):
                 if field_name in self.fields:
                     self.fields[field_name].render_template = self.Meta.field_templates[field_name]
 
+    def has_saved_instance(self):
+        return self.instance is not None and self.instance.pk is not None
 
-# Form with default renderers stylized for bootstrap3 which can be overriden in derived class.
+
+# Form with default renderers stylized for bootstrap which can be overriden in derived class.
 class BootstrapModelForm(RendererModelForm):
 
     class Meta(RendererModelForm.Meta):
