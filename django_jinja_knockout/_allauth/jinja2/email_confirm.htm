@@ -2,7 +2,7 @@
 {% from 'bs_page_header.htm' import bs_page_header with context %}
 
 {% block main %}
-{{ bs_page_header(request.view_title) }}
+{{ bs_page_header(request.resolver_match.view_title) }}
 
 {% if confirmation %}
 

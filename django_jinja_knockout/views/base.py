@@ -206,7 +206,7 @@ class FormatTitleMixin:
 
     def format_title(self, *args):
         if self.format_view_title and not self.view_title_is_formatted:
-            self.request.view_title = format_html(self.request.view_title, *args)
+            self.request.resolver_match.view_title = format_html(self.request.resolver_match.view_title, *args)
             self.view_title_is_formatted = True
 
     # Used when mixed with DetailView ancestors.

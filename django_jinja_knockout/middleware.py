@@ -105,7 +105,6 @@ class ThreadMiddleware:
 
     def __init__(self, get_response=None, request=None):
         self.get_response = get_response
-        self.request = request
 
     def __call__(self, request):
         self.__class__._threadmap[threading.get_ident()] = request
@@ -126,20 +125,20 @@ class ThreadMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         if self.is_our_module(view_func.__module__):
             self.djk_request(request)
-            result = self.djk_view(view_func, view_args, view_kwargs)
+            result = self.djk_view(request, view_func, view_args, view_kwargs)
             return result
 
     def djk_request(self, request):
-        self.request = request
+        return
 
-    def djk_view(self, view_func, view_args, view_kwargs):
-        return view_func(self.request, *view_args, **view_kwargs)
+    def djk_view(self, request, view_func, view_args, view_kwargs):
+        return view_func(request, *view_args, **view_kwargs)
 
-    def is_authenticated(self):
-        return self.request.user.is_authenticated
+    def is_authenticated(self, request):
+        return request.user.is_authenticated
 
-    def get_user_id(self):
-        return self.request.user.pk if self.is_authenticated() and self.request.user.is_active else 0
+    def get_user_id(self, request):
+        return request.user.pk if self.is_authenticated(request) and request.user.is_active else 0
 
     @classmethod
     def is_active(cls):
@@ -178,7 +177,6 @@ class RouterMiddleware(ThreadMiddleware):
     routes_re = []
 
     def process_request(self, request):
-        self.request = request
 
         # Mini-router (local mini-resolver).
         if request.path_info in self.routes_str:
@@ -200,7 +198,6 @@ class RouterMiddleware(ThreadMiddleware):
                 timezone.activate(pytz.timezone(tz_name))
 
     def djk_request(self, request):
-        self.request = request
         # Simple script loader.
         request.custom_scripts = ScriptList()
         # Optional server-side injected JSON.
@@ -246,12 +243,6 @@ class ContextMiddleware(RouterMiddleware):
         # (r'^/-djk-js-(?P<action>/?\w*)-/', 'log_js_error'),
     ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.view_func = None
-        self.view_args = None
-        self.view_kwargs = None
-
     # Mostly to store contenttypes framework http session logs and to store modified / added objects of inline formsets.
     @classmethod
     def add_instance(cls, group_key, obj, obj_key=None):
@@ -279,7 +270,7 @@ class ContextMiddleware(RouterMiddleware):
             for obj in instances:
                 yield obj
 
-    def log_js_error(self):
+    def log_js_error(self, request):
         from .log import send_admin_mail_delay
         body_keys = [
             'referrer',
@@ -293,21 +284,21 @@ class ContextMiddleware(RouterMiddleware):
             'filter',
         ]
         vms = vm_list()
-        if 'url' in self.request.POST and set(body_keys) <= set(self.request.POST.keys()):
-            subject = 'Javascript error at {}'.format(self.request.POST['url'])
+        if 'url' in request.POST and set(body_keys) <= set(request.POST.keys()):
+            subject = 'Javascript error at {}'.format(request.POST['url'])
             html_message = '\n\n'.join([
                 format_html_attrs(
                     '<p><b>{k}:</b> \n<div{attrs}>{v}</div></p>',
                     k=k,
-                    v=self.request.POST[k],
+                    v=request.POST[k],
                     attrs={'style': 'white-space: pre-wrap;'} if k == 'stack' else {}
                 ) for k in body_keys
             ])
             if hasattr(settings, 'ADMINS') and len(settings.ADMINS) > 0:
                 try:
-                    send_admin_mail_delay(subject=subject, html_message=html_message, request=self.request)
+                    send_admin_mail_delay(subject=subject, html_message=html_message, request=request)
                 except ImmediateJsonResponse as e:
-                    return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
+                    return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
         else:
             vms.append({
                 'view': 'alert_error',
@@ -334,7 +325,7 @@ class ContextMiddleware(RouterMiddleware):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['allow_anonymous']
         else:
-            if not self.is_authenticated():
+            if not self.is_authenticated(request):
                 return auth_redirect(request)
 
         # Logout inactive user for all but selected views.
@@ -342,7 +333,7 @@ class ContextMiddleware(RouterMiddleware):
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['allow_inactive']
         else:
-            if self.is_authenticated() and not request.user.is_active:
+            if self.is_authenticated(request) and not request.user.is_active:
                 auth_logout(request)
                 return auth_redirect(request)
 
@@ -367,42 +358,39 @@ class ContextMiddleware(RouterMiddleware):
         request.view_kwargs = view_kwargs
         return True
 
-    def before_acl(self):
-        if 'view_title' in self.view_kwargs:
+    def before_acl(self, request):
+        if 'view_title' in request.resolver_match.kwargs:
             # May be used by macro / template to build current page title.
-            self.request.view_title = self.view_kwargs['view_title']
-            del self.view_kwargs['view_title']
+            request.resolver_match.view_title = request.resolver_match.kwargs['view_title']
+            del request.resolver_match.kwargs['view_title']
         return True
 
-    def after_acl(self):
+    def after_acl(self, request):
         return True
 
-    def djk_view(self, view_func, view_args, view_kwargs):
+    def djk_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(view_func, '__wrapped__'):
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
-                self.request.client_routes |= view_class.client_routes
-        self.view_func = view_func
-        self.view_args = view_args
-        self.view_kwargs = view_kwargs
+                request.client_routes |= view_class.client_routes
 
-        if self.before_acl() is not True:
+        if self.before_acl(request) is not True:
             return None
-        acl_result = self.check_acl(self.request, view_kwargs)
+        acl_result = self.check_acl(request, view_kwargs)
         if acl_result is not True:
             return acl_result
-        if self.after_acl() is not True:
+        if self.after_acl(request) is not True:
             return None
 
         try:
-            return view_func(self.request, *view_args, **view_kwargs)
+            return view_func(request, *view_args, **view_kwargs)
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
-                return e.response if self.request.is_ajax() else error_response(self.request, 'AJAX request is required')
+                return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
             elif isinstance(e, ImmediateHttpResponse):
                 return e.response
             else:
-                return exception_response(self.request, e)
+                return exception_response(request, e)
 
     """
     # http://stackoverflow.com/questions/5334176/help-with-process-template-response-django-middleware
