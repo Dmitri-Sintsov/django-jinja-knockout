@@ -43,7 +43,7 @@ class TemplateContextProcessor():
             not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
 
     def get_user_id(self):
-        return ThreadMiddleware(request=self.HttpRequest).get_user_id(request)
+        return ThreadMiddleware().get_user_id(self.HttpRequest)
 
     def get_client_routes(self):
         # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
