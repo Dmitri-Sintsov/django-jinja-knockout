@@ -553,8 +553,8 @@ def discover_grid_options(request, template_options):
     view_kwargs = {}
     if 'pageRouteKwargsKeys' in template_options:
         for key in template_options['pageRouteKwargsKeys']:
-            if key in request.view_kwargs:
-                view_kwargs[key] = request.view_kwargs[key]
+            if key in request.resolver_match.kwargs:
+                view_kwargs[key] = request.resolver_match.kwargs[key]
     if 'pageRouteKwargs' in template_options:
         view_kwargs.update(template_options['pageRouteKwargs'])
     if len(view_kwargs) > 0:

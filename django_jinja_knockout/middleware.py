@@ -355,7 +355,6 @@ class ContextMiddleware(RouterMiddleware):
                         return auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['permission_required']
-        request.view_kwargs = view_kwargs
         return True
 
     def before_acl(self, request):
