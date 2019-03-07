@@ -853,7 +853,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             view = cls()
             view.request = request
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
-            view.kwargs = getattr(request, 'view_kwargs', {})
+            view.kwargs = request.resolver_match.kwargs
             view.set_template_options(template_options)
             view_allowed_filter_fields = view.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
