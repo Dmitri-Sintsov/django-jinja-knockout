@@ -1,28 +1,17 @@
 {# http://anvoz.github.io/bootstrap-tldr/ #}
-{% macro bs_collapse(accordion_id, header=None) -%}
+{% macro bs_collapse(accordion_id, collapsed='out', card_type='default') -%}
 <div class="panel-group" id="{{ accordion_id }}">
-    <card-default>
+    <card type="{{ card_type }}">
         <card-header>
-            <card-title>
-                <button class="btn btn-large btn-info accordion-toggle" data-toggle="collapse" data-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
-                    <span class="iconui iconui-plus"></span>
-                </button>
-                {% if header is not none -%}
-                    {{ header }}
-                {% else -%}
-                    {{ caller('header') }}
-                {% endif -%}
+            <card-title class="accordion-toggle pointer" data-toggle="collapse" data-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
+                {{ caller('header') }}
             </card-title>
         </card-header>
-        <div aria-expanded="true" class="panel-collapse collapse out" id="collapse-{{ accordion_id }}">
-            <card-body>
-            {% if header is not none -%}
-                {{ caller() }}
-            {% else -%}
+        <div aria-expanded="true" class="panel-collapse collapse {{ collapsed }}" id="collapse-{{ accordion_id }}">
+            <card-body class="default-margin">
                 {{ caller('body') }}
-            {% endif -%}
             </card-body>
         </div>
-    </card-default>
+    </card>
 </div>
 {% endmacro -%}
