@@ -3,7 +3,7 @@ import json
 import re
 import pytz
 import lxml.html
-from jinja2 import DebugUndefined
+from jinja2 import Undefined, DebugUndefined
 from lxml import etree
 from ensure import ensure_annotations
 from datetime import date, datetime
@@ -438,8 +438,9 @@ class DjkJSONEncoder(DjangoJSONEncoder):
             return force_text(o)
         if isinstance(o, DebugUndefined):
             return o.__str__()
-        else:
-            return super().default(o)
+        if isinstance(o, Undefined):
+            return None
+        return super().default(o)
 
 
 def to_json(self):
