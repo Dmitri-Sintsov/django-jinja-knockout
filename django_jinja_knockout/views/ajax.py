@@ -871,12 +871,12 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     # Apply relations to fkGridOptions recursively.
                     field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
+            if view.preload_meta_list:
+                view.init_class()
+                view.actions = view.get_actions()
+                view.get_current_query()
+                grid_options['preloadedMetaList'] = view.action_meta_list()
         grid_options.update(template_options)
-        if view.preload_meta_list:
-            view.init_class()
-            view.actions = view.get_actions()
-            view.get_current_query()
-            grid_options['preloadedMetaList'] = view.action_meta_list()
         return grid_options
 
     # template_options are set only for the .get_allowed_filter_fields() custom autodetection.
