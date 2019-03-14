@@ -818,6 +818,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     force_str_desc = False
     # optional value of ko_grid() Jinja2 macro 'grid_options' argument.
     grid_options = None
+    preload_meta_list = False
 
     # Override in child class to set value of ko_grid() Jinja2 macro 'grid_options' argument.
     @classmethod
@@ -871,6 +872,11 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
         grid_options.update(template_options)
+        if view.preload_meta_list:
+            view.init_class()
+            view.actions = view.get_actions()
+            view.get_current_query()
+            grid_options['preloadedMetaList'] = view.action_meta_list()
         return grid_options
 
     # template_options are set only for the .get_allowed_filter_fields() custom autodetection.

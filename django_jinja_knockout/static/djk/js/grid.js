@@ -794,7 +794,7 @@ void function(GridRow) {
 
     GridRow.afterRender = function() {
         var self = this;
-        if (this.useInitClient) {
+        if (this.ownerGrid.options.preloadedMetaList !== null && this.useInitClient) {
             // Add row.
             this.prepare();
             ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
@@ -1353,8 +1353,23 @@ void function(Grid) {
 
     Grid.firstLoad = function(callback) {
         var self = this;
+        // todo: add 'firstLoad' queryarg in KoGridView.discover_grid_options().
         var queryArgs = {firstLoad: 1};
-        if (this.options.separateMeta) {
+        if (this.options.preloadedMetaList) {
+            var vm = this.options.preloadedMetaList;
+            if (typeof vm.view === 'undefined') {
+                vm.view = this.actions.viewModelName;
+            }
+            // Temporarily disable .useInitClient(), otherwise it will be applied twice as App.initClient(document).
+            this.options.preloadedMetaList = null;
+            this.actions.respond('meta_list', vm, App.propGet(callback, 'context'));
+            self.onFirstLoad();
+            if (typeof callback === 'function') {
+                callback(queryArgs);
+            }
+            // Enable .useInitClient(), continue to disable .preloadedMetaList.
+            this.options.preloadedMetaList = false;
+        } else if (this.options.separateMeta) {
             /**
              * this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depends
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
@@ -1474,6 +1489,10 @@ void function(Grid) {
             //   1 - highlight columns,
             //   2 - highlight rows,
             highlightModeRules: App.ui.highlightModeRules,
+            // false - no preloadedMetaList,
+            // null - no preloadedMetaList and temporarily disable .useInitClient,
+            // object - result of initial 'action_meta_list' call in KoGridView.discover_grid_options().
+            preloadedMetaList: false,
             rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
