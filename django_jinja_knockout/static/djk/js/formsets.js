@@ -93,7 +93,7 @@ void function(Formset) {
 
 }(App.ko.Formset.prototype);
 
-App.initClientHooks.push({
+App.initClientHooks.add({
     init: function($selector) {
         $selector.findSelf('.formset').each(function(k, v) {
             var $formset = $(v);
@@ -138,7 +138,7 @@ App.initClientHooks.push({
     }
 });
 
-App.initClientHooks.push(function($selector) {
+App.initClientHooks.add(function($selector) {
     // Do not display delete input for required forms.
     var $requiredFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-required input[name$="-DELETE"]');
     $requiredFormsDeleteFields.parents('.field').empty().html(App.trans('Required'));

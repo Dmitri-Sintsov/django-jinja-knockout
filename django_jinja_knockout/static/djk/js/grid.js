@@ -794,7 +794,7 @@ void function(GridRow) {
 
     GridRow.afterRender = function() {
         var self = this;
-        if (this.ownerGrid.options.preloadedMetaList !== null && this.useInitClient) {
+        if (this.useInitClient) {
             // Add row.
             this.prepare();
             ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
@@ -1360,15 +1360,12 @@ void function(Grid) {
             if (typeof vm.view === 'undefined') {
                 vm.view = this.actions.viewModelName;
             }
-            // Temporarily disable .useInitClient(), otherwise it will be applied twice as App.initClient(document).
-            this.options.preloadedMetaList = null;
+            this.options.preloadedMetaList = false;
             this.actions.respond('meta_list', vm, App.propGet(callback, 'context'));
             self.onFirstLoad();
             if (typeof callback === 'function') {
                 callback(queryArgs);
             }
-            // Enable .useInitClient(), continue to disable .preloadedMetaList.
-            this.options.preloadedMetaList = false;
         } else if (this.options.separateMeta) {
             /**
              * this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depends
@@ -1490,8 +1487,7 @@ void function(Grid) {
             //   2 - highlight rows,
             highlightModeRules: App.ui.highlightModeRules,
             // false - no preloadedMetaList,
-            // null - no preloadedMetaList and temporarily disable .useInitClient,
-            // object - result of initial 'action_meta_list' call in KoGridView.discover_grid_options().
+            // object - result of server-side preloaded 'action_meta_list' call in KoGridView.discover_grid_options().
             preloadedMetaList: false,
             rowsPerPage: 10,
             searchPlaceholder: null,

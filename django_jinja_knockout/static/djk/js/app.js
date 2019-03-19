@@ -2093,7 +2093,80 @@ App.bindTemplates = function($selector, tpl) {
     });
 };
 
-App.initClientHooks = [];
+App.OrderedHooks = function(hooks) {
+    this.init(hooks);
+};
+
+void function(OrderedHooks) {
+
+    OrderedHooks.init = function(hooks) {
+        this.weightPos = {};
+        this.hooks = [];
+        if (_.isArray(hooks)) {
+            for (var i = 0; i < hooks.length; i++) {
+                this.add(hooks[i]);
+            }
+        }
+    };
+
+    OrderedHooks.add = function(hook) {
+        if (typeof hook == 'function') {
+            // Non-disposable 'init'.
+            hook = {
+                'init': hook,
+                'dispose': false,
+            };
+        }
+        if (typeof hook.weight === 'undefined') {
+            hook.weight = 0;
+        }
+        var weightPos = App.propGet(this.weightPos, hook.weight);
+        if (weightPos === undefined) {
+            for (weightPos = 0; weightPos < this.hooks.length; weightPos++) {
+                if (this.hooks[weightPos].weight > hook.weight) {
+                    break;
+                }
+            }
+        } else {
+            weightPos = $.intVal(weightPos);
+        }
+        if (weightPos === this.hooks.length) {
+            this.hooks.push(hook);
+        } else {
+            this.hooks.splice(weightPos, 0, hook);
+        }
+        this.weightPos[hook.weight] = weightPos + 1;
+        for (var k in this.weightPos) {
+            if (this.weightPos.hasOwnProperty(k) && $.intVal(k) > hook.weight) {
+                this.weightPos[k]++;
+            }
+        }
+    };
+
+    OrderedHooks.execHook = function($selector, hook, method) {
+        var fn = hook[method];
+        if (typeof fn === 'function') {
+            fn($selector);
+        } else if (fn !== false) {
+            throw sprintf("App.initClient hook must be a function or object with key '%s'", method);
+        }
+    };
+
+    OrderedHooks.exec = function($selector, method) {
+        for (var i = 0; i < this.hooks.length; i++) {
+            this.execHook($selector, this.hooks[i], method);
+        }
+    };
+
+    OrderedHooks.reverseExec = function($selector, method) {
+        for (var i = this.hooks.length - 1; i >= 0; i--) {
+            this.execHook($selector, this.hooks[i], method);
+        }
+    };
+
+}(App.OrderedHooks.prototype);
+
+App.initClientHooks = new App.OrderedHooks();
 
 /**
  * @note: Do not forget to call method=='init' for newly loaded AJAX DOM.
@@ -2102,21 +2175,6 @@ App.initClientHooks = [];
  */
 App.initClient = function(selector, method, reverse) {
 
-    var execHook = function($selector, hook, method) {
-        if (typeof hook === 'function') {
-            if (method === 'init') {
-                // Non-disposable 'init'.
-                hook($selector);
-            }
-        } else if (typeof hook === 'object') {
-            if (typeof hook[method] === 'function') {
-                // 'dispose' or custom action.
-                hook[method]($selector);
-            } else {
-                throw sprintf("App.initClient hook must be a function or object with key '%s'", method);
-            }
-        }
-    };
 
     if (typeof selector === 'undefined') {
         throw 'App.initClient requires valid selector as safety precaution.';
@@ -2135,13 +2193,9 @@ App.initClient = function(selector, method, reverse) {
 
     var $selector = $(selector);
     if (reverse) {
-        for (var i = App.initClientHooks.length - 1; i >= 0; i--) {
-            execHook($selector, App.initClientHooks[i], method);
-        }
+        App.initClientHooks.reverseExec($selector, method);
     } else {
-        for (var i = 0; i < App.initClientHooks.length; i++) {
-            execHook($selector, App.initClientHooks[i], method);
-        }
+        App.initClientHooks.exec($selector, method);
     }
 };
 
@@ -2749,7 +2803,7 @@ App.ContentPopover = function(k, v) {
 };
 
 
-App.initClientHooks.push({
+App.initClientHooks.add({
     init: function($selector) {
         App.transformTags.applyTags($selector);
         App.bindTemplates($selector);
@@ -2787,7 +2841,7 @@ App.initClientHooks.push({
  * Mostly is used to instantinate App.ko classes, but is not limited to.
  *
  */
-App.initClientHooks.push({
+App.initClientHooks.add({
     init: function($selector) {
         $selector.findAttachedComponents().each(function() {
             var evt = $(this).data('event');
@@ -2801,5 +2855,7 @@ App.initClientHooks.push({
             // Note: sparse components can potentially unbind the DOM subtrees outside of dispose $selector.
             App.components.unbind($componentSelector);
         });
-    }
+    },
+    // Please do not add new hooks with higher weight, as the components has to be initialized at the last time.
+    weight: 9999,
 });
