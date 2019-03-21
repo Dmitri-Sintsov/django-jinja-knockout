@@ -2100,7 +2100,7 @@ App.OrderedHooks = function(hooks) {
 void function(OrderedHooks) {
 
     OrderedHooks.init = function(hooks) {
-        this.weightPos = {};
+        this.weightIndex = {};
         this.hooks = [];
         if (_.isArray(hooks)) {
             for (var i = 0; i < hooks.length; i++) {
@@ -2120,7 +2120,7 @@ void function(OrderedHooks) {
         if (typeof hook.weight === 'undefined') {
             hook.weight = 0;
         }
-        var weightPos = App.propGet(this.weightPos, hook.weight);
+        var weightPos = App.propGet(this.weightIndex, hook.weight);
         if (weightPos === undefined) {
             for (weightPos = 0; weightPos < this.hooks.length; weightPos++) {
                 if (this.hooks[weightPos].weight > hook.weight) {
@@ -2135,10 +2135,10 @@ void function(OrderedHooks) {
         } else {
             this.hooks.splice(weightPos, 0, hook);
         }
-        this.weightPos[hook.weight] = weightPos + 1;
-        for (var k in this.weightPos) {
-            if (this.weightPos.hasOwnProperty(k) && $.intVal(k) > hook.weight) {
-                this.weightPos[k]++;
+        this.weightIndex[hook.weight] = weightPos + 1;
+        for (var k in this.weightIndex) {
+            if (this.weightIndex.hasOwnProperty(k) && $.intVal(k) > hook.weight) {
+                this.weightIndex[k]++;
             }
         }
     };
