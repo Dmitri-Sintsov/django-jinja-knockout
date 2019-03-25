@@ -557,6 +557,15 @@ class ListQuerySet(ValuesQuerySetMixin):
     def __len__(self):
         return len(self.list)
 
+    def __add__(self, other):
+        """
+        Does not ensure the uniqueness.
+        If one needs uniqueness, call .distinct('pk') on the result.
+        """
+        c = self._clone()
+        c.list = c.list.__add__(other.list)
+        return c
+
     def __getitem__(self, k):
         """
         Retrieves an item or slice from the set of results.
