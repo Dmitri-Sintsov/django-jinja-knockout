@@ -557,8 +557,15 @@ class ListQuerySet(ValuesQuerySetMixin):
     def __len__(self):
         return len(self.list)
 
+    def __or__(self, other):
+        """
+        queryset | queryset
+        """
+        return self.__add__(other)
+
     def __add__(self, other):
         """
+        list + list
         Does not ensure the uniqueness.
         If one needs uniqueness, call .distinct('pk') on the result.
         """
