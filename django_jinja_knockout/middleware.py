@@ -189,7 +189,7 @@ class RouterMiddleware(ThreadMiddleware):
             if match is not None:
                 kwargs = match.groupdict()
                 args = () if kwargs else match.groups()
-                return getattr(self, method_name)(*args, **kwargs)
+                return getattr(self, method_name)(request, *args, **kwargs)
 
         # Get local timezone from browser and activate it.
         if getattr(settings, 'USE_JS_TIMEZONE', False):

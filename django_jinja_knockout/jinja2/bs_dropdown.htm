@@ -22,10 +22,10 @@
             {% do tpl.add_css_classes_to_dict(nav.atts, 'nav-item') -%}
             <li {{ tpl.json_flatatt(nav.atts) }}>
                 {% set a_atts = {'class': 'nav-link'} -%}
-                {% if tpl.has_css_classes_in_dict(nav.atts, 'active') -%}
-                    {% do a_atts.update({'name': '#'}) -%}
-                {% else -%}
+                {% if nav.url is defined -%}
                     {% do a_atts.update({'href': nav['url'] }) -%}
+                {% else -%}
+                    {% do a_atts.update({'name': '#'}) -%}
                 {% endif -%}
                 <a{{ tpl.json_flatatt(a_atts)}}>{{ nav.text }}</a>
             </li>
