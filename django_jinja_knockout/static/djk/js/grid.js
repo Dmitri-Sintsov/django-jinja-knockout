@@ -1478,7 +1478,7 @@ void function(Grid) {
             ajaxParams: {},
             // Overrides this.meta.orderBy value when not null.
             defaultOrderBy: null,
-            expandContents: false,
+            expandFilterContents: false,
             fkGridOptions: {},
             highlightMode: 'cycleRows',
             // Currently available highlight directions:
@@ -1492,6 +1492,7 @@ void function(Grid) {
             rowsPerPage: 10,
             searchPlaceholder: null,
             selectMultipleRows: false,
+            // https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=separatemeta
             separateMeta: false,
             showCompoundKeys: true,
             showSelection: false,
@@ -1499,6 +1500,7 @@ void function(Grid) {
             ownerCtrl: null,
             pageRoute: null,
             pageRouteKwargs: {},
+            vScrollPage: true,
             // By default will use App.ko.GridRow.useInitClient = false value:
             useInitClient : null,
         }, options);
@@ -2198,7 +2200,7 @@ void function(Grid) {
 
     Grid.expandFilterContents = function(elements, koFilter) {
         var self = koFilter.ownerGrid;
-        if (self.options.expandContents) {
+        if (self.options.expandFilterContents) {
             var tpl = new App.Tpl();
             return tpl.expandContents($(elements));
         }
@@ -2430,6 +2432,11 @@ void function(Grid) {
         return _.indexOf(this.meta.markSafeFields, fieldName) !== -1;
     };
 
+    Grid.vScrollPage = function() {
+        // Will work with standard templates. For custom template one may override the selector.
+        this.componentSelector.find('.table-responsive.vscroll').scrollTop(0);
+    };
+
     Grid.listCallback = function(data) {
         var self=this;
         if (App.propGet(data, 'has_errors') === true) {
@@ -2437,6 +2444,9 @@ void function(Grid) {
             return;
         }
         // console.log(data);
+        if (this.options.vScrollPage) {
+            this.vScrollPage();
+        }
         // Set grid rows viewmodels.
         var gridRows = [];
         this.totalRowsCount = data.entries.length;
