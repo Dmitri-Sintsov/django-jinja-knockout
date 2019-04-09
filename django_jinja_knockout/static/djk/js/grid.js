@@ -344,6 +344,23 @@ void function(AbstractGridFilter) {
         return this.templateName;
     };
 
+    // Called in FilterDialog.onShow().
+    AbstractGridFilter.applyBindings = function(selector) {
+        var self = this;
+        this.selector = $(selector);
+        this.selector.each(function(k, v) {
+            ko.applyBindings(self, v);
+        });
+    };
+
+    AbstractGridFilter.cleanBindings = function() {
+        if (this.selector) {
+            this.selector.each(function(k, v) {
+                ko.cleanNode(v);
+            });
+        }
+    };
+
     AbstractGridFilter.setDropdownElement = function($element) {
         this.$dropdown = $element;
         /*
