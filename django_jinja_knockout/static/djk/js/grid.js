@@ -1399,27 +1399,29 @@ void function(Grid) {
         this.propCall('ownerCtrl.onChildGridFirstLoad');
     };
 
-    Grid.runComponent = function($selector) {
+    Grid.applyBindings = function(selector) {
         var self = this;
-        this.componentSelector = $selector;
-        $selector.each(function(k, v) {
-            self.applyBindings(v);
+        this.componentSelector = $(selector);
+        this.componentSelector.each(function(k, v) {
+            ko.applyBindings(self, v);
         });
+    };
+
+    Grid.cleanBindings = function() {
+        if (this.componentSelector) {
+            this.componentSelector.each(function(k, v) {
+                ko.cleanNode(v);
+            });
+        }
+    };
+
+    Grid.runComponent = function($selector) {
+        this.applyBindings($selector);
         this.firstLoad();
     };
 
     Grid.removeComponent = function($selector) {
-        // todo: implement
-    };
-
-    Grid.applyBindings = function(selector) {
-        var $selector = $(selector);
-        ko.applyBindings(this, $selector.get(0));
-    };
-
-    Grid.cleanBindings = function(selector) {
-        var $selector = $(selector);
-        ko.cleanNode($selector.get(0));
+        this.cleanBindings();
     };
 
     Grid.iocGridActions = function(options) {
@@ -2792,7 +2794,7 @@ void function(FilterDialog) {
         if (this.wasOpened) {
             this.recreateContent();
         }
-        ko.applyBindings(this.owner, this.bdialog.getModal().get(0));
+        this.owner.applyBindings(this.bdialog.getModal());
         App.initClient(this.bdialog.getModal());
         this.wasOpened = true;
     };
@@ -2848,7 +2850,9 @@ void function(GridDialog) {
     };
 
     GridDialog.removeComponent = function($selector) {
-        // todo: implement
+        if (this.grid) {
+            this.grid.removeComponent();
+        }
     };
 
     GridDialog.onRemoveSelection = function() {
@@ -2912,7 +2916,7 @@ void function(GridDialog) {
     };
 
     GridDialog.onHide = function() {
-        this.grid.cleanBindings(this.bdialog.getModal());
+        this.grid.cleanBindings();
         this.propCall('owner.onGridDialogHide');
         if (this.componentSelector !== null) {
             delete this.grid;
@@ -2992,7 +2996,7 @@ void function(FkGridWidget) {
     };
 
     FkGridWidget.removeComponent = function($selector) {
-        // todo: implement
+        this.gridDialog.removeComponent();
     };
 
     FkGridWidget.blockTags = App.blockTags.badges;
