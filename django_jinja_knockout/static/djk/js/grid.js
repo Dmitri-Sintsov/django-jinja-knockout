@@ -1425,6 +1425,9 @@ void function(Grid) {
     };
 
     Grid.cleanBindings = function() {
+        ko.utils.arrayForEach(this.gridFilters(), function(koFilter) {
+            koFilter.cleanBindings();
+        });
         if (this.componentSelector) {
             this.componentSelector.each(function(k, v) {
                 ko.cleanNode(v);
