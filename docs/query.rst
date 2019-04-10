@@ -74,8 +74,9 @@ them. For example, imagine one have two querysets::
         def approve(self):
             self.is_approved = True
 
-Version 0.3.0 implements ``.filter()`` / ``.exclude()`` / slicing / ``.order_by()`` / ``.first()`` / ``.values()`` /
-``.values_list()`` methods. Many but not all of the `field lookups`_ are supported. Feel free to submit a pull request
-if you need more functionality.
-
-Version 0.8.0 implemented spanned relationships for ``.order_by()`` method.
+* Version 0.3.0 implemented ``.filter()`` / ``.exclude()`` / slicing / ``.order_by()`` / ``.first()`` / ``.values()`` /
+  ``.values_list()`` methods. Many but not all of the `field lookups`_ are supported. Feel free to submit a pull request
+  if you need more functionality.
+* Version 0.8.0 implemented spanned relationships for ``.order_by()`` method.
+* Version 0.8.1 implemented ``|`` and ``+`` operators for `ListQuerySet`_. Note that the operation does not ensure the
+  uniqueness of the resulting queryset. In case unique rows are required, call ``.distinct('pk')`` on the result.

@@ -90,7 +90,7 @@ In Jinja2 template call `render_form()`_ template context function::
 StandaloneFormRenderer
 ~~~~~~~~~~~~~~~~~~~~~~
 Standalone form renderer includes the whole form with the body (fields, field labels), ``<form>`` tag, wrapped into
-bootstrap3 panel tags. It's a complete HTML form with separate visual look which could be directly submitted to view.
+bootstrap card tags. It's a complete HTML form with separate visual look which could be directly submitted to view.
 
 Renders the instance of model form:
 
@@ -185,7 +185,10 @@ form class from `RendererModelForm`_ class::
             fields = '__all__'
 
 By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
-renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap3 attributes.
+renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap attributes.
+
+Since v0.8.1, `RendererModelForm`_ class also implemented ``.has_saved_instance()`` method used to check whether current
+Django ModelForm has the bound and saved instance.
 
 Rendering customization
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,7 +253,7 @@ AJAX forms processing
 
 .. highlight:: jinja
 
-``django_jinja_knockout`` includes ``bs_form()`` and ``bs_inline_formsets()`` Jinja2 macros, which generate Bootstrap3
+``django_jinja_knockout`` includes ``bs_form()`` and ``bs_inline_formsets()`` Jinja2 macros, which generate Bootstrap
 styled Django ModelForms. Usual form generation syntax is::
 
     {% extends 'base_min.htm' %}
@@ -260,7 +263,7 @@ styled Django ModelForms. Usual form generation syntax is::
 
     {{ bs_form(form=form, action=url('my_url_name'), opts={
         'class': 'form_css_class',
-        'title': request.view_title,
+        'title': request.resolver_match.view_title,
         'submit_text': 'My button'
     }) }}
 
@@ -284,7 +287,7 @@ then, in order to have the form processed as AJAX form, it's enough to add ``'is
     {{ bs_form(form=form, action=url('my_url_name'), opts={
         'class': 'form_css_class',
         'is_ajax': True,
-        'title': request.view_title,
+        'title': request.resolver_match.view_title,
         'submit_text': 'My button'
     }) }}
 

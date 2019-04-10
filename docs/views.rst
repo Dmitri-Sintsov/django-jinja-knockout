@@ -57,9 +57,9 @@ View title is optionally defined as url kwargs ``'view_title'`` key value::
 
 to be used in generic Jinja2 templates (one template per many views)::
 
-    {{ request.view_title }}
+    {{ request.resolver_match.view_title }}
 
-View kwargs are stored into ``request.view_kwargs`` to make these accessible in forms / templates when needed.
+Django view kwargs are available in ``request.resolver_match.kwargs`` attribute to use in forms / templates when needed.
 
 
 .. _views_formwithinlineformsetsmixin:

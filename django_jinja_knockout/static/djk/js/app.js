@@ -2856,6 +2856,6 @@ App.initClientHooks.add({
             App.components.unbind($componentSelector);
         });
     },
-    // Please do not add new hooks with higher weight, as the components has to be initialized at the last time.
+    // Please do not add new hooks with higher or equal weight, as the components has to be initialized at the last time.
     weight: 9999,
 });

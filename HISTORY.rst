@@ -298,4 +298,18 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * Dropped Django<=1.10 support. Added Django 2.2 support.
 * Dropped IE9..10 support.
-
+* Current request ``.view_title`` is stored in the ``.resolver_match``.
+* ``bs_collapse()`` Jinja2 macro supports setting the initial collapse state ('out' / 'in') and Bootstrap card type.
+* Implemented ``App.OrderedHooks`` class used to execute ``App.initClientHooks`` in proper order.
+* ``grid.js``: cleaned up init / shutdown ``.applyBindings()`` / ``.cleanBindings()`` / ``.runComponent()`` /
+  ``.removeComponent()`` code for ``App.ko.Grid`` and related classes.
+* ``grid.js``: Implemented action ``meta_list`` preload.
+* Refactored views classes inheritance hierarchy.
+* middleware: refactored middleware classes inheritance hierarchy.
+* middleware: less intrusive, better compatibility with third party modules.
+* middleware: ``.djk_request()``_ ``.djk_view()`` methods are called only for ``DJK_APPS`` views by default.
+* middleware : ``json_response()`` shortcut method.
+* ``RendererModelForm`` ``.has_saved_instance()`` method to check whether current Django ModelForm has the bound and
+  saved instance.
+* ``ListQuerySet``: implemented ``|`` ``+`` operators.
+* ``DjkJSONEncoder``: moved to ``tpl`` module. Encoding improvements.

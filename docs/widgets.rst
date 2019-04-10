@@ -81,7 +81,8 @@ See `DisplayText sample`_ for the complete example.
 ForeignKeyGridWidget
 --------------------
 
-Implements django.admin -like widget to select the foreign key value.
+Implements django.admin -like widget to select the foreign key value. It also has the optional support of in-place CRUD
+editing of foreign key table rows.
 
 * `ForeignKeyGridWidget wiki`_
 
@@ -106,7 +107,7 @@ generate lists of choices for `PrefillWidget`_ initial values like this::
 
     self.related_members_qs = ListQuerySet(
         Member.objects.filter(
-            club__id=self.request.view_kwargs.get('club_id', None)
+            club__id=self.request.resolver_match.kwargs.get('club_id', None)
         )
     )
     if self.related_members_qs.count() > 1 and isinstance(form, MemberForm):

@@ -302,7 +302,7 @@ html::
 
 The code is inserted into web page body block. This HTML is not the full DOM subtree of grid but an initial stub.
 It will be automatically expanded with the content of `underscore.js template`_ with name ``ko_grid_body`` by
-`App.bindTemplates`_ called in `App.initClientHooks`_. See :ref:`clientside_underscore_js_templates` for more details.
+`App.bindTemplates`_ called via `App.initClientHooks`_. See :ref:`clientside_underscore_js_templates` for more details.
 
 At the next step, expanded DOM subtree will be automatically bound to newly created instance of ``App.ko.Grid``
 Javascript class via `App.components`_ class instance `.add()` method to make the grid "alive".
@@ -321,6 +321,8 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
 
     * ``alwaysShowPagination`` - set to ``False`` to show pagination controls only when there is more than one page
       of model instances are available.
+    * ``expandFilterContents`` - whether the templates of datatable filters should be expanded as recursive underscore
+      templates; by default is ``False``.
     * ``defaultOrderBy`` - override initial order_by field name (by default Django model ``Meta.ordering`` is used).
     * ``highlightMode`` - built-in modes (See `'switch_highlight' action`_):
 
@@ -329,6 +331,7 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
       * ``'cycleRows'`` - highlight rows with Bootstrap colors,
       * ``'linearRows'`` - highlight rows with CSS gradient,
 
+    * ``preloadedMetaList`` - see `'meta list' action preload`_.
     * ``searchPlaceholder`` - text to display when search field is empty.
     * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
     * ``showCompoundKeys`` - boolean, whether the names of compound columns should be displayed;
@@ -346,6 +349,8 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
       querysets of models, not just one Model instance. Use ``objects = self.get_queryset_for_action()`` in Django
       ``KoGridView`` derived CBV action handler to get the queryset with selected model instances. See `action_delete`_
       implementation for example.
+    * ``vScrollPage`` - whether datatable with ``"template_args":`` ``{`` ``"vscroll"``: ``true`` ``}`` shoud have it's
+      rows scrolled to the top after each page load; by default is ``True``.
 
 * Optional ``template_args`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
   which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
@@ -2061,6 +2066,8 @@ return unfiltered rows.
 'meta_list' action and custom initial ordering
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. highlight:: jinja
+
 When one supplies custom initial ordering of rows that does not match default Django model ordering::
 
     {{ ko_grid(
@@ -2076,6 +2083,29 @@ When one supplies custom initial ordering of rows that does not match default Dj
 ``App.ko.Grid`` ``options.separateMeta`` will be enabled automatically and does not require to be explicitely passed in.
 
 See `club_app.views_ajax`_, `club_grid_with_action_logging.htm`_ for fully featured example.
+
+'meta list' action preload
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. highlight:: Python
+
+Sometimes one html page may include large number of ``App.ko.Grid`` components. When loaded, it would cause large number
+of simultaneous AJAX requests, slowing the performance and causing increased server load. Since v0.8.1, one may preload
+the initial `'meta_list' action`_ request at server-side by setting `views.KoGridView`_ ``grid_options`` dictionary
+attrubute ``preload_meta_list`` to ``True``::
+
+    class ClubMemberGrid(KoGridView):
+
+        model = ClubMember
+        # ... skipped ...
+
+        grid_options = {
+            'preload_meta_list': True,
+        }
+
+Server-side preloaded result of `'meta_list' action`_ then will be passed to client-side datatable (grid) via
+`ko_grid() macro`_ ``preloadedMetaList`` option.
+
 
 'update' action
 ~~~~~~~~~~~~~~~

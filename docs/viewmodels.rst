@@ -346,8 +346,10 @@ Register AJAX client-side route (url name) in ``context_processors.py``::
 
 Return the list of viewmodels in my_app/views.py::
 
+    from django_jinja_knockout.decorators import ajax_required
     from django_jinja_knockout.viewmodels import vm_list
 
+    @ajax_required
     def button_click(request):
         return vm_list({
                 'view': 'confirm',
