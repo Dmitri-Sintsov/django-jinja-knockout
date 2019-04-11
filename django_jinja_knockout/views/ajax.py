@@ -839,6 +839,12 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         self.init_class()
         return self.postprocess_qs(qs)
 
+    def get_preloaded_meta_list(self):
+        self.kwargs['firstLoad'] = '1'
+        self.actions = self.get_actions()
+        self.get_current_query()
+        return self.action_meta_list()
+
     @classmethod
     def discover_grid_options(cls, request, template_options=None):
         if template_options is None:
@@ -873,9 +879,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
             if view.preload_meta_list:
                 view.init_class()
-                view.actions = view.get_actions()
-                view.get_current_query()
-                grid_options['preloadedMetaList'] = view.action_meta_list()
+                grid_options['preloadedMetaList'] = view.get_preloaded_meta_list()
         grid_options.update(template_options)
         return grid_options
 

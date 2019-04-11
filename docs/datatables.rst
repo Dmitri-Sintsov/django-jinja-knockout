@@ -2106,6 +2106,11 @@ attrubute ``preload_meta_list`` to ``True``::
 Server-side preloaded result of `'meta_list' action`_ then will be passed to client-side datatable (grid) via
 `ko_grid() macro`_ ``preloadedMetaList`` option.
 
+`'meta list' action preload` may fail in the following cases:
+
+* ``KoGridView`` which use ``view.kwargs`` keys / values different from embedding `ko_grid() macro`_ ``view.kwargs``,
+
+Thus it is disabled by default for the compatibility purposes.
 
 'update' action
 ~~~~~~~~~~~~~~~
