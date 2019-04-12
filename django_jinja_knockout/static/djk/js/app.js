@@ -1664,10 +1664,9 @@ void function(AjaxForm) {
             },
             success: function(response) {
                 self.always();
-                // Add $form property for custom viewHandler.
-                response.$form = self.$form;
                 if (self._callbacks.success(response)) {
-                    App.vmRouter.respond(response);
+                    // Set current AjaxForm bindContext for custom response handler.
+                    App.vmRouter.respond(response, {context: self});
                 }
             },
             complete: function() {
