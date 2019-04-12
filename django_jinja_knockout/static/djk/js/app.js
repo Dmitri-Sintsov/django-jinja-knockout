@@ -1665,7 +1665,10 @@ void function(AjaxForm) {
             success: function(response) {
                 self.always();
                 if (self._callbacks.success(response)) {
-                    // Set current AjaxForm bindContext for custom response handler.
+                    /**
+                     * Set current AjaxForm bindContext for response viewmodel handler,
+                     * to read this.$form in the handler body.
+                     */
                     App.vmRouter.respond(response, {context: self});
                 }
             },
