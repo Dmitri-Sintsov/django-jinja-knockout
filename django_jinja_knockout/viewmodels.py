@@ -62,6 +62,14 @@ class vm_list(list):
         for vm in reversed(vms):
             self.insert(0, vm)
 
+    # Support response deferred rendering. See django.core.handlers.base.
+    # This allows to return vm_list value in views and .render() will convert it to JsonResponse automatically.
+    # @ajax_required view wrapper is not required in such case.
+    def render(self):
+        from . import middleware
+        return middleware.json_response(self)
+
+
 # Next functions may be used with ordinary lists or as methods of vm_list,
 # because the list of viewmodels may be an instance of ordinary list or an instance of vm_list.
 
