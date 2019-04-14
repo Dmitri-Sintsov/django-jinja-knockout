@@ -208,8 +208,6 @@ Useful methods / classes of the views module
 
 * ``auth_redirect()`` - authorization required response with redirect to login. Supports 'next' url query argument.
   Supports JSON viewmodel response.
-* ``error_response()`` / ``exception_response()`` - wrappers around ``django.http.HttpResponseBadRequest`` to allow JSON
-  viewmodel response in AJAX requests in case of error / exception occured.
 * ``cbv_decorator()`` - may be used to check class-based views permissions.
 * ``ContextDataMixin`` - allows to inject pre-defined dict of ``extra_context_data`` into template context of
   class-based view.

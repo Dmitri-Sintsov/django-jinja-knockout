@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core import mail
 from django.contrib import messages
 from ..tpl import html_to_text
-from ..middleware import ImmediateJsonResponse
+from ..http import ImmediateJsonResponse
 
 
 class SendmailQueue:

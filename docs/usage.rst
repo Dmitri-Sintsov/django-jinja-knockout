@@ -21,6 +21,7 @@ Modules documentation
    datatables
    djk_ui
    forms
+   http
    macros
    management_commands
    middleware
