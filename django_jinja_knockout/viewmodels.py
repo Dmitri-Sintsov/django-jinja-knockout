@@ -1,5 +1,6 @@
 # from pudb import set_trace
 from .tpl import to_json
+from .http import json_response
 
 # dict manipulation functions are used with HttpRequest.client_data or with HttpRequest.session.
 
@@ -66,8 +67,7 @@ class vm_list(list):
     # This allows to return vm_list value in views and .render() will convert it to JsonResponse automatically.
     # @ajax_required view wrapper is not required in such case.
     def render(self):
-        from . import middleware
-        return middleware.json_response(self)
+        return json_response(self)
 
 
 # Next functions may be used with ordinary lists or as methods of vm_list,

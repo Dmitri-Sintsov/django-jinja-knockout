@@ -2,7 +2,7 @@ import json
 from datetime import date, datetime
 from django.utils.functional import Promise
 
-from . import middleware
+from . import http
 from .utils import sdv
 from .viewmodels import vm_list
 
@@ -49,7 +49,7 @@ class ViewmodelFormatting:
 
     def flush(self):
         if self.has_errors():
-            raise middleware.ImmediateJsonResponse(self.vms)
+            raise http.ImmediateJsonResponse(self.vms)
         return self
 
     def fix_data(self, key, data=None):

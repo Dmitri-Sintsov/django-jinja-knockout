@@ -1,43 +1,20 @@
-import json
 import pytz
 import re
 import threading
 from urllib.parse import urlsplit
 
-# from django.utils.functional import Promise
 from django.utils import timezone
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import get_backends, logout as auth_logout
-from django.test.client import RequestFactory
 
 from .utils import sdv
 from .utils.modules import get_fqn
-from .tpl import format_html_attrs, DjkJSONEncoder
-from .views import auth_redirect, error_response, exception_response
+from .tpl import format_html_attrs
+from .http import (
+    MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, error_response, exception_response
+)
+from .views import auth_redirect
 from .viewmodels import vm_list, onload_vm_list, has_vm_list
-
-
-# from django_jinja_knockout.apps import DjkAppConfig
-# request = DjkAppConfig.get_context_middleware().get_request()
-# from django_jinja_knockout.tpl import reverseq
-# reverseq('member_detail', kwargs={'member_id': 1}, request=request, query={'users': [1,2,3]})
-class MockRequestFactory(RequestFactory):
-
-    def _base_environ(self, **request):
-        environ = super()._base_environ(**request)
-        from django.contrib.sites.models import Site
-        if len(settings.ALLOWED_HOSTS) > 0:
-            environ['SERVER_NAME'] = settings.ALLOWED_HOSTS[-1]
-        elif hasattr(settings, 'DOMAIN_NAME'):
-            environ['SERVER_NAME'] = settings.DOMAIN_NAME
-        if Site._meta.installed:
-            site = Site.objects.get_current()
-            environ['SERVER_NAME'] = site.name
-        if environ['SERVER_NAME'] not in settings.ALLOWED_HOSTS:
-            # Fix host validation in django.http.request.HttpRequest.get_host()
-            settings.ALLOWED_HOSTS.append(environ['SERVER_NAME'])
-        return environ
 
 
 class ScriptList(sdv.UniqueIterList):
@@ -45,57 +22,6 @@ class ScriptList(sdv.UniqueIterList):
     def iter_callback(self, val):
         parsed = urlsplit(val)
         return parsed.path
-
-
-class JsonResponse(HttpResponse):
-
-    def __init__(self, data, encoder=DjkJSONEncoder, safe=True, content_type='application/json', **kwargs):
-        if safe and not isinstance(data, (list, dict)):
-            raise TypeError(
-                'In order to allow non-list / non-dict objects to be '
-                'serialized set the safe parameter to False'
-            )
-        kwargs.setdefault('content_type', content_type)
-        data = json.dumps(data, ensure_ascii=False, cls=encoder)
-        super(JsonResponse, self).__init__(content=data, **kwargs)
-
-
-def json_response(data):
-    try:
-        return JsonResponse(
-            data, encoder=DjkJSONEncoder, safe=not isinstance(data, list), content_type='application/json'
-        )
-    except TypeError as e:
-        if getattr(settings, 'DEBUG', False):
-            # Validate invalid JSON to simplify debugging.
-            from .validators import ViewmodelValidator
-            ViewmodelValidator().val(data).validate_json().flush()
-        else:
-            raise e
-
-
-class ImmediateHttpResponse(Exception):
-    """
-    This exception is used to interrupt the flow of processing to immediately
-    return a custom HttpResponse.
-    """
-    _response = HttpResponseBadRequest('No response was provided for the instance')
-
-    def __init__(self, response):
-        self._response = response
-
-    @property
-    def response(self):
-        return self._response
-
-
-class ImmediateJsonResponse(ImmediateHttpResponse):
-
-    def __init__(self, response, content_type='application/json'):
-        # Do not use json_response() as it potentially can cause infinite recursion here.
-        self._response = JsonResponse(
-            response, encoder=DjkJSONEncoder, safe=not isinstance(response, list), content_type=content_type
-        )
 
 
 class ThreadMiddleware:

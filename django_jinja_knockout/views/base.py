@@ -1,7 +1,5 @@
 from collections import OrderedDict
-from collections.abc import Sequence, Mapping
 import json
-import traceback
 from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
@@ -11,15 +9,13 @@ from django import forms
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
-from django.http.response import HttpResponseBase
-from django.http import HttpResponseBadRequest
 from django.db import models
 from django.views.generic.base import ContextMixin, View, TemplateView
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 
-from .. import middleware
+from .. import http
 from .. import tpl
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field, get_related_field_val, yield_model_fieldnames
@@ -32,7 +28,7 @@ from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 def auth_redirect(request):
     if request.is_ajax():
         # Will use viewmodel framework to display client-side alert.
-        return middleware.json_response({
+        return http.json_response({
             'view': 'alert_error',
             'message': format_html(
                 '<div>{}</div><div>{}</div>',
@@ -54,30 +50,7 @@ def auth_redirect(request):
     return redirect_to_login(path, resolved_login_url, REDIRECT_FIELD_NAME)
 
 
-def error_response(request, html):
-    if request.is_ajax():
-        return middleware.json_response({
-            'view': 'alert_error',
-            'message': html
-        })
-    else:
-        return HttpResponseBadRequest(html)
-
-
-def exception_response(request, e):
-    if request.is_ajax() and settings.DEBUG:
-        row = [(str(e), traceback.format_exc())]
-        html = tpl.PrintList(
-            tpl={
-                'elem': '<li style="white-space: pre-wrap;">{v}</li>\n',
-            },
-        ).nested(row)
-        return error_response(request, html)
-    else:
-        raise e
-
-
-# @note: Currently is unused, because url permission middleware checks permission_required from urls.py kwargs.
+# @note: Currently is unused, because url permission middleware checks "permission_required" from urls.py kwargs.
 # @note: Usage:
 # @cbv_decorator(permission_required('my_project.change_project'))
 # class ProjectUpdate(BsTabsMixin, InlineDetailView):
@@ -169,7 +142,7 @@ class ViewmodelView(TemplateView):
         else:
             vms = vm_list(*args)
         self.process_error_vm_list(vms)
-        raise middleware.ImmediateJsonResponse(vms)
+        raise http.ImmediateJsonResponse(vms)
 
     # Respond with AJAX viewmodel (general non-form field error).
     def report_error(self, message, *args, **kwargs):
@@ -188,9 +161,7 @@ class ViewmodelView(TemplateView):
             response = vm_list(response)
         if isinstance(response, vm_list):
             self.process_success_vm_list(response)
-        if not isinstance(response, HttpResponseBase) and isinstance(response, (Sequence, Mapping)):
-            response = middleware.json_response(response)
-        return response
+        return http.conditional_json_response(response)
 
 
 # Supports both ancestors of DetailView and KoGridView.
