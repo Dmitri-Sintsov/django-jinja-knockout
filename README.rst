@@ -37,14 +37,14 @@ django-jinja-knockout
 .. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _PrefillWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#id1
-.. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#tpl-renderer
+.. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#forms-renderers
 .. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _SendmailQueue: https://django-jinja-knockout.readthedocs.io/en/latest/utils_mail.html
 .. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
 .. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
 .. _tpl.resolve_cbv(): https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#url-resolution
-.. _underscore.js templates: http://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#underscore-js-templates
+.. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png

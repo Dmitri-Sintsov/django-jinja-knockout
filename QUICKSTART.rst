@@ -3,7 +3,7 @@
 .. _discover_grid_options(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=discover_grid_options
 .. _DJK_APPS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=djk_apps
 .. _forms: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html
-.. _get_str_fields(): https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=get_str_fields
+.. _get_str_fields(): https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#get-str-fields-model-formatting-serialization
 .. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
 .. _models: https://django-jinja-knockout.readthedocs.io/en/latest/models.html
