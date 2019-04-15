@@ -3400,13 +3400,13 @@ actions attached directly to datatable pagination list.
 
 Grids API
 ---------
-Todo: implement. See `the source code`_ and `the sample project code`_.
+Todo: document. See `the source code`_ and `the sample project code`_.
 
 * App.FilterDialog
 * App.GridDialog
 * App.ModelFormDialog
 * App.ActionsMenuDialog
 * App.ActionTemplateDialog
-* ioc
+* ioc methods
 * methods to get actions / filters / rows / row field values
 * Grid init options.
