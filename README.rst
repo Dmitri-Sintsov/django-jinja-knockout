@@ -9,7 +9,7 @@ django-jinja-knockout
 .. _App.Dialog: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _App.renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
 .. _App.routeUrl(): https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
-.. _action 'meta_list' preload: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=preload#meta-list-action-preload
+.. _action 'meta_list' preload: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#meta-list-action-preload
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _bs_tabs(): https://django-jinja-knockout.readthedocs.io/en/latest/macros.html#macros-bs-tabs
