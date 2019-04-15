@@ -313,3 +313,4 @@ Alternative breadcrumbs layout of field filters widgets.
   saved instance.
 * ``ListQuerySet``: implemented ``|`` ``+`` operators.
 * ``DjkJSONEncoder``: moved to ``tpl`` module. Encoding improvements.
+* HTTP response related classes / methods are moved to ``http`` module.
