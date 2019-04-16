@@ -8,7 +8,7 @@ from django.middleware.csrf import get_token
 from django.contrib.messages.api import get_messages
 from django.contrib.messages.constants import DEFAULT_LEVELS
 
-from . import forms
+from .forms import renderers as forms_renderers
 from .models import get_verbose_name
 from .middleware import ThreadMiddleware
 from . import tpl
@@ -79,8 +79,8 @@ class TemplateContextProcessor():
             'get_verbose_name': get_verbose_name,
             'flatatt': flatatt,
             'format_html': format_html,
-            'render_fields': forms.render_fields,
-            'render_form': forms.render_form,
+            'render_fields': forms_renderers.render_fields,
+            'render_form': forms_renderers.render_form,
             'isinstance': isinstance,
             'list': list,
             'mark_safe': mark_safe,
