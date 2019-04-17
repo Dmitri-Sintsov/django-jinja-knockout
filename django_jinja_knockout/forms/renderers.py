@@ -6,7 +6,7 @@ from django.utils.html import format_html, mark_safe
 from djk_ui import conf as djk_ui_conf
 
 from ..templatetags import bootstrap
-from ..tpl import Renderer
+from .. import tpl
 
 from . import base
 
@@ -54,7 +54,7 @@ def render_fields(form, *fields):
     return mark_safe(''.join(form[field].renderer() for field in fields))
 
 
-class RelativeRenderer(Renderer):
+class RelativeRenderer(tpl.Renderer):
 
     def get_template_dir(self):
         template_dir = getattr(self.context.get(self.obj_kwarg, None), 'template_dir', 'render/')
@@ -67,7 +67,7 @@ class RelativeRenderer(Renderer):
 
 
 # The instance is stored into field.renderer.
-class FieldRenderer(Renderer):
+class FieldRenderer(tpl.Renderer):
 
     obj_kwarg = 'field'
     template = 'field.htm'
@@ -204,7 +204,7 @@ class InlineFormRenderer(RelatedFormRenderer):
 
 
 # The instance is stored into formset.renderer.
-class FormsetRenderer(Renderer):
+class FormsetRenderer(tpl.Renderer):
 
     obj_kwarg = 'formset'
     obj_template_attr = 'template'
