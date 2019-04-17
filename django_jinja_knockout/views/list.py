@@ -10,6 +10,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
+from .. import middleware
 from .. import tpl
 from ..models import get_meta, get_verbose_name
 from .base import BaseFilterView
@@ -275,7 +276,6 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
 
     # Respond with error message (non-AJAX mode).
     def report_error(self, message, *args, **kwargs):
-        from ..middleware import ImmediateHttpResponse
         self.reset_query_args()
         self.reported_error = format_html(_(message), *args, **kwargs)
         self.object_list = self.model.objects.all()[0:0]
@@ -292,7 +292,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             context,
             status=404
         )
-        raise ImmediateHttpResponse(response)
+        raise middleware.ImmediateHttpResponse(response)
 
     def get_heading(self):
         return get_meta(self.model, 'verbose_name_plural')
