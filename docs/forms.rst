@@ -2,24 +2,33 @@
 Forms
 ======
 
+.. _base module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/base.py
 .. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=bootstrapmodelform
 .. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
 .. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
 .. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formsetrenderer
+.. _forms package: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout/forms
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
 .. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=relatedformrenderer
+.. _renderers module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/renderers.py
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _.render_raw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=render_raw
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=standaloneformrenderer
+.. _validators module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/validators.py
+
+Since version 0.8.1, forms module is refactored into `forms package`_ with `base module`_ / `renderers module`_ / and
+`validators module`_.
 
 .. _forms_renderers:
 
 Renderers
 ---------
+
+See `renderers module`_ for source code.
 
 Since version 0.8.0, django-jinja-knockout uses `Renderer`_ derived classes to display Django model forms and inline
 formsets. Recent versions of Django utilize renderers with templates to display form field widgets. There are some
@@ -167,29 +176,6 @@ Some attributes are used only by some renderers:
 * ``inline_title`` - the title of inline form, which could be different from ``title`` of related / standalone form;
 * ``table_classes`` - CSS classes of form table wrapper for `Displaying read-only "forms"`_;
 
-RendererModelForm
-~~~~~~~~~~~~~~~~~
-
-.. highlight:: python
-
-While it's possible to use renderers with ordinary Django ``ModelForm`` class, the recommended way is to derive model
-form class from `RendererModelForm`_ class::
-
-    from django_jinja_knockout.forms import RendererModelForm
-
-    class ProfileForm(RendererModelForm):
-
-        class Meta:
-            model = Profile
-            exclude = ('age',)
-            fields = '__all__'
-
-By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
-renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap attributes.
-
-Since v0.8.1, `RendererModelForm`_ class also implemented ``.has_saved_instance()`` method used to check whether current
-Django ModelForm has the bound and saved instance.
-
 Rendering customization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -234,7 +220,7 @@ template name value to empty string ''. In such case renderer instance `.render_
 via inherited renderer class.
 
 To use custom renderer classes with model forms, one may override `BootstrapModelForm`_ ``Meta`` class default renderer
-attributes::
+attributes with the extended classes::
 
     class MyModelForm(BootstrapModelForm):
 
@@ -247,6 +233,36 @@ attributes::
 but in most of the cases overriding the template names is enough.
 
 See `renderer template samples`_ in ``djk-sample`` project for the example of simple customization of default templates.
+
+.. _forms_base:
+
+Forms base module
+-----------------
+
+See `base module`_ source code.
+
+RendererModelForm
+~~~~~~~~~~~~~~~~~
+
+.. highlight:: python
+
+While it's possible to use renderers with ordinary Django ``ModelForm`` class, the recommended way is to derive model
+form class from `RendererModelForm`_ class::
+
+    from django_jinja_knockout.forms import RendererModelForm
+
+    class ProfileForm(RendererModelForm):
+
+        class Meta:
+            model = Profile
+            exclude = ('age',)
+            fields = '__all__'
+
+By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
+renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap attributes.
+
+Since v0.8.1, `RendererModelForm`_ class also implemented ``.has_saved_instance()`` method used to check whether current
+Django ModelForm has the bound and saved instance.
 
 AJAX forms processing
 ---------------------

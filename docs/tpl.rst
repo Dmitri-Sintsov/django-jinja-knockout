@@ -34,8 +34,8 @@ Renderer
 --------
 
 Since version 0.8.0, `Renderer`_ class is implemented which is internally used to render formsets / forms / fields of
-Django modelforms. See :ref:`forms_renderers` for more detail, although it's usage is not limited to forms as it
-supports rendering of any object with it's related context data and template with the possible nesting of renderers.
+Django modelforms. See :ref:`forms_renderers` and :ref:`forms_base` for more detail. It's usage is not limited to forms
+as it supports rendering of any object with the related context data and template with possible nesting of renderers.
 
 Contenttypes framework helpers
 ------------------------------
