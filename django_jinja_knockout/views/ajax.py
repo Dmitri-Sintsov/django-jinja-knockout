@@ -150,8 +150,7 @@ class ActionsView(ViewmodelView, GetPostMixin):
             result = vm_list(result)
         # Apply default viewmodel name, in case it was not set by action handler.
         for vm in result:
-            if 'view' not in vm:
-                vm['view'] = self.viewmodel_name
+            vm.setdefault('view', self.viewmodel_name)
         return result
 
 

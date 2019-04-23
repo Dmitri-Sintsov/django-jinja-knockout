@@ -112,8 +112,7 @@ class ViewmodelView(TemplateView):
 
     @ensure_annotations
     def process_error_viewmodel(self, viewmodel: dict):
-        if 'view' not in viewmodel:
-            viewmodel['view'] = 'alert_error'
+        viewmodel.setdefault('view', 'alert_error')
 
     @ensure_annotations
     def process_error_vm_list(self, vms: vm_list):
@@ -122,8 +121,7 @@ class ViewmodelView(TemplateView):
 
     @ensure_annotations
     def process_success_viewmodel(self, viewmodel: dict):
-        if 'view' not in viewmodel:
-            viewmodel['view'] = 'alert'
+        viewmodel.setdefault('view', 'alert')
 
     @ensure_annotations
     def process_success_vm_list(self, vms: vm_list):
