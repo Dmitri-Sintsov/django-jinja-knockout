@@ -323,7 +323,11 @@ Documentation
 
 The full documentation is at https://django-jinja-knockout.readthedocs.org.
 
-Quick notes:
+.. github relative links
+.. see setup.py
+
+Quick notes
+-----------
 
 .. Next links are github relative links. Do not process these via sphinx as it does not follow them correctly.
 .. _Credits: AUTHORS.rst

@@ -1,4 +1,4 @@
-__version__ = '0.8.1'
+__version__ = '0.8.2'
 
 
 # Patch for Django datetime 'en' locales format to work with Bootstrap datetimepicker.

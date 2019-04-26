@@ -315,3 +315,8 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``DjkJSONEncoder``: moved to ``tpl`` module. Encoding improvements.
 * Refactored forms module to forms package with base / renderers / validators modules.
 * HTTP response related classes / methods are moved to ``http`` module.
+
+0.8.2
+-----
+* bdist wheel fix.
+* PyPi readme fix.

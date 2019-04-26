@@ -29,7 +29,16 @@ if sys.argv[-1] == 'tag':
     os.system("git push --tags")
     sys.exit()
 
-readme = open('README.rst').read()
+lines = []
+with open('README.rst', 'r') as readme_file:
+    for line in readme_file:
+        # Do not include github relative links which are not parsed by pypi.
+        if '.. github relative links' in line:
+            break
+        else:
+            lines.append(line)
+
+readme = ''.join(lines)
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 # http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
@@ -44,7 +53,7 @@ setup(
     name='django-jinja-knockout',
     version=version,
     description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX datatables with CRUD and custom actions. Supports Django Templates.""",
-    long_description=readme + '\n\n' + history,
+    long_description=readme,
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
     url='https://github.com/Dmitri-Sintsov/django-jinja-knockout',
@@ -66,4 +75,5 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
+    setup_requires=['wheel'],
 )
