@@ -106,7 +106,7 @@ class RouterMiddleware(ThreadMiddleware):
 
         # Mini-router (local mini-resolver).
         if request.path_info in self.routes_str:
-            return getattr(self, self.routes_str[request.path_info])()
+            return getattr(self, self.routes_str[request.path_info])(request)
         for pattern, method_name in self.routes_re:
             if isinstance(pattern, re._pattern_type):
                 match = pattern.search(request.path_info)
