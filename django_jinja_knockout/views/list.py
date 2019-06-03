@@ -476,7 +476,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return fieldname in self.allowed_filter_fields
 
     def get_filter_args(self, fieldname):
-        if self.has_filter_args(fieldname):
+        if self.has_filter(fieldname):
             filter_title = self.get_field_verbose_name(fieldname)
             field_filter = self.get_field_filter(fieldname)
             navs = field_filter.get_template_args()
