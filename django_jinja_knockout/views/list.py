@@ -472,7 +472,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         else:
             return force_text(text)
 
-    def has_filter_args(self, fieldname):
+    def has_filter(self, fieldname):
         return fieldname in self.allowed_filter_fields
 
     def get_filter_args(self, fieldname):
