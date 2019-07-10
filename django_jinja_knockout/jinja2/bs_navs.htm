@@ -1,15 +1,18 @@
 {% from 'bs_nav_items.htm' import bs_nav_items with context -%}
-{%- macro bs_navs(navs=None, attrs=None) -%}
+{%- macro bs_navs(title=None, navs=None, menu_attrs=None) -%}
 {% if navs is none -%}
     {% set navs = [] -%}
 {% endif -%}
-{% if attrs is none -%}
-    {% set attrs = {'class': 'nav nav-tabs'} -%}
+{% if menu_attrs is none -%}
+    {% set menu_attrs = {'class': 'nav nav-tabs'} -%}
 {% endif -%}
-<ul {{ tpl.json_flatatt(attrs) }}>
+<ul {{ tpl.json_flatatt(menu_attrs) }}>
+    {% if title is not none -%}
+    <li class="bold"><a>{{ title }}</a></li>
+    {% endif -%}
     {{ bs_nav_items(navs) }}
 </ul>
 {% endmacro -%}
 {% if _render_ -%}
-    {{ bs_navs(navs) }}
+    {{ bs_navs(navs=navs) }}
 {% endif -%}

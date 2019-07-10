@@ -475,16 +475,18 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def has_filter(self, fieldname):
         return fieldname in self.allowed_filter_fields
 
-    def get_filter_args(self, fieldname):
+    def get_filter_kwargs(self, fieldname):
         if self.has_filter(fieldname):
-            filter_title = self.get_field_verbose_name(fieldname)
             field_filter = self.get_field_filter(fieldname)
-            navs = field_filter.get_template_args()
+            filter_kwargs = {
+                'title': self.get_field_verbose_name(fieldname),
+                'navs': field_filter.get_template_args(),
+            }
             # Store parsed field_filter display args for future reference, when needed.
             self.filter_display[fieldname] = field_filter.display
-            return filter_title, navs
+            return filter_kwargs
         else:
-            raise ValueError('Not allowed fieldname: {}'.format(fieldname))
+            raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
 
     def get_no_match_kwargs(self):
         kwargs = {

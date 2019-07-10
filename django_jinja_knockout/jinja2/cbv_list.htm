@@ -3,7 +3,7 @@
 {% block main -%}
 {% if main_navs is defined -%}
     {% from 'bs_navs.htm' import bs_navs with context -%}
-    {{ bs_navs(main_navs) }}
+    {{ bs_navs(navs=main_navs) }}
 {% endif -%}
 {% from 'bs_list.htm' import bs_list with context -%}
 {{ bs_list(view, object_list, is_paginated, page_obj) }}
