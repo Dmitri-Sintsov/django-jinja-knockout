@@ -12,7 +12,7 @@
             {{ caller(has_filters=True) }}
         {% else -%}
             {% for field in view.allowed_filter_fields -%}
-                {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
+                {{ bs_breadcrumbs(**view.get_filter_kwargs(field)) }}
             {% endfor -%}
         {% endif -%}
         {% if object_list -%}
