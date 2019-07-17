@@ -81,7 +81,12 @@ def prepare_bs_navs(navs, request):
     if not has_active:
         # Select active nav tab according to request.path, if any.
         for nav in navs:
-            if nav['url'] == request.path:
+            is_active = False
+            if callable(nav.get('is_active')):
+                is_active = nav['is_active'](request, nav)
+            else:
+                is_active = nav['url'] == request.path
+            if is_active:
                 nav['atts']['class'] += ' active'
             nav['atts']['class'].strip()
 
