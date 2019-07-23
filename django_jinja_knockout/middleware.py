@@ -233,6 +233,9 @@ class ContextMiddleware(RouterMiddleware):
             })
         return json_response(vms)
 
+    def is_our_backend(self, backend):
+        return get_fqn(backend) in settings.AUTHENTICATION_BACKENDS
+
     def check_acl(self, request, view_kwargs):
         # Check whether request required to be performed as AJAX.
         requires_ajax = view_kwargs.get('ajax')
@@ -267,7 +270,7 @@ class ContextMiddleware(RouterMiddleware):
         if 'permission_required' in view_kwargs:
             # Set request context to our custom auth backend, if any.
             for backend in get_backends():
-                if get_fqn(backend) in settings.AUTHENTICATION_BACKENDS:
+                if self.is_our_backend(backend):
                     # Found our custom auth backend.
                     kwargs = {
                         'user_obj': request.user,

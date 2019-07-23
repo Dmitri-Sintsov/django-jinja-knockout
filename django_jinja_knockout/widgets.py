@@ -31,7 +31,7 @@ class OptionalWidget(MultiWidget):
         widgets = (CheckboxInput(), widget_class(),)
         super().__init__(widgets, attrs=attrs)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         output = super().render(name, value, attrs)
         add_css_classes_to_dict(attrs, 'optional-input-wrap form-control')
         return format_html('<div {}>{}</div>', flatatt(attrs), output)

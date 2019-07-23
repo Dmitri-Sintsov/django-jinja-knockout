@@ -31,11 +31,11 @@ class DjkAdminMixin(object):
 # http://stackoverflow.com/questions/9025624/allowing-only-some-given-instances-of-a-model-to-be-deleted-from-the-admin #
 class ProtectMixin:
 
-    # Check for deletion of one model.
+    # Check for deletion of one model instance.
     def is_protected(self, obj):
         return False
 
-    # Filter for deletion of multiple models.
+    # Filter for deletion of multiple model instances.
     def queryset_is_protected(self, queryset):
         return queryset
 

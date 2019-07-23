@@ -31,7 +31,7 @@ class Command(BaseCommand):
             action='store',
             dest='only_apps',
             default=None,
-            help='Apply seeds only to the comma-separated list of apps.',
+            help='Apply seeds only to the comma-separated list of app labels.',
             type=str
         )
         parser.add_argument(
@@ -47,7 +47,7 @@ class Command(BaseCommand):
             action='store',
             dest='exclude_apps',
             default='',
-            help='Exclude apps from applying seeds via comma-separated list.',
+            help='Exclude app labels from applying seeds via comma-separated list.',
             type=str
         )
         parser.add_argument(
@@ -60,14 +60,19 @@ class Command(BaseCommand):
         )
 
     def yield_app_config(self):
-        for app_name in self.only_apps:
-            if app_name not in self.exclude_apps:
+        for app_label in self.only_apps:
+            if app_label not in self.exclude_apps:
                 # app = import_string('{}.apps'.format(app_name))
-                app_config = apps.get_app_config(app_name)
+                app_config = apps.get_app_config(app_label)
                 yield app_config
 
+    def get_app_label(self, app_name):
+        return app_name.split('.')[-1]
+
     def handle(self, *args, **options):
-        self.only_apps = settings.DJK_APPS if options['only_apps'] is None else options['only_apps'].split(',')
+        self.only_apps = [self.get_app_label(app_name) for app_name in settings.DJK_APPS] \
+            if options['only_apps'] is None \
+            else options['only_apps'].split(',')
         self.exclude_apps = options['exclude_apps'].split(',')
         only_models = None if options['only_models'] is None else options['only_models'].split(',')
         exclude_models = options['exclude_models'].split(',')
