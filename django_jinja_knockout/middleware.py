@@ -298,6 +298,7 @@ class ContextMiddleware(RouterMiddleware):
 
     def djk_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(view_func, '__wrapped__'):
+            # note: 'django.contrib.admin.sites' returns None as it uses non-standard wrapping.
             view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
             if hasattr(view_class, 'client_routes'):
                 request.client_routes |= view_class.client_routes

@@ -172,7 +172,7 @@ def extend_instance(obj, cls):
 
 
 def get_cbv_from_dispatch_wrapper(meth):
-    return getattr(inspect.getmodule(meth), meth.__qualname__)
+    return getattr(inspect.getmodule(meth), meth.__qualname__, None)
 
 
 class FuncArgs:
