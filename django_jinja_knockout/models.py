@@ -152,11 +152,11 @@ def model_values(obj, fields=None, strict_related=True):
     return row
 
 
-def get_object_description(obj):
+def get_object_description(obj, wrap=True):
     if hasattr(obj, 'get_str_fields'):
         return obj.get_str_fields()
     else:
-        return [str(obj)]
+        return [str(obj)] if wrap else str(obj)
 
 
 # Check whether actual file of FileField exists (is not deleted / moved out).
