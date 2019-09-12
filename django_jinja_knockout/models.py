@@ -1,10 +1,11 @@
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.apps import apps
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.related import ForeignObject, ForeignObjectRel
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -157,6 +158,20 @@ def get_object_description(obj, wrap=True):
         return obj.get_str_fields()
     else:
         return [str(obj)] if wrap else str(obj)
+
+
+def get_content_object(object_id, content_type_id=None, app_label=None, model=None):
+    try:
+        if content_type_id is not None:
+            content_type = ContentType.objects.get_for_id(content_type_id)
+        elif app_label is not None:
+            content_type = ContentType.objects.get_by_natural_key(app_label, model)
+        else:
+            content_type = ContentType.objects.get_for_model(model)
+        obj = content_type.get_object_for_this_type(pk=object_id)
+        return content_type, obj
+    except ObjectDoesNotExist:
+        return None, None
 
 
 # Check whether actual file of FileField exists (is not deleted / moved out).
