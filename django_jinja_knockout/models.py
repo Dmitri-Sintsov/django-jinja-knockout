@@ -160,14 +160,23 @@ def get_object_description(obj, wrap=True):
         return [str(obj)] if wrap else str(obj)
 
 
+def get_app_label_model(label_model):
+    if '.' in label_model:
+        return label_model.split('.', 1)
+    else:
+        return None, None
+
+
 def get_content_object(object_id, content_type_id=None, app_label=None, model=None):
     try:
         if content_type_id is not None:
             content_type = ContentType.objects.get_for_id(content_type_id)
         elif app_label is not None:
             content_type = ContentType.objects.get_by_natural_key(app_label, model)
-        else:
+        elif model is not None:
             content_type = ContentType.objects.get_for_model(model)
+        else:
+            return None, None
         obj = content_type.get_object_for_this_type(pk=object_id)
         return content_type, obj
     except ObjectDoesNotExist:
