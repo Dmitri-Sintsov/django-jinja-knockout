@@ -501,6 +501,8 @@ useful to prepare page / form templates which may require automated Javascript c
 BootstrapDialog alerts / confirmations when the page is just loaded. For example to display confirmation dialog when the
 page is loaded, you can override class-based view ``get()`` method like this::
 
+    from django_jinja_knockout.viewmodels import onload_vm_list
+
     def get(self, request, *args, **kwargs):
         load_vm_list = onload_vm_list(request.client_data)
         load_vm_list.append({
@@ -566,6 +568,7 @@ Nested / conditional execution of client-side viewmodels
 Nesting viewmodels via callbacks is available for automated conditional / event-based viewmodels execution. Example of
 such approach is the implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog.create()``::
 
+    var self = this;
     var cbViewModel = this.dialogOptions.callback;
     this.dialogOptions.callback = function(result) {
         // @note: Do not use alert view as callback, it will cause stack overflow.
