@@ -893,45 +893,38 @@ void function(Actions) {
         return $.post(this.getUrl(action),
             queryArgs,
             function(response) {
-                self.respond(action, response, App.propGet(callback, 'context'));
-                if (callback !== undefined) {
-                    var vm = self.getOurViewmodel(response);
-                    if (vm !== null) {
-                        App.vmRouter.applyHandler(vm, callback);
-                    }
-                }
+                self.respond(action, response, callback);
             },
             'json'
         )
         .fail(App.showAjaxError);
     };
 
-    Actions.respond = function(action, response, bindContext) {
+    Actions.respond = function(action, response, options) {
         var self = this;
         // Cannot use App.vmRouter.add(this.viewModelName, function(){}) because
         // this.viewModelName is dynamical (may vary) in child class.
-        var responseOptions = {'after': {}};
-        if (bindContext !== 'undefined') {
-            responseOptions.context = bindContext;
-        }
-        responseOptions['after'][this.viewModelName] = function(viewModel) {
-            // console.log('Actions.perform response: ' + JSON.stringify(viewModel));
-            var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
-            // Override last action, when suggested by AJAX view response.
-            // Use with care, due to asynchronous execution.
-            if (typeof viewModel.last_action !== 'undefined') {
-                self.lastActionName = viewModel.last_action;
-                if (typeof viewModel.last_action_options !== 'undefined') {
-                    self.lastActionOptions = viewModel.last_action_options;
-                } else {
-                    self.lastActionOptions = {};
+        var responseOptions = $.extend({'after': {}}, options);
+        if (typeof responseOptions.after[this.viewModelName] === 'undefined') {
+            responseOptions['after'][this.viewModelName] = function(viewModel) {
+                // console.log('Actions.perform response: ' + JSON.stringify(viewModel));
+                var method = 'callback_' + App.propGet(viewModel, 'callback_action', action);
+                // Override last action, when suggested by AJAX view response.
+                // Use with care, due to asynchronous execution.
+                if (typeof viewModel.last_action !== 'undefined') {
+                    self.lastActionName = viewModel.last_action;
+                    if (typeof viewModel.last_action_options !== 'undefined') {
+                        self.lastActionOptions = viewModel.last_action_options;
+                    } else {
+                        self.lastActionOptions = {};
+                    }
                 }
-            }
-            if (typeof self[method] === 'function') {
-                return self[method](viewModel);
-            }
-            throw sprintf('Unimplemented %s()', method);
-        };
+                if (typeof self[method] === 'function') {
+                    return self[method](viewModel);
+                }
+                throw sprintf('Unimplemented %s()', method);
+            };
+        }
         App.vmRouter.respond(response, responseOptions);
     };
 
