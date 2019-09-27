@@ -894,6 +894,12 @@ void function(Actions) {
             queryArgs,
             function(response) {
                 self.respond(action, response, callback);
+                if (callback !== undefined) {
+                    var vm = self.getOurViewmodel(response);
+                    if (vm !== null) {
+                        App.vmRouter.applyHandler(vm, callback);
+                    }
+                }
             },
             'json'
         )
