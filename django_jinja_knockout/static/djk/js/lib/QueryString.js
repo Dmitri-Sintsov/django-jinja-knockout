@@ -9,7 +9,7 @@
 //        Create a query string object based on the given query string. If
 //        no string is given, we use the one from the current page by default.
 //
-//    qs.value(key)
+//    qs.value(key, defval)
 //
 //        Return a value for the named key.  If the key was not defined,
 //        it will return undefined. If the key was multiply defined it will
@@ -95,10 +95,10 @@ QueryString.decode= function(s)
     return s;
 };
 
-QueryString.prototype.value= function (key)
+QueryString.prototype.value= function (key, defval)
 {
     var a= this.dict[key];
-    return a ? a[a.length-1] : undefined;
+    return a ? a[a.length-1] : defval;
 };
 
 QueryString.prototype.values= function (key)
