@@ -2001,8 +2001,10 @@ void function(Grid) {
 
     /**
      * Updates existing grid rows with raw viewmodel rows supplied.
+     *     savedRows - raw AJAX response rows.
      */
     Grid.updateKoRows = function(savedRows) {
+        var numUpdated = 0;
         for (var i = 0; i < savedRows.length; i++) {
             var pkVal = savedRows[i][this.meta.pkField];
             var savedGridRow = this.iocRow({
@@ -2019,21 +2021,26 @@ void function(Grid) {
             // When rowToUpdate is null, that means updated row is not among currently displayed ones.
             if (rowToUpdate !== null) {
                 rowToUpdate.update(savedGridRow);
+                numUpdated++;
                 // Update ui lists of action buttons / menus per row.
                 this.setACL(rowToUpdate);
             }
         }
+        return numUpdated;
     };
 
     Grid.deleteKoRows = function(pks) {
+        var numDeleteed = 0;
         for (var i = 0; i < pks.length; i++) {
             var pkVal = $.intVal(pks[i]);
             this.removeSelectedPkVal(pkVal);
             var koRow = this.unselectRow(pkVal);
             if (koRow !== null) {
                 this.gridRows.remove(koRow);
+                numDeleteed++;
             }
         }
+        return numDeleteed;
     };
 
     /**
@@ -2477,6 +2484,7 @@ void function(Grid) {
             if (typeof row[self.meta.pkField] === 'undefined') {
                 throw sprintf("Supplied row has no '%s' key", self.meta.pkField);
             }
+            // raw row (direct access to pkField); for App.ko.GridRow use .getPkVal().
             var pkVal = row[self.meta.pkField];
             gridRows.push(
                 self.iocRow({
