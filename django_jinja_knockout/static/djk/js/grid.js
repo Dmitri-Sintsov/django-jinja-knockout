@@ -2001,10 +2001,10 @@ void function(Grid) {
 
     /**
      * Updates existing grid rows with raw viewmodel rows supplied.
-     *     savedRows - raw AJAX response rows.
+     *     savedRows - raw viewmodel response rows.
      */
     Grid.updateKoRows = function(savedRows) {
-        var numUpdated = 0;
+        var notUpdatedRows = [];
         for (var i = 0; i < savedRows.length; i++) {
             var pkVal = savedRows[i][this.meta.pkField];
             var savedGridRow = this.iocRow({
@@ -2021,26 +2021,36 @@ void function(Grid) {
             // When rowToUpdate is null, that means updated row is not among currently displayed ones.
             if (rowToUpdate !== null) {
                 rowToUpdate.update(savedGridRow);
-                numUpdated++;
                 // Update ui lists of action buttons / menus per row.
                 this.setACL(rowToUpdate);
+            } else {
+                notUpdatedRows.push(savedRows[i]);
             }
         }
-        return numUpdated;
+        return notUpdatedRows;
+    };
+
+    Grid.updateAddKoRows = function(savedRows, opcode) {
+        var addedRows = this.updateKoRows(savedRows);
+        if (addedRows.length > 0) {
+            this.addKoRows(addedRows, opcode);
+        }
+        return addedRows;
     };
 
     Grid.deleteKoRows = function(pks) {
-        var numDeleteed = 0;
+        var notDeletedPks = [];
         for (var i = 0; i < pks.length; i++) {
             var pkVal = $.intVal(pks[i]);
             this.removeSelectedPkVal(pkVal);
             var koRow = this.unselectRow(pkVal);
             if (koRow !== null) {
                 this.gridRows.remove(koRow);
-                numDeleteed++;
+            } else {
+                notDeletedPks.push(pkVal);
             }
         }
-        return numDeleteed;
+        return notDeletedPks;
     };
 
     /**
