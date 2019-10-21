@@ -89,7 +89,7 @@ class FieldValidator:
     def detect_field_filter(self, filter_def):
         # Model.choices should have preference over self.field_filter_type because integer fields
         # may have choice attribute, which should have preference over 'number' filter.
-        if hasattr(self.model_field, 'choices') and len(self.model_field.choices) > 0:
+        if getattr(self.model_field, 'choices', None) is not None and len(self.model_field.choices) > 0:
             filter_def['choices'] = self.model_field.choices
             return {
                 'type': 'choices',

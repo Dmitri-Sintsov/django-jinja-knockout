@@ -4,7 +4,6 @@ from copy import copy
 from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
-from django.utils import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
@@ -402,7 +401,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         """
         Retrieves an item or slice from the set of results.
         """
-        if not isinstance(k, (slice,) + six.integer_types):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0)) or
                 (isinstance(k, slice) and (k.start is None or k.start >= 0) and
@@ -577,7 +576,7 @@ class ListQuerySet(ValuesQuerySetMixin):
         """
         Retrieves an item or slice from the set of results.
         """
-        if not isinstance(k, (slice,) + six.integer_types):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0)) or
                 (isinstance(k, slice) and (k.start is None or k.start >= 0) and

@@ -1,11 +1,11 @@
-from collections import OrderedDict
 import json
+from collections import OrderedDict
+from urllib.parse import urlparse
 from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
 from django.utils.html import format_html, escape
-from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.db import models
