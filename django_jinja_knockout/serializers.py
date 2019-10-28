@@ -248,7 +248,7 @@ class NestedSerializer(NestedBase):
         od = self.ioc_objdict(obj)
         if nesting_level > 0:
             model_dict = {}
-            for field_name, verbose_name in model_fields_meta(obj, 'verbose_name').items():
+            for field_name, verbose_name in od.get_verbose_names().items():
                 self.push_path(field_name)
                 val, exists = self.field_to_dict(od, field_name, verbose_name, nesting_level)
                 self.pop_path()
