@@ -1,7 +1,13 @@
 from django import template
 from django.template.loader import _engine_list
 from django.template.base import token_kwargs
-from django_jinja import backend
+from django.template.backends.jinja2 import Jinja2 as Jinja2Backend
+try:
+    from django_jinja.backend import Jinja2 as Dj2Backend
+except ImportError:
+    Dj2Backend = None
+
+
 
 register = template.Library()
 
@@ -12,14 +18,21 @@ class JinjaNode(template.Node):
         self.template = tpl
         self.extra_context = kwargs.pop('extra_context', {})
         self.isolated_context = kwargs.pop('isolated_context', False)
+        self.jinja_engine_classes = (Dj2Backend) if Dj2Backend is None else (Jinja2Backend, Dj2Backend,)
         super(JinjaNode, self).__init__(*args, **kwargs)
 
     def get_jinja_engine(self):
         engines = _engine_list()
+        found_engine = None
         for engine in engines:
-            if isinstance(engine, backend.Jinja2):
-                return engine
-        raise ValueError('Cannot find django_jinja.backend.Jinja2')
+            if isinstance(engine, self.jinja_engine_classes):
+                if found_engine is None:
+                    found_engine = engine
+                else:
+                    raise ValueError('Multiple Jinja2 backends found.')
+        if found_engine is None:
+            raise ValueError('Cannot find django Jinja2 backend.')
+        return found_engine
 
     def render(self, context):
         try:

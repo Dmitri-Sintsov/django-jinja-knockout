@@ -81,8 +81,14 @@ class Renderer:
                 'request': self.request,
                 'csrf_token': SimpleLazyObject(get_csrf_token)
             }
-            for processor in template.backend.context_processors:
-                context.update(processor(self.request))
+            if hasattr(template.backend, 'template_context_processors'):
+                # "django.template.backends.jinja2.Jinja2" template backend
+                for processor in template.backend.template_context_processors:
+                    context.update(processor(self.request))
+            else:
+                # "django_jinja.backend.Jinja2" template backend
+                for processor in template.backend.context_processors:
+                    context.update(processor(self.request))
             self.request.processors_context = context
         return self.request.processors_context
 
