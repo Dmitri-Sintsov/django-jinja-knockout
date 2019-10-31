@@ -10,11 +10,11 @@ from django.urls import reverse
 from .viewmodels import to_json
 
 
-def get_type(val):
+def filter_get_type(val):
     return val.__class__.__name__
 
 
-def escapejs(val, view_error=False):
+def filter_escapejs(val, view_error=False):
     if view_error:
         try:
             json_str = to_json(val)
@@ -53,37 +53,90 @@ class UrlsExtension(Extension):
         return reverse(name, args=args, kwargs=kwargs, current_app=current_app)
 
 
-def environment(**options):
-    if 'extensions' in options:
-        options['extensions'] = set(options['extensions'])
-    else:
-        options['extensions'] = set()
-    options['extensions'].update((
-        'jinja2.ext.do',
-        'jinja2.ext.i18n',
-        'django_jinja_knockout.jinja2.UrlsExtension',
-    ))
+class DjangoBytecodeCache(jinja2.BytecodeCache):
 
-    options.setdefault("undefined", jinja2.DebugUndefined if settings.DEBUG else jinja2.Undefined)
-    options.setdefault("auto_reload", settings.DEBUG)
-    options.setdefault("autoescape", True)
+    def __init__(self):
+        self.cache = self.get_cache_backend()
 
-    env = jinja2.Environment(**options)
+    def get_cache_backend(self):
+        from django.core.cache import cache
+        return cache
+
+    def load_bytecode(self, bucket):
+        key = 'jinja2_{}'.format(bucket.key)
+        bytecode = self.cache.get(key)
+        if bytecode:
+            bucket.bytecode_from_string(bytecode)
+
+    def dump_bytecode(self, bucket):
+        key = 'jinja2_{}'.format(bucket.key)
+        self.cache.set(key, bucket.bytecode_to_string())
+
+
+class DefaultEnvironment:
+
+    gettext_newstyle = True
+
+    def get_extensions(self):
+        return (
+            'jinja2.ext.do',
+            'jinja2.ext.i18n',
+            'django_jinja_knockout.jinja2.UrlsExtension',
+        )
+
+    def get_globals(self):
+        return {
+            'static': staticfiles_storage.url,
+            'reverse_url': reverse,
+        }
+
+    def get_filters(self):
+        return {
+            'escapejs': filter_escapejs,
+            'get_type': filter_get_type,
+        }
+
+    def has_bytecode_cache(self):
+        return settings.CACHES.get('default').get('BACKEND') != 'django.core.cache.backends.locmem.LocMemCache'
+
+    def ioc_bytecode_cache(self):
+        return DjangoBytecodeCache()
 
     # Initialize i18n support
-    if settings.USE_I18N:
-        env.install_gettext_translations(translation, newstyle=True)
-    else:
-        env.install_null_translations(newstyle=True)
+    def i18n(self):
+        if settings.USE_I18N:
+            self.env.install_gettext_translations(translation, newstyle=self.gettext_newstyle)
+        else:
+            self.env.install_null_translations(newstyle=self.gettext_newstyle)
 
-    env.globals.update({
-        'static': staticfiles_storage.url,
-        'reverse_url': reverse,
-    })
+    def ioc_environment(self, **options):
+        return jinja2.Environment(**options)
 
-    env.filters.update({
-        'escapejs': escapejs,
-        'get_type': get_type,
-    })
+    def get_environment(self):
+        return self.env
 
-    return env
+    def __init__(self, **options):
+        if 'extensions' in options:
+            options['extensions'] = set(options['extensions'])
+        else:
+            options['extensions'] = set()
+        options['extensions'].update(self.get_extensions())
+
+        options.setdefault("undefined", jinja2.DebugUndefined if settings.DEBUG else jinja2.Undefined)
+        options.setdefault("auto_reload", settings.DEBUG)
+        options.setdefault("autoescape", True)
+
+        self.env = self.ioc_environment(**options)
+
+        if self.has_bytecode_cache():
+            self.env.bytecode_cache = self.ioc_bytecode_cache()
+
+        self.i18n()
+
+        self.env.globals.update(self.get_globals())
+
+        self.env.filters.update(self.get_filters())
+
+
+def environment(**options):
+    return DefaultEnvironment(**options).get_environment()
