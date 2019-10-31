@@ -75,6 +75,7 @@ class DjangoBytecodeCache(jinja2.BytecodeCache):
 
 class DefaultEnvironment:
 
+    default_cache_backend = 'django.core.cache.backends.locmem.LocMemCache'
     gettext_newstyle = True
 
     def get_extensions(self):
@@ -97,7 +98,8 @@ class DefaultEnvironment:
         }
 
     def has_bytecode_cache(self):
-        return settings.CACHES.get('default').get('BACKEND') != 'django.core.cache.backends.locmem.LocMemCache'
+        return settings.CACHES.get('default', {}).get('BACKEND', self.default_cache_backend) != \
+            self.default_cache_backend
 
     def ioc_bytecode_cache(self):
         return DjangoBytecodeCache()
