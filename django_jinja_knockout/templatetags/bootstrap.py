@@ -3,16 +3,14 @@
 # All rights reserved.
 
 import bleach
+import collections
 from django.utils.html import escape
 from django import forms
-from django_jinja import library
 from .. import tpl
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from ..widgets import DisplayText, PrefillWidget
 from ..viewmodels import to_json
-
-# http://niwinz.github.io/django-jinja/#_registring_filters_in_a_django_way
 
 
 def is_visible_field(model_field):
@@ -61,13 +59,7 @@ def is_displaytext_field(model_field):
     return isinstance(model_field.widget, DisplayText)
 
 
-@library.filter
-def is_displaytext(field):
-    return is_displaytext_field(field.field)
-
-
-@library.filter
-def get_display_layout(field):
+def filter_get_display_layout(field):
     return field.field.widget.layout if is_displaytext_field(field.field) else ''
 
 
@@ -75,8 +67,7 @@ def is_checkbox_field(model_field):
     return isinstance(model_field.widget, forms.CheckboxInput)
 
 
-@library.filter
-def is_checkbox(field):
+def filter_is_checkbox(field):
     return is_checkbox_field(field.field)
 
 
@@ -84,8 +75,7 @@ def is_multiple_checkbox_field(model_field):
     return isinstance(model_field.widget, forms.CheckboxSelectMultiple)
 
 
-@library.filter
-def is_multiple_checkbox(field):
+def filter_is_multiple_checkbox(field):
     return is_multiple_checkbox_field(field.field)
 
 
@@ -93,8 +83,7 @@ def is_radio_field(model_field):
     return isinstance(model_field.widget, forms.RadioSelect)
 
 
-@library.filter
-def is_radio(field):
+def filter_is_radio(field):
     return is_radio_field(field.field)
 
 
@@ -102,23 +91,19 @@ def is_file_field(model_field):
     return isinstance(model_field.widget, forms.FileInput)
 
 
-@library.filter
-def is_file(field):
+def filter_is_file(field):
     return is_file_field(field.field)
 
 
-@library.filter
-def get_type(val):
-    return val.__class__.__name__
+def filter_is_iterable(val):
+    return isinstance(val, collections.Iterable) and not isinstance(val, str)
 
 
-@library.filter
-def linkify(text):
+def filter_linkify(text):
     return mark_safe(bleach.linkify(escape(text)))
 
 
-@library.filter
-def escapejs(val, view_error=False):
+def filter_escapejs(val, view_error=False):
     if view_error:
         try:
             json_str = to_json(val)

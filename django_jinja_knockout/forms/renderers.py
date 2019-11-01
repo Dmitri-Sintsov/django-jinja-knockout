@@ -82,7 +82,7 @@ class FieldRenderer(tpl.Renderer):
         self.display_layout = None
 
     def get_template_dir(self):
-        self.display_layout = bootstrap.get_display_layout(self.obj)
+        self.display_layout = bootstrap.filter_get_display_layout(self.obj)
         template_dir = 'render/' if self.display_layout != 'table' else 'render/display/'
         return getattr(self.obj.field, 'template_dir', template_dir)
 
@@ -93,16 +93,16 @@ class FieldRenderer(tpl.Renderer):
             return 'field.htm'
         elif self.display_layout == 'div':
             return 'field_standard.htm'
-        elif bootstrap.is_checkbox(self.obj):
+        elif bootstrap.filter_is_checkbox(self.obj):
             return 'field_checkbox.htm'
-        elif bootstrap.is_multiple_checkbox(self.obj):
+        elif bootstrap.filter_is_multiple_checkbox(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'checkbox'
                 }
             })
             return 'field_multiple.htm'
-        elif bootstrap.is_radio(self.obj):
+        elif bootstrap.filter_is_radio(self.obj):
             self.update_context({
                 'classes': {
                     'multiple_type': 'radio'
