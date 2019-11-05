@@ -458,13 +458,9 @@ def get_sprintf_urls(urlresolver, url_name, namespace_path='', namespace=''):
         inner_ns_path = namespace_path + inner_ns_path
         inner_ns = namespace + inner_ns + ':'
         if inner_ns_path:
-            args = [inner_ns_path, inner_urlresolver]
-
-            # https://github.com/ierror/django-js-reverse/issues/65
-            if LooseVersion(django.get_version()) >= LooseVersion("2.0.6"):
-                args.append(tuple(urlresolver.pattern.converters.items()))
-
-            inner_urlresolver = urlresolvers.get_ns_resolver(*args)
+            inner_urlresolver = urlresolvers.get_ns_resolver(
+                inner_ns_path, inner_urlresolver, tuple(urlresolver.pattern.converters.items())
+            )
             inner_ns_path = ''
             urls.extend(get_sprintf_urls(inner_urlresolver, url_name, inner_ns_path, inner_ns))
 
@@ -472,10 +468,10 @@ def get_sprintf_urls(urlresolver, url_name, namespace_path='', namespace=''):
 
 
 # Convert url matching supplied url_name from regex named parameters (?P<arg>\w+) to sprintf named formatters %(arg)s.
-def get_formatted_url(url_name, request):
-    current_app = get_current_app(request)
+def get_formatted_url(url_name):
     try:
-        return url(name=url_name, request=request)
+        # No current_app detection, because there could be injected urls from different apps / namespaces.
+        return reverse(url_name)
     except NoReverseMatch:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)

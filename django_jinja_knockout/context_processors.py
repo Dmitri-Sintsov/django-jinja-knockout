@@ -70,7 +70,7 @@ class TemplateContextProcessor():
             client_conf['fileMaxSize'] = file_max_size
         for url_name, is_anon in self.get_client_routes():
             if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
-                client_conf['url'][url_name] = tpl.get_formatted_url(url_name, self.HttpRequest)
+                client_conf['url'][url_name] = tpl.get_formatted_url(url_name)
         return {
             'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
