@@ -19,7 +19,7 @@ from django.template import loader as tpl_loader
 from django.forms.utils import flatatt
 from django import urls as urlresolvers
 from django.urls import (
-    resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
+    resolve, reverse, NoReverseMatch, get_resolver, get_ns_resolver, get_script_prefix
 )
 
 from .utils import sdv
@@ -443,8 +443,26 @@ def resolve_cbv(viewname, urlconf=None, args=None, kwargs=None, current_app=None
         return view_fn
 
 
-def get_sprintf_urls(urlresolver, url_name, namespace_path='', namespace=''):
+def get_namespace_path_resolver(urlresolver, ns_path):
+    for inner_ns, (inner_ns_path, inner_urlresolver) in \
+            urlresolver.namespace_dict.items():
+        if inner_ns == ns_path[0]:
+            inner_urlresolver = get_ns_resolver(
+                inner_ns_path, inner_urlresolver, tuple(urlresolver.pattern.converters.items())
+            )
+            if len(ns_path) == 1:
+                return inner_urlresolver
+            else:
+                return get_namespace_path_resolver(inner_urlresolver, ns_path[1:])
+    raise NoReverseMatch('Cannot find namespace %s' ':'.join(ns_path))
+
+
+def get_sprintf_urls(urlresolver, url_name):
     urls = []
+    if ':' in url_name:
+        ns_path = url_name.split(':')
+        url_name = ns_path.pop()
+        urlresolver = get_namespace_path_resolver(urlresolver, ns_path)
 
     # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
     for url_def in urlresolver.reverse_dict.getlist(url_name):
@@ -452,17 +470,6 @@ def get_sprintf_urls(urlresolver, url_name, namespace_path='', namespace=''):
         urls.extend([
             sprintf_url for sprintf_url, _named_parameters in matches
         ])
-
-    for inner_ns, (inner_ns_path, inner_urlresolver) in \
-            urlresolver.namespace_dict.items():
-        inner_ns_path = namespace_path + inner_ns_path
-        inner_ns = namespace + inner_ns + ':'
-        if inner_ns_path:
-            inner_urlresolver = urlresolvers.get_ns_resolver(
-                inner_ns_path, inner_urlresolver, tuple(urlresolver.pattern.converters.items())
-            )
-            inner_ns_path = ''
-            urls.extend(get_sprintf_urls(inner_urlresolver, url_name, inner_ns_path, inner_ns))
 
     return urls
 
