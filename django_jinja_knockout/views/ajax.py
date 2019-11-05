@@ -867,7 +867,11 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     # 'type': 'fk' filter field with 'pageRoute' autodiscovery.
                     pageRouteKwargs = filter_def.get('pageRouteKwargs', {})
                     pageRouteKwargs['action'] = ''
-                    related_view = tpl.resolve_cbv(filter_def['pageRoute'], pageRouteKwargs)
+                    related_view = tpl.resolve_cbv(
+                        viewname=filter_def['pageRoute'],
+                        kwargs=pageRouteKwargs,
+                        request=request
+                    )
                     if 'fkGridOptions' not in grid_options:
                         grid_options['fkGridOptions'] = {}
                     field_fkGridOptions = deepcopy(filter_def)

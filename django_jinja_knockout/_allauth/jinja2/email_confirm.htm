@@ -17,7 +17,7 @@
         <card-title>{{ card_title }}</card-title>
     </card-header>
     <card-body>
-        <form role="form" method="post" action="{{ url('account_confirm_email', confirmation.key) }}">
+        <form role="form" method="post" action="{{ tpl.url('account_confirm_email', confirmation.key) }}">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button class="btn btn-primary" type="submit">{{ _('Confirm') }}</button>
         </form>
@@ -26,7 +26,7 @@
 
 {% else %}
 
-<p>{{ _('This e-mail confirmation link expired or is invalid. Please <a href="%(email_url)s">issue a new e-mail confirmation request</a>.', email_url=url('account_email')) }}</p>
+<p>{{ _('This e-mail confirmation link expired or is invalid. Please <a href="%(email_url)s">issue a new e-mail confirmation request</a>.', email_url=tpl.url('account_email')) }}</p>
 
 {% endif %}
 

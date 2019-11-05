@@ -11,6 +11,8 @@ from .templatetags.bootstrap import (
     filter_is_iterable, filter_is_multiple_checkbox, filter_is_radio, filter_linkify
 )
 
+from . import tpl
+
 
 class UrlsExtension(Extension):
 
@@ -20,16 +22,7 @@ class UrlsExtension(Extension):
 
     @jinja2.contextfunction
     def _url_reverse(self, context, name, *args, **kwargs):
-        try:
-            current_app = context['request'].current_app
-        except AttributeError:
-            try:
-                current_app = context['request'].resolver_match.namespace
-            except AttributeError:
-                current_app = None
-        except KeyError:
-            current_app = None
-        return reverse(name, args=args, kwargs=kwargs, current_app=current_app)
+        return tpl.url(name, request=context['request'], *args, **kwargs)
 
 
 class DjangoBytecodeCache(jinja2.BytecodeCache):

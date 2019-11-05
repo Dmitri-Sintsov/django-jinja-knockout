@@ -11,12 +11,12 @@
         <card-title>{{ request.resolver_match.view_title }}</card-title>
     </card-header>
     <card-body>
-        <form role="form" class="login" method="POST" action="{{ url('account_login') }}">
+        <form role="form" class="login" method="POST" action="{{ tpl.url('account_login') }}">
             {{ render_form(request, 'body', form) }}
             {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
             {% endif %}
-            <a class="button secondaryAction" href="{{ url('account_reset_password') }}">{{ _("Forgot Password?") }}</a>
+            <a class="button secondaryAction" href="{{ tpl.url('account_reset_password') }}">{{ _("Forgot Password?") }}</a>
             <button class="btn btn-primary" type="submit">{{ _("Sign In") }}</button>
         </form>
     </card-body>

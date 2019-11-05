@@ -17,6 +17,7 @@ from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
 from django.template import loader as tpl_loader
 from django.forms.utils import flatatt
+from django import urls as urlresolvers
 from django.urls import (
     resolve, reverse, NoReverseMatch, get_resolver, get_script_prefix
 )
@@ -403,8 +404,27 @@ def verbose_date(value, **kwargs):
     return '-' if value is None else format_local_date(value, short_format=False, **kwargs)
 
 
+def get_current_app(request):
+    try:
+        return request.current_app
+    except AttributeError:
+        try:
+            return request.resolver_match.namespace
+        except AttributeError:
+            return None
+    except KeyError:
+        return None
+
+
+def url(name, request=None, *args, **kwargs):
+    current_app = None if request is None else get_current_app(request)
+    return reverse(name, args=args, kwargs=kwargs, current_app=current_app)
+
+
 # http://www.mobile-web-consulting.de/post/3921808264/construct-url-with-query-parameters-in-django-with
 def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, query=None, request=None):
+    if current_app is None and request is not None:
+        current_app = get_current_app(request)
     # https://docs.djangoproject.com/en/dev/ref/urlresolvers/#reverse
     url = reverse(viewname, urlconf, args, kwargs, current_app)
     if query is not None:
@@ -412,27 +432,60 @@ def reverseq(viewname, urlconf=None, args=None, kwargs=None, current_app=None, q
     return url if request is None else request.build_absolute_uri(url)
 
 
-def resolve_cbv(url_name, kwargs):
-    url = reverse(url_name, kwargs=kwargs)
+def resolve_cbv(viewname, urlconf=None, args=None, kwargs=None, current_app=None, request=None):
+    if current_app is None and request is not None:
+        current_app = get_current_app(request)
+    url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs, current_app=current_app)
     view_fn = resolve(url)[0]
-    if not hasattr(view_fn, '__wrapped__'):
+    if hasattr(view_fn, '__wrapped__'):
+        return sdv.get_cbv_from_dispatch_wrapper(view_fn)
+    else:
         return view_fn
-    return sdv.get_cbv_from_dispatch_wrapper(view_fn)
+
+
+def get_sprintf_urls(urlresolver, url_name, namespace_path='', namespace=''):
+    urls = []
+
+    # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
+    for url_def in urlresolver.reverse_dict.getlist(url_name):
+        matches = url_def[0]
+        urls.extend([
+            sprintf_url for sprintf_url, _named_parameters in matches
+        ])
+
+    for inner_ns, (inner_ns_path, inner_urlresolver) in \
+            urlresolver.namespace_dict.items():
+        inner_ns_path = namespace_path + inner_ns_path
+        inner_ns = namespace + inner_ns + ':'
+        if inner_ns_path:
+            args = [inner_ns_path, inner_urlresolver]
+
+            # https://github.com/ierror/django-js-reverse/issues/65
+            if LooseVersion(django.get_version()) >= LooseVersion("2.0.6"):
+                args.append(tuple(urlresolver.pattern.converters.items()))
+
+            inner_urlresolver = urlresolvers.get_ns_resolver(*args)
+            inner_ns_path = ''
+            urls.extend(get_sprintf_urls(inner_urlresolver, url_name, inner_ns_path, inner_ns))
+
+    return urls
 
 
 # Convert url matching supplied url_name from regex named parameters (?P<arg>\w+) to sprintf named formatters %(arg)s.
-def get_formatted_url(url_name):
+def get_formatted_url(url_name, request):
+    current_app = get_current_app(request)
     try:
-        return reverse(url_name)
+        return url(name=url_name, request=request)
     except NoReverseMatch:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)
-        # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
-        for url_def in urlresolver.reverse_dict.getlist(url_name):
-            matches = url_def[0]
-            for sprintf_url, _named_parameters in matches:
-                return '{}{}'.format(get_script_prefix(), sprintf_url)
-        raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
+        urls = get_sprintf_urls(urlresolver, url_name)
+        if len(urls) == 1:
+            return '{}{}'.format(get_script_prefix(), urls[0])
+        elif len(urls) == 0:
+            raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
+        else:
+            raise NoReverseMatch('Multiple sprintf formatted url for %s' % url_name)
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
@@ -567,6 +620,6 @@ def discover_grid_options(request, template_options):
     if len(view_kwargs) > 0:
         sdv.nested_update(template_options, {'pageRouteKwargs': view_kwargs})
     view_kwargs['action'] = ''
-    view = resolve_cbv(template_options['pageRoute'], view_kwargs)
+    view = resolve_cbv(viewname=template_options['pageRoute'], kwargs=view_kwargs, request=request)
     grid_options = view.discover_grid_options(request, template_options)
     return grid_options

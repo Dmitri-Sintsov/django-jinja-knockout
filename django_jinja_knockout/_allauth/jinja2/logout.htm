@@ -13,7 +13,7 @@
         <card-title>{{ request.resolver_match.view_title }}</card-title>
     </card-header>
     <card-body>
-        <form role="form" method="post" action="{{ url('account_logout') }}">
+        <form role="form" method="post" action="{{ tpl.url('account_logout') }}">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>

@@ -258,9 +258,14 @@ class ForeignKeyGridWidget(DisplayText):
         # Autodetect foreign key widgets fkGridOptions.
         pageRouteKwargs = self.grid_options.get('pageRouteKwargs', {})
         pageRouteKwargs['action'] = ''
-        widget_view = resolve_cbv(self.grid_options['pageRoute'], pageRouteKwargs)
         ContextMiddleware = DjkAppConfig.get_context_middleware()
-        foreign_key_grid_options = widget_view.discover_grid_options(ContextMiddleware.get_request())
+        request = ContextMiddleware.get_request()
+        widget_view = resolve_cbv(
+            viewname=self.grid_options['pageRoute'],
+            kwargs=pageRouteKwargs,
+            request=request
+        )
+        foreign_key_grid_options = widget_view.discover_grid_options(request)
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
         self.grid_options.update(foreign_key_grid_options)
