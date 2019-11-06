@@ -1,6 +1,7 @@
 import json
 from collections import OrderedDict
-from urllib.parse import urlparse
+from functools import wraps
+from urllib.parse import urlparse, urlsplit
 from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
@@ -9,7 +10,7 @@ from django.utils.html import format_html, escape
 from django.utils.translation import gettext as _, ugettext as _u
 from django.utils.decorators import method_decorator
 from django.db import models
-from django.views.generic.base import ContextMixin, View, TemplateView
+from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
@@ -19,9 +20,42 @@ from .. import tpl
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
-from ..viewmodels import vm_list
-from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
+from ..viewmodels import vm_list, onload_vm_list, has_vm_list
+from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs, UniqueIterList
 from ..forms.validators import FieldValidator
+
+
+def djk_get(request, client_routes=None, view_title=None):
+    # May be used by macro / template to build current page title.
+    if view_title is None:
+        view_title = request.resolver_match.kwargs.pop('view_title', 'Hello, world!')
+    request.resolver_match.view_title = view_title
+    if not hasattr(request, 'client_data'):
+        request.client_data = {}
+    if not hasattr(request, 'custom_scripts'):
+        # Simple script loader.
+        request.custom_scripts = ScriptList()
+    if client_routes is None:
+        client_routes = set()
+    if not hasattr(request, 'client_routes'):
+        request.client_routes = client_routes
+    else:
+        request.client_routes |= client_routes
+    viewmodels = onload_vm_list(request.client_data)
+    if has_vm_list(request.session):
+        vm_session = onload_vm_list(request.session)
+        viewmodels.extend(vm_session)
+
+
+def djk_get_decorator(client_routes=None, view_title=None):
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            if request.method == 'GET':
+                djk_get(request, client_routes=client_routes, view_title=view_title)
+            return func(request, *args, **kwargs)
+        return inner
+    return decorator
 
 
 def auth_redirect(request):
@@ -42,8 +76,8 @@ def auth_redirect(request):
     # use the path as the "next" url.
     login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
     current_scheme, current_netloc = urlparse(path)[:2]
-    if ((not login_scheme or login_scheme == current_scheme) and
-            (not login_netloc or login_netloc == current_netloc)):
+    if (not login_scheme or login_scheme == current_scheme) and \
+            (not login_netloc or login_netloc == current_netloc):
         path = request.get_full_path()
     from django.contrib.auth.views import redirect_to_login
     return redirect_to_login(path, resolved_login_url, REDIRECT_FIELD_NAME)
@@ -91,6 +125,13 @@ def prepare_bs_navs(navs, request):
             nav['atts']['class'].strip()
 
 
+class ScriptList(UniqueIterList):
+
+    def iter_callback(self, val):
+        parsed = urlsplit(val)
+        return parsed.path
+
+
 # NavsList allows to pass extra props to templates, which enables further customization of menu,
 # for example different css classes depending on menu / context.
 # Ordinary Python list is supported by BsTabsMixin as well via prepare_bs_navs() function.
@@ -113,7 +154,11 @@ class NavsList(list):
 
 
 # GET request usually generates html template, POST - returns AJAX viewmodels.
-class ViewmodelView(TemplateView):
+class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
     @ensure_annotations
     def process_error_viewmodel(self, viewmodel: dict):
@@ -169,7 +214,7 @@ class ViewmodelView(TemplateView):
 # Supports both ancestors of DetailView and KoGridView.
 # DetailView and it's ancestors are supported automatically.
 # For KoGridView, one has to override .get() method and call .format_title() with appropriate args.
-class FormatTitleMixin:
+class FormatTitleMixin(TemplateResponseMixin, View):
 
     format_view_title = False
 
@@ -177,9 +222,11 @@ class FormatTitleMixin:
         self.view_title_is_formatted = False
         super().__init__(**kwargs)
 
-    def format_title(self, *args):
+    def format_title(self, *args, **kwargs):
         if self.format_view_title and not self.view_title_is_formatted:
-            self.request.resolver_match.view_title = format_html(self.request.resolver_match.view_title, *args)
+            self.request.resolver_match.view_title = format_html(
+                self.request.resolver_match.view_title, *args, **kwargs
+            )
             self.view_title_is_formatted = True
 
     # Used when mixed with DetailView ancestors.
@@ -286,7 +333,14 @@ class FormViewmodelsMixin(ViewmodelView):
         return ff_vms
 
 
-class GetPostMixin:
+class GetPostMixin(TemplateResponseMixin, View):
+
+    client_routes = set()
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            djk_get(request, self.client_routes)
+        return super().dispatch(request, *args, **kwargs)
 
     def request_get(self, key, default=None):
         if key in self.request.POST:
@@ -307,7 +361,7 @@ class GetPostMixin:
 
 
 # Model queryset filtering / ordering base.
-class BaseFilterView(View, GetPostMixin):
+class BaseFilterView(GetPostMixin):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'

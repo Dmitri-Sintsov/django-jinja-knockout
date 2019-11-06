@@ -120,9 +120,12 @@ class ActionsView(ViewmodelView, GetPostMixin):
             )
         )
 
-    def get(self, request, *args, **kwargs):
-        request.client_routes.add(request.resolver_match.view_name)
-        return super().get(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            if not hasattr(request, 'client_routes'):
+                request.client_routes = set()
+            request.client_routes.add(request.resolver_match.view_name)
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()

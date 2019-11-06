@@ -7,6 +7,7 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.utils.translation import gettext as _
+from django.views.generic.base import ContextMixin
 from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
@@ -18,7 +19,7 @@ from .base import BaseFilterView
 
 # Mix this class in ListView / ListSortingView derived class to have advanced pagination in
 # bs_pagination() / bs_list() Jinja2 macros via selected_pages attribute of the instance.
-class FoldingPaginationMixin:
+class FoldingPaginationMixin(ContextMixin):
 
     always_visible_links = False
     delta_visible_pages = 3

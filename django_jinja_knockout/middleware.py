@@ -1,27 +1,18 @@
 import pytz
 import re
 import threading
-from urllib.parse import urlsplit
 
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_backends, logout as auth_logout
 
-from .utils import sdv
 from .utils.modules import get_fqn
 from .tpl import format_html_attrs
 from .http import (
     MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, error_response, exception_response
 )
-from .views import auth_redirect
-from .viewmodels import vm_list, onload_vm_list, has_vm_list
-
-
-class ScriptList(sdv.UniqueIterList):
-
-    def iter_callback(self, val):
-        parsed = urlsplit(val)
-        return parsed.path
+from .views import djk_get, auth_redirect
+from .viewmodels import vm_list
 
 
 class ThreadMiddleware:
@@ -124,21 +115,7 @@ class RouterMiddleware(ThreadMiddleware):
                 timezone.activate(pytz.timezone(tz_name))
 
     def djk_request(self, request):
-        # Simple script loader.
-        request.custom_scripts = ScriptList()
-        # Optional server-side injected JSON.
-        request.client_data = {}
-        """
-            request.client_routes = {
-                'logout',
-                'users_list',
-            }
-        """
-        request.client_routes = set()
-        viewmodels = onload_vm_list(request.client_data)
-        if has_vm_list(request.session):
-            vm_session = onload_vm_list(request.session)
-            viewmodels.extend(vm_session)
+        djk_get(request)
 
     @classmethod
     def get_request_timezone(cls, request=None):
@@ -287,22 +264,12 @@ class ContextMiddleware(RouterMiddleware):
         return True
 
     def before_acl(self, request):
-        if 'view_title' in request.resolver_match.kwargs:
-            # May be used by macro / template to build current page title.
-            request.resolver_match.view_title = request.resolver_match.kwargs['view_title']
-            del request.resolver_match.kwargs['view_title']
         return True
 
     def after_acl(self, request):
         return True
 
     def djk_view(self, request, view_func, view_args, view_kwargs):
-        if hasattr(view_func, '__wrapped__'):
-            # note: 'django.contrib.admin.sites' returns None as it uses non-standard wrapping.
-            view_class = sdv.get_cbv_from_dispatch_wrapper(view_func)
-            if hasattr(view_class, 'client_routes'):
-                request.client_routes |= view_class.client_routes
-
         if self.before_acl(request) is not True:
             return None
         acl_result = self.check_acl(request, view_kwargs)

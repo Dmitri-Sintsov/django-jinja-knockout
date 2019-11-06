@@ -39,8 +39,15 @@ class TemplateContextProcessor():
         """
         Will be called for application response() views.
         """
-        return self.HttpRequest is None or \
-            not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
+        if hasattr(settings, 'DJK_MIDDLEWARE'):
+            return self.HttpRequest is None or \
+                not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
+        else:
+            if not hasattr(self.HttpRequest, 'client_data'):
+                self.HttpRequest.client_data = {}
+            if not hasattr(self.HttpRequest, 'client_routes'):
+                self.HttpRequest.client_routes = set()
+            return False
 
     def get_user_id(self):
         return middleware.ThreadMiddleware().get_user_id(self.HttpRequest)
