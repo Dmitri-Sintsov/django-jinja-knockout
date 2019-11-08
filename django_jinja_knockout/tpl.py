@@ -17,7 +17,6 @@ from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
 from django.template import loader as tpl_loader
 from django.forms.utils import flatatt
-from django import urls as urlresolvers
 from django.urls import (
     resolve, reverse, NoReverseMatch, get_resolver, get_ns_resolver, get_script_prefix
 )

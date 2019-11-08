@@ -5,7 +5,7 @@ from django.utils.html import format_html
 
 from djk_ui.views import detail_edit as djk_ui_detail_edit
 
-from .base import djk_get, FormatTitleMixin, FormViewmodelsMixin, GetPostMixin
+from .base import FormatTitleMixin, FormViewmodelsMixin, GetPostMixin
 
 from ..utils.sdv import str_to_numeric
 from ..tpl import reverse

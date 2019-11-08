@@ -8,7 +8,6 @@ except ImportError:
     Dj2Backend = None
 
 
-
 register = template.Library()
 
 
