@@ -25,34 +25,48 @@ from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs,
 from ..forms.validators import FieldValidator
 
 
-def djk_get(request, client_routes=None, view_title=None):
-    # May be used by macro / template to build current page title.
-    if view_title is None:
-        view_title = request.resolver_match.kwargs.pop('view_title', 'Hello, world!')
-    request.resolver_match.view_title = view_title
-    if not hasattr(request, 'client_data'):
-        request.client_data = {}
-    if not hasattr(request, 'custom_scripts'):
-        # Simple script loader.
-        request.custom_scripts = ScriptList()
+def djk_get(request, view_title=None, client_data=None, client_routes=None):
+
+    # view_title may be used by macro / template to build current page title.
+    if view_title is None and 'view_title' in request.resolver_match.kwargs:
+        view_title = request.resolver_match.kwargs.pop('view_title', 'Default title')
+
+    if view_title is not None:
+        request.resolver_match.view_title = view_title
+
+    # client_data for onload viewmodels
+    if client_data is None:
+        client_data = {}
+    if hasattr(request, 'client_data'):
+        request.client_data.update(client_data)
+    else:
+        request.client_data = client_data
+
+    # urls injected to client-side Javascript
     if client_routes is None:
         client_routes = set()
-    if not hasattr(request, 'client_routes'):
-        request.client_routes = client_routes
-    else:
+    if hasattr(request, 'client_routes'):
         request.client_routes |= client_routes
+    else:
+        request.client_routes = client_routes
+
     viewmodels = onload_vm_list(request.client_data)
     if has_vm_list(request.session):
         vm_session = onload_vm_list(request.session)
         viewmodels.extend(vm_session)
 
 
-def djk_get_decorator(client_routes=None, view_title=None):
+def djk_get_decorator(view_title=None, client_data=None, client_routes=None):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             if request.method == 'GET':
-                djk_get(request, client_routes=client_routes, view_title=view_title)
+                djk_get(
+                    request,
+                    view_title=view_title,
+                    client_data=client_data,
+                    client_routes=client_routes
+                )
             return func(request, *args, **kwargs)
         return inner
     return decorator
@@ -151,6 +165,60 @@ class NavsList(list):
         result.set_props(getattr(self, 'props', None))
         result.set_props(getattr(other, 'props', None))
         return result
+
+
+class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
+
+    view_title = None
+    client_data = None
+    client_routes = None
+    custom_scripts = None
+
+    def get_view_title(self):
+        return self.view_title
+
+    def djk_dispatch(self, request):
+        if request.method == 'GET':
+            djk_get(
+                request,
+                view_title=self.get_view_title(),
+                client_data=self.client_data,
+                client_routes=self.client_routes
+            )
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.djk_dispatch(request)
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as e:
+            if isinstance(e, http.ImmediateJsonResponse):
+                return e.response if request.is_ajax() else http.error_response(request, 'AJAX request is required')
+            elif isinstance(e, http.ImmediateHttpResponse):
+                return e.response
+            else:
+                return http.exception_response(request, e)
+
+    def request_get(self, key, default=None):
+        if key in self.request.POST:
+            return self.request.POST.get(key)
+        else:
+            return self.request.GET.get(key, default)
+
+    def request_get_int(self, key, default=None, minval=None, maxval=None):
+        try:
+            result = int(self.request_get(key, default))
+        except ValueError:
+            return default
+        if minval is not None and result < minval:
+            result = minval
+        if maxval is not None and result > maxval:
+            result = maxval
+        return result
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['custom_scripts'] = ScriptList() if self.custom_scripts is None else ScriptList(self.custom_scripts)
+        return context_data
 
 
 # GET request usually generates html template, POST - returns AJAX viewmodels.
@@ -331,33 +399,6 @@ class FormViewmodelsMixin(ViewmodelView):
             for formset_form in formset:
                 self.add_form_viewmodels(formset_form, ff_vms)
         return ff_vms
-
-
-class GetPostMixin(TemplateResponseMixin, View):
-
-    client_routes = set()
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            djk_get(request, self.client_routes)
-        return super().dispatch(request, *args, **kwargs)
-
-    def request_get(self, key, default=None):
-        if key in self.request.POST:
-            return self.request.POST.get(key)
-        else:
-            return self.request.GET.get(key, default)
-
-    def request_get_int(self, key, default=None, minval=None, maxval=None):
-        try:
-            result = int(self.request_get(key, default))
-        except ValueError:
-            return default
-        if minval is not None and result < minval:
-            result = minval
-        if maxval is not None and result > maxval:
-            result = maxval
-        return result
 
 
 # Model queryset filtering / ordering base.
@@ -745,10 +786,10 @@ class BaseFilterView(GetPostMixin):
 
         self.current_search_str = self.request_get(self.search_key, '')
 
-    def dispatch(self, request, *args, **kwargs):
+    def djk_dispatch(self, request):
+        super().djk_dispatch(request)
         self.init_class()
         self.get_current_query()
-        return super().dispatch(request, *args, **kwargs)
 
     def strip_sort_order(self, sort_order):
         if not isinstance(sort_order, list):

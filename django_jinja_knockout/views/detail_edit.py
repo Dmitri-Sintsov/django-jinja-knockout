@@ -179,7 +179,6 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        djk_get(request, self.client_routes)
         """
         Handles GET requests and instantiates blank versions of the form
         and its inline formsets.

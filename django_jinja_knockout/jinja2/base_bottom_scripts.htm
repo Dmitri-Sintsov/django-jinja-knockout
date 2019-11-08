@@ -24,8 +24,8 @@
     </script>
     <script src="{{ static('djk/js/button-popover.js') }}"></script>
     <script src="{{ static('djk/js/tooltips.js') }}"></script>
-{% if request.custom_scripts -%}
-    {% for script in request.custom_scripts -%}
+{% if custom_scripts -%}
+    {% for script in custom_scripts -%}
     <script src="{{ static(script) }}"></script>
     {% endfor -%}
 {% endif -%}
