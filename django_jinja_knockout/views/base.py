@@ -346,16 +346,6 @@ class BsTabsMixin(ContextMixin):
         return context_data
 
 
-class ContextDataMixin(ContextMixin):
-
-    extra_context_data = {}
-
-    def get_context_data(self, **kwargs):
-        context_data = self.extra_context_data.copy()
-        context_data.update(super().get_context_data(**kwargs))
-        return context_data
-
-
 # Forms and forms fields AJAX viewmodel response.
 class FormViewmodelsMixin(ViewmodelView):
 
