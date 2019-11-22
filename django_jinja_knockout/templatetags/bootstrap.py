@@ -2,15 +2,10 @@
 # Copyright (c) Samuel Colvin, Ming Hsien Tzang and individual contributors.
 # All rights reserved.
 
-import bleach
-import collections
-from django.utils.html import escape
 from django import forms
 from .. import tpl
 from django.utils.translation import ugettext as _
-from django.utils.safestring import mark_safe
 from ..widgets import DisplayText, PrefillWidget
-from ..viewmodels import to_json
 
 
 def is_visible_field(model_field):
@@ -95,28 +90,12 @@ def filter_is_file(field):
     return is_file_field(field.field)
 
 
-def filter_is_iterable(val):
-    return isinstance(val, collections.Iterable) and not isinstance(val, str)
+class BootstrapFilters:
 
-
-def filter_linkify(text):
-    return mark_safe(bleach.linkify(escape(text)))
-
-
-def filter_escapejs(val, view_error=False):
-    if view_error:
-        try:
-            json_str = to_json(val)
-        except TypeError as e:
-            json_str = to_json({
-                'onloadViewModels': {
-                    'view': 'alert_error',
-                    'title': 'escapejs TypeError',
-                    'message': str(e)
-                }
-            })
-    else:
-        json_str = to_json(val)
-    return mark_safe(
-        json_str.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
-    )
+    filters = {
+        'get_display_layout': filter_get_display_layout,
+        'is_checkbox': filter_is_checkbox,
+        'is_file': filter_is_file,
+        'is_multiple_checkbox': filter_is_multiple_checkbox,
+        'is_radio': filter_is_radio,
+    }

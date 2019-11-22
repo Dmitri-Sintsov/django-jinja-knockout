@@ -6,10 +6,9 @@ from django.utils import translation
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
 
-from .templatetags.bootstrap import (
-    filter_escapejs, filter_get_display_layout, filter_is_checkbox, filter_is_file,
-    filter_is_iterable, filter_is_multiple_checkbox, filter_is_radio, filter_linkify
-)
+from .templatetags.base import BaseFilters
+from .templatetags.bootstrap import BootstrapFilters
+from .templatetags.humanize import HumanizeFilters
 
 from . import tpl
 
@@ -22,7 +21,7 @@ class UrlsExtension(Extension):
 
     @jinja2.contextfunction
     def _url_reverse(self, context, name, *args, **kwargs):
-        return tpl.url(name, request=context['request'], *args, **kwargs)
+        return tpl.url(name, request=context.get('request'), *args, **kwargs)
 
 
 class DjangoBytecodeCache(jinja2.BytecodeCache):
@@ -45,32 +44,22 @@ class DjangoBytecodeCache(jinja2.BytecodeCache):
         self.cache.set(key, bucket.bytecode_to_string())
 
 
-class BaseFiltersMixin:
-
-    def get_filters(self):
-        return {
-            'escapejs': filter_escapejs,
-            'get_display_layout': filter_get_display_layout,
-            'is_checkbox': filter_is_checkbox,
-            'is_file': filter_is_file,
-            'is_iterable': filter_is_iterable,
-            'is_multiple_checkbox': filter_is_multiple_checkbox,
-            'is_radio': filter_is_radio,
-            'linkify': filter_linkify,
-        }
-
-
 # Used by third-party django_jinja backend.
 # May be removed in the future in case django_jinja package will not be updated.
-class CompatibleEnvironment(jinja2.Environment, BaseFiltersMixin):
+class CompatibleEnvironment(jinja2.Environment):
+
+    filter_classes = [BaseFilters, BootstrapFilters, HumanizeFilters]
 
     def __init__(self, **options):
         super().__init__(**options)
-        self.filters.update(self.get_filters())
+        for filter_cls in self.filter_classes:
+            self.filters.update(filter_cls.filters)
 
 
 # Used by built-in Django Jinja2 template backend.
-class EnvironmentProcessor(BaseFiltersMixin):
+class EnvironmentProcessor:
+
+    filter_classes = [BaseFilters, BootstrapFilters, HumanizeFilters]
 
     url_compat = True
     gettext_newstyle = True
@@ -133,7 +122,8 @@ class EnvironmentProcessor(BaseFiltersMixin):
 
         self.i18n()
         self.env.globals.update(self.get_globals())
-        self.env.filters.update(self.get_filters())
+        for filter_cls in self.filter_classes:
+            self.env.filters.update(filter_cls.filters)
 
 
 def environment(**options):

@@ -1,4 +1,4 @@
-from .utils import sdv
+from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.utils.html import format_html, mark_safe
@@ -10,8 +10,16 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 
 from .forms import renderers as forms_renderers
 from .models import get_verbose_name
+from .utils import sdv
 from . import middleware
 from . import tpl
+
+
+class ScriptList(sdv.UniqueIterList):
+
+    def iter_callback(self, val):
+        parsed = urlsplit(val)
+        return parsed.path
 
 
 def raise_exception(msg):
@@ -81,6 +89,7 @@ class TemplateContextProcessor():
         return {
             'client_data': self.HttpRequest.client_data,
             'client_conf': client_conf,
+            'custom_scripts': ScriptList(),
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,

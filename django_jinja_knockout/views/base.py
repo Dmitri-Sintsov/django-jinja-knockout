@@ -1,7 +1,7 @@
 import json
 from collections import OrderedDict
 from functools import wraps
-from urllib.parse import urlparse, urlsplit
+from urllib.parse import urlparse
 from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
@@ -17,11 +17,12 @@ from django.contrib.contenttypes.models import ContentType
 
 from .. import http
 from .. import tpl
+from ..context_processors import ScriptList
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
 from ..viewmodels import vm_list, onload_vm_list, has_vm_list
-from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs, UniqueIterList
+from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
 
 
@@ -137,13 +138,6 @@ def prepare_bs_navs(navs, request):
             if is_active:
                 nav['atts']['class'] += ' active'
             nav['atts']['class'].strip()
-
-
-class ScriptList(UniqueIterList):
-
-    def iter_callback(self, val):
-        parsed = urlsplit(val)
-        return parsed.path
 
 
 # NavsList allows to pass extra props to templates, which enables further customization of menu,
