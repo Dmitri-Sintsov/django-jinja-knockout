@@ -1,7 +1,15 @@
 import bleach
 import collections
+
+import jinja2
+from jinja2.ext import Extension
+
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+
+from .. import tpl
 from ..viewmodels import to_json
 
 
@@ -32,10 +40,30 @@ def filter_linkify(text):
     return mark_safe(bleach.linkify(escape(text)))
 
 
-class BaseFilters:
+class UrlsExtension(Extension):
 
-    filters = {
-        'is_iterable': filter_is_iterable,
-        'escapejs': filter_escapejs,
-        'linkify': filter_linkify,
-    }
+    def __init__(self, environment):
+        super().__init__(environment)
+        environment.globals['url'] = self._url_reverse
+
+    @jinja2.contextfunction
+    def _url_reverse(self, context, name, *args, **kwargs):
+        return tpl.url(name, request=context.get('request'), *args, **kwargs)
+
+
+extensions = {
+    'jinja2.ext.do',
+    'jinja2.ext.i18n',
+    'UrlsExtension',
+}
+
+filters = {
+    'is_iterable': filter_is_iterable,
+    'escapejs': filter_escapejs,
+    'linkify': filter_linkify,
+}
+
+_globals = {
+    'static': staticfiles_storage.url,
+    'url': reverse,
+}

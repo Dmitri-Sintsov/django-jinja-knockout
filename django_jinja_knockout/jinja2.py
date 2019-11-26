@@ -1,27 +1,29 @@
+from importlib import import_module
 import jinja2
-from jinja2.ext import Extension
 
 from django.conf import settings
 from django.utils import translation
-from django.contrib.staticfiles.storage import staticfiles_storage
-from django.urls import reverse
-
-from .templatetags.base import BaseFilters
-from .templatetags.bootstrap import BootstrapFilters
-from .templatetags.humanize import HumanizeFilters
-
-from . import tpl
 
 
-class UrlsExtension(Extension):
-
-    def __init__(self, environment):
-        super().__init__(environment)
-        environment.globals['url'] = self._url_reverse
-
-    @jinja2.contextfunction
-    def _url_reverse(self, context, name, *args, **kwargs):
-        return tpl.url(name, request=context.get('request'), *args, **kwargs)
+def import_extensions(extensions_modules):
+    extensions = {
+        'extensions': set(),
+        'filters': {},
+        '_globals': {},
+    }
+    for module_path in extensions_modules:
+        if '.' not in module_path:
+            module_path = 'django_jinja_knockout.templatetags.{}'.format(module_path)
+        module = import_module(module_path)
+        for key in extensions:
+            if isinstance(extensions[key], dict):
+                extensions[key].update(getattr(module, key, {}))
+            else:
+                for ext_path in getattr(module, key, set()):
+                    if '.' not in ext_path:
+                        ext_path = '{}.{}'.format(module_path, ext_path)
+                    extensions[key].add(ext_path)
+    return extensions
 
 
 class DjangoBytecodeCache(jinja2.BytecodeCache):
@@ -48,37 +50,32 @@ class DjangoBytecodeCache(jinja2.BytecodeCache):
 # May be removed in the future in case django_jinja package will not be updated.
 class CompatibleEnvironment(jinja2.Environment):
 
-    filter_classes = [BaseFilters, BootstrapFilters, HumanizeFilters]
+    extensions_modules = ['base', 'fields', 'humanize']
 
     def __init__(self, **options):
         super().__init__(**options)
-        for filter_cls in self.filter_classes:
-            self.filters.update(filter_cls.filters)
+        extensions = import_extensions(getattr(settings, 'JINJA_EXTENSIONS', self.extensions_modules))
+        self.filters.update(extensions['filters'])
 
 
 # Used by built-in Django Jinja2 template backend.
 class EnvironmentProcessor:
 
-    filter_classes = [BaseFilters, BootstrapFilters, HumanizeFilters]
+    extensions_modules = ['base', 'fields', 'humanize']
 
     url_compat = True
     gettext_newstyle = True
 
     def get_extensions(self):
-        result = set([
-            'jinja2.ext.do',
-            'jinja2.ext.i18n',
-        ])
-        if self.url_compat:
-            result.add('django_jinja_knockout.jinja2.UrlsExtension')
+        result = self.extensions['extensions']
+        if not self.url_compat:
+            result.remove('django_jinja_knockout.templatetags.base.UrlsExtension')
         return result
 
     def get_globals(self):
-        result = {
-            'static': staticfiles_storage.url,
-        }
-        if not self.url_compat:
-            result['url'] = reverse
+        result = self.extensions['_globals']
+        if self.url_compat:
+            del result['url']
         return result
 
     def set_default_options(self, options):
@@ -108,6 +105,7 @@ class EnvironmentProcessor:
         return self.env
 
     def __init__(self, **options):
+        self.extensions = import_extensions(getattr(settings, 'JINJA_EXTENSIONS', self.extensions_modules))
         if 'extensions' in options:
             options['extensions'] = set(options['extensions'])
         else:
@@ -122,8 +120,8 @@ class EnvironmentProcessor:
 
         self.i18n()
         self.env.globals.update(self.get_globals())
-        for filter_cls in self.filter_classes:
-            self.env.filters.update(filter_cls.filters)
+        self.env.filters.update(self.extensions['filters'])
+        del self.extensions
 
 
 def environment(**options):

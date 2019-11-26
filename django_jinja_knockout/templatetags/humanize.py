@@ -25,13 +25,11 @@ def filter_naturaltime(source):
     return humanize.naturaltime(source)
 
 
-class HumanizeFilters:
-
-    filters = {
-        'ordinal': filter_ordinal,
-        'intcomma': filter_intcomma,
-        'intword': filter_intword,
-        'apnumber': filter_apnumber,
-        'naturalday': filter_naturalday,
-        'naturaltime': filter_naturaltime,
-    }
+filters = {
+    'ordinal': filter_ordinal,
+    'intcomma': filter_intcomma,
+    'intword': filter_intword,
+    'apnumber': filter_apnumber,
+    'naturalday': filter_naturalday,
+    'naturaltime': filter_naturaltime,
+}
