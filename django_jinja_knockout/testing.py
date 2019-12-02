@@ -366,15 +366,19 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.selenium.switch_to.active_element
         return self.context
 
+    def _until(self, condition, by, key):
+        return WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
+            condition((by, key))
+        )
+
     def _by_wait(self, by, key):
         try:
-            self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
-                EC.element_to_be_clickable((by, key))
-            )
+            self.context.element = self._until(EC.element_to_be_clickable, by, key)
         except WebDriverException:
-            self.context.element = WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
-                EC.presence_of_element_located((by, key))
-            )
+            try:
+                self.context.element = self._until(EC.visibility_of_element_located, by, key)
+            except WebDriverException:
+                self.context.element = self._until(EC.presence_of_element_located, by, key)
         return self.context
 
     def _by_id(self, id):
@@ -434,9 +438,10 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _scroll_to_element(self):
         # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
         self.selenium.execute_script(
-            'window.scrollTo(' +
-            str(self.context.element.location['x']) + ', ' + str(self.context.element.location['y']) +
-            ')'
+            'window.scrollTo({}, {})'.format(
+                self.context.element.location['x'],
+                self.context.element.location['y']
+            )
         )
         return self.context
 
