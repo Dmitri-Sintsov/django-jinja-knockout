@@ -270,8 +270,11 @@ class FormWithInlineFormsets:
         inline_title = self.get_formset_inline_title(formset)
         if inline_title is not None:
             formset.inline_title = inline_title
+        if hasattr(formset, 'set_request'):
+            formset.set_request(self.request)
+        else:
+            formset.request = self.request
         formset.set_knockout_template(self.request)
-        formset.request = self.request
         for form in formset:
             if hasattr(form, 'set_request') and callable(form.set_request):
                 form.set_request(self.request)
