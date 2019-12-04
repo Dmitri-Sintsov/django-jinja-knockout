@@ -5,7 +5,7 @@ from django.utils.html import format_html
 
 from djk_ui.views import detail_edit as djk_ui_detail_edit
 
-from .base import FormatTitleMixin, FormViewmodelsMixin, GetPostMixin
+from .base import FormatTitleMixin, FormViewmodelsMixin
 
 from ..utils.sdv import str_to_numeric
 from ..tpl import reverse
@@ -201,7 +201,7 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
             return self.form_invalid(self.ff.form, self.ff.formsets)
 
 
-class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, GetPostMixin, TemplateView):
+class InlineCreateView(FormatTitleMixin, FormWithInlineFormsetsMixin, TemplateView):
 
     template_name = 'cbv_edit_inline.htm'
 
@@ -212,7 +212,7 @@ class InlineCreateView(FormWithInlineFormsetsMixin, FormatTitleMixin, GetPostMix
         return None
 
 
-class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, GetPostMixin, DetailView):
+class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
 
@@ -222,7 +222,7 @@ class InlineDetailView(FormatTitleMixin, FormWithInlineFormsetsMixin, GetPostMix
 
 
 # Suitable for CREATE / UPDATE / DETAIL actions (DETAIL via form metaclass=DisplayModelMetaclass).
-class InlineCrudView(FormatTitleMixin, FormWithInlineFormsetsMixin, GetPostMixin, DetailView):
+class InlineCrudView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
 

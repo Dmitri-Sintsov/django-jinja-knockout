@@ -11,7 +11,8 @@ from .tpl import format_html_attrs
 from .http import (
     MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, error_response, exception_response
 )
-from .views import djk_get, auth_redirect
+from .views import auth_redirect
+from .views.base import set_view_title
 from .viewmodels import vm_list
 
 
@@ -41,12 +42,8 @@ class ThreadMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if self.is_our_module(view_func.__module__):
-            self.djk_request(request)
             result = self.djk_view(request, view_func, view_args, view_kwargs)
             return result
-
-    def djk_request(self, request):
-        return
 
     def djk_view(self, request, view_func, view_args, view_kwargs):
         return view_func(request, *view_args, **view_kwargs)
@@ -113,9 +110,6 @@ class RouterMiddleware(ThreadMiddleware):
             tz_name = self.__class__.get_request_timezone(request)
             if tz_name is not None:
                 timezone.activate(pytz.timezone(tz_name))
-
-    def djk_request(self, request):
-        djk_get(request)
 
     @classmethod
     def get_request_timezone(cls, request=None):
@@ -267,6 +261,7 @@ class ContextMiddleware(RouterMiddleware):
         return True
 
     def after_acl(self, request):
+        set_view_title(request.resolver_match)
         return True
 
     def djk_view(self, request, view_func, view_args, view_kwargs):
@@ -277,8 +272,8 @@ class ContextMiddleware(RouterMiddleware):
             return acl_result
         if self.after_acl(request) is not True:
             return None
-
         try:
+            request.is_djk = True
             return view_func(request, *view_args, **view_kwargs)
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):

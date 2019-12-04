@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import ViewmodelView, BaseFilterView, GetPostMixin, FormViewmodelsMixin
+from .base import ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -24,7 +24,7 @@ MAX_OBJECTS_PER_PAGE = MIN_OBJECTS_PER_PAGE * 5
 
 
 # ViewmodelView with actions router.
-class ActionsView(ViewmodelView, GetPostMixin):
+class ActionsView(FormatTitleMixin, ViewmodelView):
 
     # Set to valid string in the ancestor class.
     viewmodel_name = 'action'

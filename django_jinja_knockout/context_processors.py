@@ -11,6 +11,7 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 from .forms import renderers as forms_renderers
 from .models import get_verbose_name
 from .utils import sdv
+from .views import base as base_views
 from . import middleware
 from . import tpl
 
@@ -48,13 +49,8 @@ class TemplateContextProcessor():
         Will be called for application response() views.
         """
         if hasattr(settings, 'DJK_MIDDLEWARE'):
-            return self.HttpRequest is None or \
-                not all([hasattr(self.HttpRequest, attr) for attr in ('client_data', 'client_routes')])
+            return self.HttpRequest is None or not getattr(self.HttpRequest, 'is_djk', False)
         else:
-            if not hasattr(self.HttpRequest, 'client_data'):
-                self.HttpRequest.client_data = {}
-            if not hasattr(self.HttpRequest, 'client_routes'):
-                self.HttpRequest.client_routes = set()
             return False
 
     def get_user_id(self):
@@ -69,6 +65,9 @@ class TemplateContextProcessor():
     def get_context_data(self):
         if self.skip_request():
             return {}
+
+        if not hasattr(self.HttpRequest, 'client_data'):
+            base_views.djk_get(self.HttpRequest)
 
         self.user_id = self.get_user_id()
         client_conf = {

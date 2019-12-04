@@ -26,12 +26,16 @@ from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
 
 
+def set_view_title(resolver_match):
+    if 'view_title' in resolver_match.kwargs:
+        resolver_match.view_title = resolver_match.kwargs.pop('view_title')
+    elif not hasattr(resolver_match, 'view_title'):
+        resolver_match.view_title = 'Default title'
+
+
 def djk_get(request, view_title=None, client_data=None, client_routes=None):
 
     # view_title may be used by macro / template to build current page title.
-    if view_title is None and 'view_title' in request.resolver_match.kwargs:
-        view_title = request.resolver_match.kwargs.pop('view_title', 'Default title')
-
     if view_title is not None:
         request.resolver_match.view_title = view_title
 
@@ -169,10 +173,14 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
     custom_scripts = None
 
     def get_view_title(self):
-        return self.view_title
+        if self.view_title is None:
+            set_view_title(self.request.resolver_match)
+            return self.request.resolver_match.view_title
+        else:
+            return self.view_title
 
     def djk_dispatch(self, request):
-        if request.method == 'GET':
+        if request.method == 'GET' and not hasattr(self.request, 'client_data'):
             djk_get(
                 request,
                 view_title=self.get_view_title(),
@@ -276,7 +284,7 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
 # Supports both ancestors of DetailView and KoGridView.
 # DetailView and it's ancestors are supported automatically.
 # For KoGridView, one has to override .get() method and call .format_title() with appropriate args.
-class FormatTitleMixin(TemplateResponseMixin, View):
+class FormatTitleMixin(GetPostMixin):
 
     format_view_title = False
 
@@ -287,7 +295,7 @@ class FormatTitleMixin(TemplateResponseMixin, View):
     def format_title(self, *args, **kwargs):
         if self.format_view_title and not self.view_title_is_formatted:
             self.request.resolver_match.view_title = format_html(
-                self.request.resolver_match.view_title, *args, **kwargs
+                self.get_view_title(), *args, **kwargs
             )
             self.view_title_is_formatted = True
 
