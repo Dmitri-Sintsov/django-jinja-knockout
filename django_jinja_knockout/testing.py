@@ -47,7 +47,8 @@ Do not forget to update to latest ESR when running the tests.
 # Selenium commands with errors logging and automation commands support.
 class BaseSeleniumCommands(AutomationCommands):
 
-    DEFAULT_SLEEP_TIME = 3
+    DEFAULT_SLEEP_TIME = 2
+    DEFAULT_WAIT_TIME = 2
     SAVE_COMMANDS_HTML = 0
     sync_commands_list = []
 
@@ -74,7 +75,7 @@ class BaseSeleniumCommands(AutomationCommands):
         return self.context
 
     def _default_wait(self):
-        return self._wait(self.DEFAULT_SLEEP_TIME)
+        return self._wait(self.DEFAULT_WAIT_TIME)
 
     # https://code.djangoproject.com/wiki/Fixtures
     def _dump_data(self, prefix=''):
@@ -366,19 +367,31 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.selenium.switch_to.active_element
         return self.context
 
-    def _until(self, condition, by, key):
-        return WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
-            condition((by, key))
-        )
+    # See https://github.com/django/django/blob/master/django/contrib/admin/tests.py
+    def wait_until(self, callback):
+        """
+        Block the execution of the tests until the specified callback returns a
+        value that is not falsy. This method can be called, for example, after
+        clicking a link or submitting a form. See the other public methods that
+        call this function for more details.
+        """
+        return WebDriverWait(self.selenium, self.DEFAULT_WAIT_TIME).until(callback)
+
+    def _wait_page_ready(self):
+        """
+        Block until the  page is ready.
+        """
+        self.wait_until(lambda selenium: selenium.execute_script('return document.readyState;') == 'complete')
+        return self.context
 
     def _by_wait(self, by, key):
         try:
-            self.context.element = self._until(EC.element_to_be_clickable, by, key)
+            self.context.element = self.wait_until(EC.element_to_be_clickable([by, key]))
         except WebDriverException:
             try:
-                self.context.element = self._until(EC.visibility_of_element_located, by, key)
+                self.context.element = self.wait_until(EC.visibility_of_element_located([by, key]))
             except WebDriverException:
-                self.context.element = self._until(EC.presence_of_element_located, by, key)
+                self.context.element = self.wait_until(EC.presence_of_element_located([by, key]))
         return self.context
 
     def _by_id(self, id):
@@ -486,12 +499,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.exec(
             'find_anchor_by_view', (viewname, kwargs, query),
             'click',
+            'wait_page_ready'
         )
 
     def _click_by_link_text(self, link_text):
         return self.exec(
             'by_link_text', (link_text,),
             'click',
+            'wait_page_ready'
         )
 
     def _relative_button_click(self, button_title):

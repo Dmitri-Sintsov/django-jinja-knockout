@@ -32,7 +32,10 @@ class FormCommands:
                 action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
             )
         )
-        return self._click()
+        return self.exec(
+            'click',
+            'wait_page_ready'
+        )
 
 
 class ComponentCommands:
