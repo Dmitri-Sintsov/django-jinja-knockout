@@ -1,6 +1,5 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
 
@@ -70,7 +69,7 @@ class ComponentCommands:
 class DialogCommands(djk_ui_testing_components.DialogCommands):
 
     def _to_top_bootstrap_dialog(self):
-        WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until(
+        self.wait_until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '.bootstrap-dialog'))
         )
         dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
@@ -123,11 +122,11 @@ class DialogCommands(djk_ui_testing_components.DialogCommands):
 
     def _wait_until_dialog_closes(self):
         try:
-            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
+            self.wait_until_not(
                 EC.presence_of_element_located((By.XPATH, '//div[@class="modal-backdrop fade"]'))
             )
         except WebDriverException:
-            WebDriverWait(self.selenium, self.DEFAULT_SLEEP_TIME).until_not(
+            self.wait_until_not(
                 EC.presence_of_element_located((By.XPATH, '//div[@class="modal-header bootstrap-dialog-draggable"]'))
             )
         return self.context

@@ -369,18 +369,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     # See https://github.com/django/django/blob/master/django/contrib/admin/tests.py
     def wait_until(self, callback):
-        """
-        Block the execution of the tests until the specified callback returns a
-        value that is not falsy. This method can be called, for example, after
-        clicking a link or submitting a form. See the other public methods that
-        call this function for more details.
-        """
         return WebDriverWait(self.selenium, self.DEFAULT_WAIT_TIME).until(callback)
 
+    def wait_until_not(self, callback):
+        return WebDriverWait(self.selenium, self.DEFAULT_WAIT_TIME).until_not(callback)
+
     def _wait_page_ready(self):
-        """
-        Block until the  page is ready.
-        """
+        # Pause until the page is not loading yet.
+        self._default_sleep()
         self.wait_until(lambda selenium: selenium.execute_script('return document.readyState;') == 'complete')
         return self.context
 
@@ -502,12 +498,17 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             'wait_page_ready'
         )
 
+    # Client-side menu click.
     def _click_by_link_text(self, link_text):
         return self.exec(
             'by_link_text', (link_text,),
             'click',
-            'wait_page_ready'
         )
+
+    # Server-side menu click.
+    def _load_by_link_text(self, link_text):
+        self._click_by_link_text(link_text)
+        return self._wait_page_ready()
 
     def _relative_button_click(self, button_title):
         self.context = self._relative_by_xpath(
