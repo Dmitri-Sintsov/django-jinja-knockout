@@ -120,12 +120,12 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
             )
         )
 
-    def djk_dispatch(self, request):
+    def before_dispatch(self, request):
         if request.method == 'GET':
             if not hasattr(request, 'client_routes'):
                 request.client_routes = set()
             request.client_routes.add(request.resolver_match.view_name)
-        super().djk_dispatch(request)
+        super().before_dispatch(request)
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()

@@ -179,10 +179,17 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
         else:
             return self.view_title
 
-    def djk_dispatch(self, request):
+    def djk_get(self, view_title=None, client_data=None, client_routes=None):
+        djk_get(
+            self.request,
+            view_title=view_title,
+            client_data=client_data,
+            client_routes=client_routes
+        )
+
+    def before_dispatch(self, request):
         if request.method == 'GET' and not hasattr(self.request, 'client_data'):
-            djk_get(
-                request,
+            self.djk_get(
                 view_title=self.get_view_title(),
                 client_data=self.client_data,
                 client_routes=self.client_routes
@@ -190,7 +197,7 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.djk_dispatch(request)
+            self.before_dispatch(request)
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
             if isinstance(e, http.ImmediateJsonResponse):
@@ -778,8 +785,8 @@ class BaseFilterView(GetPostMixin):
 
         self.current_search_str = self.request_get(self.search_key, '')
 
-    def djk_dispatch(self, request):
-        super().djk_dispatch(request)
+    def before_dispatch(self, request):
+        super().before_dispatch(request)
         self.init_class()
         self.get_current_query()
 
