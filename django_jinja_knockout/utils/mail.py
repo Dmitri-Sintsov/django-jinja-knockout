@@ -2,7 +2,7 @@ from socket import gaierror
 from smtplib import SMTPDataError, SMTPServerDisconnected
 from bleach import linkify
 from django.utils.html import linebreaks
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.core import mail
 from django.contrib import messages
 from ..tpl import html_to_text

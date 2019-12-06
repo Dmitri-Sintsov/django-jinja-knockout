@@ -2,7 +2,7 @@ import datetime
 
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils.dateparse import parse_date, parse_datetime
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 
 from .admin import empty_value_display

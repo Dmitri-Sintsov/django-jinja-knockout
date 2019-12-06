@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import formats, timezone
-from django.utils.encoding import force_text, smart_text
+from django.utils.encoding import force_str, smart_str
 from django.utils.functional import Promise, SimpleLazyObject
 from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
@@ -76,7 +76,7 @@ class Renderer:
         if not hasattr(self.request, 'processors_context'):
             def get_csrf_token():
                 token = csrf.get_token(self.request)
-                return 'NOT_PROVIDED' if token is None else smart_text(token)
+                return 'NOT_PROVIDED' if token is None else smart_str(token)
             context = {
                 'request': self.request,
                 'csrf_token': SimpleLazyObject(get_csrf_token)
@@ -500,9 +500,9 @@ class DjkJSONEncoder(DjangoJSONEncoder):
 
     def default(self, o):
         if isinstance(o, Promise):
-            # force_text() is used because django.contrib.auth.models.User incorporates the instances of
+            # force_str() is used because django.contrib.auth.models.User incorporates the instances of
             # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
-            return force_text(o)
+            return force_str(o)
         if isinstance(o, DebugUndefined):
             return o.__str__()
         if isinstance(o, Undefined):

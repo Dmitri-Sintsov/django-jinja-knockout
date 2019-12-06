@@ -7,7 +7,7 @@ from ensure import ensure_annotations
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
 from django.utils.html import format_html, escape
-from django.utils.translation import gettext as _, ugettext as _u
+from django.utils.translation import gettext as _
 from django.utils.decorators import method_decorator
 from django.db import models
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
@@ -84,7 +84,7 @@ def auth_redirect(request):
             'view': 'alert_error',
             'message': format_html(
                 '<div>{}</div><div>{}</div>',
-                _u('Access to current url is denied'),
+                _('Access to current url is denied'),
                 request.build_absolute_uri(),
             )
         })

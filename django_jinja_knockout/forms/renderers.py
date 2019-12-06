@@ -3,7 +3,7 @@ from copy import copy
 from django import forms
 from django.conf import settings
 from django.utils.html import format_html, mark_safe
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from djk_ui import conf as djk_ui_conf
 
