@@ -19,13 +19,13 @@
     <script src="{{ static('djk/js/ui.js') }}"></script>
     <script src="{{ static('djk/js/modelform.js') }}"></script>
     <script language="JavaScript">
-        App.conf = {{ client_conf|escapejs(True) }};
-        App.clientData = {{ client_data|escapejs(True) }};
+        App.conf = {{ djk.client_conf|escapejs(True) }};
+        App.clientData = {{ djk.client_data|escapejs(True) }};
     </script>
     <script src="{{ static('djk/js/button-popover.js') }}"></script>
     <script src="{{ static('djk/js/tooltips.js') }}"></script>
-{% if custom_scripts -%}
-    {% for script in custom_scripts -%}
+{% if djk.custom_scripts -%}
+    {% for script in djk.custom_scripts -%}
     <script src="{{ static(script) }}"></script>
     {% endfor -%}
 {% endif -%}

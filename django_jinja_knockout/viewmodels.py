@@ -2,25 +2,6 @@
 from .tpl import to_json
 from .http import json_response
 
-# dict manipulation functions are used with HttpRequest.client_data or with HttpRequest.session.
-
-KEY = 'onloadViewModels'
-
-
-def has_vm_list(dct):
-    return KEY in dct
-
-
-def onload_vm_list(dct, new_value=None):
-    if new_value is not None:
-        dct[KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
-        return dct[KEY]
-    if isinstance(dct.get(KEY), vm_list):
-        return dct[KEY]
-    else:
-        dct[KEY] = vm_list(*dct.get(KEY, []))
-        return dct[KEY]
-
 
 def to_vm_list(v):
     if isinstance(v, vm_list):

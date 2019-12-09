@@ -17,60 +17,44 @@ from django.contrib.contenttypes.models import ContentType
 
 from .. import http
 from .. import tpl
-from ..context_processors import ScriptList
+from ..context_processors import TemplateContext
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
-from ..viewmodels import vm_list, onload_vm_list, has_vm_list
+from ..viewmodels import vm_list
 from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
 
 
-def set_view_title(resolver_match):
-    if 'view_title' in resolver_match.kwargs:
-        resolver_match.view_title = resolver_match.kwargs.pop('view_title')
-    elif not hasattr(resolver_match, 'view_title'):
-        resolver_match.view_title = 'Default title'
+def create_template_context(request, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
 
-
-def djk_get(request, view_title=None, client_data=None, client_routes=None):
-
-    # view_title may be used by macro / template to build current page title.
-    if view_title is not None:
-        request.resolver_match.view_title = view_title
-
-    # client_data for onload viewmodels
-    if client_data is None:
-        client_data = {}
-    if hasattr(request, 'client_data'):
-        request.client_data.update(client_data)
+    if hasattr(request, 'template_context'):
+        template_context = request.template_context
+        if view_title is not None:
+            template_context.set_view_title(view_title)
+        if client_data is not None:
+            template_context.add_client_data(client_data)
+        if client_routes is not None:
+            template_context.add_client_routes(client_routes)
+        if custom_scripts is not None:
+            template_context.add_custom_scripts(custom_scripts)
     else:
-        request.client_data = client_data
+        request.template_context = TemplateContext(view_title, client_data, client_routes, custom_scripts)
 
-    # urls injected to client-side Javascript
-    if client_routes is None:
-        client_routes = set()
-    if hasattr(request, 'client_routes'):
-        request.client_routes |= client_routes
-    else:
-        request.client_routes = client_routes
-
-    viewmodels = onload_vm_list(request.client_data)
-    if has_vm_list(request.session):
-        vm_session = onload_vm_list(request.session)
-        viewmodels.extend(vm_session)
+    return request.template_context
 
 
-def djk_get_decorator(view_title=None, client_data=None, client_routes=None):
+def template_context_decorator(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             if request.method == 'GET':
-                djk_get(
+                create_template_context(
                     request,
                     view_title=view_title,
                     client_data=client_data,
-                    client_routes=client_routes
+                    client_routes=client_routes,
+                    custom_scripts=custom_scripts
                 )
             return func(request, *args, **kwargs)
         return inner
@@ -173,26 +157,16 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
     custom_scripts = None
 
     def get_view_title(self):
-        if self.view_title is None:
-            set_view_title(self.request.resolver_match)
-            return self.request.resolver_match.view_title
-        else:
-            return self.view_title
-
-    def djk_get(self, view_title=None, client_data=None, client_routes=None):
-        djk_get(
-            self.request,
-            view_title=view_title,
-            client_data=client_data,
-            client_routes=client_routes
-        )
+        return self.view_title
 
     def before_dispatch(self, request):
         if request.method == 'GET' and not hasattr(self.request, 'client_data'):
-            self.djk_get(
+            create_template_context(
+                self.request,
                 view_title=self.get_view_title(),
                 client_data=self.client_data,
-                client_routes=self.client_routes
+                client_routes=self.client_routes,
+                custom_scripts=self.custom_scripts
             )
 
     def dispatch(self, request, *args, **kwargs):
@@ -223,11 +197,6 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
         if maxval is not None and result > maxval:
             result = maxval
         return result
-
-    def get_context_data(self, **kwargs):
-        context_data = super().get_context_data(**kwargs)
-        context_data['custom_scripts'] = ScriptList() if self.custom_scripts is None else ScriptList(self.custom_scripts)
-        return context_data
 
 
 # GET request usually generates html template, POST - returns AJAX viewmodels.
@@ -295,16 +264,10 @@ class FormatTitleMixin(GetPostMixin):
 
     format_view_title = False
 
-    def __init__(self, **kwargs):
-        self.view_title_is_formatted = False
-        super().__init__(**kwargs)
-
     def format_title(self, *args, **kwargs):
-        if self.format_view_title and not self.view_title_is_formatted:
-            self.request.resolver_match.view_title = format_html(
-                self.get_view_title(), *args, **kwargs
-            )
-            self.view_title_is_formatted = True
+        if self.format_view_title:
+            template_context = create_template_context(self.request)
+            template_context.set_title_format_args(*args, **kwargs)
 
     # Used when mixed with DetailView ancestors.
     def get_object(self, queryset=None):

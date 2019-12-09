@@ -8,7 +8,7 @@
 
 <card-default>
     <card-header>
-        <card-title>{{ request.resolver_match.view_title }}</card-title>
+        <card-title>{{ djk.view_title }}</card-title>
     </card-header>
     <card-body>
         <form role="form" class="login" method="POST" action="{{ tpl.url('account_login') }}">

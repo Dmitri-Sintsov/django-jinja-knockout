@@ -6,7 +6,7 @@
 
 <card-default>
     <card-header>
-        <card-title>{{ request.resolver_match.view_title }}</card-title>
+        <card-title>{{ djk.view_title }}</card-title>
     </card-header>
     <card-body>
         <form role="form" class="signup" id="signup_form" method="post" action="{{ tpl.url('account_signup') }}">

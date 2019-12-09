@@ -11,6 +11,7 @@ from django.contrib.messages.constants import DEFAULT_LEVELS
 from .forms import renderers as forms_renderers
 from .models import get_verbose_name
 from .utils import sdv
+from .viewmodels import vm_list
 from .views import base as base_views
 from . import middleware
 from . import tpl
@@ -27,9 +28,102 @@ def raise_exception(msg):
     raise Exception(msg)
 
 
+# Dynamic part of template context, usually accessed as request.template_context.
+class TemplateContext:
+
+    # dict manipulation functions are used with HttpRequest.template_context.client_data or with HttpRequest.session.
+    ONLOAD_KEY = 'onloadViewModels'
+
+    def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+        # view_title may be used by macro / template to build current page title.
+        self.set_view_title(view_title)
+        # client_data for custom vars and onload viewmodels.
+        self.client_data = {} if client_data is None else client_data
+        # urls injected to client-side Javascript.
+        self.client_routes = set() if client_routes is None else client_routes
+        # Ordered list of custom scripts urls injected to client-side Javascript.
+        self.custom_scripts = ScriptList() if custom_scripts is None else ScriptList(custom_scripts)
+        self.view_title_args = []
+        self.view_title_kwargs = {}
+
+    def set_view_title(self, view_title):
+        self.view_title = view_title
+
+    def get_view_title(self):
+        if len(self.view_title_args) > 0 or len(self.view_title_kwargs) > 0:
+            return format_html(self.view_title, *self.view_title_args, **self.view_title_kwargs)
+        else:
+            return self.view_title
+
+    def set_title_format_args(self, *args, **kwargs):
+        self.view_title_args = [] if args is None else args
+        self.view_title_kwargs = {} if kwargs is None else kwargs
+
+    def add_client_data(self, client_data):
+        self.client_data.update(client_data)
+
+    def add_client_routes(self, client_routes):
+        if isinstance(client_routes, set):
+            self.client_routes |= client_routes
+        else:
+            self.client_routes.add(client_routes)
+
+    def add_custom_scripts(self, custom_scripts):
+        if isinstance(custom_scripts, list):
+            self.custom_scripts.extend(custom_scripts)
+        else:
+            self.custom_scripts.append(custom_scripts)
+
+    def get_client_routes(self):
+        # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
+        # according to current permissions. So they are 'is_anon' because they exist.
+        # Always available client routes | per-view client routes.
+        return {(url, True) for url in self.client_routes}
+
+    def has_vm_list(self, dct):
+        return self.ONLOAD_KEY in dct
+
+    def onload_vm_list(self, dct, new_value=None):
+        if new_value is not None:
+            dct[self.ONLOAD_KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
+            return dct[self.ONLOAD_KEY]
+        if isinstance(dct.get(self.ONLOAD_KEY), vm_list):
+            return dct[self.ONLOAD_KEY]
+        else:
+            dct[self.ONLOAD_KEY] = vm_list(*dct.get(self.ONLOAD_KEY, []))
+            return dct[self.ONLOAD_KEY]
+
+    def apply_request(self, request):
+        # view_title:
+        if self.view_title is None:
+            if 'view_title' in request.resolver_match.kwargs:
+                self.view_title = request.resolver_match.kwargs.pop('view_title')
+
+        # onload_viewmodels:
+        viewmodels = self.onload_vm_list(self.client_data)
+        if self.has_vm_list(request.session):
+            vm_session = self.onload_vm_list(request.session)
+            viewmodels.extend(vm_session)
+
+    def get_client_url(self):
+        return {url_name: tpl.get_formatted_url(url_name) for url_name in self.client_routes}
+
+    def get_context_data(self, request):
+        self.apply_request(request)
+        return {
+            'user': request.user,
+            'view_title': self.get_view_title(),
+            'client_conf': {
+                'url': self.get_client_url(),
+            },
+            'client_data': self.client_data,
+            'custom_scripts': self.custom_scripts,
+        }
+
+
 class TemplateContextProcessor():
     # List of global client routes that will be injected into every view.
-    # One also may inject specific routes into client side per view via request.client_routes |= {'route1', 'route2'}
+    # One also may inject specific routes into client side per view via request.template_context.add_client_routes({'route1', 'route2'})
     """
         CLIENT_ROUTES = {
             # Available to both anonymous and registered users.
@@ -56,18 +150,12 @@ class TemplateContextProcessor():
     def get_user_id(self):
         return middleware.ThreadMiddleware().get_user_id(self.HttpRequest)
 
-    def get_client_routes(self):
-        # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
-        # according to current permissions. So they are 'is_anon' because they exist.
-        # Always available client routes | per-view client routes.
-        return self.CLIENT_ROUTES | {(url, True) for url in self.HttpRequest.client_routes}
-
     def get_context_data(self):
         if self.skip_request():
             return {}
 
-        if not hasattr(self.HttpRequest, 'client_data'):
-            base_views.djk_get(self.HttpRequest)
+        if not hasattr(self.HttpRequest, 'template_context'):
+            base_views.create_template_context(self.HttpRequest)
 
         self.user_id = self.get_user_id()
         client_conf = {
@@ -77,18 +165,20 @@ class TemplateContextProcessor():
             'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
             'staticPath': static(''),
             'userId': self.user_id,
-            'url': {}
         }
         file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
         if file_max_size is not None:
             client_conf['fileMaxSize'] = file_max_size
-        for url_name, is_anon in self.get_client_routes():
-            if (is_anon or self.user_id != 0) and url_name not in client_conf['url']:
-                client_conf['url'][url_name] = tpl.get_formatted_url(url_name)
+
+        self.HttpRequest.template_context.add_client_routes({
+            url_name for url_name, is_anon in self.CLIENT_ROUTES if is_anon or self.user_id != 0
+        })
+
+        djk_data = self.HttpRequest.template_context.get_context_data(self.HttpRequest)
+        djk_data['client_conf'].update(client_conf)
+
         return {
-            'client_data': self.HttpRequest.client_data,
-            'client_conf': client_conf,
-            'custom_scripts': ScriptList(),
+            'djk': djk_data,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,

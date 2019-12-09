@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
+from .base import create_template_context, ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -122,9 +122,8 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
 
     def before_dispatch(self, request):
         if request.method == 'GET':
-            if not hasattr(request, 'client_routes'):
-                request.client_routes = set()
-            request.client_routes.add(request.resolver_match.view_name)
+            create_template_context(request)
+            request.template_context.add_client_routes(request.resolver_match.view_name)
         super().before_dispatch(request)
 
     def post(self, request, *args, **kwargs):

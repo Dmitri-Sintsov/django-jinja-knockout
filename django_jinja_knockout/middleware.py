@@ -12,7 +12,6 @@ from .http import (
     MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, error_response, exception_response
 )
 from .views import auth_redirect
-from .views.base import set_view_title
 from .viewmodels import vm_list
 
 
@@ -261,7 +260,6 @@ class ContextMiddleware(RouterMiddleware):
         return True
 
     def after_acl(self, request):
-        set_view_title(request.resolver_match)
         return True
 
     def djk_view(self, request, view_func, view_args, view_kwargs):
