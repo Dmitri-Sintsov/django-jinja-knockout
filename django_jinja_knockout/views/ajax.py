@@ -122,8 +122,8 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
 
     def before_dispatch(self, request):
         if request.method == 'GET':
-            create_template_context(request)
-            request.template_context.add_client_routes(request.resolver_match.view_name)
+            template_context = create_template_context(request)
+            template_context.add_client_routes(request.resolver_match.view_name)
         super().before_dispatch(request)
 
     def post(self, request, *args, **kwargs):

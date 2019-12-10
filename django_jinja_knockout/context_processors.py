@@ -105,17 +105,18 @@ class TemplateContext:
             vm_session = self.onload_vm_list(request.session)
             viewmodels.extend(vm_session)
 
-    def get_client_url(self):
+    def get_client_urls(self):
         return {url_name: tpl.get_formatted_url(url_name) for url_name in self.client_routes}
 
-    def get_context_data(self, request):
+    def get_context_data(self, request, client_conf=None):
+        if client_conf is None:
+            client_conf = {}
         self.apply_request(request)
+        client_conf['url'] = self.get_client_urls()
         return {
             'user': request.user,
             'view_title': self.get_view_title(),
-            'client_conf': {
-                'url': self.get_client_url(),
-            },
+            'client_conf': client_conf,
             'client_data': self.client_data,
             'custom_scripts': self.custom_scripts,
         }
@@ -174,8 +175,7 @@ class TemplateContextProcessor():
             url_name for url_name, is_anon in self.CLIENT_ROUTES if is_anon or self.user_id != 0
         })
 
-        djk_data = self.HttpRequest.template_context.get_context_data(self.HttpRequest)
-        djk_data['client_conf'].update(client_conf)
+        djk_data = self.HttpRequest.template_context.get_context_data(self.HttpRequest, client_conf)
 
         return {
             'djk': djk_data,
