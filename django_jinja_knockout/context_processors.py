@@ -50,7 +50,7 @@ class TemplateContext:
         self.view_title = view_title
 
     def get_view_title(self):
-        if len(self.view_title_args) > 0 or len(self.view_title_kwargs) > 0:
+        if self.view_title is not None and (len(self.view_title_args) > 0 or len(self.view_title_kwargs) > 0):
             return format_html(self.view_title, *self.view_title_args, **self.view_title_kwargs)
         else:
             return self.view_title
@@ -83,7 +83,9 @@ class TemplateContext:
     def has_vm_list(self, dct):
         return self.ONLOAD_KEY in dct
 
-    def onload_vm_list(self, dct, new_value=None):
+    def onload_vm_list(self, dct=None, new_value=None):
+        if dct is None:
+            dct = self.client_data
         if new_value is not None:
             dct[self.ONLOAD_KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
             return dct[self.ONLOAD_KEY]
@@ -93,14 +95,17 @@ class TemplateContext:
             dct[self.ONLOAD_KEY] = vm_list(*dct.get(self.ONLOAD_KEY, []))
             return dct[self.ONLOAD_KEY]
 
-    def apply_request(self, request):
+    def resolver_match_title(self, request):
         # view_title:
         if self.view_title is None:
             if 'view_title' in request.resolver_match.kwargs:
                 self.view_title = request.resolver_match.kwargs.pop('view_title')
+        return self.view_title
 
+    def apply_request(self, request):
+        self.resolver_match_title(request)
         # onload_viewmodels:
-        viewmodels = self.onload_vm_list(self.client_data)
+        viewmodels = self.onload_vm_list()
         if self.has_vm_list(request.session):
             vm_session = self.onload_vm_list(request.session)
             viewmodels.extend(vm_session)
