@@ -19,6 +19,7 @@ django-jinja-knockout
 .. _data-bind: https://knockoutjs.com/documentation/binding-syntax.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _DisplayText: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#displaytext
+.. _django-jinja: https://github.com/niwinz/django-jinja
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
@@ -43,6 +44,7 @@ django-jinja-knockout
 .. _SendmailQueue: https://django-jinja-knockout.readthedocs.io/en/latest/utils_mail.html
 .. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
 .. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
+.. _TemplateContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=templatecontext&type=Code
 .. _tpl.resolve_cbv(): https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#url-resolution
 .. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -135,7 +137,6 @@ Uses
 
 * https://github.com/knockout/knockout
 * https://github.com/mitsuhiko/jinja2
-* https://github.com/niwinz/django-jinja
 * Provides DTL tag library to include Jinja2 templates into DTL templates.
 * Knockout.js is used to provide `datatables`_ and for XSS-safe `empty_form`_ handling.
 * AJAX form validation, AJAX `viewmodels`_ response routing are implemented via bundled client-side scripts.
@@ -144,6 +145,23 @@ It's not a pure SPA framework, but a mixed approach of server-side pages with em
 scripts. Although it may be used for SPA as well. Classical Web applications aren't "outdated" in any way - because such
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
 server-side has less glitches than browsers.
+
+Major changes (version 0.9.0)
+-----------------------------
+Django 3.0 support.
+
+Introduced `TemplateContext`_ class used to inject view title / client data / client routes / custom scripts to
+templates.
+
+Dependency on `django-jinja`_ package is optional and is turned off by default. It may be removed completely in case
+`django-jinja`_ package will not be updated to run with Django 3.0 or newer version.
+
+Running without ``DJK_MIDDLEWARE`` is greatly improved.
+
+Pluggable extensions for Jinja2 templates.
+
+``bs_breadcrumbs()`` / ``bs_dropdown()`` / ``bs_navs()`` Jinja2 macro are now completely orthogonal - argument
+compatible drop in.
 
 Minor changes (version 0.8.1)
 -----------------------------

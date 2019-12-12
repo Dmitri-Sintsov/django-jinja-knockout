@@ -10,6 +10,7 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
+.. _GetPostMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=GetPostMixin&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
@@ -501,10 +502,8 @@ useful to prepare page / form templates which may require automated Javascript c
 BootstrapDialog alerts / confirmations when the page is just loaded. For example to display confirmation dialog when the
 page is loaded, you can override class-based view ``get()`` method like this::
 
-    from django_jinja_knockout.viewmodels import onload_vm_list
-
     def get(self, request, *args, **kwargs):
-        load_vm_list = onload_vm_list(request.client_data)
+        load_vm_list = request.template_context.onload_vm_list()
         load_vm_list.append({
             'view': 'confirm',
             'title': 'Please enter <i>your</i> personal data.',
@@ -515,6 +514,8 @@ page is loaded, you can override class-based view ``get()`` method like this::
             }]
         })
         return super().get(self, request, *args, **kwargs)
+
+Read about :ref:`TemplateContext (djk context)`.
 
 The second way of server-side invocation is similar to just explained one, but it stores client-side viewmodels in
 current user session, making them persistent across requests. This allows to set initial page viewmodels during POST
@@ -535,7 +536,8 @@ request::
                 'title': last_message.title,
                 'text': last_message.text
             }
-        session_vm_list = onload_vm_list(request.session)
+        template_context = create_template_context(request)
+        session_vm_list = template_context.onload_vm_list(request.session)
         idx, old_view_model = session_vm_list.find_by_kw(view='initial_views')
         if idx is not False:
             # Remove already existing 'initial_views' viewmodel, otherwise they will accumulate.
@@ -544,14 +546,24 @@ request::
         if len(view_model) > 1:
             session_vm_list.append(view_model)
 
-To inject client-side viewmodel when page DOM loads just once::
+To inject client-side viewmodel when page DOM loads just once (function view)::
 
-    load_vm_list = onload_vm_list(request.client_data)
-    load_vm_list.append({'view': 'my_view'})
+    onload_vm_list = create_template_context(request).onload_vm_list()
+    onload_vm_list.append({'view': 'my_view'})
 
-To inject client-side viewmodel when page DOM loads persistently in user session::
+In CBV view, inherited from `GetPostMixin`_::
 
-    session_vm_list = onload_vm_list(request.session)
+    onload_vm_list = self.request.template_context.onload_vm_list()
+    onload_vm_list.append({'view': 'my_view'})
+
+To inject client-side viewmodel when page DOM loads persistently in user session (function view)::
+
+    session_vm_list = create_template_context(request).onload_vm_list(request.session)
+    session_vm_list.append({'view': 'my_view'})
+
+In CBV view, inherited from `GetPostMixin`_::
+
+    session_vm_list = self.request.template_context.onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})
 
 Require viewmodels handlers

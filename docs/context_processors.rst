@@ -28,15 +28,20 @@ Next are the methods that alter 'class' key value of the supplied HTML attrs dic
 * ``tpl.prepend_css_classes_to_dict()``
 * ``tpl.remove_css_classes_from_dict()``
 
+.. _TemplateContext (djk context):
+
+TemplateContext (djk context)
+-----------------------------
+
 Injection of server-side data into loaded page
-----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * ``client_data`` dict to be injected as JSON to HTML page, which is accessible then at client-side as
   ``App.clientData`` Javascript object, including optional JSON client-side viewmodels, executed when html page is
   loaded::
 
     <script language="JavaScript">
-        App.conf = {{ client_conf|escapejs(True) }};
-        App.clientData = {{ client_data|escapejs(True) }};
+        App.conf = {{ djk.client_conf|escapejs(True) }};
+        App.clientData = {{ djk.client_data|escapejs(True) }};
     </script>
 
 * ``cilent_conf`` dict passed to be accessible at client-side (``App.conf`` Javascript object) with the following keys:
@@ -52,13 +57,18 @@ Injection of server-side data into loaded page
 See also :doc:`installation` how to setup Javascript error logging.
 
 Injection of Django url routes into loaded page
------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * ``App.conf.url`` - JSON-ified Python set from ``context_processors.TemplateContextProcessor`` module ``CLIENT_ROUTES``
   variable that defines selected list of Django url routes mapped to Javascript object to be used with AJAX requests
   from Javascript. It allows not to have hard-coded app urls in Javascript code. Since version 0.2.0, it supports url
   names with kwargs.
 
   Read :doc:`viewmodels` documentation how to add custom client-side urls (``client_routes``) per view.
+
+Injection of custom script urls into loaded page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Todo:
 
 Meta and formatting
 -------------------

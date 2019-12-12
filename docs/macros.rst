@@ -37,9 +37,9 @@ bs_form()
 
     {% block main %}
 
-    {{ bs_form(form=form, action=url('my_url_name'), opts={
+    {{ bs_form(form=form, action=tpl.url('my_url_name'), opts={
         'class': 'form_css_class',
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'My button'
     }) }}
 
@@ -84,10 +84,10 @@ Also it has support for inserting custom content between individual forms of for
 Example of form with inline formsets rendering::
 
     {{
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('add_project', project_id=project.pk), opts={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('add_project', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'Add new project'
     }) }}
 
@@ -108,10 +108,10 @@ One may use the custom `layout_classes`_ value as the key of the following macro
 to alter default Bootstrap 4 inline form grid width, for example::
 
     {{
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_candidate_add', project_id=project.pk), opts={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_candidate_add', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'Add candidate',
         'layout_classes': {
             '': {
@@ -159,15 +159,15 @@ specified::
     {% from 'bs_inline_formsets.htm' import bs_inline_formsets with context %}
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), opts={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_update', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'Update project'
     }) %}
 
     {% if 'buttons' in kwargs %}
-        <button type="submit" data-url="{{ url('project_postpone', project_id=project.pk) }}" class="btn btn-primary">
+        <button type="submit" data-url="{{ tpl.url('project_postpone', project_id=project.pk) }}" class="btn btn-primary">
             Postpone project
         </button>
     {% endif %}
@@ -176,8 +176,8 @@ specified::
 
 Resulting html will have two form submit buttons:
 
-* one is automatically generated with submit ``url('project_update', ...)``
-* another is manually inserted with submit ``url('project_postpone', ...)``
+* one is automatically generated with submit ``tpl.url('project_update', ...)``
+* another is manually inserted with submit ``tpl.url('project_postpone', ...)``
 
 Different views may be called from the same Django AJAX form with inline formsets, depending on which html button is
 pressed.
@@ -218,7 +218,7 @@ rendering related ``projectmember_set`` inline formset::
 Wrapping each form of formset with div with custom attributes (to process these in custom Javascript)::
 
     {% call(kwargs)
-    bs_inline_formsets(related_form=form, formsets=formsets, action=url('project_update', project_id=project.pk), opts={
+    bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_update', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
         'title': form.instance,

@@ -279,7 +279,7 @@ styled Django ModelForms. Usual form generation syntax is::
 
     {{ bs_form(form=form, action=url('my_url_name'), opts={
         'class': 'form_css_class',
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'My button'
     }) }}
 
@@ -303,7 +303,7 @@ then, in order to have the form processed as AJAX form, it's enough to add ``'is
     {{ bs_form(form=form, action=url('my_url_name'), opts={
         'class': 'form_css_class',
         'is_ajax': True,
-        'title': request.resolver_match.view_title,
+        'title': djk.view_title,
         'submit_text': 'My button'
     }) }}
 

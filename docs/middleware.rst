@@ -4,6 +4,7 @@ middleware.py
 
 .. _custom_scripts: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=custom_scripts
 .. _extending middleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
+.. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
 .. _sample settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 
@@ -58,13 +59,18 @@ list::
 Such apps has to be both in ``DJK_APPS`` list and in ``INSTALLED_APPS`` list. See `sample settings.py`_ for the complete
 example.
 
+Since v0.9.0 the dependency on ``DJK_MIDDLEWARE`` was sufficiently reduced. The code which does call ``DjkAppConfig``
+class `.get_context_middleware()`_ method and does not require built-in middleware permissions check and does not use
+custom inherited middleware should work without ``DJK_MIDDLEWARE`` at all. However beware that ``RendererModelForm`` and
+``ForeignKeyGridWidget`` still require it, so it's not the recommended settings.
+
 Extending built-in middleware
 -----------------------------
 
 Middleware is extendable (inheritable), which allows to implement your own features by overloading it's methods. See
 the example of `extending middleware`_.
 
-``DjkAppConfig`` class ``.get_context_middleware()`` method should be used to resolve the installed ``ContextMiddleware``
+``DjkAppConfig`` class `.get_context_middleware()`_ method should be used to resolve the installed ``ContextMiddleware``
 class instead of direct import. Such way the extended ``ContextMiddleware`` class specified in ``settings.py``
 ``DJK_MIDDLEWARE`` will be used instead of the original version::
 
@@ -100,10 +106,19 @@ Since version 0.3.0 it's possible to get timezone name string from current brows
 
     ContextMiddleware.get_request_timezone()
 
-Since version 0.8.0, the middleware supports ``request`` ``.custom_scripts`` dynamic injection of client-side scripts
+Since version 0.8.0, the middleware supports ``request`` `custom_scripts`_ dynamic injection of client-side scripts
 from Django server-side views / templates::
 
     request.custom_scripts.extend([
+        'djk/js/formsets.js',
+        'djk/js/grid.js',
+        'js/club-grid.js',
+    ])
+
+Since version 0.9.0, `custom_scripts`_ injection is managed by :ref:`TemplateContext (djk context)`, not using
+middleware anymore, reducing optional :ref:`installation_djk_middleware` dependency and is injected in templates like this::
+
+    djk.custom_scripts.extend([
         'djk/js/formsets.js',
         'djk/js/grid.js',
         'js/club-grid.js',

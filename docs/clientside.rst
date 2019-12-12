@@ -109,8 +109,8 @@ Simplifying AJAX calls
   Supports multiple Django POST routes for the same AJAX form via multiple ``input[type="submit"]`` buttons in the
   generated form html body.
 
-* ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django and allow to export named Django
-  urls like ``url(name='my_url_name')`` to be used in client-side code directly.
+* ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django using named urls like
+  ``url(name='my_url_name')`` exported to client-side code directly.
 
 Global IoC
 ----------
