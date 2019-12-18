@@ -1,3 +1,4 @@
+.. _TemplateContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=TemplateContext
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _utils.sdv: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/utils/sdv.py
 
@@ -7,7 +8,7 @@ context_processors.py
 
 Context processor injects the `tpl`_ / `utils.sdv`_ modules to to Jinja2 template context, allowing to write more
 powerful templates. Any function / class from these modules are immediately available in Jinja2 templates. Additionally
-some functions / classes from another modules are loaded.
+some useful functions / classes are loaded (see `Meta and formatting`_).
 
 * `tpl`_ module implements functions / classes for advanced text / html formatting; see :doc:`tpl` for detailed
   information.
@@ -32,6 +33,14 @@ Next are the methods that alter 'class' key value of the supplied HTML attrs dic
 
 TemplateContext (djk context)
 -----------------------------
+
+Since version 0.9.0, `TemplateContext`_ class is used to manage dynamically generated part of context variables required
+to run client-side of the framework. These variables are placed into ``djk`` dict, including the following default keys:
+
+* ``view_title`` - see :ref:`views_view_title`
+* ``client_conf`` - see `Injection of Django url routes into loaded page`_
+* ``client_data`` - see `Injection of server-side data into loaded page`_
+* ``custom_scripts`` - see `Injection of custom script urls into loaded page`_
 
 Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

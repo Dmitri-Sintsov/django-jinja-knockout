@@ -45,8 +45,13 @@ The built-in middleware is applied only to the views which belong to modules (Dj
 
 See ``djk-sample`` `settings.py`_ for the complete example.
 
-See also :ref:`middleware_installation`, :ref:`middleware_security`.
+See also :ref:`middleware_installation`, :ref:`middleware_security` for the description of additional permission check
+view kwargs.
 
+.. _views_view_title:
+
+View title
+~~~~~~~~~~
 View title is optionally defined as url kwargs ``'view_title'`` key value::
 
     from my_app.views import signup
