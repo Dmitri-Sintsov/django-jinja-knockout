@@ -62,17 +62,17 @@ class TemplateContext:
     def add_client_data(self, client_data):
         self.client_data.update(client_data)
 
+    def nested_client_data(self, client_data):
+        sdv.nested_update(self.client_data, client_data)
+
     def add_client_routes(self, client_routes):
         if isinstance(client_routes, set):
             self.client_routes |= client_routes
         else:
             self.client_routes.add(client_routes)
 
-    def add_custom_scripts(self, custom_scripts):
-        if isinstance(custom_scripts, list):
-            self.custom_scripts.extend(custom_scripts)
-        else:
-            self.custom_scripts.append(custom_scripts)
+    def add_custom_scripts(self, *custom_scripts):
+        self.custom_scripts.extend(custom_scripts)
 
     def get_client_routes(self):
         # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,

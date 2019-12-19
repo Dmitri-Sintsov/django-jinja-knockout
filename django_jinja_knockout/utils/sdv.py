@@ -114,8 +114,7 @@ def nested_update(d, u):
     for k, v in u.items():
         if isinstance(d, Mapping):
             if isinstance(v, Mapping):
-                r = nested_update(d.get(k, {}), v)
-                d[k] = r
+                d[k] = nested_update(d.get(k, {}), v)
             else:
                 d[k] = u[k]
         else:

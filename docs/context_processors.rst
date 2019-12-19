@@ -48,11 +48,12 @@ framework itself. These variables are placed into ``djk`` context dict, includin
 The singleton instance of `TemplateContext`_ is stored into current ``request``.``template_context`` attribute, which
 is instantiated / updated by `create_template_context()`_ function.
 
-Injection of Django url routes into loaded page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. highlight:: python
 
-* ``cilent_conf`` dict is passed to be accessed at client-side via ``App.conf`` Javascript object with the following
+Injection of Django url routes into loaded page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``client_conf`` dict is passed to be accessed at client-side via ``App.conf`` Javascript object with the following
   keys:
 
  * ``'jsErrorsAlert'`` - boolean value, whether Javascript errors should produce Bootstrap alert;

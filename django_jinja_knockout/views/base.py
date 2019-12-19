@@ -37,7 +37,7 @@ def create_template_context(request, view_title=None, client_data=None, client_r
         if client_routes is not None:
             template_context.add_client_routes(client_routes)
         if custom_scripts is not None:
-            template_context.add_custom_scripts(custom_scripts)
+            template_context.add_custom_scripts(*custom_scripts)
     else:
         request.template_context = TemplateContext(view_title, client_data, client_routes, custom_scripts)
 
