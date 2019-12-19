@@ -10,6 +10,4 @@
 <link href="{{ static('djk/css/lib/ladda-themeless.min.css') }}" rel="stylesheet">
 <link href="{{ static('djk/css/app.css') }}" rel="stylesheet">
 <link href="{{ static('djk/css/ui.css') }}" rel="stylesheet">
-{% if djk.view_title -%}
-    <title>{{ djk.view_title }}</title>
-{% endif -%}
+<title>{{ djk.get_view_title() }}</title>

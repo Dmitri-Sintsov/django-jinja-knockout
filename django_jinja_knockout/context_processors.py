@@ -35,6 +35,7 @@ class TemplateContext:
     ONLOAD_KEY = 'onloadViewModels'
 
     def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+        self.client_conf = {}
         # view_title may be used by macro / template to build current page title.
         self.set_view_title(view_title)
         # client_data for custom vars and onload viewmodels.
@@ -65,14 +66,23 @@ class TemplateContext:
     def nested_client_data(self, client_data):
         sdv.nested_update(self.client_data, client_data)
 
+    def get_client_data(self):
+        return self.client_data
+
     def add_client_routes(self, client_routes):
         if isinstance(client_routes, set):
             self.client_routes |= client_routes
         else:
             self.client_routes.add(client_routes)
 
+    def get_client_urls(self):
+        return {url_name: tpl.get_formatted_url(url_name) for url_name in self.client_routes}
+
     def add_custom_scripts(self, *custom_scripts):
         self.custom_scripts.extend(custom_scripts)
+
+    def get_custom_scripts(self):
+        return self.custom_scripts
 
     def get_client_routes(self):
         # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
@@ -110,21 +120,12 @@ class TemplateContext:
             vm_session = self.onload_vm_list(request.session)
             viewmodels.extend(vm_session)
 
-    def get_client_urls(self):
-        return {url_name: tpl.get_formatted_url(url_name) for url_name in self.client_routes}
+    def update_client_conf(self, client_conf):
+        self.client_conf.update(client_conf)
 
-    def get_context_data(self, request, client_conf=None):
-        if client_conf is None:
-            client_conf = {}
-        self.apply_request(request)
-        client_conf['url'] = self.get_client_urls()
-        return {
-            'user': request.user,
-            'view_title': self.get_view_title(),
-            'client_conf': client_conf,
-            'client_data': self.client_data,
-            'custom_scripts': self.custom_scripts,
-        }
+    def get_client_conf(self):
+        self.client_conf.setdefault('url', self.get_client_urls())
+        return self.client_conf
 
 
 class TemplateContextProcessor():
@@ -160,8 +161,7 @@ class TemplateContextProcessor():
         if self.skip_request():
             return {}
 
-        if not hasattr(self.HttpRequest, 'template_context'):
-            base_views.create_template_context(self.HttpRequest)
+        template_context = base_views.create_template_context(self.HttpRequest)
 
         self.user_id = self.get_user_id()
         client_conf = {
@@ -176,14 +176,15 @@ class TemplateContextProcessor():
         if file_max_size is not None:
             client_conf['fileMaxSize'] = file_max_size
 
-        self.HttpRequest.template_context.add_client_routes({
+        template_context.add_client_routes({
             url_name for url_name, is_anon in self.CLIENT_ROUTES if is_anon or self.user_id != 0
         })
 
-        djk_data = self.HttpRequest.template_context.get_context_data(self.HttpRequest, client_conf)
+        template_context.update_client_conf(client_conf)
+        template_context.apply_request(self.HttpRequest)
 
         return {
-            'djk': djk_data,
+            'djk': template_context,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,

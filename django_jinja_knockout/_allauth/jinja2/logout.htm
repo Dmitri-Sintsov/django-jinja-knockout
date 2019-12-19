@@ -2,7 +2,7 @@
 {% from 'bs_page_header.htm' import bs_page_header with context %}
 
 {% block main %}
-{{ bs_page_header(djk.view_title) }}
+{{ bs_page_header(djk.get_view_title()) }}
 
 <div class="jumbotron">
     {{ _('Are you sure you want to sign out?') }}
@@ -10,7 +10,7 @@
 
 <card-default>
     <card-header>
-        <card-title>{{ djk.view_title }}</card-title>
+        <card-title>{{ djk.get_view_title() }}</card-title>
     </card-header>
     <card-body>
         <form role="form" method="post" action="{{ tpl.url('account_logout') }}">
