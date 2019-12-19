@@ -373,13 +373,15 @@ that's all.
 If your Django view which maps to ``button-click`` returns standard client-side viewmodels only, just like in the
 example above, you do not even have to modify a single bit of your Javascript code.
 
-Since version 0.2.0, it is possible to specify client-side routes per view, not having to define them globally
-in template context processor::
+It is possible to specify client-side routes per view, not having to define them globally in template context processor::
+
+    from django_jinja_knockout.views import create_template_context
 
     def my_view(request):
-        request.client_routes.extend([
-            'button-click'
-        ])
+        create_template_context(request).add_client_routes({
+            'club_detail',
+            'member_grid',
+        })
 
 and per class-based view::
 
