@@ -19,8 +19,8 @@
     <script src="{{ static('djk/js/ui.js') }}"></script>
     <script src="{{ static('djk/js/modelform.js') }}"></script>
     <script language="JavaScript">
-        App.conf = {{ djk.get_client_conf()|escapejs(True) }};
-        App.clientData = {{ djk.get_client_data()|escapejs(True) }};
+        App.conf = {{ djk.get_client_conf()|to_json(True) }};
+        App.clientData = {{ djk.get_client_data()|to_json(True) }};
     </script>
     <script src="{{ static('djk/js/button-popover.js') }}"></script>
     <script src="{{ static('djk/js/tooltips.js') }}"></script>

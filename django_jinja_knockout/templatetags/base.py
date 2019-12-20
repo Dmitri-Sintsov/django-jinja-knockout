@@ -17,7 +17,7 @@ def filter_is_iterable(val):
     return isinstance(val, collections.Iterable) and not isinstance(val, str)
 
 
-def filter_escapejs(val, view_error=False):
+def filter_to_json(val, view_error=False):
     if view_error:
         try:
             json_str = to_json(val)
@@ -25,7 +25,7 @@ def filter_escapejs(val, view_error=False):
             json_str = to_json({
                 'onloadViewModels': {
                     'view': 'alert_error',
-                    'title': 'escapejs TypeError',
+                    'title': 'filter_to_json TypeError',
                     'message': str(e)
                 }
             })
@@ -59,7 +59,7 @@ extensions = {
 
 filters = {
     'is_iterable': filter_is_iterable,
-    'escapejs': filter_escapejs,
+    'to_json': filter_to_json,
     'linkify': filter_linkify,
 }
 

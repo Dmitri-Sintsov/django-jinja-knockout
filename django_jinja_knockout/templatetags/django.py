@@ -1,0 +1,35 @@
+from django.template import defaultfilters
+
+
+# Import only these filters that do not overlap with Jinja2 built-in filters.
+filters = {
+    'addslashes': defaultfilters.addslashes,
+    'capfirst': defaultfilters.capfirst,
+    'escapejs': defaultfilters.escapejs,
+    'floatformat': defaultfilters.floatformat,
+    'iriencode': defaultfilters.iriencode,
+    'linenumbers': defaultfilters.linenumbers,
+    'make_list': defaultfilters.make_list,
+    'slugify': defaultfilters.slugify,
+    'stringformat': defaultfilters.stringformat,
+    'truncatechars': defaultfilters.truncatechars,
+    'truncatechars_html': defaultfilters.truncatechars_html,
+    'truncatewords': defaultfilters.truncatewords,
+    'truncatewords_html': defaultfilters.truncatewords_html,
+    'urlizetrunc': defaultfilters.urlizetrunc,
+    'ljust': defaultfilters.ljust,
+    'rjust': defaultfilters.rjust,
+    'cut': defaultfilters.cut,
+    'linebreaksbr': defaultfilters.linebreaksbr,
+    'linebreaks': defaultfilters.linebreaks,
+    'striptags': defaultfilters.striptags,
+    'add': defaultfilters.add,
+    'date': defaultfilters.date,
+    'time': defaultfilters.time,
+    'timesince': defaultfilters.timesince_filter,
+    'timeuntil': defaultfilters.timeuntil_filter,
+    'default_if_none': defaultfilters.default_if_none,
+    'divisibleby': defaultfilters.divisibleby,
+    'yesno': defaultfilters.yesno,
+    'pluralize': defaultfilters.pluralize,
+}

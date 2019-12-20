@@ -50,7 +50,7 @@ class DjangoBytecodeCache(jinja2.BytecodeCache):
 # May be removed in the future in case django_jinja package will not be updated.
 class CompatibleEnvironment(jinja2.Environment):
 
-    extensions_modules = ['base', 'fields', 'humanize']
+    extensions_modules = ['base', 'django', 'fields', 'humanize']
 
     def __init__(self, **options):
         super().__init__(**options)
@@ -61,7 +61,7 @@ class CompatibleEnvironment(jinja2.Environment):
 # Used by built-in Django Jinja2 template backend.
 class EnvironmentProcessor:
 
-    extensions_modules = ['base', 'fields', 'humanize']
+    extensions_modules = ['base', 'django', 'fields', 'humanize']
 
     url_compat = True
     gettext_newstyle = True
