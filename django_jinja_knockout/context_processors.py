@@ -50,7 +50,9 @@ class TemplateContext:
     def set_view_title(self, view_title):
         self.view_title = view_title
 
-    def get_view_title(self):
+    def get_view_title(self, request=None):
+        if request is not None:
+            self.resolver_match_title(request)
         if self.view_title is not None and (len(self.view_title_args) > 0 or len(self.view_title_kwargs) > 0):
             return format_html(self.view_title, *self.view_title_args, **self.view_title_kwargs)
         else:
@@ -60,7 +62,7 @@ class TemplateContext:
         self.view_title_args = [] if args is None else args
         self.view_title_kwargs = {} if kwargs is None else kwargs
 
-    def add_client_data(self, client_data):
+    def update_client_data(self, client_data):
         self.client_data.update(client_data)
 
     def nested_client_data(self, client_data):
@@ -144,6 +146,7 @@ class TemplateContextProcessor():
     def __init__(self, HttpRequest=None):
         self.user_id = 0
         self.HttpRequest = HttpRequest
+        self.template_context = None if self.skip_request() else base_views.create_template_context(HttpRequest)
 
     def skip_request(self):
         """
@@ -158,10 +161,8 @@ class TemplateContextProcessor():
         return middleware.ThreadMiddleware().get_user_id(self.HttpRequest)
 
     def get_context_data(self):
-        if self.skip_request():
+        if self.template_context is None:
             return {}
-
-        template_context = base_views.create_template_context(self.HttpRequest)
 
         self.user_id = self.get_user_id()
         client_conf = {
@@ -176,15 +177,15 @@ class TemplateContextProcessor():
         if file_max_size is not None:
             client_conf['fileMaxSize'] = file_max_size
 
-        template_context.add_client_routes({
+        self.template_context.add_client_routes({
             url_name for url_name, is_anon in self.CLIENT_ROUTES if is_anon or self.user_id != 0
         })
 
-        template_context.update_client_conf(client_conf)
-        template_context.apply_request(self.HttpRequest)
+        self.template_context.update_client_conf(client_conf)
+        self.template_context.apply_request(self.HttpRequest)
 
         return {
-            'djk': template_context,
+            'djk': self.template_context,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
