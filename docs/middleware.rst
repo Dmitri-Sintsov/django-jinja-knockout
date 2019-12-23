@@ -6,7 +6,7 @@ middleware.py
 .. _extending middleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
-.. _sample settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
+.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 
 .. _middleware_installation:
 
@@ -56,13 +56,13 @@ list::
         'django_jinja_knockout',
     ) + DJK_APPS
 
-Such apps has to be both in ``DJK_APPS`` list and in ``INSTALLED_APPS`` list. See `sample settings.py`_ for the complete
+Such apps has to be both in ``DJK_APPS`` list and in ``INSTALLED_APPS`` list. See sample `settings.py`_ for the complete
 example.
 
-Since v0.9.0 the dependency on ``DJK_MIDDLEWARE`` was sufficiently reduced. The code which does call ``DjkAppConfig``
-class `.get_context_middleware()`_ method and does not require built-in middleware permissions check and does not use
-custom inherited middleware should work without ``DJK_MIDDLEWARE`` at all. However beware that ``RendererModelForm`` and
-``ForeignKeyGridWidget`` still require it, so it's not the recommended settings.
+Since v0.9.0 the dependency on ``DJK_MIDDLEWARE`` was sufficiently reduced. The code which does not call ``DjkAppConfig``
+class `.get_context_middleware()`_ method and does not use middleware features described here (like permission checks),
+should work without ``DJK_MIDDLEWARE`` defined in `settings.py`_ at all. However beware that ``RendererModelForm`` and
+``ForeignKeyGridWidget`` still require it, so it's not the recommended settings to run.
 
 Extending built-in middleware
 -----------------------------
@@ -94,39 +94,14 @@ code::
 Still it's wise to restrict ``.get_request()`` usage to forms / formsets / widgets mostly, avoiding usage at the model /
 database / console management command level, although the mocking requests makes that possible.
 
-General features
-----------------
-
-Supports optional client-side ``viewmodels`` injection from the current user session. See
-:ref:`viewmodels_non-ajax_server-side_invocation` for more info.
+Automatic timezone detection
+----------------------------
 
 Automatic timezone detection and activation from the browser, which should be faster than using maxmind geoip database.
 Since version 0.3.0 it's possible to get timezone name string from current browser http request to use in the application
 (for example to pass it to celery task)::
 
     ContextMiddleware.get_request_timezone()
-
-Since version 0.8.0, the middleware supports ``request`` `custom_scripts`_ dynamic injection of client-side scripts
-from Django server-side views / templates::
-
-    request.custom_scripts.extend([
-        'djk/js/formsets.js',
-        'djk/js/grid.js',
-        'js/club-grid.js',
-    ])
-
-Since version 0.9.0, `custom_scripts`_ injection is managed by :ref:`TemplateContext (djk context)`, not using
-middleware anymore, reducing optional :ref:`installation_djk_middleware` dependency and is injected in templates like this::
-
-    djk.custom_scripts.extend([
-        'djk/js/formsets.js',
-        'djk/js/grid.js',
-        'js/club-grid.js',
-    ])
-
-Duplicate scripts will not be added multiple times, reducing the possibility of bugs caused by the re-run scripts. There
-is also an additional check against inclusion of duplicate scripts at client-side via ``App.assertUniqueScripts``
-function.
 
 .. _middleware_security:
 
@@ -159,8 +134,9 @@ Since version 0.7.0 it is possivble to mock-up requests in console mode (managem
 fully qualified names like this::
 
     from django_jinja_knockout.apps import DjkAppConfig
-    request = DjkAppConfig.get_context_middleware().get_request()
     from django_jinja_knockout import tpl
+
+    request = DjkAppConfig.get_context_middleware().get_request()
     # Will return fully-qualified URL for the specified route with query string appended:
     tpl.reverseq('profile_detail', kwargs={'profile_id': 1}, request=request, query={'users': [1,2,3]})
 
@@ -183,7 +159,7 @@ match or via the regexp match::
             # (r'^/-djk-js-(?P<action>/?\w*)-/', 'log_js_error'),
         ]
 
-        def log_js_error(self):
+        def log_js_error(self, **kwargs):
             from .log import send_admin_mail_delay
             vms = vm_list()
             # ... skipped ...

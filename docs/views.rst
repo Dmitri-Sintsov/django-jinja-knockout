@@ -66,11 +66,10 @@ to be used in generic Jinja2 templates (v0.8.x or older)::
 
 or (v0.9.0 or newer), which uses :ref:`TemplateContext (djk context)`::
 
-    {{ djk.view_title }}
+    {{ djk.get_view_title() }}
 
 Django view kwargs are originally available in ``request.resolver_match.kwargs`` attribute to use in forms / templates,
 when needed.
-
 
 .. _views_formwithinlineformsetsmixin:
 

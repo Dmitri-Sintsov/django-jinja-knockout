@@ -488,8 +488,6 @@ instead::
         tpl.reverseq('post_like', kwargs={'feed_id': feed.id}, query={'type': 'upvote'})
     }}">
 
-.. _viewmodels_non-ajax_server-side_invocation:
-
 Non-AJAX server-side invocation of client-side viewmodels
 ---------------------------------------------------------
 
@@ -517,7 +515,7 @@ page is loaded, you can override class-based view ``get()`` method like this::
         })
         return super().get(self, request, *args, **kwargs)
 
-Read about :ref:`TemplateContext (djk context)`.
+Read more about :ref:`TemplateContext (djk context)`.
 
 The second way of server-side invocation is similar to just explained one, but it stores client-side viewmodels in
 current user session, making them persistent across requests. This allows to set initial page viewmodels during POST
