@@ -4,7 +4,7 @@
  #}
 {% macro bs_inline_formsets(related_form, formsets, action, opts) -%}
 {% if not formsets|is_iterable -%}
-{{ raise('"formsets" argument should be iterable collection of formsets') }}
+    {{ raise('"formsets" argument should be iterable collection of formsets') }}
 {% endif -%}
 {% set wrapper_atts = {
     'class': 'formsets default-padding'

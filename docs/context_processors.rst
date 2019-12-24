@@ -9,6 +9,7 @@
 .. _get_view_title(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_view_title
 .. _get_custom_scripts: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_custom_scripts
 .. _TemplateContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=TemplateContext
+.. _template_context_decorator: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=template_context_decorator
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _utils.sdv: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/utils/sdv.py
 
@@ -102,6 +103,21 @@ To add client-side accessible url in CBV::
 Single url can be added as::
 
     create_template_context(request).add_client_routes('club_detail')
+
+template_context_decorator()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`template_context_decorator`_ allows to quickly provide ``view_title`` / ``client_data`` / ``client_routes`` /
+``custom_scripts`` for function-based Django views::
+
+    from django_jinja_knockout.views import template_context_decorator
+
+    @template_context_decorator(
+        view_title='Decorated main page title',
+        client_routes={'club_detail', 'club_edit'}
+    )
+    def main_page(request, **kwargs):
+        return render(request, 'main.htm')
 
 Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

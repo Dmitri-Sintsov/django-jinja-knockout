@@ -37,6 +37,7 @@ django-jinja-knockout
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
 .. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
+.. _prepare_bs_navs(): https://django-jinja-knockout.readthedocs.io/en/latest/views.html#bstabsmixin
 .. _PrefillWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#id1
 .. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#forms-renderers
 .. _reverseq(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=reverseq&type=&utf8=%E2%9C%93
@@ -160,8 +161,8 @@ Running without ``DJK_MIDDLEWARE`` is greatly improved.
 
 Pluggable extensions for Jinja2 templates.
 
-``bs_breadcrumbs()`` / ``bs_dropdown()`` / ``bs_navs()`` Jinja2 macro are now completely orthogonal - argument
-compatible drop in.
+``bs_breadcrumbs()`` / ``bs_dropdown()`` / ``bs_navs()`` Jinja2 macros are now argument compatible, allowing to use
+these with `prepare_bs_navs()`_ as well with `ListSortingView`_ filters.
 
 Minor changes (version 0.8.1)
 -----------------------------

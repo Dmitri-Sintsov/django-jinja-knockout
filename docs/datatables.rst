@@ -2912,7 +2912,7 @@ model instances. In such case do not forget to inject url name of ``'profile_fk_
 requests to work automatically.
 
 In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widget_grid'`` url name (route) at client-side
-(see :doc:`installation` and :doc:`viewmodels` for details about injecting url names to client-side via
+(see :doc:`installation` and :doc:`context_processors` for details about injecting url names to client-side via
 ``client_routes``)::
 
     from django.views.generic.edit import CreateView

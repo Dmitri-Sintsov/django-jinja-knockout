@@ -3,16 +3,17 @@ Jinja2 macros
 ==============
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
-.. _bs_breadcrumbs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
-.. _bs_choice_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
-.. _bs_dropdown(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
+.. _App.TabPane: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=tabpane
+.. _bs_breadcrumbs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
+.. _bs_choice_list: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
+.. _bs_dropdown: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
 .. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm
 .. _cbv_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_list.htm
 .. _club_list_with_component.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_list_with_component.htm
-.. _.get_filter_args(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_args
+.. _.get_filter_kwargs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_kwargs
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
 .. _prepare_bs_navs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=prepare_bs_navs
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
@@ -243,31 +244,31 @@ Bootstrap macros
 bs_breadcrumbs()
 ~~~~~~~~~~~~~~~~
 
-`bs_breadcrumbs()`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
-:ref:`views_listsortingview` class `.get_filter_args()`_ call::
+`bs_breadcrumbs`_ macro generates bootstrap breadcrumbs of the current filter choices from the result of
+:ref:`views_listsortingview` class `.get_filter_kwargs()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
-        {{ bs_breadcrumbs(*view.get_filter_args(field)) }}
+        {{ bs_breadcrumbs(**view.get_filter_kwargs(field)) }}
     {% endfor -%}
 
 bs_choice_list()
 ~~~~~~~~~~~~~~~~
 
-`bs_choice_list()`_ macro generates the flat list of the currently selected filter choices from the result of
-:ref:`views_listsortingview` class `.get_filter_args()`_ call::
+`bs_choice_list`_ macro generates the flat list of the currently selected filter choices from the result of
+:ref:`views_listsortingview` class `.get_filter_kwargs()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
-        {{ bs_choice_list(*view.get_filter_args(field)) }}
+        {{ bs_choice_list(**view.get_filter_kwargs(field)) }}
     {% endfor -%}
 
 bs_dropdown()
 ~~~~~~~~~~~~~
 
-`bs_dropdown()`_ macro generates bootstrap dropdown of the current filter choices from the result of
-:ref:`views_listsortingview` class `.get_filter_args()`_ call::
+`bs_dropdown`_ macro generates bootstrap dropdown of the current filter choices from the result of
+:ref:`views_listsortingview` class `.get_filter_kwargs()`_ call::
 
     {% for field in view.allowed_filter_fields -%}
-        {{ bs_dropdown(*view.get_filter_args(field)) }}
+        {{ bs_dropdown(**view.get_filter_kwargs(field)) }}
     {% endfor -%}
 
 bs_filters()
@@ -316,9 +317,16 @@ djk-sample `club_list_with_component.htm`_ Jinja2 template.
 bs_navs()
 ~~~~~~~~~
 This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`views_bstabsmixin` template context
-``main_navs`` variable to display automatically switched server-side bootstrap navigation tabs. Do not confuse to
-`bs_tabs()`_ macro, which is similar but switches between tabs is performed at the client-side via ``App.TabPane``
-Javascript class.
+``main_navs`` variable to display automatically highlighted server-side bootstrap navigation tabs. Do not confuse to
+`bs_tabs()`_ macro, which is similar but switches between tabs at the client-side via `App.TabPane`_ Javascript class.
+
+Since v0.9.0, `bs_navs()`_ macro is also argument-compatible to filter choices from the result of
+:ref:`views_listsortingview` class `.get_filter_kwargs()`_ call (see also `bs_breadcrumbs()`_  / `bs_choice_list()`_ /
+`bs_dropdown()`_ / `bs_filters()`_ which are compatible)::
+
+    {% for field in view.allowed_filter_fields -%}
+        {{ bs_navs(**view.get_filter_kwargs(field)) }}
+    {% endfor -%}
 
 .. _macros_bs_tabs:
 
