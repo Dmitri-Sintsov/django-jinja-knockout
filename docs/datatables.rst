@@ -31,7 +31,11 @@ Datatables
 
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
+.. _App.ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
+.. _App.ActionsMenuDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ActionsMenuDialog&type=Code
+.. _App.FilterDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FilterDialog
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
+.. _App.ModelFormDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormDialog
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
 .. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&utf8=%E2%9C%93
 .. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
@@ -1764,7 +1768,7 @@ Client-side actions
 
 It is also possible to perform actions partially or entirely at client-side. To implement this, one should define
 ``perform_NAME()`` method of ``App.ko.GridActions`` derived class. It's used to display client-side BootstrapDialogs via
-``App.ActionTemplateDialog`` -derived instances with underscore.js / knockout.js templates bound to current
+`App.ActionTemplateDialog`_ -derived instances with underscore.js / knockout.js templates bound to current
 ``App.ko.Grid`` derived instance::
 
     App.MemberGridActions = function(options) {
@@ -2364,9 +2368,9 @@ code, there is ``'last_action'`` viewmodel key with value ``'save_form'`` return
 Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions`` class ``respond()`` method to
 override the name of last executed action from current ``'create_form'`` to ``'save_form'``.
 
-It is then used in client-side Javascript ``App.ModelFormDialog`` class ``getButtons()`` method ``submit`` button event
+It is then used in client-side Javascript `App.ModelFormDialog`_ class ``getButtons()`` method ``submit`` button event
 handler to perform `'save_form' action`_ when that button is clicked by end-user, instead of already executed
-`'create_form' action`_, which already generated AJAX model form and displayed it using ``App.ModelFormDialog`` instance.
+`'create_form' action`_, which already generated AJAX model form and displayed it using `App.ModelFormDialog`_ instance.
 
 'create_inline' action
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -2430,7 +2434,7 @@ These actions are designed to process already displayed grid row, associated to 
 * By default there is no active click actions, so clicking grid row does nothing.
 * When there is only one click action enabled, it will be executed immediately after end-user clicking of target row.
 * When there is more than one click actions enabled, ``App.ko.Grid`` will use special version of BootstrapDialog
-  wrapper ``App.ActionsMenuDialog`` to display menu with clickable buttons to select one action from the list of
+  wrapper `App.ActionsMenuDialog`_ to display menu with clickable buttons to select one action from the list of
   available ones.
 
 'edit_form' action
@@ -2454,7 +2458,7 @@ It returns AJAX response with generated HTML of ``ModelForm`` instance bound to 
 Returned viewmodel ``last_action`` property value is set to ``'save_form'``, to override ``App.GridActions`` class
 ``lastActionName`` property.
 
-Client-side of this action uses ``App.ModelFormDialog`` to display generated ``ModelForm`` html and to submit AJAX form
+Client-side of this action uses `App.ModelFormDialog`_ to display generated ``ModelForm`` html and to submit AJAX form
 to `'save_form' action`_.
 
 'edit_inline' action
@@ -2480,7 +2484,7 @@ It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` insta
 model instance. Returned viewmodel ``last_action`` property value is set to ``'save_inline'``, to override
 ``App.GridActions`` class ``lastActionName`` property.
 
-Client-side of this action uses ``App.ModelFormDialog`` to display generated ``FormWithInlineFormsets`` html and to
+Client-side of this action uses `App.ModelFormDialog`_ to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
 
 See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'iconui'``
@@ -2782,7 +2786,7 @@ might be implemented like this::
 
 .. highlight:: javascript
 
-``App.ModelFormDialog`` class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
+`App.ModelFormDialog`_ class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
 inherit ``App.ProfileGridActions`` from ``App.GridActions`` and define custom action's own ``callback_NAME``::
 
     ProfileGridActions.callback_ask_user = function(viewModel) {
@@ -2948,7 +2952,7 @@ page via `base_bottom_scripts.htm`_ by default::
 ForeignKeyGridWidget implementation notes
 -----------------------------------------
 
-Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`` class
+Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`_ class
 to browse and to select foreign key field value for displayed ``ModelForm``.
 
 `views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
@@ -3400,13 +3404,14 @@ actions attached directly to datatable pagination list.
 
 Grids API
 ---------
-Todo: document. See `the source code`_ and `the sample project code`_.
+See `the source code`_ and `the sample project code`_.
 
-* App.FilterDialog
-* App.GridDialog
-* App.ModelFormDialog
-* App.ActionsMenuDialog
-* App.ActionTemplateDialog
-* ioc methods
-* methods to get actions / filters / rows / row field values
-* Grid init options.
+* `App.FilterDialog`_ - `todo`
+* `App.GridDialog`_ - `ForeignKeyGridWidget implementation notes`_
+* `App.ModelFormDialog`_ - `Action AJAX response handler`_, `'create_form' action`_, `'edit_form' action`_,
+   `'create_inline' action`_, `'edit_inline' action`_, `Implementing custom grid row actions`_
+* `App.ActionsMenuDialog`_ - `Action type 'click'`_
+* `App.ActionTemplateDialog`_ - `Client-side actions`_
+* Grid init options - `ko_grid() macro`_
+* ioc methods - `todo`
+* methods to get actions / filters / rows / row field values - `todo`

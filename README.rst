@@ -164,6 +164,8 @@ Pluggable extensions for Jinja2 templates.
 ``bs_breadcrumbs()`` / ``bs_dropdown()`` / ``bs_navs()`` Jinja2 macros are now argument compatible, allowing to use
 these with `prepare_bs_navs()`_ as well with `ListSortingView`_ filters.
 
+Selenium tests are more reliable, pass in Firefox.
+
 Minor changes (version 0.8.1)
 -----------------------------
 Django 2.2 support.

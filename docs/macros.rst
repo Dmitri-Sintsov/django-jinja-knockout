@@ -14,6 +14,7 @@ Jinja2 macros
 .. _cbv_list.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_list.htm
 .. _club_list_with_component.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/club_list_with_component.htm
 .. _.get_filter_kwargs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_kwargs
+.. _.get_filter_kwargs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=get_filter_kwargs
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
 .. _prepare_bs_navs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=prepare_bs_navs
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
@@ -238,8 +239,10 @@ Wrapping each form of formset with div with custom attributes (to process these 
 
 Since version 0.8.0, the more flexible approach could be to override :ref:`forms_renderers` templates instead.
 
-Bootstrap macros
-----------------
+Bootstrap navigation
+--------------------
+
+See `.get_filter_kwargs() sample`_ for working example of boostrap navigation macros.
 
 bs_breadcrumbs()
 ~~~~~~~~~~~~~~~~
