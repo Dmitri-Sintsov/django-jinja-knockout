@@ -10,6 +10,7 @@
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
+.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
 .. _GetPostMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=GetPostMixin&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
@@ -627,7 +628,7 @@ Since version 0.6.0, large classes of AJAX viewmodel handlers inherit from `Acti
 structurize AJAX code and to build the client-server AJAX interaction easily.
 
 `ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `App.ModelFormActions`_ and
-`App.GridActions`_ inherit from `App.Actions`_. See (see :doc:`datatables`) for more info.
+`App.GridActions`_ inherit from `App.Actions`_. See :doc:`datatables` for more info.
 
 Viewmodel router defines own (our) viewmodel name as Python `ActionsView`_ class ``.viewmodel_name`` attribute /
 Javascript `App.Actions`_ class ``.viewModelName`` property. By default it has value ``action`` but the derived classes
@@ -730,33 +731,51 @@ The execution path of the action
 The execution of action usually is initiated in the browser via the DOM event / knockout.js binding or is programmatically
 invoked in Javascript via the `App.Actions`_ inherited class ``perform`` method::
 
-    var myActions = new App.MyActions({
-        route: 'my-action-view',
+    App.ClubActions = function(options) {
+        // Comment out, when overriding App.ko.Grid actions.
+        // $.inherit(App.GridActions.prototype, this);
+        $.inherit(App.Actions.prototype, this);
+        this.init(options);
+    };
+
+    var clubActions = new App.ClubActions({
+        route: 'club_actions_view',
         actions: {
-            'my_action': {},
+            'review_club': {},
         }
     });
-    myActions.perform('my_action', actionOptions, ajaxCallback)
+    var actionOptions = {'club_id': 1};
+    var ajaxCallback = function(viewmodel) {
+        console.log(viewmodel);
+        // process viewmodel...
+    };
+    clubActions.perform('review_club', actionOptions, ajaxCallback);
 
 ``actionOptions`` and ``ajaxCallback`` arguments are the optional ones.
 
-See `Client-side routes`_ how to define ``my-action-view`` route at the server-side.
+See `Client-side routes`_ how to make ``club_actions_view`` Django view name (route) available in Javascript.
 
-In case there is ``perform_my_action`` method defined in ``App.MyActions`` Javascript class, it will be called first.
+* In case there is ``perform_review_club()`` method defined in ``App.ClubActions`` Javascript class, it will be called
+  first.
 
-If there is no ``perform_my_action`` method defined, ``.ajax()`` method will execute AJAX POST request with options /
-queryargs to the Django url ``my-action-view`` with optional arguments, provided via ``actionOptions`` parameter and
-optionally set via ``queryargs__my_action`` method when available.
+* If there is no ``perform_review_club()`` method defined, ``.ajax()`` method will be called, executing AJAX POST request
+  with ``actionOptions`` value becoming the queryargs to the Django url ``club_actions_view``.
 
-Django ``MyActionsView`` view class should have ``my_action`` action defined in such case
-(`Custom actions at the server-side`_).
+  * In such case, Django ``ClubActionsView`` view class should have ``review_club`` action defined
+    (see `Custom actions at the server-side`_).
 
-Custom ``perform_my_action`` method could execute some client-side Javascript code first then call ``.ajax()`` method
-manually to execute Django view code, or just perform a pure client-side action only.
+* Note: ``actionOptions`` value may be dynamically altered / generated via optional ``queryargs_review_club()`` method in
+  case it's defined in ``App.ClubActions`` class.
 
-In case ``App.MyActions`` class ``.ajax()`` method was called, the resulting viewmodel will be passed to
-``App.MyActions`` class ``callback_my_action`` method, in case it's defined in custom derived ``App.MyActions``. That
-makes the chain of AJAX action complete.
+
+* Custom ``perform_review_club()`` method could execute some client-side Javascript code first then call ``.ajax()``
+  method manually to execute Django view code, or just perform a pure client-side action only.
+
+* In case ``App.ClubActions`` class ``.ajax()`` method was called, the resulting viewmodel will be passed to
+  ``App.ClubActions`` class ``callback_review_club()`` method, in case it's defined. That makes the execution chain of
+  AJAX action complete.
+
+See `club-grid.js`_ for sample overriding of ``App.ko.Grid`` actions. See :doc:`datatables` for more info.
 
 Overriding action callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -875,6 +894,6 @@ Custom grid actions should inherit from both ``App.GridActions`` and it's base c
         this.init(options);
     };
 
-For more detailed example of using viewmodel actions routing, see see :doc:`datatables` section
+For more detailed example of using viewmodel actions routing, see see :doc:`datatables` section named
 :ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_
 and by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
