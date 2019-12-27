@@ -5,6 +5,7 @@
 .. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editform&type=&utf8=%E2%9C%93
 .. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.EditForm
 .. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editinline&type=&utf8=%E2%9C%93
+.. _App.ViewModelRouter.applyHandler(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=applyHandler
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
 .. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
@@ -117,6 +118,7 @@ Second reason: It is possible to setup multiple viewmodel handlers and then to r
 another handler. Think of event subscription: these are very similar, however not only plain functions are supported,
 but also functions bound to particular instance (methods) and classpath strings to instantiate new Javascript classes::
 
+    // viewmodel bind context with method
     var handler = {
         fn: App.MyClass.prototype.myMethod,
         context: App.myClassInstance
@@ -138,6 +140,19 @@ but also functions bound to particular instance (methods) and classpath strings 
         .removeHandler('my_view', myFunc)
         .removeHandler('my_view', handler)
         .removeHandler('my_view', 'App.MyClass');
+
+Javascript bind context
+~~~~~~~~~~~~~~~~~~~~~~~
+The bind context is used when the viewmodel response is processed. It is used by ``add()`` / ``addHandler()`` viewmodel
+router methods and as well as `AJAX actions`_ callback.
+
+The following types of context arguments of  are available:
+
+* unbound function: subscribe viewmodel to that function;
+* plain object with optional ``fn`` and ``context`` arguments: to subscribe to bound method;
+* string: Javascript class name to instantiate;
+
+See `App.ViewModelRouter.applyHandler()`_ for the implementation details.
 
 Viewmodel data format
 ~~~~~~~~~~~~~~~~~~~~~
@@ -263,8 +278,8 @@ It is possible to chain viewmodel handlers, implementing a code-reuse and a pseu
     });
 
 where newly defined handler ``popover_error`` executes already existing ``tooltip_error`` viewmodel handler.
-The purpose of passing ``this`` bind context as an optional third argument of vmRouter.exec() call is explained below
-in the `AJAX response routing`_ section.
+The purpose of passing ``this`` bind context as an optional third argument of vmRouter.exec() call is to preserve
+currently passed Javascript bind context.
 
 AJAX response routing
 ---------------------
@@ -764,9 +779,39 @@ See `Client-side routes`_ how to make ``club_actions_view`` Django view name (ro
   * In such case, Django ``ClubActionsView`` view class should have ``review_club`` action defined
     (see `Custom actions at the server-side`_).
 
+  * Since v0.9.0 ``ajaxCallback`` argument accepts `Javascript bind context`_ as well as viewmodel ``before`` and
+    ``after`` callbacks, to define custom viewmodel handlers on the fly::
+
+       var self = this;
+       App.clubActions.ajax(
+            'member_names',
+            {
+                club_id: this.club.id,
+            },
+            {
+                // 'set_members' is a custom viewmodel handler defined on the fly:
+                after: {
+                    set_members: function(viewModel) {
+                        self.setMemberNames(viewModel.users);
+                    },
+                }
+            }
+       );
+
+       App.clubActions.ajax(
+            'member_roles',
+            {
+                club_id: this.club.id,
+            },
+            // viewmodel response will be returned to the bound method App.clubRolesEditor.updateMemberRoles():
+            {
+                context: App.clubRolesEditor,
+                fn: App.ClubRolesEditor.updateMemberRoles,
+            }
+       );
+
 * Note: ``actionOptions`` value may be dynamically altered / generated via optional ``queryargs_review_club()`` method in
   case it's defined in ``App.ClubActions`` class.
-
 
 * Custom ``perform_review_club()`` method could execute some client-side Javascript code first then call ``.ajax()``
   method manually to execute Django view code, or just perform a pure client-side action only.
@@ -894,6 +939,6 @@ Custom grid actions should inherit from both ``App.GridActions`` and it's base c
         this.init(options);
     };
 
-For more detailed example of using viewmodel actions routing, see see :doc:`datatables` section named
+For more detailed example of using viewmodel actions routing, see see the documentation :doc:`datatables` section
 :ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_
 and by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
