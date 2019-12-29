@@ -19,6 +19,7 @@
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
 .. _TemplateContext.onload_vm_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=onload_vm_list
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
+.. _viewmodel_name: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=viewmodel_name
 .. _vm_list: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=vm_list&type=&utf8=%E2%9C%93
 .. _vm_list.find_by_kw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=find_by_kw
 
@@ -685,7 +686,7 @@ AJAX code and to build the client-server AJAX interaction more easily.
 `ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `App.ModelFormActions`_ and
 `App.GridActions`_ inherit from `App.Actions`_. See :doc:`datatables` for more info.
 
-Viewmodel router defines own (our) viewmodel name as Python `ActionsView`_ class ``.viewmodel_name`` attribute /
+Viewmodel router defines own (our) viewmodel name as Python `ActionsView`_ class `viewmodel_name`_ attribute /
 Javascript `App.Actions`_ class ``.viewModelName`` property. By default it has the value ``action`` but the derived
 classes may change it's name; for example grid datatables use ``grid_page`` as the viewmodel name.
 
@@ -872,15 +873,18 @@ Overriding action callback
 
 .. highlight:: python
 
-The possible interpretation of the the server-side `ActionsView`_ class ``action_my_action`` method result
+The possible interpretation of the the server-side `ActionsView`_ class ``.action_perform_review()`` method result
 (AJAX response):
 
-* ``None`` - the default client-side `App.Actions`_ class ``callback_my_action`` method will be called, no arguments
-  passed to it except the default ``viewmodel_name``;
-* ``False`` - the default client-side `App.Actions`_ class ``callback_my_action`` will be suppressed, not called at all;
-* ``list`` / ``dict`` - the result will be converted to `vm_list`_; in case the viewmodel ``view`` key is omitted or
-  contains the default ``self.viewmodel_name`` value, the default client-side `App.Actions`_ class ``callback_my_action``
-  method will be called, the rest of viewmodels (if any) will be processed by the `App.vmRouter`_;
+* ``None`` - client-side `App.Actions`_ class ``.callback_perform_review()`` method will be called, no arguments passed
+  to it except the default `viewmodel_name`_;
+* ``False`` - client-side `App.Actions`_ class ``.callback_perform_review()`` will be suppressed, not called at all;
+* ``list`` / ``dict`` - the result will be converted to `vm_list`_
+
+  * In case the viewmodel ``view`` key is omitted or contains the default Django view `viewmodel_name`_ attribute value
+    the default client-side `App.Actions`_ class ``callback_perform_review`` method will be called;
+  * The rest of viewmodels (if any) will be processed by the `App.vmRouter`_;
+
 * `special case`: override callback method by routing to another `App.Actions`_ class ``callback_another_action``
   instead of the default callback by providing `callback_action`_ key with the value ``another_action`` in the
   viewmodel dict response. For example to conditionally "redirect" to another action callback for ``edit_inline``
