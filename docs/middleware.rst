@@ -5,6 +5,8 @@ middleware.py
 .. _custom_scripts: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=custom_scripts
 .. _extending middleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
+.. _is_djk: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=is_djk&type=Code
+.. _is_our_module(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=is_our_module&type=Code
 .. _site: https://docs.djangoproject.com/en/dev/ref/contrib/sites/
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 
@@ -164,3 +166,10 @@ match or via the regexp match::
             vms = vm_list()
             # ... skipped ...
             return JsonResponse(vms)
+
+Our request
+-----------
+Only views that belong to `settings.py`_ ``DJK_APPS`` (see `Middleware installation`_) will be processed by djk
+middleware. One should override `is_our_module()`_ method in the extended middleware
+(see `Extending built-in middleware`_) to implement custom middleware applying filter. The views, which have djk
+middleware applied, will have ``request`` object `is_djk`_ attribute set.

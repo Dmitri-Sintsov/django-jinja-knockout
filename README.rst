@@ -154,7 +154,7 @@ Django 3.0 support.
 Introduced `TemplateContext`_ class used to inject view title / client data / client routes / custom scripts to
 templates.
 
-Dependency on `django-jinja`_ package is optional and is turned off by default. It may be removed completely in case
+Dependency on `django-jinja`_ package is optional and is off by default. It may be removed completely in case
 `django-jinja`_ package will not be updated to run with Django 3.0 or newer version.
 
 Running without ``DJK_MIDDLEWARE`` is greatly improved.
@@ -164,7 +164,7 @@ Pluggable extensions for Jinja2 templates.
 ``bs_breadcrumbs()`` / ``bs_dropdown()`` / ``bs_navs()`` Jinja2 macros are now argument compatible, allowing to use
 these with `prepare_bs_navs()`_ as well with `ListSortingView`_ filters.
 
-Selenium tests are more reliable, pass in Firefox.
+Selenium tests are more reliable, pass in Firefox. Added Selenium web drivers for Linux Chromium interactive / headless.
 
 Minor changes (version 0.8.1)
 -----------------------------
