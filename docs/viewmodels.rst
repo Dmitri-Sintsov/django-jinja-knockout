@@ -1,10 +1,11 @@
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _App.Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Actions(&type=&utf8=%E2%9C%93
+.. _App.ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
 .. _App.destroyTooltipErrors: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.destroyTooltipErrors&type=&utf8=%E2%9C%93
-.. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editform&type=&utf8=%E2%9C%93
-.. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.EditForm
-.. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.editinline&type=&utf8=%E2%9C%93
+.. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editform&type=&utf8=%E2%9C%93
+.. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=EditForm
+.. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editinline&type=&utf8=%E2%9C%93
 .. _App.ViewModelRouter.applyHandler(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=applyHandler
 .. _App.ViewModelRouter.filterExecuted(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=filterExecuted
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
@@ -873,22 +874,24 @@ Overriding action callback
 
 .. highlight:: python
 
-The possible interpretation of the the server-side `ActionsView`_ class ``.action_perform_review()`` method result
-(AJAX response):
+Possible interpretation of server-side `ActionsView`_ class ``.action\*()`` method (eg ``.action_perform_review()``)
+result (AJAX response):
 
 * ``None`` - client-side `App.Actions`_ class ``.callback_perform_review()`` method will be called, no arguments passed
   to it except the default `viewmodel_name`_;
 * ``False`` - client-side `App.Actions`_ class ``.callback_perform_review()`` will be suppressed, not called at all;
 * ``list`` / ``dict`` - the result will be converted to `vm_list`_
 
-  * In case the viewmodel ``view`` key is omitted or contains the default Django view `viewmodel_name`_ attribute value
-    the default client-side `App.Actions`_ class ``callback_perform_review`` method will be called;
+  * In case the viewmodel ``view`` key is omitted or contains the default Django view `viewmodel_name`_ attribute value,
+    the default client-side `App.Actions`_ class ``.callback_perform_review()`` method will be called;
   * The rest of viewmodels (if any) will be processed by the `App.vmRouter`_;
 
-* `special case`: override callback method by routing to another `App.Actions`_ class ``callback_another_action``
-  instead of the default callback by providing `callback_action`_ key with the value ``another_action`` in the
-  viewmodel dict response. For example to conditionally "redirect" to another action callback for ``edit_inline``
-  action in a `KoGridView`_ derived class::
+* `special case`: override callback method by routing to ``another_action`` Javascript `App.Actions`_ class
+  ``.callback_another_action()`` method by providing `callback_action`_ key with the value ``another_action`` in the
+  viewmodel dict response.
+
+  For example to conditionally "redirect" to ``show_readonly`` action callback for ``edit_inline`` action in a
+  `KoGridView`_ derived class::
 
     def action_edit_inline(self):
         # Use qs = self.get_queryset_for_action() in case multiple objects are selected in the datatable.
@@ -902,10 +905,10 @@ The possible interpretation of the the server-side `ActionsView`_ class ``.actio
                 }
             else:
                 title = obj.get_str_fields()
-                # App.MyAction.callback_read_only_object() will be called instead of the default
-                # App.MyAction.callback_edit_inline() with this dict viewmodel as the argument.
+                # App.Action.callback_show_readonly() will be called instead of the default
+                # App.Action.callback_edit_inline() with the following viewmodel as the argument.
                 return {
-                    'callback_action': 'read_only_object',
+                    'callback_action': 'show_readonly',
                     'title': title,
                 }
         else:
@@ -955,13 +958,16 @@ part (client-only actions) by defining ``perform_ACTION_NAME`` method::
         new App.ActionTemplateDialog({
             template: 'my_form_template',
             owner: this.owner,
+            meta: {
+                user_id: queryArgs.user_id,
+            },
         }).show();
     };
 
 .. highlight:: jinja
 
-For such client-only actions ``App.ActionTemplateDialog`` utilizes underscore.js templates for one-way binding, or
-knockout.js templates when two way binding is required. Here is the sample template ::
+For such client-only actions `App.ActionTemplateDialog`_ utilizes Underscore.js templates for one-way binding, or
+Knockout.js templates when two way binding is required. Here is the sample template ::
 
     <script type="text/template" id="my_form_template">
         <card-default>
@@ -970,7 +976,7 @@ knockout.js templates when two way binding is required. Here is the sample templ
                     <input type="hidden" name="csrfmiddlewaretoken" data-bind="value: getCsrfToken()">
                     <div class="jumbotron">
                         <div class="default-padding">
-                            This is the sample template. Copy this template with another id then add your MVVM fields here.
+                            The user id is <span data-bind="text: meta.user_id"></span>
                         </div>
                     </div>
                 </form>
@@ -988,6 +994,6 @@ Custom grid actions should inherit from both ``App.GridActions`` and it's base c
         this.init(options);
     };
 
-For more detailed example of using viewmodel actions routing, see see the documentation :doc:`datatables` section
+For more detailed example of using viewmodel actions routing, see the documentation :doc:`datatables` section
 :ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_
 and by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
