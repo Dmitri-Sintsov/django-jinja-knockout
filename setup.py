@@ -64,7 +64,7 @@ setup(
     install_requires=install_reqs,
     license="LGPL-3.0",
     zip_safe=False,
-    keywords='django jinja knockout.js ajax forms datatables datagrid'.split(),
+    keywords='django jinja knockout.js ajax forms datatable datatables datagrid'.split(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
