@@ -98,8 +98,6 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_A
         'django.contrib.staticfiles',
         # 'sites' is required by allauth
         'django.contrib.sites',
-        'django_jinja',
-        'django_jinja.contrib._humanize',
         'djk_ui',
         'django_jinja_knockout',
         'django_jinja_knockout._allauth',
@@ -206,11 +204,10 @@ Add `django_jinja_knockout` `TemplateContextProcessor`_ to `settings.py`_::
 
     TEMPLATES = [
         {
-            "BACKEND": "django_jinja.backend.Jinja2",
+            "BACKEND": "django.template.backends.jinja2.Jinja2",
             "APP_DIRS": True,
             "OPTIONS": {
-                "match_extension": ".htm",
-                "app_dirname": "jinja2",
+                'environment': 'django_jinja_knockout.jinja2.environment',
                 'context_processors': [
                     'django.template.context_processors.i18n',
                     'django_jinja_knockout.context_processors.template_context_processor'

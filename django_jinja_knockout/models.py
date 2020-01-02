@@ -135,7 +135,7 @@ def yield_related_models(obj, fields):
             yield fieldname, field.related_model
 
 
-# Return dict of model fields name / value pairs like queryset values() for one model instance supplied.
+# Return dict of model fields name / value pairs like queryset .values() for one model instance supplied.
 def model_values(obj, fields=None, strict_related=True):
     row = {}
     for fieldname in yield_model_fieldnames(obj, fields):

@@ -41,6 +41,9 @@ Datatables
 .. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 
+.. _Model.get_str_fields(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_str_fields
+.. _NestedSerializer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NestedSerializer
+
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
@@ -804,7 +807,7 @@ get_str_fields model formatting / serialization
             str_fields = self.get_str_fields()
             return str_dict(str_fields)
 
-Note that ``get_str_fields()`` will also be used for automatic formatting of scalar fields via grid row ``str_fields``
+`Model.get_str_fields()`_ will also be used for automatic formatting of scalar fields via grid row ``str_fields``
 property. See `'list' action`_ for more info.
 
 .. highlight:: javascript
@@ -828,6 +831,9 @@ property. See `'list' action`_ for more info.
     };
 
 .. highlight:: python
+
+Since v0.8.0, `Model.get_str_fields()`_ is also used to serialize model instances by `NestedSerializer`_, when
+available.
 
 Client-side class overriding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

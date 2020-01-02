@@ -320,3 +320,10 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * bdist wheel fix.
 * PyPi readme fix.
+
+0.9.0
+-----
+* ``django-jinja`` dependency is off by default, may be removed in the future.
+* ``TemplateContext`` class is used to manage client-side data injection.
+* Less dependency on ``DJK_MIDDLEWARE``.
+* Templates / selenium test improvements.
