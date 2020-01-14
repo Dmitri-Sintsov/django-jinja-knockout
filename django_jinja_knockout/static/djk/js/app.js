@@ -675,10 +675,14 @@ void function(Dialog) {
         }
     };
 
-    Dialog.onShow = function() {
+    Dialog.baseOnShow = function() {
         // Close opened popovers otherwise they may overlap opened dialog.
-        $('[data-toggle="popover"]').getVisiblePopovers().popover('hide');
+        $('[data-toggle="popover"]').getVisiblePopovers().click();
         this.bdialog.setSize(this.dialogOptions.size);
+    };
+
+    Dialog.onShow = function() {
+        this.baseOnShow();
         if (this.initClient) {
             App.initClient(this.bdialog.getModalBody());
         }
