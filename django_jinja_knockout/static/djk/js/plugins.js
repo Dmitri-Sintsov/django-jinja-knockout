@@ -853,7 +853,7 @@ $.fn.highlightListUrl = function(location) {
 
 
 /**
- * Change properties of bootstrap3 popover.
+ * Change properties of Bootstrap popover.
  */
 $.fn.changePopover = function(opts) {
     return this.each(function() {
@@ -865,9 +865,10 @@ $.fn.changePopover = function(opts) {
     });
 };
 
+
 /**
- * Bootstrap3 popover notification.
- * Changes properties of bootstrap3 popover, show popover and move window scrollpos to related location hash.
+ * Bootstrap popover notification.
+ * Changes properties of Bootstrap popover, show popover and move window scrollpos to related location hash.
  */
 $.fn.toPopover = function(opts) {
     return this.each(function() {
@@ -878,6 +879,47 @@ $.fn.toPopover = function(opts) {
         window.location.hash = '#' + $this.prop('name');
     });
 };
+
+
+/**
+ * Get tip DOM elements for each selected popover.
+ */
+$.fn.getPopoverTip = function() {
+    var result = [];
+    this.each(function() {
+        var data = $(this).data();
+        if (typeof data['bs.popover'] === 'object' &&
+                typeof data['bs.popover'].tip === 'function') {
+            // Bootstrap 3
+            var tip = data['bs.popover'].tip();
+        } else {
+            // Bootstrap 4
+            var tip = $.id(
+                $(this).attr('aria-describedby')
+            );
+        }
+        if (tip.length > 0) {
+            result.push(tip.get(0));
+        }
+    });
+    return $(result);
+};
+
+
+/**
+ * Checks whether Boostrap popover bound to selected element(s) is visible.
+ */
+$.fn.getVisiblePopovers = function(cb) {
+    var result = []
+    this.each(function() {
+        // Boostrap 3 uses '.in', Bootstrap 4 uses '.show'
+        if ($(this).getPopoverTip().filter('.in, .show').length > 0) {
+            result.push(this);
+        }
+    });
+    return $(result);
+};
+
 
 /**
  * Infinite virtual scroller plugin.

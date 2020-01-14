@@ -87,12 +87,7 @@ void function(ClosablePopover) {
     };
 
     ClosablePopover.isVisible = function() {
-        var data = this.$target.data();
-        if (typeof data['bs.popover'] !== 'object' ||
-                typeof data['bs.popover'].tip !== 'function') {
-            return false;
-        }
-        return data['bs.popover'].tip().hasClass('in');
+        return this.$target.getVisiblePopovers().length > 0;
     };
 
     ClosablePopover.hide = function(skippedPopover) {
