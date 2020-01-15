@@ -909,7 +909,7 @@ $.fn.getPopoverTip = function() {
 /**
  * Checks whether Boostrap popover bound to selected element(s) is visible.
  */
-$.fn.getVisiblePopovers = function(cb) {
+$.fn.getVisiblePopovers = function() {
     var result = []
     this.each(function() {
         // Boostrap 3 uses '.in', Bootstrap 4 uses '.show'
@@ -918,6 +918,18 @@ $.fn.getVisiblePopovers = function(cb) {
         }
     });
     return $(result);
+};
+
+
+$.fn.closeVisiblePopovers = function() {
+    this.find('[data-toggle="popover"]').getVisiblePopovers().each(function() {
+        var evt = $(this).data('trigger');
+        if (evt !== undefined) {
+            $(this).trigger(evt);
+        } else {
+            $(this).popover('hide');
+        }
+    });
 };
 
 

@@ -677,7 +677,7 @@ void function(Dialog) {
 
     Dialog.baseOnShow = function() {
         // Close opened popovers otherwise they may overlap opened dialog.
-        $('[data-toggle="popover"]').getVisiblePopovers().click();
+        $(document.body).closeVisiblePopovers();
         this.bdialog.setSize(this.dialogOptions.size);
     };
 
