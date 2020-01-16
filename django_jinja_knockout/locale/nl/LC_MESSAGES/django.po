@@ -198,3 +198,12 @@ msgstr ""
 
 msgid "Highlight mode"
 msgstr ""
+
+#, python-format
+msgid "No %(verbose_name)s found matching the query for the selected filters"
+msgstr ""
+
+#, python-format
+msgid "Please wait until the query is loading"
+msgstr ""
+

@@ -211,3 +211,11 @@ msgstr "高亮模式"
 msgid "Unsupported field lookup for filter field '%(field)s'"
 msgstr "不支持对字段筛选"
 
+#, python-format
+msgid "No %(verbose_name)s found matching the query for the selected filters"
+msgstr ""
+
+#, python-format
+msgid "Please wait until the query is loading"
+msgstr ""
+

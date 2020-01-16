@@ -176,10 +176,23 @@
 <script language="text/template" id="ko_grid_no_results">
     <card-default>
         <card-header>
-            {{ _(
-                'No %(verbose_name)s found matching the query',
-                verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>'
-            )) }}.
+            <!-- ko ifnot: meta.firstLoad() -->
+                <!-- ko ifnot: hasActiveFilters() -->
+                {{ _(
+                    'No %(verbose_name)s found matching the query',
+                    verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>')
+                ) }}.
+                <!-- /ko -->
+                <!-- ko if: hasActiveFilters() -->
+                {{ _(
+                    'No %(verbose_name)s found matching the query for the selected filters',
+                    verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>')
+                ) }}.
+                <!-- /ko -->
+            <!-- /ko -->
+            <!-- ko if: meta.firstLoad() -->
+            {{ _('Please wait until the query is loading') }}
+            <!-- /ko -->
         </card-header>
     </card-default>
 </script>

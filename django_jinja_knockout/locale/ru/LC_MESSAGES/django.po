@@ -113,3 +113,11 @@ msgstr "Строк на странице"
 msgid "Highlight mode"
 msgstr "Режим подсветки"
 
+#, python-format
+msgid "No %(verbose_name)s found matching the query for the selected filters"
+msgstr "Не найден ни один %(verbose_name)s, соответствующий запросу для выбранных фильтров"
+
+#, python-format
+msgid "Please wait until the query is loading"
+msgstr "Пожалуйста подождите пока выполняется запрос данных"
+

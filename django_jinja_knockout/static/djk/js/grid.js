@@ -1379,7 +1379,7 @@ void function(Grid) {
             }
             this.options.preloadedMetaList = false;
             this.actions.respond('meta_list', vm, App.propGet(callback, 'context'));
-            self.onFirstLoad();
+            self.meta.firstLoad(false);
             if (typeof callback === 'function') {
                 callback(queryArgs);
             }
@@ -1395,7 +1395,7 @@ void function(Grid) {
                     self.setQueryOrderBy(self.options.defaultOrderBy);
                 }
                 self.actions.perform('list', queryArgs, function(viewmodel) {
-                    self.onFirstLoad();
+                    self.meta.firstLoad(false);
                     if (typeof callback === 'function') {
                         callback(queryArgs);
                     }
@@ -1404,7 +1404,7 @@ void function(Grid) {
         } else {
             // Save a bit of HTTP traffic by default.
             this.actions.perform('meta_list', queryArgs, function(viewmodel) {
-                self.onFirstLoad();
+                self.meta.firstLoad(false);
                 if (typeof callback === 'function') {
                     callback(queryArgs);
                 }
@@ -1535,6 +1535,7 @@ void function(Grid) {
         }
         this.ownerCtrl = this.options.ownerCtrl;
         this.meta = {
+            firstLoad: ko.observable(true),
             fkNestedListOptions: {},
             listOptions: {},
             pkField: '',
@@ -1550,6 +1551,7 @@ void function(Grid) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
+        this.meta.firstLoad.subscribe(_.bind(this.onFirstLoad, this));
         this.meta.rowsPerPage.extend({ rateLimit: 500 });
         this.actionTypes = {};
         _.each(this.uiActionTypes, function(type) {
@@ -2329,6 +2331,16 @@ void function(Grid) {
             );
         }
         this.gridFilters(gridFilters);
+    };
+
+    Grid.hasActiveFilters = function() {
+        var activeFiltersCount = 0;
+        ko.utils.arrayForEach(this.gridFilters(), function(koFilter) {
+            if (koFilter.hasActiveChoices()) {
+                activeFiltersCount++;
+            }
+        });
+        return activeFiltersCount;
     };
 
     /**
