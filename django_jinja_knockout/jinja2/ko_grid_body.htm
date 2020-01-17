@@ -181,13 +181,13 @@
                 {{ _(
                     'No %(verbose_name)s found matching the query',
                     verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>')
-                ) }}.
+                ) }}
                 <!-- /ko -->
                 <!-- ko if: hasActiveFilters() -->
                 {{ _(
                     'No %(verbose_name)s found matching the query for the selected filters',
                     verbose_name=mark_safe('<span data-bind="text: meta.verboseName"></span>')
-                ) }}.
+                ) }}
                 <!-- /ko -->
             <!-- /ko -->
             <!-- ko if: meta.firstLoad() -->
