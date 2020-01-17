@@ -235,6 +235,10 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
 };
 
 App.globalIoc = {
+    'App.Dialog.cleanZindex' : function(dialog) {
+        // Close opened popovers otherwise they may overlap opened dialog.
+        $(document.body).closeVisiblePopovers();
+    },
     'App.Tpl': function(options) {
         return new App.Tpl(options);
     },
@@ -676,8 +680,7 @@ void function(Dialog) {
     };
 
     Dialog.baseOnShow = function() {
-        // Close opened popovers otherwise they may overlap opened dialog.
-        $(document.body).closeVisiblePopovers();
+        App.globalIoc['App.Dialog.cleanZindex'](this);
         this.bdialog.setSize(this.dialogOptions.size);
     };
 
