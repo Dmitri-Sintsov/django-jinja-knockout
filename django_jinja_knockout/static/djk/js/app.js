@@ -234,19 +234,6 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
     }
 };
 
-App.globalIoc = {
-    'App.Dialog.cleanZindex' : function(dialog) {
-        // Close opened popovers otherwise they may overlap opened dialog.
-        $(document.body).closeVisiblePopovers();
-    },
-    'App.Tpl': function(options) {
-        return new App.Tpl(options);
-    },
-    'App.NestedList': function(options) {
-        return new App.NestedList(options);
-    },
-};
-
 if (typeof django === 'object' && typeof django.gettext === 'function') {
     App.trans = function() {
         if (arguments.length < 2) {
@@ -391,7 +378,7 @@ void function(NestedList) {
 
 
 App.renderNestedList = function(element, value, options) {
-    return App.globalIoc['App.NestedList'](options).render(element, value);
+    return App.globalIoc.factory('App.NestedList', options).render(element, value);
 };
 
 
@@ -436,7 +423,7 @@ void function(_TabPane) {
             if (tabTemplate !== undefined) {
                 var templateHolder = this.pane.find('.template-holder');
                 if (templateHolder.length > 0) {
-                    var tpl = App.globalIoc['App.Tpl']().domTemplate(tabTemplate);
+                    var tpl = App.globalIoc.factory('App.Tpl').domTemplate(tabTemplate);
                     templateHolder.replaceWith(tpl);
                     App.initClient(this.pane);
                 }
@@ -679,13 +666,8 @@ void function(Dialog) {
         }
     };
 
-    Dialog.baseOnShow = function() {
-        App.globalIoc['App.Dialog.cleanZindex'](this);
-        this.bdialog.setSize(this.dialogOptions.size);
-    };
-
     Dialog.onShow = function() {
-        this.baseOnShow();
+        App.globalIoc.exec('App.Dialog.baseOnShow', null, this);
         if (this.initClient) {
             App.initClient(this.bdialog.getModalBody());
         }
@@ -749,7 +731,7 @@ void function(Dialog) {
 
     Dialog.iocTemplateProcessor = function(options) {
         var _options = $.extend({'meta_is_dialog': true}, options);
-        return App.globalIoc['App.Tpl'](_options);
+        return App.globalIoc.factory('App.Tpl', _options);
     };
 
     Dialog.createDialogContent = function() {
@@ -1070,19 +1052,26 @@ void function(ViewModelRouter) {
             fn = handler;
         }
         if (typeof bindContext === 'object') {
-            fn.apply(bindContext, [viewModel, this]);
+            return fn.apply(bindContext, [viewModel, this]);
         } else {
             if (typeof fn === 'string') {
-                App.newClassByPath(fn, [viewModel, this]);
+                return App.newClassByPath(fn, [viewModel, this]);
             } else {
-                fn(viewModel, this);
+                return fn(viewModel, this);
             }
         }
-        return this;
+    };
+
+    /**
+     * Executes single handler viewmodels only.
+     */
+    ViewModelRouter.factory = function(viewName, viewModel, bindContext) {
+        return this.applyHandler(viewModel, this.handlers[viewName], bindContext);
     };
 
     /**
      * Allows to specify a different viewName, to override viewModel.view.
+     * Supports multiple handlers, thus does not return the result of called handlers.
      */
     ViewModelRouter.exec = function(viewName, viewModel, bindContext) {
         if (typeof this.handlers[viewName] !== 'undefined') {
@@ -1307,6 +1296,21 @@ App.vmRouter = new App.ViewModelRouter({
             }
         });
     }
+});
+
+App.globalIoc = new App.ViewModelRouter({
+    'App.Dialog.baseOnShow' : function() {
+        // Close opened popovers otherwise they may overlap opened dialog.
+        $(document.body).closeVisiblePopovers();
+        // Ensure dialog size is set.
+        this.bdialog.setSize(this.dialogOptions.size);
+    },
+    'App.Tpl': function(options) {
+        return new App.Tpl(options);
+    },
+    'App.NestedList': function(options) {
+        return new App.NestedList(options);
+    },
 });
 
 
@@ -1891,7 +1895,7 @@ void function(Tpl) {
         } else {
             var options = $.extend({}, templateOptions);
             if (classPath === undefined) {
-                child = App.globalIoc['App.Tpl'](options);
+                child = App.globalIoc.factory('App.Tpl', options);
             } else {
                 child = App.newClassByPath(classPath, [options]);
             }
@@ -2097,7 +2101,7 @@ void function(Tpl) {
 App.bindTemplates = function($selector, tpl) {
     $selector.each(function() {
         if (typeof tpl === 'undefined') {
-            tpl = App.globalIoc['App.Tpl']().inheritProcessor(this, false);
+            tpl = App.globalIoc.factory('App.Tpl').inheritProcessor(this, false);
         }
         tpl.loadTemplates($(this));
     });
@@ -2789,7 +2793,7 @@ App.ContentPopover = function(k, v) {
             var template = $(this).data("contentTemplate");
             if (template !== undefined) {
                 var options = $(this).data("contentTemplateOptions");
-                var processor = App.globalIoc['App.Tpl'](options);
+                var processor = App.globalIoc.factory('App.Tpl', options);
                 var $content = processor.domTemplate(template);
                 App.initClient($content);
                 return $content;
