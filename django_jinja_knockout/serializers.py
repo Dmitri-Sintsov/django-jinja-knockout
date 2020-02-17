@@ -71,7 +71,7 @@ class FieldData:
         self.metadata['type'] = self.get_str_type(typ)
 
 
-class NestedBase:
+class NestedPath:
 
     def __init__(self):
         self.treepath = ''
@@ -108,7 +108,7 @@ class NestedBase:
 #   pp.pprint(model_dict)
 #   pp.pprint(ns.metadata)
 #   model_dict = ns.to_dict(nesting_level=2, serialize_reverse_relationships=False)
-class NestedSerializer(NestedBase):
+class NestedSerializer(NestedPath):
 
     objdict_class = ObjDict
     fielddata_class = FieldData
@@ -275,7 +275,7 @@ class NestedSerializer(NestedBase):
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=None))
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=True))
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=False))
-class NestedLocalizer(NestedBase):
+class NestedLocalizer(NestedPath):
 
     skip_localization = (
         'AutoField',

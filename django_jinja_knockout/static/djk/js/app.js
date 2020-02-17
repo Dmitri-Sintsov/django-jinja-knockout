@@ -383,6 +383,47 @@ App.renderNestedList = function(element, value, options) {
 
 
 /**
+ * Supports jQuery objects, nested structures rendering and scalar values.
+ */
+App.renderValue = function(element, value, safe, getNestedListOptions) {
+    var fn = (safe) ? 'html' : 'text';
+    if (value instanceof jQuery) {
+        $(element).empty().append(value);
+    } else if (typeof value === 'object') {
+        $(element).empty();
+        var nestedListOptions;
+        if (typeof getNestedListOptions === 'function') {
+            // nestedListOptions are supplied via callback because they are used only for value type 'object'.
+            nestedListOptions = getNestedListOptions();
+            if (typeof nestedListOptions.fn === 'undefined') {
+                nestedListOptions.fn = fn;
+            }
+        }
+        App.renderNestedList(element, value, nestedListOptions);
+    } else {
+        // Primarily use is to display server-side formatted strings (Djano local date / currency format).
+        $(element)[fn](value);
+    }
+};
+
+
+App.renderTo = function(element, value, safe, getNestedListOptions) {
+    var prepend = $(element).find('.preserve-prepend').detach();
+    var append = $(element).find('.preserve-append').detach();
+    App.renderValue(element, value, safe, getNestedListOptions);
+    var immediateChildren = $(element).children('*');
+    if (immediateChildren.length !== 1) {
+        immediateChildren = $(element);
+    }
+    if (prepend.length > 0) {
+        prepend.prependTo(immediateChildren);
+    }
+    if (append.length > 0) {
+        append.appendTo(immediateChildren);
+    }
+};
+
+/**
  * Bootstrap tabs management class.
  */
 App._TabPane = function (hash) {
@@ -2406,7 +2447,7 @@ void function(Subscriber) {
     Subscriber.subscribeToMethod = function(propChain, methodChain) {
         var result = this.getPropSubscription(propChain, methodChain);
         if (typeof this.koSubscriptions[result.hash] === 'undefined') {
-            this.koSubscriptions[result.hash] = result.prop.subscribe(_.bind(result.method, this));
+            this.koSubscriptions[result.hash] = result.prop.subscribe(result.method, this);
         }
     };
 
@@ -2478,6 +2519,22 @@ ko.bindingHandlers.autogrow = {
         $(element).addClass('autogrow').prop('rows', valueAccessor().rows).autogrow('init');
         ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
             $(element).removeClass('autogrow').autogrow('destroy');
+        });
+    }
+};
+
+// Usage: <div data-bind="renderValue: arbitraryValue"></div>
+ko.bindingHandlers.renderTo = {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        var options = valueAccessor();
+        App.renderTo(element, options.value, false, function() {
+            if (typeof options.blockTags !== 'undefined') {
+                return {
+                    'blockTags': options.blockTags,
+                }
+            } else {
+                return undefined;
+            }
         });
     }
 };

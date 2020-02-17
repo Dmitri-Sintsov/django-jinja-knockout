@@ -108,8 +108,8 @@ class FieldRenderer(tpl.Renderer):
         'multiple_type': '',
     }
 
-    def __init__(self, request, context=None):
-        super().__init__(request, context)
+    def __init__(self, request, template=None, context=None):
+        super().__init__(request, template, context)
         self.display_layout = None
 
     def get_template_dir(self):
@@ -163,7 +163,7 @@ class FormBodyRenderer(RelativeRenderer):
     def ioc_render_field(self, field):
         # Note: field.field is not a typo but an access to ModelField from BoundField.
         renderer_cls = getattr(field.field, 'renderer_cls', self.field_renderer_cls)
-        return renderer_cls(self.request, {'field': field})
+        return renderer_cls(self.request, context={'field': field})
 
     def ioc_fields(self):
         field_classes = self.context.get('layout_classes', self.get_layout_classes())

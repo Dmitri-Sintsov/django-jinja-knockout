@@ -113,38 +113,33 @@ void function(GridColumnOrder) {
         });
     };
 
+    GridColumnOrder.getNestedListOptions = function() {
+        /**
+         * Do not escape nested list because it's escaped by default in App.ko.GridRow.htmlEncode().
+         * This allows to have both escaped and unescaped nested lists in row cells
+         * via App.ko.Grid.isMarkSafeField()
+         */
+        var nestedListOptions = $.extend(
+            {
+                blockTags: this.blockTags,
+                fn: 'html',
+                /**
+                 * Will try to use field name as a key prefix first,
+                 * falling back to non-prefixed field names when missing.
+                 *
+                 * This avoids related fields name clashes when two different related models has the same field name
+                 * (eg. 'category') but a different 'verbose_name'.
+                 */
+                keyPrefix: this.field,
+            },
+            this.ownerGrid.meta.fkNestedListOptions
+        );
+        return nestedListOptions;
+    };
+
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
-        if (value instanceof jQuery) {
-            $(element).empty().append(value);
-        } else if (typeof value === 'object') {
-            $(element).empty();
-            /**
-             * Do not escape nested list because it's escaped by default in App.ko.GridRow.htmlEncode().
-             * This allows to have both escaped and unescaped nested lists in row cells
-             * via App.ko.Grid.isMarkSafeField()
-             */
-            var nestedListOptions = $.extend(
-                {
-                    blockTags: this.blockTags,
-                    fn: 'html',
-                    /**
-                     * Will try to use field name as a key prefix first,
-                     * falling back to non-prefixed field names when missing.
-                     *
-                     * This avoids related fields name clashes when two different related models has the same field name
-                     * (eg. 'category') but a different 'verbose_name'.
-                     */
-                    keyPrefix: this.field,
-                },
-                this.ownerGrid.meta.fkNestedListOptions
-            );
-            App.renderNestedList(element, value, nestedListOptions);
-        } else {
-            // Warning: make sure string is escaped!
-            // Primarily use is to display server-side formatted strings (Djano local date / currency format).
-            $(element).html(value);
-        }
+        App.renderValue(element, value, this.getNestedListOptions);
     };
 
 }(App.ko.GridColumnOrder.prototype);
@@ -292,7 +287,7 @@ void function (GridFilterChoice) {
         this.name = options.name;
         this.value = options.value;
         this.is_active = ko.observable();
-        this.is_active.subscribe(_.bind(this.updateQueryFilter, this));
+        this.is_active.subscribe(this.updateQueryFilter, this);
         this.is_active(options.is_active);
     };
 
@@ -1032,7 +1027,12 @@ void function(GridRow) {
         if (this.useInitClient) {
             // Init updated row.
             this.prepare();
-        }
+        };
+        // https://stackoverflow.com/questions/14149551/subscribe-to-observable-array-for-new-or-removed-entry-only
+        this.ownerGrid.propCall('ownerCtrl.onChildGridRowsChange', [{
+            status: 'modified',
+            value: savedRow,
+        }]);
     };
 
     GridRow.getDescParts = function() {
@@ -1412,8 +1412,10 @@ void function(Grid) {
         }
     };
 
-    Grid.onFirstLoad = function() {
-        this.propCall('ownerCtrl.onChildGridFirstLoad');
+    Grid.onFirstLoad = function(newValue) {
+        if (!newValue) {
+            this.propCall('ownerCtrl.onChildGridFirstLoad');
+        }
     };
 
     Grid.applyBindings = function(selector) {
@@ -1510,6 +1512,7 @@ void function(Grid) {
             highlightModeRules: App.ui.highlightModeRules,
             // false - no preloadedMetaList,
             // object - result of server-side preloaded 'action_meta_list' call in KoGridView.discover_grid_options().
+            pkField: '',
             preloadedMetaList: false,
             rowsPerPage: 10,
             searchPlaceholder: null,
@@ -1538,7 +1541,7 @@ void function(Grid) {
             firstLoad: ko.observable(true),
             fkNestedListOptions: {},
             listOptions: {},
-            pkField: '',
+            pkField: this.options.pkField,
             hasSearch: ko.observable(false),
             // Key: fieldname, value: true: 'asc', false: 'desc'.
             orderBy: {},
@@ -1551,7 +1554,7 @@ void function(Grid) {
             verboseName: ko.observable(''),
             verboseNamePlural: ko.observable(''),
         };
-        this.meta.firstLoad.subscribe(_.bind(this.onFirstLoad, this));
+        this.meta.firstLoad.subscribe(this.onFirstLoad, this);
         this.meta.rowsPerPage.extend({ rateLimit: 500 });
         this.actionTypes = {};
         _.each(this.uiActionTypes, function(type) {
@@ -1581,9 +1584,9 @@ void function(Grid) {
         this.gridPages = ko.observableArray();
         this.gridTotalPages = ko.observable(0);
         this.gridSearchStr = ko.observable('');
-        this.gridSearchStr.subscribe(_.bind(this.onGridSearchStr, this));
+        this.gridSearchStr.subscribe(this.onGridSearchStr, this);
         this.gridSearchDisplayStr = ko.observable('');
-        this.gridSearchDisplayStr.subscribe(_.bind(this.onGridSearchDisplayStr, this));
+        this.gridSearchDisplayStr.subscribe(this.onGridSearchDisplayStr, this);
         this.highlightMode = ko.observable(this.options.highlightMode);
         this.lastHeaderCss = {};
         this.headerCss = ko.computed(this.getHeaderCss, this);
@@ -1992,12 +1995,12 @@ void function(Grid) {
             opcode = 'push';
         }
         for (var i = 0; i < newRows.length; i++) {
-            this.gridRows[opcode](this.iocRow({
-                ownerGrid: this,
+            var koRow = this.iocRowOwner({
                 isSelectedRow: false,
                 isUpdated: true,
                 values: newRows[i]
-            }));
+            });
+            this.gridRows[opcode](koRow);
         }
     };
 
@@ -2080,6 +2083,16 @@ void function(Grid) {
      */
     Grid.iocRow = function(options) {
         return new App.ko.GridRow(options);
+    };
+
+    Grid.iocRowOwner = function(options) {
+        options.ownerGrid = this;
+        if (typeof options.isSelectedRow === 'undefined') {
+            // raw row (direct access to pkField); for App.ko.GridRow use .getPkVal().
+            var pkVal = options.values[this.meta.pkField];
+            options.isSelectedRow = this.hasSelectedPkVal(pkVal);
+        }
+        return this.iocRow(options);
     };
 
     Grid.afterRowRender = function(elements, koRow) {
@@ -2506,12 +2519,8 @@ void function(Grid) {
             if (typeof row[self.meta.pkField] === 'undefined') {
                 throw sprintf("Supplied row has no '%s' key", self.meta.pkField);
             }
-            // raw row (direct access to pkField); for App.ko.GridRow use .getPkVal().
-            var pkVal = row[self.meta.pkField];
             gridRows.push(
-                self.iocRow({
-                    ownerGrid: self,
-                    isSelectedRow: self.hasSelectedPkVal(pkVal),
+                self.iocRowOwner({
                     values: row,
                     index: k
                 })
@@ -2681,6 +2690,13 @@ void function(Grid) {
             );
             dialog.bdialog.getModalBody().prepend(actionHeading);
         }
+    };
+
+    Grid.ownerRowsChange = function() {
+        // https://github.com/knockout/knockout/commit/11dc1389cdc764e959531824b526ca106d123791
+        return this.gridRows.subscribe(
+            this.ownerCtrl.onChildGridRowsChange, this.ownerCtrl, 'arrayChange'
+        );
     };
 
 }(App.ko.Grid.prototype);
@@ -2934,6 +2950,10 @@ void function(GridDialog) {
         });
     };
 
+    GridDialog.onChildGridRowsChange = function(changes) {
+        this.propCall('owner.onGridDialogRowsChange', changes);
+    };
+
     GridDialog.iocGrid = function(options) {
         var options = $.extend(
             this.filterOptions,
@@ -2953,16 +2973,15 @@ void function(GridDialog) {
     };
 
     GridDialog.iocGridOwner = function() {
-        var grid = this.iocGrid({
+        this.grid = this.iocGrid({
             ownerCtrl: this
         });
-        grid.ownerCtrlSetTitle = _.bind(
+        this.grid.ownerCtrlSetTitle = _.bind(
             function(verboseNamePlural) {
                 this.ownerCtrl.setTitle(verboseNamePlural);
             },
-            grid
+            this.grid
         );
-        return grid;
     };
 
     GridDialog.onHide = function() {
@@ -2993,12 +3012,18 @@ void function(GridDialog) {
         if (this.wasOpened) {
             this.recreateContent();
         } else {
-            // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
-            this.grid = this.iocGridOwner();
+            // MultipleKeyGridWidget may already instantiate grid, in case initialFkRows are supplied.
+            if (!this.grid) {
+                // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
+                this.iocGridOwner();
+            }
+            this.gridRowsSubscription = this.grid.ownerRowsChange();
             this.grid.firstLoad(function() {
                 // Select grid rows when there are filter choices set already.
                 var filterChoices = self.propCall('owner.getQueryFilter');
-                self.grid.selectKoRowsByPkVals(filterChoices);
+                if (filterChoices !== null) {
+                    self.grid.selectKoRowsByPkVals(filterChoices);
+                }
             });
         }
         this.grid.applyBindings(this.bdialog.getModal());
@@ -3009,6 +3034,7 @@ void function(GridDialog) {
     };
 
     GridDialog.close = function() {
+        this.gridRowsSubscription.dispose();
         this._super._call('close');
         this.propCall('owner.onGridDialogClose');
     };
@@ -3017,7 +3043,7 @@ void function(GridDialog) {
 
 /**
  * Client-side part of widgets.ForeignKeyGridWidget to select foreign key via App.GridDialog.
- * Much similar to django.admin ForeignKeyRawIdWidget but is Knockout.js driven.
+ * Similar to django.admin ForeignKeyRawIdWidget but is Knockout.js driven.
  */
 App.FkGridWidget = function(options) {
     this.init(options);
@@ -3025,11 +3051,15 @@ App.FkGridWidget = function(options) {
 
 void function(FkGridWidget) {
 
-    FkGridWidget.init = function(options) {
-        var gridOptions = $.extend(options, {
+    FkGridWidget.getDefaultGridOptions = function() {
+        return {
             selectMultipleRows: false,
             showSelection: true
-        });
+        };
+    };
+
+    FkGridWidget.init = function(options) {
+        var gridOptions = $.extend(options, this.getDefaultGridOptions());
         this.gridDialog = new App.GridDialog({
             owner: this,
             filterOptions: gridOptions
@@ -3090,16 +3120,147 @@ void function(FkGridWidget) {
             .setDisplayValue(koRow.getDescParts());
     };
 
+    FkGridWidget.onGridDialogUnselectRow = function(options) {
+        this.onGridDialogUnselectAllRows();
+    };
+
     FkGridWidget.onGridDialogUnselectAllRows = function(options) {
         this.setInputValue('')
             .setDisplayValue('');
     };
 
-    FkGridWidget.onGridDialogUnselectRow = function(options) {
-        this.onGridDialogUnselectAllRows();
+}(App.FkGridWidget.prototype);
+
+
+/**
+ * Client-side part of widgets.MultipleKeyGridWidget to select multiple foreign key relationships via App.GridDialog.
+ * Similar to django.admin FilteredSelectMultiple but is Knockout.js driven.
+ */
+App.MultipleKeyGridWidget = function(options) {
+    this.init(options);
+};
+
+void function(MultipleKeyGridWidget) {
+
+    MultipleKeyGridWidget.getDefaultGridOptions = function() {
+        return {
+            selectMultipleRows: true,
+            showSelection: true
+        };
     };
 
-}(App.FkGridWidget.prototype);
+    MultipleKeyGridWidget.init = function(options) {
+        var gridOptions = $.extend(options, this.getDefaultGridOptions());
+        this.inputRows = ko.observableArray();
+        if (typeof options.initialFkRows !== 'undefined') {
+            var initialFkRows = options.initialFkRows;
+            delete options.initialFkRows;
+        } else {
+            var initialFkRows = [];
+        }
+        this.gridDialog = new App.GridDialog({
+            owner: this,
+            filterOptions: gridOptions
+        });
+        if (initialFkRows.length > 0) {
+            this.gridDialog.iocGridOwner();
+            for (var i = 0; i < initialFkRows.length; i++) {
+                var koRow = this.gridDialog.grid.iocRowOwner({
+                    isSelectedRow: true,
+                    values: initialFkRows[i],
+                    index: i
+                });
+                var inputRow = this.iocInputRow(koRow);
+                this.inputRows.push(inputRow);
+            }
+        }
+    };
+
+    MultipleKeyGridWidget.applyBindings = function(selector) {
+        var self = this;
+        this.componentSelector = $(selector);
+        this.componentSelector.each(function(k, v) {
+            ko.applyBindings(self, v);
+        });
+    };
+
+    MultipleKeyGridWidget.cleanBindings = function() {
+        if (this.componentSelector) {
+            this.componentSelector.each(function(k, v) {
+                ko.cleanNode(v);
+            });
+        }
+    };
+
+    MultipleKeyGridWidget.runComponent = function($selector) {
+        this.applyBindings($selector);
+    };
+
+    MultipleKeyGridWidget.removeComponent = function($selector) {
+        this.gridDialog.removeComponent();
+        this.cleanBindings();
+    };
+
+    MultipleKeyGridWidget.removeFk = function(inputRow) {
+        this.inputRows.remove(inputRow);
+        var fkGrid = this.gridDialog.grid;
+        var koRow = fkGrid.findKoRowByPkVal(inputRow.pk);
+        if (koRow !== null) {
+            koRow.isSelectedRow(false);
+        } else {
+            fkGrid.removeSelectedPkVal(inputRow.pk);
+        }
+    };
+
+    MultipleKeyGridWidget.findInputRowByPkVal = function(pkVal) {
+        return ko.utils.arrayFirst(this.inputRows(), function(inputRow) {
+            return inputRow.pk === pkVal;
+        });
+    };
+
+    MultipleKeyGridWidget.iocInputRow = function(koRow) {
+        return {
+            pk: koRow.getPkVal(),
+            desc: ko.observable(koRow.getDescParts()),
+        };
+    };
+
+    MultipleKeyGridWidget.updateInputRow = function(koRow) {
+        var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
+        if (matchingRow !== null) {
+            matchingRow.desc(koRow.getDescParts());
+        }
+    };
+
+    MultipleKeyGridWidget.onGridDialogRowsChange = function(changes) {
+        console.log(changes);
+        for (var i = 0; i < changes.length; i++) {
+            var change = changes[i];
+            if (['modified', 'added'].indexOf(change.status) !== -1) {
+                var koRow = change.value;
+                this.updateInputRow(koRow);
+                break;
+            }
+        }
+    };
+
+    MultipleKeyGridWidget.onGridDialogSelectRow = function(options) {
+        var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
+        var inputRow = this.iocInputRow(koRow);
+        this.inputRows.push(inputRow);
+    };
+
+    MultipleKeyGridWidget.onGridDialogUnselectRow = function(options) {
+        this.inputRows.remove(function(inputRow) {
+            return inputRow.pk === options.pkVal;
+        });
+    };
+
+    MultipleKeyGridWidget.onGridDialogUnselectAllRows = function(options) {
+    };
+
+}(App.MultipleKeyGridWidget.prototype);
+
 
 /**
  * BootstrapDialog displayed when grid row is clicked and multiple 'click' actions are defined.

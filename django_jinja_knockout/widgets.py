@@ -1,4 +1,5 @@
-from copy import copy
+from collections import OrderedDict, abc
+from copy import copy, deepcopy
 import types
 from datetime import date, datetime
 
@@ -7,12 +8,14 @@ from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
-from django.forms.widgets import (CheckboxInput, Widget, Textarea, MultiWidget)
+from django.forms.widgets import (CheckboxInput, Widget, ChoiceWidget, Textarea, MultiWidget)
+from django.db.models.query import RawQuerySet, QuerySet
 
 from .apps import DjkAppConfig
 from .models import model_fields_verbose_names
+from .query import ListQuerySet
 from .tpl import (
-    PrintList, print_list_group, print_bs_well,
+    Renderer, PrintList, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
     format_local_date,
     resolve_cbv
@@ -229,17 +232,21 @@ class DisplayText(Widget):
             return self.render_scalar(final_attrs, value, display_values[0])
 
 
+# Similar to django.admin ForeignKeyRawIdWidget but is Knockout.js driven.
 class ForeignKeyGridWidget(DisplayText):
+
+    js_classpath = 'App.FkGridWidget'
 
     # Setting 'model' argument is required only for non-AJAX form submissions.
     def __init__(self, attrs=None, scalar_display=None, model=None, grid_options: dict = None):
         if grid_options is None:
             grid_options = {}
-        super().__init__(attrs=attrs, scalar_display=scalar_display, layout='div')
+        else:
+            self.grid_options = deepcopy(grid_options)
         self.model = model
-        self.grid_options = grid_options
-        if 'classPath' not in self.grid_options:
-            self.grid_options['classPath'] = 'App.FkGridWidget'
+        if 'classPath' in self.grid_options:
+            self.js_classpath = self.grid_options.pop('classPath')
+        super().__init__(attrs=attrs, scalar_display=scalar_display, layout='div')
 
     def add_list_attrs(self, final_attrs):
         raise ValueError('ForeignKeyGridWidget cannot have multiple values')
@@ -269,10 +276,6 @@ class ForeignKeyGridWidget(DisplayText):
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
         self.grid_options.update(foreign_key_grid_options)
-        if 'classPath' in self.grid_options:
-            js_class_path = self.grid_options.pop('classPath')
-        else:
-            js_class_path = 'App.FkGridWidget'
         return format_html(
             '<span {component_attrs}>'
             '<input {final_attrs}/>'
@@ -281,7 +284,7 @@ class ForeignKeyGridWidget(DisplayText):
             '</span>',
             component_attrs=flatatt({
                 'class': 'component',
-                'data-component-class': js_class_path,
+                'data-component-class': self.js_classpath,
                 'data-component-options': to_json(self.grid_options),
             }),
             final_attrs=flatatt(final_attrs),
@@ -300,3 +303,76 @@ class ForeignKeyGridWidget(DisplayText):
                 else:
                     return str(obj)
         return value
+
+
+#  Similar to django.admin FilteredSelectMultiple but is Knockout.js driven.
+class MultipleKeyGridWidget(ChoiceWidget):
+
+    allow_multiple_selected = True
+    js_classpath = 'App.MultipleKeyGridWidget'
+    template_name = 'widget_multiple_key_grid.htm'
+    renderer_class = Renderer
+
+    # Setting 'model' argument is required only for non-AJAX form submissions.
+    def __init__(self, attrs=None, grid_options: dict = None):
+        if grid_options is None:
+            grid_options = {}
+        else:
+            self.grid_options = deepcopy(grid_options)
+        if 'classPath' in self.grid_options:
+            self.js_classpath = self.grid_options.pop('classPath')
+        super().__init__(attrs=attrs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        widget_ctx = context['widget']
+        remove_css_classes_from_dict(widget_ctx['attrs'], 'form-control')
+        widget_ctx['attrs']['type'] = 'hidden'
+        # Do not map None value to empty string, it will cause Django field int() conversion error.
+        widget_ctx['value'] = 0 if value is None else value
+
+        # Autodetect foreign key widgets fkGridOptions.
+        pageRouteKwargs = self.grid_options.get('pageRouteKwargs', {})
+        pageRouteKwargs['action'] = ''
+        ContextMiddleware = DjkAppConfig.get_context_middleware()
+        self.request = ContextMiddleware.get_request()
+        widget_view_cls = resolve_cbv(
+            viewname=self.grid_options['pageRoute'],
+            kwargs=pageRouteKwargs,
+            request=self.request
+        )
+        foreign_key_grid_options = widget_view_cls.discover_grid_options(self.request)
+        widget_view = widget_view_cls()
+        widget_view.setup(self.request)
+        if value is not None:
+            if isinstance(value, (QuerySet, RawQuerySet, ListQuerySet)):
+                fk_qs = value
+            else:
+                filter_kwargs = {
+                    widget_view.pk_field + '__in': value
+                }
+                fk_qs = widget_view.get_base_queryset().filter(**filter_kwargs)
+            self.grid_options.update({
+                'initialFkRows': widget_view.postprocess_qs(fk_qs),
+                'pkField': widget_view.pk_field,
+            })
+
+        # Update widget grid_options with recursively detected fkGridOptions, if any.
+        self.grid_options.update(foreign_key_grid_options)
+        widget_ctx.update({
+            'component_attrs': {
+                'class': 'component',
+                'data-component-class': self.js_classpath,
+                'data-component-options': to_json(self.grid_options),
+            },
+        })
+        return context
+
+    def ioc_renderer(self, context):
+        return self.renderer_class(self.request, template=self.template_name, context=context)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        """Render the widget as an HTML string."""
+        context = self.get_context(name, value, attrs)
+        renderer = self.ioc_renderer(context['widget'])
+        return renderer.__str__()

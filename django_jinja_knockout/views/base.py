@@ -22,7 +22,7 @@ from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
 from ..viewmodels import vm_list
-from ..utils.sdv import yield_ordered, get_object_members, get_nested, FuncArgs
+from ..utils.sdv import yield_ordered, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
 
 
@@ -48,14 +48,13 @@ def template_context_decorator(view_title=None, client_data=None, client_routes=
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            if request.method == 'GET':
-                create_template_context(
-                    request,
-                    view_title=view_title,
-                    client_data=client_data,
-                    client_routes=client_routes,
-                    custom_scripts=custom_scripts
-                )
+            create_template_context(
+                request,
+                view_title=view_title,
+                client_data=client_data,
+                client_routes=client_routes,
+                custom_scripts=custom_scripts
+            )
             return func(request, *args, **kwargs)
         return inner
     return decorator
@@ -159,19 +158,18 @@ class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
     def get_view_title(self):
         return self.view_title
 
-    def before_dispatch(self, request):
-        if request.method == 'GET' and not hasattr(self.request, 'client_data'):
-            create_template_context(
-                self.request,
-                view_title=self.get_view_title(),
-                client_data=self.client_data,
-                client_routes=self.client_routes,
-                custom_scripts=self.custom_scripts
-            )
+    def render_to_response(self, context, **response_kwargs):
+        create_template_context(
+            self.request,
+            view_title=self.get_view_title(),
+            client_data=self.client_data,
+            client_routes=self.client_routes,
+            custom_scripts=self.custom_scripts
+        )
+        return super().render_to_response(context, **response_kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.before_dispatch(request)
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
             if isinstance(e, http.ImmediateJsonResponse):
@@ -289,7 +287,7 @@ class FormatTitleMixin(GetPostMixin):
 
 # Automatic template context processor for bs_navs() jinja2 macro, which is used to group navigation between
 # related CRUD views (see djk-sample for example).
-class BsTabsMixin(ContextMixin):
+class BsTabsMixin(ContextMixin, View):
 
     def get_main_navs(self, object_id=None):
         main_navs = NavsList()
@@ -520,7 +518,8 @@ class BaseFilterView(GetPostMixin):
             display_value = tpl.print_list_group(display_value.values())
         return display_value
 
-    def init_class(self):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         for field in self.model._meta.fields:
             if field.primary_key:
@@ -543,8 +542,7 @@ class BaseFilterView(GetPostMixin):
         self.allowed_filter_fields = self.get_allowed_filter_fields()
         self.search_fields = self.get_search_fields()
 
-        model_class_members = get_object_members(self.model)
-        self.has_get_str_fields = callable(model_class_members.get('get_str_fields'))
+        self.has_get_str_fields = hasattr(self.model, 'get_str_fields')
 
     def get_field_verbose_name(self, field_name):
         # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
@@ -748,11 +746,6 @@ class BaseFilterView(GetPostMixin):
 
         self.current_search_str = self.request_get(self.search_key, '')
 
-    def before_dispatch(self, request):
-        super().before_dispatch(request)
-        self.init_class()
-        self.get_current_query()
-
     def strip_sort_order(self, sort_order):
         if not isinstance(sort_order, list):
             self.report_error('Invalid type of sorting order')
@@ -799,6 +792,7 @@ class BaseFilterView(GetPostMixin):
         return super().get_queryset()
 
     def get_queryset(self):
+        self.get_current_query()
         try:
             return \
                 self.distinct_queryset(

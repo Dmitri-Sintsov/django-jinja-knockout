@@ -304,7 +304,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         mapped_args = []
         for q in args:
             if not isinstance(q, Q):
-                raise ValueError('Only Q objects are supported')
+                raise NotImplementedError('Only Q objects are supported')
             for key, child in enumerate(q.children):
                 fieldname, val = child
                 q.children[key] = self.get_mapped_field(fieldname), val

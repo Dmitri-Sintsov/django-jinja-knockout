@@ -256,7 +256,7 @@ class FormWithInlineFormsets:
         self.ioc_related_form_renderer(form)
 
     def ioc_formset_renderer(self, formset):
-        return self.formset_renderer_cls(self.request, {
+        return self.formset_renderer_cls(self.request, context={
             'formset': formset,
         })
 

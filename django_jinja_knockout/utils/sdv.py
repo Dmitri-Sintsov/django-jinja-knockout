@@ -141,10 +141,6 @@ def dbg(name, value=None):
     f.close()
 
 
-def get_object_members(obj):
-    return OrderedDict(inspect.getmembers(obj))
-
-
 # http://stackoverflow.com/questions/3589311/get-defining-class-of-unbound-method-object-in-python-3/25959545#25959545
 def get_class_that_defined_method(meth):
     if inspect.ismethod(meth):

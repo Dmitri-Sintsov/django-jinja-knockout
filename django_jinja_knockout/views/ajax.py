@@ -120,10 +120,9 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
             )
         )
 
-    def before_dispatch(self, request):
-        if request.method == 'GET':
-            create_template_context(request).add_client_routes(request.resolver_match.view_name)
-        super().before_dispatch(request)
+    def render_to_response(self, context, **response_kwargs):
+        create_template_context(self.request).add_client_routes(self.request.resolver_match.view_name)
+        return super().render_to_response(context, **response_kwargs)
 
     def post(self, request, *args, **kwargs):
         self.actions = self.get_actions()
@@ -835,8 +834,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     @classmethod
     def process_qs(cls, request, qs):
         self = cls()
-        self.request = request
-        self.init_class()
+        self.setup(request)
         return self.postprocess_qs(qs)
 
     def get_preloaded_meta_list(self):
@@ -858,9 +856,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
             # in case grid has nested relations. Thus this method was introduced.
             view = cls()
-            view.request = request
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
-            view.kwargs = request.resolver_match.kwargs
+            view.setup(request, **request.resolver_match.kwargs)
             view.set_template_options(template_options)
             view_allowed_filter_fields = view.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
@@ -882,7 +879,6 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
             if view.preload_meta_list:
-                view.init_class()
                 grid_options['preloadedMetaList'] = view.get_preloaded_meta_list()
         grid_options.update(template_options)
         return grid_options
@@ -905,8 +901,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             exclude_fields = self.__class__.exclude_fields
         return exclude_fields
 
-    def init_class(self):
-        super().init_class()
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         if self.query_fields is None:
             self.query_fields = self.get_query_fields()

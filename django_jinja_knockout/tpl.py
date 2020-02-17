@@ -60,8 +60,10 @@ class Renderer:
     obj_kwarg = None
     obj_template_attr = None
 
-    def __init__(self, request, context=None):
+    def __init__(self, request, template=None, context=None):
         self.request = request
+        if template is not None:
+            self.template = template
         # Shallow copy.
         self.context = {} if context is None else context.copy()
         self.obj = context[self.obj_kwarg] if self.obj_kwarg is not None and self.obj_kwarg in context else None
@@ -389,6 +391,8 @@ def format_local_date(value, short_format=True, to_local_time=True, tz_name=None
     elif isinstance(value, date):
         combined = datetime.combine(value, datetime.min.time())
         format = 'SHORT_DATE_FORMAT' if short_format else 'DATE_FORMAT'
+    elif value is None:
+        return empty_value_display
     else:
         raise ValueError('Value must be instance of date or datetime')
     if timezone.is_aware(combined):
@@ -400,7 +404,7 @@ def format_local_date(value, short_format=True, to_local_time=True, tz_name=None
 
 
 def verbose_date(value, **kwargs):
-    return '-' if value is None else format_local_date(value, short_format=False, **kwargs)
+    return format_local_date(value, short_format=False, **kwargs)
 
 
 def get_current_app(request):
@@ -484,16 +488,16 @@ def get_formatted_url(url_name):
     try:
         # No current_app detection, because there could be injected urls from different apps / namespaces.
         return reverse(url_name)
-    except NoReverseMatch:
+    except NoReverseMatch as ex:
         # Url regex pattern has named parameters. Translate these to Javascript sprintf() library format.
         urlresolver = get_resolver(None)
         urls = get_sprintf_urls(urlresolver, url_name)
         if len(urls) == 1:
             return '{}{}'.format(get_script_prefix(), urls[0])
         elif len(urls) == 0:
-            raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name)
+            raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name) from ex
         else:
-            raise NoReverseMatch('Multiple sprintf formatted url for %s' % url_name)
+            raise NoReverseMatch('Multiple sprintf formatted url for %s' % url_name) from ex
 
 
 class DjkJSONEncoder(DjangoJSONEncoder):
