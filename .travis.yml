@@ -9,8 +9,6 @@ env:
   matrix:
     - TOXENV=py35-django-22-bs3
     - TOXENV=py35-django-22-bs4
-    - TOXENV=py35-django-111-bs3
-    - TOXENV=py35-django-111-bs4
 branches:
   only:
   - master

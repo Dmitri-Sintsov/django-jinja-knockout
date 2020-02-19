@@ -450,15 +450,9 @@ def get_namespace_path_resolver(urlresolver, ns_path):
     for inner_ns, (inner_ns_path, inner_urlresolver) in \
             urlresolver.namespace_dict.items():
         if inner_ns == ns_path[0]:
-            if hasattr(urlresolver, 'pattern'):
-                inner_urlresolver = get_ns_resolver(
-                    inner_ns_path, inner_urlresolver, tuple(urlresolver.pattern.converters.items())
-                )
-            else:
-                # Django 1.11.
-                inner_urlresolver = get_ns_resolver(
-                    inner_ns_path, inner_urlresolver
-                )
+            inner_urlresolver = get_ns_resolver(
+                inner_ns_path, inner_urlresolver, tuple(urlresolver.pattern.converters.items())
+            )
             if len(ns_path) == 1:
                 return inner_urlresolver
             else:
@@ -473,7 +467,6 @@ def get_sprintf_urls(urlresolver, url_name):
         url_name = ns_path.pop()
         urlresolver = get_namespace_path_resolver(urlresolver, ns_path)
 
-    # Django 2.0 generates url_def tuples of 4 elements, < 2.0 - tuple of 3 elements.
     for url_def in urlresolver.reverse_dict.getlist(url_name):
         matches = url_def[0]
         urls.extend([

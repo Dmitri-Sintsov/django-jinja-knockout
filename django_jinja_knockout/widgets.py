@@ -103,7 +103,7 @@ class PrefillWidget(Widget):
         value = self.data_widget.value_from_datadict(data, files, name)
         return value
 
-    # todo: Support Django 1.11 renderer.
+    # todo: Support Django renderer.
     def render(self, name, value, attrs=None, renderer=None):
         entries = [
             '<div class="input-group">',
@@ -193,7 +193,7 @@ class DisplayText(Widget):
             display_values[value_key] = display_value
         return display_values
 
-    # todo: Support Django 1.11 renderer.
+    # todo: Support Django renderer.
     def render(self, name, value, attrs=None, renderer=None):
         """
         if hasattr(self, 'instance'):

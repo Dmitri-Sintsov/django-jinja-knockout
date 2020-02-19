@@ -9,7 +9,7 @@ from pprint import pprint
 LOGPATH = ['logs']
 
 
-# To use with user.is_authenticated / user.is_anonymous Django portable code.
+# call_prop(user.is_authenticated) / call_prop(user.is_anonymous) in portable Django code.
 def call_prop(prop):
     return prop() if callable(prop) else prop
 

@@ -63,11 +63,7 @@ class RawSqlCompiler(SQLCompiler):
                 params.extend(h_params)
 
             if self.query.distinct:
-                if isinstance(distinct_args, tuple):
-                    # Django >=2.1
-                    distinct_result = self.connection.ops.distinct_sql(*distinct_args)
-                else:
-                    distinct_result = self.connection.ops.distinct_sql(distinct_args)
+                distinct_result = self.connection.ops.distinct_sql(*distinct_args)
 
             grouping = []
             for g_sql, g_params in group_by:
@@ -127,30 +123,22 @@ class FilteredRawQuery(RawQuery):
         if isinstance(raw_query, cls):
             c = raw_query.clone(raw_query.using, is_already_filtered)
         else:
-            cls_kwargs = {
-                'sql': raw_query.sql,
-                'using': raw_query.using,
-                'params': raw_query.params,
-            }
-            if hasattr(raw_query, 'context'):
-                # Django < 2.0.
-                cls_kwargs['context'] = raw_query.context
-            c = cls(**cls_kwargs)
+            c = cls(
+                sql=raw_query.sql,
+                using=raw_query.using,
+                params=raw_query.params
+            )
             c.annotation_select = copy(raw_query.annotation_select)
         c.filtered_query = filtered_query if is_already_filtered else filtered_query.clone()
         return c
 
     def clone(self, using, is_already_filtered=True):
         super_c = super().clone(using)
-        cls_kwargs = {
-            'sql': super_c.sql,
-            'using': super_c.using,
-            'params': super_c.params,
-        }
-        if hasattr(super_c, 'context'):
-            # Django < 2.0.
-            cls_kwargs['context'] = super_c.context
-        c = self.__class__(**cls_kwargs)
+        c = self.__class__(
+            sql=super_c.sql,
+            using=super_c.using,
+            params=super_c.params
+        )
         c.filtered_query = self.filtered_query if is_already_filtered else self.filtered_query.clone()
         # Do not copy 'cursor', it may cause infitite recursion.
         for prop in ('low_mark', 'high_mark', 'extra_select', 'annotation_select'):
