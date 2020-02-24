@@ -1,9 +1,9 @@
 # Additional requirements go here
-django>=1.11.0
-Jinja2>=2.8
-bleach>=1.4.2
-lxml>=3.4.4
-ensure>=0.3.2
-sqlparse>=0.2.1
+django>=2.2.0
+Jinja2
+bleach
+lxml
+ensure
+sqlparse
 pytz
 
