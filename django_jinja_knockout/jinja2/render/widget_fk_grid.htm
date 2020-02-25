@@ -6,8 +6,11 @@
             </div>
         </li>
     </ul>
+    <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->
+    <input type="hidden" data-bind="attr: getInputAttrs({pk: 0})">
+    <!-- /ko -->
     <!-- ko foreach: inputRows -->
-        <input type="hidden" data-bind="attr: { id: {{ tpl.to_json( attrs.id ) }} + '_' + $index(), name: {{ tpl.to_json(name) }} }, value: $data.pk">
+        <input type="hidden" data-bind="attr: $parent.getInputAttrs($data, $index())">
     <!-- /ko -->
     <button class="btn btn-info default-margin" data-bind="click: function() { gridDialog.show() }, clickBubble: false">{{ _('Change') }}</button>
 </span>

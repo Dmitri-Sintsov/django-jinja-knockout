@@ -19,6 +19,7 @@ from .tpl import (
     format_local_date,
     resolve_cbv
 )
+from .utils import sdv
 from .viewmodels import to_json
 
 
@@ -237,14 +238,15 @@ class BaseGridWidget(ChoiceWidget):
     js_classpath = ''
     template_name = 'widget_fk_grid.htm'
     renderer_class = Renderer
+    js_classpath = 'App.MultipleKeyGridWidget'
 
     def __init__(self, attrs=None, grid_options: dict = None):
         if grid_options is None:
             grid_options = {}
         else:
-            self.grid_options = deepcopy(grid_options)
-        if 'classPath' in self.grid_options:
-            self.js_classpath = self.grid_options.pop('classPath')
+            self.component_options = {'fkGridOptions': deepcopy(grid_options)}
+        if 'classPath' in self.component_options:
+            self.js_classpath = self.component_options.pop('classPath')
         super().__init__(attrs=attrs)
 
     def get_initial_fk_grid_queryset(self, widget_view, value):
@@ -258,35 +260,43 @@ class BaseGridWidget(ChoiceWidget):
         widget_ctx['value'] = value
 
         # Autodetect foreign key widgets fkGridOptions.
-        pageRouteKwargs = self.grid_options.get('pageRouteKwargs', {})
+        pageRouteKwargs = self.component_options['fkGridOptions'].get('pageRouteKwargs', {})
         pageRouteKwargs['action'] = ''
         ContextMiddleware = DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
         widget_view_cls = resolve_cbv(
-            viewname=self.grid_options['pageRoute'],
+            viewname=self.component_options['fkGridOptions']['pageRoute'],
             kwargs=pageRouteKwargs,
             request=self.request
         )
         foreign_key_grid_options = widget_view_cls.discover_grid_options(self.request)
+        foreign_key_grid_options['selectMultipleRows'] = self.allow_multiple_selected
         widget_view = widget_view_cls()
         widget_view.setup(self.request)
-        if value is not None:
+        foreign_key_grid_options['pkField'] = widget_view.pk_field
+
+        if value is None:
+            initial_fk_rows = []
+        else:
             if isinstance(value, (QuerySet, RawQuerySet, ListQuerySet)):
                 fk_qs = value
             else:
                 fk_qs = self.get_initial_fk_grid_queryset(widget_view, value)
-            self.grid_options.update({
-                'initialFkRows': widget_view.postprocess_qs(fk_qs),
-                'pkField': widget_view.pk_field,
-            })
+            initial_fk_rows = widget_view.postprocess_qs(fk_qs)
+
+        self.component_options.update({
+            'attrs': widget_ctx['attrs'],
+            'initialFkRows': initial_fk_rows,
+            'name': name,
+        })
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
-        self.grid_options.update(foreign_key_grid_options)
+        sdv.nested_update(self.component_options['fkGridOptions'], foreign_key_grid_options)
         widget_ctx.update({
             'component_attrs': {
                 'class': 'component',
                 'data-component-class': self.js_classpath,
-                'data-component-options': to_json(self.grid_options),
+                'data-component-options': to_json(self.component_options),
             },
         })
         return context
@@ -305,7 +315,6 @@ class BaseGridWidget(ChoiceWidget):
 class MultipleKeyGridWidget(BaseGridWidget):
 
     allow_multiple_selected = True
-    js_classpath = 'App.MultipleKeyGridWidget'
 
     def get_initial_fk_grid_queryset(self, widget_view, value):
         filter_kwargs = {
@@ -315,73 +324,12 @@ class MultipleKeyGridWidget(BaseGridWidget):
 
 
 # Similar to django.admin ForeignKeyRawIdWidget but is Knockout.js driven.
-class ForeignKeyGridWidget(DisplayText):
+class ForeignKeyGridWidget(BaseGridWidget):
 
-    js_classpath = 'App.FkGridWidget'
+    allow_multiple_selected = False
 
-    # Setting 'model' argument is required only for non-AJAX form submissions.
-    def __init__(self, attrs=None, scalar_display=None, model=None, grid_options: dict = None):
-        if grid_options is None:
-            grid_options = {}
-        else:
-            self.grid_options = deepcopy(grid_options)
-        self.model = model
-        if 'classPath' in self.grid_options:
-            self.js_classpath = self.grid_options.pop('classPath')
-        super().__init__(attrs=attrs, scalar_display=scalar_display, layout='div')
-
-    def add_list_attrs(self, final_attrs):
-        raise ValueError('ForeignKeyGridWidget cannot have multiple values')
-
-    def render_list(self, final_attrs, values, display_values):
-        raise ValueError('ForeignKeyGridWidget cannot have multiple values')
-
-    def add_scalar_attrs(self, final_attrs):
-        add_css_classes_to_dict(final_attrs, 'fk-value')
-
-    def render_scalar(self, final_attrs, value, display_value):
-        final_attrs['type'] = 'hidden'
-        # Do not map None value to empty string, it will cause Django field int() conversion error.
-        final_attrs['value'] = 0 if value is None else value
-
-        # Autodetect foreign key widgets fkGridOptions.
-        pageRouteKwargs = self.grid_options.get('pageRouteKwargs', {})
-        pageRouteKwargs['action'] = ''
-        ContextMiddleware = DjkAppConfig.get_context_middleware()
-        request = ContextMiddleware.get_request()
-        widget_view = resolve_cbv(
-            viewname=self.grid_options['pageRoute'],
-            kwargs=pageRouteKwargs,
-            request=request
-        )
-        foreign_key_grid_options = widget_view.discover_grid_options(request)
-
-        # Update widget grid_options with recursively detected fkGridOptions, if any.
-        self.grid_options.update(foreign_key_grid_options)
-        return format_html(
-            '<span {component_attrs}>'
-            '<input {final_attrs}/>'
-            '<span class="fk-display preformatted">{display_value}</span>'
-            '<button class="fk-choose btn btn-info default-margin">{change}</button>'
-            '</span>',
-            component_attrs=flatatt({
-                'class': 'component',
-                'data-component-class': self.js_classpath,
-                'data-component-options': to_json(self.grid_options),
-            }),
-            final_attrs=flatatt(final_attrs),
-            display_value=self.get_text(display_value),
-            change=_('Change')
-        )
-
-    def to_display_value(self, value):
-        if value == '0':
-            return '-------'
-        if self.model is not None:
-            obj = self.model.objects.filter(pk=value).first()
-            if obj is not None:
-                if hasattr(self.model, 'get_str_fields'):
-                    return print_bs_well(obj.get_str_fields(), **self.get_print_list_kwargs(obj.__class__))
-                else:
-                    return str(obj)
-        return value
+    def get_initial_fk_grid_queryset(self, widget_view, value):
+        filter_kwargs = {
+            widget_view.pk_field: value
+        }
+        return widget_view.get_base_queryset().filter(**filter_kwargs)

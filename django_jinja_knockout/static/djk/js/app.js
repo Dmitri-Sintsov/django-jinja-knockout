@@ -2604,14 +2604,14 @@ void function(ComponentManager) {
     ComponentManager.init = function(options) {
         this.elem = options.elem;
         this.$nestedComponents = [];
-    };
-
-    ComponentManager.getSelector = function(elem) {
-        this.$selector = $(elem);
+        this.$selector = $(this.elem);
         if (this.$selector.data('componentSelector') !== undefined) {
             // Sparse component that contains separate multiple DOM subtrees.
             this.$selector = $(this.$selector.data('componentSelector'));
         }
+    };
+
+    ComponentManager.getSelector = function() {
         return this.$selector;
     };
 
@@ -2720,7 +2720,7 @@ void function(Components) {
         var self = this;
         var desc;
         var cm = new App.ComponentManager({'elem': elem});
-        var $selector = cm.getSelector(elem);
+        var $selector = cm.getSelector();
         cm.detachNestedComponents();
         if (typeof evt === 'undefined') {
             desc = {'component': this.create(elem)};
@@ -2922,7 +2922,7 @@ App.initClientHooks.add({
     dispose: function($selector) {
         $selector.findRunningComponents().each(function() {
             var cm = new App.ComponentManager({'elem': this});
-            var $componentSelector = cm.getSelector(this);
+            var $componentSelector = cm.getSelector();
             // Note: sparse components can potentially unbind the DOM subtrees outside of dispose $selector.
             App.components.unbind($componentSelector);
         });

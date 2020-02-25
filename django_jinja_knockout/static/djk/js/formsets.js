@@ -7,6 +7,9 @@ ko.bindingHandlers.anonymous_template = {
         .find('.ko-template')
         .eq(valueAccessor()['template-index']);
         $(element).append($textarea.val());
+        var cm = new App.ComponentManager({'elem': element});
+        cm.detachNestedComponents();
+        $(element).data({'componentManager': cm});
     }
 };
 
@@ -41,7 +44,19 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
     };
     this.afterFormRendered = function(elements, data) {
         var $elements = $(elements);
+        var $rootNode = $elements.filter('*').eq(0);
+        var cm = $rootNode.data('componentManager');
+        if (cm) {
+            cm.reattachNestedComponents();
+        }
+        $rootNode.removeData('componentManager');
         App.initClient($elements);
+        $rootNode.findRunningComponents().each(function() {
+            var gridWidget = $(this).component();
+            if (typeof gridWidget.formsetIndex === 'function') {
+                gridWidget.formsetIndex(self.getTotalFormsCount() - 1);
+            }
+        });
         self.deleteFormHandler($elements);
     }
 };
@@ -122,7 +137,15 @@ App.initClientHooks.add({
                     maxFormsCount
                 );
                 $formset.addInstance('App.ko.Formset', koFormset);
+                /**
+                 * Prevent nested components, embedded in formset.empty_form to be incorrectly bound to App.ko.Formset
+                 * instance.
+                 * todo: rewrite App.ko.Formset as component.
+                 */
+                var cm = new App.ComponentManager({'elem': v});
+                cm.detachNestedComponents();
                 ko.applyBindings(koFormset, v);
+                cm.reattachNestedComponents();
             }
         });
     },
