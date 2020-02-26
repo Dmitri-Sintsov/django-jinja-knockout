@@ -237,20 +237,28 @@ class BaseGridWidget(ChoiceWidget):
     allow_multiple_selected = None
     js_classpath = ''
     template_name = 'widget_fk_grid.htm'
+    template_id = 'ko_fk_grid_widget'
     renderer_class = Renderer
     js_classpath = 'App.FkGridWidget'
 
     def __init__(self, attrs=None, grid_options: dict = None):
         if grid_options is None:
             grid_options = {}
-        else:
-            self.component_options = {'fkGridOptions': deepcopy(grid_options)}
+        self.component_options = {'fkGridOptions': deepcopy(grid_options)}
         if 'classPath' in self.component_options:
             self.js_classpath = self.component_options.pop('classPath')
         super().__init__(attrs=attrs)
 
     def get_initial_fk_grid_queryset(self, widget_view, value):
         raise NotImplementedError
+
+    def get_component_attrs(self):
+        return {
+            'class': 'component',
+            'data-component-class': self.js_classpath,
+            'data-component-options': to_json(self.component_options),
+            'data-template-id': self.template_id,
+        }
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -293,11 +301,7 @@ class BaseGridWidget(ChoiceWidget):
         # Update widget grid_options with recursively detected fkGridOptions, if any.
         sdv.nested_update(self.component_options['fkGridOptions'], foreign_key_grid_options)
         widget_ctx.update({
-            'component_attrs': {
-                'class': 'component',
-                'data-component-class': self.js_classpath,
-                'data-component-options': to_json(self.component_options),
-            },
+            'component_attrs': self.get_component_attrs()
         })
         return context
 
