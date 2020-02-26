@@ -3012,7 +3012,7 @@ void function(GridDialog) {
         if (this.wasOpened) {
             this.recreateContent();
         } else {
-            // MultipleKeyGridWidget may already instantiate grid, in case initialFkRows are supplied.
+            // FkGridWidget may already instantiate grid, in case options.initialFkRows are supplied.
             if (!this.grid) {
                 // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
                 this.iocGridOwner();
@@ -3043,16 +3043,17 @@ void function(GridDialog) {
 
 
 /**
- * Client-side part of widgets.MultipleKeyGridWidget to select multiple foreign key relationships via App.GridDialog.
- * Similar to django.admin FilteredSelectMultiple but is Knockout.js driven.
+ * Client-side part of widgets.MultipleKeyGridWidget / ForeignKeyGridWidget
+ * to select foreign key relationships via App.GridDialog.
+ * Similar to django.admin FilteredSelectMultiple / ForeignKeyRawIdWidget but is Knockout.js driven.
  */
-App.MultipleKeyGridWidget = function(options) {
+App.FkGridWidget = function(options) {
     this.init(options);
 };
 
-void function(MultipleKeyGridWidget) {
+void function(FkGridWidget) {
 
-    MultipleKeyGridWidget.getInputAttrs = function(inputRow, fieldIdIndex) {
+    FkGridWidget.getInputAttrs = function(inputRow, fieldIdIndex) {
         var attrs = $.extend({}, this.attrs);
         if (this.idParts) {
             attrs.id = this.idParts.prefix + this.formsetIndex() + this.idParts.suffix;
@@ -3069,12 +3070,12 @@ void function(MultipleKeyGridWidget) {
         return attrs;
     };
 
-    MultipleKeyGridWidget.parseFormsetPrefix = function(val) {
+    FkGridWidget.parseFormsetPrefix = function(val) {
         var parts = val.split('__prefix__', 2);
         return (parts.length === 2) ? {prefix: parts[0], suffix: parts[1]} : false;
     };
 
-    MultipleKeyGridWidget.init = function(options) {
+    FkGridWidget.init = function(options) {
         var gridOptions = options.fkGridOptions;
         gridOptions.showSelection = true;
         delete options.fkGridOptions;
@@ -3110,7 +3111,7 @@ void function(MultipleKeyGridWidget) {
         }
     };
 
-    MultipleKeyGridWidget.applyBindings = function(selector) {
+    FkGridWidget.applyBindings = function(selector) {
         var self = this;
         this.componentSelector = $(selector);
         this.componentSelector.each(function(k, v) {
@@ -3118,7 +3119,7 @@ void function(MultipleKeyGridWidget) {
         });
     };
 
-    MultipleKeyGridWidget.cleanBindings = function() {
+    FkGridWidget.cleanBindings = function() {
         if (this.componentSelector) {
             this.componentSelector.each(function(k, v) {
                 ko.cleanNode(v);
@@ -3126,16 +3127,16 @@ void function(MultipleKeyGridWidget) {
         }
     };
 
-    MultipleKeyGridWidget.runComponent = function($selector) {
+    FkGridWidget.runComponent = function($selector) {
         this.applyBindings($selector);
     };
 
-    MultipleKeyGridWidget.removeComponent = function($selector) {
+    FkGridWidget.removeComponent = function($selector) {
         this.gridDialog.removeComponent();
         this.cleanBindings();
     };
 
-    MultipleKeyGridWidget.removeFk = function(inputRow) {
+    FkGridWidget.removeFk = function(inputRow) {
         this.inputRows.remove(inputRow);
         var fkGrid = this.gridDialog.grid;
         var koRow = fkGrid.findKoRowByPkVal(inputRow.pk);
@@ -3146,27 +3147,27 @@ void function(MultipleKeyGridWidget) {
         }
     };
 
-    MultipleKeyGridWidget.findInputRowByPkVal = function(pkVal) {
+    FkGridWidget.findInputRowByPkVal = function(pkVal) {
         return ko.utils.arrayFirst(this.inputRows(), function(inputRow) {
             return inputRow.pk === pkVal;
         });
     };
 
-    MultipleKeyGridWidget.iocInputRow = function(koRow) {
+    FkGridWidget.iocInputRow = function(koRow) {
         return {
             pk: koRow.getPkVal(),
             desc: ko.observable(koRow.getDescParts()),
         };
     };
 
-    MultipleKeyGridWidget.updateInputRow = function(koRow) {
+    FkGridWidget.updateInputRow = function(koRow) {
         var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
         if (matchingRow !== null) {
             matchingRow.desc(koRow.getDescParts());
         }
     };
 
-    MultipleKeyGridWidget.onGridDialogRowsChange = function(changes) {
+    FkGridWidget.onGridDialogRowsChange = function(changes) {
         console.log(changes);
         for (var i = 0; i < changes.length; i++) {
             var change = changes[i];
@@ -3178,26 +3179,28 @@ void function(MultipleKeyGridWidget) {
         }
     };
 
-    MultipleKeyGridWidget.onGridDialogSelectRow = function(options) {
+    FkGridWidget.onGridDialogSelectRow = function(options) {
         var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
         var inputRow = this.iocInputRow(koRow);
         if (this.selectMultipleRows) {
+            // MultipleKeyGridWidget
             this.inputRows.push(inputRow);
         } else {
+            // ForeignKeyGridWidget
             this.inputRows([inputRow]);
         }
     };
 
-    MultipleKeyGridWidget.onGridDialogUnselectRow = function(options) {
+    FkGridWidget.onGridDialogUnselectRow = function(options) {
         this.inputRows.remove(function(inputRow) {
             return inputRow.pk === options.pkVal;
         });
     };
 
-    MultipleKeyGridWidget.onGridDialogUnselectAllRows = function(options) {
+    FkGridWidget.onGridDialogUnselectAllRows = function(options) {
     };
 
-}(App.MultipleKeyGridWidget.prototype);
+}(App.FkGridWidget.prototype);
 
 
 /**

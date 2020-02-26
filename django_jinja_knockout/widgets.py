@@ -238,7 +238,7 @@ class BaseGridWidget(ChoiceWidget):
     js_classpath = ''
     template_name = 'widget_fk_grid.htm'
     renderer_class = Renderer
-    js_classpath = 'App.MultipleKeyGridWidget'
+    js_classpath = 'App.FkGridWidget'
 
     def __init__(self, attrs=None, grid_options: dict = None):
         if grid_options is None:
