@@ -1,6 +1,6 @@
 from django_jinja_knockout.views.base import (
-    create_template_context, template_context_decorator, auth_redirect, prepare_bs_navs, NavsList,
-    GetPostMixin, FormatTitleMixin, BsTabsMixin, FormViewmodelsMixin, BaseFilterView
+    create_page_context, page_context_decorator, auth_redirect, prepare_bs_navs, NavsList,
+    PageContextMixin, FormatTitleMixin, BsTabsMixin, FormViewmodelsMixin, BaseFilterView
 )
 
 from django_jinja_knockout.views.ajax import (
@@ -17,8 +17,8 @@ from django_jinja_knockout.views.list import (
 
 
 __all__ = [
-    'create_template_context', 'template_context_decorator', 'auth_redirect', 'prepare_bs_navs', 'NavsList',
-    'GetPostMixin', 'FormatTitleMixin', 'BsTabsMixin', 'FormViewmodelsMixin', 'BaseFilterView',
+    'create_page_context', 'page_context_decorator', 'auth_redirect', 'prepare_bs_navs', 'NavsList',
+    'PageContextMixin', 'FormatTitleMixin', 'BsTabsMixin', 'FormViewmodelsMixin', 'BaseFilterView',
     'ViewmodelView', 'ActionsView', 'ModelFormActionsView', 'KoGridView', 'KoGridInline',
     'FormDetailView', 'FormWithInlineFormsetsMixin', 'InlineCreateView', 'InlineDetailView', 'InlineCrudView',
     'FoldingPaginationMixin', 'ListSortingView',

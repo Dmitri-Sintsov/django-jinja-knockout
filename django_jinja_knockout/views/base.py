@@ -6,6 +6,7 @@ from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
+from django.template.response import TemplateResponse
 from django.utils.html import format_html, escape
 from django.utils.translation import gettext as _
 from django.utils.decorators import method_decorator
@@ -15,9 +16,9 @@ from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 
+from ..context_processors import create_page_context
 from .. import http
 from .. import tpl
-from ..context_processors import TemplateContext
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
@@ -26,36 +27,21 @@ from ..utils.sdv import yield_ordered, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
 
 
-def create_template_context(request, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
-
-    if hasattr(request, 'template_context'):
-        template_context = request.template_context
-        if view_title is not None:
-            template_context.set_view_title(view_title)
-        if client_data is not None:
-            template_context.add_client_data(client_data)
-        if client_routes is not None:
-            template_context.add_client_routes(client_routes)
-        if custom_scripts is not None:
-            template_context.add_custom_scripts(*custom_scripts)
-    else:
-        request.template_context = TemplateContext(view_title, client_data, client_routes, custom_scripts)
-
-    return request.template_context
-
-
-def template_context_decorator(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+def page_context_decorator(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            create_template_context(
-                request,
-                view_title=view_title,
-                client_data=client_data,
-                client_routes=client_routes,
-                custom_scripts=custom_scripts
-            )
-            return func(request, *args, **kwargs)
+            response = func(request, *args, **kwargs)
+            if isinstance(response, TemplateResponse):
+                if response.context_data is None:
+                    response.context_data = {}
+                response.context_data.setdefault('page_context', create_page_context(
+                    view_title=view_title,
+                    client_data=client_data,
+                    client_routes=client_routes,
+                    custom_scripts=custom_scripts
+                ))
+            return response
         return inner
     return decorator
 
@@ -148,20 +134,37 @@ class NavsList(list):
         return result
 
 
-class GetPostMixin(TemplateResponseMixin, ContextMixin, View):
+class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
 
     view_title = None
     client_data = None
     client_routes = None
     custom_scripts = None
+    page_context = None
 
     def get_view_title(self):
         return self.view_title
 
+    def create_page_context(self):
+        if self.page_context is None:
+            self.page_context = create_page_context()
+        return self.page_context
+
+    def update_page_context(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+        if view_title is not None:
+            self.page_context.set_view_title(view_title)
+        if client_data is not None:
+            self.page_context.add_client_data(client_data)
+        if client_routes is not None:
+            self.page_context.add_client_routes(client_routes)
+        if custom_scripts is not None:
+            self.page_context.add_custom_scripts(*custom_scripts)
+        return self.page_context
+
     def render_to_response(self, context, **response_kwargs):
-        create_template_context(
-            self.request,
-            view_title=self.get_view_title(),
+        self.create_page_context()
+        context['page_context'] = self.update_page_context(
+            view_title=self.view_title,
             client_data=self.client_data,
             client_routes=self.client_routes,
             custom_scripts=self.custom_scripts
@@ -258,14 +261,13 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
 # Supports both ancestors of DetailView and KoGridView.
 # DetailView and it's ancestors are supported automatically.
 # For KoGridView, one has to override .get() method and call .format_title() with appropriate args.
-class FormatTitleMixin(GetPostMixin):
+class FormatTitleMixin(PageContextMixin):
 
     format_view_title = False
 
     def format_title(self, *args, **kwargs):
         if self.format_view_title:
-            template_context = create_template_context(self.request)
-            template_context.set_title_format_args(*args, **kwargs)
+            self.create_page_context().set_title_format_args(*args, **kwargs)
 
     # Used when mixed with DetailView ancestors.
     def get_object(self, queryset=None):
@@ -362,7 +364,7 @@ class FormViewmodelsMixin(ViewmodelView):
 
 
 # Model queryset filtering / ordering base.
-class BaseFilterView(GetPostMixin):
+class BaseFilterView(PageContextMixin):
 
     filter_key = 'list_filter'
     order_key = 'list_order_by'

@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import create_template_context, ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
+from .base import ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -121,7 +121,7 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         )
 
     def render_to_response(self, context, **response_kwargs):
-        create_template_context(self.request).add_client_routes(self.request.resolver_match.view_name)
+        self.create_page_context().add_client_routes(self.request.resolver_match.view_name)
         return super().render_to_response(context, **response_kwargs)
 
     def post(self, request, *args, **kwargs):

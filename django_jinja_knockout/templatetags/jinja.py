@@ -18,7 +18,7 @@ class JinjaNode(template.Node):
         self.extra_context = kwargs.pop('extra_context', {})
         self.isolated_context = kwargs.pop('isolated_context', False)
         self.jinja_engine_classes = Jinja2Backend if Dj2Backend is None else (Jinja2Backend, Dj2Backend,)
-        super(JinjaNode, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_jinja_engine(self):
         engines = _engine_list()

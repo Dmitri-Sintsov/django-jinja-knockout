@@ -9,7 +9,7 @@ from django.contrib.auth import get_backends, logout as auth_logout
 from .utils.modules import get_fqn
 from .tpl import format_html_attrs
 from .http import (
-    MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, error_response, exception_response
+    MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, exception_response
 )
 from .views import auth_redirect
 from .viewmodels import vm_list
@@ -49,9 +49,6 @@ class ThreadMiddleware:
 
     def is_authenticated(self, request):
         return request.user.is_authenticated
-
-    def get_user_id(self, request):
-        return request.user.pk if self.is_authenticated(request) and request.user.is_active else 0
 
     @classmethod
     def is_active(cls):
@@ -194,7 +191,7 @@ class ContextMiddleware(RouterMiddleware):
                 try:
                     send_admin_mail_delay(subject=subject, html_message=html_message, request=request)
                 except ImmediateJsonResponse as e:
-                    return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
+                    return e.response
         else:
             vms.append({
                 'view': 'alert_error',
@@ -207,17 +204,6 @@ class ContextMiddleware(RouterMiddleware):
         return get_fqn(backend) in settings.AUTHENTICATION_BACKENDS
 
     def check_acl(self, request, view_kwargs):
-        # Check whether request required to be performed as AJAX.
-        requires_ajax = view_kwargs.get('ajax')
-        if requires_ajax is not None:
-            # Do not confuse backend with custom parameter (may cause error otherwise).
-            del view_kwargs['ajax']
-        if requires_ajax is True:
-            if not request.is_ajax():
-                return error_response(request, 'AJAX request is required')
-        elif requires_ajax is False:
-            if request.is_ajax():
-                return error_response(request, 'AJAX request is not required')
 
         # Check for user to be logged in.
         if view_kwargs.get('allow_anonymous', False):
@@ -275,7 +261,7 @@ class ContextMiddleware(RouterMiddleware):
             return view_func(request, *view_args, **view_kwargs)
         except Exception as e:
             if isinstance(e, ImmediateJsonResponse):
-                return e.response if request.is_ajax() else error_response(request, 'AJAX request is required')
+                return e.response
             elif isinstance(e, ImmediateHttpResponse):
                 return e.response
             else:

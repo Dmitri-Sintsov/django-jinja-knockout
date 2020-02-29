@@ -19,11 +19,11 @@
     <script src="{{ static('djk/js/ui.js') }}"></script>
     <script src="{{ static('djk/js/modelform.js') }}"></script>
     <script language="JavaScript">
-        App.conf = {{ djk.get_client_conf()|to_json(True) }};
-        App.clientData = {{ djk.get_client_data()|to_json(True) }};
+        App.conf = {{ page_context.get_client_conf()|to_json(True) }};
+        App.clientData = {{ page_context.get_client_data()|to_json(True) }};
     </script>
     <script src="{{ static('djk/js/button-popover.js') }}"></script>
     <script src="{{ static('djk/js/tooltips.js') }}"></script>
-    {% for script in djk.get_custom_scripts() -%}
+    {% for script in page_context.get_custom_scripts() -%}
     <script src="{{ static(script) }}"></script>
     {% endfor -%}

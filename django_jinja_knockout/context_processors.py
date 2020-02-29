@@ -1,6 +1,7 @@
 from urllib.parse import urlsplit
 
 from django.conf import settings
+from django.utils.module_loading import import_string
 from django.utils.html import format_html, mark_safe
 from django.templatetags.static import static
 from django.forms.utils import flatatt
@@ -12,8 +13,6 @@ from .forms import renderers as forms_renderers
 from .models import get_verbose_name
 from .utils import sdv
 from .viewmodels import vm_list
-from .views import base as base_views
-from . import middleware
 from . import tpl
 
 
@@ -28,16 +27,16 @@ def raise_exception(msg):
     raise Exception(msg)
 
 
-# Dynamic part of template context, usually accessed as request.template_context.
-class TemplateContext:
+# HTML page properties, accessed in CBV as self.page_context, in templates as page_context.
+class PageContext:
 
-    # dict manipulation functions are used with HttpRequest.template_context.client_data or with HttpRequest.session.
+    # dict manipulation functions are used with self.client_data or with self.request.session.
     ONLOAD_KEY = 'onloadViewModels'
 
     def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
-        self.client_conf = {}
+        self.request = None
         # view_title may be used by macro / template to build current page title.
-        self.set_view_title(view_title)
+        self.view_title = view_title
         # client_data for custom vars and onload viewmodels.
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
@@ -47,12 +46,20 @@ class TemplateContext:
         self.view_title_args = []
         self.view_title_kwargs = {}
 
+    def set_request(self, request):
+        self.request = request
+
     def set_view_title(self, view_title):
         self.view_title = view_title
 
-    def get_view_title(self, request=None):
-        if request is not None:
-            self.resolver_match_title(request)
+    def resolver_match_title(self):
+        if self.view_title is None:
+            if 'view_title' in self.request.resolver_match.kwargs:
+                self.view_title = self.request.resolver_match.kwargs.pop('view_title')
+        return self.view_title
+
+    def get_view_title(self):
+        self.resolver_match_title()
         if self.view_title is not None and (len(self.view_title_args) > 0 or len(self.view_title_kwargs) > 0):
             return format_html(self.view_title, *self.view_title_args, **self.view_title_kwargs)
         else:
@@ -86,18 +93,10 @@ class TemplateContext:
     def get_custom_scripts(self):
         return self.custom_scripts
 
-    def get_client_routes(self):
-        # HttpRequest.client_routes are not really 'is_anon', they just may be filtered in view function itself,
-        # according to current permissions. So they are 'is_anon' because they exist.
-        # Always available client routes | per-view client routes.
-        return {(url, True) for url in self.client_routes}
-
     def has_vm_list(self, dct):
         return self.ONLOAD_KEY in dct
 
-    def onload_vm_list(self, dct=None, new_value=None):
-        if dct is None:
-            dct = self.client_data
+    def onload_vm_list(self, dct, new_value=None):
         if new_value is not None:
             dct[self.ONLOAD_KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
             return dct[self.ONLOAD_KEY]
@@ -107,46 +106,41 @@ class TemplateContext:
             dct[self.ONLOAD_KEY] = vm_list(*dct.get(self.ONLOAD_KEY, []))
             return dct[self.ONLOAD_KEY]
 
-    def resolver_match_title(self, request):
-        # view_title:
-        if self.view_title is None:
-            if 'view_title' in request.resolver_match.kwargs:
-                self.view_title = request.resolver_match.kwargs.pop('view_title')
-        return self.view_title
-
-    def apply_request(self, request):
-        self.resolver_match_title(request)
+    def request_viewmodels(self):
         # onload_viewmodels:
-        viewmodels = self.onload_vm_list()
-        if self.has_vm_list(request.session):
-            vm_session = self.onload_vm_list(request.session)
+        viewmodels = self.onload_vm_list(self.client_data)
+        if self.has_vm_list(self.request.session):
+            vm_session = self.onload_vm_list(self.request.session)
             viewmodels.extend(vm_session)
 
-    def update_client_conf(self, client_conf):
-        self.client_conf.update(client_conf)
-
     def get_client_conf(self):
-        self.client_conf.setdefault('url', self.get_client_urls())
-        return self.client_conf
+        user_id = self.request.user.id if self.request.user.is_authenticated and self.request.user.is_active else 0
+        client_conf = {
+            'jsErrorsAlert': getattr(settings, 'JS_ERRORS_ALERT', False),
+            'jsErrorsLogging': getattr(settings, 'JS_ERRORS_LOGGING', False),
+            'csrfToken': get_token(self.request),
+            'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
+            'staticPath': static(''),
+            'userId': user_id,
+        }
+        file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
+        if file_max_size is not None:
+            client_conf['fileMaxSize'] = file_max_size
+
+        self.add_client_routes({
+            url_name for url_name, is_anon in getattr(settings, 'DJK_CLIENT_ROUTES', {}) if is_anon or user_id != 0
+        })
+
+        self.request_viewmodels()
+        client_conf.setdefault('url', self.get_client_urls())
+        return client_conf
 
 
 class TemplateContextProcessor():
-    # List of global client routes that will be injected into every view.
-    # One also may inject specific routes into client side per view via request.template_context.add_client_routes({'route1', 'route2'})
-    """
-        CLIENT_ROUTES = {
-            # Available to both anonymous and registered users.
-            ('logout', False),
-            # Available to registered users only.
-            ('users_list', True),
-        }
-    """
-    CLIENT_ROUTES = set()
 
     def __init__(self, HttpRequest=None):
         self.user_id = 0
         self.HttpRequest = HttpRequest
-        self.template_context = None if self.skip_request() else base_views.create_template_context(HttpRequest)
 
     def skip_request(self):
         """
@@ -157,35 +151,12 @@ class TemplateContextProcessor():
         else:
             return False
 
-    def get_user_id(self):
-        return middleware.ThreadMiddleware().get_user_id(self.HttpRequest)
-
     def get_context_data(self):
-        if self.template_context is None:
+        if self.skip_request():
             return {}
 
-        self.user_id = self.get_user_id()
-        client_conf = {
-            'jsErrorsAlert': getattr(settings, 'JS_ERRORS_ALERT', False),
-            'jsErrorsLogging': getattr(settings, 'JS_ERRORS_LOGGING', False),
-            'csrfToken': get_token(self.HttpRequest),
-            'languageCode': getattr(settings, 'LANGUAGE_CODE', 'en-us'),
-            'staticPath': static(''),
-            'userId': self.user_id,
-        }
-        file_max_size = getattr(settings, 'FILE_MAX_SIZE', None)
-        if file_max_size is not None:
-            client_conf['fileMaxSize'] = file_max_size
-
-        self.template_context.add_client_routes({
-            url_name for url_name, is_anon in self.CLIENT_ROUTES if is_anon or self.user_id != 0
-        })
-
-        self.template_context.update_client_conf(client_conf)
-        self.template_context.apply_request(self.HttpRequest)
-
         return {
-            'djk': self.template_context,
+            'create_page_context': create_page_context,
             'DEFAULT_MESSAGE_LEVELS': DEFAULT_LEVELS,
             'getattr': getattr,
             'get_verbose_name': get_verbose_name,
@@ -209,3 +180,12 @@ class TemplateContextProcessor():
 # Inherit and extend TemplateContextProcessor class if you want to pass more data to Jinja2 templates.
 def template_context_processor(HttpRequest=None):
     return TemplateContextProcessor(HttpRequest).get_context_data()
+
+
+DJK_PAGE_CONTEXT_CLS = import_string(
+    getattr(settings, 'DJK_PAGE_CONTEXT_CLS', 'django_jinja_knockout.context_processors.PageContext')
+)
+
+
+def create_page_context(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+    return DJK_PAGE_CONTEXT_CLS(view_title, client_data, client_routes, custom_scripts)
