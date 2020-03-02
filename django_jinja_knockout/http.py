@@ -10,6 +10,10 @@ from django.test.client import RequestFactory
 from . import tpl
 
 
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+
 # Allows to perform FQN reverse url resolve in console management scripts.
 # from django_jinja_knockout.apps import DjkAppConfig
 # request = DjkAppConfig.get_context_middleware().get_request()
@@ -71,7 +75,7 @@ class ImmediateJsonResponse(ImmediateHttpResponse):
 
 
 def error_response(request, html):
-    if request.is_ajax():
+    if is_ajax(request):
         return json_response({
             'view': 'alert_error',
             'message': html
@@ -81,7 +85,7 @@ def error_response(request, html):
 
 
 def exception_response(request, e):
-    if request.is_ajax() and settings.DEBUG:
+    if is_ajax(request) and settings.DEBUG:
         row = [(str(e), traceback.format_exc())]
         html = tpl.PrintList(
             tpl={

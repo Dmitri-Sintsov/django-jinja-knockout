@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core import mail
 from django.contrib import messages
 from ..tpl import html_to_text
-from ..http import ImmediateJsonResponse
+from ..http import is_ajax, ImmediateJsonResponse
 
 
 class SendmailQueue:
@@ -107,7 +107,7 @@ class SendmailQueue:
             if form is not None:
                 form.add_error(None, msg)
             elif request is not None:
-                if request.is_ajax():
+                if is_ajax(request):
                     raise ImmediateJsonResponse({
                         'view': 'alert_error',
                         'title': title,

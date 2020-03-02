@@ -41,13 +41,15 @@ def page_context_decorator(view_title=None, client_data=None, client_routes=None
                     client_routes=client_routes,
                     custom_scripts=custom_scripts
                 ))
+            else:
+                raise ValueError('TemplateResponse is required')
             return response
         return inner
     return decorator
 
 
 def auth_redirect(request):
-    if request.is_ajax():
+    if http.is_ajax(request):
         # Will use viewmodel framework to display client-side alert.
         return http.json_response({
             'view': 'alert_error',
@@ -175,9 +177,7 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
         try:
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
-            if isinstance(e, http.ImmediateJsonResponse):
-                return e.response if request.is_ajax() else http.error_response(request, 'AJAX request is required')
-            elif isinstance(e, http.ImmediateHttpResponse):
+            if isinstance(e, http.ImmediateHttpResponse):
                 return e.response
             else:
                 return http.exception_response(request, e)

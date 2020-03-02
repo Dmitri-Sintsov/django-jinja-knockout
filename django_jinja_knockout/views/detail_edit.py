@@ -7,6 +7,7 @@ from djk_ui.views import detail_edit as djk_ui_detail_edit
 
 from .base import FormatTitleMixin, FormViewmodelsMixin
 
+from ..http import is_ajax
 from ..utils.sdv import str_to_numeric
 from ..tpl import reverse
 from ..models import get_object_description, model_fields_verbose_names, get_verbose_name
@@ -135,7 +136,8 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
             return vms
         else:
             # @note: Do not just remove 'redirect_to', otherwise deleted forms will not be refreshed
-            # after successful submission. Use as callback for view: 'alert' or make your own view.
+            # after successful submission. Use this viewmodel as callback for view: 'alert' or implement
+            # your own viewmodel instead.
             return vm_list({
                 'view': 'redirect_to',
                 'url': self.get_success_url()
@@ -146,7 +148,7 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
         Called if all forms are valid. Creates a model instance along with
         associated formsets models and then redirects to a success page.
         """
-        if self.request.is_ajax():
+        if is_ajax(self.request):
             return self.get_success_viewmodels()
         else:
             return HttpResponseRedirect(self.get_success_url())
@@ -156,7 +158,7 @@ class FormWithInlineFormsetsMixin(djk_ui_detail_edit.FormWithInlineFormsetsMixin
         Called if a form is invalid. Re-renders the context data with the
         data-filled forms and errors.
         """
-        if self.request.is_ajax():
+        if is_ajax(self.request):
             return self.ajax_form_invalid(form, formsets)
         else:
             return self.render_to_response(
