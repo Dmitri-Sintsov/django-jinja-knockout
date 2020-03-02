@@ -289,7 +289,7 @@ class FormatTitleMixin(PageContextMixin):
 
 # Automatic template context processor for bs_navs() jinja2 macro, which is used to group navigation between
 # related CRUD views (see djk-sample for example).
-class BsTabsMixin(ContextMixin, View):
+class BsTabsMixin(PageContextMixin):
 
     def get_main_navs(self, object_id=None):
         main_navs = NavsList()
