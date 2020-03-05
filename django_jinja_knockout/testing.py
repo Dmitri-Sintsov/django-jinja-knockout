@@ -420,7 +420,8 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context = self._by_id(id)
         return self._all_keys(*keys_list)
 
-    def _by_xpath(self, xpath):
+    def _by_xpath(self, xpath, *args, **kwargs):
+        xpath = self.format_xpath(xpath, *args, **kwargs)
         try:
             self.context.element = self.selenium.find_element_by_xpath(xpath)
             return self.context
@@ -479,16 +480,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _button_click(self, button_title):
         self.context = self._by_xpath(
-            self.format_xpath('//button[contains(., {})]', button_title)
+            '//button[contains(., {})]', button_title
         )
         return self._click()
 
     def _find_anchor_by_view(self, viewname, kwargs=None, query=None):
         return self._by_xpath(
-            self.format_xpath(
-                '//a[@href={action}]',
-                action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
-            )
+            '//a[@href={action}]',
+            action=reverseq(viewname=viewname, kwargs=kwargs, query=query)
         )
 
     def _click_anchor_by_view(self, viewname, kwargs=None, query=None):
@@ -531,10 +530,8 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
 
     def _jumbotron_text(self, text):
         return self._by_xpath(
-            self.format_xpath(
-                '//div[@class="jumbotron"]/div[@class="default-padding" and contains(text(), {})]',
-                text
-            )
+            '//div[@class="jumbotron"]/div[@class="default-padding" and contains(text(), {})]',
+            text
         )
 
     def _input_as_select_click(self, id):
@@ -554,8 +551,7 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
 
     def _fk_widget_click(self, id):
         return self.exec(
-            'by_id', (id,),
-            'relative_by_xpath', ('following-sibling::button',),
+            'by_xpath', ('//label[@for={}]/parent::*//button', id),
             'click',
             'to_top_bootstrap_dialog',
             'dialog_is_component',
@@ -578,6 +574,16 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
                 'dialog_footer_button_click', ('Apply',),
             )
         return self.exec(*commands)
+
+    def _fk_widget_remove_value(self, fk_id, selected_value):
+        return self.exec(
+            'by_xpath', (
+                '//label[@for={}]/parent::*//span[text()={}]/following-sibling::a',
+                fk_id,
+                selected_value,
+            ),
+            'click',
+        )
 
 
 OsFixture = namedtuple('OsFixture', 'level, prefix, mtime, is_loaded')
