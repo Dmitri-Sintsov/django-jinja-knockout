@@ -857,8 +857,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             # in case grid has nested relations. Thus this method was introduced.
             view = cls()
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
-            view.setup(request, **request.resolver_match.kwargs)
             view.set_template_options(template_options)
+            view.setup(request, **request.resolver_match.kwargs)
             view_allowed_filter_fields = view.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
