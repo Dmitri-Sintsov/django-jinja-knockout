@@ -613,18 +613,19 @@ class ContentTypeLinker(ModelLinker):
         return str(empty_value_display if self.obj_type is None else self.obj_type)
 
 
-# Discover grid component options from the current request / grid view.
-def discover_grid_options(request, template_options):
+# Resolve grid component view from the current request / grid view.
+def resolve_grid(request, view_options):
     view_kwargs = {}
-    if 'pageRouteKwargsKeys' in template_options:
-        for key in template_options['pageRouteKwargsKeys']:
+    if 'pageRouteKwargsKeys' in view_options:
+        for key in view_options['pageRouteKwargsKeys']:
             if key in request.resolver_match.kwargs:
                 view_kwargs[key] = request.resolver_match.kwargs[key]
-    if 'pageRouteKwargs' in template_options:
-        view_kwargs.update(template_options['pageRouteKwargs'])
-    if len(view_kwargs) > 0:
-        sdv.nested_update(template_options, {'pageRouteKwargs': view_kwargs})
+    if 'pageRouteKwargs' in view_options:
+        view_kwargs.update(view_options['pageRouteKwargs'])
     view_kwargs['action'] = ''
-    view = resolve_cbv(viewname=template_options['pageRoute'], kwargs=view_kwargs, request=request)
-    grid_options = view.discover_grid_options(request, template_options)
-    return grid_options
+    view_cls = resolve_cbv(viewname=view_options['pageRoute'], kwargs=view_kwargs, request=request)
+    return view_cls
+
+
+def discover_grid_options(request, grid_options):
+    return resolve_grid(request, grid_options).discover_grid_options(request, grid_options)

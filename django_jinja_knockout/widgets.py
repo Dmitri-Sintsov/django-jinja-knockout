@@ -17,7 +17,7 @@ from .tpl import (
     Renderer, PrintList, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
     format_local_date,
-    resolve_cbv
+    resolve_grid
 )
 from .utils import sdv
 from .viewmodels import to_json
@@ -241,10 +241,11 @@ class BaseGridWidget(ChoiceWidget):
     renderer_class = Renderer
     js_classpath = 'App.FkGridWidget'
 
-    def __init__(self, attrs=None, grid_options: dict = None):
+    def __init__(self, attrs=None, grid_options: dict = None, template_options: dict = None):
         if grid_options is None:
             grid_options = {}
         self.component_options = {'fkGridOptions': deepcopy(grid_options)}
+        self.template_options = template_options
         if 'classPath' in self.component_options:
             self.js_classpath = self.component_options.pop('classPath')
         super().__init__(attrs=attrs)
@@ -260,6 +261,10 @@ class BaseGridWidget(ChoiceWidget):
             'data-template-id': self.template_id,
         }
 
+    def get_widget_view_kwargs(self):
+        # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
+        return self.request.resolver_match.kwargs
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         widget_ctx = context['widget']
@@ -268,19 +273,16 @@ class BaseGridWidget(ChoiceWidget):
         widget_ctx['value'] = value
 
         # Autodetect foreign key widgets fkGridOptions.
-        pageRouteKwargs = self.component_options['fkGridOptions'].get('pageRouteKwargs', {})
-        pageRouteKwargs['action'] = ''
         ContextMiddleware = DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
-        widget_view_cls = resolve_cbv(
-            viewname=self.component_options['fkGridOptions']['pageRoute'],
-            kwargs=pageRouteKwargs,
-            request=self.request
+        widget_view_cls = resolve_grid(
+            request=self.request,
+            view_options=self.component_options['fkGridOptions']
         )
-        foreign_key_grid_options = widget_view_cls.discover_grid_options(self.request)
+        foreign_key_grid_options = widget_view_cls.discover_grid_options(self.request, self.template_options)
         foreign_key_grid_options['selectMultipleRows'] = self.allow_multiple_selected
         widget_view = widget_view_cls()
-        widget_view.setup(self.request)
+        widget_view.setup(self.request, **self.get_widget_view_kwargs())
         foreign_key_grid_options['pkField'] = widget_view.pk_field
 
         if value is None:
