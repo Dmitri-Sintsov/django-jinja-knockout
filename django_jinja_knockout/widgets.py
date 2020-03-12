@@ -241,11 +241,10 @@ class BaseGridWidget(ChoiceWidget):
     renderer_class = Renderer
     js_classpath = 'App.FkGridWidget'
 
-    def __init__(self, attrs=None, grid_options: dict = None, template_options: dict = None):
+    def __init__(self, attrs=None, grid_options: dict = None):
         if grid_options is None:
             grid_options = {}
         self.component_options = {'fkGridOptions': deepcopy(grid_options)}
-        self.template_options = template_options
         if 'classPath' in self.component_options:
             self.js_classpath = self.component_options.pop('classPath')
         super().__init__(attrs=attrs)
@@ -275,13 +274,14 @@ class BaseGridWidget(ChoiceWidget):
         # Autodetect foreign key widgets fkGridOptions.
         ContextMiddleware = DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
-        widget_view_cls = resolve_grid(
+        widget_view = resolve_grid(
             request=self.request,
             view_options=self.component_options['fkGridOptions']
+        )()
+        foreign_key_grid_options = widget_view.discover_grid_options(
+            self.request, self.component_options['fkGridOptions']
         )
-        foreign_key_grid_options = widget_view_cls.discover_grid_options(self.request, self.template_options)
         foreign_key_grid_options['selectMultipleRows'] = self.allow_multiple_selected
-        widget_view = widget_view_cls()
         widget_view.setup(self.request, **self.get_widget_view_kwargs())
         foreign_key_grid_options['pkField'] = widget_view.pk_field
 
@@ -302,9 +302,7 @@ class BaseGridWidget(ChoiceWidget):
 
         # Update widget grid_options with recursively detected fkGridOptions, if any.
         sdv.nested_update(self.component_options['fkGridOptions'], foreign_key_grid_options)
-        widget_ctx.update({
-            'component_attrs': self.get_component_attrs()
-        })
+        widget_ctx['component_attrs'] = self.get_component_attrs()
         return context
 
     def ioc_renderer(self, context):

@@ -801,6 +801,8 @@ class GridActionsMixin(ModelFormActionsView):
 class KoGridView(BaseFilterView, GridActionsMixin):
 
     template_name = 'cbv_grid.htm'
+    # Do not update .template_options as these are mutable, override them via .set_template_options() method instead.
+    template_options = dict()
 
     # query all fields by default.
     query_fields = None
@@ -820,9 +822,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     preload_meta_list = False
 
     # Override in child class to set value of ko_grid() Jinja2 macro 'grid_options' argument.
-    @classmethod
-    def get_grid_options(cls):
-        return {} if cls.grid_options is None else deepcopy(cls.grid_options)
+    def get_grid_options(self):
+        return {} if self.grid_options is None else deepcopy(self.grid_options)
 
     # It is possible to get related fields:
     # https://code.djangoproject.com/ticket/5768
@@ -843,32 +844,28 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         self.get_current_query()
         return self.action_meta_list()
 
-    @classmethod
-    def discover_grid_options(cls, request, template_options=None):
+    # Automatically setup recusrive 'fkGridOptions' for nested BaseGridWidget relations.
+    # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
+    # in case grid has nested relations. Thus this method was introduced.
+    def discover_grid_options(self, request, template_options=None):
         if template_options is None:
             template_options = {}
         grid_options = {
-            'rowsPerPage': cls.objects_per_page
+            'rowsPerPage': self.objects_per_page
         }
-        grid_options.update(cls.get_grid_options())
+        grid_options.update(self.get_grid_options())
         if 'fkGridOptions' not in grid_options:
             # Autodiscover 'fkGridOptions'.
-            # It's more robust to setup 'fkGridOptions' manually, but it's much more cumbersome
-            # in case grid has nested relations. Thus this method was introduced.
-            view = cls()
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
-            view.set_template_options(template_options)
-            view.setup(request, **request.resolver_match.kwargs)
-            view_allowed_filter_fields = view.get_allowed_filter_fields()
+            self.set_template_options(template_options)
+            self.setup(request, **request.resolver_match.kwargs)
+            view_allowed_filter_fields = self.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
                     # 'type': 'fk' filter field with 'pageRoute' autodiscovery.
-                    pageRouteKwargs = filter_def.get('pageRouteKwargs', {})
-                    pageRouteKwargs['action'] = ''
-                    related_view = tpl.resolve_cbv(
-                        viewname=filter_def['pageRoute'],
-                        kwargs=pageRouteKwargs,
-                        request=request
+                    related_view = tpl.resolve_grid(
+                        request,
+                        view_options=filter_def
                     )
                     if 'fkGridOptions' not in grid_options:
                         grid_options['fkGridOptions'] = {}
@@ -876,10 +873,10 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     if 'type' in field_fkGridOptions:
                         del field_fkGridOptions['type']
                     # Apply relations to fkGridOptions recursively.
-                    field_fkGridOptions.update(related_view.discover_grid_options(request))
+                    field_fkGridOptions.update(related_view().discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
-            if view.preload_meta_list:
-                grid_options['preloadedMetaList'] = view.get_preloaded_meta_list()
+            if self.preload_meta_list:
+                grid_options['preloadedMetaList'] = self.get_preloaded_meta_list()
         grid_options.update(template_options)
         return grid_options
 

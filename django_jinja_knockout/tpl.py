@@ -628,4 +628,4 @@ def resolve_grid(request, view_options):
 
 
 def discover_grid_options(request, grid_options):
-    return resolve_grid(request, grid_options).discover_grid_options(request, grid_options)
+    return resolve_grid(request, grid_options)().discover_grid_options(request, grid_options)
