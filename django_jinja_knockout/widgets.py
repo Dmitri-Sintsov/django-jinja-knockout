@@ -241,9 +241,10 @@ class BaseGridWidget(ChoiceWidget):
     renderer_class = Renderer
     js_classpath = 'App.FkGridWidget'
 
-    def __init__(self, attrs=None, grid_options: dict = None):
+    def __init__(self, attrs=None, grid_options: dict = None, widget_view_kwargs = None):
         if grid_options is None:
             grid_options = {}
+        self.widget_view_kwargs = widget_view_kwargs
         self.component_options = {'fkGridOptions': deepcopy(grid_options)}
         if 'classPath' in self.component_options:
             self.js_classpath = self.component_options.pop('classPath')
@@ -261,8 +262,8 @@ class BaseGridWidget(ChoiceWidget):
         }
 
     def get_widget_view_kwargs(self):
-        # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
-        return self.request.resolver_match.kwargs
+        # It could fail when related_view kwargs are incompatible to view kwargs, override via widget_view_kwargs then.
+        return self.request.resolver_match.kwargs if self.widget_view_kwargs is None else self.widget_view_kwargs
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
