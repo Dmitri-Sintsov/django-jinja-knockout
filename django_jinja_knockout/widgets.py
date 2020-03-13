@@ -261,8 +261,8 @@ class BaseGridWidget(ChoiceWidget):
             'data-template-id': self.template_id,
         }
 
+    # When current view kwargs are incompatible to widget view kwargs, override these via .widget_view_kwargs.
     def get_widget_view_kwargs(self):
-        # It could fail when related_view kwargs are incompatible to view kwargs, override via widget_view_kwargs then.
         return self.request.resolver_match.kwargs if self.widget_view_kwargs is None else self.widget_view_kwargs
 
     def get_context(self, name, value, attrs):
