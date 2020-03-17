@@ -807,11 +807,6 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     # query all fields by default.
     query_fields = None
 
-    # None value of exclude_fields means that only raw values of model fields that are defined as grid_fields will be
-    # returned to client-side grid to increase security.
-    # Use empty list value to include all raw values of model fields to have pre version 0.4.1 behavior.
-    exclude_fields = None
-
     current_page = 1
     min_objects_per_page = MIN_OBJECTS_PER_PAGE
     max_objects_per_page = MAX_OBJECTS_PER_PAGE
@@ -830,7 +825,9 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     # https://github.com/django/django/commit/9b432cb67b
     # Also, one may override self.get_base_queryset() to include .select_related() for performance optimization.
     def get_query_fields(self):
-        return self.get_all_related_fields()
+        all_related_fields = self.get_all_related_fields()
+        # Do not return hidden field values to client-side response for better security.
+        return [field for field in all_related_fields if field not in self.exclude_fields]
 
     @classmethod
     def process_qs(cls, request, qs):
@@ -886,25 +883,11 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     def set_template_options(self, template_options):
         self.template_options = template_options
 
-    def get_exclude_fields(self):
-        if self.__class__.exclude_fields is None:
-            # Exclude model field values that are not specified as grid fields by default.
-            exclude_fields = set(self.get_all_fieldnames()) - set(self.get_grid_fields_attnames())
-            if self.pk_field in exclude_fields:
-                exclude_fields.remove(self.pk_field)
-        else:
-            # Exclude only model fields specified by self.__class__.exclude_fields list.
-            # Set to [] to include all fields.
-            exclude_fields = self.__class__.exclude_fields
-        return exclude_fields
-
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
 
         if self.query_fields is None:
             self.query_fields = self.get_query_fields()
-
-        self.exclude_fields = self.get_exclude_fields()
 
     def get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
@@ -934,9 +917,6 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             row['__str'] = str(obj)
         if str_fields is not None:
             row['__str_fields'] = str_fields
-        # Do not return hidden field values to client-side response for better security.
-        for exclude_field in self.exclude_fields:
-            del row[exclude_field]
         return row
 
     def get_rows(self):

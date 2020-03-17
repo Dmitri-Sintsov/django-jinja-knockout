@@ -380,6 +380,10 @@ class BaseFilterView(PageContextMixin):
 
     allowed_sort_orders = None
     allowed_filter_fields = None
+    # None value of exclude_fields means that only raw values of model fields that are defined as grid_fields will be
+    # returned to client-side grid to increase security.
+    # Use empty list value to include all raw values of model fields to have pre version 0.4.1 behavior.
+    exclude_fields = None
     search_fields = None
     model = None
 
@@ -395,6 +399,8 @@ class BaseFilterView(PageContextMixin):
         self.current_stripped_sort_order = None
         self.current_search_str = ''
         self.grid_fields = None
+        # Filtered names of grid_fields (no excluded field names)
+        self.grid_fields_attnames = None
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
@@ -408,8 +414,11 @@ class BaseFilterView(PageContextMixin):
             else:
                 yield column
 
-    def get_grid_fields_attnames(self):
+    def yield_fields_attnames(self):
         return [field[0] if isinstance(field, tuple) else field for field in self.yield_fields()]
+
+    def get_grid_fields_attnames(self):
+        return [field for field in self.yield_fields_attnames() if field not in self.exclude_fields]
 
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitly defined in self.grid_fields attribute,
@@ -428,7 +437,7 @@ class BaseFilterView(PageContextMixin):
     def get_related_fields(self, query_fields=None):
         if query_fields is None:
             query_fields = self.get_all_fieldnames()
-        return list(set(self.get_grid_fields_attnames()) - set(query_fields))
+        return list(set(self.grid_fields_attnames) - set(query_fields))
 
     # A superset of self.get_all_fieldnames() which also returns foreign related fields, if any.
     # It is used to automatically include related query fields / sort orders.
@@ -462,6 +471,18 @@ class BaseFilterView(PageContextMixin):
             allowed_filter_fields = self.__class__.allowed_filter_fields
         return allowed_filter_fields
 
+    def get_exclude_fields(self):
+        if self.__class__.exclude_fields is None:
+            # Exclude model field values that are not specified as grid fields by default.
+            exclude_fields = set(self.get_all_fieldnames()) - set(self.yield_fields_attnames())
+            if self.pk_field in exclude_fields:
+                exclude_fields.remove(self.pk_field)
+        else:
+            # Exclude only model fields specified by self.__class__.exclude_fields list.
+            # Set to [] to include all fields.
+            exclude_fields = self.__class__.exclude_fields
+        return exclude_fields
+
     def get_search_fields(self):
         # (('field1', 'contains'), ('field2', 'icontains'), ('field3', ''))
         # Ordered dict is also supported with the same syntax.
@@ -491,8 +512,11 @@ class BaseFilterView(PageContextMixin):
     #
     def get_row_str_fields(self, obj, row=None):
         if self.has_get_str_fields:
-            str_fields = obj.get_str_fields()
-            for fieldname in self.yield_fields():
+            str_fields = OrderedDict()
+            for fieldname, v in obj.get_str_fields().items():
+                if fieldname not in self.exclude_fields:
+                    str_fields[fieldname] = v
+            for fieldname in self.grid_fields_attnames:
                 if '__' in fieldname:
                     rel_path = fieldname.split('__')
                     rel_str = get_nested(str_fields, rel_path)
@@ -501,6 +525,39 @@ class BaseFilterView(PageContextMixin):
             return str_fields
         else:
             return {}
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+
+        for field in self.model._meta.fields:
+            if field.primary_key:
+                self.pk_field = field.attname
+                break
+
+        self.grid_fields = self.get_grid_fields()
+
+        list_filter_str = self.request_get(self.filter_key)
+        if list_filter_str is not None:
+            try:
+                self.request_list_filter = json.loads(list_filter_str)
+                if not isinstance(self.request_list_filter, dict):
+                    raise ValueError('request list_filter query argument JSON value must be a dict')
+            except ValueError:
+                self.report_error(
+                    'Invalid value of list filter: {}', list_filter_str
+                )
+
+        self.exclude_fields = self.get_exclude_fields()
+        self.grid_fields_attnames = self.get_grid_fields_attnames()
+        self.allowed_sort_orders = self.get_allowed_sort_orders()
+        self.allowed_filter_fields = self.get_allowed_filter_fields()
+        self.search_fields = self.get_search_fields()
+
+        self.has_get_str_fields = hasattr(self.model, 'get_str_fields')
+
+    def get_field_verbose_name(self, field_name):
+        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+        return str(get_verbose_name(self.model, field_name))
 
     # Override in child class to customize output.
     def get_display_value(self, obj, field):
@@ -519,36 +576,6 @@ class BaseFilterView(PageContextMixin):
         if isinstance(display_value, dict):
             display_value = tpl.print_list_group(display_value.values())
         return display_value
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-
-        for field in self.model._meta.fields:
-            if field.primary_key:
-                self.pk_field = field.attname
-                break
-
-        list_filter_str = self.request_get(self.filter_key)
-        if list_filter_str is not None:
-            try:
-                self.request_list_filter = json.loads(list_filter_str)
-                if not isinstance(self.request_list_filter, dict):
-                    raise ValueError('request list_filter query argument JSON value must be a dict')
-            except ValueError:
-                self.report_error(
-                    'Invalid value of list filter: {}', list_filter_str
-                )
-
-        self.grid_fields = self.get_grid_fields()
-        self.allowed_sort_orders = self.get_allowed_sort_orders()
-        self.allowed_filter_fields = self.get_allowed_filter_fields()
-        self.search_fields = self.get_search_fields()
-
-        self.has_get_str_fields = hasattr(self.model, 'get_str_fields')
-
-    def get_field_verbose_name(self, field_name):
-        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-        return str(get_verbose_name(self.model, field_name))
 
     def get_vm_filter(self, fieldname, filter_def):
         vm_filter = {
