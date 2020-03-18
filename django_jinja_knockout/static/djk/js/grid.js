@@ -131,6 +131,7 @@ void function(GridColumnOrder) {
                  * (eg. 'category') but a different 'verbose_name'.
                  */
                 keyPrefix: this.field,
+                unwrapTop: true,
             },
             this.ownerGrid.meta.fkNestedListOptions
         );
@@ -1207,7 +1208,10 @@ void function(GridActions) {
         // todo: Check related fields name clash (disambiguation).
         var options = $.extend(
             true,
-            {blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges},
+            {
+                blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges,
+                unwrapTop: true,
+            },
             this.grid.meta.fkNestedListOptions,
             this.grid.meta.listOptions
         );
@@ -1219,9 +1223,8 @@ void function(GridActions) {
      * then perform something with these, for example deletion.
      */
     GridActions.renderDescription = function(viewModel, dialogType) {
-        viewModel.message = $('<div>');
-        App.renderNestedList(
-            viewModel.message, viewModel.description, this.getNestedListOptions()
+        viewModel.message = App.renderNestedList(
+            $('<div>'), viewModel.description, this.getNestedListOptions()
         );
         if (typeof dialogType === 'undefined') {
             dialogType = BootstrapDialog.TYPE_DANGER;
@@ -3153,17 +3156,25 @@ void function(FkGridWidget) {
         });
     };
 
+    FkGridWidget.getGridRowDisplay = function(koRow) {
+        var descParts = koRow.getDescParts();
+        var $content = $('<div>');
+        return App.renderNestedList(
+            $content, descParts, {blockTags: App.blockTags.badges, unwrapTop: true}
+        );
+    };
+
     FkGridWidget.iocInputRow = function(koRow) {
         return {
             pk: koRow.getPkVal(),
-            desc: ko.observable(koRow.getDescParts()),
+            display: ko.observable(this.getGridRowDisplay(koRow)),
         };
     };
 
     FkGridWidget.updateInputRow = function(koRow) {
         var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
         if (matchingRow !== null) {
-            matchingRow.desc(koRow.getDescParts());
+            matchingRow.display(this.getGridRowDisplay(koRow));
         }
     };
 

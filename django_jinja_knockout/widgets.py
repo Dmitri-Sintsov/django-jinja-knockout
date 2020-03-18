@@ -235,31 +235,39 @@ class DisplayText(Widget):
 class BaseGridWidget(ChoiceWidget):
 
     allow_multiple_selected = None
-    js_classpath = ''
+    js_classpath = 'App.FkGridWidget'
     template_name = 'widget_fk_grid.htm'
     template_id = 'ko_fk_grid_widget'
+    template_options = None
     renderer_class = Renderer
-    js_classpath = 'App.FkGridWidget'
 
-    def __init__(self, attrs=None, grid_options: dict = None, widget_view_kwargs = None):
+    def __init__(self, attrs=None, grid_options=None, widget_view_kwargs=None):
         if grid_options is None:
             grid_options = {}
         self.widget_view_kwargs = widget_view_kwargs
+        if attrs is not None:
+            if 'classPath' in attrs:
+                self.js_classpath = attrs.pop('classPath')
+            if 'data-template-id' in attrs:
+                self.template_id = attrs.pop('data-template-id')
+            if 'data-template-options' in attrs:
+                self.template_options = attrs.pop('data-template-options')
         self.component_options = {'fkGridOptions': deepcopy(grid_options)}
-        if 'classPath' in self.component_options:
-            self.js_classpath = self.component_options.pop('classPath')
         super().__init__(attrs=attrs)
 
     def get_initial_fk_grid_queryset(self, widget_view, value):
         raise NotImplementedError
 
     def get_component_attrs(self):
-        return {
+        component_attrs = {
             'class': 'component',
             'data-component-class': self.js_classpath,
             'data-component-options': to_json(self.component_options),
             'data-template-id': self.template_id,
         }
+        if self.template_options is not None:
+            component_attrs['data-template-options'] = self.template_options
+        return component_attrs
 
     # When current view kwargs are incompatible to widget view kwargs, override these via .widget_view_kwargs.
     def get_widget_view_kwargs(self):

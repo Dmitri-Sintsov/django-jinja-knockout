@@ -14,7 +14,8 @@
     'ko_grid_body',
     'ko_grid_pagination',
     'ko_grid_rows_per_page_dialog',
-    'ko_fk_grid_widget'
+    'ko_fk_grid_widget',
+    'ko_fk_grid_widget_row'
 ]) -%}
 
 {% if include_ids is not none -%}
@@ -348,9 +349,7 @@
     <div data-top="true">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
             <li class="list-group-item" data-bind="foreach: inputRows">
-                <div data-bind="renderTo: {value: $data.desc(), blockTags: App.blockTags.badges}">
-                    <a class="close preserve-append" data-bind="click: function() { $parent.removeFk($data) }">×</a>
-                </div>
+                <div data-template-id="ko_fk_grid_widget_row"></div>
             </li>
         </ul>
         <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->
@@ -360,6 +359,14 @@
             <input type="hidden" data-bind="attr: $parent.getInputAttrs($data, $index())">
         <!-- /ko -->
         <button class="btn btn-info default-margin" data-bind="click: function() { gridDialog.show() }, clickBubble: false">{{ _('Change') }}</button>
+    </div>
+</script>
+{% endif -%}
+
+{% if 'ko_fk_grid_widget_row' in _include_ids -%}
+<script id="ko_fk_grid_widget_row" language="text/html">
+    <div data-bind="replaceInto: $data.display()">
+        <a class="close preserve-append" data-bind="click: function() { $parent.removeFk($data) }">×</a>
     </div>
 </script>
 {% endif -%}

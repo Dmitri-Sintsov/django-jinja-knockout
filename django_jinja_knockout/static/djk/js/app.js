@@ -378,7 +378,14 @@ void function(NestedList) {
 
 
 App.renderNestedList = function(element, value, options) {
-    return App.globalIoc.factory('App.NestedList', options).render(element, value);
+    var result = App.globalIoc.factory('App.NestedList', options).render(element, value);
+    if (App.propGet(options, 'unwrapTop')) {
+        result = result.children('*');
+        if (result.length !== 1) {
+            throw new Error('unwrapTop requires single top node');
+        }
+    }
+    return result;
 };
 
 
@@ -407,10 +414,10 @@ App.renderValue = function(element, value, safe, getNestedListOptions) {
 };
 
 
-App.renderTo = function(element, value, safe, getNestedListOptions) {
+App.replaceInto = function(element, value) {
     var prepend = $(element).find('.preserve-prepend').detach();
     var append = $(element).find('.preserve-append').detach();
-    App.renderValue(element, value, safe, getNestedListOptions);
+    $(element).empty().append(value);
     var immediateChildren = $(element).children('*');
     if (immediateChildren.length !== 1) {
         immediateChildren = $(element);
@@ -800,7 +807,7 @@ void function(Dialog) {
     };
 
     Dialog.getNestedListOptions = function() {
-        var options = {blockTags: App.ui.dialogBlockTags};
+        var options = {blockTags: App.ui.dialogBlockTags, unwrapTop: true};
         if (this.dialogOptions.nestedListOptions !== 'undefined') {
             options = $.extend(options, this.dialogOptions.nestedListOptions);
         }
@@ -2523,19 +2530,11 @@ ko.bindingHandlers.autogrow = {
     }
 };
 
-// Usage: <div data-bind="renderValue: arbitraryValue"></div>
-ko.bindingHandlers.renderTo = {
+// Usage: <div data-bind="replaceInto: arbitraryValue"></div>
+ko.bindingHandlers.replaceInto = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var options = valueAccessor();
-        App.renderTo(element, options.value, false, function() {
-            if (typeof options.blockTags !== 'undefined') {
-                return {
-                    'blockTags': options.blockTags,
-                }
-            } else {
-                return undefined;
-            }
-        });
+        var value = valueAccessor();
+        App.replaceInto(element, value);
     }
 };
 
