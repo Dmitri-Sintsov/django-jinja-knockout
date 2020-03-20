@@ -3156,25 +3156,31 @@ void function(FkGridWidget) {
         });
     };
 
-    FkGridWidget.getGridRowDisplay = function(koRow) {
-        var descParts = koRow.getDescParts();
+    FkGridWidget.getInputRowDescParts = function(koRow) {
+        return koRow.getDescParts();
+    };
+
+    // note: "this" is bound to inputRow, not to FkGridWidget.
+    FkGridWidget.getInputRowDisplay = function() {
         var $content = $('<div>');
         return App.renderNestedList(
-            $content, descParts, {blockTags: App.blockTags.badges, unwrapTop: true}
+            $content, this.desc(), {blockTags: App.blockTags.badges, unwrapTop: true}
         );
     };
 
     FkGridWidget.iocInputRow = function(koRow) {
-        return {
+        var inputRow = {
             pk: koRow.getPkVal(),
-            display: ko.observable(this.getGridRowDisplay(koRow)),
+            desc: ko.observable(this.getInputRowDescParts(koRow)),
         };
+        inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
+        return inputRow;
     };
 
     FkGridWidget.updateInputRow = function(koRow) {
         var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
         if (matchingRow !== null) {
-            matchingRow.display(this.getGridRowDisplay(koRow));
+            matchingRow.desc(this.getInputRowDescParts(koRow));
         }
     };
 

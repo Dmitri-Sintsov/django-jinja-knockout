@@ -284,6 +284,12 @@ textarea.ko-template {
 	justify-content: space-between;
 }
 
+.col-auto {
+	flex: 0 0 auto;
+	width: auto;
+	max-width: none;
+}
+
 .display-block {
 	display: block;
 }
