@@ -392,24 +392,25 @@ App.renderNestedList = function(element, value, options) {
 /**
  * Supports jQuery objects, nested structures rendering and scalar values.
  */
-App.renderValue = function(element, value, safe, getNestedListOptions) {
-    var fn = (safe) ? 'html' : 'text';
+App.renderValue = function(element, value, getOptions) {
     if (value instanceof jQuery) {
         $(element).empty().append(value);
-    } else if (typeof value === 'object') {
-        $(element).empty();
-        var nestedListOptions;
-        if (typeof getNestedListOptions === 'function') {
-            // nestedListOptions are supplied via callback because they are used only for value type 'object'.
-            nestedListOptions = getNestedListOptions();
-            if (typeof nestedListOptions.fn === 'undefined') {
-                nestedListOptions.fn = fn;
+    } else {
+        var options;
+        if (typeof getOptions === 'function') {
+            options = getOptions();
+            if (typeof options.fn === 'undefined') {
+                // "safe" by default. use "text" for "unsafe".
+                options.fn = 'html';
             }
         }
-        App.renderNestedList(element, value, nestedListOptions);
-    } else {
-        // Primarily use is to display server-side formatted strings (Djano local date / currency format).
-        $(element)[fn](value);
+        if (typeof value === 'object') {
+            $(element).empty();
+            App.renderNestedList(element, value, options);
+        } else {
+            // Primarily use is to display server-side formatted strings (Djano local date / currency format).
+            $(element)[options.fn](value);
+        }
     }
 };
 

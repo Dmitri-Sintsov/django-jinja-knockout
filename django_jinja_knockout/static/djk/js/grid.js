@@ -140,7 +140,7 @@ void function(GridColumnOrder) {
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
-        App.renderValue(element, value, this.getNestedListOptions);
+        App.renderValue(element, value, this.getNestedListOptions.bind(this));
     };
 
 }(App.ko.GridColumnOrder.prototype);
@@ -895,7 +895,7 @@ void function(GridRow) {
                 self.values[field] = '';
             }
         });
-        this.displayValues = _.mapObject(this.values, _.bind(this.wrapDisplayValue, this));
+        this.displayValues = _.mapObject(this.values, this.wrapDisplayValue.bind(this));
     };
 
     GridRow.getSelectionCss = function() {
@@ -2979,12 +2979,9 @@ void function(GridDialog) {
         this.grid = this.iocGrid({
             ownerCtrl: this
         });
-        this.grid.ownerCtrlSetTitle = _.bind(
-            function(verboseNamePlural) {
-                this.ownerCtrl.setTitle(verboseNamePlural);
-            },
-            this.grid
-        );
+        this.grid.ownerCtrlSetTitle = function(verboseNamePlural) {
+            this.ownerCtrl.setTitle(verboseNamePlural);
+        }.bind(this.grid);
     };
 
     GridDialog.onHide = function() {
