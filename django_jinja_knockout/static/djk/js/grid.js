@@ -140,7 +140,7 @@ void function(GridColumnOrder) {
 
     // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
     GridColumnOrder.renderRowValue = function(element, value) {
-        App.renderValue(element, value, this.getNestedListOptions.bind(this));
+        App.renderValue(element, value, this.getNestedListOptions());
     };
 
 }(App.ko.GridColumnOrder.prototype);

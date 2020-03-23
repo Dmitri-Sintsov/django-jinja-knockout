@@ -399,10 +399,12 @@ App.renderValue = function(element, value, getOptions) {
         var options;
         if (typeof getOptions === 'function') {
             options = getOptions();
-            if (typeof options.fn === 'undefined') {
-                // "safe" by default. use "text" for "unsafe".
-                options.fn = 'html';
-            }
+        } else {
+            options = $.extend({}, getOptions);
+        }
+        if (typeof options.fn === 'undefined') {
+            // "safe" by default. use "text" for "unsafe".
+            options.fn = 'html';
         }
         if (typeof value === 'object') {
             $(element).empty();
