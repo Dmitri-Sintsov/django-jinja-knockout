@@ -399,7 +399,7 @@ void function(AbstractGridFilter) {
      * Programmatically set specified values list of filter choices for current filter.
      */
     AbstractGridFilter.setChoices = function(values) {
-        throw 'Abstract method';
+        throw new Error('Abstract method');
     };
 
     AbstractGridFilter.refreshGrid = function(callback) {
@@ -679,7 +679,7 @@ void function(RangeFilter) {
         this.subscribeToMethod('to');
         var method = 'getFieldAttrs_' + this.type;
         if (typeof this[method] !== 'function') {
-            throw 'App.ko.RangeFilter.' + method + ' is not the function';
+            throw new Error('App.ko.RangeFilter.' + method + ' is not the function');
         }
         this.fieldAttrs = this[method]();
         this.filterDialog = new App.FilterDialog({
@@ -1680,11 +1680,11 @@ void function(Grid) {
             // New single scalar / single array value.
             if (_.isArray(value)) {
                 if (lookup !== 'in') {
-                    throw sprintf(
+                    throw new Error(sprintf(
                         "Array value '%s' requires lookup type 'in', given lookup type='%s'",
                         JSON.stringify(value),
                         lookup
-                    );
+                    ));
                 }
             }
             if (lookup === 'in') {
@@ -1745,7 +1745,7 @@ void function(Grid) {
         }
         if (!hasLookup) {
             if (hasValue) {
-                throw "Set options.lookup to delete specific query filter options.value";
+                throw new Error("Set options.lookup to delete specific query filter options.value");
             }
             delete this.queryFilters[field];
             return;
@@ -1811,7 +1811,9 @@ void function(Grid) {
 
     Grid.hasSelectedPkVal = function(pkVal) {
         if (pkVal === undefined) {
-            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+            throw new Error(
+                sprintf("Supplied row has no '%s' key", this.meta.pkField)
+            );
         }
         for (var i = 0; i < this.selectedRowsPks.length; i++) {
             if (this.selectedRowsPks[i] === pkVal) {
@@ -1845,7 +1847,9 @@ void function(Grid) {
 
     Grid.removeSelectedPkVal = function(pkVal) {
         if (pkVal === undefined) {
-            throw sprintf("Supplied row has no '%s' key", this.meta.pkField);
+            throw new Error(
+                sprintf("Supplied row has no '%s' key", this.meta.pkField)
+            );
         }
         this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
             return val !== pkVal;
@@ -2153,14 +2157,15 @@ void function(Grid) {
 
     Grid.rowClick = function(currKoRow) {
         this.lastClickedKoRow = currKoRow;
-        if (this.getEnabledActions(currKoRow, 'click').length > 1) {
+        var enabledActions = this.getEnabledActions(currKoRow, 'click');
+        if (enabledActions.length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
                 owner: this
             });
             this.actionsMenuDialog.show();
-        } else if (this.actionTypes.click().length > 0) {
-            this.actionTypes.click()[0].doForRow(currKoRow);
+        } else if (enabledActions.length > 0) {
+            enabledActions[0].doForRow(currKoRow);
         } else {
             this.rowSelect(currKoRow);
         }
@@ -2246,7 +2251,9 @@ void function(Grid) {
 
     Grid.getFkGridOptions = function(field) {
         if (typeof this.options.fkGridOptions[field] === 'undefined') {
-            throw sprintf("Missing ['fkGridOptions'] constructor option argument for field '%s'", field);
+            throw new Error(
+                sprintf("Missing ['fkGridOptions'] constructor option argument for field '%s'", field)
+            );
         }
         var options = this.options.fkGridOptions[field];
         if (typeof options !== 'object') {
@@ -2318,7 +2325,9 @@ void function(Grid) {
         }
         var iocMethod = 'iocKoFilter_' + filter.type;
         if (typeof this[iocMethod] !== 'function') {
-            throw sprintf("Undefined method %s for filter type %s", iocMethod, filter.type);
+            throw new Error(
+                sprintf("Undefined method %s for filter type %s", iocMethod, filter.type)
+            );
         }
         var iocResult = this[iocMethod](filter, options);
         return new iocResult.cls(iocResult.options);
@@ -2520,7 +2529,9 @@ void function(Grid) {
         _.each(data.entries, function(row, k) {
             // Recall previously selected grid rows from this.hasSelectedPkVal().
             if (typeof row[self.meta.pkField] === 'undefined') {
-                throw sprintf("Supplied row has no '%s' key", self.meta.pkField);
+                throw new Error(
+                    sprintf("Supplied row has no '%s' key", self.meta.pkField)
+                );
             }
             gridRows.push(
                 self.iocRowOwner({
@@ -2573,7 +2584,9 @@ void function(Grid) {
             // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
             if (actionType !== 'built_in') {
                 if (typeof self.actionTypes[actionType] === 'undefined') {
-                    throw sprintf('Unknown action type: "%s"', actionType);
+                    throw new Error(
+                        sprintf('Unknown action type: "%s"', actionType)
+                    );
                 }
                 for (var i = 0; i < actions.length; i++) {
                     var actDef = actions[i];

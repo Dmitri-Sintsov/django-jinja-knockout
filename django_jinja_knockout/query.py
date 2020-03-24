@@ -417,7 +417,12 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
 class ListQuerySet(ValuesQuerySetMixin):
 
     def __init__(self, lst):
-        self.list = lst if isinstance(lst, list) else list(lst)
+        if isinstance(lst, ListQuerySet):
+            self.list = copy(lst.list)
+        elif isinstance(lst, list):
+            self.list = lst
+        else:
+            self.list = list(lst)
 
     def _clone(self):
         c = self.__class__(

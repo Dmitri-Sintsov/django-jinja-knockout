@@ -153,7 +153,9 @@ App.objByPath = function(propPath, typ) {
     }
     var obj = App.propByPath(propPath);
     if (typeof obj !== typ) {
-        throw sprintf('Invalid type "%s" (required "%s") for the propPath: "%s"', typeof obj, typ, propPath);
+        throw new Error(
+            sprintf('Invalid type "%s" (required "%s") for the propPath: "%s"', typeof obj, typ, propPath)
+        );
     }
     return obj;
 };
@@ -248,7 +250,7 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
     App.trans = sprintf;
     console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js');
 } else {
-    throw "@error: Neither Django gettext nor sprintf.js is available.";
+    throw new Error("@error: Neither Django gettext nor sprintf.js is available.");
 }
 
 
@@ -912,7 +914,7 @@ void function(Actions) {
         });
         // Assuming there is only one viewmodel with view: this.viewModelName, which is currently true.
         if (vms.length > 1) {
-            throw "Bug check in App.Actions.getOurViewmodel(), vms.length: " + vms.length;
+            throw new Error("Bug check in App.Actions.getOurViewmodel(), vms.length: " + vms.length);
         }
         return (vms.length === 0) ? null : vms[0];
     };
@@ -970,7 +972,9 @@ void function(Actions) {
                 if (typeof self[method] === 'function') {
                     return self[method](viewModel);
                 }
-                throw sprintf('Unimplemented %s()', method);
+                throw new Error(
+                    sprintf('Unimplemented %s()', method)
+                );
             };
         }
         App.vmRouter.respond(response, responseOptions);
@@ -1009,7 +1013,7 @@ void function(ViewModelRouter) {
     ViewModelRouter.req = function(names) {
         for (var i = 0; typeof names[i] !== 'undefined'; i++) {
             if (typeof this.handlers[names[i]] === 'undefined') {
-                throw "Missing .handlers['" + names[i] + "']";
+                throw new Error("Missing .handlers['" + names[i] + "']");
             }
         }
         return this;
@@ -1153,7 +1157,7 @@ void function(ViewModelRouter) {
                 'title': App.trans('AJAX response error'),
                 'message': App.trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr)),
             }).alertError();
-            throw 'ViewModelRouter.show() error';
+            throw new Error('ViewModelRouter.show() error');
         }
         var hasView;
         if (hasView = (typeof this.handlers[viewModel.view] !== 'undefined')) {
@@ -1165,7 +1169,7 @@ void function(ViewModelRouter) {
     // Can be called static.
     ViewModelRouter.filter = function(response, props) {
         if (typeof props !== 'object') {
-            throw "ViewModelRouter.filter 'props' arg must be an instance of object.";
+            throw new Error("ViewModelRouter.filter 'props' arg must be an instance of object.");
         }
         var foundVms = [];
         for (var i = 0; typeof response[i] !== 'undefined'; i++) {
@@ -1534,7 +1538,7 @@ void function(AjaxButton) {
         l.start();
         var url = App.getDataUrl($target);
         if (url === undefined) {
-            throw "Please define data-url or data-route attribute on the selected element.";
+            throw new Error("Please define data-url or data-route attribute on the selected element.");
         }
         $.post(url,
             {
@@ -1706,7 +1710,7 @@ void function(AjaxForm) {
             url = App.getDataUrl(this.$form);
         }
         if (url === undefined) {
-            throw "Please define data-url or data-route attribute on form or on form submit button.";
+            throw new Error("Please define data-url or data-route attribute on form or on form submit button.");
         }
         return url;
     };
@@ -1792,7 +1796,9 @@ App.compileTemplate = function(tplId) {
     if (typeof App.bag._templates[tplId] === 'undefined') {
         var tpl = document.getElementById(tplId);
         if (tpl === null) {
-            throw sprintf("Unknown underscore template id: %s", tplId);
+            throw new Error(
+                sprintf("Unknown underscore template id: %s", tplId)
+            );
         }
         // Local context variables will be passed to 'self' object variable in template text,
         // to speed-up template expansion and to inject helper functions.
@@ -1982,7 +1988,7 @@ void function(Tpl) {
 
     Tpl.get = function(varName, defaultValue) {
         if (typeof varName !== 'string') {
-            throw 'varName must be string';
+            throw new Error('varName must be string');
         }
         return (typeof this.data[varName] === 'undefined') ? defaultValue : this.data[varName];
     };
@@ -2060,7 +2066,9 @@ void function(Tpl) {
             if ($(v).prop('nodeType') === 1) {
                 topNode = v;
                 if (++topNodeCount > 1) {
-                    throw "Template '" + self.tplId + "' expanded contents should contain the single top DOM tag.";
+                    throw new Error(
+                        "Template '" + self.tplId + "' expanded contents should contain the single top DOM tag."
+                    );
                 }
             }
         });
@@ -2213,7 +2221,9 @@ void function(OrderedHooks) {
         if (typeof fn === 'function') {
             fn($selector);
         } else if (fn !== false) {
-            throw sprintf("App.initClient hook must be a function or object with key '%s'", method);
+            throw new Error(
+                sprintf("App.initClient hook must be a function or object with key '%s'", method)
+            );
         }
     };
 
@@ -2242,7 +2252,7 @@ App.initClient = function(selector, method, reverse) {
 
 
     if (typeof selector === 'undefined') {
-        throw 'App.initClient requires valid selector as safety precaution.';
+        throw new Error('App.initClient requires valid selector as safety precaution.');
     }
     if (typeof method === 'undefined') {
         method = 'init';
@@ -2296,7 +2306,9 @@ App.initClientApply = function(selector, method) {
 
 App.routeUrl = function(route, kwargs) {
     if (typeof App.conf.url[route] === 'undefined') {
-        throw sprintf("Undefined route: '%s'", route);
+        throw new Error(
+            sprintf("Undefined route: '%s'", route)
+        );
     }
     if (typeof kwargs === 'undefined') {
         return App.conf.url[route];
@@ -2373,7 +2385,9 @@ App.assertUniqueScripts = function() {
     $(document).find('script[src]').each(function(k, v) {
         var src = $(v).prop('src');
         if (typeof scripts[src] !== 'undefined') {
-            throw new Error(sprintf('Multiple inclusion of the same script: "%s"', src));
+            throw new Error(
+                sprintf('Multiple inclusion of the same script: "%s"', src)
+            );
         } else {
             scripts[src] = true;
         }
@@ -2436,12 +2450,16 @@ void function(Subscriber) {
             ) {
                 var prop = ko.getObservable(parent.obj, parent.childName);
             } else {
-                throw sprintf("%s is not observable", JSON.stringify(propChain));
+                throw new Error(
+                    sprintf("%s is not observable", JSON.stringify(propChain))
+                );
             }
         }
         var method = App.propGet(this, methodChain);
         if (typeof method !== 'function') {
-            throw sprintf("%s is not callable", JSON.stringify(methodChain));
+            throw new Error(
+                sprintf("%s is not callable", JSON.stringify(methodChain))
+            );
         }
         var hash = (typeof methodChain === 'string') ? methodChain : methodChain.join('.');
         if (typeof this.koSubscriptions === 'undefined') {
@@ -2668,7 +2686,9 @@ void function(Components) {
     Components.create = function(elem) {
         var $elem = $(elem);
         if ($elem.data('componentIdx') !== undefined) {
-            throw sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'));
+            throw new Error(
+                sprintf('Component already bound to DOM element with index %d', $elem.data('componentIdx'))
+            );
         }
         var classPath = $elem.data('componentClass');
         if (classPath === undefined) {
@@ -2682,7 +2702,7 @@ void function(Components) {
                 return;
             }
             if (classPath === undefined) {
-                throw 'Undefined data-component-class classPath.';
+                throw new Error('Undefined data-component-class classPath.');
             }
             var cls = App.objByPath(classPath, 'function');
             var component = new cls(options);
@@ -2753,7 +2773,7 @@ void function(Components) {
         var $elem = $(elem);
         var componentIdx = $elem.data('componentIdx');
         if (componentIdx === undefined) {
-            throw 'Supplied element has no bound component.';
+            throw new Error('Supplied element has no bound component.');
         }
         return this.list[componentIdx].component;
     };
@@ -2761,7 +2781,9 @@ void function(Components) {
     Components.getById = function(id) {
         var elem = document.getElementById(id);
         if (elem === null) {
-            throw sprintf('Unknown id of component element: "%s"', id);
+            throw new Error(
+                sprintf('Unknown id of component element: "%s"', id)
+            );
         }
         return this.get(elem);
     };
