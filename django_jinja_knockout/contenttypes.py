@@ -39,9 +39,12 @@ def create_builtin_user_groups(BUILTIN_GROUPS):
             else:
                 # Add specific CRUD permissions to model.
                 for codename in codenames:
-                    permission = Permission.objects.filter(content_type=content_type, codename=codename).first()
-                    if permission is None:
-                        raise ValueError('No such permission: {0}'.format(codename))
+                    permission, created = Permission.objects.get_or_create(
+                        content_type=content_type, codename=codename,
+                        defaults={
+                            'name': 'Autocreated',
+                        }
+                    )
                     group.permissions.add(permission)
         group.save()
 
