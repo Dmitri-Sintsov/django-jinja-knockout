@@ -31,6 +31,10 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
     action_kwarg = 'action'
     default_action_name = 'meta'
 
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.actions = self.get_actions()
+
     def filter_our_viewmodels(self, vms):
         if isinstance(vms, list):
             for vm in vms:
@@ -83,14 +87,15 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
 
     # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
     # ordering, to preserve visual ordering of actions.
-    def vm_get_actions(self):
+    def vm_get_actions(self, only_action_type=None):
         vm_actions = {}
         for action_type, actions_map in self.actions.items():
-            if action_type not in vm_actions:
-                vm_actions[action_type] = []
-            for action_name, action in actions_map.items():
-                action['name'] = action_name
-                vm_actions[action_type].append(action)
+            if only_action_type is None or action_type == only_action_type:
+                if action_type not in vm_actions:
+                    vm_actions[action_type] = []
+                for action_name, action in actions_map.items():
+                    action['name'] = action_name
+                    vm_actions[action_type].append(action)
         return vm_actions
 
     def get_ko_meta(self):
@@ -125,7 +130,6 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         return super().render_to_response(context, **response_kwargs)
 
     def post(self, request, *args, **kwargs):
-        self.actions = self.get_actions()
         self.request = request
         self.args = args
         self.kwargs = kwargs
@@ -885,7 +889,6 @@ class KoGridView(BaseFilterView, GridActionsMixin):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-
         if self.query_fields is None:
             self.query_fields = self.get_query_fields()
 

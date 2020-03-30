@@ -912,7 +912,8 @@ void function(GridRow) {
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
             'grid-new-row': this.isUpdated(),
-            'pointer': this.ownerGrid.actionTypes['click']().length > 0,
+            'pointer': this.ownerGrid.getEnabledActions(this, 'click').length > 0 ||
+                this.ownerGrid.options.showSelection,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
         if (highlightModeRule.direction === 1) {
@@ -930,20 +931,7 @@ void function(GridRow) {
             this.useInitClient = this.ownerGrid.options.useInitClient;
         }
         this.index = options.index;
-        this.isSelectedRow = ko.observable(options.isSelectedRow);
-        this.selectionCss = ko.computed(this.getSelectionCss, this);
-        this.isUpdated = ko.observable(
-            (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
-        );
-        this.lastRowCss = {};
-        this.rowCss = ko.computed(this.getRowCss, this);
-        this.isSelectedRow.subscribe(function(newValue) {
-            if (newValue) {
-                self.ownerGrid.onSelectRow(self);
-            } else {
-                self.ownerGrid.onUnselectRow(self);
-            }
-        });
+
         this.$row = null;
         // Source data field values. May be used for AJAX DB queries, for example.
         this.values = options.values;
@@ -961,11 +949,29 @@ void function(GridRow) {
             this.str = null;
         }
         this.initDisplayValues();
+
+        // Permissions should be set after the values are initialized, because custom permissions may use this.values.
+        this.actionsACL = {};
+        this.ownerGrid.setACL(this);
+
+        // Visual part should be initialized last.
+        this.isSelectedRow = ko.observable(options.isSelectedRow);
+        this.selectionCss = ko.computed(this.getSelectionCss, this);
+        this.isUpdated = ko.observable(
+            (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
+        );
+        this.lastRowCss = {};
+        this.rowCss = ko.computed(this.getRowCss, this);
+        this.isSelectedRow.subscribe(function(newValue) {
+            if (newValue) {
+                self.ownerGrid.onSelectRow(self);
+            } else {
+                self.ownerGrid.onUnselectRow(self);
+            }
+        });
         if (this.isSelectedRow()) {
             this.ownerGrid.addSelectedPkVal(this.getPkVal());
         }
-        this.actionsACL = {};
-        this.ownerGrid.setACL(this);
     };
 
     GridRow.getValue = function(field) {
@@ -3110,8 +3116,17 @@ void function(FkGridWidget) {
             owner: this,
             filterOptions: gridOptions
         });
+        if (typeof options.clickActions !== 'undefined') {
+            if (this.gridDialog.grid === undefined) {
+                this.gridDialog.iocGridOwner();
+            }
+            this.gridDialog.grid.setKoActionTypes(options.clickActions);
+            delete options.clickActions;
+        }
         if (initialFkRows.length > 0) {
-            this.gridDialog.iocGridOwner();
+            if (this.gridDialog.grid === undefined) {
+                this.gridDialog.iocGridOwner();
+            }
             for (var i = 0; i < initialFkRows.length; i++) {
                 var koRow = this.gridDialog.grid.iocRowOwner({
                     isSelectedRow: true,
@@ -3182,6 +3197,7 @@ void function(FkGridWidget) {
         var inputRow = {
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
+            onClick: koRow.onRowClick.bind(koRow),
         };
         inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
         return inputRow;

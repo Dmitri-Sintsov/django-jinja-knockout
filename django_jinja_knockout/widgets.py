@@ -306,6 +306,7 @@ class BaseGridWidget(ChoiceWidget):
         self.component_options.update({
             'attrs': widget_ctx['attrs'],
             'initialFkRows': initial_fk_rows,
+            'clickActions': widget_view.vm_get_actions('click'),
             'name': name,
         })
 

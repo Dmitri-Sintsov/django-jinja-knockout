@@ -365,7 +365,7 @@
 
 {% if 'ko_fk_grid_widget_row' in _include_ids -%}
 <script id="ko_fk_grid_widget_row" language="text/html">
-    <div data-bind="replaceInto: $data.display()">
+    <div data-bind="click: $data.onClick, replaceInto: $data.display()">
         <a class="close preserve-append" data-bind="click: function() { $parent.removeFk($data) }">×</a>
     </div>
 </script>
