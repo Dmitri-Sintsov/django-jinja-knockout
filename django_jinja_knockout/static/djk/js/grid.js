@@ -912,8 +912,7 @@ void function(GridRow) {
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
             'grid-new-row': this.isUpdated(),
-            'pointer': this.ownerGrid.getEnabledActions(this, 'click').length > 0 ||
-                this.ownerGrid.options.showSelection,
+            'pointer': this.ownerGrid.getEnabledActions(this, 'click').length > 0,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
         if (highlightModeRule.direction === 1) {
@@ -947,6 +946,12 @@ void function(GridRow) {
             delete this.values.__str;
         } else {
             this.str = null;
+        }
+        // Used by FkGridWidget.
+        this.meta = {};
+        if (typeof this.values['__meta'] !== 'undefined') {
+            this.meta = this.values['__meta'];
+            delete this.values['__meta'];
         }
         this.initDisplayValues();
 
@@ -3198,6 +3203,7 @@ void function(FkGridWidget) {
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
             onClick: koRow.onRowClick.bind(koRow),
+            canDelete: App.propGet(koRow, 'meta.canDeleteFk'),
         };
         inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
         return inputRow;

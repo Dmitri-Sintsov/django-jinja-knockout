@@ -4,7 +4,7 @@ from django_jinja_knockout.views.base import (
 )
 
 from django_jinja_knockout.views.ajax import (
-    ViewmodelView, ActionsView, ModelFormActionsView, KoGridView, KoGridInline
+    ViewmodelView, ActionsView, ModelFormActionsView, KoGridView, KoGridInline, KoGridRelationView
 )
 
 from django_jinja_knockout.views.detail_edit import (
@@ -19,7 +19,7 @@ from django_jinja_knockout.views.list import (
 __all__ = [
     'create_page_context', 'page_context_decorator', 'auth_redirect', 'prepare_bs_navs', 'NavsList',
     'PageContextMixin', 'FormatTitleMixin', 'BsTabsMixin', 'FormViewmodelsMixin', 'BaseFilterView',
-    'ViewmodelView', 'ActionsView', 'ModelFormActionsView', 'KoGridView', 'KoGridInline',
+    'ViewmodelView', 'ActionsView', 'ModelFormActionsView', 'KoGridView', 'KoGridInline', 'KoGridRelationView',
     'FormDetailView', 'FormWithInlineFormsetsMixin', 'InlineCreateView', 'InlineDetailView', 'InlineCrudView',
     'FoldingPaginationMixin', 'ListSortingView',
 ]

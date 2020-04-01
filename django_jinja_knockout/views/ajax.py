@@ -969,3 +969,19 @@ class KoGridView(BaseFilterView, GridActionsMixin):
 class KoGridInline(KoGridView):
 
     template_name = 'cbv_grid_inline.htm'
+
+
+# Used by BaseGridWidget
+class KoGridRelationView(KoGridView):
+
+    delete_relation = True
+
+    def can_delete_relation(self, obj):
+        return self.delete_relation
+
+    def postprocess_row(self, row, obj):
+        row = super().postprocess_row(row, obj)
+        if '_meta' not in row:
+            row['__meta'] = {}
+        row['__meta']['canDeleteFk'] = self.can_delete_relation(obj)
+        return row
