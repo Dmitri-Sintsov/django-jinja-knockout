@@ -948,10 +948,10 @@ void function(GridRow) {
             this.str = null;
         }
         // Used by FkGridWidget.
-        this.meta = {};
-        if (typeof this.values['__meta'] !== 'undefined') {
-            this.meta = this.values['__meta'];
-            delete this.values['__meta'];
+        this.perm = {};
+        if (typeof this.values['__perm'] !== 'undefined') {
+            this.perm = this.values['__perm'];
+            delete this.values['__perm'];
         }
         this.initDisplayValues();
 
@@ -3169,7 +3169,7 @@ void function(FkGridWidget) {
         this.cleanBindings();
     };
 
-    FkGridWidget.removeFk = function(inputRow) {
+    FkGridWidget.deleteFk = function(inputRow) {
         this.inputRows.remove(inputRow);
         var fkGrid = this.gridDialog.grid;
         var koRow = fkGrid.findKoRowByPkVal(inputRow.pk);
@@ -3203,7 +3203,7 @@ void function(FkGridWidget) {
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
             onClick: koRow.onRowClick.bind(koRow),
-            canDelete: App.propGet(koRow, 'meta.canDeleteFk'),
+            canDelete: App.propGet(koRow, 'perm.canDeleteFk', true),
         };
         inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
         return inputRow;

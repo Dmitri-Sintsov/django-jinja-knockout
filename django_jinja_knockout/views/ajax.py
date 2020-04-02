@@ -91,11 +91,13 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         vm_actions = {}
         for action_type, actions_map in self.actions.items():
             if only_action_type is None or action_type == only_action_type:
-                if action_type not in vm_actions:
-                    vm_actions[action_type] = []
+                actions = []
                 for action_name, action in actions_map.items():
-                    action['name'] = action_name
-                    vm_actions[action_type].append(action)
+                    if action.get('enabled', True):
+                        action['name'] = action_name
+                        actions.append(action)
+                if len(actions) > 0:
+                    vm_actions[action_type] = actions
         return vm_actions
 
     def get_ko_meta(self):
@@ -981,7 +983,7 @@ class KoGridRelationView(KoGridView):
 
     def postprocess_row(self, row, obj):
         row = super().postprocess_row(row, obj)
-        if '_meta' not in row:
-            row['__meta'] = {}
-        row['__meta']['canDeleteFk'] = self.can_delete_relation(obj)
+        if '__perm' not in row:
+            row['__perm'] = {}
+        row['__perm']['canDeleteFk'] = self.can_delete_relation(obj)
         return row

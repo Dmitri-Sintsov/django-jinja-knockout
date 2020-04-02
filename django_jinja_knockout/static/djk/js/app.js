@@ -382,12 +382,18 @@ void function(NestedList) {
 App.renderNestedList = function(element, value, options) {
     var result = App.globalIoc.factory('App.NestedList', options).render(element, value);
     if (App.propGet(options, 'unwrapTop')) {
-        result = result.children('*');
-        if (result.length !== 1) {
+        // var unwrap = result.children('*');
+        var unwrap = result.children();
+        if (unwrap.length > 1) {
             throw new Error('unwrapTop requires single top node');
+        } else if (unwrap.length === 0) {
+            return result;
+        } else {
+            return unwrap;
         }
+    } else {
+        return result;
     }
-    return result;
 };
 
 
