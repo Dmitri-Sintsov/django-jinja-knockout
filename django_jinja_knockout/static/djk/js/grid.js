@@ -906,13 +906,17 @@ void function(GridRow) {
         };
     };
 
+    GridRow.getActiveActions = function(actionType) {
+        return this.ownerGrid.getEnabledActions(this, actionType);
+    };
+
     GridRow.getRowCss = function() {
         this.lastRowCss = _.mapObject(this.lastRowCss, function() {
             return false;
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
             'grid-new-row': this.isUpdated(),
-            'pointer': this.ownerGrid.getEnabledActions(this, 'click').length > 0,
+            'pointer': this.getActiveActions('click').length > 0,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
         if (highlightModeRule.direction === 1) {
@@ -992,6 +996,13 @@ void function(GridRow) {
     };
 
     GridRow.ignoreRowClickClosest = 'A, BUTTON, INPUT, OPTION, SELECT, TEXTAREA';
+
+    GridRow.onActiveClick = function(data, ev) {
+        if (this.getActiveActions('click').length > 0) {
+            return this.onRowClick(data, ev);
+        }
+        return false;
+    };
 
     GridRow.onRowClick = function(data, ev) {
         if ($(ev.target).closest(this.ignoreRowClickClosest).length > 0) {
@@ -3202,7 +3213,10 @@ void function(FkGridWidget) {
         var inputRow = {
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
-            onClick: koRow.onRowClick.bind(koRow),
+            css: {
+                'pointer': koRow.getActiveActions('click').length > 0,
+            },
+            onClick: koRow.onActiveClick.bind(koRow),
             canDelete: App.propGet(koRow, 'perm.canDeleteFk', true),
         };
         inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);

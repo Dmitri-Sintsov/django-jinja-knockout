@@ -310,12 +310,8 @@ $.inherit = function(parentPrototype, childInstance) {
 
 $.fn.findSelf = function(selector) {
     var result = this.find(selector);
-    this.each(function() {
-        if ($(this).is(selector)) {
-            result.add($(this));
-        }
-    });
-    return result;
+    return (this.is(selector)) ?
+        result.add(this) : result;
 };
 
 $.fn.replaceWithTag = function(tagName) {
