@@ -3210,6 +3210,7 @@ void function(FkGridWidget) {
     };
 
     FkGridWidget.iocInputRow = function(koRow) {
+        var self = this;
         var inputRow = {
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
@@ -3220,6 +3221,9 @@ void function(FkGridWidget) {
             canDelete: App.propGet(koRow, 'perm.canDeleteFk', true),
         };
         inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
+        inputRow.remove = function() {
+            self.deleteFk(inputRow);
+        };
         return inputRow;
     };
 
