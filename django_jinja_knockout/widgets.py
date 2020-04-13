@@ -3,7 +3,6 @@ import types
 from datetime import date, datetime
 
 from django.utils.translation import gettext as _
-from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.forms.utils import flatatt
@@ -16,11 +15,28 @@ from .query import ListQuerySet
 from .tpl import (
     Renderer, PrintList, print_list_group, print_bs_well,
     add_css_classes_to_dict, remove_css_classes_from_dict,
-    format_local_date,
+    format_html_attrs, format_local_date,
     resolve_grid
 )
 from .utils import sdv
 from .viewmodels import to_json
+
+
+class RendererWidget(Widget):
+
+    renderer_class = Renderer
+    template_name = None
+
+    def ioc_renderer(self, context):
+        ContextMiddleware = DjkAppConfig.get_context_middleware()
+        request = ContextMiddleware.get_request()
+        return self.renderer_class(request, template=self.template_name, context=context)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        """Render the widget as an HTML string."""
+        context = self.get_context(name, value, attrs)
+        renderer = self.ioc_renderer(context['widget'])
+        return renderer.__str__()
 
 
 class OptionalWidget(MultiWidget):
@@ -45,35 +61,21 @@ class OptionalWidget(MultiWidget):
         return [value != '', value]
 
 
-class PrefillDropdown(Widget):
-    # todo: convert to template
-    outer_html = (
-        '<span class="prefill-field input-group-append input-group-addon pointer" {attrs}>'
-        '<div class="dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">'
-        '<span class="iconui iconui-chevron-down"></span>'
-        '</div>'
-        '<ul class="dropdown-menu dropdown-menu-right dropdown-menu-vscroll">{content}</ul>'
-        '</span>'
-    )
-    inner_html = '<li><a name="#">{choice_label}</a></li>'
+class PrefillDropdown(RendererWidget):
+
+    template_name = 'widget_prefill_dropdown.htm'
 
     def __init__(self, attrs, choices):
         self.choices = choices
         super().__init__(attrs)
 
-    def render(self, name, value, attrs=None, renderer=None):
-        self.attrs.update(attrs)
-        if 'id' in self.attrs:
-            self.attrs['id'] += '-PREFILL_CHOICES'
-        output = []
-        for _i, choice in enumerate(self.choices):
-            choice_value, choice_label = choice
-            output.append(
-                format_html(self.inner_html, choice_value=choice_value, choice_label=choice_label)
-            )
-        return format_html(
-            self.outer_html, content=mark_safe('\n'.join(output)), attrs=flatatt(self.attrs)
-        )
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        widget_ctx = context['widget']
+        if 'id' in widget_ctx['attrs']:
+            widget_ctx['attrs']['id'] += '-PREFILL_CHOICES'
+        widget_ctx['choices'] = self.choices
+        return context
 
 
 class PrefillWidget(Widget):
@@ -236,10 +238,8 @@ class BaseGridWidget(ChoiceWidget):
 
     allow_multiple_selected = None
     js_classpath = 'App.FkGridWidget'
-    template_name = 'widget_fk_grid.htm'
     template_id = 'ko_fk_grid_widget'
     template_options = None
-    renderer_class = Renderer
 
     def __init__(self, attrs=None, grid_options=None, widget_view_kwargs=None):
         if grid_options is None:
@@ -315,14 +315,12 @@ class BaseGridWidget(ChoiceWidget):
         widget_ctx['component_attrs'] = self.get_component_attrs()
         return context
 
-    def ioc_renderer(self, context):
-        return self.renderer_class(self.request, template=self.template_name, context=context)
-
     def render(self, name, value, attrs=None, renderer=None):
-        """Render the widget as an HTML string."""
         context = self.get_context(name, value, attrs)
-        renderer = self.ioc_renderer(context['widget'])
-        return renderer.__str__()
+        result = format_html_attrs(
+            '<span{component_attrs}></span>', **context['widget']
+        )
+        return result
 
 
 #  Similar to django.admin FilteredSelectMultiple but is Knockout.js driven.

@@ -1,0 +1,10 @@
+<span class="prefill-field input-group-append input-group-addon pointer" {{ tpl.json_flatatt(attrs) }}>
+    <div class="dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">
+        <span class="iconui iconui-chevron-down"></span>
+    </div>
+    <ul class="dropdown-menu dropdown-menu-right dropdown-menu-vscroll">
+    {% for choice_value, choice_label in choices -%}
+        <li><a name="#">{{ choice_label }}</a></li>
+    {% endfor -%}
+    </ul>
+</span>
