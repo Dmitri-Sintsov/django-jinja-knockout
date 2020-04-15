@@ -3234,6 +3234,10 @@ void function(FkGridWidget) {
         }
     };
 
+    FkGridWidget.onFkButtonClick = function(data, ev) {
+        this.gridDialog.show();
+    };
+
     FkGridWidget.onGridDialogRowsChange = function(changes) {
         console.log(changes);
         for (var i = 0; i < changes.length; i++) {

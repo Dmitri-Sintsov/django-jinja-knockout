@@ -114,11 +114,11 @@ class ViewmodelValidator(ViewmodelFormatting):
                 self.add_error('max_str', format_kwargs)
         return self
 
-    def load_json_ids(self):
+    def load_json_ids(self, allow_empty=False):
         errmsg = self.get_msg('load_json_ids')
         try:
             ids = json.loads(self._val)
-            if not isinstance(ids, list) or len(ids) == 0:
+            if not isinstance(ids, list) or (not allow_empty and len(ids) == 0):
                 raise ValueError(errmsg)
             for k, id in enumerate(ids):
                 if not isinstance(id, int) and not self.fix_data('load_json_ids', data={

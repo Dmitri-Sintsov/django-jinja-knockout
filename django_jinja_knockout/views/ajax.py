@@ -883,11 +883,19 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         grid_options.update(template_options)
         return grid_options
 
-    # template_options are set only for the .get_allowed_filter_fields() custom autodetection.
+    # template_options are set for the .get_allowed_filter_fields() custom autodetection.
     # They are unused by default.
     # They are not available for the consequent AJAX requests.
     def set_template_options(self, template_options):
         self.template_options = template_options
+
+    def get_route_kwarg(self, k):
+        if k in self.kwargs:
+            # AJAX call.
+            return self.kwargs[k]
+        else:
+            # Initial BaseGridWidget.get_context() / .discover_grid_options() server-side call.
+            return self.template_options['pageRouteKwargs'][k]
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

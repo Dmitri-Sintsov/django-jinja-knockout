@@ -374,7 +374,7 @@
 
 {% if 'ko_fk_grid_widget_bottom' in _include_ids -%}
 <script id="ko_fk_grid_widget_bottom" language="text/html">
-    <button class="btn btn-info default-margin" data-bind="click: function() { gridDialog.show() }, clickBubble: false">{{ _('Change') }}</button>
+    <button class="btn btn-info default-margin" data-bind="click: onFkButtonClick, clickBubble: false">{{ _('Change') }}</button>
 </script>
 {% endif -%}
 
