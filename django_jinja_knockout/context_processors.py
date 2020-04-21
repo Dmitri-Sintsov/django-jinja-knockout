@@ -1,4 +1,4 @@
-from urllib.parse import urlsplit
+from collections import OrderedDict
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -14,13 +14,6 @@ from .models import get_verbose_name
 from .utils import sdv
 from .viewmodels import vm_list
 from . import tpl
-
-
-class ScriptList(sdv.UniqueIterList):
-
-    def iter_callback(self, val):
-        parsed = urlsplit(val)
-        return parsed.path
 
 
 def raise_exception(msg):
@@ -42,7 +35,9 @@ class PageContext:
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
         # Ordered list of custom scripts urls injected to client-side Javascript.
-        self.custom_scripts = ScriptList() if custom_scripts is None else ScriptList(custom_scripts)
+        self.custom_scripts = OrderedDict.fromkeys(
+            [] if custom_scripts is None else custom_scripts, None
+        )
         self.view_title_args = []
         self.view_title_kwargs = {}
 
@@ -75,8 +70,11 @@ class PageContext:
     def nested_client_data(self, client_data):
         sdv.nested_update(self.client_data, client_data)
 
-    def get_client_data(self):
-        return self.client_data
+    def get_client_data(self, key=None):
+        if key is None:
+            return self.client_data
+        else:
+            return self.client_data.get(key, None)
 
     def add_client_routes(self, client_routes):
         if isinstance(client_routes, set):
@@ -87,11 +85,14 @@ class PageContext:
     def get_client_urls(self):
         return {url_name: tpl.get_formatted_url(url_name) for url_name in self.client_routes}
 
+    def has_custom_script(self, custom_script):
+        return custom_script in self.custom_scripts.keys()
+
     def add_custom_scripts(self, *custom_scripts):
-        self.custom_scripts.extend(custom_scripts)
+        self.custom_scripts.update(OrderedDict.fromkeys(custom_scripts, None))
 
     def get_custom_scripts(self):
-        return self.custom_scripts
+        return self.custom_scripts.keys()
 
     def has_vm_list(self, dct):
         return self.ONLOAD_KEY in dct
