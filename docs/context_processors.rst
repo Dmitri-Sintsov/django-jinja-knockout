@@ -7,8 +7,8 @@
 .. _get_client_urls(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_client_urls
 .. _get_verbose_name(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_verbose_name
 .. _get_view_title(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_view_title
-.. _get_custom_scripts: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_custom_scripts
-.. _TemplateContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=TemplateContext
+.. _get_custom_scripts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_custom_scripts
+.. _PageContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PageContext
 .. _template_context_decorator: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=template_context_decorator
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _utils.sdv: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/utils/sdv.py
@@ -40,23 +40,23 @@ Next are the methods that alter 'class' key value of the supplied HTML attrs dic
 * ``tpl.prepend_css_classes_to_dict()``
 * ``tpl.remove_css_classes_from_dict()``
 
-.. _TemplateContext (djk context):
+.. _PageContext (page_context):
 
-TemplateContext (djk context)
------------------------------
+PageContext (page_context)
+--------------------------
 
-Since version 0.9.0, `TemplateContext`_ class is used to generate context variables required to run client-side of the
+Since version 1.0.0, `PageContext`_ class is used to generate context variables required to run client-side of the
 framework itself.
 
-The singleton instance of `TemplateContext`_ is stored into current ``request`` ``.template_context`` attribute, which
+The singleton instance of `PageContext`_ is stored into current ``request`` ``.template_context`` attribute, which
 is instantiated / updated via `create_template_context()`_ function call from Django view. When the response is
-generated and template context processor is called, the instance of `TemplateContext`_ is stored into ``djk`` context
-variable. The following methods are used to get view data in templates:
+generated and template context processor is called, the instance of `PageContext`_ is stored into ``page_context``
+context variable. The following methods are used to get view data in templates:
 
 * `get_view_title()`_ - see :ref:`views_view_title`
 * `get_client_conf()`_ - see `Injection of Django url routes into loaded page`_
 * `get_client_data()`_ - see `Injection of server-side data into loaded page`_
-* `get_custom_scripts`_ - see `Injection of custom script urls into loaded page`_
+* `get_custom_scripts()`_ - see `Injection of custom script urls into loaded page`_
 
 .. highlight:: python
 
@@ -129,13 +129,13 @@ Injection of server-side data into loaded page
 Sample template ::
 
     <script language="JavaScript">
-        App.conf = {{ djk.get_client_conf()|to_json(True) }};
-        App.clientData = {{ djk.get_client_data()|to_json(True) }};
+        App.conf = {{ page_context.get_client_conf()|to_json(True) }};
+        App.clientData = {{ page_context.get_client_data()|to_json(True) }};
     </script>
 
 .. highlight:: Python
 
-To pass data from server-side Python to client-side Javascript, one has to access `TemplateContext`_ singleton instance::
+To pass data from server-side Python to client-side Javascript, one has to access `PageContext`_ singleton instance::
 
     from django_jinja_knockout.views import create_template_context
 
@@ -167,9 +167,10 @@ To inject custom script to the bottom of loaded page, use the following call in 
 
 .. highlight:: jinja
 
-To add custom script from within Django template, use `TemplateContext`_ instance stored into ``djk`` context variable::
+To add custom script from within Django template, use `PageContext`_ instance stored into ``page_context`` template
+context variable::
 
-    {% do djk.add_custom_scripts(
+    {% do page_context.add_custom_scripts(
         'djk/js/formsets.js',
         'djk/js/grid.js',
     ) -%}

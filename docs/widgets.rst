@@ -7,6 +7,7 @@
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
 .. _vLargeTextField: https://github.com/django/django/search?q=vLargeTextField&unscoped_q=vLargeTextField
+.. _widget_prefill_dropdown.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/render/widget_prefill_dropdown.htm
 
 ==========
 widgets.py
@@ -124,3 +125,5 @@ generate lists of choices for `PrefillWidget`_ initial values like this::
 
 See ``djk-sample`` project for the sample of `PrefillWidget`_ usage with inline formsets. It is even simpler to use this
 widget in single ModelForm without the inline formsets.
+
+See `widget_prefill_dropdown.htm`_ macro for the default rendering of `PrefillWidget`_.

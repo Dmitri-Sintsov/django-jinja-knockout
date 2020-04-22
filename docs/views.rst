@@ -64,9 +64,9 @@ to be used in generic Jinja2 templates (v0.8.x or older)::
 
     {{ request.resolver_match.view_title }}
 
-or (v0.9.0 or newer), which uses :ref:`TemplateContext (djk context)`::
+or (v0.9.0 or newer), which uses :ref:`PageContext (page_context)`::
 
-    {{ djk.get_view_title() }}
+    {{ page_context.get_view_title() }}
 
 Django view kwargs are originally available in ``request.resolver_match.kwargs`` attribute to use in forms / templates,
 when needed.

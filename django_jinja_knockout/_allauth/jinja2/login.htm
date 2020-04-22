@@ -8,7 +8,7 @@
 
 <card-default>
     <card-header>
-        <card-title>{{ page_context.view_title }}</card-title>
+        <card-title>{{ page_context.get_view_title() }}</card-title>
     </card-header>
     <card-body>
         <form role="form" class="login" method="POST" action="{{ tpl.url('account_login') }}">

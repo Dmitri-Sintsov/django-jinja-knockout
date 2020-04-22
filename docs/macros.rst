@@ -41,7 +41,7 @@ bs_form()
 
     {{ bs_form(form=form, action=tpl.url('my_url_name'), opts={
         'class': 'form_css_class',
-        'title': djk.view_title,
+        'title': page_context.get_view_title(),
         'submit_text': 'My button'
     }) }}
 
@@ -89,7 +89,7 @@ Example of form with inline formsets rendering::
     bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('add_project', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': djk.view_title,
+        'title': page_context.get_view_title(),
         'submit_text': 'Add new project'
     }) }}
 
@@ -113,7 +113,7 @@ to alter default Bootstrap 4 inline form grid width, for example::
     bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_candidate_add', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': djk.view_title,
+        'title': page_context.get_view_title(),
         'submit_text': 'Add candidate',
         'layout_classes': {
             '': {
@@ -164,7 +164,7 @@ specified::
     bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_update', project_id=project.pk), opts={
         'class': 'project',
         'is_ajax': True,
-        'title': djk.view_title,
+        'title': page_context.get_view_title(),
         'submit_text': 'Update project'
     }) %}
 

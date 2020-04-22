@@ -568,7 +568,7 @@ page is loaded, you can override class-based view ``get()`` method like this::
             })
             return super().get(self, request, *args, **kwargs)
 
-Read more about :ref:`TemplateContext (djk context)`.
+Read more about :ref:`PageContext (page_context)`.
 
 The second way of server-side viewmodels invocation is similar to just explained one. It stores client-side viewmodels
 in the current user session, making them persistent across requests. This allows to set initial page viewmodels after
