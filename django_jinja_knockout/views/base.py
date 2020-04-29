@@ -420,6 +420,9 @@ class BaseFilterView(PageContextMixin):
     def get_grid_fields_attnames(self):
         return [field for field in self.yield_fields_attnames() if field not in self.exclude_fields]
 
+    def has_grid_field(self, fieldname):
+        return fieldname in self.get_grid_fields_attnames()
+
     def get_all_allowed_sort_orders(self):
         # If there are related grid fields explicitly defined in self.grid_fields attribute,
         # these will be automatically added to allowed sort orders.
@@ -788,7 +791,7 @@ class BaseFilterView(PageContextMixin):
         return stripped_order
 
     def order_queryset(self, queryset):
-        if self.current_sort_order is None:
+        if self.current_sort_order is None or len(self.current_sort_order) == 0:
             return queryset
         return queryset.order_by(*self.current_sort_order)
 
