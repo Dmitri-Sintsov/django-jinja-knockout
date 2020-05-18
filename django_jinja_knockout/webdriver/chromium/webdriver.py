@@ -6,7 +6,9 @@ class WebDriver(ChromeWebDriver):
 
     is_headless = False
     window_size = False
-    chrome_path = '/usr/lib/chromium-browser/chromium-browser'
+    # Ubuntu snap path
+    chrome_path = '/usr/bin/chromium-browser'
+    webdriver_path = '/snap/bin/chromium.chromedriver'
 
     def __init__(self, *args, **kwargs):
 
@@ -18,6 +20,8 @@ class WebDriver(ChromeWebDriver):
             chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
         if self.chrome_path:
             chrome_options.binary_location = self.chrome_path
+        if self.webdriver_path:
+            kwargs['executable_path'] = self.webdriver_path
 
         kwargs['options'] = chrome_options
         super().__init__(*args, **kwargs)
