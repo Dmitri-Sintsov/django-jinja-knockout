@@ -18,7 +18,7 @@
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
-.. _TemplateContext.onload_vm_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=onload_vm_list
+.. _PageContext.onload_vm_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=onload_vm_list
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
 .. _viewmodel_name: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=viewmodel_name
 .. _vm_list: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=vm_list&type=&utf8=%E2%9C%93
@@ -404,10 +404,10 @@ their handlers in Javascript (see `Defining custom viewmodel handlers`_).
 
 It is possible to specify client-side routes per view, not having to define them globally in template context processor::
 
-    from django_jinja_knockout.views import create_template_context
+    from django_jinja_knockout.views import create_page_context
 
     def my_view(request):
-        create_template_context(request).add_client_routes({
+        create_page_context(request).add_client_routes({
             'club_detail',
             'member_grid',
         })
@@ -589,7 +589,7 @@ next request::
                 'title': last_message.title,
                 'text': last_message.text
             }
-        template_context = create_template_context(request)
+        template_context = create_page_context(request)
         session_vm_list = template_context.onload_vm_list(request.session)
         # Find whether 'session_view' viewmodel is already stored in HTTP session vm_list:
         idx, old_view_model = session_vm_list.find_by_kw(view='session_view')
@@ -602,7 +602,7 @@ next request::
 
 To inject client-side viewmodel when page DOM loads just once (function view)::
 
-    onload_vm_list = create_template_context(request).onload_vm_list()
+    onload_vm_list = create_page_context(request).onload_vm_list()
     onload_vm_list.append({'view': 'my_view'})
 
 In CBV view, inherited from `GetPostMixin`_::
@@ -612,7 +612,7 @@ In CBV view, inherited from `GetPostMixin`_::
 
 To inject client-side viewmodel when page DOM loads persistently in user session (function view)::
 
-    session_vm_list = create_template_context(request).onload_vm_list(request.session)
+    session_vm_list = create_page_context(request).onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})
 
 In CBV view, inherited from `GetPostMixin`_::
@@ -620,7 +620,7 @@ In CBV view, inherited from `GetPostMixin`_::
     session_vm_list = self.request.template_context.onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})
 
-See `TemplateContext.onload_vm_list()`_ and `vm_list.find_by_kw()`_ for the implementation details.
+See `PageContext.onload_vm_list()`_ and `vm_list.find_by_kw()`_ for the implementation details.
 
 Require viewmodels handlers
 ---------------------------

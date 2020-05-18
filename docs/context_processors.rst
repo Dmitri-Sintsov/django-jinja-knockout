@@ -1,5 +1,6 @@
 .. _client_routes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=client_routes
-.. _create_template_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=create_template_context
+.. _create_page_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=create_page_context
+.. _DJK_PAGE_CONTEXT_CLS: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=DJK_PAGE_CONTEXT_CLS
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://github.com/django/django/search?l=Python&q=format_html
 .. _get_client_conf(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_client_conf
@@ -9,9 +10,15 @@
 .. _get_view_title(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_view_title
 .. _get_custom_scripts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_custom_scripts
 .. _PageContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PageContext
-.. _template_context_decorator: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=template_context_decorator
+.. _page_context: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=page_context
+.. _page_context_decorator: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=page_context_decorator
+.. _PageContextMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PageContextMixin
+.. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
+.. _.update_page_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=update_page_context
 .. _utils.sdv: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/utils/sdv.py
+
+.. highlight:: python
 
 =====================
 context_processors.py
@@ -45,20 +52,90 @@ Next are the methods that alter 'class' key value of the supplied HTML attrs dic
 PageContext (page_context)
 --------------------------
 
-Since version 1.0.0, `PageContext`_ class is used to generate context variables required to run client-side of the
-framework itself.
+Since version 1.0.0, `PageContext`_ class is used to generate additional template context required to run client-side of
+the framework. To instantiate this class, `create_page_context()`_ function is called. It uses `DJK_PAGE_CONTEXT_CLS`_
+setting to load class from string, which value can be overridden in project ``settings.py`` to add custom data /
+functionality.
 
-The singleton instance of `PageContext`_ is stored into current ``request`` ``.template_context`` attribute, which
-is instantiated / updated via `create_template_context()`_ function call from Django view. When the response is
-generated and template context processor is called, the instance of `PageContext`_ is stored into ``page_context``
-context variable. The following methods are used to get view data in templates:
+The instance of `PageContext`_ is stored into current view `TemplateResponse`_ `context_data` dict `'page_context'` key.
+Such way the instance of `PageContext`_ class becomes available in DTL / Jinja2 template as `page_context`_ variable.
+`page_context`_ methods are used to generate html title, client-side JSON configuration variables and dynamic script tags.
+
+To add `page_context`_ variable to the current view template context, function views should use `page_context_decorator`_::
+
+    from django.template.response import TemplateResponse
+    from django_jinja_knockout.views import page_context_decorator
+
+    @page_context_decorator(view_title='Decorated main page title')
+    def main_page(request, **kwargs):
+        return TemplateResponse(request, 'main.htm')
+
+or to instantiate `page_context`_ manually::
+
+    from django.template.response import TemplateResponse
+    from django_jinja_knockout.views import create_page_context
+
+    def projects_view(request, **kwargs):
+        page_context = create_page_context(client_routes={
+            'profile_detail',
+            'project_view',
+        })
+        page_context.set_request(request)
+        context = {
+            'page_context': page_context,
+            'projects': Projects.objects.all(),
+        }
+        return TemplateResponse(request, 'page_projects.htm', context)
+
+In the class-based views, one should inherit from `PageContextMixin`_ or it's ancestors as basically all class-based views
+of ``django-jinja-knockout`` inherit from it. It has ``.view_title``, ``.client_data``, ``.client_routes``, ``.custom_scripts``
+class attributes to specify `page_context`_ argument values::
+
+    class CreateClub(PageContextMixin):
+
+        view_title = 'Create new club'
+        client_data = {
+            'club': 12,  # Will be available as App.clientData['club'] in Javascript code.
+        }
+        client_routes = {
+            'manufacturer_fk_widget',
+            'profile_fk_widget',
+            'tag_fk_widget',
+        }
+        custom_scripts = [
+            'djk/js/grid.js',
+            'js/member-grid.js',
+        ]
+
+Also, one may add `page_context`_ via `PageContextMixin`_ ``.create_page_context()`` singleton method::
+
+    class ProjectPage(PageContextMixin):
+        template_name = 'project.htm'
+
+        def get_context_data(self, **kwargs):
+            self.create_page_context().add_client_routes({
+                'project_detail',
+                'profile_detail',
+            })
+            return super().get_context_data(**kwargs)
+
+which will be stored into class-based view instance ``self.page_context`` attribute. One may update already existing
+``self.page_context`` via `.update_page_context()`_ method.
+
+.. highlight:: Javascript
+
+To access client route in Javascript code::
+
+    App.routeUrl('profile_detail', {profile_id: pk})
+
+.. highlight:: Python
+
+The following `page_context`_ methods are used to get page data in templates:
 
 * `get_view_title()`_ - see :ref:`views_view_title`
 * `get_client_conf()`_ - see `Injection of Django url routes into loaded page`_
 * `get_client_data()`_ - see `Injection of server-side data into loaded page`_
 * `get_custom_scripts()`_ - see `Injection of custom script urls into loaded page`_
-
-.. highlight:: python
 
 Injection of Django url routes into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,42 +159,44 @@ Injection of Django url routes into loaded page
 
 To add client-side accessible url in function-based view::
 
-    from django_jinja_knockout.views import create_template_context
+    from django.template.response import TemplateResponse
+    from django_jinja_knockout.views import page_context_decorator
 
+    @page_context_decorator(client_routes={
+        'club_detail',
+        'member_grid',
+    })
     def my_view(request):
-        create_template_context(request).add_client_routes({
-            'club_detail',
-            'member_grid',
-        })
+        return TemplateResponse(request, 'template.htm', {'data': 12})
+
 
 To add client-side accessible url in CBV::
 
-    from django_jinja_knockout.views import create_template_context
-
     def get_context_data(self, **kwargs):
-        create_template_context(self.request).add_client_routes({
+        self.create_page_context().add_client_routes({
             'club_detail',
             'member_grid',
         })
 
 Single url can be added as::
 
-    create_template_context(request).add_client_routes('club_detail')
+    self.create_page_context().add_client_routes('club_detail')
 
-template_context_decorator()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+page_context_decorator()
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-`template_context_decorator`_ allows to quickly provide ``view_title`` / ``client_data`` / ``client_routes`` /
+`page_context_decorator`_ allows to quickly provide ``view_title`` / ``client_data`` / ``client_routes`` /
 ``custom_scripts`` for function-based Django views::
 
-    from django_jinja_knockout.views import template_context_decorator
+    from django.template.response import TemplateResponse
+    from django_jinja_knockout.views import page_context_decorator
 
-    @template_context_decorator(
+    @page_context_decorator(
         view_title='Decorated main page title',
         client_routes={'club_detail', 'club_edit'}
     )
     def main_page(request, **kwargs):
-        return render(request, 'main.htm')
+        return TemplateResponse(request, 'main.htm')
 
 Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,16 +216,22 @@ Sample template ::
 
 To pass data from server-side Python to client-side Javascript, one has to access `PageContext`_ singleton instance::
 
-    from django_jinja_knockout.views import create_template_context
-
-    create_template_context(request).add_client_data({
+    self.create_page_context().update_client_data({
         'club_id': self.object_id
     })
+
+.. highlight:: Javascript
+
+To access client date in Javascript code::
+
+    App.clientData['club_id']
+
+.. highlight:: Python
 
 It may also include optional JSON client-side viewmodels, stored in ``onloadViewModels`` key, which are executed when
 html page is loaded (see :doc:`viewmodels` for more info)::
 
-    create_template_context(self.request).add_client_data({
+    self.create_page_context().update_client_data({
         'onloadViewModels': {
           'view': 'alert',
           'message': 'Hello, world!',
@@ -158,16 +243,14 @@ Injection of custom script urls into loaded page
 
 To inject custom script to the bottom of loaded page, use the following call in Django view::
 
-    from django_jinja_knockout.views import create_template_context
-
-    create_template_context(request).add_custom_scripts(
+    self.create_page_context().add_custom_scripts(
         'djk/js/formsets.js',
         'djk/js/grid.js',
     )
 
 .. highlight:: jinja
 
-To add custom script from within Django template, use `PageContext`_ instance stored into ``page_context`` template
+To add custom script from within Django template, use `PageContext`_ instance stored into `page_context`_ template
 context variable::
 
     {% do page_context.add_custom_scripts(
