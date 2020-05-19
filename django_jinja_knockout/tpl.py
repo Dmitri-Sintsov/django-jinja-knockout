@@ -16,6 +16,13 @@ from django.utils.functional import Promise, SimpleLazyObject
 from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
 from django.template import loader as tpl_loader
+
+try:
+    from django.forms.models import ModelChoiceIteratorValue
+except ImportError:
+    # Django <=3.0
+    ModelChoiceIteratorValue = type(None)
+
 from django.forms.utils import flatatt
 from django.urls import (
     resolve, reverse, NoReverseMatch, get_resolver, get_ns_resolver, get_script_prefix
@@ -496,6 +503,8 @@ def get_formatted_url(url_name):
 class DjkJSONEncoder(DjangoJSONEncoder):
 
     def default(self, o):
+        if isinstance(o, ModelChoiceIteratorValue):
+            return o.value
         if isinstance(o, Promise):
             # force_str() is used because django.contrib.auth.models.User incorporates the instances of
             # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
