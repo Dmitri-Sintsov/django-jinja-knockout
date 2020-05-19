@@ -3229,7 +3229,8 @@ void function(FkGridWidget) {
 
     FkGridWidget.updateInputRow = function(koRow) {
         var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
-        if (matchingRow !== null) {
+        // not found matchingRow === null in Knockout 3.4, === undefined in Knockout 3.5.
+        if (matchingRow) {
             matchingRow.desc(this.getInputRowDescParts(koRow));
         }
     };
