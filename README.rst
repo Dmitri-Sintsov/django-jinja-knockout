@@ -8,6 +8,7 @@ django-jinja-knockout
 .. _App.Components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#components
 .. _App.Dialog: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _App.renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
+.. _App.renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.renderValue&unscoped_q=App.renderValue
 .. _App.routeUrl(): https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
 .. _action 'meta_list' preload: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#meta-list-action-preload
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
@@ -149,10 +150,18 @@ server-side has less glitches than browsers.
 
 Version 1.0.0
 -------------
-Django 3.1a1 support.
+Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
 
 `PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
 custom scripts to templates.
+
+`App.renderValue()`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
+supports optional unwrapping of single top DOM node.
+
+Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` / ``.closeVisiblePopovers()``
+plugins.
+
+Support for `Nested components`_ in formsets.js (`empty_form`_) ``'anonymous_template'`` Knockout binding.
 
 Major changes (version 0.9.0)
 -----------------------------
