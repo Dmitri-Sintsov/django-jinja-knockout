@@ -155,7 +155,7 @@ Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
 `PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
 custom scripts to templates.
 
-`App.renderValue()`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
+`App.renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
 supports optional unwrapping of single top DOM node.
 
 Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` / ``.closeVisiblePopovers()``
