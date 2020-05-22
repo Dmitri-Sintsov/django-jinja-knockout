@@ -36,6 +36,7 @@ django-jinja-knockout
 .. _ModelForm: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#modelform
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
 .. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
+.. _PageContext: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _prepare_bs_navs(): https://django-jinja-knockout.readthedocs.io/en/latest/views.html#bstabsmixin
 .. _PrefillWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#id1
@@ -45,7 +46,6 @@ django-jinja-knockout
 .. _SendmailQueue: https://django-jinja-knockout.readthedocs.io/en/latest/utils_mail.html
 .. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
 .. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
-.. _TemplateContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=templatecontext&type=Code
 .. _tpl.resolve_cbv(): https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#url-resolution
 .. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -147,11 +147,18 @@ scripts. Although it may be used for SPA as well. Classical Web applications are
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
 server-side has less glitches than browsers.
 
+Version 1.0.0
+-------------
+Django 3.1a1 support.
+
+`PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
+custom scripts to templates.
+
 Major changes (version 0.9.0)
 -----------------------------
 Django 3.0 support.
 
-Introduced `TemplateContext`_ class used to inject view title / client data / client routes / custom scripts to
+Introduced ``TemplateContext`` class used to inject view title / client data / client routes / custom scripts to
 templates.
 
 Dependency on `django-jinja`_ package is optional and is off by default. It may be removed completely in case
