@@ -105,19 +105,6 @@ Possible ways of usage
   ``ModelForm`` to select foreign key field value via AJAX query / response.
 * Pop-up AJAX datatable browser via `App.GridDialog`_.
 
-Inheritance chain
------------------
-The current version >=0.7.0 inheritance chain is:
-
-* ``ViewmodelView`` - render component templates and process viewmodels response (see :doc:`viewmodels`);
-* ``ActionsView(ViewmodelView, GetPostMixin)`` - generic actions for viewmodels (:ref:`viewmodels_ajax_actions`);
-* ``ModelFormActionsView(ActionsView, FormViewmodelsMixin)`` - AJAX actions to display / edit Django ModelForm / inline
-  formsets;
-* ``GridActionsMixin(ModelFormActionsView)`` - AJAX actions to display / process ModelForm datatable (grid);
-* ``KoGridView(BaseFilterView, GridActionsMixin)`` - includes all the actions and functionality from the above classes
-  and adds common code base for paginated datatables - ``BaseFilterView`` also used by non-AJAX `views.list.ListSortingView`_
-  (see :doc:`views`).
-
 Models used in this documentation
 ---------------------------------
 .. highlight:: python
@@ -2941,19 +2928,15 @@ Of course the same widget can be used in ``MemberForm`` bound to grids datatable
 `'edit_form' action`_, or any custom action, both with AJAX requests and traditional requests.
 
 When widget is used in many different views, it could be more convenient to register client-side route (url name)
-globally in project's ``context_processors.py``, although such client-side routes will be injected into every generated
-page via `base_bottom_scripts.htm`_ by default::
+globally in project's ``settings.py``. Such client-side routes will be injected into every generated page via
+`base_bottom_scripts.htm`_::
 
-    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
-
-    class TemplateContextProcessor(BaseContextProcessor):
-
-        CLIENT_ROUTES = (
-            ('profile_fk_widget_grid', True),
-        )
-
-    def template_context_processor(HttpRequest=None):
-        return TemplateContextProcessor(HttpRequest).get_context_data()
+    # Second element of each tuple defines whether the client-side route should be available to anonymous users.
+    DJK_CLIENT_ROUTES = {
+        ('equipment_grid', True),
+        ('profile_fk_widget_grid', False),
+        ('user_change', True),
+    }
 
 ForeignKeyGridWidget implementation notes
 -----------------------------------------

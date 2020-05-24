@@ -36,6 +36,7 @@ def page_context_decorator(view_title=None, client_data=None, client_routes=None
                 if response.context_data is None:
                     response.context_data = {}
                 response.context_data.setdefault('page_context', create_page_context(
+                    request=request,
                     view_title=view_title,
                     client_data=client_data,
                     client_routes=client_routes,
@@ -149,7 +150,7 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
 
     def create_page_context(self):
         if self.page_context is None:
-            self.page_context = create_page_context()
+            self.page_context = create_page_context(request=self.request)
         return self.page_context
 
     def update_page_context(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):

@@ -9,8 +9,7 @@ class InitPageContextNode(template.Node):
 
     def render(self, context):
         if 'page_context' not in context:
-            context['page_context'] = create_page_context()
-        context['page_context'].set_request(context['request'])
+            context['page_context'] = create_page_context(request=context['request'])
         return ''
 
 

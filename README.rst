@@ -46,6 +46,7 @@ django-jinja-knockout
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _SendmailQueue: https://django-jinja-knockout.readthedocs.io/en/latest/utils_mail.html
 .. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
+.. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
 .. _tpl.resolve_cbv(): https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#url-resolution
 .. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
@@ -153,7 +154,7 @@ Version 1.0.0
 Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
 
 `PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
-custom scripts to templates.
+custom scripts to templates via `TemplateResponse`_.
 
 `App.renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
 supports optional unwrapping of single top DOM node.

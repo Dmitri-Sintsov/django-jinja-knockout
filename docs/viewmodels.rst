@@ -14,7 +14,7 @@
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
-.. _GetPostMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=GetPostMixin&type=Code
+.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ViewmodelView&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
@@ -373,22 +373,12 @@ Let's implement the view. Return the list of viewmodels which will be returned v
                 })
         })
 
-Register AJAX client-side route (url name) in ``context_processors.py``, to make url available in `app.js`_ Javascript::
+Register AJAX client-side route (url name) in ``settings.py``, to make url available in `app.js`_ Javascript::
 
-    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
-
-
-    # Extend (inherit) built-in template context processor:
-    class TemplateContextProcessor(BaseContextProcessor):
-
-        CLIENT_ROUTES = (
-            # True means that the 'button-click' url will be available to anonymous users:
-            ('button-click', True),
-        )
-
-
-    def template_context_processor(HttpRequest=None):
-        return TemplateContextProcessor(HttpRequest).get_context_data()
+    DJK_CLIENT_ROUTES = {
+        # True means that the 'button-click' url will be available to anonymous users:
+        ('button-click', True),
+    }
 
 Register ``button-click`` url mapped to my_app.views.button_click in your ``urls.py``::
 
@@ -415,9 +405,9 @@ It is possible to specify client-side routes per view, not having to define them
 or via decorator::
 
     from django.shortcuts import render
-    from django_jinja_knockout.views import template_context_decorator
+    from django_jinja_knockout.views import page_context_decorator
 
-    @template_context_decorator(client_routes={
+    @page_context_decorator(client_routes={
             'club_detail',
             'member_grid',
     })
@@ -551,12 +541,12 @@ useful to prepare page / form templates which may require automated Javascript c
 BootstrapDialog alerts / confirmations when the page is just loaded. For example to display confirmation dialog when the
 page is loaded, you can override class-based view ``get()`` method like this::
 
-    from django_jinja_knockout.views import GetPostMixin
+    from django_jinja_knockout.views ViewmodelView
 
-    class MyView(GetPostMixin):
+    class MyView(ViewmodelView):
 
         def get(self, request, *args, **kwargs):
-            load_vm_list = request.template_context.onload_vm_list()
+            load_vm_list = self.page_context.onload_vm_list('client_data')
             load_vm_list.append({
                 'view': 'confirm',
                 'title': 'Please enter <i>your</i> personal data.',
@@ -589,8 +579,8 @@ next request::
                 'title': last_message.title,
                 'text': last_message.text
             }
-        template_context = create_page_context(request)
-        session_vm_list = template_context.onload_vm_list(request.session)
+        page_context = create_page_context(request)
+        session_vm_list = page_context.onload_vm_list(request.session)
         # Find whether 'session_view' viewmodel is already stored in HTTP session vm_list:
         idx, old_view_model = session_vm_list.find_by_kw(view='session_view')
         if idx is not False:
@@ -602,12 +592,12 @@ next request::
 
 To inject client-side viewmodel when page DOM loads just once (function view)::
 
-    onload_vm_list = create_page_context(request).onload_vm_list()
+    onload_vm_list = create_page_context(request).onload_vm_list('client_data')
     onload_vm_list.append({'view': 'my_view'})
 
-In CBV view, inherited from `GetPostMixin`_::
+In CBV view, inherited from `ViewmodelView`_::
 
-    onload_vm_list = self.request.template_context.onload_vm_list()
+    onload_vm_list = self.page_context.onload_vm_list('client_data')
     onload_vm_list.append({'view': 'my_view'})
 
 To inject client-side viewmodel when page DOM loads persistently in user session (function view)::
@@ -615,7 +605,7 @@ To inject client-side viewmodel when page DOM loads persistently in user session
     session_vm_list = create_page_context(request).onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})
 
-In CBV view, inherited from `GetPostMixin`_::
+In CBV view, inherited from `ViewmodelView`_::
 
     session_vm_list = self.request.template_context.onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})

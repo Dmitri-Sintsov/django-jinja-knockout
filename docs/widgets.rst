@@ -79,6 +79,8 @@ For example, to override ``Member`` model ``note`` field `DisplayText`_ widget h
 
 See `DisplayText sample`_ for the complete example.
 
+.. _widgets_foreignkeygridwidget:
+
 ForeignKeyGridWidget
 --------------------
 

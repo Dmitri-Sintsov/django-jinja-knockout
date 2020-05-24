@@ -71,7 +71,6 @@ Iteration
 * ``iter_enumerate()`` - enumerates both dicts, lists and tuples of lists (dict-like structures with repeated keys) in
   unified way.
 * ``yield_ordered()`` - ordered enumeration of dicts (Python 3.6+) / OrderedDict / lists.
-* ``UniqueIterList`` - removes duplicate items from the list during the iteration.
 
 Nested data structures access
 -----------------------------

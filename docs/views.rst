@@ -19,6 +19,30 @@
 Built-in views
 ==============
 
+Inheritance hierarchy
+---------------------
+Version 1.0.0:
+
+* ``PageContextMixin(TemplateResponseMixin, ContextMixin, View):`` - provides :ref:`PageContext (page_context)`;
+* ``ViewmodelView(TemplateResponseMixin, ContextMixin, View)`` - render component templates and process viewmodels
+  response (see :doc:`viewmodels`);
+
+    * ``FormatTitleMixin(PageContextMixin)`` - customizes `View title`_;
+    * ``BsTabsMixin(PageContextMixin)`` - `BsTabsMixin`_;
+    * ``FormViewmodelsMixin(ViewmodelView)`` - forms and forms fields AJAX viewmodel response;
+    * ``BaseFilterView(PageContextMixin)`` - model queryset filtering / ordering base view, used by both
+      `ListSortingView`_ and AJAX `Datatables`_;
+
+    * ``ActionsView(FormatTitleMixin, ViewmodelView)`` - generic actions for viewmodels (:ref:`viewmodels_ajax_actions`);
+    * ``ModelFormActionsView(ActionsView, FormViewmodelsMixin)`` - AJAX actions to display / edit Django ModelForm /
+      inline formsets;
+
+        * ``GridActionsMixin(ModelFormActionsView)`` - AJAX actions to display / process ModelForm datatable (grid);
+
+            * ``KoGridView(BaseFilterView, GridActionsMixin)`` - includes all the actions and functionality from the
+              above classes and adds common code base for paginated :doc:`datatables`;
+            * ``KoGridRelationView(KoGridView)`` - used by BaseGridWidget, see :ref:`widgets_foreignkeygridwidget`;
+
 Views kwargs
 ------------
 
@@ -64,7 +88,7 @@ to be used in generic Jinja2 templates (v0.8.x or older)::
 
     {{ request.resolver_match.view_title }}
 
-or (v0.9.0 or newer), which uses :ref:`PageContext (page_context)`::
+or (v1.0.0 or newer), which uses :ref:`PageContext (page_context)`::
 
     {{ page_context.get_view_title() }}
 

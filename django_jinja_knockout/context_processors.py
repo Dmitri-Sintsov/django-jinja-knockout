@@ -98,6 +98,9 @@ class PageContext:
         return self.ONLOAD_KEY in dct
 
     def onload_vm_list(self, dct, new_value=None):
+        if isinstance(dct, str):
+            # eg. 'client_data' to access self.client_data
+            dct = getattr(self, dct)
         if new_value is not None:
             dct[self.ONLOAD_KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
             return dct[self.ONLOAD_KEY]
@@ -188,5 +191,7 @@ DJK_PAGE_CONTEXT_CLS = import_string(
 )
 
 
-def create_page_context(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
-    return DJK_PAGE_CONTEXT_CLS(view_title, client_data, client_routes, custom_scripts)
+def create_page_context(request, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
+    page_context = DJK_PAGE_CONTEXT_CLS(view_title, client_data, client_routes, custom_scripts)
+    page_context.set_request(request)
+    return page_context

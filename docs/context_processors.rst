@@ -77,11 +77,10 @@ or to instantiate `page_context`_ manually::
     from django_jinja_knockout.views import create_page_context
 
     def club_list_view(request, **kwargs):
-        page_context = create_page_context(client_routes={
+        page_context = create_page_context(request=request, client_routes={
             'profile_detail',
             'club_view',
         })
-        page_context.set_request(request)
         context = {
             'page_context': page_context,
             'clubs': Club.objects.all(),
@@ -132,6 +131,19 @@ Also, one may add `page_context`_ via `PageContextMixin`_ ``.create_page_context
 To access client route in Javascript code::
 
     App.routeUrl('profile_detail', {profile_id: pk})
+
+.. highlight:: Jinja
+
+To ensure that `page_context`_ is always available in Jinja2 template::
+
+    {% if page_context is not defined -%}
+        {% set page_context = create_page_context(request) -%}
+    {% endif -%}
+
+To ensure that `page_context`_ is always available in DTL template::
+
+    {% load page_context %}
+    {% init_page_context %}
 
 .. highlight:: Python
 
