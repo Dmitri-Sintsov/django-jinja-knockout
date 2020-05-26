@@ -107,7 +107,7 @@ One may use the custom `layout_classes`_ value as the key of the following macro
 * bs_form(form, action, opts, method='post')
 * bs_inline_formsets(related_form, formsets, action, opts)
 
-to alter default Bootstrap 4 inline form grid width, for example::
+to alter default Bootstrap inline form grid width, for example::
 
     {{
     bs_inline_formsets(related_form=form, formsets=formsets, action=tpl.url('project_candidate_add', project_id=project.pk), opts={

@@ -176,6 +176,8 @@ Some attributes are used only by some renderers:
 * ``inline_title`` - the title of inline form, which could be different from ``title`` of related / standalone form;
 * ``table_classes`` - CSS classes of form table wrapper for `Displaying read-only "forms"`_;
 
+.. highlight:: python
+
 Rendering customization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -244,8 +246,6 @@ See `base module`_ source code.
 RendererModelForm
 ~~~~~~~~~~~~~~~~~
 
-.. highlight:: python
-
 While it's possible to use renderers with ordinary Django ``ModelForm`` class, the recommended way is to derive model
 form class from `RendererModelForm`_ class::
 
@@ -297,7 +297,7 @@ If your class-based views extends one of the following view classes::
 
 .. highlight:: jinja
 
-then, in order to have the form processed as AJAX form, it's enough to add ``'is_ajax': True`` key to ``bs_form()`` /
+then, in order to have the form processed as AJAX form, add ``'is_ajax': True`` key to ``bs_form()`` /
 ``bs_inline_formsets()`` Jinja2 macro call::
 
     {{ bs_form(form=form, action=url('my_url_name'), opts={
@@ -307,14 +307,14 @@ then, in order to have the form processed as AJAX form, it's enough to add ``'is
         'submit_text': 'My button'
     }) }}
 
-AJAX response and success URL redirection will be automatically generated. Form errors will also be displayed in case
-there is any. Such form will behave very similarly to usual non-AJAX submitted form with three significant advantages:
+AJAX response and success URL redirection will be automatically generated. Form errors will be displayed in case there
+is any. Such form will behave very similarly to usual non-AJAX submitted form with the following advantages:
 
 1. AJAX response saves HTTP traffic.
 2. Instead of just redirecting to ``success_url``, one may perform custom actions, including displaying BootstrapDialog
    alerts and confirmations.
-3. app.js also includes Bootstrap progress bar when form has file inputs. So when large files are uploaded, there will
-   be progress indicator updated, instead of just waiting until the request completes.
+3. app.js also includes Bootstrap progress bar when the form has file inputs. So when large files are uploaded, the
+   progress indicator will be updated, instead of just waiting until the request completes.
 
 .. highlight:: python
 

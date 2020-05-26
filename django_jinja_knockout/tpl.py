@@ -21,7 +21,8 @@ try:
     from django.forms.models import ModelChoiceIteratorValue
 except ImportError:
     # Django <=3.0
-    ModelChoiceIteratorValue = type(None)
+    class ModelChoiceIteratorValue:
+        pass
 
 from django.forms.utils import flatatt
 from django.urls import (

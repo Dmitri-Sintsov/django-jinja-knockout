@@ -299,11 +299,11 @@ class BaseSeleniumCommands(AutomationCommands):
         )
 
     def relative_by_xpath(self, element, xpath, *args, **kwargs):
-        xpath = self.format_xpath(xpath, *args, **kwargs)
-        if xpath.startswith('//'):
-            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath))
+        xpath_str = self.format_xpath(xpath, *args, **kwargs)
+        if xpath_str.startswith('//'):
+            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath_str))
         return element.find_element(
-            By.XPATH, xpath
+            By.XPATH, xpath_str
         )
 
 
@@ -421,12 +421,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self._all_keys(*keys_list)
 
     def _by_xpath(self, xpath, *args, **kwargs):
-        xpath = self.format_xpath(xpath, *args, **kwargs)
+        xpath_str = self.format_xpath(xpath, *args, **kwargs)
         try:
-            self.context.element = self.selenium.find_element_by_xpath(xpath)
+            self.context.element = self.selenium.find_element_by_xpath(xpath_str)
             return self.context
         except WebDriverException:
-            return self._by_wait(By.XPATH, xpath)
+            return self._by_wait(By.XPATH, xpath_str)
 
     def _by_classname(self, classname):
         try:

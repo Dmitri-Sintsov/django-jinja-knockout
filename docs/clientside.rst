@@ -100,8 +100,7 @@ Simplifying AJAX calls
 * ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
 * ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
 
-  By default only requires ``is_ajax=True`` argument of :ref:`macros_bs_form` / :ref:`macros_bs_inline_formsets` Jinja2
-  macros.
+  Requires ``is_ajax=True`` argument of :ref:`macros_bs_form` / :ref:`macros_bs_inline_formsets` Jinja2 macros.
 
   The whole process of server-side to client-side validation errors mapping is performed by the built-in
   :ref:`views_formwithinlineformsetsmixin` class ``.form_valid()`` / ``form_invalid()`` methods.

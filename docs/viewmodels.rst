@@ -14,7 +14,7 @@
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
-.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ViewmodelView&type=Code
+.. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
@@ -345,12 +345,11 @@ code will be enough::
 .. highlight:: python
 
 `app.js`_ will care itself of setting Javascript event handler, performing AJAX request POST, then AJAX response routing
-will execute viewmodels returned from Django view. If you want to ensure AJAX requests, just set your ``urls.py`` route
-kwargs key ``is_ajax`` to ``True`` (optional step)::
+will execute viewmodels returned from Django view. Define the view path in project ``urls.py``::
 
     from my_app.views import button_click
     # ...
-    url(r'^button-click/$', button_click, name='button-click', kwargs={'ajax': True}),
+    url(r'^button-click/$', button_click, name='button-click', kwargs={'is_anonymous': True}),
 
 .. _viewmodels_client_side_routes:
 
@@ -607,7 +606,7 @@ To inject client-side viewmodel when page DOM loads persistently in user session
 
 In CBV view, inherited from `ViewmodelView`_::
 
-    session_vm_list = self.request.template_context.onload_vm_list(request.session)
+    session_vm_list = self.page_context.onload_vm_list(request.session)
     session_vm_list.append({'view': 'my_view'})
 
 See `PageContext.onload_vm_list()`_ and `vm_list.find_by_kw()`_ for the implementation details.
@@ -954,7 +953,7 @@ part (client-only actions) by defining ``perform_ACTION_NAME`` method::
         }).show();
     };
 
-.. highlight:: jinja
+.. highlight:: XML
 
 For such client-only actions `App.ActionTemplateDialog`_ utilizes Underscore.js templates for one-way binding, or
 Knockout.js templates when two way binding is required. Here is the sample template ::
