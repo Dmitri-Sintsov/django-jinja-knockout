@@ -119,12 +119,12 @@ Anonymous views require explicit permission defined as ``url()`` extra kwargs pe
     # ...
     url(r'^signup/$', signup, name='signup', kwargs={'allow_anonymous': True})
 
-Optional checks for AJAX requests and / or specific Django permission::
+Optional check for specific Django permission::
 
     from my_app.views import check_project
     # ...
     url(r'^check-project/$', check_project, name='check_project', kwargs={
-        'ajax': True, 'permission_required': 'my_app.project_can_add'
+        'permission_required': 'my_app.project_can_add'
     })
 
 Request mock-up

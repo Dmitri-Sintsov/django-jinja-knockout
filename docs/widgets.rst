@@ -3,6 +3,7 @@
 .. _DisplayText sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_text_method&type=
 .. _djk_sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _ForeignKeyGridWidget wiki: https://github.com/Dmitri-Sintsov/djk-sample/wiki#ajax-inline-editing-with-foreign-key-editing
+.. _MultipleKeyGridWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=MultipleKeyGridWidget
 .. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
@@ -84,8 +85,8 @@ See `DisplayText sample`_ for the complete example.
 ForeignKeyGridWidget
 --------------------
 
-Implements django.admin -like widget to select the foreign key value. It also has the optional support of in-place CRUD
-editing of foreign key table rows.
+Implements django.admin -like widget to select the foreign key value with the optional support of in-place CRUD editing
+of foreign key table rows.
 
 * `ForeignKeyGridWidget wiki`_
 
@@ -95,6 +96,13 @@ Here is the scrinshot of the `ForeignKeyGridWidget`_ running `djk_sample`_ proje
 
 .. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_change_or_create_foreign_key_for_inline_form.png
   :width: 740px
+
+MultipleKeyGridWidget
+---------------------
+
+django.admin -like widget to select multiple foreign key values for the form relation.
+
+See :ref:`datatables_multiplekeygridwidget` section of :doc:`datatables` for the detailed explanation.
 
 PrefillWidget
 -------------

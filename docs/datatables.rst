@@ -44,6 +44,7 @@ Datatables
 .. _Model.get_str_fields(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_str_fields
 .. _NestedSerializer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NestedSerializer
 
+.. _can_delete_relation: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=can_delete_relation
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
 .. _club_app.models: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/models.py
 .. _club_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
@@ -1102,8 +1103,8 @@ Define it's url name (route) in `urls.py`_ in usual way::
 
     url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
         name='profile_fk_widget_grid',
-        # kwargs={'ajax': True, 'permission_required': 'club_app.change_profile'}),
-        kwargs={'ajax': True}),
+        # kwargs={'permission_required': 'club_app.change_profile'}),
+    ),
 
 Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-grid`` url name (route)::
 
@@ -1527,7 +1528,7 @@ as HTTP POST; Django class-based view kwarg ``action`` value in ``urls.py`` is u
     # ... skipped ...
 
     url(r'^model1-grid(?P<action>/?\w*)/$', Model1Grid.as_view(), name='model1_grid',
-        kwargs={'ajax': True, 'permission_required': 'my_app.change_model1'}),
+        kwargs={'permission_required': 'my_app.change_model1'}),
 
     # ... skipped ...
 
@@ -1841,7 +1842,7 @@ has ``Member`` model related as many to one to ``Club`` model, grid that display
 
     # ... skipped ...
     url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
-        kwargs={'ajax': True, 'permission_required': 'my_app.change_member'}),
+        kwargs={'permission_required': 'my_app.change_member'}),
     # ... skipped ...
 
 Then, grid class may filter base queryset according to received ``club_id`` view kwargs value::
@@ -2800,8 +2801,8 @@ documentation.
 ForeignKeyGridWidget
 ====================
 `widgets.ForeignKeyGridWidget`_ is similar to ``ForeignKeyRawIdWidget`` implemented in `django.contrib.admin.widgets`_,
-but is easier to integrate into non-admin views. It provides built-in sorting / filters and even optional related model
-CRUD actions because it is based on the code of `views.KoGridView`_ and `grid.js`_.
+but is easier to integrate into non-admin views. It provides built-in sorting / filters and even optional CRUD editing
+of related model rows, because it is based on the code of `views.KoGridView`_ and `grid.js`_.
 
 .. highlight:: python
 
@@ -2837,15 +2838,15 @@ Now we will define ``MemberForm`` bound to ``Member`` model::
                 'profile': ForeignKeyGridWidget(model=Profile, grid_options={
                     'pageRoute': 'profile_fk_widget_grid',
                     'dialogOptions': {'size': 'size-wide'},
-                    # Foreign key filter options will be autodetected, but they could
+                    # Foreign key filter options will be autodetected, but these could
                     # have been defined explicitly when needed:
-                    # 'fkGridOptions': {
-                    #    'user': {
-                    #        'pageRoute': 'user_grid'
-                    #    }
-                    # },
+                    'fkGridOptions': {
+                        'user': {
+                            'pageRoute': 'user_grid',
+                        },
+                    },
                     # Override default search field label (optional):
-                    'searchPlaceholder': 'Search user profiles'
+                    'searchPlaceholder': 'Search user profiles',
                 }),
                 'plays': forms.RadioSelect(),
                 'role': forms.RadioSelect()
@@ -2859,8 +2860,7 @@ including nested foreign key widgets and filters (see commented ``fkGridOptions`
 To bind ``MemberForm`` ``profile`` field widget to actual ``Profile`` model grid, we have specified class-based view url
 name (route) of our widget as ``'pageRoute'`` argument value ``'profile_fk_widget_grid'``.
 
-Now we have to implement that class-based grid view just once for any possible ModelForm with ``'profile'`` foreign
-field::
+Now to implement the class-based grid view once for any possible ModelForm with ``'profile'`` foreign field::
 
     from django_jinja_knockout import KoGridView
     from .models import Profile
@@ -2875,8 +2875,8 @@ field::
             ('last_name', 'icontains'),
         ]
 
-or, even our ``Profile`` foreign key widget can support in-place CRUD AJAX actions, allowing to create new Profiles on
-the fly before ``MemberForm`` is saved::
+even, our ``Profile`` foreign key widget can support in-place CRUD AJAX actions, allowing to create new Profiles just in
+place before ``MemberForm`` is saved::
 
     from django_jinja_knockout import KoGridView
     from .models import Profile
@@ -2901,8 +2901,8 @@ and finally to define ``'profile_fk_widget_grid'`` url name in ``urls.py``::
 
     url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
         name='profile_fk_widget_grid',
-        # kwargs={'ajax': True, 'permission_required': 'club_app.change_profile'}),
-        kwargs={'ajax': True}),
+        # kwargs={'permission_required': 'club_app.change_profile'}),
+    ),
 
 Typical usage of ModelForm such as ``MemberForm`` is to perform CRUD actions in views or in grids datatables with Django
 model instances. In such case do not forget to inject url name of ``'profile_fk_widget_grid'`` to client-side for AJAX
@@ -2924,8 +2924,8 @@ In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widge
 
 * See `club_app.views_ajax`_ and `urls.py`_ code for fully featured example.
 
-Of course the same widget can be used in ``MemberForm`` bound to grids datatables via `'create_form' action`_ /
-`'edit_form' action`_, or any custom action, both with AJAX requests and traditional requests.
+The same widget can be used in ``MemberForm`` bound to grids datatables via `'create_form' action`_ / `'edit_form' action`_,
+or any custom action, both with AJAX requests and traditional requests.
 
 When widget is used in many different views, it could be more convenient to register client-side route (url name)
 globally in project's ``settings.py``. Such client-side routes will be injected into every generated page via
@@ -2979,7 +2979,7 @@ library of Javascript files: Knockout.js, `app.js`_, `grid.js`_ and generates gr
 via `ko_grid_body() macro`_ call.
 
 One has to use these templates in his project, or to develop separate templates with these client-side scripts included.
-Since version 0.2.0 it's possible to include Jinja2 templates from Django templates with custom template tags library::
+It's possible to include Jinja2 templates from Django templates using custom template tags library::
 
     {% load %jinja %}
     {% jinja 'ko_grid_body.htm' with _render_=1 %}
@@ -2996,6 +2996,53 @@ following differences:
 
 Widget's Python code generates client-side component similar to `ko_grid() macro`_, but it uses ``App.FkGridWidget``
 component class instead of ``App.ko.Grid`` component class.
+
+.. _datatables_multiplekeygridwidget:
+
+=====================
+MultipleKeyGridWidget
+=====================
+Since version 1.0.0, editing of many to many relations is supported via ``MultipleKeyGridWidget``. For example,
+each ``Club`` has many to many relation to ``Tag``::
+
+    class Tag(models.Model):
+        name = models.CharField(max_length=32, verbose_name='Tag')
+        clubs = models.ManyToManyField(Club, blank=True, verbose_name='Clubs')
+
+Then to edit multiple relations of ``Club`` in ``ClubForm``::
+
+    class ClubForm(RendererModelForm):
+
+        def add_tag_set_fk_grid(self):
+            # https://kite.com/python/docs/django.forms.ModelMultipleChoiceField
+            # value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+            self.fields['tag_set'] = forms.ModelMultipleChoiceField(
+                widget=MultipleKeyGridWidget(grid_options={
+                    'pageRoute': 'tag_fk_widget',
+                }),
+                queryset=Tag.objects.all(),
+                required=False,
+            )
+            if self.instance.pk is not None:
+                self.fields['tag_set'].initial = self.instance.tag_set.all()
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.add_tag_set_fk_grid()
+
+Now define the widget grid for ``Tag`` model::
+
+    class TagFkWidgetGrid(KoGridRelationView):
+
+        form = TagForm
+        grid_fields = ['name']
+
+The definition is very similar to `ForeignKeyGridWidget`_ with the exception that multiple keys are allowed to add /
+edit / delete. ``KoGridRelationView`` is used because it allows to select, which relation rows are allowed to remove
+for the current user via overriding of `can_delete_relation`_ method.
+
+* See `club_app.forms`_ for complete definitions of forms.
+* See `club_app.views_ajax`_ and `urls.py`_ code for fully featured example.
 
 =================
 Grids interaction
