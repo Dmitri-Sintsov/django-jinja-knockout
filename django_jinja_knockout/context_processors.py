@@ -108,10 +108,10 @@ class PageContext:
             return dct[self.ONLOAD_KEY]
 
     def onload_client_data(self, new_value=None):
-        return self.onload_vm_list(self.client_data)
+        return self.onload_vm_list(self.client_data, new_value)
 
     def onload_session(self, new_value=None):
-        return self.onload_vm_list(self.request.session)
+        return self.onload_vm_list(self.request.session, new_value)
 
     def request_viewmodels(self):
         # onload_viewmodels:
