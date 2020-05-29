@@ -2955,7 +2955,7 @@ Client-side part of ``ForeignKeyGridWidget`` is implemented in ``App.FkGridWidge
 
 `views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
 model instance associated to each grid row, in case there is neither Django model `get_str_fields()`_ method nor grid
-class custom method ``get_row_str_fields()`` is defined::
+class custom method ``get_row_str_fields()`` defined::
 
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
@@ -2968,31 +2968,6 @@ class custom method ``get_row_str_fields()`` is defined::
 ``KoGridRelationView`` overrides ``postprocess_row`` method so the row also includes ``__perm`` key, which is then
 stored to ``App.ko.GridRow`` instance ``.perm`` attribute to determine additional grid row permissions, such as
 ``canDelete`` (foreign key deletion per row) in ``App.FkGridWidget``.
-
-`ko_grid_body.htm` macro contains ``ko_fk_grid_widget`` / ``ko_fk_grid_widget_row`` / ``ko_fk_grid_widget_bottom``
-templates, used by `BaseGridWidget`_ and it's ancestors. To customize visual layout of widget / selected foreign key
-rows, one may override the templates like this::
-
-        self.fields['tag_set'] = forms.ModelMultipleChoiceField(
-            widget=MultipleKeyGridWidget(
-                attrs={
-                    'classPath': 'App.TagWidget',
-                    'data-template-options': {
-                        'templates': {
-                            'ko_fk_grid_widget_row': 'ko_tag_widget_row',
-                            'ko_fk_grid_widget_bottom': 'ko_tag_widget_bottom',
-                        }
-                    }
-                },
-                grid_options={
-                    'classPath': 'App.TagGrid',
-                    'pageRoute': 'tag_fk_widget',
-                    'pageRouteKwargs': {
-                        'club_id': 0 if self.instance.club is None else self.instance.club.pk,
-                    },
-                },
-            )
-        }
 
 In case ``str_fields`` representation of row is too verbose for ``ForeignKeyGridWidget`` display value, one may define
 grid class property ``force_str_desc`` = ``True`` to always use ``str()`` representation instead::
@@ -3023,6 +2998,59 @@ It's possible to include Jinja2 templates from Django templates using custom tem
     {% jinja 'ko_grid_body.htm' with _render_=1 %}
 
 * See `club_grid.html`_ for example of grid templates generation in Django Template Language.
+
+`ko_grid_body() macro`_ contains ``ko_fk_grid_widget`` / ``ko_fk_grid_widget_row`` / ``ko_fk_grid_widget_bottom``
+templates, used by `widgets.BaseGridWidget`_ and it's ancestors. To customize visual layout of widget / selected foreign
+key rows, one may override the template names like this::
+
+        self.fields['tag_set'] = forms.ModelMultipleChoiceField(
+            widget=MultipleKeyGridWidget(
+                attrs={
+                    # Override widget Javascript class name (optional)
+                    'classPath': 'App.TagWidget',
+                    'data-template-options': {
+                        'templates': {
+                            'ko_fk_grid_widget_row': 'ko_tag_widget_row',
+                            'ko_fk_grid_widget_bottom': 'ko_tag_widget_bottom',
+                        }
+                    }
+                },
+                grid_options={
+                    # Override foreign key grid Javascript class name (optional)
+                    'classPath': 'App.TagGrid',
+                    'pageRoute': 'tag_fk_widget',
+                    'pageRouteKwargs': {
+                        'club_id': 0 if self.instance.club is None else self.instance.club.pk,
+                    },
+                },
+            )
+        }
+
+.. highlight:: xml
+
+Then to define actual templates in html code::
+
+    <script type="text/template" id="ko_tag_widget_row">
+        <div class="container col-auto" data-bind="css: $data.css, click: $data.onClick">
+            <div class="row well well-sm default-margin">
+                <div class="col-sm-6">
+                    <div class="badge preformatted" data-bind="text: $data.desc().name"></div>
+                </div>
+                <div class="col-sm-1">
+                    <a class="close" data-bind="visible: $data.canDelete, click: $data.remove">×</a>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="ko_tag_widget_bottom">
+    <div data-top="true">
+        <button class="btn btn-info default-margin" data-bind="click: onFkButtonClick, clickBubble: false">{{ _('Change') }}</button>
+        <button class="btn btn-success default-margin">Custom action</button>
+    </div>
+    </script>
+
+.. highlight:: python
 
 The value of ``grid_options`` argument of ``ForeignKeyGridWidget()`` is very much similar to the definition of
 ``'fkGridOptions'`` value for `Foreign key filter`_. Both embed datatables (grids) inside BootstrapDialog, with the
