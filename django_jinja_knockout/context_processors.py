@@ -94,13 +94,10 @@ class PageContext:
     def get_custom_scripts(self):
         return self.custom_scripts.keys()
 
-    def has_vm_list(self, dct):
-        return self.ONLOAD_KEY in dct
+    def has_session(self):
+        return self.ONLOAD_KEY in self.request.session
 
-    def onload_vm_list(self, dct, new_value=None):
-        if isinstance(dct, str):
-            # eg. 'client_data' to access self.client_data
-            dct = getattr(self, dct)
+    def onload_vm_list(self, dct, new_value):
         if new_value is not None:
             dct[self.ONLOAD_KEY] = new_value if isinstance(new_value, vm_list) else vm_list(*new_value)
             return dct[self.ONLOAD_KEY]
@@ -110,11 +107,17 @@ class PageContext:
             dct[self.ONLOAD_KEY] = vm_list(*dct.get(self.ONLOAD_KEY, []))
             return dct[self.ONLOAD_KEY]
 
+    def onload_client_data(self, new_value=None):
+        return self.onload_vm_list(self.client_data)
+
+    def onload_session(self, new_value=None):
+        return self.onload_vm_list(self.request.session)
+
     def request_viewmodels(self):
         # onload_viewmodels:
-        viewmodels = self.onload_vm_list(self.client_data)
-        if self.has_vm_list(self.request.session):
-            vm_session = self.onload_vm_list(self.request.session)
+        viewmodels = self.onload_client_data()
+        if self.has_session():
+            vm_session = self.onload_session(self.request.session)
             viewmodels.extend(vm_session)
 
     def get_client_conf(self):
