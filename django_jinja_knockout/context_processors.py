@@ -117,7 +117,7 @@ class PageContext:
         # onload_viewmodels:
         viewmodels = self.onload_client_data()
         if self.has_session():
-            vm_session = self.onload_session(self.request.session)
+            vm_session = self.onload_session()
             viewmodels.extend(vm_session)
 
     def get_client_conf(self):
