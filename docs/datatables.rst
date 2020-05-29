@@ -424,7 +424,7 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
         client_routes = [
             'member_grid',
             # url name (route) for 'profile' key of self.allowed_filter_fields
-            'profile_fk_widget_grid',
+            'profile_fk_widget',
             # url name (route) for 'club' key of self.allowed_filter_fields
             'club_grid_simple'
         ]
@@ -621,7 +621,7 @@ generic relationships, these can be specified manually via class-level ``related
     class ActionGrid(KoGridView):
 
         client_routes = [
-            'user_fk_widget_grid'
+            'user_fk_widget'
         ]
         model = Action
         grid_fields = [
@@ -1101,18 +1101,18 @@ Foreign key filter
 
 Define it's url name (route) in `urls.py`_ in usual way::
 
-    url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
-        name='profile_fk_widget_grid',
+    url(r'^profile-fk-widget(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+        name='profile_fk_widget',
         # kwargs={'permission_required': 'club_app.change_profile'}),
     ),
 
-Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-grid`` url name (route)::
+Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget`` url name (route)::
 
     class MemberGrid(KoGridView):
 
         client_routes = [
             'member_grid',
-            'profile_fk_widget_grid',
+            'profile_fk_widget',
             'club_grid_simple'
         ]
         template_name = 'member_grid.htm'
@@ -1146,7 +1146,7 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget-gri
                 'searchPlaceholder': 'Search for club or member profile',
                 'fkGridOptions': {
                     'profile': {
-                        'pageRoute': 'profile_fk_widget_grid'
+                        'pageRoute': 'profile_fk_widget'
                     },
                     'club': {
                         'pageRoute': 'club_grid_simple',
@@ -1180,7 +1180,7 @@ foreign key filters shorter and more DRY::
 
         client_routes = [
             'member_grid',
-            'profile_fk_widget_grid',
+            'profile_fk_widget',
             'club_grid_simple'
         ]
         template_name = 'member_grid.htm'
@@ -1196,7 +1196,7 @@ foreign key filters shorter and more DRY::
         ]
         allowed_filter_fields = OrderedDict([
             ('profile', {
-                'pageRoute': 'profile_fk_widget_grid'
+                'pageRoute': 'profile_fk_widget'
             }),
             # When 'club_grid_simple' grid view has it's own foreign key filter fields, these will be automatically
             # detected - no need to specify these in .get_grid_options() as nested dict.
@@ -2836,13 +2836,13 @@ Now we will define ``MemberForm`` bound to ``Member`` model::
             fields = '__all__'
             widgets = {
                 'profile': ForeignKeyGridWidget(model=Profile, grid_options={
-                    'pageRoute': 'profile_fk_widget_grid',
+                    'pageRoute': 'profile_fk_widget',
                     'dialogOptions': {'size': 'size-wide'},
                     # Foreign key filter options will be autodetected, but these could
                     # have been defined explicitly when needed:
                     'fkGridOptions': {
                         'user': {
-                            'pageRoute': 'user_grid',
+                            'pageRoute': 'user_fk_widget',
                         },
                     },
                     # Override default search field label (optional):
@@ -2858,7 +2858,7 @@ including nested foreign key widgets and filters (see commented ``fkGridOptions`
 * See `club_app.forms`_ for complete definitions of forms.
 
 To bind ``MemberForm`` ``profile`` field widget to actual ``Profile`` model grid, we have specified class-based view url
-name (route) of our widget as ``'pageRoute'`` argument value ``'profile_fk_widget_grid'``.
+name (route) of our widget as ``'pageRoute'`` argument value ``'profile_fk_widget'``.
 
 Now to implement the class-based grid view once for any possible ModelForm with ``'profile'`` foreign field::
 
@@ -2875,8 +2875,9 @@ Now to implement the class-based grid view once for any possible ModelForm with 
             ('last_name', 'icontains'),
         ]
 
-even, our ``Profile`` foreign key widget can support in-place CRUD AJAX actions, allowing to create new Profiles just in
-place before ``MemberForm`` is saved::
+Set ``ProfileFkWidgetGrid`` attribute ``form`` = ``ProfileForm``, so ``Profile`` foreign key widget will support
+in-place CRUD AJAX actions, allowing to create new Profiles just in place before the related ``MemberForm`` instance is
+saved::
 
     from django_jinja_knockout import KoGridView
     from .models import Profile
@@ -2894,21 +2895,25 @@ place before ``MemberForm`` is saved::
             ('last_name', 'icontains'),
         ]
 
-and finally to define ``'profile_fk_widget_grid'`` url name in ``urls.py``::
+and finally to define ``'profile_fk_widget'`` url name in ``urls.py``::
 
     from club_app.views_ajax import ProfileFkWidgetGrid
     # ... skipped ...
 
-    url(r'^profile-fk-widget-grid(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
-        name='profile_fk_widget_grid',
+    url(r'^profile-fk-widget(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+        name='profile_fk_widget',
         # kwargs={'permission_required': 'club_app.change_profile'}),
-    ),
+        ),
+    url(r'^user-fk-widget(?P<action>/?\w*)/$', UserFkWidgetGrid.as_view(),
+        name='user_fk_widget',
+        # kwargs={'permission_required': 'auth.change_user'}),
+        ),
 
 Typical usage of ModelForm such as ``MemberForm`` is to perform CRUD actions in views or in grids datatables with Django
-model instances. In such case do not forget to inject url name of ``'profile_fk_widget_grid'`` to client-side for AJAX
+model instances. In such case do not forget to inject url name of ``'profile_fk_widget'`` to client-side for AJAX
 requests to work automatically.
 
-In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widget_grid'`` url name (route) at client-side
+In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widget'`` url name (route) at client-side
 (see :doc:`installation` and :doc:`context_processors` for details about injecting url names to client-side via
 ``client_routes``)::
 
@@ -2918,7 +2923,7 @@ In your class-based view that handlers ``MemberForm`` inject ``'profile_fk_widge
     class MemberCreate(CreateView):
         # Next line is required for ``ProfileFkWidgetGrid`` to be callable from client-side:
         client_routes = [
-            'profile_fk_widget_grid'
+            'profile_fk_widget'
         ]
         form = MemberForm
 
@@ -2934,8 +2939,9 @@ globally in project's ``settings.py``. Such client-side routes will be injected 
     # Second element of each tuple defines whether the client-side route should be available to anonymous users.
     DJK_CLIENT_ROUTES = {
         ('equipment_grid', True),
-        ('profile_fk_widget_grid', False),
-        ('user_change', True),
+        ('profile_fk_widget', False),
+        ('user_fk_widget', False),
+        ('user_change', False),
     }
 
 ForeignKeyGridWidget implementation notes
@@ -3041,6 +3047,7 @@ The definition is very similar to `ForeignKeyGridWidget`_ with the exception tha
 edit / delete. ``KoGridRelationView`` is used because it allows to select, which relation rows are allowed to remove
 for the current user via overriding of `can_delete_relation`_ method.
 
+* See `club_app.models`_ for complete definitions of models.
 * See `club_app.forms`_ for complete definitions of forms.
 * See `club_app.views_ajax`_ and `urls.py`_ code for fully featured example.
 
@@ -3065,7 +3072,7 @@ pagination and optional search / filtering - not having to load the whole querys
         client_routes = [
             'equipment_grid',
             'club_grid_simple',
-            'manufacturer_fk_widget_grid',
+            'manufacturer_fk_widget',
         ]
         template_name = 'club_equipment.htm'
         form = ClubForm
@@ -3156,7 +3163,7 @@ existing and newly added values of particular ``Club`` related ``Equipment`` mod
                 'dialogOptions': {'size': 'size-wide'},
             }),
             ('manufacturer', {
-                'pageRoute': 'manufacturer_fk_widget_grid'
+                'pageRoute': 'manufacturer_fk_widget'
             }),
             ('category', None)
         ])

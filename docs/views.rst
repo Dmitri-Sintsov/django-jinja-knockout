@@ -164,8 +164,8 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
     class ClubEditMixin(ClubNavsMixin):
 
         client_routes = {
-            'manufacturer_fk_widget_grid',
-            'profile_fk_widget_grid'
+            'manufacturer_fk_widget',
+            'profile_fk_widget'
         }
         template_name = 'club_edit.htm'
         form_with_inline_formsets = ClubFormWithInlineFormsets
