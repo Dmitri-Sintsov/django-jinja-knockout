@@ -62,6 +62,7 @@ Datatables
 .. _views.base.BaseFilterView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/base.py
 .. _views.list.ListSortingView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/list.py
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
+.. _widgets.BaseGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=BaseGridWidget
 .. _widgets.ForeignKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/widgets.py
 
 .. _discover_grid_options: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=discover_grid_options
@@ -2947,8 +2948,10 @@ globally in project's ``settings.py``. Such client-side routes will be injected 
 ForeignKeyGridWidget implementation notes
 -----------------------------------------
 
-Client-side part of ``ForeignKeyGridWidget``, implemented in ``App.FkGridWidget`` class, uses ``App.GridDialog`_ class
-to browse and to select foreign key field value for displayed ``ModelForm``.
+Both `ForeignKeyGridWidget`_ and `MultipleKeyGridWidget`_ inherit from base class `widgets.BaseGridWidget`_.
+
+Client-side part of ``ForeignKeyGridWidget`` is implemented in ``App.FkGridWidget`` class. It uses the instance of
+`App.GridDialog`_ class to browse and to select foreign key field value for the related ``ModelForm``.
 
 `views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
 model instance associated to each grid row, in case there is neither Django model `get_str_fields()`_ method nor grid
@@ -2961,6 +2964,35 @@ class custom method ``get_row_str_fields()`` is defined::
         if str_fields is not None:
             row['__str_fields'] = str_fields
         return row
+
+``KoGridRelationView`` overrides ``postprocess_row`` method so the row also includes ``__perm`` key, which is then
+stored to ``App.ko.GridRow`` instance ``.perm`` attribute to determine additional grid row permissions, such as
+``canDelete`` (foreign key deletion per row) in ``App.FkGridWidget``.
+
+`ko_grid_body.htm` macro contains ``ko_fk_grid_widget`` / ``ko_fk_grid_widget_row`` / ``ko_fk_grid_widget_bottom``
+templates, used by `BaseGridWidget`_ and it's ancestors. To customize visual layout of widget / selected foreign key
+rows, one may override the templates like this::
+
+        self.fields['tag_set'] = forms.ModelMultipleChoiceField(
+            widget=MultipleKeyGridWidget(
+                attrs={
+                    'classPath': 'App.TagWidget',
+                    'data-template-options': {
+                        'templates': {
+                            'ko_fk_grid_widget_row': 'ko_tag_widget_row',
+                            'ko_fk_grid_widget_bottom': 'ko_tag_widget_bottom',
+                        }
+                    }
+                },
+                grid_options={
+                    'classPath': 'App.TagGrid',
+                    'pageRoute': 'tag_fk_widget',
+                    'pageRouteKwargs': {
+                        'club_id': 0 if self.instance.club is None else self.instance.club.pk,
+                    },
+                },
+            )
+        }
 
 In case ``str_fields`` representation of row is too verbose for ``ForeignKeyGridWidget`` display value, one may define
 grid class property ``force_str_desc`` = ``True`` to always use ``str()`` representation instead::
