@@ -48,8 +48,8 @@
 
 {% if 'ko_grid_row_click_menu' in _include_ids -%}
 <script type="text/template" id="ko_grid_row_click_menu">
-    <div data-bind="foreach: getEnabledActions(lastClickedKoRow, 'click')">
-        <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: $data.localName">
+    <div data-bind="foreach: {data: getEnabledActions(lastClickedKoRow, 'click'), as: 'koAction'}">
+        <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: koAction.localName">
         </button>
     </div>
 </script>
@@ -76,12 +76,12 @@
 
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
-    <li data-bind="grid_filter, click: onDropdownClick.bind($data), css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
+    <li data-bind="grid_filter, click: onDropdownClick.bind(gridFilter), css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
         <a aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
-        <ul data-bind="foreach: choices" class="dropdown-menu">
-            <li data-bind="click: onLoadFilter.bind($data), css: {active: is_active(), 'dropdown-item': true}">
+        <ul data-bind="foreach: {data: choices, as: 'filterChoice'}" class="dropdown-menu">
+            <li data-bind="click: onLoadFilter.bind(filterChoice), css: {active: is_active(), 'dropdown-item': true}">
                 <a data-bind="text: name, grid_filter_choice" name="#"></a>
             </li>
         </ul>
@@ -95,9 +95,9 @@
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
             <li class="bold pr-2" data-bind="text: name"></li>
-            <!-- ko foreach: choices -->
+            <!-- ko foreach: {data: choices, as: 'filterChoice'} -->
             <li data-bind="css: {active: is_active(), 'breadcrumb-item': true}">
-                <a data-bind="css: {bold: is_active(), 'breadcrumb-item': true}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+                <a data-bind="css: {bold: is_active(), 'breadcrumb-item': true}, text: name, grid_filter_choice, click: onLoadFilter.bind(filterChoice)" name="#"></a>
             </li>
             <!-- /ko -->
         </ol>
@@ -108,7 +108,7 @@
 {% if 'ko_grid_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_popup">
     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
-        <a data-bind="click: onDropdownClick.bind($data)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
+        <a data-bind="click: onDropdownClick.bind(gridFilter)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
     </li>
@@ -120,7 +120,7 @@
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
             <li class="breadcrumb-item">
-                <a data-bind="click: onDropdownClick.bind($data), css: {'bold': hasActiveChoices()}" href="#">
+                <a data-bind="click: onDropdownClick.bind(gridFilter), css: {'bold': hasActiveChoices()}" href="#">
                     <span data-bind="text: name"></span> <b class="caret"></b>
                 </a>
             </li>
@@ -137,10 +137,10 @@
                 <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
                 <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
             </div>
-            <!-- ko foreach: actionTypes['button'] -->
+            <!-- ko foreach: {data: actionTypes['button'], as: 'koAction'} -->
                 <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
                     <span class="iconui" data-bind="css: actionCss('iconui')"></span>
-                    <span data-bind="text: $data.localName"></span>
+                    <span data-bind="text: koAction.localName"></span>
                 </button>
             <!-- /ko -->
         </form-inline>
@@ -153,7 +153,7 @@
     <navbar-default>
         <div class="container-fluid">
             <ul class="nav navbar-nav grid-controls">
-                <!-- ko template: {name: filterTemplateName, afterRender: expandFilterContents, foreach: gridFilters} -->
+                <!-- ko template: {name: filterTemplateName, afterRender: expandFilterContents, foreach: gridFilters, as: 'gridFilter'} -->
                 <!-- /ko -->
                 <div data-template-id="ko_grid_search"></div>
             </ul>
@@ -165,10 +165,10 @@
 {% if 'ko_grid_bottom_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_bottom_nav">
     <div class="navbar navbar-left">
-        <!-- ko foreach: actionTypes['button_footer'] -->
+        <!-- ko foreach: {data: actionTypes['button_footer'], as: 'koAction'} -->
         <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
             <span class="iconui" data-bind="css: actionCss('iconui')"></span>
-            <span data-bind="text: $data.localName"></span>
+            <span data-bind="text: koAction.localName"></span>
         </button>
         <!-- /ko -->
     </div>
@@ -216,7 +216,7 @@
                         <!-- ko if: iconuiColumns() -->
                         <th class="grid-glyph-cell"></th>
                         <!-- /ko -->
-                        <!-- ko foreach: gridColumns -->
+                        <!-- ko foreach: {data: gridColumns, as: 'gridColumn'} -->
                         <th data-bind="foreach: columnOrders">
                             <!-- ko if: isSortedColumn() -->
                             <a data-bind="
@@ -239,7 +239,7 @@
         <div class="table-responsive vscroll" style="overflow-y: scroll;">
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
-                <tbody data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
+                <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind($data) }">
                     <tr data-bind="grid_row, css: rowCss">
                         <!-- ko if: $parent.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
@@ -248,20 +248,20 @@
                         <!-- /ko -->
                         <!-- ko if: $parent.iconuiColumns() -->
                         <td class="grid-glyph-cell grid-glypicon-actions">
-                            <!-- ko foreach: $parent.actionTypes['iconui'] -->
-                                <!-- ko if: $parent.observeEnabledAction($data) -->
+                            <!-- ko foreach: {data: $parent.actionTypes['iconui'], as: 'koAction'} -->
+                                <!-- ko if: gridRow.observeEnabledAction(koAction) -->
                                 <span data-bind="
                                     css: actionCss(),
-                                    attr: {title: $data.localName},
+                                    attr: {title: koAction.localName},
                                     click: function() { doForRow($parent); }
                                 " class="iconui-ctrl iconui pointer"></span>
                                 <!-- /ko -->
                             <!-- /ko -->
                         </td>
                         <!-- /ko -->
-                        <!-- ko foreach: $parent.gridColumns -->
+                        <!-- ko foreach: {data: $parent.gridColumns, as: 'gridColumn'} -->
                         <td data-bind="
-                            click: $parent.onRowClick.bind($parent),
+                            click: gridRow.onRowClick.bind(gridRow),
                             attr: {index: $index, 'data-caption': names},
                             css: columnCss,
                             grid_compound_cell
@@ -314,12 +314,12 @@
 <script type="text/template" id="ko_grid_pagination">
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper">
         <ul class="pagination flex-wrap default-margin">
-            <!-- ko foreach: actionTypes['pagination'] -->
+            <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
                 <li data-bind="click: function() { doAction(); }" class="page-item">
-                    <span data-bind="css: actionCss('iconui'), attr: {title: $data.localName}" class="page-link iconui-ctrl iconui mr-2"></span>
+                    <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-ctrl iconui mr-2"></span>
                 </li>
             <!-- /ko -->
-            <!-- ko foreach: gridPages -->
+            <!-- ko foreach: {data: gridPages, as: 'gridPage'} -->
             <li data-bind="css:{active: isActive}" class="page-item">
                 <a data-bind="text:title, click: onPagination" name="#" class="page-link" ></a>
             </li>
@@ -332,13 +332,13 @@
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
 <script id="ko_grid_rows_per_page_dialog" language="text/html">
     <card-default>
-        <card-header class="flex-space-between" data-bind="foreach: meta.rowsPerPageValues">
-            <div data-bind="text: $data"></div>
+        <card-header class="flex-space-between" data-bind="foreach: {data: meta.rowsPerPageValues, as: 'rangeValue'}">
+            <div data-bind="text: rangeValue"></div>
         </card-header>
         <card-body>
             <input class="w-100" type="range" data-bind="attr: meta.rowsPerPageRange, value: meta.rowsPerPage, valueUpdate: 'input'" list="tickmarks">
-            <datalist id="tickmarks" data-bind="foreach: meta.rowsPerPageValues">
-                <option data-bind="attr: {value: $data}">
+            <datalist id="tickmarks" data-bind="foreach: {data: meta.rowsPerPageValues, as: 'rangeValue'}">
+                <option data-bind="attr: {value: rangeValue}">
             </datalist>
         </card-body>
     </card-default>
@@ -349,15 +349,15 @@
 <script id="ko_fk_grid_widget" language="text/html">
     <div data-top="true">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
-            <li class="list-group-item" data-bind="foreach: inputRows">
+            <li class="list-group-item" data-bind="foreach: {data: inputRows, as: 'inputRow'}">
                 <div data-template-id="ko_fk_grid_widget_row"></div>
             </li>
         </ul>
         <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->
         <input type="hidden" data-bind="attr: getInputAttrs({pk: 0})">
         <!-- /ko -->
-        <!-- ko foreach: inputRows -->
-            <input type="hidden" data-bind="attr: $parent.getInputAttrs($data, $index())">
+        <!-- ko foreach: {data: inputRows, as: 'inputRow'} -->
+            <input type="hidden" data-bind="attr: $parent.getInputAttrs(inputRow, $index())">
         <!-- /ko -->
         <div data-template-id="ko_fk_grid_widget_controls"></div>
     </div>
@@ -366,8 +366,8 @@
 
 {% if 'ko_fk_grid_widget_row' in _include_ids -%}
 <script id="ko_fk_grid_widget_row" language="text/html">
-    <div data-bind="css: $data.css, click: $data.onClick, replaceInto: $data.display()">
-        <a class="close preserve-append" data-bind="visible: $data.canDelete, click: $data.remove">×</a>
+    <div data-bind="css: inputRow.css, click: inputRow.onClick, replaceInto: inputRow.display()">
+        <a class="close preserve-append" data-bind="visible: inputRow.canDelete, click: inputRow.remove">×</a>
     </div>
 </script>
 {% endif -%}

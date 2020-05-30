@@ -232,7 +232,7 @@ class GridCommands:
             'component_relative_by_xpath', (
                 './/*[@class="nav navbar-nav grid-controls"]'
                 '//*[@data-bind="text: name" and text() = {}]'
-                '/ancestor::*[contains(@data-bind, "click: onDropdownClick.bind($data)")]',
+                '/ancestor::*[contains(@data-bind, "click: onDropdownClick.bind(gridFilter)")]',
                 filter_name
             ),
             'click',
