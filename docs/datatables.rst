@@ -2999,7 +2999,7 @@ It's possible to include Jinja2 templates from Django templates using custom tem
 
 * See `club_grid.html`_ for example of grid templates generation in Django Template Language.
 
-`ko_grid_body() macro`_ contains ``ko_fk_grid_widget`` / ``ko_fk_grid_widget_row`` / ``ko_fk_grid_widget_bottom``
+`ko_grid_body() macro`_ contains ``ko_fk_grid_widget`` / ``ko_fk_grid_widget_row`` / ``ko_fk_grid_widget_controls``
 templates, used by `widgets.BaseGridWidget`_ and it's ancestors. To customize visual layout of widget / selected foreign
 key rows, one may override the template names like this::
 
@@ -3011,7 +3011,7 @@ key rows, one may override the template names like this::
                     'data-template-options': {
                         'templates': {
                             'ko_fk_grid_widget_row': 'ko_tag_widget_row',
-                            'ko_fk_grid_widget_bottom': 'ko_tag_widget_bottom',
+                            'ko_fk_grid_widget_controls': 'ko_tag_widget_controls',
                         }
                     }
                 },
@@ -3043,7 +3043,7 @@ Then to define actual templates in html code::
         </div>
     </script>
 
-    <script type="text/template" id="ko_tag_widget_bottom">
+    <script type="text/template" id="ko_tag_widget_controls">
     <div data-top="true">
         <button class="btn btn-info default-margin" data-bind="click: onFkButtonClick, clickBubble: false">{{ _('Change') }}</button>
         <button class="btn btn-success default-margin">Custom action</button>
