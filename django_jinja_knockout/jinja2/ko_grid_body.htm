@@ -16,7 +16,7 @@
     'ko_grid_rows_per_page_dialog',
     'ko_fk_grid_widget',
     'ko_fk_grid_widget_row',
-    'ko_fk_grid_widget_bottom'
+    'ko_fk_grid_widget_controls'
 ]) -%}
 
 {% if include_ids is not none -%}
@@ -359,7 +359,7 @@
         <!-- ko foreach: inputRows -->
             <input type="hidden" data-bind="attr: $parent.getInputAttrs($data, $index())">
         <!-- /ko -->
-        <div data-template-id="ko_fk_grid_widget_bottom"></div>
+        <div data-template-id="ko_fk_grid_widget_controls"></div>
     </div>
 </script>
 {% endif -%}
@@ -372,8 +372,8 @@
 </script>
 {% endif -%}
 
-{% if 'ko_fk_grid_widget_bottom' in _include_ids -%}
-<script id="ko_fk_grid_widget_bottom" language="text/html">
+{% if 'ko_fk_grid_widget_controls' in _include_ids -%}
+<script id="ko_fk_grid_widget_controls" language="text/html">
     <button class="btn btn-info default-margin" data-bind="click: onFkButtonClick, clickBubble: false">{{ _('Change') }}</button>
 </script>
 {% endif -%}
