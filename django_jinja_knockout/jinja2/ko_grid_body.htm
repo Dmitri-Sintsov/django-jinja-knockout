@@ -203,7 +203,7 @@
 
 {% if 'ko_grid_table' in _include_ids -%}
 <script type="text/template" id="ko_grid_table">
-    <div data-top="true">
+    <div data-top="true" data-bind="using: $root, as: 'grid'">
         <div class="table-responsive<%= self.padLeft('grid_wrapper_class') %>" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse<%= self.padLeft('grid_table_class') %>" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
@@ -241,25 +241,25 @@
                 <% } %>
                 <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind($data) }">
                     <tr data-bind="grid_row, css: rowCss">
-                        <!-- ko if: $parent.options.showSelection -->
+                        <!-- ko if: grid.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
                             <span data-bind="css: selectionCss" class="iconui-ctrl iconui"></span>
                         </td>
                         <!-- /ko -->
-                        <!-- ko if: $parent.iconuiColumns() -->
+                        <!-- ko if: grid.iconuiColumns() -->
                         <td class="grid-glyph-cell grid-glypicon-actions">
-                            <!-- ko foreach: {data: $parent.actionTypes['iconui'], as: 'koAction'} -->
+                            <!-- ko foreach: {data: grid.actionTypes['iconui'], as: 'koAction'} -->
                                 <!-- ko if: gridRow.observeEnabledAction(koAction) -->
                                 <span data-bind="
                                     css: actionCss(),
                                     attr: {title: koAction.localName},
-                                    click: function() { doForRow($parent); }
+                                    click: function() { koAction.doForRow(gridRow); }
                                 " class="iconui-ctrl iconui pointer"></span>
                                 <!-- /ko -->
                             <!-- /ko -->
                         </td>
                         <!-- /ko -->
-                        <!-- ko foreach: {data: $parent.gridColumns, as: 'gridColumn'} -->
+                        <!-- ko foreach: {data: grid.gridColumns, as: 'gridColumn'} -->
                         <td data-bind="
                             click: gridRow.onRowClick.bind(gridRow),
                             attr: {index: $index, 'data-caption': names},
@@ -347,7 +347,7 @@
 
 {% if 'ko_fk_grid_widget' in _include_ids -%}
 <script id="ko_fk_grid_widget" language="text/html">
-    <div data-top="true">
+    <div data-top="true" data-bind="using: $root, as: 'widget'">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
             <li class="list-group-item" data-bind="foreach: {data: inputRows, as: 'inputRow'}">
                 <div data-template-id="ko_fk_grid_widget_row"></div>
@@ -357,7 +357,7 @@
         <input type="hidden" data-bind="attr: getInputAttrs({pk: 0})">
         <!-- /ko -->
         <!-- ko foreach: {data: inputRows, as: 'inputRow'} -->
-            <input type="hidden" data-bind="attr: $parent.getInputAttrs(inputRow, $index())">
+            <input type="hidden" data-bind="attr: widget.getInputAttrs(inputRow, $index())">
         <!-- /ko -->
         <div data-template-id="ko_fk_grid_widget_controls"></div>
     </div>
