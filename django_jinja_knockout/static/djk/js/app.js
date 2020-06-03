@@ -2172,6 +2172,15 @@ App.bindTemplates = function($selector, tpl) {
     });
 };
 
+App.getTemplateSubstitution = function($element, templateName) {
+    if ($element) {
+        var substitutions = $element.data('templateSubstitutions');
+        return App.propGet(substitutions, templateName, templateName);
+    } else {
+        return templateName;
+    }
+};
+
 App.OrderedHooks = function(hooks) {
     this.init(hooks);
 };

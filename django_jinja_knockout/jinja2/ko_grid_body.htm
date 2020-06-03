@@ -150,7 +150,7 @@
 
 {% if 'ko_grid_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_nav">
-    <navbar-default>
+    <navbar-default data-bind="using: $root, as: 'grid'">
         <div class="container-fluid">
             <ul class="nav navbar-nav grid-controls">
                 <!-- ko template: {name: filterTemplateName, afterRender: expandFilterContents, foreach: gridFilters, as: 'gridFilter'} -->
@@ -349,8 +349,7 @@
 <script id="ko_fk_grid_widget" language="text/html">
     <div data-top="true" data-bind="using: $root, as: 'widget'">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
-            <li class="list-group-item" data-bind="foreach: {data: inputRows, as: 'inputRow'}">
-                <div data-template-id="ko_fk_grid_widget_row"></div>
+            <li class="list-group-item" data-bind="template: {name: widget.getTemplateName('ko_fk_grid_widget_row'), foreach: inputRows, as: 'inputRow'}">
             </li>
         </ul>
         <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->

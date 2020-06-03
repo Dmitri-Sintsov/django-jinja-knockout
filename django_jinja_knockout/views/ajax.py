@@ -922,8 +922,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     def get_model_row(self, obj):
         return model_values(obj, self.get_model_fields(), strict_related=False)
 
-    # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary where
-    # the keys are field names while the values are Django-formatted display values (not raw values).
+    # Will add special '__str_fields' key if model class has get_str_fields() method, which should return the dictionary
+    # where the keys are field names while the values are end-user formatted display values (not raw values).
     def postprocess_row(self, row, obj):
         str_fields = self.get_row_str_fields(obj, row)
         if str_fields is None or self.__class__.force_str_desc:
@@ -931,6 +931,9 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         if str_fields is not None:
             row['__str_fields'] = str_fields
         return row
+
+    def serialize_qs(self, qs, query_fields):
+        return qs.values(*query_fields)
 
     def get_rows(self):
         kw = {
@@ -963,7 +966,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             self.postprocess_row(
                 self.set_row_related_fields(row), next(paginated_qs_iter)
             )
-            for row in paginated_qs.values(*self.query_fields)
+            for row in self.serialize_qs(paginated_qs, self.query_fields)
         ]
         return rows, page_num, objects_per_page
 

@@ -35,7 +35,7 @@ ko.bindingHandlers.grid_compound_cell = {
     update:  function(element, valueAccessor, allBindings, koGridColumn, bindingContext) {
         koGridColumn.render({
             $element: $(element),
-            row: bindingContext.$parent,
+            row: bindingContext.gridRow,
         });
     }
 };
@@ -2294,13 +2294,8 @@ void function(Grid) {
 
     Grid.filterTemplateName = function(koFilter, bindingContext) {
         var templateName = koFilter.getTemplateName();
-        var self = bindingContext.$parent;
-        if (self.componentSelector !== null) {
-            var substitutions = self.componentSelector.data('templateSubstitutions');
-            return App.propGet(substitutions, templateName, templateName);
-        } else {
-            return templateName;
-        }
+        var self = bindingContext.grid;
+        return App.getTemplateSubstitution(self.componentSelector, templateName);
     };
 
     Grid.iocKoFilter_fk = function(filter, options) {
@@ -3178,6 +3173,10 @@ void function(FkGridWidget) {
     FkGridWidget.removeComponent = function($selector) {
         this.gridDialog.removeComponent();
         this.cleanBindings();
+    };
+
+    FkGridWidget.getTemplateName = function(templateName) {
+        return App.getTemplateSubstitution(this.componentSelector, templateName);
     };
 
     FkGridWidget.deleteFk = function(inputRow) {
