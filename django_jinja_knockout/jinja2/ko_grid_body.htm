@@ -239,7 +239,7 @@
         <div class="table-responsive vscroll" style="overflow-y: scroll;">
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
-                <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind($data)}">
+                <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind(grid)}">
                     <tr data-bind="grid_row, css: rowCss">
                         <!-- ko if: grid.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
