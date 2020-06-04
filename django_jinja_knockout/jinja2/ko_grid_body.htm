@@ -150,7 +150,7 @@
 
 {% if 'ko_grid_nav' in _include_ids -%}
 <script type="text/template" id="ko_grid_nav">
-    <navbar-default data-bind="using: $root, as: 'grid'">
+    <navbar-default>
         <div class="container-fluid">
             <ul class="nav navbar-nav grid-controls">
                 <!-- ko template: {name: filterTemplateName, afterRender: expandFilterContents, foreach: gridFilters, as: 'gridFilter'} -->
@@ -203,7 +203,7 @@
 
 {% if 'ko_grid_table' in _include_ids -%}
 <script type="text/template" id="ko_grid_table">
-    <div data-top="true" data-bind="using: $root, as: 'grid'">
+    <div data-top="true">
         <div class="table-responsive<%= self.padLeft('grid_wrapper_class') %>" <% if (self.get('vscroll')) { %> style="overflow-y: scroll;" <% } %> >
             <table class="table table-bordered table-hover table-collapse<%= self.padLeft('grid_table_class') %>" <% if (self.get('vscroll')) { %> style="margin-bottom: 0;" <% } %>>
                 <thead>
@@ -239,7 +239,7 @@
         <div class="table-responsive vscroll" style="overflow-y: scroll;">
             <table class="table table-bordered table-hover table-collapse">
                 <% } %>
-                <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind($data) }">
+                <tbody data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind($data)}">
                     <tr data-bind="grid_row, css: rowCss">
                         <!-- ko if: grid.options.showSelection -->
                         <td data-bind="click: onSelect" class="grid-glyph-cell">
@@ -285,9 +285,9 @@
 {% if 'ko_grid_body' in _include_ids -%}
 <script type="text/template" id="ko_grid_body">
     <% if (!self.get('show_title')) { %>
-    <div>
+    <div data-bind="using: $root, as: 'grid'">
     <% } else { %>
-    <card-<%= self.get('card_type') %>>
+    <card-<%= self.get('card_type') %> data-bind="using: $root, as: 'grid'">
         <card-header data-bind="text: meta.verboseNamePlural"></card-header>
         <card-body>
     <% } %>
