@@ -250,9 +250,9 @@ and per class-based view::
 
     class MyGrid(KoGridView):
 
-        client_routes = [
+        client_routes = {
             'my_grid_url_name'
-        ]
+        }
 
 for ``urls.py`` like this::
 

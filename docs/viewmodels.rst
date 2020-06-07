@@ -418,9 +418,9 @@ and per class-based view::
 
     class MyGridView(KoGridView):
 
-        client_routes = [
+        client_routes = {
             'my_grid_url_name'
-        ]
+        }
 
 .. highlight:: javascript
 
