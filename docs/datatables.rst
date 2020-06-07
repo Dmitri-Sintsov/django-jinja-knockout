@@ -29,6 +29,8 @@ Datatables
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/member-grid.js
 .. _underscore.js template: http://underscorejs.org/#template
 
+.. _iconui: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=iconui&unscoped_q=iconui
+
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
 .. _App.ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
@@ -1374,7 +1376,7 @@ Here is the example of overriding visual display of ``App.ko.GridFilter`` that i
 the list of specified choices. ``ko_grid_body`` underscore.js template is overridden to ``member_ko_grid_body`` template
 with button inserted that has knockout.js custom binding::
 
-    "click: onChangeEndorsementButtonClick.bind($data)"
+    "click: onChangeEndorsement"
 
 Full code::
 
@@ -1416,7 +1418,7 @@ Full code::
         {{ ko_grid_body() }}
 
         <script type="text/template" id="member_ko_grid_body">
-            <card-primary>
+            <card-primary data-bind="using: $root, as: 'grid'">
                 <card-header data-bind="text: meta.verboseNamePlural"></card-header>
                 <card-body>
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
@@ -1425,7 +1427,7 @@ Full code::
                     <div data-template-id="ko_grid_table"></div>
                     <div class="default-padding">
                         <button
-                                data-bind="click: onChangeEndorsementButtonClick.bind($data)" type="button" class="btn btn-warning">
+                                data-bind="click: onChangeEndorsement" type="button" class="btn btn-warning">
                             Change endorsement
                         </button>
                     </div>
@@ -1440,9 +1442,9 @@ Full code::
                     <div class="container-fluid">
                         <div class="navbar-header"><a class="navbar-brand" href="##" data-bind="text: name"></a></div>
                         <ul class="nav navbar-nav">
-                            <!-- ko foreach: choices -->
+                            <!-- ko foreach: {data: choices, as: 'filterChoice'} -->
                             <li data-bind="css: {active: is_active()}">
-                                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind($data)" name="#"></a>
+                                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind(filterChoice)" name="#"></a>
                             </li>
                             <!-- /ko -->
                         </ul>
@@ -1463,11 +1465,11 @@ and ``grid_cell`` binding to render individial (non-compound) row cells::
 
     <script type="text/template" id="agenda_ko_grid_table">
         <div class="agenda-wrapper" data-top="true">
-            <div data-bind="foreach: {data: gridRows, afterRender: afterRowRender.bind($data) }">
+            <div data-bind="foreach: {data: gridRows, as: 'gridRow', afterRender: afterRowRender.bind(grid)}">
                 <div data-bind="grid_row">
                     <div class="agenda-image">
-                        <a data-bind="attr: {href: $data.val('document').href}" class="link-preview" target="_blank" data-tip-css='{"z-index": 2000}'>
-                            <img data-bind="attr: {src: $data.val('document').icon, alt: $data.val('document').text}" class="agenda-image">
+                        <a data-bind="attr: {href: gridRow.val('document').href}" class="link-preview" target="_blank" data-tip-css='{"z-index": 2000}'>
+                            <img data-bind="attr: {src: gridRow.val('document').icon, alt: gridRow.val('document').text}" class="agenda-image">
                         </a>
                     </div>
                     <div class="agenda-description">
@@ -3031,13 +3033,13 @@ key rows, one may override the template names like this::
 Then to define actual templates in html code::
 
     <script type="text/template" id="ko_tag_widget_row">
-        <div class="container col-auto" data-bind="css: $data.css, click: $data.onClick">
+        <div class="container col-auto" data-bind="css: inputRow.css, click: inputRow.onClick">
             <div class="row well well-sm default-margin">
                 <div class="col-sm-6">
-                    <div class="badge preformatted" data-bind="text: $data.desc().name"></div>
+                    <div class="badge preformatted" data-bind="text: inputRow.desc().name"></div>
                 </div>
                 <div class="col-sm-1">
-                    <a class="close" data-bind="visible: $data.canDelete, click: $data.remove">×</a>
+                    <a class="close" data-bind="visible: inputRow.canDelete, click: inputRow.remove">×</a>
                 </div>
             </div>
         </div>
@@ -3473,17 +3475,17 @@ And the final step is to generate client-side component in Jinja2 template with 
         {{ ko_grid_body() }}
 
         <script type="text/template" id="model1_ko_grid_body">
-            <card-primary>
+            <card-primary data-bind="using: $root, as: 'grid'">
                 <card-header data-bind="text: meta.verboseNamePlural"></card-header>
                 <card-body>
                     <!-- ko if: meta.hasSearch() || gridFilters().length > 0 -->
                     <div data-template-id="model1_ko_grid_nav"></div>
                     <!-- /ko -->
                     <div data-template-id="model1_ko_grid_table"></div>
-                    <!-- ko foreach: actionTypes['button_bottom'] -->
+                    <!-- ko foreach: {data: actionTypes['button_bottom'], as: 'koAction'} -->
                         <button class="btn" data-bind="css: getKoCss('button'), click: function() { doAction({}); }">
                             <span class="iconui" data-bind="css: getKoCss('iconui')"></span>
-                            <span data-bind="text: $data.localName"></span>
+                            <span data-bind="text: koAction.localName"></span>
                         </button>
                     <!-- /ko -->
                 </card-body>
@@ -3494,15 +3496,15 @@ And the final step is to generate client-side component in Jinja2 template with 
         <script src="{{ static_hash('js/model1-grid.js') }}"></script>
     {% endblock bottom_scripts %}
 
-Knockout.js ``<!-- ko foreach: actionTypes['button_bottom'] -->`` binding is very similar to standard ``'button'`` type
-actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below the grid table,
-not above.
+Knockout.js ``foreach: {data: actionTypes['button_bottom'], as: 'koAction'}`` binding is very similar to standard
+``'button'`` type actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below
+the grid table, not the above.
 
 Since version 0.6.0, there is built-in `Action type 'button_footer'`_ available, which displays grid action buttons
 below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
 to implement custom action types and their templates.
 
-Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add iconui buttons with grid
+Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add `iconui`_ buttons with grid
 actions attached directly to datatable pagination list.
 
 Grids API
