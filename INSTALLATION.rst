@@ -53,7 +53,7 @@ To install latest master from repository::
 
 To install specific commit::
 
-    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@b1a6a90334beef6c5988f71464d2356e8dee3b26
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@df2c52271c915dc9261d6bb0613205ec46a1ae46
 
 
 settings.py
@@ -231,27 +231,41 @@ Add `django_jinja_knockout` `TemplateContextProcessor`_ to `settings.py`_::
         },
     ]
 
-If you want to use built-in server-side to client-side global route mapping, create your own project
-``context_processors.py`` (see `Extending context processor`_).
+If you want to use built-in server-side to client-side global route mapping, use ``DJK_CLIENT_ROUTES`` settings::
+
+    # Second element of each tuple defines whether the client-side route should be available to anonymous users.
+    DJK_CLIENT_ROUTES = {
+        ('equipment_grid', True),
+        ('profile_fk_widget', False),
+        ('user_fk_widget', False),
+        ('user_change', False),
+    }
 
 .. _installation_context-processor:
 
 Context processor
 -----------------
 
-Since version 0.2.0, it is possible to specify client-side routes per view::
+It is possible to specify client-side routes per view::
 
-    def feed_view(request):
-        request.client_routes.extend([
-            'blog_feed'
-        ])
+    from django_jinja_knockout.views import page_context_decorator
+
+    @page_context_decorator(client_routes={
+        'blog_feed',
+        'my_grid_url_name',
+    })
+    def my_view(request):
+        return TemplateResponse(request, 'template.htm', {'data': 12})
 
 and per class-based view::
 
-    class MyGrid(KoGridView):
+    from django_jinja_knockout.views import PageContextMixin
+
+    class MyView(PageContextMixin)
 
         client_routes = {
-            'my_grid_url_name'
+            'blog_feed',
+            'my_grid_url_name',
         }
 
 for ``urls.py`` like this::
