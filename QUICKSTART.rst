@@ -148,7 +148,7 @@ views submodule
 * ``FormWithInlineFormsetsMixin`` - view / edit zero or one ModelForm with one or many related formsets. Supports
   dynamic formset forms via ``formsets.js`` and ``set_knockout_template`` patching.
 * ``BsTabsMixin`` - insert additional context data to support Bootstrap navbars.
-* ``ContextDataMixin` - insert arbitrary context data via ``extra_context_data`` class attribute value.
+* ``PageContextMixin`` - provides additional template context required to run client-side of the framework.
 * ``ListSortingView`` - non-AJAX filtered / sorted ListView, with partial support of AJAX ``KoGridView`` settings.
 * AJAX views: ``ActionsView`` / ``ModelFormActionsView`` / ``KoGridView``
 
