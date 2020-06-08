@@ -18,6 +18,8 @@
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
+.. _PageContext: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
+.. _page_context: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
 .. _README: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/README.rst
 .. _release: https://github.com/Dmitri-Sintsov/django-jinja-knockout/releases
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
@@ -134,10 +136,10 @@ from the list of `INSTALLED_APPS`_ as well::
 DJK_MIDDLEWARE
 ~~~~~~~~~~~~~~
 
-Since version 0.4.0 there is `apps.DjkAppConfig`_ class which has `.get_context_middleware()`_ method that should
-be invoked to get extended middleware class to be used by django-jinja-knockout code and across the project. In case
-one's project has a middleware extended from django-jinja-knockout middleware, one should specify it import string
-as ``DJK_MIDDLEWARE`` variable value in ``settings.py`` like that::
+`apps.DjkAppConfig`_ class has `.get_context_middleware()`_ method which should be invoked to get extended middleware
+class to be used by django-jinja-knockout code and across the project. In case one's project has a middleware extended
+from django-jinja-knockout middleware, one should specify it import string as ``DJK_MIDDLEWARE`` variable value in
+``settings.py`` like that::
 
     DJK_MIDDLEWARE = 'djk_sample.middleware.ContextMiddleware'
 
@@ -152,7 +154,7 @@ This optional setting allows to specify maximal allowed file size to upload with
 LAYOUT_CLASSES
 ~~~~~~~~~~~~~~
 
-This optional setting allows to override default Bootstrap 3 grid layout classes for `bs_form()`_ and
+This optional setting allows to override default Bootstrap grid layout classes for `bs_form()`_ and
 `bs_inline_formsets()`_ Jinja2 macros used to display ``ModelForm`` and inline formsets in the `django-jinja-knockout`
 code. The default value is specified in ``djk_ui`` app ``conf`` module, but can be overriden in `settings.py`_::
 
@@ -231,14 +233,18 @@ Add `django_jinja_knockout` `TemplateContextProcessor`_ to `settings.py`_::
         },
     ]
 
+DJK_CLIENT_ROUTES
+~~~~~~~~~~~~~~~~~
+
 If you want to use built-in server-side to client-side global route mapping, use ``DJK_CLIENT_ROUTES`` settings::
 
+    # List of global client routes that will be injected into every view (globally).
+    # This is a good idea if some client-side route is frequently used by most of views.
+    # Alternatively one can specify client route url names per view (see the documentation).
     # Second element of each tuple defines whether the client-side route should be available to anonymous users.
     DJK_CLIENT_ROUTES = {
+        ('user_change', True),
         ('equipment_grid', True),
-        ('profile_fk_widget', False),
-        ('user_fk_widget', False),
-        ('user_change', False),
     }
 
 .. _installation_context-processor:
@@ -246,7 +252,7 @@ If you want to use built-in server-side to client-side global route mapping, use
 Context processor
 -----------------
 
-It is possible to specify client-side routes per view::
+Context processor makes possible to specify client-side routes per view::
 
     from django_jinja_knockout.views import page_context_decorator
 
@@ -279,57 +285,17 @@ for ``urls.py`` like this::
 
 to make the resolved url available in client-side scripts.
 
-In such case extending built-in `TemplateContextProcessor`_ is not necessary, but one has to specity required
-client-side url names in every view which includes Javascript template that accesses these url names (for example
-foreign key widgets of `grids`_ require resolved url names of their view classes).
-
-Extending context processor
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to use `global` client-side url name mapping available in `app.js`_, which dispatches AJAX requests
-according to Django ``urls.py`` urls, create ``context_processors.py`` in your main project application with the
-following code::
-
-    from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
-
-
-    class TemplateContextProcessor(BaseContextProcessor):
-
-        CLIENT_ROUTES = (
-            # This route is injected into every page globally (not per view).
-            # This is a good idea if some client-side route is frequently used.
-            # Alternatively one can specify client route url names per view.
-            # Second element of each tuple defines whether client-side route should be available to anonymous users.
-            ('blog_feed', True),
-        )
-
-
-    def template_context_processor(HttpRequest=None):
-        return TemplateContextProcessor(HttpRequest).get_context_data()
-
-while ``urls.py`` should have url name defined as::
-
-    from my_blog.views import feed_view
-    # ...
-    url(r'^blog-(?P<blog_id>\d+)/$', feed_view, name='blog_feed',
-        kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
-
-and register your context processor in ``settings.py`` as the value of ``TEMPLATES`` list item of nested dictionary keys
-``['OPTIONS']`` ``['context_processors']``::
-
-    'my_project.context_processors.template_context_processor'
-
-instead of default one::
-
-    'django_jinja_knockout.context_processors.template_context_processor'
+In such case defining `DJK_CLIENT_ROUTES`_ is not necessary, but one has to specify required client-side url names in
+every view which includes Javascript template that accesses these url names (for example foreign key widgets of
+`grids`_ require resolved url names of their view classes).
 
 .. highlight:: javascript
 
-Then current url generated for ``'blog_feed'`` url name will be available at client-side Javascript as::
+The current url generated for ``'blog_feed'`` url name will be available at client-side Javascript as::
 
     App.routeUrl('blog_feed', {'blog_id': 1});
 
-You will be able to call Django view via AJAX request in your Javascript code like this::
+One will be able to call Django view via AJAX request in your Javascript code like this::
 
     App.post('blog_feed', {'postvar1': 1, 'postvar2': 2}, {
         kwargs: {'blog_id': 1}
@@ -338,13 +304,16 @@ You will be able to call Django view via AJAX request in your Javascript code li
         kwargs: {'blog_id': 1}
     });
 
-where AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `app.js`_ to
+where the AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `app.js`_ to
 appropriate viewmodel handler. Django exceptions and AJAX errors are handled gracefully, displayed in
 ``BootstrapDialog`` window by default.
 
-.. highlight:: python
+Extending context processor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Extending context processor is also useful when templates should receive additional arguments by default::
+.. highlight:: Python
+
+Extending context processor is useful when templates should receive additional context data by default::
 
     from django_jinja_knockout.context_processors import TemplateContextProcessor as BaseContextProcessor
     from my_project.tpl import format_currency, static_hash
@@ -360,9 +329,36 @@ Extending context processor is also useful when templates should receive additio
             })
             return context_data
 
-* See `djk_sample.TemplateContextProcessor`_ source code for the example of extending `django-jinja-knockout`
-  `TemplateContextProcessor`_ to define Django ``url_name`` ``equipment_grid`` as a project-wide client-side route, to
-  make it accessible in client-side Javascript from any project's view.
+* See `djk_sample.TemplateContextProcessor`_ source code for the trivial example of extending `django-jinja-knockout`
+  `TemplateContextProcessor`_.
+
+DJK_PAGE_CONTEXT_CLS
+~~~~~~~~~~~~~~~~~~~~
+`DJK_PAGE_CONTEXT_CLS`_ setting allows to override default `PageContext`_ class::
+
+    DJK_PAGE_CONTEXT_CLS = 'djk_sample.context_processors.PageContext'
+
+That makes possible to add custom client data to `page_context`_ instance::
+
+    from django.conf import settings
+    from django_jinja_knockout.context_processors import PageContext as BasePageContext
+
+    class PageContext(BasePageContext):
+
+        def get_client_conf(self):
+            client_conf = super().get_client_conf()
+            client_conf.update({
+                'email_host': settings.EMAIL_HOST,
+                'userName': '' if self.request.user.id == 0 else self.request.user.username,
+            })
+            return client_conf
+
+.. highlight:: Javascript
+
+which will be available in Javascript as::
+
+    App.clientConf['email_host']
+    App.clientConf.userName
 
 Middleware
 ----------
@@ -371,26 +367,15 @@ Key functionality of ``django-jinja-knockout`` middleware is:
 
 .. highlight:: jinja
 
-* AJAX file upload via iframe emulation support for jQuery.ajaxForm() plugin in IE9 (minimally supported version of IE).
 * Setting current Django timezone via browser current timezone.
 * Getting current request in non-view functions and methods where Django provides no instance of request available.
 * Checking ``DJK_APPS`` applications views for the permissions defined as values of kwargs argument keys in `urls.py`_
   ``url()`` calls:
 
- * ``'ajax' key`` - ``True`` when view is required to be processed in AJAX request, ``False`` - required to be non-AJAX;
-
-   Missing key means that the view is allowed to be processed both as AJAX and non-AJAX. Such feature is used by
-   `grids`_ ``KoGridView`` to share traditional and AJAX requests by single CBV class. HTTP GET is processed as non-AJAX
-   Jinja2 template view, while HTTP POST is routed to AJAX methods of the same view.
  * ``'allow_anonymous' key`` - ``True`` when view is allowed to anonymous user (``False`` by default).
  * ``'allow_inactive' key`` - ``True`` when view is allowed to inactive user (``False`` by default).
  * ``'permission_required' key`` - value is the name of Django app / model permission string required for this view to
    be called.
- * ``'view_title' key`` - string value of view verbose name, that is displayed by default in `jinja2/base_head.htm`_ as::
-
-    {% if request.view_title %}
-        <title>{{ request.view_title }}</title>
-    {% endif %}
 
 All of the keys are optional but some have restricted default values.
 
@@ -410,7 +395,7 @@ Install ``django_jinja_knockout.middleware`` into `settings.py`_::
         'django_jinja_knockout.middleware.ContextMiddleware',
     )
 
-Then use it in a project::
+Then to use it in a project::
 
     from django_jinja_knockout.middleware import ContextMiddleware
 
@@ -428,7 +413,7 @@ and to get current request user::
 Extending middleware
 ~~~~~~~~~~~~~~~~~~~~
 
-It's possible to extend built-in `ContextMiddleware`_. In such case ``MIDDLEWARE_CLASSES`` in `settings.py`_ should
+It's possible to extend built-in `ContextMiddleware`_. In such case `DJK_MIDDLEWARE`_ string in `settings.py`_ should
 contain full name of the extended class. See `djk_sample.ContextMiddleware`_ for the example of extending middleware to
 enable logging of Django models performed actions via `content types framework`_.
 
@@ -445,15 +430,14 @@ The example of `urls.py`_ for DTL ``allauth`` templates::
     # Standard allauth DTL templates working together with Jinja2 templates via {% load jinja %}
     url(r'^accounts/', include('allauth.urls')),
 
-Note that ``accounts`` urls are not processed by ``DJK_MIDDLEWARE`` thus do not require ``is_anonymous`` or
+Note that ``accounts`` urls are not processed by the default `DJK_MIDDLEWARE`_ thus do not require ``is_anonymous`` or
 ``permission_required`` kwargs keys to be defined.
 
-The example of ``DJK_MIDDLEWARE`` view `urls.py`_ with AJAX requirement, view title and permission checking (anonymous /
+The example of `DJK_MIDDLEWARE`_ view `urls.py`_ with the view title value and with permission checking (anonymous /
 inactive users are not allowed by default)::
 
     url(r'^equipment-grid(?P<action>/?\w*)/$', EquipmentGrid.as_view(), name='equipment_grid', kwargs={
         'view_title': 'Grid with the available equipment',
-        'ajax': True,
         'permission_required': 'club_app.change_manufacturer'
     }),
 
@@ -462,8 +446,8 @@ Templates
 
 .. highlight:: jinja
 
-Integration of django-jinja-knockout into existing Django / Bootstrap 3 project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Integration of django-jinja-knockout into existing Django / Bootstrap project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your project base template uses ``Jinja2`` templating language, there are the following possibilities:
 
@@ -471,9 +455,14 @@ If your project base template uses ``Jinja2`` templating language, there are the
 * Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_. These are required to
   run client-side scripts like `app.js`_ and `grid.js`_.
 
-If your project base template uses Djanto Template Language (``DTL``), there are the following possibilities:
+If your project base template uses Django Template Language (``DTL``), there are the following possibilities:
 
 * Extend your ``base.html`` template from `templates/base_min.html (bs3)`_ / `templates/base_min.html (bs4)`_ template.
+* To ensure that `page_context`_ is always available in DTL template::
+
+    {% load page_context %}
+    {% init_page_context %}
+
 * Include styles from `jinja2/base_head.htm`_ and scripts from `jinja2/base_bottom_scripts.htm`_ via
   ``{% load jinja %}`` template tag library to your ``DTL`` template::
 
@@ -495,3 +484,4 @@ Template engines can be mixed with inclusion of Jinja2 templates from DTL templa
     {% jinja 'ko_grid_body.htm' with _render_=1 %}
 
 See `club_app/templates`_ for full-size examples of including Jinja2 templates from DTL templates.
+
