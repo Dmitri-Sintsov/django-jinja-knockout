@@ -327,3 +327,15 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``TemplateContext`` class is used to manage client-side data injection.
 * Less dependency on ``DJK_MIDDLEWARE``.
 * Templates / selenium test improvements.
+
+1.0.0
+-----
+* Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
+* ``MultipleKeyGridWidget`` allows to edit many to many relationships for Django models.
+* ``PageContext`` to inject view title / client data / client routes / custom scripts to templates via
+  ``TemplateResponse``.
+* ``App.renderValue`` supports jQuery elements / nested arrays / objects / strings HTML rendering.
+* ``App.renderNestedList`` supports optional unwrapping of single top DOM node.
+* Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` /
+  ``.closeVisiblePopovers()`` plugins.
+* Support for nested components in formsets.js (empty_form) 'anonymous_template' Knockout binding.
