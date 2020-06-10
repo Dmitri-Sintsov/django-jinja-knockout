@@ -1,10 +1,8 @@
-import re
 from collections import OrderedDict
 from copy import deepcopy
 from math import ceil
 
 from django.conf import settings
-from django.urls import re_path
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django.template import loader as tpl_loader
@@ -32,23 +30,6 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
     viewmodel_name = 'action'
     action_kwarg = 'action'
     default_action_name = 'meta'
-
-    @classmethod
-    def url_path(cls, name, base=None, args=None, kwargs=None):
-        if base is None:
-            base = name.replace('_', '-')
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
-        if len(args) > 0:
-            re_route_args = r'-' + r'-'.join([r'(?P<' + re.escape(arg) + r'>\w+)' for arg in args])
-        else:
-            re_route_args = r''
-        route = r'^' + re.escape(base) + \
-                re_route_args + \
-                r'(?P<action>/?\w*)/$'
-        return re_path(route, cls.as_view(), kwargs, name)
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

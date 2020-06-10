@@ -1,4 +1,5 @@
 import json
+import re
 from collections import OrderedDict
 from functools import wraps
 from urllib.parse import urlparse
@@ -6,6 +7,7 @@ from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
+from django.urls import re_path
 from django.template.response import TemplateResponse
 from django.utils.html import format_html, escape
 from django.utils.translation import gettext as _
@@ -139,11 +141,35 @@ class NavsList(list):
 
 class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
 
+    action_kwarg = None
     view_title = None
     client_data = None
     client_routes = None
     custom_scripts = None
     page_context = None
+
+    @classmethod
+    def get_re_path_for_arg(cls, arg):
+        if arg == cls.action_kwarg:
+            return r'(?P<' + re.escape(arg) + r'>/?\w*)'
+        elif arg.endswith('_id'):
+            return r'-(?P<' + re.escape(arg) + r'>\d+)'
+        else:
+            return r'-(?P<' + re.escape(arg) + r'>\w+)'
+
+    @classmethod
+    def url_path(cls, name, base=None, args=None, kwargs=None):
+        if base is None:
+            base = name.replace('_', '-')
+        if args is None:
+            args = []
+        if cls.action_kwarg is not None and cls.action_kwarg not in args:
+            args.append(cls.action_kwarg)
+        if kwargs is None:
+            kwargs = {}
+        re_route_args = r''.join([cls.get_re_path_for_arg(arg) for arg in args])
+        route = r'^' + re.escape(base) + re_route_args + r'/$'
+        return re_path(route, cls.as_view(), kwargs, name)
 
     def get_view_title(self):
         return self.view_title
