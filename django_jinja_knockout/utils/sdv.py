@@ -158,12 +158,14 @@ def get_class_that_defined_method(meth):
     return None
 
 
+def extend_class(base_cls, mixin_cls):
+    return type(base_cls.__name__, (base_cls, mixin_cls), {})
+
+
 # https://stackoverflow.com/questions/8544983/dynamically-mixin-a-base-class-to-an-instance-in-python
-def extend_instance(obj, cls):
+def extend_instance(obj, mixin_cls):
     """Apply mixins to a class instance after creation"""
-    base_cls = obj.__class__
-    base_cls_name = obj.__class__.__name__
-    obj.__class__ = type(base_cls_name, (base_cls, cls), {})
+    obj.__class__ = extend_class(obj.__class__, mixin_cls)
 
 
 def get_cbv_from_dispatch_wrapper(meth):
