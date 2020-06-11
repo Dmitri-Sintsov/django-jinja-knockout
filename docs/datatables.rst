@@ -47,6 +47,8 @@ Datatables
 
 .. _Model.get_str_fields(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_str_fields
 .. _NestedSerializer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NestedSerializer
+.. _re_path: https://docs.djangoproject.com/en/dev/ref/urls/#re-path
+.. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 
 .. _can_delete_relation(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=can_delete_relation
 .. _club_app.forms: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/forms.py
@@ -234,17 +236,20 @@ In your app view code (we use `club_app.views_ajax`_ in this example) create the
 
 Now let's add an url name (route) in `urls.py`_::
 
+    from django_jinja_knockout.urls import UrlPath
     from club_app.views_ajax import SimpleClubGrid
 
     # ... skipped ...
 
-    url(r'^club-grid-simple(?P<action>/?\w*)/$', SimpleClubGrid.as_view(), name='club_grid_simple',
-        kwargs={'view_title': 'Simple club grid', 'permission_required': 'club_app.change_club'}),
+    UrlPath(SimpleClubGrid)(
+        name='club_grid_simple',
+        kwargs={'view_title': 'Simple club grid', 'permission_required': 'club_app.change_club'}
+    ),
     # ... skipped ...
 
-``url()`` regex named capture group ``<action>`` will be used by ``KoGridView.post()`` method for class-based view
-kwargs value HTTP routing to provide grid pagination and optional CRUD actions. Custom actions might be implemented
-via ancestor classes of ``KoGridView``.
+`UrlPath`_ automatically generates `re_path`_ pattern with named capture group ``<action>`` used by
+``KoGridView.post()`` method for class-based view kwargs value HTTP routing to provide grid pagination and optional CRUD
+actions. Custom actions might be implemented via ancestor classes of ``KoGridView``.
 
 We assume that our datatable grid may later define actions which can change ``Club`` table rows, thus our view requires
 ``club_app.change_club`` permission from built-in ``django.contrib.auth`` module.
@@ -1106,9 +1111,11 @@ Foreign key filter
 
 Define it's url name (route) in `urls.py`_ in usual way::
 
-    url(r'^profile-fk-widget(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+    from django_jinja_knockout.urls import UrlPath
+
+    UrlPath(ProfileFkWidgetGrid)(
         name='profile_fk_widget',
-        # kwargs={'permission_required': 'club_app.change_profile'}),
+        # kwargs={'permission_required': 'club_app.change_profile'}
     ),
 
 Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget`` url name (route)::
@@ -1528,13 +1535,14 @@ Datatables (grids) support arbitrary number of built-in and custom actions besid
 not use HTTP method routing such as PUT DELETE, which would be too limiting approach. All of grid actions are performed
 as HTTP POST; Django class-based view kwarg ``action`` value in ``urls.py`` is used to determine the current action::
 
+    from django_jinja_knockout.urls import UrlPath
     from my_app.views import Model1Grid
 
     # ... skipped ...
-
-    url(r'^model1-grid(?P<action>/?\w*)/$', Model1Grid.as_view(), name='model1_grid',
-        kwargs={'permission_required': 'my_app.change_model1'}),
-
+    UrlPath(Model1Grid)(
+        name='model1_grid',
+        kwargs={'permission_required': 'my_app.change_model1'}
+    ),
     # ... skipped ...
 
 Value of ``action`` kwarg is normalized (leading '/' are stripped) and is stored in ``self.current_action_name``
@@ -1846,8 +1854,15 @@ has ``Member`` model related as many to one to ``Club`` model, grid that display
 (foreign key value) requires additional ``club_id`` view kwarg in ``urls.py``::
 
     # ... skipped ...
-    url(r'^club-member-grid-(?P<club_id>\w*)(?P<action>/?\w*)/$', ClubMemberGrid.as_view(), name='club_member_grid',
-        kwargs={'permission_required': 'my_app.change_member'}),
+    UrlPath(ClubMemberGrid)(
+        name='club_member_grid',
+        # Note that 'action' arg will be appended automatically,
+        # thus we have not specified it.
+        # However one may specify it to re-order capture patterns
+        # args=['action', 'club_id'],
+        args=['club_id],
+        kwargs={'permission_required': 'my_app.change_member'}
+    ),
     # ... skipped ...
 
 Then, grid class may filter base queryset according to received ``club_id`` view kwargs value::
@@ -2902,17 +2917,18 @@ saved::
 
 and finally to define ``'profile_fk_widget'`` url name in ``urls.py``::
 
+    from django_jinja_knockout.urls import UrlPath
     from club_app.views_ajax import ProfileFkWidgetGrid
-    # ... skipped ...
 
-    url(r'^profile-fk-widget(?P<action>/?\w*)/$', ProfileFkWidgetGrid.as_view(),
+    # ... skipped ...
+    UrlPath(ProfileFkWidgetGrid)(
         name='profile_fk_widget',
-        # kwargs={'permission_required': 'club_app.change_profile'}),
-        ),
-    url(r'^user-fk-widget(?P<action>/?\w*)/$', UserFkWidgetGrid.as_view(),
+        # kwargs={'permission_required': 'club_app.change_profile'}
+    ),
+    UrlPath(UserFkWidgetGrid)(
         name='user_fk_widget',
-        # kwargs={'permission_required': 'auth.change_user'}),
-        ),
+        # kwargs={'permission_required': 'auth.change_user'}
+    ),
 
 Typical usage of ModelForm such as ``MemberForm`` is to perform CRUD actions in views or in grids datatables with Django
 model instances. In such case do not forget to inject url name of ``'profile_fk_widget'`` to client-side for AJAX
@@ -3138,10 +3154,12 @@ Now define the widget grid for ``Tag`` model::
 
 it's url::
 
-    url(r'^tag-fk-widget(?P<action>/?\w*)/$', TagFkWidgetGrid.as_view(),
+    from django_jinja_knockout.urls import UrlPath
+
+    UrlPath(TagFkWidgetGrid)(
         name='tag_fk_widget',
-        # kwargs={'permission_required': 'club_app.change_tag'}),
-        ),
+        # kwargs={'permission_required': 'club_app.change_tag'},
+    ),
 
 and it's client-route::
 
