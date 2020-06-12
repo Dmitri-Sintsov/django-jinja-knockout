@@ -28,6 +28,7 @@ django-jinja-knockout
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
+.. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
@@ -143,6 +144,9 @@ Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVis
 plugins.
 
 Support for `Nested components`_ in formsets.js (`empty_form`_) ``'anonymous_template'`` Knockout binding.
+
+* `UrlPath`_ class supports automatic ``re_path()`` generation with positional named keyword arguments.
+
 
 .. _History: HISTORY.rst
 

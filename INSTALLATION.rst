@@ -276,12 +276,16 @@ and per class-based view::
 
 for ``urls.py`` like this::
 
+    from django_jinja_knockout.urls import UrlPath
     from my_blog.views import feed_view
     # ...
-    url(r'^blog-(?P<blog_id>\d+)/$', feed_view, name='blog_feed',
+    re_path(r'^blog-(?P<blog_id>\d+)/$', feed_view, name='blog_feed',
         kwargs={'ajax': True, 'permission_required': 'my_blog.add_feed'}),
-    url(r'^my-grid(?P<action>/?\w*)/$', MyGrid.as_view(), name='my_grid_url_name',
-        kwargs={'view_title': 'My Sample Grid'}),
+    UrlPath(MyGrid)(
+        name='my_grid_url_name',
+        base='my-grid',
+        kwargs={'view_title': 'My Sample Grid'}
+    ),
 
 to make the resolved url available in client-side scripts.
 
@@ -370,7 +374,7 @@ Key functionality of ``django-jinja-knockout`` middleware is:
 * Setting current Django timezone via browser current timezone.
 * Getting current request in non-view functions and methods where Django provides no instance of request available.
 * Checking ``DJK_APPS`` applications views for the permissions defined as values of kwargs argument keys in `urls.py`_
-  ``url()`` calls:
+  ``re_path()`` calls:
 
  * ``'allow_anonymous' key`` - ``True`` when view is allowed to anonymous user (``False`` by default).
  * ``'allow_inactive' key`` - ``True`` when view is allowed to inactive user (``False`` by default).
@@ -423,12 +427,12 @@ urls.py
 The example of `urls.py`_ for Jinja2 ``_allauth`` templates::
 
     # More pretty-looking but possibly not compatible with arbitrary allauth version:
-    url(r'^accounts/', include('django_jinja_knockout._allauth.urls')),
+    re_path(r'^accounts/', include('django_jinja_knockout._allauth.urls')),
 
 The example of `urls.py`_ for DTL ``allauth`` templates::
 
     # Standard allauth DTL templates working together with Jinja2 templates via {% load jinja %}
-    url(r'^accounts/', include('allauth.urls')),
+    re_path(r'^accounts/', include('allauth.urls')),
 
 Note that ``accounts`` urls are not processed by the default `DJK_MIDDLEWARE`_ thus do not require ``is_anonymous`` or
 ``permission_required`` kwargs keys to be defined.
@@ -436,10 +440,14 @@ Note that ``accounts`` urls are not processed by the default `DJK_MIDDLEWARE`_ t
 The example of `DJK_MIDDLEWARE`_ view `urls.py`_ with the view title value and with permission checking (anonymous /
 inactive users are not allowed by default)::
 
-    url(r'^equipment-grid(?P<action>/?\w*)/$', EquipmentGrid.as_view(), name='equipment_grid', kwargs={
-        'view_title': 'Grid with the available equipment',
-        'permission_required': 'club_app.change_manufacturer'
-    }),
+    from django_jinja_knockout.urls import UrlPath
+    UrlPath(EquipmentGrid)(
+        name='equipment_grid',
+        kwargs={
+            'view_title': 'Grid with the available equipment',
+            'permission_required': 'club_app.change_manufacturer'
+        }
+    ),
 
 Templates
 ---------

@@ -795,8 +795,10 @@ class GridActionsMixin(ModelFormActionsView):
 
 # AJAX version of filtered / sorted ListView which uses client-side grid.js script.
 #
-# In urls.py define
-#     url(r'^my-model-grid(?P<action>/?\w*)/$', MyModelGrid.as_view(), name='my_model_grid')
+# In urls.py define:
+#
+#     from django_jinja_knockout.urls import UrlPath
+#     UrlPath(MyModelGrid)(name='my_model_grid')
 # To browse specified Django model rows and columns.
 #
 # HTTP GET response is 'Content-Type: text/html' generated from template_name, which should have App.ko.Grid client-side

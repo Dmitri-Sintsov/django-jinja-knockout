@@ -28,6 +28,7 @@ Modules documentation
    models
    query
    tpl
+   urls
    utils_mail
    utils_sdv
    viewmodels

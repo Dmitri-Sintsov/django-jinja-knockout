@@ -339,3 +339,4 @@ Alternative breadcrumbs layout of field filters widgets.
 * Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` /
   ``.closeVisiblePopovers()`` plugins.
 * Support for nested components in formsets.js (empty_form) 'anonymous_template' Knockout binding.
+* ``UrlPath`` class supports automatic ``re_path()`` generation with positional named keyword arguments.
