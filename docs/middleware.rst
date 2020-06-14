@@ -100,8 +100,8 @@ Automatic timezone detection
 ----------------------------
 
 Automatic timezone detection and activation from the browser, which should be faster than using maxmind geoip database.
-Since version 0.3.0 it's possible to get timezone name string from current browser http request to use in the application
-(for example to pass it to celery task)::
+It's possible to get timezone name string from current browser http request to use in the application (for example to
+pass it to celery task)::
 
     ContextMiddleware.get_request_timezone()
 

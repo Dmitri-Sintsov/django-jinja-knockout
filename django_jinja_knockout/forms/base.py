@@ -17,7 +17,7 @@ from ..viewmodels import to_json
 from . import renderers
 
 
-# Form with self.request and attributes for renderer templates, which can be overriden in derived class.
+# Form with self.request and attributes for renderer templates, which can be overridden in derived class.
 class RendererModelForm(forms.ModelForm):
 
     # None value means that the default template from renderer class will be used.
@@ -43,7 +43,7 @@ class RendererModelForm(forms.ModelForm):
         return self.instance is not None and self.instance.pk is not None
 
 
-# Form with default renderers stylized for bootstrap which can be overriden in derived class.
+# Form with default renderers stylized for bootstrap which can be overridden in derived class.
 class BootstrapModelForm(RendererModelForm):
 
     class Meta(RendererModelForm.Meta):

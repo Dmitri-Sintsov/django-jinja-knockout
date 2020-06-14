@@ -98,8 +98,8 @@ Objects rendering
   * ``print_brackets()`` - print nested brackets list.
   * ``print_table()`` - print uniform 2D table (no colspan / rowspan yet).
   * ``print_bs_labels()`` - print HTML list as Bootstrap labels.
-  * ``reverseq()`` - construct url with query parameters from url name. Since version 0.4.0, when request instance is
-    supplied, absolute url will be returned.
+  * ``reverseq()`` - construct url with query parameters from url name. When request instance is supplied, absolute url
+    will be returned.
 
 * `str_dict()`_ - Django models could define :ref:`get_str_fields()` method which maps model instance field values to
   their formatted string values, similar to ``Model`` ``__str()__`` method, but for each or to some selected separate

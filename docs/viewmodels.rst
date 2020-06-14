@@ -192,8 +192,8 @@ Automatic AJAX POST is available with ``post`` viewmodel and even an AJAX callba
 ``post`` viewmodel AJAX response will be interpreted (routed) as the list of viewmodels - making chaining / nesting of
 HTTP POSTs easily possible.
 
-Since version 0.6.0, there are class-based `AJAX actions`_ available, which allow to bind multiple methods of the
-Javascript class instance to single viewmodel handler, to perform multiple actions bound to the one viewmodel name.
+There are class-based `AJAX actions`_ available, which allow to bind multiple methods of the Javascript class instance
+to single viewmodel handler: to perform multiple actions bound to the one viewmodel name.
 
 Defining custom viewmodel handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -669,9 +669,9 @@ value, then calling `App.vmRouter`_ ``.loadResponse()`` with the matching ``name
 
 AJAX actions
 ------------
-Since version 0.6.0, large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from
-`App.Actions`_ at client-side, which utilize the same viewmodel handler for multiple actions. It allows to structurize
-AJAX code and to build the client-server AJAX interaction more easily.
+Large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from `App.Actions`_ at
+client-side, which utilize the same viewmodel handler for multiple actions. It allows to structurize AJAX code and to
+build the client-server AJAX interaction more easily.
 
 `ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `App.ModelFormActions`_ and
 `App.GridActions`_ inherit from `App.Actions`_. See :doc:`datatables` for more info.

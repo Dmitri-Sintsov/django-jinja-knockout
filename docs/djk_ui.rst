@@ -43,7 +43,7 @@ Contains the default ``layout_classes`` values, for example for Bootstrap 4 v0.8
 where '' key specifies the layout classes of editable model forms, 'display' key specifies the layout classes of the
 display-only model forms.
 
-These default values can be overriden via the project `settings` module ``LAYOUT_CLASSES`` variable. See also
+These default values can be overridden via the project `settings` module ``LAYOUT_CLASSES`` variable. See also
 :ref:`forms_opts` for more info how layout classes are applied to form / formset renderers; see
 :ref:`macros_layout_classes` how layout classes are used in form / formset macros.
 

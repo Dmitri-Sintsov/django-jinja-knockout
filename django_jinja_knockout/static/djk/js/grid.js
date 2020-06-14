@@ -1175,7 +1175,7 @@ void function(GridActions) {
     // koAction: instance of App.ko.Action - visual representation of action in knockout template.
     GridActions.setLastKoAction = function(koAction) {
         this.lastKoAction = koAction;
-        // Do not remove this property, because it may be overriden separately via AJAX call result in this.respond().
+        // Do not remove this property, because it may be overridden separately via AJAX call result in this.respond().
         this.lastActionName = koAction.name;
     };
 
@@ -1555,7 +1555,7 @@ void function(Grid) {
             useInitClient : null,
         }, options);
         if (this.options.defaultOrderBy !== null) {
-            // Requires  separate 'meta' action to properly show initial overriden ordering.
+            // Requires  separate 'meta' action to properly show initial overridden ordering.
             this.options.separateMeta = true;
         }
         if (this.options.selectMultipleRows) {

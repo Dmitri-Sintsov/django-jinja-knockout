@@ -108,8 +108,8 @@ PrefillWidget
 -------------
 
 `PrefillWidget`_ - Django form input field which supports both free text and quick filling of input text value from
-the list of prefilled choices. Since version 0.6.0, `ListQuerySet`_ has ``prefill_choices()`` method, which allows to
-generate lists of choices for `PrefillWidget`_ initial values like this::
+the list of prefilled choices. `ListQuerySet`_ has ``prefill_choices()`` method, which allows to generate lists of
+choices for `PrefillWidget`_ initial values like this::
 
     from django_jinja_knockout.widgets import PrefillWidget
     from django_jinja_knockout.query import ListQuerySet

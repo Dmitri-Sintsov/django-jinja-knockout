@@ -135,9 +135,9 @@ Underscore.js templates
 Underscore.js templates can be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction with
 Knockout.js templates to generate components, for example AJAX grids (Django datatables).
 
-Since version 0.5.0 template processor was rewritten as `App.Tpl`_ class. It made possible to extend or to replace
-template processor class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom template processor class
-could override one of the (sub)templates loading methods ``.expandTemplate()`` or ``.compileTemplate()``.
+Template processor is implemented as `App.Tpl`_ class. It makes possible to extend or to replace template processor
+class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom template processor class could override one
+of the (sub)templates loading methods ``.expandTemplate()`` or ``.compileTemplate()``.
 
 In the underscore.js template execution context, the instance of `App.Tpl`_ class is available as ``self`` variable.
 Thus calling `App.Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
@@ -206,9 +206,8 @@ element's ``data-component-class`` html5 attribute and bind these to that elemen
 
 .. highlight:: html
 
-Since version 0.3.0, components can be also instantiated via target element event instead of document 'ready' event.
-To enable that, define ``data-event`` html5 attribute on target element. For example, to bind component classes to
-button 'click' / 'hover'::
+Components can be also instantiated via target element event instead of document 'ready' event. To enable that, define
+``data-event`` html5 attribute on target element. For example, to bind component classes to button 'click' / 'hover'::
 
     <button class="component"
         data-event="click"
@@ -231,9 +230,8 @@ is generated in Jinja2 macro, such as `ko_grid()`_::
 
 .. highlight:: javascript
 
-Version 0.3.0 also brings control over component binding and re-using. By default, current component instance is re-used
-when the same event is fired. To have component re-instantiated, one should save target element in component instance
-like this::
+By default, current component instance is re-used when the same event is fired multiple times. To have component
+re-instantiated, one should save target element in component instance like this::
 
     MyComponent.runComponent = function(elem) {
         this.componentElement = elem;

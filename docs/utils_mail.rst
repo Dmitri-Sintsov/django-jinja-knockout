@@ -33,9 +33,9 @@ framework to display sendmail errors::
         request=self.request
     )
 
-Since version 0.3.0, ``SendmailQueue`` class functionality could be extended by injecting ioc class. It allows to use
-database backend or non-SQL store to process emails in background, for example as `Celery`_ task. ``SendmailQueue``
-class ``.add()`` and ``.flush()`` methods could be overriden in ``self.ioc`` and new methods can be added as well.
+``SendmailQueue`` class functionality could be extended by injecting ioc class. It allows to use database backend or
+non-SQL store to process emails in background, for example as `Celery`_ task. ``SendmailQueue`` class ``.add()`` and
+``.flush()`` methods could be overridden in ``self.ioc`` and new methods can be added as well.
 
 ``uncaught_exception_email`` function can be used to monkey patch Django exception ``BaseHandler`` to use
 ``SendmailQueue`` to send the uncaught exception reports to selected email addresses.

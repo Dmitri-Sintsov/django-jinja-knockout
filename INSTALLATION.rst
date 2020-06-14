@@ -156,7 +156,7 @@ LAYOUT_CLASSES
 
 This optional setting allows to override default Bootstrap grid layout classes for `bs_form()`_ and
 `bs_inline_formsets()`_ Jinja2 macros used to display ``ModelForm`` and inline formsets in the `django-jinja-knockout`
-code. The default value is specified in ``djk_ui`` app ``conf`` module, but can be overriden in `settings.py`_::
+code. The default value is specified in ``djk_ui`` app ``conf`` module, but can be overridden in `settings.py`_::
 
     LAYOUT_CLASSES = {
         '': {

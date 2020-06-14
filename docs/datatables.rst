@@ -389,13 +389,13 @@ pagination and grid actions.
 
 .. highlight:: jinja
 
-Since version 0.4.1, ``ko_grid_body()`` macro includes two versions of filter field widgets:
+``ko_grid_body()`` macro includes two versions of filter field widgets:
 
 * ``ko_grid_filter_choices`` / ``ko_grid_filter_popup`` used by default, when filter values are selected via bootstrap
   drop-down menus.
 * ``ko_grid_breadcrumb_filter_choices`` / ``ko_grid_breadcrumb_filter_popup``, when filter values are displayed as
   bootstrap breadcrumbs. To activate this version of filter field widgets, one should call ``ko_grid_body()`` macro
-  like this (since version 0.5.0)::
+  like this::
 
     {{
         ko_grid_body(
@@ -482,8 +482,7 @@ Let's see some more advanced grid sample for the ``club_app.models.Member``, Dja
 
 See `club_app.views_ajax`_ for the full sample.
 
-Since version 0.4.1, client-side response of ``KoGridView`` `'list' action`_ returns only raw values of ``grid_fields``
-by default.
+Client-side response of ``KoGridView`` `'list' action`_ returns only raw values of ``grid_fields`` by default.
 
 * To include all field values, set class-level attribute ``exclude_fields`` of ``KoGridView`` ancestor to empty list.
 * To exclude some sensitive field values from client-side exposure, add these to ``exclude_fields`` list.
@@ -593,9 +592,9 @@ Nested verbose field names
 
 .. highlight:: python
 
-Since version 0.5.0, grid datatables and grid-based classes like `ForeignKeyGridWidget`_ support displaying verbose /
-localized field names of Django model instances with their values, including foreign key related model fields. It is
-supported in the following cases:
+Grid datatables and grid-based classes like `ForeignKeyGridWidget`_ support displaying verbose / localized field names
+of Django model instances with their values, including foreign key related model fields. It is supported in the
+following cases:
 
 * Related model fields display in grid cells;
 * Grid row actions;
@@ -1065,7 +1064,7 @@ example::
             ('is_endorsed', None),
         ])
 
-Since version 0.4.0 query filters support arrays of choices for filter value::
+Query filters support arrays of choices for filter value::
 
     class MemberGrid(KoGridView):
 
@@ -1164,8 +1163,8 @@ Now, to bind 'fk' widget for field ``Member.profile`` to ``profile-fk-widget`` u
                 }
             }
 
-Explicit definition of ``fkGridOptions`` in ``get_grid_options()`` result is not required since version 0.3.0, but it's
-useful to illustrate how foreign key filter widgets are nested:
+Explicit definition of ``fkGridOptions`` in ``get_grid_options()`` result is not required, but it's useful to
+illustrate how foreign key filter widgets are nested:
 
 * Define model ``Specialization``.
 * Add foreignKey field ``specialization = models.ForeignKey(Specialization, verbose_name='Specialization')`` to
@@ -1174,9 +1173,9 @@ useful to illustrate how foreign key filter widgets are nested:
 * Add url for ``SpecializationGrid`` with url name (route) ``'specialization_grid'`` to ``urls.py``.
 * Append ``'specialization_grid'`` entry to class ``MemberGrid`` attribute ``client_routes`` list.
 
-Since version 0.3.0, ``KoGridView`` is able to autodetect ``fkGridOptions`` of foreign key fields when these are
-specified in ``allowed_fitler_fields`` (see `discover_grid_options`_ for the implementation), making definitions of
-foreign key filters shorter and more DRY::
+``KoGridView`` is able to autodetect ``fkGridOptions`` of foreign key fields when these are specified in
+``allowed_fitler_fields`` (see `discover_grid_options`_ for the implementation), making definitions of foreign key
+filters shorter and more DRY::
 
     class MemberGrid(KoGridView):
 
@@ -1600,7 +1599,9 @@ Client-side action routing
 .. highlight:: javascript
 
 ``App.GridActions`` class defined in `grid.js`_ is used both to invoke grid actions and to process their results.
-Since version 0.6.0, ``App.GridActions`` uses ``App.Actions`` as the base class for client-side viewmodel routing.
+
+``App.GridActions`` uses ``App.Actions`` as the base class for client-side viewmodel routing.
+
 See :ref:`viewmodels_ajax_actions` for general introduction.
 
 Invocation of action
@@ -1905,8 +1906,8 @@ widgets may be filtered as well::
 Standard actions
 ================
 
-Since version 0.6.0 datatables (grids) are based on generic `views.ActionsView`_ class which allows to interact with
-any client-side AJAX component. See :ref:`viewmodels_ajax_actions` for more info.
+Datatables (grids) ``KoGridView`` is based on generic `views.ActionsView`_ class which allows to interact with any
+client-side AJAX component. See :ref:`viewmodels_ajax_actions` for more info.
 
 By default ``KoGridView`` and ``App.GridActions`` offer many actions that can be applied either to the whole grid or to
 one / few columns of grid. Actions can be interactive (represented as UI elements) and non-interactive.
@@ -2231,8 +2232,8 @@ See also `views.ModelFormActionsView`_ class ``action_save_form()`` and `views.G
 
 Client-side part of multiple CRUD operation is implemented in `grid.js`_ ``App.ko.Grid`` class ``updatePage()`` method.
 
-Since version 0.5.0, ``'update_rows'`` response processing internally uses ``App.ko.GridRow`` class ``.matchesPk()``
-method to check whether two grid rows match the same Django model instance, instead of direct ``pkVal`` comparsion.
+``'update_rows'`` response processing internally uses ``App.ko.GridRow`` class ``.matchesPk()`` method to check whether
+two grid rows match the same Django model instance, instead of direct ``pkVal`` comparsion.
 
 It is possible to override ``.matchesPk()`` method in child class for custom grid rows matching - for example in
 grids datatables with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null``, while
@@ -2509,7 +2510,7 @@ Allows to select the number of rows per grid (datatable) page via Bootstrap dial
 to observe more rows or to select more rows to perform subsequent mass-rows actions. When number of displayed rows is
 changed, it tries to keep the current top row visible.
 
-By default it allows to chose 1x to 5x steps from the current :ref:`installation_objects_per_page`. It can be overriden
+By default it allows to chose 1x to 5x steps from the current :ref:`installation_objects_per_page`. It can be overridden
 in child class by changing default ``'range'`` settings of action definition::
 
     from django_jinja_knockout.views import KoGridView
@@ -2564,7 +2565,7 @@ Default highlight mode is set via overriding current grid (datatable) like this:
 
 
 It is possible to disable some of highlight modes or to define new ones via `Client-side class overriding`_ and
-providing custom list of ``highlightModeRules`` values in overriden (inherited) grid (datatable) class.
+providing custom list of ``highlightModeRules`` values in overridden (inherited) grid (datatable) class.
 
 Traditional (non-AJAX) request `views.list.ListSortingView`_ also supports ``highlight_mode`` attribute with similar
 highlighting settings, but no dynamical change of current highlight mode.
@@ -3437,9 +3438,8 @@ definition(s)::
 
 .. highlight:: javascript
 
-Note that we override ``get_ko_meta()`` method (available since version 0.4.1), to automatically set the value of
-``meta.user_name`` observable in ``App.ko.Model1Grid`` Knockout.js bindings via ``App.ko.Grid`` class built-in
-``.loadMetaCallback()`` method.
+Note that we override ``get_ko_meta()`` method to automatically set the value of ``meta.user_name`` observable in
+``App.ko.Model1Grid`` Knockout.js bindings via ``App.ko.Grid`` class built-in ``.loadMetaCallback()`` method.
 
 Second step is to override ``uiActionTypes`` property of client-side ``App.ko.Grid`` class to add ``'button_bottom'`` to
 the list of interactive action types.
@@ -3561,9 +3561,9 @@ Knockout.js ``foreach: {data: actionTypes['button_bottom'], as: 'koAction'}`` bi
 ``'button'`` type actions binding, defined in `ko_grid_body.htm`_, with the exception that the buttons are placed below
 the grid table, not the above.
 
-Since version 0.6.0, there is built-in `Action type 'button_footer'`_ available, which displays grid action buttons
-below the grid rows, so this code is not requited anymore but still it provides an useful example to someone who wants
-to implement custom action types and their templates.
+There is built-in `Action type 'button_footer'`_ available, which displays grid action buttons below the grid rows, so
+this code is not requited in recent versions of the framework, but still it provides an useful example to someone who
+wants to implement custom action types and their templates.
 
 Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add `iconui`_ buttons with grid
 actions attached directly to datatable pagination list.
