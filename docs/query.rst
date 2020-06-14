@@ -11,6 +11,8 @@ query.py
 FilteredRawQuerySet
 -------------------
 
+.. highlight:: python
+
 ``FilteredRawQuerySet`` inherits Django ``RawQuerySet`` class whose instances are returned by Django model object manager
 ``.raw()`` calls.
 
@@ -22,14 +24,26 @@ These methods are used by filtering / ordering code in `ListSortingView`_ and `K
 See `FilteredRawQuerySet sample`_ in ``djk-sample`` project source code for a complete example of AJAX grid with
 raw query which has ``LEFT JOIN`` statement.
 
-Since version 0.4.0 it supports args with Q objects.
+Since version 0.4.0 it supports args with Q objects via ``relation_map`` argument::
+
+    raw_qs = Profile.objects.raw(
+        'SELECT club_app_profile.*, club_app_member.is_endorsed, '
+        'auth_user.username AS user__username, '
+        'CONCAT_WS(\' \', auth_user.last_name, auth_user.first_name) AS fio '
+        'FROM club_app_profile '
+        'LEFT JOIN club_app_member ON club_app_profile.user_id = club_app_member.profile_id AND '
+        'club_app_member.project_id=%s AND club_app_member.role=%s '
+        'JOIN auth_user ON auth_user.id = club_app_profile.user_id ',
+        params=[self.project.pk, 'watch'],
+    )
+    fqs = FilteredRawQuerySet.clone_raw_queryset(
+        raw_qs=raw_qs, relation_map={'is_endorsed': 'member'}
+    )
 
 ListQuerySet
 ------------
 ``ListQuerySet`` implements large part of Django queryset functionality for Python lists of Django model instances.
 Such lists are returned by Django queryset ``.prefetch_related()`` method.
-
-.. highlight:: python
 
 This allows to have the same logic of processing queries with both ``.prefetch_related()`` applied results and without
 them. For example, imagine one have two querysets::

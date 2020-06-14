@@ -239,7 +239,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'django-jinja-knockout', u'django-jinja-knockout Documentation',
-   u'Dmitriy Sintsov', 'django-jinja-knockout', 'One line description of project.',
+   u'Dmitriy Sintsov', 'django-jinja-knockout', 'Paginated datatables and datatable widgets for Django.',
    'Miscellaneous'),
 ]
 

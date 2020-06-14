@@ -1,10 +1,16 @@
 .. _Class-Based views: https://docs.djangoproject.com/en/dev/topics/class-based-views/
 .. _re_path: https://docs.djangoproject.com/en/dev/ref/urls/#re-path
-.. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=urlpath
+.. _UrlPath: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=UrlPath
+.. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 =======
 urls.py
 =======
+
+.. _urls_urlpath:
+
+UrlPath
+-------
 
 .. highlight:: python
 
@@ -96,6 +102,9 @@ is equivalent to re_path::
     re_path(r'^club-detail-(?P<club_id>\d+)/$', ClubDetail.as_view(),
         name='club_detail', kwargs={'view_title': '{}'}),
 
+Note that ``_id`` suffix in ``club_id`` name of ``UrlPath`` call ``args`` causes ``\d+`` pattern to be generated instead
+of ``\w*``.
+
 ActionsView / KoGridView (view.action_kwarg = 'action')
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 UrlPath::
@@ -126,7 +135,8 @@ UrlPath::
 
 is equivalent to re_path::
 
-    re_path(r'^actions-view(?P<action>/?\w*)-(?P<club_id>\d+)/$', name='actions_view', kwargs={
+    re_path(r'^actions-view(?P<action>/?\w*)-(?P<club_id>\d+)/$', MyActionsView.as_view(),
+            name='actions_view', kwargs={
             'view_title': 'Club actions',
         }),
 
@@ -142,8 +152,9 @@ UrlPath::
 
 is equivalent to re_path::
 
-    re_path(r'^clubs-(?P<club_id>\d+)-(?P<type>\w*)(?P<action>/?\w*)/$', name='club_grid',
+    re_path(r'^clubs-(?P<club_id>\d+)-(?P<type>\w*)(?P<action>/?\w*)/$', ClubGrid.as_view(),
+            name='club_grid',
             kwargs={'view_title': 'Club list',
             'permission_required': 'club_app.view_club'}),
 
-* For introduction to viewmodels, see :doc:`viewmodels`.
+* See `urls.py`_ from djk_sample for the complete working example of UrlPath usage.

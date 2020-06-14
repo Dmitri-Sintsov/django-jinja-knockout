@@ -9,9 +9,14 @@
 .. _djk-sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _djk_seed: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/management/commands/djk_seed.py
 .. _dump_data: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=dump_data
+.. _FilteredRawQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#filteredrawqueryset
 .. _fixtures_order: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=fixtures_order
+.. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#foreignkeygridwidget
 .. _.has_fixture(): https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=has_fixture
+.. _KoGridView: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
+.. _ListQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#listqueryset
 .. _modelFormAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=modelFormAction&utf8=%E2%9C%93
+.. _MultipleKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#multiplekeygridwidget
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
 .. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
@@ -38,12 +43,12 @@ History
 -----
 * Django 1.8 / 1.9 / 1.10, Python 3.4 / 3.5 support.
 * ``djk-sample`` demo / automated testing project.
-* "django.admin-like" AJAX functionality implemented via ``KoGridView`` class-based view.
+* "django.admin-like" AJAX functionality implemented via `KoGridView`_ class-based view.
 * ``$.inherit()`` Javascript prototype inheritance function now supports multi-level inheritance with nested
   ``._super._call()``.
-* ``FilteredRawQuerySet`` supports Django raw querysets with ``.filter()`` / ``.exclude()`` / ``.order_by()`` /
+* `FilteredRawQuerySet`_ supports Django raw querysets with ``.filter()`` / ``.exclude()`` / ``.order_by()`` /
   ``.values()`` / ``.values_list()`` and SQL level slicing.
-* ``ForeignKeyGridWidget`` provides ``ForeignKeyRawIdWidget`` -like functionality via AJAX query / response in non-admin
+* `ForeignKeyGridWidget`_ provides ``ForeignKeyRawIdWidget`` -like functionality via AJAX query / response in non-admin
   forms to select ModelForm foreign key values.
 * Client-side generation of view urls with kwargs in Javascript client-side routes via ``App.routeUrl()``.
 * Nested autocompiled underscore.js client-side templates for Javascript components, primarily used with Knockout.js,
@@ -53,8 +58,8 @@ History
 -----
 * ``ContentTypeLinker`` - added method to return html representation of content types framework related object (html
   link with the description by default).
-* ``FilteredRawQuerySet`` now supports more precise ``.count()`` method to calculate the length of raw queryset.
-* ``ListQuerySet`` implements large part of queryset methods for the lists of Django model instances. Such lists are
+* `FilteredRawQuerySet`_ now supports more precise ``.count()`` method to calculate the length of raw queryset.
+* `ListQuerySet`_ implements large part of queryset methods for the lists of Django model instances. Such lists are
   created by Django queryset ``.prefetch_related()`` method.
 * Auto-highlight bootstrap navs which have 'auto-highlight' css class at client-side.
 * ``bs_tabs()`` Jinja2 macro which simplifies generation of bootstrap tabs. Bootstrap tabs now support automatic
@@ -66,7 +71,7 @@ History
     `bs_list.htm`_ Jinja2 template. This allows to override default messages for field filters / no match reports in
     the grid classes.
 
-* ``KoGridView`` has multiple improvements:
+* `KoGridView`_ has multiple improvements:
 
   * ``decimal`` field filter is renamed to ``number`` as now it supports both Django model ``DecimalField`` and
     ``IntegerField``.
@@ -84,7 +89,7 @@ History
     kwargs based options).
   * Enable quick selection / deselection of currently displayed grid rows when ``selectMultipleRows`` is ``true``.
 
-* ``ForeignKeyGridWidget`` also autodetects foreign key filter ``fkGridOptions``.
+* `ForeignKeyGridWidget`_ also autodetects foreign key filter ``fkGridOptions``.
 * ``SendmailQueue`` supports extension of ``add()`` / ``flush()`` methods via ioc class.
 * ``SendmailQueue`` may be used to send uncaught exception emails when running in production mode.
 
@@ -122,7 +127,7 @@ middleware.py
 
 query.py
 ~~~~~~~~
-* ``FilteredRawQuerySet`` supports Q expressions (Q objects) with relation mapping.
+* `FilteredRawQuerySet`_ supports Q expressions (Q objects) with relation mapping.
 
 views submodule
 ~~~~~~~~~~~~~~~
@@ -153,7 +158,7 @@ ko_grid_body.htm
 grid.js
 ~~~~~~~
 * Reset filter now uses ``undefined`` value instead of ``null`` value because filtering by ``None`` value is now
-  supported in ``KoGridView``.
+  supported in `KoGridView`_.
 * ``App.ko.GridRow`` class ``display()`` method now automatically picks nested relation value from nested  ``strFields``
   value, when available. That allows to traverse nested ``get_str_fields()`` values automatically.
 
@@ -175,7 +180,7 @@ the possibility of preview glitches due to wrong guess of resource type.
 -----
 Support of the ``'choices' filter`` option ``multiple_choices``: ``True`` in  non-AJAX ``ListSortingView``. That allows
 to perform ``in`` field lookups for the selected field filter which was previously available only in AJAX
-``KoGridView``.
+`KoGridView`_.
 
 Large monolithic ``views.py`` split into smaller parts with symbols exported via module ``__init__.py`` for the
 convenience and compatibility.
@@ -195,7 +200,7 @@ Alternative breadcrumbs layout of field filters widgets.
 0.5.0
 -----
 * Reworked recursive underscore.js template processor as ``App.Tpl`` class.
-* Grid rows, grid row actions and ``ForeignKeyGridWidget`` placeholder now are displaying Django model instances verbose
+* Grid rows, grid row actions and `ForeignKeyGridWidget`_ placeholder now are displaying Django model instances verbose
   field names along with their values. Related model fields verbose names are displayed as well.
 * Client-side components code now uses separate html5 data attribute ``data-component-class`` to bind DOM subtrees to
   Javascript component classes (for example grids), instead of placing everything into ``data-component-options``
@@ -207,7 +212,7 @@ Alternative breadcrumbs layout of field filters widgets.
   grid. Much better tests coverage in `djk-sample`_ project. Many new Selenium commands are implemented, including
   ``screenshot`` command.
 * ``ko_generic_inlineformset_factory`` supports dynamic adding / removal of generic inline formsets.
-* ``FilteredRawQuerySet`` / ``ListQuerySet`` queryset classes ``values()`` and ``values_list()`` methods now support
+* `FilteredRawQuerySet`_ / `ListQuerySet`_ queryset classes ``values()`` and ``values_list()`` methods now support
   model relations in queried field names via ``__`` separator, just like usual Django querysets.
 * Numerous bugfixes.
 
@@ -236,12 +241,12 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``App.objByPath`` / ``App.newClassByPath`` is used by ``App.Tpl`` class factories.
 * ``App.ko.Grid.iocKoFilter_*`` methods now are orthogonal thus are easier to override.
 * Grid dialogs default hotkeys (``Escape``, ``Enter``).
-* ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu. ``ListQuerySet``
+* ``widgets.PrefillWidget`` - field widget to prefill form input value from bootstrap 3 dropdown menu. `ListQuerySet`_
   now has ``prefill_choices()`` method, which may provide prefill values for the form field from db field list of values.
 * ``.badge.btn-*`` CSS classes which can be used to wrap long text in bootstrap buttons.
 * Separate ``admin.js`` script to enable client-side of ``OptionalWidget`` in django admin.
 * ``App.ko.Grid`` actions ``meta`` / ``list`` / ``meta_list`` first requests passing HTTP POST ``firstLoad`` variable to
-  detect the initial grid datatable action at server-side in ``KoGridView`` derived class.
+  detect the initial grid datatable action at server-side in `KoGridView`_ derived class.
 * Fixed selection of all current page grid datatable rows at miltiple grid datatable pages.
 * `plugins.js`_: ``jQuery.id()`` to get multiple DOM ids, ``_.moveOptions()`` to move options with possible default
   values. ``highlightListUrl`` jQuery function bugfixes.
@@ -311,7 +316,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * middleware : ``json_response()`` shortcut method.
 * ``RendererModelForm`` ``.has_saved_instance()`` method to check whether current Django ModelForm has the bound and
   saved instance.
-* ``ListQuerySet``: implemented ``|`` ``+`` operators.
+* `ListQuerySet`_: implemented ``|`` ``+`` operators.
 * ``DjkJSONEncoder``: moved to ``tpl`` module. Encoding improvements.
 * Refactored forms module to forms package with base / renderers / validators modules.
 * HTTP response related classes / methods are moved to ``http`` module.
@@ -331,7 +336,7 @@ Alternative breadcrumbs layout of field filters widgets.
 1.0.0
 -----
 * Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
-* ``MultipleKeyGridWidget`` allows to edit many to many relationships for Django models.
+* `MultipleKeyGridWidget`_ allows to edit many to many relationships for Django models.
 * ``PageContext`` to inject view title / client data / client routes / custom scripts to templates via
   ``TemplateResponse``.
 * ``App.renderValue`` supports jQuery elements / nested arrays / objects / strings HTML rendering.
@@ -339,4 +344,4 @@ Alternative breadcrumbs layout of field filters widgets.
 * Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` /
   ``.closeVisiblePopovers()`` plugins.
 * Support for nested components in formsets.js (empty_form) 'anonymous_template' Knockout binding.
-* ``UrlPath`` class supports automatic ``re_path()`` generation with positional named keyword arguments.
+* ``UrlPath`` class for automatic ``re_path()`` generation with positional named keyword arguments.
