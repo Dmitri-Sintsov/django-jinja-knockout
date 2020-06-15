@@ -362,10 +362,10 @@ The following keys are mutually exclusive:
 
 * ``html`` - html of tab pane. Use Jinja 2.8+ ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
   such as grid, ModelForm, inline formset and so on;
-* ``template_id`` - since version 0.8.0 one may specifify underscore.js template id which will be expanded to tab pane
-  when the user switches to that pane, instead of ``html`` which loads the content to the tab immediately. It may be
-  used to delay loading of Javascript components, eg. datatables (grids). See :ref:`clientside_underscore_js_templates`
-  and :ref:`clientside_components` for more info.
+* ``template_id`` - one may specifify underscore.js template id which will be expanded to tab pane when the user
+  switches to that pane, instead of ``html`` which loads the content to the tab immediately. It may be used to delay
+  loading of Javascript components, eg. datatables (grids). See :ref:`clientside_underscore_js_templates`  and
+  :ref:`clientside_components` for more info.
 
 Optional key-value pairs:
 

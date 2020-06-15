@@ -20,8 +20,7 @@ Forms
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=standaloneformrenderer
 .. _validators module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/validators.py
 
-Since version 0.8.1, forms module is refactored into `forms package`_ with `base module`_ / `renderers module`_ / and
-`validators module`_.
+forms module is refactored into `forms package`_ with `base module`_ / `renderers module`_ / and `validators module`_.
 
 .. _forms_renderers:
 
@@ -30,11 +29,11 @@ Renderers
 
 See `renderers module`_ for source code.
 
-Since version 0.8.0, django-jinja-knockout uses `Renderer`_ derived classes to display Django model forms and inline
-formsets. Recent versions of Django utilize renderers with templates to display form field widgets. There are some
-packages that use renderers with templates to generate the whole forms. In addition to that, django-jinja-knockout uses
-renderers to generate the formsets with the related forms, which follows Django DRY approach. It's possible to override
-the displayed HTML partially or completely.
+django-jinja-knockout uses `Renderer`_ derived classes to display Django model forms and inline formsets. Recent
+versions of Django utilize renderers with templates to display form field widgets. There are some packages that use
+renderers with templates to generate the whole forms. In addition to that, django-jinja-knockout uses renderers to
+generate the formsets with the related forms, which follows Django DRY approach. It's possible to override the displayed
+HTML partially or completely.
 
 The base `Renderer`_ class is located in `tpl` module and is not tied to any field / form / formset. It may be used in
 any template context.
@@ -261,8 +260,8 @@ form class from `RendererModelForm`_ class::
 By default, in case there are no custom templates / no custom renderers specified, `render_form()`_ will use the default
 renderers from `BootstrapModelForm`_ ``Meta`` class, which would stylize model form with Bootstrap attributes.
 
-Since v0.8.1, `RendererModelForm`_ class also implemented ``.has_saved_instance()`` method used to check whether current
-Django ModelForm has the bound and saved instance.
+`RendererModelForm`_ class ``.has_saved_instance()`` method used to check whether current Django ModelForm has the bound
+and saved instance.
 
 AJAX forms processing
 ---------------------

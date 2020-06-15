@@ -502,8 +502,8 @@ Foreign key relationship spans are supported too.
 Compound columns
 ~~~~~~~~~~~~~~~~
 
-Since version 0.7.0, compound columns are supported. In the example above, 8 fields will be displayed in 5 columns,
-conserving horizontal display space of datatable row:
+Compound columns are supported. In the example above, 8 fields will be displayed in 5 columns, conserving horizontal
+display space of datatable row:
 
 .. list-table:: MemberGrid
    :widths: 20 20 20 20 20
@@ -819,8 +819,7 @@ property. See `'list' action`_ for more info.
 
 .. highlight:: python
 
-Since v0.8.0, `Model.get_str_fields()`_ is also used to serialize model instances by `NestedSerializer`_, when
-available.
+`Model.get_str_fields()`_ is also used to serialize model instances by `NestedSerializer`_, when available.
 
 Client-side class overriding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1458,8 +1457,8 @@ Full code::
 See `member_grid_tabs.htm`_, `member-grid.js`_, `club_app.views_ajax`_ for the complete example.
 
 It's also possible to use different layout for the different cells of datatable row via custom ``ko_grid_table``
-template. Since version 0.8.0, there is ``val()`` method of grid row to access raw data values (eg. html attributes)
-and ``grid_cell`` binding to render individial (non-compound) row cells::
+template. Use ``val()`` method of grid row to access raw data values (eg. html attributes) and ``grid_cell`` binding to
+render individual (non-compound) row cells::
 
     <script type="text/template" id="agenda_ko_grid_table">
         <div class="agenda-wrapper" data-top="true">
@@ -1655,7 +1654,7 @@ Javascript invocation of interacive action with specified target grid row when g
   ``actionOptions`` argument, usually to extend queryargs of action AJAX POST request, but might be used to pass custom
   data to client-side actions as well.
 
-Since version 0.8.0, there is ``App.ko.Grid`` class ``.performAction()`` method to invoke the datatable action::
+``App.ko.Grid`` class ``.performAction()`` method is used to invoke the datatable action::
 
     App.ko.Grid.performAction = function(actionName, actionType, actionOptions)
 
@@ -1916,7 +1915,7 @@ Actions can be executed as one or multiple AJAX requests or be partially / purel
 `views.ActionsView`_ / `views.GridActionsMixin`_ `.get_actions()`_ method returns dict defining built-in actions
 available. Top level of that dict is current ``action type``.
 
-Since version 0.7.0 action defitions do not require to have ``'enabled'``: ``True`` to be set. The action is considered
+Action definitions do not require to have ``'enabled'``: ``True`` to be set explicitly. The action is considered
 to be enabled by default. That shortens the list of action definitions. To conditionally disable action, set
 ``'enabled`` key of action definition dict to ``False`` value. See built-in `.get_actions()`_ method for example.
 
@@ -2100,9 +2099,9 @@ See `club_app.views_ajax`_, `club_grid_with_action_logging.htm`_ for fully featu
 .. highlight:: Python
 
 Sometimes one html page may include large number of ``App.ko.Grid`` components. When loaded, it would cause large number
-of simultaneous AJAX requests, slowing the performance and causing increased server load. Since v0.8.1, one may preload
-the initial `'meta_list' action`_ request at server-side by setting `views.KoGridView`_ ``grid_options`` dictionary
-attrubute ``preload_meta_list`` to ``True``::
+of simultaneous AJAX requests, slowing the performance and causing increased server load. One may preload the initial
+`'meta_list' action`_ request at server-side by setting `views.KoGridView`_ ``grid_options`` dictionary attribute
+``preload_meta_list`` to ``True``::
 
     class ClubMemberGrid(KoGridView):
 
@@ -2113,7 +2112,7 @@ attrubute ``preload_meta_list`` to ``True``::
             'preload_meta_list': True,
         }
 
-Server-side preloaded result of `'meta_list' action`_ then will be passed to client-side datatable (grid) via
+Server-side preloaded result of `'meta_list' action`_ later will be passed to client-side datatable (grid) via
 `ko_grid() macro`_ ``preloadedMetaList`` option.
 
 `'meta list' action preload` may fail in the following cases:
@@ -2498,9 +2497,8 @@ types.
 
 Action type 'pagination'
 ------------------------
-This type of actions is available since version 0.7.0. These actions add iconui buttons directly to pagination
-control of current grid (datatable). They may be applied to the whole grid or to the selected grid rows, similarly to
-`Action type 'button'`_.
+Actions of ``pagination`` type adds iconui buttons directly to pagination control of the current grid (datatable). These
+actions may be applied to the whole grid or to the selected grid rows, similarly to `Action type 'button'`_.
 
 The following built-in actions of this type are implemented:
 
@@ -2576,8 +2574,8 @@ These actions are designed to process already displayed grid (datatable) row, as
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
 are visually displayed as iconui links in separate columns of grid.
 
-Since version 0.7.0 iconui actions are rendered in the single column of datatable, instead of each action per column
-for better utilization of the display space.
+iconui actions are rendered in the single column of datatable, instead of each action per column for better utilization
+of the display space.
 
 By default there is no ``iconui`` type actions enabled. But there is one standard action of such type implemented
 for ``KoGridView``: `'delete' action`_.
@@ -3565,8 +3563,8 @@ There is built-in `Action type 'button_footer'`_ available, which displays grid 
 this code is not requited in recent versions of the framework, but still it provides an useful example to someone who
 wants to implement custom action types and their templates.
 
-Since version 0.7.0, there is built-in `Action type 'pagination'`_ which allows to add `iconui`_ buttons with grid
-actions attached directly to datatable pagination list.
+There is built-in `Action type 'pagination'`_ which allows to add `iconui`_ buttons with grid actions attached directly
+to datatable pagination list.
 
 Grids API
 ---------

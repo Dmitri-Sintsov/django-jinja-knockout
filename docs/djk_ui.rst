@@ -12,8 +12,7 @@
 djk_ui
 ======
 
-Since v0.8.0, django-jinja-knockout supports both `Bootstrap 3`_ and `Bootstrap 4`_ via the ``djk_ui`` Django
-application module.
+django-jinja-knockout supports both `Bootstrap 3`_ and `Bootstrap 4`_ via the ``djk_ui`` Django application module.
 
 ``djk_ui`` module is installed from `djk-bootstrap3`_ / `djk-bootstrap4`_ packages, respectively. This means that
 `djk-bootstrap3`_ and `djk-bootstrap4`_ packages are mutually exclusive and only one has to be installed in the project
@@ -27,7 +26,7 @@ that's not much of problem.
 
 conf.py
 -------
-Contains the default ``layout_classes`` values, for example for Bootstrap 4 v0.8.0 that is::
+Contains the default ``layout_classes`` values, for example for Bootstrap 4 (version 1.0.0)::
 
     LAYOUT_CLASSES = {
         '': {

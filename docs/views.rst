@@ -110,10 +110,10 @@ with built-in extensible :doc:`viewmodels`. By default AJAX supports class-based
 client-side redirect on success which can be replaced to another AJAX viewmodel handler via overriding this method in
 derived view class.
 
-Since version 0.7.1, setting class attribute `ajax_refresh`_ value to ``True`` causes the successful AJAX submission of
-the form with the inline formsets to refresh the form HTML with just saved values instead of `.get_success_url()`_
-redirect to another url. That is useful when the additional client-side processing is required, or when the form is the
-part of some component, like :ref:`macros_bs_tabs` tab.
+Setting class attribute `ajax_refresh`_ value to ``True`` causes the successful AJAX submission of the form with the
+inline formsets to refresh the form HTML with just saved values instead of `.get_success_url()`_ redirect to another url.
+This is useful when the additional client-side processing is required, or when the form is the part of some component,
+like :ref:`macros_bs_tabs` tab.
 
 Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
 supported via Knockout.js custom bindings with XSS protection, which are generated via `set_knockout_template`_ function
@@ -133,8 +133,8 @@ BsTabsMixin
 -----------
 * ``BsTabsMixin`` - automatic template context processor for CBV's, which uses ``prepare_bs_navs()`` function and
   :ref:`macros_bs_navs` jinja2 macro to navigate through the navbar list of visually grouped Django view links.
-* ``prepare_bs_navs()`` - highlight current url of Bootstrap navbar. Since version 0.8.0 it's possible to override
-  the highlighted navbar link by specifying navs[]['attrs']['class'] = 'active' value.
+* ``prepare_bs_navs()`` - highlight current url of Bootstrap navbar. It's possible to override the highlighted navbar
+  link by specifying navs[]['attrs']['class'] = 'active' value.
 
 To implement server-side tabs navigation, one should define class inherited from `BsTabsMixin`_ with custom
 `.get_main_navs()`_ method of this class. For the example::
@@ -183,9 +183,9 @@ Then every class which uses the tabs should inherit (mix) from ClubNavsMixin::
         def get_success_url(self):
             return reverse('club_detail', kwargs={'club_id': self.object.pk})
 
-Since v0.8.0, ``main_navs`` may be the instance of `NavsList`_ type, which holds ``props`` dict attribute, allowing to
-pass extra data to Jinja2 template which then would call :ref:`macros_bs_navs` Jinja2 macro. That allows to set the
-navbar menu CSS styles dynamically via `NavsList`_ ``props``.
+``main_navs`` may be the instance of `NavsList`_ type, which holds ``props`` dict attribute, allowing to pass extra data
+to Jinja2 template which then would call :ref:`macros_bs_navs` Jinja2 macro. That allows to set the navbar menu CSS
+styles dynamically via `NavsList`_ ``props``.
 
 .. _views_listsortingview:
 

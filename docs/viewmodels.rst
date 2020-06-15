@@ -99,7 +99,7 @@ argument of their particular handler:
 
 .. highlight:: javascript
 
-Now, how to execute these viewmodels we defined actually? At Javascript side it's a simple call (since version 0.7.0)::
+Now, how to execute these viewmodels we defined actually? At Javascript side it's a simple call::
 
     App.vmRouter.respond(viewmodels);
 
@@ -165,7 +165,7 @@ Viewmodel data format
 Key ``'view'`` of each Javascript object / Python dict in the list specifies the value of ``viewmodel name``, that is
 bound to particular Javascript ``viewmodel handler``. The viewmodel itself is used as the Javascript object argument of
 each particular ``viewmodel handler`` with the corresponding keys and their values. The following built-in viewmodel
-names currently are available in `app.js`_ (since version 0.7.0)::
+names currently are available in `app.js`_::
 
     [
         'redirect_to',

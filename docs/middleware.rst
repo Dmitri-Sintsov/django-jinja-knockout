@@ -132,8 +132,7 @@ Request mock-up
 
 .. highlight:: python
 
-Since version 0.7.0 it is possivble to mock-up requests in console mode (management commands) to resolve reverse URLs
-fully qualified names like this::
+It's possible to mock-up requests in console mode (management commands) to resolve reverse URLs fully qualified names::
 
     from django_jinja_knockout.apps import DjkAppConfig
     from django_jinja_knockout import tpl
@@ -148,9 +147,9 @@ or ``settings``. ``ALLOWED_HOSTS`` should be set to autodetect current domain na
 Mini-router
 -----------
 
-Since version 0.7.0 inherited middleware classes (see :ref:`installation_djk_middleware` settings) support built-in mini
-router, which could be used to implement CBV-like logic in the middleware class itself, either via request path string
-match or via the regexp match::
+Inherited middleware classes (see :ref:`installation_djk_middleware` settings) support built-in mini router, which could
+be used to implement CBV-like logic in the middleware class itself, either via request path string match or via the
+regexp match::
 
     class ContextMiddleware(RouterMiddleware):
 
