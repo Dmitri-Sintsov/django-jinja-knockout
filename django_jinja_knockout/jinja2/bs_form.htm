@@ -13,5 +13,12 @@
 }) }}
 {% endmacro -%}
 {% if _render_ -%}
-{{ bs_form(form, action, opts) }}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'form': form,
+            'action': action,
+            'opts': opts,
+        } -%}
+    {% endif -%}
+    {{ bs_form(**_render_) }}
 {% endif -%}

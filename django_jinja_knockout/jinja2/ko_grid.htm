@@ -70,15 +70,12 @@ Optional caller support.
 {% endif -%}
 {% endmacro -%}
 {% if _render_ -%}
-    {% if not template_args is defined -%}
-        {% set template_args = {} -%}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'grid_options': grid_options,
+            'template_args': template_args or None,
+            'dom_attrs': dom_attrs or None,
+        } -%}
     {% endif -%}
-    {% if not dom_attrs is defined -%}
-        {% set dom_attrs = {} -%}
-    {% endif -%}
-    {{ ko_grid(
-        grid_options,
-        template_args=template_args,
-        dom_attrs=dom_attrs,
-    ) }}
+    {{ ko_grid(**_render_) }}
 {% endif -%}

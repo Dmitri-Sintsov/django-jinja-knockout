@@ -80,6 +80,14 @@
 </card-default>
 {% endmacro -%}
 {% if _render_ -%}
-{% call(kwargs) bs_inline_formsets(form, formsets, action, opts) -%}
-{% endcall -%}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'related_form': form,
+            'formsets': formsets,
+            'action': action,
+            'opts': opts,
+        } -%}
+    {% endif -%}
+    {% call(kwargs) bs_inline_formsets(**_render_) -%}
+    {% endcall -%}
 {% endif -%}

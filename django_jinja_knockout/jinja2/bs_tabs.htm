@@ -73,5 +73,12 @@
 </div>
 {% endmacro -%}
 {% if _render_ -%}
-    {{ bs_tabs(tabs) }}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'tabs': tabs or None,
+            'tabs_attrs': tabs_attrs or None,
+            'content_attrs': content_attrs or None,
+        } -%}
+    {% endif -%}
+    {{ bs_tabs(**_render_) }}
 {% endif -%}

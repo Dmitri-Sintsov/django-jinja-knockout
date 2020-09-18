@@ -1,5 +1,4 @@
 {% macro bs_list(view, object_list=None, is_paginated=False, page_obj=None) -%}
-{% from 'bs_breadcrumbs.htm' import bs_breadcrumbs with context -%}
 {% from 'bs_filters.htm' import bs_filters with context -%}
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
@@ -12,7 +11,11 @@
             {{ caller(has_filters=True) }}
         {% else -%}
             {% for field in view.allowed_filter_fields -%}
-                {{ bs_breadcrumbs(**view.get_filter_kwargs(field)) }}
+                {% set template_name = 'bs_breadcrumbs.htm' -%}
+                {% with _render_=view.get_filter_kwargs(field) -%}
+                    {% include template_name -%}
+                {% endwith -%}
+                {# bs_breadcrumbs(**view.get_filter_kwargs(field)) #}
             {% endfor -%}
         {% endif -%}
         {% if object_list -%}
@@ -74,5 +77,13 @@
 
 {% endmacro -%}
 {% if _render_ -%}
-    {{ bs_list(view=view, object_list=object_list, is_paginated=is_paginated, page_obj=page_obj) }}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'view': view,
+            'object_list': object_list or None,
+            'is_paginated': is_paginated or False,
+            'page_obj': page_obj or None,
+        } -%}
+    {% endif -%}
+    {{ bs_list(**_render_) }}
 {% endif -%}

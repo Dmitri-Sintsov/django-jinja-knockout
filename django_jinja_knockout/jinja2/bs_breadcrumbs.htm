@@ -21,3 +21,13 @@
     {% endfor -%}
 </ol>
 {% endmacro -%}
+{% if _render_ -%}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'title': title or None,
+            'navs': navs or None,
+            'menu_attrs': menu_attrs or None,
+        } -%}
+    {% endif -%}
+    {{ bs_breadcrumbs(**_render_) }}
+{% endif -%}

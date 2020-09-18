@@ -379,11 +379,11 @@
 
 {% endmacro -%}
 {% if _render_ -%}
-    {% if not include_ids is defined -%}
-        {% set include_ids = {} -%}
+    {% if not isinstance(_render_, dict) -%}
+        {% set _render_ = {
+            'include_ids': include_ids or None,
+            'exclude_ids': exclude_ids or None,
+        } -%}
     {% endif -%}
-    {% if not exclude_ids is defined -%}
-        {% set exclude_ids = {} -%}
-    {% endif -%}
-    {{ ko_grid_body(include_ids=include_ids, exclude_ids=exclude_ids) }}
+    {{ ko_grid_body(**_render_) }}
 {% endif -%}
