@@ -13,9 +13,8 @@
             {% for field in view.allowed_filter_fields -%}
                 {% set template_name = 'bs_breadcrumbs.htm' -%}
                 {% with _render_=view.get_filter_kwargs(field) -%}
-                    {% include template_name -%}
+                    {% include view.get_field_filter(field).template -%}
                 {% endwith -%}
-                {# bs_breadcrumbs(**view.get_filter_kwargs(field)) #}
             {% endfor -%}
         {% endif -%}
         {% if object_list -%}

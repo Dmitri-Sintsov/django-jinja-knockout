@@ -72,168 +72,6 @@ class FoldingPaginationMixin(ContextMixin):
         return context_data
 
 
-# Server-side implementation of filter field 'type': 'choices'.
-# This class should not be exported in __init__.py.
-#
-# For AJAX (client-side) implementation used in conjunction with KoGridView,
-# see App.ko.GridFilterChoice class in grid.js.
-#
-# todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
-class FilterChoices:
-
-    def __init__(self, view, filter_field, vm_filter, request_list_filter=None):
-        self.view = view
-        self.filter_field = filter_field
-        self.vm_filter = vm_filter
-        self.request_list_filter = request_list_filter
-        # Text names of the currently selected filters.
-        self.display = []
-
-    def switch_choice(self, curr_list_filter, value):
-        is_added = False
-        in_filter = []
-        if self.filter_field in curr_list_filter:
-            field_filter = curr_list_filter[self.filter_field]
-            if isinstance(field_filter, dict):
-                unsupported_lookup = False
-                if len(curr_list_filter[self.filter_field]) > 1:
-                    unsupported_lookup = True
-                if 'in' in field_filter:
-                    in_filter = field_filter['in']
-                    if not isinstance(in_filter, list):
-                        in_filter = [in_filter]
-                elif 'range' in field_filter:
-                    # self.get_link() switcher is for 'in' lookups only.
-                    return None
-                else:
-                    unsupported_lookup = True
-                if unsupported_lookup:
-                    # self.view.report_error() will not work as this code path is called from partially rendered page
-                    # in progress, usually via bs_breadcrumbs() filter field rendering Jinja2 macro,
-                    # thus we have to use it to display the error.
-                    self.view.remove_query_filter(self.filter_field)
-                    raise ValidationError(
-                        _("Unsupported field lookup for filter field '%(field)s'"),
-                        params={'field': self.filter_field}
-                    )
-            else:
-                # Convert single value of field filter to the list of values.
-                in_filter = [field_filter]
-            # Switch value.
-            if value in in_filter:
-                # Remove already existing filter value.
-                in_filter.remove(value)
-            else:
-                # Add new filter value.
-                is_added = True
-                in_filter.append(value)
-            if len(in_filter) == 0:
-                del curr_list_filter[self.filter_field]
-            elif len(in_filter) == 1:
-                curr_list_filter[self.filter_field] = in_filter[0]
-            else:
-                curr_list_filter[self.filter_field] = {'in': in_filter}
-        else:
-            is_added = True
-            curr_list_filter[self.filter_field] = value
-        return is_added
-
-    def get_reset_link(self, curr_list_filter):
-        # Reset filter.
-        link = {
-            'atts': {},
-            'text': _('All'),
-        }
-        is_active = False
-        if self.view.current_list_filter.kwargs is None:
-            is_active = True
-            curr_list_filter = {}
-        elif self.filter_field in curr_list_filter:
-            del curr_list_filter[self.filter_field]
-        else:
-            is_active = True
-        if is_active:
-            link['atts']['class'] = 'active'
-            link['is_active_reset'] = True
-        else:
-            link['url'] = self.view.get_reverse_query(curr_list_filter)
-        return link
-
-    def get_link(self, choice_def, curr_list_filter):
-        # Toggle choices for multiple choices only.
-        if self.vm_filter['multiple_choices'] is True:
-            is_added = self.switch_choice(curr_list_filter, choice_def['value'])
-        else:
-            is_added = not self.view.has_filter_choice(self.filter_field, choice_def['value'])
-            curr_list_filter[self.filter_field] = choice_def['value']
-        link = {
-            'text': choice_def['name'],
-            'atts': {}
-        }
-        if is_added is not False:
-            if is_added is None:
-                curr_list_filter[self.filter_field] = choice_def['value']
-            link['url'] = self.view.get_reverse_query(curr_list_filter)
-        else:
-            self.display.append(choice_def['name'])
-            link['atts']['class'] = 'active'
-            # Show toggling of choices for multiple choices only.
-            if self.vm_filter['multiple_choices'] is True:
-                tpl.add_css_classes_to_dict(link['atts'], 'bold')
-                link['url'] = self.view.get_reverse_query(curr_list_filter)
-        return link
-
-    def yield_choice_values(self):
-        for choice_def in self.vm_filter['choices']:
-            if 'value' in choice_def:
-                yield choice_def['value']
-
-    def setup_request_list_filter(self):
-        self.has_all_choices = False
-        if self.vm_filter['multiple_choices'] is True:
-            self.has_all_choices = all([
-                self.view.has_filter_choice(self.filter_field, choice) for choice in
-                self.yield_choice_values()
-            ])
-        self.request_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
-
-    def get_request_list_filter(self):
-        return deepcopy(self.request_list_filter)
-
-    def get_template_args(self):
-        try:
-            if self.request_list_filter is None:
-                self.setup_request_list_filter()
-
-            if not isinstance(self.request_list_filter, dict):
-                raise ValidationError(
-                    _('Invalid type of list filter')
-                )
-
-            if self.vm_filter['multiple_choices'] is False:
-                curr_list_filter = self.get_request_list_filter()
-            navs = []
-            self.display = []
-
-            for choice_def in self.vm_filter['choices']:
-                if self.vm_filter['multiple_choices'] is True:
-                    curr_list_filter = self.get_request_list_filter()
-                if 'value' not in choice_def:
-                    link = self.get_reset_link(curr_list_filter)
-                else:
-                    link = self.get_link(choice_def, curr_list_filter)
-                navs.append(link)
-
-        except ValidationError as e:
-            # Use filter field rendering Jinja2 macro bs_breadcrumbs() or similar, to display the error.
-            return [{
-                'text': str(e),
-                'atts': {'class': 'active'},
-                'url': '',
-            }]
-        return navs
-
-
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 # todo: Implement more filters ('range', 'fk').
 # todo: Support self.current_list_filter.args Q() __or__.
@@ -266,7 +104,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.cycler_direction = self.highlight_mode_rules[self.highlight_mode].get('direction', None)
         self.cycler = self.highlight_mode_rules[self.highlight_mode].get('cycler', [])
         self.reported_error = None
-        self.filter_display = {}
+        self.filter_instances = {}
 
     def reset_query_args(self):
         self.allowed_filter_fields = self.get_allowed_filter_fields()
@@ -423,15 +261,22 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
+    # Todo: rename filter_field to fieldname
     def get_field_filter(self, filter_field):
-        vm_filter = self.get_filter(filter_field)
-        filter_classname = 'Filter{}'.format(vm_filter['type'].capitalize())
-        if filter_classname not in globals():
-            raise NotImplementedError(
-                'There is no "{}" class implementation for "{}" filter_field'.format(filter_classname, filter_field)
-            )
-        filter_class = globals()[filter_classname](self, filter_field, vm_filter)
-        return filter_class
+        if filter_field in self.filter_instances:
+            return self.filter_instances[filter_field]
+        else:
+            vm_filter = self.get_filter(filter_field)
+            if vm_filter['type'] == 'choices':
+                from ..forms.field_filters import FilterChoices
+                filter_class = FilterChoices
+            else:
+                raise NotImplementedError(
+                    'There is no "{}" class implementation for "{}" filter_field'.format(vm_filter['type'], filter_field)
+                )
+            # Store parsed field_filter display args for future reference, when needed.
+            self.filter_instances[filter_field] = filter_class(self, filter_field, vm_filter)
+            return self.filter_instances[filter_field]
 
     def get_sort_order_link(self, sort_order, kwargs=None, query: dict = None, text=None, viewname=None):
         if type(sort_order) is str:
@@ -476,6 +321,15 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def has_filter(self, fieldname):
         return fieldname in self.allowed_filter_fields
 
+    def ioc_field_filter(self, fieldname, vm_filter):
+        if vm_filter['type'] == 'choices':
+            return super().ioc_field_filter(fieldname, vm_filter)
+        else:
+            raise NotImplementedError(
+                'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
+            )
+        return field_filter_cls(self, fieldname, vm_filter)
+
     def get_filter_kwargs(self, fieldname):
         if self.has_filter(fieldname):
             field_filter = self.get_field_filter(fieldname)
@@ -483,8 +337,6 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 'title': self.get_field_verbose_name(fieldname),
                 'navs': field_filter.get_template_args(),
             }
-            # Store parsed field_filter display args for future reference, when needed.
-            self.filter_display[fieldname] = field_filter.display
             return filter_kwargs
         else:
             raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
@@ -496,9 +348,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         }
         for fieldname in self.allowed_filter_fields:
             kwargs['filter_title'][fieldname] = self.get_field_verbose_name(fieldname)
-            if fieldname in self.filter_display:
+            if fieldname in self.filter_instances:
                 # Field filter was already parsed.
-                kwargs['filter_display'][fieldname] = self.filter_display[fieldname]
+                kwargs['filter_display'][fieldname] = self.filter_instances[fieldname].display
             else:
                 # Parse field filter to get it's current display args.
                 field_filter = self.get_field_filter(fieldname)

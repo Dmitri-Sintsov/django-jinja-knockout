@@ -25,6 +25,7 @@ from ..models import (
 from ..viewmodels import vm_list
 from ..utils.sdv import yield_ordered, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
+from ..forms.field_filters import BaseFilter, FilterChoices
 
 
 def page_context_decorator(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
@@ -582,68 +583,36 @@ class BaseFilterView(PageContextMixin):
             display_value = tpl.print_list_group(display_value.values())
         return display_value
 
-    def get_vm_filter(self, fieldname, filter_def):
+    def ioc_field_filter(self, fieldname, vm_filter):
+        if vm_filter['type'] == 'choices':
+            field_filter_cls = FilterChoices
+        else:
+            field_filter_cls = BaseFilter
+        return field_filter_cls(self, fieldname, vm_filter)
+
+    def get_filter(self, fieldname):
+        filter_def = self.allowed_filter_fields[fieldname]
+        canon_filter_def = {}
+        if isinstance(filter_def, (list, tuple)):
+            canon_filter_def['choices'] = filter_def
+        elif isinstance(filter_def, dict):
+            canon_filter_def.update(filter_def)
         vm_filter = {
             'field': fieldname,
             'name': self.get_field_verbose_name(fieldname),
         }
-        if filter_def.get('type') is not None:
-            vm_filter['type'] = filter_def['type']
+        if canon_filter_def.get('type') is not None:
+            vm_filter['type'] = canon_filter_def['type']
         else:
-            if isinstance(filter_def.get('choices'), (list, tuple)):
+            if isinstance(canon_filter_def.get('choices'), (list, tuple)):
                 vm_filter['type'] = 'choices'
             else:
                 # Use App.ko.FkGridFilter to select filter choices.
                 # Autodetect widget.
                 field_validator = self.get_field_validator(fieldname)
-                vm_filter.update(field_validator.detect_field_filter(filter_def))
-        return vm_filter
-
-    def process_field_filter_choices(self, vm_filter, filter_def):
-        if 'multiple_choices' not in filter_def:
-            # Autodetect 'multiple_choices' option.
-            filter_def['multiple_choices'] = \
-                True if filter_def.get('choices') is None else len(filter_def['choices']) > 2
-        # Pre-built list of field values / menu names.
-        vm_choices = []
-        if filter_def['add_reset_choice']:
-            vm_choices.append({
-                # Do not pass 'value': None because since version 0.4.0 None can be valid value of field filter.
-                # A choice without value is converted to Javascript undefined value at client-side instead.
-                # 'value': None,
-                'name': _('All'),
-                'is_active': len(filter_def['active_choices']) == 0
-            })
-        # Convert filter_def choices from Django view to viewmodel choices for client-side AJAX response handler.
-        for value, name in filter_def['choices']:
-            choice = {
-                'value': value,
-                'name': name,
-            }
-            if value in filter_def['active_choices']:
-                choice['is_active'] = True
-            vm_choices.append(choice)
-        vm_filter['choices'] = vm_choices
-
-    def get_filter(self, fieldname):
-        filter_def = self.allowed_filter_fields[fieldname]
-        # Make "canonical" canon_filter_def from filter_def.
-        canon_filter_def = {
-            'add_reset_choice': True,
-            'active_choices': [],
-        }
-        if isinstance(filter_def, (list, tuple)):
-            canon_filter_def['choices'] = filter_def
-        elif isinstance(filter_def, dict):
-            canon_filter_def.update(filter_def)
-        # Autodetect widget.
-        vm_filter = self.get_vm_filter(fieldname, canon_filter_def)
-        process_method = getattr(self, 'process_field_filter_{}'.format(vm_filter['type']), None)
-        if callable(process_method):
-            process_method(vm_filter, canon_filter_def)
-        if 'multiple_choices' in canon_filter_def:
-            vm_filter['multiple_choices'] = canon_filter_def['multiple_choices']
-        return vm_filter
+                vm_filter.update(field_validator.detect_field_filter(canon_filter_def))
+        field_filter = self.ioc_field_filter(fieldname, vm_filter)
+        return field_filter.build(canon_filter_def)
 
     def get_q_or(self, q_kwargs):
         q = None
