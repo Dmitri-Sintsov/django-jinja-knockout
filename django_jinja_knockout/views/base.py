@@ -590,6 +590,9 @@ class BaseFilterView(PageContextMixin):
             field_filter_cls = BaseFilter
         return field_filter_cls(self, fieldname, vm_filter)
 
+    def build_filter(self, field_filter, canon_filter_def):
+        return field_filter.build(canon_filter_def)
+
     def get_filter(self, fieldname):
         filter_def = self.allowed_filter_fields[fieldname]
         canon_filter_def = {}
@@ -612,7 +615,7 @@ class BaseFilterView(PageContextMixin):
                 field_validator = self.get_field_validator(fieldname)
                 vm_filter.update(field_validator.detect_field_filter(canon_filter_def))
         field_filter = self.ioc_field_filter(fieldname, vm_filter)
-        return field_filter.build(canon_filter_def)
+        return self.build_filter(field_filter, canon_filter_def)
 
     def get_q_or(self, q_kwargs):
         q = None

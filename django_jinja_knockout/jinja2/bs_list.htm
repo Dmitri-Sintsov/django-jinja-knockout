@@ -11,9 +11,8 @@
             {{ caller(has_filters=True) }}
         {% else -%}
             {% for field in view.allowed_filter_fields -%}
-                {% set template_name = 'bs_breadcrumbs.htm' -%}
                 {% with _render_=view.get_filter_kwargs(field) -%}
-                    {% include view.get_field_filter(field).template -%}
+                    {% include view.get_filter_template(field) -%}
                 {% endwith -%}
             {% endfor -%}
         {% endif -%}

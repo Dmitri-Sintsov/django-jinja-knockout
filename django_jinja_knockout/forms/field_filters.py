@@ -6,25 +6,24 @@ from django.utils.translation import gettext as _
 from .. import tpl
 
 
-class AbstractFilter:
+class BaseFilter:
+
     template = None
     display = None
 
-    def get_template(self):
-        return self.template
-
-
-class BaseFilter(AbstractFilter):
-
-    template = None
-
-    def __init__(self, view, filter_field, vm_filter, request_list_filter=None):
+    def __init__(self, view, fieldname, vm_filter, request_list_filter=None):
         self.view = view
-        self.filter_field = filter_field
+        self.fieldname = fieldname
         self.vm_filter = vm_filter
         self.request_list_filter = request_list_filter
         # Text names of the currently selected filters.
         self.display = []
+
+    def get_template(self):
+        return self.template
+
+    def set_template(self, template):
+        self.template = template
 
     def build(self, filter_def):
         if 'multiple_choices' in filter_def:
@@ -45,11 +44,11 @@ class FilterChoices(BaseFilter):
     def switch_choice(self, curr_list_filter, value):
         is_added = False
         in_filter = []
-        if self.filter_field in curr_list_filter:
-            field_filter = curr_list_filter[self.filter_field]
+        if self.fieldname in curr_list_filter:
+            field_filter = curr_list_filter[self.fieldname]
             if isinstance(field_filter, dict):
                 unsupported_lookup = False
-                if len(curr_list_filter[self.filter_field]) > 1:
+                if len(curr_list_filter[self.fieldname]) > 1:
                     unsupported_lookup = True
                 if 'in' in field_filter:
                     in_filter = field_filter['in']
@@ -64,10 +63,10 @@ class FilterChoices(BaseFilter):
                     # self.view.report_error() will not work as this code path is called from partially rendered page
                     # in progress, usually via bs_breadcrumbs() filter field rendering Jinja2 macro,
                     # thus we have to use it to display the error.
-                    self.view.remove_query_filter(self.filter_field)
+                    self.view.remove_query_filter(self.fieldname)
                     raise ValidationError(
                         _("Unsupported field lookup for filter field '%(field)s'"),
-                        params={'field': self.filter_field}
+                        params={'field': self.fieldname}
                     )
             else:
                 # Convert single value of field filter to the list of values.
@@ -81,14 +80,14 @@ class FilterChoices(BaseFilter):
                 is_added = True
                 in_filter.append(value)
             if len(in_filter) == 0:
-                del curr_list_filter[self.filter_field]
+                del curr_list_filter[self.fieldname]
             elif len(in_filter) == 1:
-                curr_list_filter[self.filter_field] = in_filter[0]
+                curr_list_filter[self.fieldname] = in_filter[0]
             else:
-                curr_list_filter[self.filter_field] = {'in': in_filter}
+                curr_list_filter[self.fieldname] = {'in': in_filter}
         else:
             is_added = True
-            curr_list_filter[self.filter_field] = value
+            curr_list_filter[self.fieldname] = value
         return is_added
 
     def get_reset_link(self, curr_list_filter):
@@ -101,8 +100,8 @@ class FilterChoices(BaseFilter):
         if self.view.current_list_filter.kwargs is None:
             is_active = True
             curr_list_filter = {}
-        elif self.filter_field in curr_list_filter:
-            del curr_list_filter[self.filter_field]
+        elif self.fieldname in curr_list_filter:
+            del curr_list_filter[self.fieldname]
         else:
             is_active = True
         if is_active:
@@ -117,15 +116,15 @@ class FilterChoices(BaseFilter):
         if self.vm_filter['multiple_choices'] is True:
             is_added = self.switch_choice(curr_list_filter, choice_def['value'])
         else:
-            is_added = not self.view.has_filter_choice(self.filter_field, choice_def['value'])
-            curr_list_filter[self.filter_field] = choice_def['value']
+            is_added = not self.view.has_filter_choice(self.fieldname, choice_def['value'])
+            curr_list_filter[self.fieldname] = choice_def['value']
         link = {
             'text': choice_def['name'],
             'atts': {}
         }
         if is_added is not False:
             if is_added is None:
-                curr_list_filter[self.filter_field] = choice_def['value']
+                curr_list_filter[self.fieldname] = choice_def['value']
             link['url'] = self.view.get_reverse_query(curr_list_filter)
         else:
             self.display.append(choice_def['name'])
@@ -145,7 +144,7 @@ class FilterChoices(BaseFilter):
         self.has_all_choices = False
         if self.vm_filter['multiple_choices'] is True:
             self.has_all_choices = all([
-                self.view.has_filter_choice(self.filter_field, choice) for choice in
+                self.view.has_filter_choice(self.fieldname, choice) for choice in
                 self.yield_choice_values()
             ])
         self.request_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
@@ -184,7 +183,7 @@ class FilterChoices(BaseFilter):
                 'atts': {'class': 'active'},
                 'url': '',
             }]
-        return navs
+        return {'navs': navs}
 
     def build(self, filter_def):
         # Make "canonical" filter_def.

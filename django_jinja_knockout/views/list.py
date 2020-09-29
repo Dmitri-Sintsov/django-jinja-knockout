@@ -258,25 +258,22 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 if field_lookup in self.current_list_filter.kwargs:
                     del self.current_list_filter.kwargs[field_lookup]
 
+    def build_filter(self, field_filter, canon_filter_def):
+        self.filter_instances[field_filter.fieldname] = field_filter
+        if 'template' in canon_filter_def:
+            field_filter.set_template(canon_filter_def['template'])
+        vm_filter = super().build_filter(field_filter, canon_filter_def)
+        return vm_filter
+
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
-    # Todo: rename filter_field to fieldname
-    def get_field_filter(self, filter_field):
-        if filter_field in self.filter_instances:
-            return self.filter_instances[filter_field]
-        else:
-            vm_filter = self.get_filter(filter_field)
-            if vm_filter['type'] == 'choices':
-                from ..forms.field_filters import FilterChoices
-                filter_class = FilterChoices
-            else:
-                raise NotImplementedError(
-                    'There is no "{}" class implementation for "{}" filter_field'.format(vm_filter['type'], filter_field)
-                )
-            # Store parsed field_filter display args for future reference, when needed.
-            self.filter_instances[filter_field] = filter_class(self, filter_field, vm_filter)
-            return self.filter_instances[filter_field]
+    def get_field_filter(self, fieldname):
+        if not self.has_filter(fieldname):
+            raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
+        if fieldname not in self.filter_instances:
+            self.get_filter(fieldname)
+        return self.filter_instances[fieldname]
 
     def get_sort_order_link(self, sort_order, kwargs=None, query: dict = None, text=None, viewname=None):
         if type(sort_order) is str:
@@ -328,18 +325,20 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             raise NotImplementedError(
                 'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
             )
-        return field_filter_cls(self, fieldname, vm_filter)
+
+    def get_filter_template(self, fieldname):
+        field_filter = self.get_field_filter(fieldname)
+        return field_filter.get_template()
 
     def get_filter_kwargs(self, fieldname):
-        if self.has_filter(fieldname):
-            field_filter = self.get_field_filter(fieldname)
-            filter_kwargs = {
-                'title': self.get_field_verbose_name(fieldname),
-                'navs': field_filter.get_template_args(),
-            }
-            return filter_kwargs
-        else:
-            raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
+        field_filter = self.get_field_filter(fieldname)
+        filter_kwargs = {
+            'title': self.get_field_verbose_name(fieldname),
+        }
+        filter_kwargs.update(
+            field_filter.get_template_args()
+        )
+        return filter_kwargs
 
     def get_no_match_kwargs(self):
         kwargs = {
@@ -370,7 +369,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def get_base_queryset(self):
         # Validate all filters by calling .get_template_args() which would remove invalid lookups from
         # via .remove_query_filter() method so these will not be queried.
-        for filter_field in self.allowed_filter_fields:
-            field_filter = self.get_field_filter(filter_field)
+        for fieldname in self.allowed_filter_fields:
+            field_filter = self.get_field_filter(fieldname)
             field_filter.get_template_args()
         return super().get_base_queryset()
