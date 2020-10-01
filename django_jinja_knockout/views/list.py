@@ -15,6 +15,7 @@ from .. import middleware
 from .. import tpl
 from ..models import get_meta, get_verbose_name
 from .base import BaseFilterView
+from ..forms.field_filters import DateFilter
 
 
 # Mix this class in ListView / ListSortingView derived class to have advanced pagination in
@@ -321,6 +322,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def ioc_field_filter(self, fieldname, vm_filter):
         if vm_filter['type'] == 'choices':
             return super().ioc_field_filter(fieldname, vm_filter)
+        if vm_filter['type'] == 'date':
+            return DateFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
                 'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
@@ -336,7 +339,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             'title': self.get_field_verbose_name(fieldname),
         }
         filter_kwargs.update(
-            field_filter.get_template_args()
+            field_filter.get_template_kwargs()
         )
         return filter_kwargs
 
@@ -354,7 +357,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 # Parse field filter to get it's current display args.
                 field_filter = self.get_field_filter(fieldname)
                 # Next call is required to populate field_filter.display.
-                field_filter.get_template_args()
+                field_filter.get_template_kwargs()
                 kwargs['filter_display'][fieldname] = field_filter.display
         if self.reported_error is None:
             kwargs['heading'] = self.get_heading()
@@ -367,9 +370,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return kwargs
 
     def get_base_queryset(self):
-        # Validate all filters by calling .get_template_args() which would remove invalid lookups from
+        # Validate all filters by calling .get_template_kwargs() which would remove invalid lookups from
         # via .remove_query_filter() method so these will not be queried.
         for fieldname in self.allowed_filter_fields:
             field_filter = self.get_field_filter(fieldname)
-            field_filter.get_template_args()
+            field_filter.get_template_kwargs()
         return super().get_base_queryset()

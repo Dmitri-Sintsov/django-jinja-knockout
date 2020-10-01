@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from .. import tpl
 
 
-class BaseFilter:
+class AbstractFilter:
 
     template = None
     display = None
@@ -24,6 +24,15 @@ class BaseFilter:
 
     def set_template(self, template):
         self.template = template
+
+    def build(self, filter_def):
+        raise NotImplementedError('Abstract method')
+
+    def get_template_kwargs(self):
+        raise NotImplementedError('Abstract method')
+
+
+class BaseFilter(AbstractFilter):
 
     def build(self, filter_def):
         if 'multiple_choices' in filter_def:
@@ -152,7 +161,7 @@ class FilterChoices(BaseFilter):
     def get_request_list_filter(self):
         return deepcopy(self.request_list_filter)
 
-    def get_template_args(self):
+    def get_template_kwargs(self):
         try:
             if self.request_list_filter is None:
                 self.setup_request_list_filter()
@@ -214,3 +223,13 @@ class FilterChoices(BaseFilter):
             vm_choices.append(choice)
         self.vm_filter['choices'] = vm_choices
         return super().build(filter_def)
+
+
+class DateFilter(AbstractFilter):
+    template = 'bs_date_filter.htm'
+
+    def get_template_kwargs(self):
+        return {}
+
+    def build(self, filter_def):
+        return self.vm_filter

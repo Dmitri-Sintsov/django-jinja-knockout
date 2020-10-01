@@ -1,0 +1,29 @@
+<div class="component" data-component-class="App.DateFilter">
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link active accordion-toggle pointer" data-toggle="collapse" aria-expanded="true">{{ _render_.title }}</a></li>
+    </ul>
+    <card-default>
+        <div class="collapse in" aria-expanded="true" style="">
+            <card-body>
+                <div class="row form-group">
+                    <label class="control-label col-md-2">{{ _('From') }}</label>
+                    <div class="field col-md-3">
+                        <input type="text" class="form-control date-control">
+                    </div>
+                    <label class="control-label col-md-2">{{ _('To') }}</label>
+                    <div class="field col-md-3">
+                        <input type="text" class="form-control date-control">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="field col-md-10">
+                        <div class="pull-right">
+                            <a class="btn btn-small btn-default">{{ _('Remove selection') }}</a>
+                            <a class="btn btn-small btn-default">{{ _('Apply') }}</a>
+                        </div>
+                    </div>
+                </div>
+            </card-body>
+        </div>
+    </card-default>
+</div>

@@ -844,6 +844,23 @@ void function(Dialog) {
 }(App.Dialog.prototype);
 
 
+    App.DateFilter = function(options) {};
+
+void function(DateFilter) {
+
+    DateFilter.runComponent = function($selector) {
+        var self = this;
+        this.$componentSelector = $selector;
+        $selector.find('.accordion-toggle').on('click', function(ev) {
+            self.$componentSelector.find('.collapse').collapse('toggle');
+            return false;
+            ev.stopPropagation();
+        });
+    };
+
+}(App.DateFilter.prototype);
+
+
 /**
  * Client-side AJAX request / response viewmodel handler for server-side ActionsView.
  */
