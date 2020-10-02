@@ -844,17 +844,30 @@ void function(Dialog) {
 }(App.Dialog.prototype);
 
 
-    App.DateFilter = function(options) {};
+App.DateFilter = function(options) {};
 
 void function(DateFilter) {
 
     DateFilter.runComponent = function($selector) {
         var self = this;
         this.$componentSelector = $selector;
-        $selector.find('.accordion-toggle').on('click', function(ev) {
-            self.$componentSelector.find('.collapse').collapse('toggle');
-            return false;
+        var $toggle = $selector.find('.accordion-toggle');
+        var $titleListElement = $toggle.parents('li:first');
+        var $collapsible = this.$componentSelector.find('.collapse');
+        if ($collapsible.hasClass('in')) {
+            $titleListElement.addClass('active');
+        } else {
+            $titleListElement.removeClass('active');
+        }
+        $collapsible.on('shown.bs.collapse', function(ev) {
+            $titleListElement.addClass('active');
+        }).on('hidden.bs.collapse', function(ev) {
+            $titleListElement.removeClass('active');
+        });
+        $toggle.on('click', function(ev) {
+            $collapsible.collapse('toggle');
             ev.stopPropagation();
+            return false;
         });
     };
 
