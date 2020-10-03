@@ -20,78 +20,99 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
+#: 
 msgid "No"
-msgstr ""
+msgstr "No"
 
+#: 
 msgid "Yes"
-msgstr ""
+msgstr "Si"
 
+#. significa lugar de procedencia de algo o alguien
+#: 
 msgid "From"
-msgstr ""
+msgstr "de donde"
 
+#: 
 msgid "To"
-msgstr ""
+msgstr "para"
 
+#: 
 msgid "AJAX request error"
-msgstr ""
+msgstr "Error de peticion AJAX"
 
 #, javascript-format
 msgid "Undefined response view %s"
-msgstr ""
+msgstr "respuesta indefinida a Vista %s"
 
+#: 
 msgid "Request error"
-msgstr ""
+msgstr "error de peticion"
 
+#: 
 msgid "Choose year / decade."
-msgstr ""
+msgstr "Elige año/decada"
 
 #, javascript-format
 msgid "Delete \"%s\""
-msgstr ""
+msgstr "Eliminar"
 
 #, javascript-format
 msgid "Are you sure you want to delete \"%s\" ?"
-msgstr ""
+msgstr "Estas se guro que quieres eliminar  \"%s\" ?"
 
+#: 
 msgid "Required"
-msgstr ""
+msgstr "Requerido"
 
+#: 
 msgid "Delete when saved"
-msgstr ""
+msgstr "Eliminar al Guardar"
 
+#: 
 msgid "First page"
-msgstr ""
+msgstr "Primera pagina"
 
+#: 
 msgid "Last page"
-msgstr ""
+msgstr "Ultima pagina"
 
+#: 
 msgid "All"
-msgstr ""
+msgstr "Todo"
 
+#: 
 msgid "Search"
-msgstr ""
+msgstr "Busqueda"
 
+#: 
 msgid "Remove selection"
-msgstr ""
+msgstr "Eliminar seleccion"
 
+#: 
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
+#: 
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
+#: 
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
+#: 
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
+#: 
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
+#: 
 msgid "Choose action"
-msgstr ""
+msgstr "elegir accion"
 
 #, javascript-format
 msgid "Too big file size=%s, max_size=%s"
-msgstr ""
+msgstr "Tamaño =%s de archivo demasiado grande,tamaño_maximo=%s"
