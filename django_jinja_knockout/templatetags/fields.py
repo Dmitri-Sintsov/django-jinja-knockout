@@ -1,5 +1,5 @@
 from django import forms
-from .. import widgets #DisplayText, PrefillWidget
+from .. import widgets
 
 
 def is_visible_field(model_field):
