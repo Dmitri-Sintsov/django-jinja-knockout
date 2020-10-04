@@ -1,5 +1,5 @@
 from django import forms
-from ..widgets import DisplayText, PrefillWidget
+from .. import widgets #DisplayText, PrefillWidget
 
 
 def is_visible_field(model_field):
@@ -19,11 +19,11 @@ def is_select_multiple_field(model_field):
 
 
 def is_displaytext_field(model_field):
-    return isinstance(model_field.widget, DisplayText)
+    return isinstance(model_field.widget, widgets.DisplayText)
 
 
 def is_prefill_field(model_field):
-    return isinstance(model_field.widget, PrefillWidget)
+    return isinstance(model_field.widget, widgets.PrefillWidget)
 
 
 def filter_get_display_layout(field):
