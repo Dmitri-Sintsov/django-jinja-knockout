@@ -9,9 +9,9 @@ from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 
-from ..apps import DjkAppConfig
+from .. import apps
 from ..utils import sdv
-from ..widgets import DisplayText
+from .. import widgets
 from ..viewmodels import to_json
 
 from . import renderers
@@ -32,7 +32,7 @@ class RendererModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Automatically make current http request available as .request attribute of form instance.
-        context_middleware = DjkAppConfig.get_context_middleware()
+        context_middleware = apps.DjkAppConfig.get_context_middleware()
         self.request = context_middleware.get_request()
         if hasattr(self.Meta, 'field_templates'):
             for field_name in self.Meta.field_templates:
@@ -55,7 +55,7 @@ class BootstrapModelForm(RendererModelForm):
 
 # Set all default (implicit) widgets to DisplayText.
 def display_model_formfield_callback(db_field, **kwargs):
-    defaults = {'widget': DisplayText}
+    defaults = {'widget': widgets.DisplayText}
     defaults.update(kwargs)
     return db_field.formfield(**defaults)
 
