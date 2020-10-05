@@ -21,103 +21,102 @@ msgstr ""
 "X-Generator: Gtranslator 2.91.6\n"
 
 msgid "Yes"
-msgstr ""
+msgstr "Si"
 
 msgid "No"
-msgstr ""
+msgstr "No"
 
 msgid "Home"
-msgstr ""
+msgstr "Inicio"
 
 msgid "First page"
-msgstr ""
+msgstr "Primera pagina"
 
 msgid "Previous"
-msgstr ""
+msgstr "Anterior"
 
 #, python-format
 msgid "Page %(number)d of %(numpages)d"
-msgstr ""
+msgstr "Pagina %(number)d de %(numpages)d"
 
 msgid "Next"
-msgstr ""
+msgstr "Siguiente"
 
 msgid "Last page"
-msgstr ""
+msgstr "Ultima pagina"
 
 #, python-format
 msgid "Add \"%(verbose_name)s\""
-msgstr ""
+msgstr "Añadir \"%(verbose_name)s\""
 
 msgid "Close"
-msgstr ""
+msgstr "Cerrar"
 
 msgid "Delete non-builtin records"
-msgstr ""
+msgstr "Borrar registros no embebidos"
 
 msgid "Access to current url is denied"
-msgstr ""
+msgstr "Se deniega el acceso a la url actual"
 
 #, python-format
 msgid "Error \"%(code)s\" \"%(msg)s\" while sending email."
-msgstr ""
+msgstr "Error \"%(code)s\" \"%(msg)s\" enviado email."
 
 msgid "Move"
-msgstr ""
+msgstr "Mover"
 
 msgid "Unknown action"
-msgstr ""
+msgstr "Accion desconocida"
 
 msgid "Action \"{}\" is not implemented"
-msgstr ""
+msgstr "La accion \"{}\" no esta implementada"
 
 #, python-format
 msgid "Action \"%(action)s\" is not allowed"
-msgstr ""
+msgstr "La accion \"%(action)s\" no esta permitida"
 
 #, python-format
 msgid "There is no \"%(heading)s\" to display."
-msgstr ""
+msgstr "No hay \"%(heading)s\" que mostrar."
 
 #, python-format
 msgid "There is no \"%(heading)s\" with %(filters_str)s to display."
-msgstr ""
+msgstr "No hay \"%(heading)s\" con %(filters_str)s a mostrar."
 
 msgid "Not allowed filter field: \"{}\""
-msgstr ""
+msgstr "No se permite filtrar por campo: \"{}\""
 
 msgid "Not allowed sorting order: \"{}\""
-msgstr ""
+msgstr "No se permite ordenar por: \"{}\""
 
 msgid "Invalid value of sorting order: {}"
-msgstr ""
+msgstr "Valor invalido de ordenacion: {}"
 
 msgid "Invalid value of list filter: {}"
-msgstr ""
+msgstr "Valor invalido de la lista de filtros {}"
 
 msgid "Invalid type of sorting order"
-msgstr ""
+msgstr "Tipo invalido de ordenacion"
 
 msgid "Invalid type of list filter"
-msgstr ""
+msgstr "Tipo invalido de filtro de lista"
 
 msgid "Cannot determine the type of filter for the field \"{}\""
-msgstr ""
+msgstr "No se puede determinar el tipo de filtro para el campo \"{}\""
 
 msgid "Unsupported field lookup for filter field '%(field)s'"
-msgstr ""
+msgstr "Busqueda en el campo no soportada para campo de filtro '%(field)s'"
 
 msgid "Rows per page"
-msgstr ""
+msgstr "Filas por pagina"
 
 msgid "Highlight mode"
-msgstr ""
+msgstr "Modo de resaltado"
 
 #, python-format
 msgid "No %(verbose_name)s found matching the query for the selected filters"
-msgstr ""
+msgstr "No se encontro %(verbose_name)s que coincida con los filtros seleccionados"
 
 #, python-format
 msgid "Please wait until the query is loading"
-msgstr ""
-
+msgstr "Por favor espere mientra se cargan los datos"

@@ -15,7 +15,6 @@ msgstr "No"
 msgid "Yes"
 msgstr "Si"
 
-#. significa lugar de procedencia de algo o alguien
 #: 
 msgid "From"
 msgstr "de donde"
@@ -28,7 +27,7 @@ msgstr "para"
 msgid "AJAX request error"
 msgstr "Error de peticion AJAX"
 
-#: 
+#, javascript-format
 msgid "Undefined response view %s"
 msgstr "respuesta indefinida a Vista %s"
 
@@ -40,11 +39,11 @@ msgstr "error de peticion"
 msgid "Choose year / decade."
 msgstr "Elige año/decada"
 
-#: 
+#, javascript-format
 msgid "Delete \"%s\""
 msgstr "Eliminar"
 
-#: 
+#, javascript-format
 msgid "Are you sure you want to delete \"%s\" ?"
 msgstr "Estas se guro que quieres eliminar  \"%s\" ?"
 
@@ -58,11 +57,11 @@ msgstr "Eliminar al Guardar"
 
 #: 
 msgid "First page"
-msgstr "Primera Pagina"
+msgstr "Primera pagina"
 
 #: 
 msgid "Last page"
-msgstr "Ultima Pagina"
+msgstr "Ultima pagina"
 
 #: 
 msgid "All"
@@ -96,11 +95,10 @@ msgstr "Cancelar"
 msgid "Choose action"
 msgstr "elegir accion"
 
-#: 
+#, javascript-format
 msgid "Too big file size=%s, max_size=%s"
 msgstr "Tamaño =%s de archivo demasiado grande,tamaño_maximo=%s"
 
 #: 
 msgid "Error"
 msgstr "Error"
-
