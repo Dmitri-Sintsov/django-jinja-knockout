@@ -144,4 +144,3 @@ QueryString.prototype.any= function (keys, prefix, suffix) {
     }
     return result;
 }
-

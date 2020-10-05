@@ -18,8 +18,8 @@
                 <div class="row form-group">
                     <div class="field col-md-10">
                         <div class="pull-right">
-                            <a class="btn btn-small btn-default">{{ _('Remove selection') }}</a>
-                            <a class="btn btn-small btn-default">{{ _('Apply') }}</a>
+                            <a class="btn btn-small btn-default" href="{{ tpl.reverseq(request.resolver_match.view_name, kwargs=request.resolver_match.kwargs) }}">{{ _('Remove selection') }}</a>
+                            <a class="btn btn-small btn-default" href="">{{ _('Apply') }}</a>
                         </div>
                     </div>
                 </div>
