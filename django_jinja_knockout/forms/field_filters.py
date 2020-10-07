@@ -225,11 +225,45 @@ class FilterChoices(BaseFilter):
         return super().build(filter_def)
 
 
-class DateFilter(AbstractFilter):
-    template = 'bs_date_filter.htm'
+class RangeFilter(AbstractFilter):
+    input_type = 'text'
+
+    def __init__(self, view, fieldname, vm_filter, request_list_filter=None):
+        super().__init__(view, fieldname, vm_filter, request_list_filter)
+        self.component_attrs = {
+            'class': 'component',
+        }
+        self.input_attrs = {
+            'class': 'form-control',
+            'type': self.input_type,
+        }
 
     def get_template_kwargs(self):
-        return {}
+        return {
+            'component_attrs': self.component_attrs,
+            'input_attrs': self.input_attrs,
+        }
 
     def build(self, filter_def):
         return self.vm_filter
+
+
+class DateFilter(RangeFilter):
+    template = 'bs_date_filter.htm'
+    component_class = 'App.DateFilter'
+    input_class = 'date-control'
+
+    def get_template_kwargs(self):
+        template_kwargs = super().get_template_kwargs()
+        tpl.add_css_classes_to_dict(template_kwargs['input_attrs'], self.input_class)
+        template_kwargs['component_attrs'].update({
+            'data-component-class': self.component_class,
+            'data-component-options': {
+                'fieldname': self.fieldname,
+            }
+        })
+        return template_kwargs
+
+
+class DateTimeFilter(DateFilter):
+    input_class = 'datetime-control'

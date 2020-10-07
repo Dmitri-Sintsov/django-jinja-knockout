@@ -1,4 +1,4 @@
-<div class="component" data-component-class="App.DateFilter">
+<div {{ tpl.json_flatatt(_render_.component_attrs)}}>
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active accordion-toggle pointer" data-toggle="collapse" aria-expanded="true">{{ _render_.title }}</a></li>
     </ul>
@@ -8,11 +8,11 @@
                 <div class="row form-group">
                     <label class="control-label col-md-2">{{ _('From') }}</label>
                     <div class="field col-md-3">
-                        <input type="text" class="form-control date-control">
+                        <input {{ tpl.json_flatatt(_render_.input_attrs) }}>
                     </div>
                     <label class="control-label col-md-2">{{ _('To') }}</label>
                     <div class="field col-md-3">
-                        <input type="text" class="form-control date-control">
+                        <input {{ tpl.json_flatatt(_render_.input_attrs) }}>
                     </div>
                 </div>
                 <div class="row form-group">
