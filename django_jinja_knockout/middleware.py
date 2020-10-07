@@ -11,7 +11,8 @@ from .tpl import format_html_attrs
 from .http import (
     MockRequestFactory, ImmediateHttpResponse, json_response, ImmediateJsonResponse, exception_response
 )
-from .views import auth_redirect
+# Reduce the possibility of circular import
+from . import views
 from .viewmodels import vm_list
 
 
@@ -211,7 +212,7 @@ class ContextMiddleware(RouterMiddleware):
             del view_kwargs['allow_anonymous']
         else:
             if not self.is_authenticated(request):
-                return auth_redirect(request)
+                return views.auth_redirect(request)
 
         # Logout inactive user for all but selected views.
         if view_kwargs.get('allow_inactive', False):
@@ -220,7 +221,7 @@ class ContextMiddleware(RouterMiddleware):
         else:
             if self.is_authenticated(request) and not request.user.is_active:
                 auth_logout(request)
-                return auth_redirect(request)
+                return views.auth_redirect(request)
 
         # Check for permissions defined in urls.py
         if 'permission_required' in view_kwargs:
@@ -237,7 +238,7 @@ class ContextMiddleware(RouterMiddleware):
                     if not backend.has_perm(**kwargs):
                         # Current user has no access to current view.
                         # Redirect to login url with 'next' link.
-                        return auth_redirect(request)
+                        return views.auth_redirect(request)
             # Do not confuse backend with custom parameter (may cause error otherwise).
             del view_kwargs['permission_required']
         return True

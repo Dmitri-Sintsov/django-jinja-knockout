@@ -2,6 +2,7 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+# Reduce the possibility of circular import
 from . import middleware
 
 
