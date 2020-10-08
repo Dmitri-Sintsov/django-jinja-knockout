@@ -15,9 +15,18 @@ class AbstractFilter:
         self.view = view
         self.fieldname = fieldname
         self.vm_filter = vm_filter
+        # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = request_list_filter
+        # queryset.filter(*self.current_list_filter.args, **self.current_list_filter.kwargs)
+        # self.current_list_filter = FuncArgs()
         # Text names of the currently selected filters.
         self.display = []
+
+    def get_request_list_filter(self):
+        return deepcopy(self.request_list_filter)
+
+    def setup_request_list_filter(self):
+        self.request_list_filter = self.view.get_request_list_filter()
 
     def get_template(self):
         return self.template
@@ -29,7 +38,13 @@ class AbstractFilter:
         raise NotImplementedError('Abstract method')
 
     def get_template_kwargs(self):
-        raise NotImplementedError('Abstract method')
+        if self.request_list_filter is None:
+            self.setup_request_list_filter()
+        if not isinstance(self.request_list_filter, dict):
+            raise ValidationError(
+                _('Invalid type of list filter')
+            )
+        return {}
 
 
 class BaseFilter(AbstractFilter):
@@ -158,19 +173,9 @@ class FilterChoices(BaseFilter):
             ])
         self.request_list_filter = {} if self.has_all_choices else self.view.get_request_list_filter()
 
-    def get_request_list_filter(self):
-        return deepcopy(self.request_list_filter)
-
     def get_template_kwargs(self):
         try:
-            if self.request_list_filter is None:
-                self.setup_request_list_filter()
-
-            if not isinstance(self.request_list_filter, dict):
-                raise ValidationError(
-                    _('Invalid type of list filter')
-                )
-
+            template_kwargs = super().get_template_kwargs()
             if self.vm_filter['multiple_choices'] is False:
                 curr_list_filter = self.get_request_list_filter()
             navs = []
@@ -184,7 +189,7 @@ class FilterChoices(BaseFilter):
                 else:
                     link = self.get_link(choice_def, curr_list_filter)
                 navs.append(link)
-
+            template_kwargs['navs'] = navs
         except ValidationError as e:
             # Use filter field rendering Jinja2 macro bs_breadcrumbs() or similar, to display the error.
             return [{
@@ -192,7 +197,7 @@ class FilterChoices(BaseFilter):
                 'atts': {'class': 'active'},
                 'url': '',
             }]
-        return {'navs': navs}
+        return template_kwargs
 
     def build(self, filter_def):
         # Make "canonical" filter_def.
@@ -226,12 +231,19 @@ class FilterChoices(BaseFilter):
 
 
 class RangeFilter(AbstractFilter):
+    component_class = 'App.RangeFilter'
     input_type = 'text'
+    template = 'bs_range_filter.htm'
 
     def __init__(self, view, fieldname, vm_filter, request_list_filter=None):
         super().__init__(view, fieldname, vm_filter, request_list_filter)
         self.component_attrs = {
             'class': 'component',
+            'data-component-class': self.component_class,
+            'data-component-options': {
+                'filterKey': self.view.filter_key,
+                'fieldName': self.fieldname,
+            }
         }
         self.input_attrs = {
             'class': 'form-control',
@@ -239,29 +251,31 @@ class RangeFilter(AbstractFilter):
         }
 
     def get_template_kwargs(self):
-        return {
+        template_kwargs = super().get_template_kwargs()
+        curr_list_filter = self.get_request_list_filter()
+        if self.fieldname in curr_list_filter:
+            del curr_list_filter[self.fieldname]
+        template_kwargs.update({
             'component_attrs': self.component_attrs,
-            'input_attrs': self.input_attrs,
-        }
+            'from_input_attrs': deepcopy(self.input_attrs),
+            'to_input_attrs': deepcopy(self.input_attrs),
+            'reset_url': self.view.get_reverse_query(curr_list_filter),
+        })
+        tpl.add_css_classes_to_dict(template_kwargs['from_input_attrs'], 'input-from')
+        tpl.add_css_classes_to_dict(template_kwargs['to_input_attrs'], 'input-to')
+        return template_kwargs
 
     def build(self, filter_def):
         return self.vm_filter
 
 
 class DateFilter(RangeFilter):
-    template = 'bs_date_filter.htm'
-    component_class = 'App.DateFilter'
     input_class = 'date-control'
 
     def get_template_kwargs(self):
         template_kwargs = super().get_template_kwargs()
-        tpl.add_css_classes_to_dict(template_kwargs['input_attrs'], self.input_class)
-        template_kwargs['component_attrs'].update({
-            'data-component-class': self.component_class,
-            'data-component-options': {
-                'fieldname': self.fieldname,
-            }
-        })
+        tpl.add_css_classes_to_dict(template_kwargs['from_input_attrs'], self.input_class)
+        tpl.add_css_classes_to_dict(template_kwargs['to_input_attrs'], self.input_class)
         return template_kwargs
 
 

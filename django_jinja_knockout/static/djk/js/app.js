@@ -844,12 +844,38 @@ void function(Dialog) {
 }(App.Dialog.prototype);
 
 
-App.DateFilter = function(options) {};
+App.RangeFilter = function(options) {
+    this.init(options);
+};
 
-void function(DateFilter) {
+void function(RangeFilter) {
 
-    DateFilter.runComponent = function($selector) {
+    RangeFilter.init = function(options) {
+        this.filterKey = options.filterKey;
+        this.fieldName = options.fieldName;
+    };
+
+    RangeFilter.getFilterKeyValue = function() {
+        try {
+            return JSON.parse(this.urlSearchParams.get(this.filterKey));
+        } catch (e) {
+            return {};
+        }
+    };
+
+    RangeFilter.hasFilterValue = function() {
+        var filterKeyValue = this.getFilterKeyValue();
+        return this.fieldName in filterKeyValue;
+    };
+
+    RangeFilter.getFilterValue = function() {
+        var filterKeyValue = this.getFilterKeyValue();
+        return filterKeyValue[this.fieldName];
+    };
+
+    RangeFilter.runComponent = function($selector) {
         var self = this;
+        this.urlSearchParams = new URLSearchParams(location.search);
         this.$componentSelector = $selector;
         var $toggle = $selector.find('.accordion-toggle');
         var $titleListElement = $toggle.parents('li:first');
@@ -871,7 +897,7 @@ void function(DateFilter) {
         });
     };
 
-}(App.DateFilter.prototype);
+}(App.RangeFilter.prototype);
 
 
 /**

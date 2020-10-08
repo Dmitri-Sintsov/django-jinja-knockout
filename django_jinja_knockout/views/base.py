@@ -590,10 +590,10 @@ class BaseFilterView(PageContextMixin):
             field_filter_cls = BaseFilter
         return field_filter_cls(self, fieldname, vm_filter)
 
-    def build_filter(self, field_filter, canon_filter_def):
+    def build_field_filter(self, field_filter, canon_filter_def):
         return field_filter.build(canon_filter_def)
 
-    def get_filter(self, fieldname):
+    def get_field_filter(self, fieldname):
         filter_def = self.allowed_filter_fields[fieldname]
         canon_filter_def = {}
         if isinstance(filter_def, (list, tuple)):
@@ -615,7 +615,7 @@ class BaseFilterView(PageContextMixin):
                 field_validator = self.get_field_validator(fieldname)
                 vm_filter.update(field_validator.detect_field_filter(canon_filter_def))
         field_filter = self.ioc_field_filter(fieldname, vm_filter)
-        return self.build_filter(field_filter, canon_filter_def)
+        return self.build_field_filter(field_filter, canon_filter_def)
 
     def get_q_or(self, q_kwargs):
         q = None
@@ -627,7 +627,7 @@ class BaseFilterView(PageContextMixin):
         return q
 
     def get_filters(self):
-        vm_filters = [self.get_filter(fieldname) for fieldname in self.allowed_filter_fields]
+        vm_filters = [self.get_field_filter(fieldname) for fieldname in self.allowed_filter_fields]
         return vm_filters
 
     def get_scalar_lookup_in(self, fieldname, lookup_filter, list_filter):

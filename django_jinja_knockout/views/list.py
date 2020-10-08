@@ -259,21 +259,21 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 if field_lookup in self.current_list_filter.kwargs:
                     del self.current_list_filter.kwargs[field_lookup]
 
-    def build_filter(self, field_filter, canon_filter_def):
+    def build_field_filter(self, field_filter, canon_filter_def):
         self.filter_instances[field_filter.fieldname] = field_filter
         if 'template' in canon_filter_def:
             field_filter.set_template(canon_filter_def['template'])
-        vm_filter = super().build_filter(field_filter, canon_filter_def)
+        vm_filter = super().build_field_filter(field_filter, canon_filter_def)
         return vm_filter
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
     # Currently supports only filter fields of type='choices'.
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
-    def get_field_filter(self, fieldname):
+    def get_field_filter_singleton(self, fieldname):
         if not self.has_filter(fieldname):
             raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
         if fieldname not in self.filter_instances:
-            self.get_filter(fieldname)
+            self.get_field_filter(fieldname)
         return self.filter_instances[fieldname]
 
     def get_sort_order_link(self, sort_order, kwargs=None, query: dict = None, text=None, viewname=None):
@@ -332,11 +332,11 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             )
 
     def get_filter_template(self, fieldname):
-        field_filter = self.get_field_filter(fieldname)
+        field_filter = self.get_field_filter_singleton(fieldname)
         return field_filter.get_template()
 
     def get_filter_kwargs(self, fieldname):
-        field_filter = self.get_field_filter(fieldname)
+        field_filter = self.get_field_filter_singleton(fieldname)
         filter_kwargs = {
             'title': self.get_field_verbose_name(fieldname),
         }
@@ -357,7 +357,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 kwargs['filter_display'][fieldname] = self.filter_instances[fieldname].display
             else:
                 # Parse field filter to get it's current display args.
-                field_filter = self.get_field_filter(fieldname)
+                field_filter = self.get_field_filter_singleton(fieldname)
                 # Next call is required to populate field_filter.display.
                 field_filter.get_template_kwargs()
                 kwargs['filter_display'][fieldname] = field_filter.display
@@ -375,6 +375,6 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         # Validate all filters by calling .get_template_kwargs() which would remove invalid lookups from
         # via .remove_query_filter() method so these will not be queried.
         for fieldname in self.allowed_filter_fields:
-            field_filter = self.get_field_filter(fieldname)
+            field_filter = self.get_field_filter_singleton(fieldname)
             field_filter.get_template_kwargs()
         return super().get_base_queryset()

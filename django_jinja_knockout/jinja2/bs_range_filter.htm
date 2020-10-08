@@ -8,17 +8,17 @@
                 <div class="row form-group">
                     <label class="control-label col-md-2">{{ _('From') }}</label>
                     <div class="field col-md-3">
-                        <input {{ tpl.json_flatatt(_render_.input_attrs) }}>
+                        <input {{ tpl.json_flatatt(_render_.from_input_attrs) }}>
                     </div>
                     <label class="control-label col-md-2">{{ _('To') }}</label>
                     <div class="field col-md-3">
-                        <input {{ tpl.json_flatatt(_render_.input_attrs) }}>
+                        <input {{ tpl.json_flatatt(_render_.to_input_attrs) }}>
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="field col-md-10">
                         <div class="pull-right">
-                            <a class="btn btn-small btn-default" href="{{ tpl.reverseq(request.resolver_match.view_name, kwargs=request.resolver_match.kwargs) }}">{{ _('Remove selection') }}</a>
+                            <a class="btn btn-small btn-default" href="{{ _render_.reset_url }}">{{ _('Remove selection') }}</a>
                             <a class="btn btn-small btn-default" href="">{{ _('Apply') }}</a>
                         </div>
                     </div>
