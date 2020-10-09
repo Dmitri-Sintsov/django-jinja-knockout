@@ -851,26 +851,65 @@ App.RangeFilter = function(options) {
 void function(RangeFilter) {
 
     RangeFilter.init = function(options) {
-        this.filterKey = options.filterKey;
+        this.filterKey = App.propGet(options, 'filterKey' ,'list_filter');
+        this.fromFieldLookup = App.propGet(options, 'fromFieldLookup', 'gte');
+        this.toFieldLookup = App.propGet(options, 'toFieldLookup', 'lte');
         this.fieldName = options.fieldName;
     };
 
-    RangeFilter.getFilterKeyValue = function() {
+    RangeFilter.getFilterKeyValue = function(urlSearchParams) {
+        if (urlSearchParams === undefined) {
+            urlSearchParams = this.urlSearchParams;
+        }
         try {
-            return JSON.parse(this.urlSearchParams.get(this.filterKey));
+            return JSON.parse(urlSearchParams.get(this.filterKey));
         } catch (e) {
             return {};
         }
     };
 
-    RangeFilter.hasFilterValue = function() {
-        var filterKeyValue = this.getFilterKeyValue();
-        return this.fieldName in filterKeyValue;
+    RangeFilter.getFilterValue = function(urlSearchParams) {
+        var filterKeyValue = this.getFilterKeyValue(urlSearchParams);
+        return (this.fieldName in filterKeyValue) ? filterKeyValue[this.fieldName] : undefined;
     };
 
-    RangeFilter.getFilterValue = function() {
-        var filterKeyValue = this.getFilterKeyValue();
-        return filterKeyValue[this.fieldName];
+    RangeFilter.resetFilterValue = function(fieldLookup) {
+        var urlSearchParams = new URLSearchParams(location.search);
+        var filterKeyValue = this.getFilterKeyValue(urlSearchParams);
+        if (this.fieldName in filterKeyValue) {
+            if (fieldLookup in this.fieldName[filterKeyValue]) {
+                delete filterKeyValue[this.fieldName][fieldLookup];
+            }
+            if (_.size(filterKeyValue[this.fieldName]) === 0) {
+                delete filterKeyValue[this.fieldName];
+            }
+            urlSearchParams.set(this.filterKey, JSON.stringify(filterKeyValue));
+        }
+        return urlSearchParams.toString();
+    };
+
+    RangeFilter.setFilterValue = function(val, fieldLookup) {
+        var urlSearchParams = new URLSearchParams(location.search);
+        var filterKeyValue = this.getFilterKeyValue(urlSearchParams);
+        if (!(this.fieldName in filterKeyValue)) {
+            filterKeyValue[this.fieldName] = {};
+        }
+        filterKeyValue[this.fieldName][fieldLookup] = val;
+        urlSearchParams.set(this.filterKey, JSON.stringify(filterKeyValue));
+        return urlSearchParams.toString();
+    };
+
+    RangeFilter.applyFilterValue = function(ev, fieldLookup) {
+        var val = $(ev.target).val().trim();
+        var $applyUrl = this.$componentSelector.find('.apply-url');
+        if (val === '') {
+            var queryString =  this.resetFilterValue(fieldLookup);
+        } else {
+            var queryString = this.setFilterValue(val, fieldLookup)
+        }
+        var urlParts = $applyUrl.prop('href').split('?');
+        urlParts[1] = queryString;
+        $applyUrl.prop('href', urlParts.join('?'));
     };
 
     RangeFilter.runComponent = function($selector) {
@@ -880,6 +919,12 @@ void function(RangeFilter) {
         var $toggle = $selector.find('.accordion-toggle');
         var $titleListElement = $toggle.parents('li:first');
         var $collapsible = this.$componentSelector.find('.collapse');
+        $selector.find('.input-from').on('change', function(ev) {
+            self.applyFilterValue(ev, self.fromFieldLookup);
+        });
+        $selector.find('.input-to').on('change', function(ev) {
+            self.applyFilterValue(ev, self.toFieldLookup);
+        });
         if ($collapsible.hasClass('in')) {
             $titleListElement.addClass('active');
         } else {
