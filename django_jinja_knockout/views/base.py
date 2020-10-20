@@ -25,7 +25,6 @@ from ..models import (
 from ..viewmodels import vm_list
 from ..utils.sdv import yield_ordered, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
-from ..forms.field_filters import BaseFilter, FilterChoices
 
 
 def page_context_decorator(view_title=None, client_data=None, client_routes=None, custom_scripts=None):
@@ -585,8 +584,10 @@ class BaseFilterView(PageContextMixin):
 
     def ioc_field_filter(self, fieldname, vm_filter):
         if vm_filter['type'] == 'choices':
+            from ..field_filters.choices import FilterChoices
             field_filter_cls = FilterChoices
         else:
+            from ..field_filters.base import BaseFilter
             field_filter_cls = BaseFilter
         return field_filter_cls(self, fieldname, vm_filter)
 

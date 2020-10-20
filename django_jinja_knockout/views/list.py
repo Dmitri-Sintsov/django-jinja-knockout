@@ -15,7 +15,6 @@ from .. import middleware
 from .. import tpl
 from ..models import get_meta, get_verbose_name
 from .base import BaseFilterView
-from ..forms.field_filters import DateFilter, DateTimeFilter
 
 
 # Mix this class in ListView / ListSortingView derived class to have advanced pagination in
@@ -323,8 +322,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         if vm_filter['type'] == 'choices':
             return super().ioc_field_filter(fieldname, vm_filter)
         if vm_filter['type'] == 'date':
+            from ..field_filters.range import DateFilter
             return DateFilter(self, fieldname, vm_filter)
         if vm_filter['type'] == 'datetime':
+            from ..field_filters.range import DateTimeFilter
             return DateTimeFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
