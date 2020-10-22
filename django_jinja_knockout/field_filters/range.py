@@ -37,6 +37,7 @@ class RangeFilter(AbstractFilter):
         template_kwargs = super().get_template_kwargs()
         curr_list_filter = self.get_request_list_filter()
         apply_url = self.view.get_reverse_query(curr_list_filter)
+        collapse_class = 'collapse'
         from_input_attrs = deepcopy(self.input_attrs)
         to_input_attrs = deepcopy(self.input_attrs)
         tpl.add_css_classes_to_dict(from_input_attrs, 'input-from')
@@ -45,12 +46,16 @@ class RangeFilter(AbstractFilter):
             field_filter = curr_list_filter[self.fieldname]
             if self.from_field_lookup in field_filter:
                 from_input_attrs['value'] = field_filter[self.from_field_lookup]
+                collapse_class += ' in'
             if self.to_field_lookup in field_filter:
                 to_input_attrs['value'] = field_filter[self.to_field_lookup]
+                if not collapse_class.endswith(' in'):
+                    collapse_class += ' in'
             del curr_list_filter[self.fieldname]
         reset_url = self.view.get_reverse_query(curr_list_filter)
         template_kwargs.update({
             'component_attrs': self.component_attrs,
+            'collapse_class': collapse_class,
             'from_input_attrs': from_input_attrs,
             'to_input_attrs': to_input_attrs,
             'apply_url': apply_url,

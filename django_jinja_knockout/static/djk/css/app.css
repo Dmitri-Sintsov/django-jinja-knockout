@@ -44,6 +44,17 @@ body {
 	padding-bottom: 10px;
 }
 
+.nav-card {
+	border: none;
+}
+
+.nav-card > .collapse,
+.nav-card > .collapsing {
+	border-left: 1px solid lightgray;
+	border-right: 1px solid lightgray;
+	border-bottom: 1px solid lightgray;
+}
+
 .dropdown-menu-vscroll li > a {
 	white-space: pre-wrap !important;
 	max-height: 200px;

@@ -128,9 +128,14 @@ scripts. Although it may be used for SPA as well. Classical Web applications are
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
 server-side has less glitches than browsers.
 
+Version 1.1.0
+-------------
+RangeFilter / DateFilter / DateTimeFilter `ListSortingView`_ filters for numeric / DateField / DateTimeField Django
+model fields.
+
 Version 1.0.0
 -------------
-Django 3.1a1 / Bootstrap 4.5 / Knockout 3.5 support.
+Django 3.1 / Bootstrap 4.5 / Knockout 3.5 support.
 
 `MultipleKeyGridWidget`_ allows to edit `many to many relationships`_ for Django models.
 

@@ -2,8 +2,8 @@
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active accordion-toggle pointer" data-toggle="collapse" aria-expanded="true">{{ _render_.title }}</a></li>
     </ul>
-    <card-default>
-        <div class="collapse in" aria-expanded="true" style="">
+    <card-default class="nav-card">
+        <div class="{{ _render_.collapse_class }}" aria-expanded="true" style="">
             <card-body>
                 <div class="row form-group">
                     <label class="control-label col-md-2">{{ _('From') }}</label>
