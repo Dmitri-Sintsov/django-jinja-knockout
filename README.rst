@@ -74,7 +74,7 @@ Localization:
 * Chinese: ``goldmonkey``
 * Dutch: ``Melvyn Sopacua``
 * Polish: ``pawelkoston``
-* Spanish: ``Julio Cesar Cabrera Cabrera``
+* Spanish: ``Julio Cesar Cabrera Cabrera``, kiwnix@9f38e48c5ce33cb641473559f994dd9a18f5722d
 
 Key features
 ------------
