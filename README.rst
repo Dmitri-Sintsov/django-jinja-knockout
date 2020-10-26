@@ -15,6 +15,7 @@ django-jinja-knockout
 .. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#foreignkeygridwidget
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
+.. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
 .. _ListSortingView: https://django-jinja-knockout.readthedocs.io/en/latest/views.html#listsortingview
@@ -74,7 +75,7 @@ Localization:
 * Chinese: ``goldmonkey``
 * Dutch: ``Melvyn Sopacua``
 * Polish: ``pawelkoston``
-* Spanish: ``Julio Cesar Cabrera Cabrera``, kiwnix@9f38e48c5ce33cb641473559f994dd9a18f5722d
+* Spanish: ``Julio Cesar Cabrera Cabrera``, `kiwnix`_
 
 Key features
 ------------
