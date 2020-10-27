@@ -681,7 +681,10 @@ class BaseFilterView(PageContextMixin):
             if isinstance(value, list):
                 lookup_filter = []
                 for v in value:
-                    cleaned_value, is_blank = field_validator.clean(v)
+                    result = field_validator.clean(v)
+                    if result is None:
+                        continue
+                    cleaned_value, is_blank = result
                     if cleaned_value is None:
                         if lookup == 'in':
                             has_in_none = True
@@ -698,7 +701,10 @@ class BaseFilterView(PageContextMixin):
                     )
                     # current_list_filter.kwargs[field_lookup] = lookup_filter
             else:
-                lookup_filter, is_blank = field_validator.clean(value)
+                result = field_validator.clean(value)
+                if result is None:
+                    continue
+                lookup_filter, is_blank = result
                 if is_blank:
                     continue
                 lookup_method = getattr(self, 'get_scalar_lookup_{}'.format(lookup), None)
@@ -722,7 +728,10 @@ class BaseFilterView(PageContextMixin):
                 # Single value.
                 field_validator = self.get_field_validator(fieldname)
                 field_validator.set_auto_id(None)
-                cleaned_value, is_blank = field_validator.clean(values)
+                result = field_validator.clean(values)
+                if result is None:
+                    continue
+                cleaned_value, is_blank = result
                 if is_blank:
                     continue
                 if cleaned_value is None:

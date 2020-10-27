@@ -75,13 +75,7 @@ class FieldValidator:
                 self.view.report_error(str(e))
             else:
                 self.form_field.errors = e.messages
-                self.view.error(
-                    {
-                        'view': self.view.viewmodel_name,
-                        'has_errors': True,
-                    },
-                    self.view.get_field_error_viewmodel(self.form_field)
-                )
+                return self.view.add_field_error(self.form_field, value)
 
     # Detect type of filter.
     # Override in child class to add new type of custom filters.

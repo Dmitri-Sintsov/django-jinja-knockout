@@ -327,6 +327,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         if vm_filter['type'] == 'datetime':
             from ..field_filters.range import DateTimeFilter
             return DateTimeFilter(self, fieldname, vm_filter)
+        if vm_filter['type'] == 'number':
+            from ..field_filters.range import RangeFilter
+            return RangeFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
                 'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
@@ -371,6 +374,11 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 'format_str_filters': '%(heading)s',
             })
         return kwargs
+
+    def add_field_error(self, bound_field, value):
+        self.report_error(
+            '{}: {}', ' / '.join(bound_field.errors), value
+        )
 
     def get_base_queryset(self):
         # Validate all filters by calling .get_template_kwargs() which would remove invalid lookups from

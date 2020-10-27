@@ -493,6 +493,15 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         else:
             return self.ajax_form_invalid(ff.form, ff.formsets)
 
+    def add_field_error(self, bound_field, value):
+        self.error(
+            {
+                'view': self.viewmodel_name,
+                'has_errors': True,
+            },
+            self.get_field_error_viewmodel(bound_field)
+        )
+
 
 class GridActionsMixin(ModelFormActionsView):
 
