@@ -8,11 +8,37 @@
                 <div class="row form-group">
                     <label class="control-label col-md-2">{{ _('From') }}</label>
                     <div class="field col-md-3">
+                        {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.from_input_attrs) }}>
+                        {% endset -%}
+                        {% if 'id_range_from' in _render_.errors -%}
+                        <div class="has-error">
+                            {{ input }}
+                            <div class="alert alert-warning alert-dismissible">
+                                <button class="close" data-dismiss="alert" type="button">x</button>
+                                {{ ' / '.join(_render_.errors['id_range_from']) }}
+                            </div>
+                        </div>
+                        {% else -%}
+                            {{ input }}
+                        {% endif -%}
                     </div>
                     <label class="control-label col-md-2">{{ _('To') }}</label>
                     <div class="field col-md-3">
+                        {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.to_input_attrs) }}>
+                        {% endset -%}
+                        {% if 'id_range_to' in _render_.errors -%}
+                        <div class="has-error">
+                            {{ input }}
+                            <div class="alert alert-warning alert-dismissible">
+                                <button class="close" data-dismiss="alert" type="button">x</button>
+                                {{ ' / '.join(_render_.errors['id_range_to']) }}
+                            </div>
+                        </div>
+                        {% else -%}
+                            {{ input }}
+                        {% endif -%}
                     </div>
                 </div>
                 <div class="row form-group">

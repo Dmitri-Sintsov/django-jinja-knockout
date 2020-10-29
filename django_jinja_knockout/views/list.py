@@ -11,6 +11,7 @@ from django.views.generic.base import ContextMixin
 from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
+from ..utils.sdv import nested_update
 from .. import middleware
 from .. import tpl
 from ..models import get_meta, get_verbose_name
@@ -105,6 +106,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.cycler = self.highlight_mode_rules[self.highlight_mode].get('cycler', [])
         self.reported_error = None
         self.filter_instances = {}
+        self.filter_errors = {}
+
+    def get_filter_errors(self, fieldname):
+        return self.filter_errors.get(fieldname, {})
 
     def reset_query_args(self):
         self.allowed_filter_fields = self.get_allowed_filter_fields()
@@ -114,9 +119,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.current_search_str = ''
 
     # Respond with error message (non-AJAX mode).
-    def report_error(self, message, *args, **kwargs):
+    def report_error(self, message=None, *args, **kwargs):
         self.reset_query_args()
-        self.reported_error = format_html(_(message), *args, **kwargs)
+        self.reported_error = None if message is None else format_html(_(message), *args, **kwargs)
         self.object_list = self.model.objects.all()[0:0]
         # Reset page number otherwise there could be re-raised Http404() in genetic.list.MultipleObjectMixin.paginate_queryset().
         # Unfortunately there is no abstraction to reset current page number, that's why self.page_kwarg is altered instead.
@@ -375,10 +380,12 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             })
         return kwargs
 
-    def add_field_error(self, bound_field, value):
-        self.report_error(
-            '{}: {}', ' / '.join(bound_field.errors), value
-        )
+    def add_field_error(self, model_field, form_field, value):
+        nested_update(self.filter_errors, {
+            model_field.name: {
+                form_field.auto_id: form_field.errors
+            }
+        })
 
     def get_base_queryset(self):
         # Validate all filters by calling .get_template_kwargs() which would remove invalid lookups from
@@ -387,3 +394,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             field_filter = self.get_field_filter_singleton(fieldname)
             field_filter.get_template_kwargs()
         return super().get_base_queryset()
+
+    def get_current_query(self):
+        super().get_current_query()
+        if len(self.filter_errors) > 0:
+            self.report_error()

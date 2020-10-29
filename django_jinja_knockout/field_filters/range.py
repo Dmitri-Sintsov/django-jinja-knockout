@@ -58,6 +58,7 @@ class RangeFilter(AbstractFilter):
             'collapse_class': collapse_class,
             'from_input_attrs': from_input_attrs,
             'to_input_attrs': to_input_attrs,
+            'errors': self.view.get_filter_errors(self.fieldname),
             'apply_url': apply_url,
             'reset_url': reset_url,
         })
