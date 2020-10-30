@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 
 class AbstractFilter:
 
+    component_class = None
     template = None
     display = None
 
@@ -25,6 +26,12 @@ class AbstractFilter:
 
     def setup_request_list_filter(self):
         self.request_list_filter = self.view.get_request_list_filter()
+
+    def get_component_class(self):
+        return self.component_class
+
+    def set_component_class(self, component_class):
+        self.component_class = component_class
 
     def get_template(self):
         return self.template

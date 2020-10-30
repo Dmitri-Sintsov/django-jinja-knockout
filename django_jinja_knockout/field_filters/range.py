@@ -6,7 +6,6 @@ from .base import AbstractFilter
 
 
 class RangeFilter(AbstractFilter):
-    component_class = 'App.RangeFilter'
     input_type = 'text'
     template = 'bs_range_filter.htm'
     from_field_lookup = 'gte'
@@ -25,7 +24,6 @@ class RangeFilter(AbstractFilter):
             data_component_options['toFieldLookup'] = self.to_field_lookup
         self.component_attrs = {
             'class': 'component',
-            'data-component-class': self.component_class,
             'data-component-options': data_component_options,
         }
         self.input_attrs = {
@@ -37,6 +35,7 @@ class RangeFilter(AbstractFilter):
         template_kwargs = super().get_template_kwargs()
         curr_list_filter = self.get_request_list_filter()
         apply_url = self.view.get_reverse_query(curr_list_filter)
+        self.component_attrs['data-component-class'] = self.get_component_class()
         collapse_class = 'collapse'
         from_input_attrs = deepcopy(self.input_attrs)
         to_input_attrs = deepcopy(self.input_attrs)
