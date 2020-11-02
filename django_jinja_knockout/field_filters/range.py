@@ -6,7 +6,8 @@ from .base import AbstractFilter
 
 
 class RangeFilter(AbstractFilter):
-    input_type = 'text'
+    component_class = 'App.RangeFilter'
+    input_type = 'search'
     template = 'bs_range_filter.htm'
     from_field_lookup = 'gte'
     to_field_lookup = 'lte'
