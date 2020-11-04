@@ -909,6 +909,11 @@ void function(RangeFilter) {
         var self = this;
         this.urlSearchParams = new URLSearchParams(location.search);
         this.$componentSelector = $selector;
+        $selector
+        .find('.label-from').text(App.trans('From')).end()
+        .find('.label-to').text(App.trans('To')).end()
+        .find('.reset-url').text(App.trans('Remove selection')).end()
+        .find('.apply-url').text(App.trans('Apply'));
         this.$applyUrl = $selector.find('.apply-url');
         var $toggle = $selector.find('.accordion-toggle');
         var $titleListElement = $toggle.parents('li:first');

@@ -6,7 +6,7 @@
         <div class="{{ _render_.collapse_class }}" aria-expanded="true" style="">
             <card-body>
                 <div class="row form-group">
-                    <label class="control-label col-md-2">{{ _('From') }}</label>
+                    <label class="control-label col-md-2 label-from"></label>
                     <div class="field col-md-3">
                         {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.from_input_attrs) }}>
@@ -23,7 +23,7 @@
                             {{ input }}
                         {% endif -%}
                     </div>
-                    <label class="control-label col-md-2">{{ _('To') }}</label>
+                    <label class="control-label col-md-2 label-to"></label>
                     <div class="field col-md-3">
                         {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.to_input_attrs) }}>
@@ -44,8 +44,8 @@
                 <div class="row form-group">
                     <div class="field col-md-10">
                         <div class="pull-right">
-                            <a class="btn btn-small btn-default reset-url" href="{{ _render_.reset_url }}">{{ _('Remove selection') }}</a>
-                            <a class="btn btn-small btn-primary apply-url" href="{{ _render_.apply_url }}">{{ _('Apply') }}</a>
+                            <a class="btn btn-small btn-default reset-url" href="{{ _render_.reset_url }}"></a>
+                            <a class="btn btn-small btn-primary apply-url" href="{{ _render_.apply_url }}"></a>
                         </div>
                     </div>
                 </div>
