@@ -458,7 +458,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             # Save old obj for comparsion. Setting .pk = None will not work.
             old_obj = model_to_dict(old_obj, exclude=['id'])
             form_class = self.get_edit_form()
-        form = form_class(self.request.POST, instance=self.instance, **self.get_form_kwargs(form_class))
+        form = form_class(self.request.POST, self.request.FILES, instance=self.instance, **self.get_form_kwargs(form_class))
         if form.is_valid():
             if form.has_changed():
                 self.instance = form.save()
