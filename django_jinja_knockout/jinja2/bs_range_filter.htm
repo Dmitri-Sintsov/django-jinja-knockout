@@ -8,6 +8,7 @@
                 <div class="row form-group">
                     <label class="control-label col-md-2 label-from"></label>
                     <div class="field col-md-3">
+                        {% block input_from -%}
                         {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.from_input_attrs) }}>
                         {% endset -%}
@@ -22,9 +23,11 @@
                         {% else -%}
                             {{ input }}
                         {% endif -%}
+                        {% endblock input_from -%}
                     </div>
                     <label class="control-label col-md-2 label-to"></label>
                     <div class="field col-md-3">
+                        {% block input_to -%}
                         {% set input -%}
                         <input {{ tpl.json_flatatt(_render_.to_input_attrs) }}>
                         {% endset -%}
@@ -39,13 +42,16 @@
                         {% else -%}
                             {{ input }}
                         {% endif -%}
+                        {% endblock input_to -%}
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="field col-md-10">
                         <div class="pull-right">
+                            {% block controls -%}
                             <a class="btn btn-small btn-default reset-url" href="{{ _render_.reset_url }}"></a>
                             <a class="btn btn-small btn-primary apply-url" href="{{ _render_.apply_url }}"></a>
+                            {% endblock controls -%}
                         </div>
                     </div>
                 </div>

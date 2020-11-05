@@ -54,6 +54,7 @@ class UrlsExtension(Extension):
 extensions = {
     'jinja2.ext.do',
     'jinja2.ext.i18n',
+    'jinja2.ext.loopcontrols',
     'UrlsExtension',
 }
 
