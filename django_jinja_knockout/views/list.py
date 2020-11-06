@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 import json
 
 from django.core.exceptions import ValidationError
@@ -219,15 +219,20 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             query=self.get_current_sort_order_querypart(query)
         )
 
-    def get_reverse_query(self, list_filter_querypart):
+    def get_reverse_query(self, list_filter_querypart, extra_kwargs=None):
         query = self.get_current_sort_order_querypart(
             query=self.get_list_filter_querypart(
                 list_filter_querypart=list_filter_querypart
             )
         )
+        if extra_kwargs is None:
+            view_kwargs = self.kwargs
+        else:
+            view_kwargs = copy(self.kwargs)
+            view_kwargs.update(extra_kwargs)
         return tpl.reverseq(
             self.request.resolver_match.view_name,
-            kwargs=self.kwargs,
+            kwargs=view_kwargs,
             query=query
         )
 

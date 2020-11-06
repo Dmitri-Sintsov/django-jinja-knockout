@@ -55,9 +55,6 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
     def get_default_action_name(self):
         return self.default_action_name
 
-    def get_current_action_name(self):
-        return self.kwargs.get(self.action_kwarg, '').strip('/')
-
     # Add extra kwargs here if these are defined in urls.py.
     def get_view_kwargs(self):
         return deepcopy(self.kwargs)

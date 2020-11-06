@@ -35,7 +35,7 @@ class RangeFilter(AbstractFilter):
     def get_template_kwargs(self):
         template_kwargs = super().get_template_kwargs()
         curr_list_filter = self.get_request_list_filter()
-        apply_url = self.view.get_reverse_query(curr_list_filter)
+        apply_url_query = deepcopy(curr_list_filter)
         self.component_attrs['data-component-class'] = self.get_component_class()
         collapse_class = 'collapse'
         from_input_attrs = deepcopy(self.input_attrs)
@@ -52,15 +52,15 @@ class RangeFilter(AbstractFilter):
                 if not collapse_class.endswith(' in'):
                     collapse_class += ' in'
             del curr_list_filter[self.fieldname]
-        reset_url = self.view.get_reverse_query(curr_list_filter)
+        reset_url_query = deepcopy(curr_list_filter)
         template_kwargs.update({
             'component_attrs': self.component_attrs,
             'collapse_class': collapse_class,
             'from_input_attrs': from_input_attrs,
             'to_input_attrs': to_input_attrs,
             'errors': self.view.get_filter_errors(self.fieldname),
-            'apply_url': apply_url,
-            'reset_url': reset_url,
+            'apply_url_query': apply_url_query,
+            'reset_url_query': reset_url_query,
         })
         return template_kwargs
 

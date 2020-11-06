@@ -146,6 +146,9 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
     custom_scripts = None
     page_context = None
 
+    def get_current_action_name(self):
+        return self.kwargs.get(self.action_kwarg, '').strip('/')
+
     def get_view_title(self):
         return self.view_title
 
