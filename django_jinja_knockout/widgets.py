@@ -237,6 +237,7 @@ class DisplayText(Widget):
 class BaseGridWidget(ChoiceWidget):
 
     allow_multiple_selected = None
+    required = None
     js_classpath = 'App.FkGridWidget'
     template_id = 'ko_fk_grid_widget'
     template_options = None
@@ -246,6 +247,8 @@ class BaseGridWidget(ChoiceWidget):
             grid_options = {}
         self.widget_view_kwargs = widget_view_kwargs
         if attrs is not None:
+            if 'required' in attrs:
+                self.required = attrs.pop('required')
             if 'classPath' in attrs:
                 self.js_classpath = attrs.pop('classPath')
             if 'data-template-id' in attrs:
@@ -273,8 +276,14 @@ class BaseGridWidget(ChoiceWidget):
     def get_widget_view_kwargs(self):
         return self.request.resolver_match.kwargs if self.widget_view_kwargs is None else self.widget_view_kwargs
 
+    def get_empty_val(self, is_required):
+        if self.required is not None:
+            is_required = self.required
+        return 0 if is_required else ''
+
     def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
+        # Do not call ChoiceWidget.get_context() as it would try to serialize the whole fk queryset, which may be huge.
+        context = Widget.get_context(self, name, value, attrs)
         widget_ctx = context['widget']
         remove_css_classes_from_dict(widget_ctx['attrs'], 'form-control')
         widget_ctx['attrs']['type'] = 'hidden'
@@ -305,6 +314,7 @@ class BaseGridWidget(ChoiceWidget):
 
         self.component_options.update({
             'attrs': widget_ctx['attrs'],
+            'emptyVal': self.get_empty_val(widget_ctx['required']),
             'initialFkRows': initial_fk_rows,
             'clickActions': widget_view.vm_get_actions('click'),
             'name': name,

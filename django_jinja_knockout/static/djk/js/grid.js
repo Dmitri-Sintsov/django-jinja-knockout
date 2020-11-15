@@ -3100,6 +3100,10 @@ void function(FkGridWidget) {
         return attrs;
     };
 
+    FkGridWidget.getEmptyAttrs = function() {
+        return this.getInputAttrs({pk: this.emptyVal});
+    };
+
     FkGridWidget.parseFormsetPrefix = function(val) {
         var parts = val.split('__prefix__', 2);
         return (parts.length === 2) ? {prefix: parts[0], suffix: parts[1]} : false;
@@ -3113,6 +3117,7 @@ void function(FkGridWidget) {
         this.baseName = options.name;
         this.nameParts = this.parseFormsetPrefix(options.name);
         this.attrs = options.attrs;
+        this.emptyVal = options.emptyVal;
         this.idParts = this.parseFormsetPrefix(options.attrs.id);
         this.formsetIndex = ko.observable(0);
 

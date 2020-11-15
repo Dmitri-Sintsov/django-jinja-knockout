@@ -353,7 +353,7 @@
             </li>
         </ul>
         <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->
-        <input type="hidden" data-bind="attr: getInputAttrs({pk: 0})">
+        <input type="hidden" data-bind="attr: getEmptyAttrs()">
         <!-- /ko -->
         <!-- ko foreach: {data: inputRows, as: 'inputRow'} -->
             <input type="hidden" data-bind="attr: widget.getInputAttrs(inputRow, $index())">
