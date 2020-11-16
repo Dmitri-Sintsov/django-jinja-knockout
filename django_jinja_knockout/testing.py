@@ -392,14 +392,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _by_id(self, id):
         try:
-            self.context.element = self.selenium.find_element_by_id(id)
+            self.context.element = self.selenium.find_element(By.ID, id)
             return self.context
         except WebDriverException:
             return self._by_wait(By.ID, id)
 
     def _by_link_text(self, link_text):
         try:
-            self.context.element = self.selenium.find_element_by_link_text(link_text)
+            self.context.element = self.selenium.find_element(By.LINK_TEXT, link_text)
             return self.context
         except WebDriverException:
             return self._by_wait(By.LINK_TEXT, link_text)
@@ -423,14 +423,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _by_xpath(self, xpath, *args, **kwargs):
         xpath_str = self.format_xpath(xpath, *args, **kwargs)
         try:
-            self.context.element = self.selenium.find_element_by_xpath(xpath_str)
+            self.context.element = self.selenium.find_element(By.XPATH, xpath_str)
             return self.context
         except WebDriverException:
             return self._by_wait(By.XPATH, xpath_str)
 
     def _by_classname(self, classname):
         try:
-            self.context.element = self.selenium.find_element_by_class_name(classname)
+            self.context.element = self.selenium.find_element(By.CLASS_NAME, classname)
             return self.context
         except WebDriverException:
             return self._by_wait(By.CLASS_NAME, classname)

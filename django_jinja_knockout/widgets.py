@@ -3,7 +3,7 @@ import types
 from datetime import date, datetime
 
 from django.utils.translation import gettext as _
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.forms.widgets import (CheckboxInput, Widget, ChoiceWidget, Textarea, MultiWidget)
@@ -149,7 +149,7 @@ class DisplayText(Widget):
         if isinstance(value, (date, datetime)):
             return format_local_date(value)
         else:
-            return force_text(value)
+            return force_str(value)
 
     def add_list_attrs(self, final_attrs):
         add_css_classes_to_dict(final_attrs, 'list-group')

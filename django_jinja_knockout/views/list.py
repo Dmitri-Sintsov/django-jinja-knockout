@@ -3,7 +3,7 @@ import json
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 from django.utils.translation import gettext as _
@@ -322,10 +322,10 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return format_html(
                 '<a{}>{}</a>',
                 flatatt(link_attrs),
-                force_text(text)
+                force_str(text)
             )
         else:
-            return force_text(text)
+            return force_str(text)
 
     def has_filter(self, fieldname):
         return fieldname in self.allowed_filter_fields

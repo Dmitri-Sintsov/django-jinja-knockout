@@ -1,5 +1,5 @@
 import bleach
-import collections
+from collections.abc import Iterable
 
 import jinja2
 from jinja2.ext import Extension
@@ -14,7 +14,7 @@ from ..viewmodels import to_json
 
 
 def filter_is_iterable(val):
-    return isinstance(val, collections.Iterable) and not isinstance(val, str)
+    return isinstance(val, Iterable) and not isinstance(val, str)
 
 
 def filter_to_json(val, view_error=False):
