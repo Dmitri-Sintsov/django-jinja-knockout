@@ -69,10 +69,11 @@ class ComponentCommands:
 class DialogCommands(djk_ui_testing_components.DialogCommands):
 
     def _to_top_bootstrap_dialog(self):
+        locator = (By.CSS_SELECTOR, '.bootstrap-dialog')
         self.wait_until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.bootstrap-dialog'))
+            EC.presence_of_element_located(locator)
         )
-        dialogs = self.selenium.find_elements_by_css_selector('.bootstrap-dialog')
+        dialogs = self.selenium.find_elements(*locator)
         top_key = None
         z_indexes = []
         for key, dialog in enumerate(dialogs):

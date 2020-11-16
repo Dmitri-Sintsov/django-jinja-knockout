@@ -438,7 +438,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _by_css_selector(self, css_selector):
         # Commented out, will not work for multiple elements (no iteration).
         # return self._by_wait(By.CSS_SELECTOR, css_selector)
-        self.context.element = self.selenium.find_elements_by_css_selector(css_selector)
+        self.context.element = self.selenium.find_elements(By.CSS_SELECTOR, css_selector)
         return self.context
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
