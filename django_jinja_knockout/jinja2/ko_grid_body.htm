@@ -352,7 +352,7 @@
             <li class="list-group-item" data-bind="template: {name: widget.getTemplateName('ko_fk_grid_widget_row'), foreach: inputRows, as: 'inputRow'}">
             </li>
         </ul>
-        <!-- ko if: !selectMultipleRows && inputRows().length === 0 -->
+        <!-- ko if: isRequired && inputRows().length === 0 -->
         <input type="hidden" data-bind="attr: getEmptyAttrs()">
         <!-- /ko -->
         <!-- ko foreach: {data: inputRows, as: 'inputRow'} -->

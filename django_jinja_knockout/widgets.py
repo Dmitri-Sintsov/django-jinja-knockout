@@ -276,11 +276,6 @@ class BaseGridWidget(ChoiceWidget):
     def get_widget_view_kwargs(self):
         return self.request.resolver_match.kwargs if self.widget_view_kwargs is None else self.widget_view_kwargs
 
-    def get_empty_val(self, is_required):
-        if self.required is not None:
-            is_required = self.required
-        return 0 if is_required else ''
-
     def get_context(self, name, value, attrs):
         # Do not call ChoiceWidget.get_context() as it would try to serialize the whole fk queryset, which may be huge.
         context = Widget.get_context(self, name, value, attrs)
@@ -314,7 +309,7 @@ class BaseGridWidget(ChoiceWidget):
 
         self.component_options.update({
             'attrs': widget_ctx['attrs'],
-            'emptyVal': self.get_empty_val(widget_ctx['required']),
+            'isRequired': widget_ctx['required'] if self.required is None else self.required,
             'initialFkRows': initial_fk_rows,
             'clickActions': widget_view.vm_get_actions('click'),
             'name': name,
@@ -337,6 +332,7 @@ class BaseGridWidget(ChoiceWidget):
 class MultipleKeyGridWidget(BaseGridWidget):
 
     allow_multiple_selected = True
+    required = False
 
     def get_initial_fk_grid_queryset(self, widget_view, value):
         filter_kwargs = {
