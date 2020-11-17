@@ -47,11 +47,13 @@
                 </div>
                 <div class="row form-group">
                     <div class="field col-md-10">
+                        {% block controls -%}
+                        {% endblock controls -%}
                         <div class="pull-right">
-                            {% block controls -%}
+                            {% block buttons -%}
                             <a class="btn btn-small btn-default reset-url" href="{{ view.get_reverse_query(_render_.reset_url_query) }}"></a>
                             <a class="btn btn-small btn-primary apply-url" href="{{ view.get_reverse_query(_render_.apply_url_query) }}"></a>
-                            {% endblock controls -%}
+                            {% endblock buttons -%}
                         </div>
                     </div>
                 </div>

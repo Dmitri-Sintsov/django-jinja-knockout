@@ -1,5 +1,6 @@
 import json
 from collections import OrderedDict
+from copy import deepcopy
 from functools import wraps
 from urllib.parse import urlparse
 from ensure import ensure_annotations
@@ -139,15 +140,14 @@ class NavsList(list):
 
 class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
 
+    # Has to be set to None in base class otherwise UrlPath() would fail.
+    # Set to valid string in the ancestor class.
     action_kwarg = None
     view_title = None
     client_data = None
     client_routes = None
     custom_scripts = None
     page_context = None
-
-    def get_current_action_name(self):
-        return self.kwargs.get(self.action_kwarg, '').strip('/')
 
     def get_view_title(self):
         return self.view_title
@@ -290,6 +290,74 @@ class FormatTitleMixin(PageContextMixin):
             return self.object
         else:
             return get_verbose_name(self.model)
+
+
+class ActionsMixin:
+
+    # Set to valid string in the ancestor class.
+    default_action_name = None
+    action_kwarg = 'action'
+
+    def get_default_action_name(self):
+        return self.default_action_name
+
+    def get_current_action_name(self):
+        if self.action_kwarg is None:
+            return self.get_default_action_name()
+        else:
+            action_name = self.kwargs.get(self.action_kwarg, '').strip('/')
+            return self.get_default_action_name() if action_name == '' else action_name
+
+    # Add extra kwargs here if these are defined in urls.py.
+    def get_view_kwargs(self):
+        return deepcopy(self.kwargs)
+
+    def get_action_url(self, action, query: dict = None):
+        if query is None:
+            query = {}
+        kwargs = self.get_view_kwargs()
+        kwargs[self.action_kwarg] = '/{}'.format(action)
+        return tpl.reverseq(
+            self.request.resolver_match.view_name,
+            kwargs=kwargs,
+            query=query
+        )
+
+    def get_action(self, action_name):
+        return {
+            action_name: {
+                'enabled': True,
+            }
+        }
+
+    def get_action_local_name(self, action_name=None):
+        if action_name is None:
+            action_name = self.current_action_name
+        action = self.get_action(action_name)
+        return action['localName'] if action is not None and 'localName' in action else action_name
+
+    def action_is_denied(self):
+        return False
+
+    def action_not_implemented(self):
+        return None
+
+    def conditional_action(self, action_name):
+        if action_name == self.get_current_action_name():
+            return self.get_action_handler()()
+        else:
+            return False
+
+    def get_action_handler(self):
+        self.current_action_name = self.get_current_action_name()
+        current_action = self.get_action(self.current_action_name)
+        if current_action is None:
+            handler = self.action_not_implemented
+        elif current_action.get('enabled', True):
+            handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
+        else:
+            handler = self.action_is_denied
+        return handler
 
 
 # Automatic template context processor for bs_navs() jinja2 macro, which is used to group navigation between

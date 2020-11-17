@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import ViewmodelView, FormatTitleMixin, BaseFilterView, FormViewmodelsMixin
+from .base import FormatTitleMixin, ActionsMixin, ViewmodelView, BaseFilterView, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -24,11 +24,9 @@ MAX_OBJECTS_PER_PAGE = MIN_OBJECTS_PER_PAGE * 5
 
 
 # ViewmodelView with actions router.
-class ActionsView(FormatTitleMixin, ViewmodelView):
+class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
 
-    # Set to valid string in the ancestor class.
     viewmodel_name = 'action'
-    action_kwarg = 'action'
     default_action_name = 'meta'
 
     def setup(self, request, *args, **kwargs):
@@ -52,35 +50,11 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
             ])
         }
 
-    def get_default_action_name(self):
-        return self.default_action_name
-
-    # Add extra kwargs here if these are defined in urls.py.
-    def get_view_kwargs(self):
-        return deepcopy(self.kwargs)
-
-    def get_action_url(self, action, query: dict = None):
-        if query is None:
-            query = {}
-        kwargs = self.get_view_kwargs()
-        kwargs[self.action_kwarg] = '/{}'.format(action)
-        return tpl.reverseq(
-            self.request.resolver_match.view_name,
-            kwargs=kwargs,
-            query=query
-        )
-
     def get_action(self, action_name):
         for actions_map in self.actions.values():
             if action_name in actions_map:
                 return actions_map[action_name]
         return None
-
-    def get_action_local_name(self, action_name=None):
-        if action_name is None:
-            action_name = self.current_action_name
-        action = self.get_action(action_name)
-        return action['localName'] if action is not None and 'localName' in action else action_name
 
     # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
     # ordering, to preserve visual ordering of actions.
@@ -132,17 +106,7 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         self.request = request
         self.args = args
         self.kwargs = kwargs
-        self.current_action_name = self.get_current_action_name()
-        if self.current_action_name == '':
-            self.current_action_name = self.get_default_action_name()
-        current_action = self.get_action(self.current_action_name)
-        if current_action is None:
-            handler = self.action_not_implemented
-        elif current_action.get('enabled', True):
-            handler = getattr(self, 'action_{}'.format(self.current_action_name), self.action_not_implemented)
-        else:
-            handler = self.action_is_denied
-        result = handler()
+        result = self.get_action_handler()()
         if result is None:
             # Will process client-side App.Actions class "callback_{viewmodel_name}"  method.
             result = vm_list(view=self.viewmodel_name)
