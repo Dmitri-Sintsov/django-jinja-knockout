@@ -120,8 +120,8 @@ class ViewmodelValidator(ViewmodelFormatting):
             ids = json.loads(self._val)
             if not isinstance(ids, list) or (not allow_empty and len(ids) == 0):
                 raise ValueError(errmsg)
-            for k, id in enumerate(ids):
-                if not isinstance(id, int) and not self.fix_data('load_json_ids', data={
+            for k, _id in enumerate(ids):
+                if not isinstance(_id, int) and not self.fix_data('load_json_ids', data={
                     'ids': ids,
                     'k': k,
                 }):

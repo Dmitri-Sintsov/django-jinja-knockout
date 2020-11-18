@@ -288,7 +288,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return self.filter_instances[fieldname]
 
     def get_sort_order_link(self, sort_order, kwargs=None, query: dict = None, text=None, viewname=None):
-        if type(sort_order) is str:
+        if isinstance(sort_order, str):
             sort_order = [sort_order]
         if query is None:
             query = {}

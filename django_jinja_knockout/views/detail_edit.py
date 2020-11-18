@@ -207,7 +207,9 @@ class InlineCreateView(FormatTitleMixin, FormWithInlineFormsetsMixin, TemplateVi
 
     template_name = 'cbv_edit_inline.htm'
 
-    def get_form_with_inline_formsets(self, request):
+    def get_form_with_inline_formsets(self, request, create):
+        if not create:
+            raise ValueError('Invalid value of create argument {}'.format(create))
         return super().get_form_with_inline_formsets(request, create=True)
 
     def get_object_from_url(self):
@@ -228,9 +230,9 @@ class InlineCrudView(FormatTitleMixin, FormWithInlineFormsetsMixin, DetailView):
 
     template_name = 'cbv_edit_inline.htm'
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         pk = str_to_numeric(self.kwargs.get(self.pk_url_kwarg, None))
         if pk == 0 or pk is None:
             return self.model()
         else:
-            return super().get_object()
+            return super().get_object(queryset)

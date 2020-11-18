@@ -48,8 +48,8 @@ class ComponentCommands:
         self.context.component = self.context.element
         return self.context
 
-    def _component_by_id(self, id):
-        self.context = self._by_id(id)
+    def _component_by_id(self, dom_id):
+        self.context = self._by_id(dom_id)
         self.context.component = self.context.element
         return self.context
 

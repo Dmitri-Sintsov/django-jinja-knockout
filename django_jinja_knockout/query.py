@@ -40,7 +40,9 @@ class RawSqlCompiler(SQLCompiler):
         super().__init__(query, connection, using)
         self.raw_query = None
 
-    def as_sql(self, with_limits=True):
+    def as_sql(self, with_limits=True, with_col_aliases=False):
+        if with_col_aliases:
+            raise NotImplementedError('Use SQL AS operator for column aliases instead')
         refcounts_before = self.query.alias_refcount.copy()
         try:
             result = [self.raw_query.sql]
@@ -104,7 +106,9 @@ class RawSqlCompiler(SQLCompiler):
             # Finally do cleanup - get rid of the joins we created above.
             self.query.reset_refcounts(refcounts_before)
 
-    def results_iter(self, results=None):
+    def results_iter(self, **kwargs):
+        if len(kwargs) > 0:
+            raise NotImplementedError('results_iter() arguments support is not implmented')
         for row in self.raw_query:
             yield row
 
@@ -440,12 +444,12 @@ class ListQuerySet(ValuesQuerySetMixin):
         else:
             match_method = getattr(self, '_match_{}'.format(tokens[-1]), None)
             try:
-                if match_method is None:
-                    field_val = get_related_field_val(obj, tokens)
-                    return field_val == query_val
-                else:
+                if callable(match_method):
                     field_val = get_related_field_val(obj, tokens[:-1])
                     return match_method(field_val, query_val)
+                else:
+                    field_val = get_related_field_val(obj, tokens)
+                    return field_val == query_val
             except AttributeError:
                 return False
 

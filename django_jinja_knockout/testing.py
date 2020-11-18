@@ -390,12 +390,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
                 self.context.element = self.wait_until(EC.presence_of_element_located([by, key]))
         return self.context
 
-    def _by_id(self, id):
+    def _by_id(self, dom_id):
         try:
-            self.context.element = self.selenium.find_element(By.ID, id)
+            self.context.element = self.selenium.find_element(By.ID, dom_id)
             return self.context
         except WebDriverException:
-            return self._by_wait(By.ID, id)
+            return self._by_wait(By.ID, dom_id)
 
     def _by_link_text(self, link_text):
         try:
@@ -416,8 +416,8 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element.send_keys(Keys.DELETE)
         return self._keys(*keys_list)
 
-    def _keys_by_id(self, id, *keys_list):
-        self.context = self._by_id(id)
+    def _keys_by_id(self, dom_id, *keys_list):
+        self.context = self._by_id(dom_id)
         return self._all_keys(*keys_list)
 
     def _by_xpath(self, xpath, *args, **kwargs):
@@ -534,24 +534,24 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
             text
         )
 
-    def _input_as_select_click(self, id):
+    def _input_as_select_click(self, dom_id):
         return self.exec(
-            'by_id', (id,),
+            'by_id', (dom_id,),
             'relative_by_xpath', ('parent::label',),
             'click',
         )
 
-    def _assert_field_error(self, id, text):
+    def _assert_field_error(self, dom_id, text):
         return self.exec(
-            'by_id', (id,),
+            'by_id', (dom_id,),
             'relative_by_xpath', (
                 'parent::div[@class="has-error"]/div[text()={}]', text
             ),
         )
 
-    def _fk_widget_click(self, id):
+    def _fk_widget_click(self, dom_id):
         return self.exec(
-            'by_xpath', ('//label[@for={}]/parent::*//button', id),
+            'by_xpath', ('//label[@for={}]/parent::*//button', dom_id),
             'click',
             'to_top_bootstrap_dialog',
             'dialog_is_component',
