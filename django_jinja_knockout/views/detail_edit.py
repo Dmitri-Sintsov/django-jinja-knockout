@@ -207,7 +207,7 @@ class InlineCreateView(FormatTitleMixin, FormWithInlineFormsetsMixin, TemplateVi
 
     template_name = 'cbv_edit_inline.htm'
 
-    def get_form_with_inline_formsets(self, request, create):
+    def get_form_with_inline_formsets(self, request, create=True):
         if not create:
             raise ValueError('Invalid value of create argument {}'.format(create))
         return super().get_form_with_inline_formsets(request, create=True)
