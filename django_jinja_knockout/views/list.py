@@ -272,7 +272,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.filter_instances[field_filter.fieldname] = field_filter
         if 'template' in canon_filter_def:
             field_filter.set_template(canon_filter_def['template'])
-        if 'component_class' in  canon_filter_def:
+        if 'component_class' in canon_filter_def:
             field_filter.set_component_class(canon_filter_def['component_class'])
         vm_filter = super().build_field_filter(field_filter, canon_filter_def)
         return vm_filter
