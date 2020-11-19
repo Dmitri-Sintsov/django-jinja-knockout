@@ -7,8 +7,8 @@ python:
   - '3.7'
 env:
   matrix:
-    - TOXENV=py37-django-22-bs3
-    - TOXENV=py37-django-22-bs4
+    - TOXENV=py3.7-django-2.2-bs3
+    - TOXENV=py3.7-django-2.2-bs4
 branches:
   only:
   - master
