@@ -24,7 +24,6 @@ class WebDriver(ChromeWebDriver):
         kwargs['options'] = chrome_options
         if self.webdriver_path:
             webdriver_args = inspect.signature(ChromeWebDriver.__init__)
-            print(webdriver_args)
             if 'service' in webdriver_args.parameters:
                 # Selenium>=4.0
                 kwargs['service'] = Service(self.webdriver_path)
