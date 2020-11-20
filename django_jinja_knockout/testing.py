@@ -102,6 +102,40 @@ class BaseSeleniumCommands(AutomationCommands):
         )
         return self.context
 
+    def save_source(self, html_filename, header=None, log_level=None):
+        if log_level is None:
+            log_level = self.SAVE_COMMANDS_HTML
+        stripped_source = ''
+        with open(html_filename, "w") as cmd_file:
+            parsed_url = list(urlparse(self.selenium.current_url))
+            if parsed_url[1] != '':
+                # Remove arbitrary network port, used by Selenium driver from the logged url.
+                parsed_url[1] = 'localhost'
+            if header is not None:
+                cmd_file.write('<!-- {} -->\n'.format(header))
+            cmd_file.write('<!-- {} -->\n'.format(urlunparse(parsed_url)))
+            stripped_source = self.selenium.page_source
+            if log_level > 1:
+                # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
+                # csrf_token = get_token()
+                for sub in [
+                    (
+                        r'"csrfToken": "([\dA-Za-z]+)"',
+                        '"csrfToken": ""'
+                    ),
+                    (
+                        r'name="csrfmiddlewaretoken" value="([\dA-Za-z]+)"',
+                        'name="csrfmiddlewaretoken" value=""'
+                    ),
+                ]:
+                    stripped_source = re.sub(*sub, stripped_source)
+                if log_level > 2:
+                    stripped_source = '\n'.join(
+                        [line.strip() for line in stripped_source.splitlines() if line.strip() != '']
+                    )
+            cmd_file.write(stripped_source)
+        return urlunparse(parsed_url), stripped_source
+
     def log_command(self, operation, args, kwargs):
         op_args = [operation]
         op_format = 'Operation: {}'
@@ -127,32 +161,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 'logs',
                 'command_{:04d}_{}.html'.format(self.command_index, op_args[0])
             )
-            with open(html_filename, "w") as cmd_file:
-                parse_result = list(urlparse(self.selenium.current_url))
-                if parse_result[1] != '':
-                    # Remove arbitrary network port, used by Selenium driver from the logged url.
-                    parse_result[1] = 'localhost'
-                cmd_file.write('<!-- {} -->\n<!-- {} -->\n'.format(op_str, urlunparse(parse_result)))
-                stripped_source = self.selenium.page_source
-                if self.SAVE_COMMANDS_HTML > 1:
-                    # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
-                    # csrf_token = get_token()
-                    for sub in [
-                        (
-                            r'"csrfToken": "([\dA-Za-z]+)"',
-                            '"csrfToken": ""'
-                        ),
-                        (
-                            r'name="csrfmiddlewaretoken" value="([\dA-Za-z]+)"',
-                            'name="csrfmiddlewaretoken" value=""'
-                        ),
-                    ]:
-                        stripped_source = re.sub(*sub, stripped_source)
-                    if self.SAVE_COMMANDS_HTML > 2:
-                        stripped_source = '\n'.join(
-                            [line.strip() for line in stripped_source.splitlines() if line.strip() != '']
-                        )
-                cmd_file.write(stripped_source)
+            self.save_source(html_filename, header=op_str)
 
     def exec_command(self, operation, *args, **kwargs):
         try:
@@ -224,6 +233,15 @@ class BaseSeleniumCommands(AutomationCommands):
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 f.write(outer_html)
                 f.close()
+            log_filename = 'selenium_page_html_{}.htm'.format(now_str)
+            try:
+                parsed_url, page_html = self.save_source(log_filename, log_level=1)
+            except WebDriverException as e:
+                page_html = str(e)
+            print((
+                '\n=== begin of selenium page {} outerHTML ===\n{}'
+                '\n=== end of selenium page outerHTML ===\n'
+            ).format(parsed_url, page_html))
             try:
                 browser_log = self.selenium.get_log('browser')
             except WebDriverException as e:
