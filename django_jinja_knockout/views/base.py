@@ -657,9 +657,12 @@ class BaseFilterView(PageContextMixin):
         if vm_filter['type'] == 'choices':
             from ..field_filters.choices import FilterChoices
             field_filter_cls = FilterChoices
+        elif vm_filter['type'] == 'error':
+            raise vm_filter['ex']
         else:
-            from ..field_filters.base import BaseFilter
-            field_filter_cls = BaseFilter
+            # AJAX version. See ListSortingView for traditional seriver-side version.
+            from ..field_filters.base import MultiFilter
+            field_filter_cls = MultiFilter
         return field_filter_cls(self, fieldname, vm_filter)
 
     def build_field_filter(self, field_filter, canon_filter_def):
@@ -685,7 +688,14 @@ class BaseFilterView(PageContextMixin):
                 # Use App.ko.FkGridFilter to select filter choices.
                 # Autodetect widget.
                 field_validator = self.get_field_validator(fieldname)
-                vm_filter.update(field_validator.detect_field_filter(canon_filter_def))
+                vm_filter_autodetect = field_validator.detect_field_filter(canon_filter_def)
+                if isinstance(vm_filter_autodetect, ValidationError):
+                    vm_filter.update({
+                        'type': 'error',
+                        'ex': vm_filter_autodetect,
+                    })
+                else:
+                    vm_filter.update(vm_filter_autodetect)
         field_filter = self.ioc_field_filter(fieldname, vm_filter)
         return self.build_field_filter(field_filter, canon_filter_def)
 

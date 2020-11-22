@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 
-class AbstractFilter:
+class BaseFilter:
 
     component_class = None
     template = None
@@ -40,7 +40,7 @@ class AbstractFilter:
         self.template = template
 
     def build(self, filter_def):
-        raise NotImplementedError('Abstract method')
+        return self.vm_filter
 
     def get_template_kwargs(self):
         if self.request_list_filter is None:
@@ -52,9 +52,18 @@ class AbstractFilter:
         return {}
 
 
-class BaseFilter(AbstractFilter):
+class MultiFilter(BaseFilter):
 
     def build(self, filter_def):
         if 'multiple_choices' in filter_def:
             self.vm_filter['multiple_choices'] = filter_def['multiple_choices']
         return self.vm_filter
+
+
+class ErrorFilter(BaseFilter):
+    template = 'bs_error_filter.htm'
+
+    def get_template_kwargs(self):
+        template_kwargs = super().get_template_kwargs()
+        template_kwargs['messages'] = self.vm_filter['ex'].messages
+        return template_kwargs

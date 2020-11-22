@@ -2,10 +2,10 @@ from copy import deepcopy
 
 from .. import tpl
 
-from .base import AbstractFilter
+from .base import BaseFilter
 
 
-class RangeFilter(AbstractFilter):
+class RangeFilter(BaseFilter):
     component_class = 'App.RangeFilter'
     input_type = 'search'
     template = 'bs_range_filter.htm'
@@ -63,9 +63,6 @@ class RangeFilter(AbstractFilter):
             'reset_url_query': reset_url_query,
         })
         return template_kwargs
-
-    def build(self, filter_def):
-        return self.vm_filter
 
 
 class DateFilter(RangeFilter):

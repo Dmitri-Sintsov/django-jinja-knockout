@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from .. import tpl
 
-from .base import BaseFilter
+from .base import MultiFilter
 
 
 # Server-side implementation of filter field 'type': 'choices'.
@@ -12,7 +12,7 @@ from .base import BaseFilter
 # see App.ko.GridFilterChoice class in grid.js.
 #
 # todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
-class FilterChoices(BaseFilter):
+class FilterChoices(MultiFilter):
 
     template = 'bs_breadcrumbs.htm'
 

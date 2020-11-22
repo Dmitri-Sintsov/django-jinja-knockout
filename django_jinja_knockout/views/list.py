@@ -333,15 +333,18 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     def ioc_field_filter(self, fieldname, vm_filter):
         if vm_filter['type'] == 'choices':
             return super().ioc_field_filter(fieldname, vm_filter)
-        if vm_filter['type'] == 'date':
+        elif vm_filter['type'] == 'date':
             from ..field_filters.range import DateFilter
             return DateFilter(self, fieldname, vm_filter)
-        if vm_filter['type'] == 'datetime':
+        elif vm_filter['type'] == 'datetime':
             from ..field_filters.range import DateTimeFilter
             return DateTimeFilter(self, fieldname, vm_filter)
-        if vm_filter['type'] == 'number':
+        elif vm_filter['type'] == 'number':
             from ..field_filters.range import RangeFilter
             return RangeFilter(self, fieldname, vm_filter)
+        elif vm_filter['type'] == 'error':
+            from ..field_filters.base import ErrorFilter
+            return ErrorFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
                 'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)

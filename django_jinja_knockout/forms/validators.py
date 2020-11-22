@@ -111,6 +111,7 @@ class FieldValidator:
                 'type': 'choices'
             }
         else:
-            self.view.report_error(
-                'Cannot determine the type of filter for the field "{}"', str(self.model_field)
+            return ValidationError(
+                message=_("Cannot determine the type of filter for the field '%(field)s'"),
+                params={'field': str(self.model_field.name)}
             )
