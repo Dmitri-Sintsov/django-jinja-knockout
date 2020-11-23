@@ -63,6 +63,10 @@ class MultiFilter(BaseFilter):
 class ErrorFilter(BaseFilter):
     template = 'bs_error_filter.htm'
 
+    def get_template(self):
+        # Should not be overriden, otherwise displaying error message may fail.
+        return self.__class__.template
+
     def get_template_kwargs(self):
         template_kwargs = super().get_template_kwargs()
         template_kwargs['messages'] = self.vm_filter['ex'].messages
