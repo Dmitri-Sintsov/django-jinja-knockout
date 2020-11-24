@@ -1,5 +1,4 @@
 {% macro bs_list(view, object_list=None, is_paginated=False, page_obj=None) -%}
-{% from 'bs_filters.htm' import bs_filters with context -%}
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
 <card-primary>
@@ -56,7 +55,9 @@
                 {% if caller and 'has_no_match' in caller.arguments -%}
                     {{ caller(has_no_match=True) }}
                 {% else -%}
-                    {{ bs_filters(**view.get_no_match_kwargs()) }}
+                    {% with _render_ = view.get_no_match_kwargs() -%}
+                        {% include view.get_no_match_template()  -%}
+                    {% endwith -%}
                 {% endif -%}
                 </div>
             </div>

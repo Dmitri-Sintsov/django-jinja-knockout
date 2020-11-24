@@ -350,6 +350,9 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
                 'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
             )
 
+    def get_no_match_template(self):
+        return 'bs_filters.htm'
+
     def get_filter_template(self, fieldname):
         field_filter = self.get_field_filter_singleton(fieldname)
         return field_filter.get_template()
