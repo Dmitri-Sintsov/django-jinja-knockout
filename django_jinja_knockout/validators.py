@@ -136,7 +136,9 @@ class ViewmodelValidator(ViewmodelFormatting):
         if isinstance(val, self.json_serializable):
             return
         elif isinstance(val, (dict, list, tuple)):
-            for k, v in val.items() if isinstance(val, dict) else enumerate(val):
+            # Wrap .items() in list() to avoid "dictionary keys changed during iteration" exception
+            # when fixing invalid JSON key.
+            for k, v in list(val.items()) if isinstance(val, dict) else enumerate(val):
                 self.key_path.append(str(k))
                 if not isinstance(k, self.json_serializable):
                     extra = {
