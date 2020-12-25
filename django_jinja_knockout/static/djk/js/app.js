@@ -1538,6 +1538,8 @@ App.showAjaxError = function(jqXHR, exception) {
         message = 'Not connected.\n Verify Network.';
     } else if (jqXHR.status == 404) {
         message = 'Requested page not found. [404]';
+    } else if (jqXHR.status == 405) {
+        message = 'Method not allowed. [405]';
     } else if (jqXHR.status == 500) {
         message = 'Internal Server Error [500].';
     } else if (exception === 'parsererror') {
@@ -1547,7 +1549,7 @@ App.showAjaxError = function(jqXHR, exception) {
     } else if (exception === 'abort') {
         message = 'Ajax request aborted.';
     } else {
-        message = 'Uncaught Error.\n' + $.htmlEncode(jqXHR.responseText);
+        message = 'Uncaught Error.\n' + $.htmlEncode(jqXHR.status + ' ' + jqXHR.responseText);
     }
     App.vmRouter.respond({
         'view': 'alert_error',

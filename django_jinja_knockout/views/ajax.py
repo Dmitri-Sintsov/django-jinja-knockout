@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..query import ListQuerySet
 from ..viewmodels import vm_list, to_vm_list
-from .base import FormatTitleMixin, ActionsMixin, ViewmodelView, BaseFilterView, FormViewmodelsMixin
+from .base import FormatTitleMixin, ViewmodelView, BaseFilterView, FormViewmodelsMixin
 
 
 MIN_OBJECTS_PER_PAGE = getattr(settings, 'OBJECTS_PER_PAGE', 10)
@@ -24,9 +24,11 @@ MAX_OBJECTS_PER_PAGE = MIN_OBJECTS_PER_PAGE * 5
 
 
 # ViewmodelView with actions router.
-class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
+class ActionsView(FormatTitleMixin, ViewmodelView):
 
+    # Set to valid string in the ancestor class.
     viewmodel_name = 'action'
+    action_kwarg = 'action'
     default_action_name = 'meta'
 
     def setup(self, request, *args, **kwargs):
@@ -44,17 +46,54 @@ class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
     def get_actions(self):
         return {
             'built_in': OrderedDict([
-                (self.default_action_name, {
+                (self.get_default_action_name(), {
                     'enabled': False
                 }),
             ])
         }
+
+    def get_default_action_name(self):
+        return self.default_action_name
+
+    def get_current_action_name(self):
+        if self.action_kwarg is None:
+            return self.get_default_action_name()
+        else:
+            action_name = self.kwargs.get(self.action_kwarg, '').strip('/')
+            return self.get_default_action_name() if action_name == '' else action_name
+
+    # Add extra kwargs here if these are defined in urls.py.
+    def get_view_kwargs(self):
+        return deepcopy(self.kwargs)
+
+    def get_action_url(self, action, query: dict = None):
+        if query is None:
+            query = {}
+        kwargs = self.get_view_kwargs()
+        kwargs[self.action_kwarg] = '/{}'.format(action)
+        return tpl.reverseq(
+            self.request.resolver_match.view_name,
+            kwargs=kwargs,
+            query=query
+        )
 
     def get_action(self, action_name):
         for actions_map in self.actions.values():
             if action_name in actions_map:
                 return actions_map[action_name]
         return None
+
+    def get_action_local_name(self, action_name=None):
+        if action_name is None:
+            action_name = self.current_action_name
+        action = self.get_action(action_name)
+        return action['localName'] if action is not None and 'localName' in action else action_name
+
+    def conditional_action(self, action_name):
+        if action_name == self.get_current_action_name():
+            return self.get_action_handler()()
+        else:
+            return False
 
     # Converts OrderedDict to list of dicts for each action type because JSON / Javascript does not support dict
     # ordering, to preserve visual ordering of actions.
@@ -82,7 +121,15 @@ class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
         }
         return vm
 
-    def action_is_denied(self):
+    def get_action_is_denied(self):
+        # Warning: the result is valid only for GET handler.
+        return False
+
+    def get_action_not_implemented(self):
+        # Warning: the result is valid only for GET handler.
+        return None
+
+    def post_action_is_denied(self):
         self.report_error(
             title=_('Action is denied'),
             message=format_html(
@@ -90,7 +137,7 @@ class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
             )
         )
 
-    def action_not_implemented(self):
+    def post_action_not_implemented(self):
         self.report_error(
             title=_('Unknown action'),
             message=format_html(
@@ -101,6 +148,24 @@ class ActionsView(ActionsMixin, FormatTitleMixin, ViewmodelView):
     def render_to_response(self, context, **response_kwargs):
         self.create_page_context().add_client_routes(self.request.resolver_match.view_name)
         return super().render_to_response(context, **response_kwargs)
+
+    def get_action_handler(self):
+        self.current_action_name = self.get_current_action_name()
+        current_action = self.get_action(self.current_action_name)
+        http_method = self.request.method.lower()
+        if current_action is None:
+            handler = getattr(self, f"{http_method}_action_not_implemented")
+        elif current_action.get('enabled', True):
+            handler = getattr(
+                self, f'{http_method}_action_{self.current_action_name}', getattr(
+                    self, f'action_{self.current_action_name}', getattr(
+                        self, f"{http_method}_action_not_implemented"
+                    )
+                )
+            )
+        else:
+            handler = getattr(self, f"{http_method}_action_is_denied")
+        return handler
 
     def post(self, request, *args, **kwargs):
         self.request = request
