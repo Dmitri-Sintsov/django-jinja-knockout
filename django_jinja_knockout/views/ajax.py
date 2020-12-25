@@ -203,6 +203,11 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     form_with_inline_formsets = None
     instance = None
 
+    # GET request usually generates html template, POST - returns AJAX viewmodels.
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
     def get_default_action_name(self):
         return 'edit_inline' if self.form is None else 'edit_form'
 
