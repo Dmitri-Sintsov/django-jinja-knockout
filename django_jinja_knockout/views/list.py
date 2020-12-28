@@ -118,8 +118,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         self.current_stripped_sort_order = []
         self.current_search_str = ''
 
-    # Respond with error message (non-AJAX mode).
-    def get_report_error(self, message=None, *args, **kwargs):
+    # Respond with error message (non-AJAX mode, no separate http method routing).
+    def report_error(self, message=None, *args, **kwargs):
         self.reset_query_args()
         self.reported_error = None if message is None else format_html(_(message), *args, **kwargs)
         self.object_list = self.model.objects.all()[0:0]
