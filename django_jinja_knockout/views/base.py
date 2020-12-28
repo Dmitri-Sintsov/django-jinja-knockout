@@ -225,9 +225,9 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
         for vm in vms:
             self.process_success_viewmodel(vm)
 
-    # Can be called as self.error(*vm_list) or as self.error(**viewmodel_kwargs).
+    # Can be called as self.vm_error(*vm_list) or as self.vm_error(**viewmodel_kwargs).
     # todo: Optional error accumulation.
-    def error(self, *args, **kwargs):
+    def vm_error(self, *args, **kwargs):
         if 'ex' in kwargs:
             ex = kwargs.pop('ex')
             kwargs['messages'] = ex.messages if isinstance(ex, ValidationError) else [str(ex)]
@@ -238,16 +238,25 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
         self.process_error_vm_list(vms)
         raise http.ImmediateJsonResponse(vms)
 
-    # Respond with AJAX viewmodel (general non-form field error).
-    def report_error(self, message, *args, **kwargs):
+    def post_report_error(self, message, *args, **kwargs):
         title = kwargs.pop('title') if 'title' in kwargs else _('Error')
-        self.error(
+        self.vm_error(
             # Do not remove view='alert_error' as child class may overload process_error_viewmodel() then supply wrong
             # viewmodel name.
             view='alert_error',
             title=title,
             message=format_html(_(message), *args, **kwargs)
         )
+
+    # Respond with AJAX viewmodel (general non-form field error).
+    def report_error(self, message, *args, **kwargs):
+        http_method = self.request.method.lower()
+        handler_name = f"{http_method}_report_error"
+        handler = getattr(self, handler_name, None)
+        if callable(handler):
+            handler(message, *args, **kwargs)
+        else:
+            raise NotImplementedError(handler_name)
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)

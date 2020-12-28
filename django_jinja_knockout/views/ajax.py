@@ -130,7 +130,7 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         return None
 
     def post_action_is_denied(self):
-        self.report_error(
+        self.post_report_error(
             title=_('Action is denied'),
             message=format_html(
                 _('Action "{}" is denied'), self.current_action_name
@@ -138,7 +138,7 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         )
 
     def post_action_not_implemented(self):
-        self.report_error(
+        self.post_report_error(
             title=_('Unknown action'),
             message=format_html(
                 _('Action "{}" is not implemented'), self.get_action_local_name()
@@ -525,7 +525,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             return self.ajax_form_invalid(ff.form, ff.formsets)
 
     def add_field_error(self, model_field, form_field, value):
-        self.error(
+        self.vm_error(
             {
                 'view': self.viewmodel_name,
                 'has_errors': True,
@@ -729,7 +729,7 @@ class GridActionsMixin(ModelFormActionsView):
 
     def vm_add_grid_fields(self, grid_fields, vm_grid_fields):
         if not isinstance(grid_fields, list):
-            self.report_error('grid_fields must be list')
+            self.vm_error('grid_fields must be list')
         for field_def in grid_fields:
             if isinstance(field_def, tuple):
                 vm_grid_fields.append({
@@ -746,7 +746,7 @@ class GridActionsMixin(ModelFormActionsView):
                 self.vm_add_grid_fields(field_def, vm_compound_fields)
                 vm_grid_fields.append(vm_compound_fields)
             else:
-                self.report_error('grid_fields list values must be instances of str or tuple or list')
+                self.vm_error('grid_fields list values must be instances of str or tuple or list')
 
     def vm_get_grid_fields(self):
         vm_grid_fields = []
@@ -946,7 +946,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
 
     def get_filters(self):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
-            self.report_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
+            self.vm_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
         return super().get_filters()
 
     def set_row_related_fields(self, row):
@@ -988,7 +988,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         try:
             page_num = int(page_num)
         except ValueError:
-            self.report_error(
+            self.vm_error(
                 title='Invalid page number',
                 message=format_html('Page number: {}', page_num)
             )
