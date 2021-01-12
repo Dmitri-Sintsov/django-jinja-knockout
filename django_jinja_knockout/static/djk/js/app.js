@@ -969,14 +969,23 @@ void function(Actions) {
         this.route = options.route;
         this.routeKwargs = options.routeKwargs;
         this.actions = (typeof options.actions === 'undefined') ? this.getActions() : options.actions;
+        if (App.propGet(options, 'meta.actions')) {
+            this.setActions(options.meta.actions);
+        }
     };
 
+    /**
+     * Unordered actions with optional .type property.
+     */
     Actions.getActions = function() {
         return {
             'delete': {'enabled': false},
         };
     };
 
+    /**
+     * Actions should be passed in ActionsView.vm_get_actions() result format (separate types ordered lists).
+     */
     Actions.setActions = function(actions) {
         var self = this;
         _.each(actions, function(actions, actionType) {
