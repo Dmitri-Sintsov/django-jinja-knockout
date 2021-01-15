@@ -13,7 +13,7 @@ def create_additional_permissions(ADDITIONAL_PERMISSIONS):
     for model_name, permdef in ADDITIONAL_PERMISSIONS.items():
         content_type = ContentType.objects.filter(model=model_name).first()
         if content_type is None:
-            raise ValueError('No such content type: {0}'.format(content_type))
+            raise ValueError(f'No such content type: {content_type}')
         for codename, name in permdef.items():
             # Create or update new permission.
             Permission.objects.update_or_create(
@@ -31,7 +31,7 @@ def create_builtin_user_groups(BUILTIN_GROUPS):
         for model_name, codenames in permissions.items():
             content_type = ContentType.objects.filter(model=model_name).first()
             if content_type is None:
-                raise ValueError('No such content type: {0}'.format(content_type))
+                raise ValueError(f'No such content type: {content_type}')
             if codenames == '__all__':
                 # Add all permissions to model.
                 for permission in Permission.objects.filter(content_type=content_type):
@@ -61,5 +61,5 @@ def models_seeds(sender, recreate=False, only_models=None, exclude_models: list 
             if (only_models is not None and model_str not in only_models) or model_str in exclude_models:
                 continue
             if hasattr(model, 'seed'):
-                print('Creating seed for table={0}, model={1}, recreate={2}'.format(table_name, model_str, recreate))
+                print(f'Creating seed for table={table_name}, model={model_str}, recreate={recreate}')
                 model.seed(recreate)

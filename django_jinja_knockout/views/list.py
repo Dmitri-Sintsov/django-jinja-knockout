@@ -177,7 +177,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return result
 
     def negate_sort_order_key(self, order_key):
-        return order_key.lstrip('-') if order_key[0] == '-' else '-{0}'.format(order_key)
+        return order_key.lstrip('-') if order_key[0] == '-' else f'-{order_key}'
 
     def is_negate_sort_order(self, sort_order):
         return sort_order[0][0] == '-'
@@ -260,7 +260,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         if isinstance(self.request_list_filter, dict) and filter_field in self.request_list_filter:
             if isinstance(self.request_list_filter[filter_field], dict):
                 field_lookups.update([
-                    '{}__{}'.format(filter_field, lookup) for lookup in self.request_list_filter[filter_field]
+                    f'{filter_field}__{lookup}' for lookup in self.request_list_filter[filter_field]
                 ])
             # del self.request_list_filter[filter_field]
         if isinstance(self.current_list_filter.kwargs, dict):
@@ -282,7 +282,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
     def get_field_filter_singleton(self, fieldname):
         if not self.has_filter(fieldname):
-            raise ValueError('Not allowed filter fieldname: {}'.format(fieldname))
+            raise ValueError(f'Not allowed filter fieldname: {fieldname}')
         if fieldname not in self.filter_instances:
             self.get_field_filter(fieldname)
         return self.filter_instances[fieldname]
@@ -347,7 +347,7 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
             return ErrorFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
-                'There is no "{}" filter implementation for "{}" fieldname'.format(vm_filter['type'], fieldname)
+                f'There is no "{vm_filter["type"]}" filter implementation for "{fieldname}" fieldname'
             )
 
     def get_no_match_template(self):

@@ -94,10 +94,7 @@ class BaseSeleniumCommands(AutomationCommands):
             use_natural_primary_keys=True,
             output=os.path.join(
                 settings.FIXTURE_DIRS[0],
-                '{:04d}_{}.json'.format(
-                    self.testcase.fixtures_order.index(prefix),
-                    prefix
-                )
+                f'{self.testcase.fixtures_order.index(prefix):04d}_{prefix}.json'
             )
         )
         return self.context
@@ -112,8 +109,8 @@ class BaseSeleniumCommands(AutomationCommands):
                 # Remove arbitrary network port, used by Selenium driver from the logged url.
                 parsed_url[1] = 'localhost'
             if header is not None:
-                cmd_file.write('<!-- {} -->\n'.format(header))
-            cmd_file.write('<!-- {} -->\n'.format(urlunparse(parsed_url)))
+                cmd_file.write(f'<!-- {header} -->\n')
+            cmd_file.write(f'<!-- {urlunparse(parsed_url)} -->\n')
             stripped_source = self.selenium.page_source
             if log_level > 1:
                 # Todo: Is it possible to get csrf token to optionally remove it from the page source (better diffs)?
@@ -147,9 +144,7 @@ class BaseSeleniumCommands(AutomationCommands):
             op_format += ' \\ kwargs: {}'
         op_str = op_format.format(*op_args)
         print(op_str, end='')
-        print(' \\ Nesting level: current = {}, previous = {}'.format(
-            self.nesting_level, self.prev_nesting_level
-        ))
+        print(f' \\ Nesting level: current = {self.nesting_level}, previous = {self.prev_nesting_level}')
 
         if self.SAVE_COMMANDS_HTML > 0:
             # Remove previous command log files, if any.
@@ -159,7 +154,7 @@ class BaseSeleniumCommands(AutomationCommands):
             html_filename = os.path.join(
                 settings.BASE_DIR,
                 'logs',
-                'command_{:04d}_{}.html'.format(self.command_index, op_args[0])
+                f'command_{self.command_index:04d}_{op_args[0]}.html'
             )
             self.save_source(html_filename, header=op_str)
 
@@ -174,7 +169,7 @@ class BaseSeleniumCommands(AutomationCommands):
                 unsleep_time = self.sleep_between_commands - exec_time
                 if unsleep_time > 0:
                     self._sleep(unsleep_time)
-                    print('Unsleep time: {}'.format(unsleep_time))
+                    print(f'Unsleep time: {unsleep_time}')
             self.command_index += 1
             return result, exec_time
         except WebDriverException as e:
@@ -223,9 +218,9 @@ class BaseSeleniumCommands(AutomationCommands):
         if self.logged_error is False and isinstance(self.context.element, WebElement):
             now_str = self.get_now_str()
             scr = self.selenium.get_screenshot_as_png()
-            scr_filename = 'selenium_error_screen_{}.png'.format(now_str)
+            scr_filename = f'selenium_error_screen_{now_str}.png'
             self.upload_screenshot(scr, scr_filename)
-            log_filename = 'selenium_error_html_{}.htm'.format(now_str)
+            log_filename = f'selenium_error_html_{now_str}.htm'
             try:
                 outer_html = self.get_outer_html()
             except WebDriverException as e:
@@ -233,15 +228,15 @@ class BaseSeleniumCommands(AutomationCommands):
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 f.write(outer_html)
                 f.close()
-            log_filename = 'selenium_page_html_{}.htm'.format(now_str)
+            log_filename = f'selenium_page_html_{now_str}.htm'
             try:
                 parsed_url, page_html = self.save_source(log_filename, log_level=1)
             except WebDriverException as e:
                 page_html = str(e)
             print((
-                '\n=== begin of selenium page {} outerHTML ===\n{}'
-                '\n=== end of selenium page outerHTML ===\n'
-            ).format(parsed_url, page_html))
+                f'\n=== begin of selenium page {parsed_url} outerHTML ===\n{page_html}'
+                f'\n=== end of selenium page outerHTML ===\n'
+            ))
             try:
                 browser_log = self.selenium.get_log('browser')
             except WebDriverException as e:
@@ -250,11 +245,12 @@ class BaseSeleniumCommands(AutomationCommands):
                 element_rect = repr(self.context.element.rect)
             except WebDriverException as e:
                 element_rect = str(e)
-            log_filename = 'selenium_error_log_{}.txt'.format(now_str)
-            log = 'Error description:{}\n\nBrowser log:{}\n\nError element rect:\n\n{}'.format(
-                str(ex),
-                browser_log,
-                element_rect)
+            log_filename = f'selenium_error_log_{now_str}.txt'
+            log = (
+                f'Error description:{str(ex)}\n\n'
+                f'Browser log:{browser_log}\n\n'
+                f'Error element rect:\n\n{element_rect}'
+            )
             print(log, file=sys.stderr)
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 print(log, file=f)
@@ -295,17 +291,17 @@ class BaseSeleniumCommands(AutomationCommands):
 
     def escape_xpath_literal(self, s):
         if "'" not in s:
-            return "'{}'".format(s)
+            return f"'{s}'"
         if '"' not in s:
-            return '"{}"'.format(s)
+            return f'"{s}"'
         delimeters = re.compile(r'\'')
         tokens = finditer_with_separators(delimeters, s)
         for key, token in enumerate(tokens):
             if token == '\'':
                 tokens[key] = '"\'"'
             else:
-                tokens[key] = "'{}'".format(token)
-        result = "concat({})".format(','.join(tokens))
+                tokens[key] = f"'{token}'"
+        result = f"concat({','.join(tokens)})"
         return result
 
     def format_xpath(self, s, *args, **kwargs):
@@ -319,7 +315,7 @@ class BaseSeleniumCommands(AutomationCommands):
     def relative_by_xpath(self, element, xpath, *args, **kwargs):
         xpath_str = self.format_xpath(xpath, *args, **kwargs)
         if xpath_str.startswith('//'):
-            print('_relative_by_xpath is meaningless with absolute xpath queries: {}'.format(xpath_str))
+            print(f'_relative_by_xpath is meaningless with absolute xpath queries: {xpath_str}')
         return element.find_element(
             By.XPATH, xpath_str
         )
@@ -331,7 +327,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
     def _screenshot(self, prefix):
         now_str = self.get_now_str()
         scr = self.selenium.get_screenshot_as_png()
-        scr_filename = 'selenium_{}_{}.png'.format(prefix, now_str)
+        scr_filename = f'selenium_{prefix}_{now_str}.png'
         self.upload_screenshot(scr, scr_filename)
         return self.context
 
@@ -364,14 +360,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self._switch_to_last_window()
 
     def _relative_url(self, rel_url):
-        self.context.http_get_result = self.selenium.get('{}{}'.format(self.testcase.live_server_url, rel_url))
+        self.context.http_get_result = self.selenium.get(f'{self.testcase.live_server_url}{rel_url}')
         return self.context
 
     def _reverse_url(self, viewname, kwargs=None, query=None):
-        url = '{}{}'.format(
-            self.testcase.live_server_url, reverseq(viewname=viewname, kwargs=kwargs, query=query)
-        )
-        # print('_reverse_url: {}'.format(url))
+        url = f'{self.testcase.live_server_url}{reverseq(viewname=viewname, kwargs=kwargs, query=query)}'
+        # print(f'_reverse_url: {url}')
         self.context.http_get_result = self.selenium.get(url)
         return self.context
 
@@ -465,11 +459,9 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _scroll_to_element(self):
         # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
+        element_location = self.context.element.location
         self.selenium.execute_script(
-            'window.scrollTo({}, {})'.format(
-                self.context.element.location['x'],
-                self.context.element.location['y']
-            )
+            f"window.scrollTo({element_location['x']}, {element_location['y']})"
         )
         return self.context
 

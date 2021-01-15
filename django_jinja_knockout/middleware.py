@@ -119,9 +119,9 @@ class RouterMiddleware(ThreadMiddleware):
                     if local_tz == 0:
                         tz_name = 'Etc/GMT'
                     elif local_tz < 0:
-                        tz_name = 'Etc/GMT{}'.format(local_tz)
+                        tz_name = f'Etc/GMT{local_tz}'
                     else:
-                        tz_name = 'Etc/GMT+{}'.format(local_tz)
+                        tz_name = f'Etc/GMT+{local_tz}'
                     return tz_name
             except ValueError:
                 pass
@@ -179,7 +179,7 @@ class ContextMiddleware(RouterMiddleware):
         ]
         vms = vm_list()
         if 'url' in request.POST and set(body_keys) <= set(request.POST.keys()):
-            subject = 'Javascript error at {}'.format(request.POST['url'])
+            subject = f"Javascript error at {request.POST['url']}"
             html_message = '\n\n'.join([
                 format_html_attrs(
                     '<p><b>{k}:</b> \n<div{attrs}>{v}</div></p>',

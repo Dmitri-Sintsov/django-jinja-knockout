@@ -288,7 +288,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         stripped_field = field.lstrip('-')
         fieldpath = stripped_field.split('__')
         fieldname = fieldpath[0]
-        fieldpath[0] = '{}__{}'.format(self.relation_map[fieldname], fieldname) \
+        fieldpath[0] = f'{self.relation_map[fieldname]}__{fieldname}' \
             if fieldname in self.relation_map \
             else fieldname
         mapped_field = '__'.join(fieldpath)
@@ -447,7 +447,7 @@ class ListQuerySet(ValuesQuerySetMixin):
         if len(tokens) == 1:
             return hasattr(obj, tokens[0]) and getattr(obj, tokens[0]) == query_val
         else:
-            match_method = getattr(self, '_match_{}'.format(tokens[-1]), None)
+            match_method = getattr(self, f'_match_{tokens[-1]}', None)
             try:
                 if callable(match_method):
                     field_val = get_related_field_val(obj, tokens[:-1])

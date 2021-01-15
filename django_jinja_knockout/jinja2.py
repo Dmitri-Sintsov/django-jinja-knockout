@@ -13,7 +13,7 @@ def import_extensions(extensions_modules):
     }
     for module_path in extensions_modules:
         if '.' not in module_path:
-            module_path = 'django_jinja_knockout.templatetags.{}'.format(module_path)
+            module_path = f'django_jinja_knockout.templatetags.{module_path}'
         module = import_module(module_path)
         for key in extensions:
             if isinstance(extensions[key], dict):
@@ -21,7 +21,7 @@ def import_extensions(extensions_modules):
             else:
                 for ext_path in getattr(module, key, set()):
                     if '.' not in ext_path:
-                        ext_path = '{}.{}'.format(module_path, ext_path)
+                        ext_path = f'{module_path}.{ext_path}'
                     extensions[key].add(ext_path)
     return extensions
 
@@ -36,13 +36,13 @@ class DjangoBytecodeCache(jinja2.BytecodeCache):
         return cache
 
     def load_bytecode(self, bucket):
-        key = 'jinja2_{}'.format(bucket.key)
+        key = f'jinja2_{bucket.key}'
         bytecode = self.cache.get(key)
         if bytecode:
             bucket.bytecode_from_string(bytecode)
 
     def dump_bytecode(self, bucket):
-        key = 'jinja2_{}'.format(bucket.key)
+        key = f'jinja2_{bucket.key}'
         self.cache.set(key, bucket.bytecode_to_string())
 
 

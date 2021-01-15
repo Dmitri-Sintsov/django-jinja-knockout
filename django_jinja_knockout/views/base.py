@@ -656,13 +656,13 @@ class BaseFilterView(PageContextMixin):
         field_lookup = fieldname + '__in'
         if len(lookup_filter) == 0:
             # None in lookup_filter is True
-            list_filter.kwargs['{}__isnull'.format(fieldname)] = True
+            list_filter.kwargs[f'{fieldname}__isnull'] = True
         # Todo: support arbitrary OR via pipeline character '|fieldname' prefix.
         elif len(lookup_filter) == 1:
             if None in lookup_filter:
                 list_filter.args += (
                     self.get_q_or({
-                        '{}__isnull'.format(fieldname): True,
+                        f'{fieldname}__isnull': True,
                         fieldname: lookup_filter[0],
                     }),
                 )
@@ -672,7 +672,7 @@ class BaseFilterView(PageContextMixin):
             if None in lookup_filter:
                 list_filter.args += (
                     self.get_q_or({
-                        '{}__isnull'.format(fieldname): True,
+                        f'{fieldname}__isnull': True,
                         field_lookup: lookup_filter,
                     }),
                 )
@@ -709,7 +709,7 @@ class BaseFilterView(PageContextMixin):
                         lookup_filter.append(cleaned_value)
                 if len(lookup_filter) == 0 and not has_in_none:
                     continue
-                lookup_method = getattr(self, 'get_list_lookup_{}'.format(lookup), None)
+                lookup_method = getattr(self, f'get_list_lookup_{lookup}', None)
                 if callable(lookup_method):
                     lookup_method(fieldname, lookup_filter, current_list_filter)
                 else:
@@ -724,7 +724,7 @@ class BaseFilterView(PageContextMixin):
                 lookup_filter, is_blank = result
                 if is_blank:
                     continue
-                lookup_method = getattr(self, 'get_scalar_lookup_{}'.format(lookup), None)
+                lookup_method = getattr(self, f'get_scalar_lookup_{lookup}', None)
                 if callable(lookup_method):
                     lookup_method(fieldname, lookup_filter, current_list_filter)
                 else:
@@ -752,7 +752,7 @@ class BaseFilterView(PageContextMixin):
                 if is_blank:
                     continue
                 if cleaned_value is None:
-                    current_list_filter.kwargs['{}__isnull'.format(fieldname)] = True
+                    current_list_filter.kwargs[f'{fieldname}__isnull'] = True
                 else:
                     current_list_filter.kwargs[fieldname] = cleaned_value
             else:

@@ -209,7 +209,7 @@ class InlineCreateView(FormatTitleMixin, FormWithInlineFormsetsMixin, TemplateVi
 
     def get_form_with_inline_formsets(self, request, create=True):
         if not create:
-            raise ValueError('Invalid value of create argument {}'.format(create))
+            raise ValueError(f'Invalid value of create argument {create}')
         return super().get_form_with_inline_formsets(request, create=True)
 
     def get_object_from_url(self):

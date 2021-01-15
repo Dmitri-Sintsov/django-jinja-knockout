@@ -62,7 +62,7 @@ class Command(BaseCommand):
     def yield_app_config(self):
         for app_label in self.only_apps:
             if app_label not in self.exclude_apps:
-                # app = import_string('{}.apps'.format(app_name))
+                # app = import_string(f'{app_name}.apps')
                 app_config = apps.get_app_config(app_label)
                 yield app_config
 
@@ -78,7 +78,7 @@ class Command(BaseCommand):
         exclude_models = options['exclude_models'].split(',')
         if options['create_content_types']:
             for app_config in self.yield_app_config():
-                print('Creating content types for app {0} models'.format(app_config))
+                print(f'Creating content types for app {app_config} models')
                 create_content_types(sender=app_config)
         if not options['skip_seeds']:
             for app_config in self.yield_app_config():

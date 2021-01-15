@@ -69,11 +69,7 @@ class ProtectMixin:
 @ensure_annotations
 def get_admin_url(model: models.Model, action='change'):
     return reverse(
-        "admin:{0}_{1}_{2}".format(
-            model._meta.app_label,
-            model._meta.model_name,
-            action
-        ), args=(model.pk,)
+        f"admin:{model._meta.app_label}_{model._meta.model_name}_{action}", args=[model.pk]
     )
 
 

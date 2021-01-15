@@ -46,7 +46,7 @@ PRINT_REPEATED_KEYS = 2
 
 def limitstr(value, maxlen=50, suffix='...'):
     s = str(value)
-    return '{0}{1}'.format(s[:maxlen - len(suffix)], suffix) if len(s) > maxlen else s
+    return f'{s[:maxlen - len(suffix)]}{suffix}' if len(s) > maxlen else s
 
 
 # Insert separator to s between each specified left to right.
@@ -494,7 +494,7 @@ def get_formatted_url(url_name):
         urlresolver = get_resolver(None)
         urls = get_sprintf_urls(urlresolver, url_name)
         if len(urls) == 1:
-            return '{}{}'.format(get_script_prefix(), urls[0])
+            return f'{get_script_prefix()}{urls[0]}'
         elif len(urls) == 0:
             raise NoReverseMatch('Cannot find sprintf formatted url for %s' % url_name) from ex
         else:
@@ -539,7 +539,7 @@ def escape_css_selector(s):
     tokens = finditer_with_separators(delimiters, s)
     for key, token in enumerate(tokens):
         if delimiters.match(token):
-            tokens[key] = '\\{}'.format(token)
+            tokens[key] = f'\\{token}'
     return ''.join(tokens)
 
 

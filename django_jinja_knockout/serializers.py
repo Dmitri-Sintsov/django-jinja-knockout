@@ -120,7 +120,7 @@ class NestedSerializer(NestedPath):
     def __init__(self, obj):
         super().__init__()
         if not self.is_valid_obj(obj):
-            raise ValueError('obj is instance of {}, should be instance of {}'.format(type(obj), self.model_class))
+            raise ValueError(f'obj is instance of {type(obj)}, should be instance of {self.model_class}')
         self.obj = obj
         self.metadata = {}
 
@@ -148,7 +148,7 @@ class NestedSerializer(NestedPath):
             # return sdv.get_nested(field, ['remote_field', 'model', 'objects', 'all'])
 
     def get_field_val(self, obj, fd, nesting_level):
-        choices_fn = 'get_{}_display'.format(fd.field_name)
+        choices_fn = f'get_{fd.field_name}_display'
         if hasattr(obj, choices_fn):
             return getattr(obj, choices_fn)(), True
         else:

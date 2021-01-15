@@ -47,7 +47,7 @@ def get_layout_classes():
 
 
 def get_form_renderer(typ, form, default_cls=None):
-    renderer_cls_name = 'render_{}_cls'.format(typ)
+    renderer_cls_name = f'render_{typ}_cls'
     renderer_cls = getattr(
         getattr(form, 'Meta', None), renderer_cls_name, default_cls
     )

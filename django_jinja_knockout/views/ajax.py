@@ -70,7 +70,7 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         if query is None:
             query = {}
         kwargs = self.get_view_kwargs()
-        kwargs[self.action_kwarg] = '/{}'.format(action)
+        kwargs[self.action_kwarg] = f'/{action}'
         return tpl.reverseq(
             self.request.resolver_match.view_name,
             kwargs=kwargs,
@@ -341,7 +341,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return ko_meta
 
     def event(self, name, **kwargs):
-        handler_name = 'event_{}'.format(name)
+        handler_name = f'event_{name}'
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
 
