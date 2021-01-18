@@ -228,7 +228,11 @@ class BaseSeleniumCommands(AutomationCommands):
             with open(os.path.join(settings.BASE_DIR, 'logs', log_filename), encoding='utf-8', mode='w') as f:
                 f.write(outer_html)
                 f.close()
-            log_filename = f'selenium_page_html_{now_str}.htm'
+            log_filename = os.path.join(
+                settings.BASE_DIR,
+                'logs',
+                f'selenium_page_html_{now_str}.htm'
+            )
             try:
                 parsed_url, page_html = self.save_source(log_filename, log_level=1)
             except WebDriverException as e:
