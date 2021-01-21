@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from .. import tpl
 
-from .base import MultiFilter
+from .base import MultiFilter, ErrorFilter
 
 
 # Server-side implementation of filter field 'type': 'choices'.
@@ -142,12 +142,10 @@ class FilterChoices(MultiFilter):
                 navs.append(link)
             template_kwargs['navs'] = navs
         except ValidationError as e:
-            # Use filter field rendering Jinja2 macro bs_breadcrumbs() or similar, to display the error.
-            return [{
-                'text': str(e),
-                'atts': {'class': 'active'},
-                'url': '',
-            }]
+            self.__class__ = ErrorFilter
+            self.template = self.get_template()
+            self.vm_filter['ex'] = e
+            return self.get_template_kwargs()
         return template_kwargs
 
     def build(self, filter_def):

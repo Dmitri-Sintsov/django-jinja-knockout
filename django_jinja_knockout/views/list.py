@@ -278,8 +278,6 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
         return vm_filter
 
     # Get current filter links suitable for bs_navs() or bs_breadcrumbs() template.
-    # Currently supports only filter fields of type='choices'.
-    # Todo: Implement more non-AJAX filter types (see KoGridView AJAX implementation).
     def get_field_filter_singleton(self, fieldname):
         if not self.has_filter(fieldname):
             raise ValueError(f'Not allowed filter fieldname: {fieldname}')

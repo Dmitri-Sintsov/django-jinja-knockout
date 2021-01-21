@@ -67,7 +67,9 @@ class ErrorFilter(BaseFilter):
         # Should not be overriden, otherwise displaying error message may fail.
         return self.__class__.template
 
+    # Do not call super as it may cause infinite recursion.
     def get_template_kwargs(self):
-        template_kwargs = super().get_template_kwargs()
-        template_kwargs['messages'] = self.vm_filter['ex'].messages
-        return template_kwargs
+        # Exctract messages from ValidationError instance:
+        return {
+            'messages': self.vm_filter['ex'].messages
+        }
