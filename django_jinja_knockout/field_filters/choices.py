@@ -12,7 +12,7 @@ from .base import MultiFilter, ErrorFilter
 # see App.ko.GridFilterChoice class in grid.js.
 #
 # todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
-class FilterChoices(MultiFilter):
+class ChoicesFilter(MultiFilter):
 
     template = 'bs_breadcrumbs.htm'
 

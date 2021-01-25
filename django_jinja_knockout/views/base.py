@@ -591,8 +591,8 @@ class BaseFilterView(PageContextMixin):
 
     def ioc_field_filter(self, fieldname, vm_filter):
         if vm_filter['type'] == 'choices':
-            from ..field_filters.choices import FilterChoices
-            field_filter_cls = FilterChoices
+            from ..field_filters.choices import ChoicesFilter
+            field_filter_cls = ChoicesFilter
         elif vm_filter['type'] == 'error':
             raise vm_filter['ex']
         else:

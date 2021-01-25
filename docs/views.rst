@@ -1,6 +1,11 @@
+.. _ActionList: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views.py
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView
 .. _ajax_refresh: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ajax_refresh
+.. _BaseFilterView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=BaseFilterView&type=code
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
+.. _bs_list: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
+.. _bs_pagination: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_pagination.htm
+.. _ChoicesFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ChoicesFilter&type=code
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
 .. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
@@ -11,6 +16,7 @@
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView
 .. _NavsList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NavsList
+.. _RangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=RangeFilter&type=code
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _set_knockout_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=set_knockout_template
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView
@@ -191,29 +197,77 @@ styles dynamically via `NavsList`_ ``props``.
 
 ListSortingView
 ---------------
+`ListSortingView`_ is a `ListView`_ with built-in support of sorting and field filtering.
 
-`ListSortingView`_ is a `ListView`_ with built-in support of sorting and field filtering::
+Version 1.1.0 implements standard Django ``range`` / ``date`` / ``datetime`` filter fields, which could be extended by
+specifying custom ``template`` / ``component_class`` arguments of ``allowed_filter_fields`` dict items, see the sample
+`ActionList`_::
+
 
     from django_jinja_knockout.views import ListSortingView
 
-    from .models import Club
+    from .models import Action
 
-    class ClubList(ListSortingView):
 
-        model = Club
-        allowed_sort_orders = '__all__'
-        allowed_filter_fields = {
-            # None value will autodetect field filter choices, when possible.
-            'category': None,
-        }
+    class ActionList(ListSortingView):
+        # Enabled always visible paginator links because there could be many pages of actions, potentially.
+        always_visible_links = True
+        model = Action
         grid_fields = [
-            'title',
-            'category',
-            'foundation_date',
+            [
+                'performer',
+                'performer__is_superuser',
+                'date',
+            ],
+            'action_type',
+            'content_object'
+        ]
+        allowed_sort_orders = [
+            'performer',
+            'date',
+            'action_type',
         ]
 
+        def get_allowed_filter_fields(self):
+            allowed_filter_fields = {
+                # Override default templates for filter fields:
+                'action_type': {'template': 'bs_navs.htm'},
+                # Specify custom client-side Javascript component class to extend it's functionality:
+                'id': {
+                    'component_class': 'App.RangeFilter',
+                },
+                'date': None,
+                # Generate widget choices for contenttypes framework:
+                'content_type': self.get_contenttype_filter(
+                    ('club_app', 'club'),
+                    ('club_app', 'equipment'),
+                    ('club_app', 'member'),
+                ),
+            }
+            return allowed_filter_fields
+
+It's possible to specify ``allowed_filter_fields`` widget choices, templates and extra options at once::
+
+    allowed_filter_fields = {
+        'club': {
+            'choices': [(club.pk, club.title) for club in Club.objects.filter(category=Club.CATEGORY_PROFESSIONAL)],
+            'multiple_choices': False,
+            'component_class': 'App.CustomChoicesFilter',
+            # should generate client-side component which uses specified component_class:
+            'template': 'custom_choices_widget.htm',
+        },
+    }
+
+* See `ChoicesFilter`_  / `RangeFilter`_ for the examples of widget.
+* See :ref:`clientside_components` how to create client-side components.
+
+`BaseFilterView`_ interface (``grid_fields`` / ``allowed_sort_orders`` / ``allowed_filter_fields``) is
+inherited by both `ListSortingView`_ and by AJAX-based ``KoGridView`` (:doc:`datatables`), which allows to switch
+between traditional full page server-rendered HTML views and dynamic AJAX views just via changing their parent class
+name.
+
 * `FoldingPaginationMixin`_ - `ListView`_ / `ListSortingView`_ mixin that enables advanced pagination in
-  ``bs_pagination()`` / ``bs_list()`` Jinja2 macros.
+  `bs_pagination`_ / `bs_list`_ Jinja2 macros.
 
 Viewmodels views and actions views
 ----------------------------------
