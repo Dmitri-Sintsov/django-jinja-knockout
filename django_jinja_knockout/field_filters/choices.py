@@ -11,7 +11,6 @@ from .base import MultiFilter, ErrorFilter
 # For AJAX (client-side) implementation used in conjunction with KoGridView,
 # see App.ko.GridFilterChoice class in grid.js.
 #
-# todo: implement FilterRanges to work with BaseFilterView.get_lookup_range().
 class ChoicesFilter(MultiFilter):
 
     template = 'bs_breadcrumbs.htm'
