@@ -62,10 +62,7 @@ class RangeFilter(BaseFilter):
         try:
             template_kwargs = super().get_template_kwargs()
         except ValidationError as e:
-            self.__class__ = ErrorFilter
-            self.template = self.get_template()
-            self.vm_filter['ex'] = e
-            return self.get_template_kwargs()
+            return self.to_error_filter(e)
         curr_list_filter = self.get_request_list_filter()
         apply_url_query = deepcopy(curr_list_filter)
         self.component_attrs['data-component-class'] = self.get_component_class()

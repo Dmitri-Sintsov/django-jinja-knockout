@@ -51,6 +51,12 @@ class BaseFilter:
             )
         return {}
 
+    def to_error_filter(self, ex):
+        self.__class__ = ErrorFilter
+        self.template = self.get_template()
+        self.vm_filter['ex'] = ex
+        return self.get_template_kwargs()
+
 
 class MultiFilter(BaseFilter):
 

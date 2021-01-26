@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from .. import tpl
 
-from .base import MultiFilter, ErrorFilter
+from .base import MultiFilter
 
 
 # Server-side implementation of filter field 'type': 'choices'.
@@ -141,10 +141,7 @@ class ChoicesFilter(MultiFilter):
                 navs.append(link)
             template_kwargs['navs'] = navs
         except ValidationError as e:
-            self.__class__ = ErrorFilter
-            self.template = self.get_template()
-            self.vm_filter['ex'] = e
-            return self.get_template_kwargs()
+            return self.to_error_filter(e)
         return template_kwargs
 
     def build(self, filter_def):
