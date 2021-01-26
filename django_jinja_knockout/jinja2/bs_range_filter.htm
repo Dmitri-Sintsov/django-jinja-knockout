@@ -6,6 +6,7 @@
         <div class="{{ _render_.collapse_class }}" aria-expanded="true" style="">
             <card-body>
                 <div class="row form-group">
+                    {% block controls -%}
                     <label class="control-label col-md-2 label-from"></label>
                     <div class="field col-md-3">
                         {% block input_from -%}
@@ -44,11 +45,12 @@
                         {% endif -%}
                         {% endblock input_to -%}
                     </div>
+                    {% endblock controls -%}
                 </div>
                 <div class="row form-group">
                     <div class="field col-md-10">
-                        {% block controls -%}
-                        {% endblock controls -%}
+                        {% block extra -%}
+                        {% endblock extra -%}
                         <div class="pull-right">
                             {% block buttons -%}
                             <a class="btn btn-small btn-default reset-url" href="{{ view.get_reverse_query(_render_.reset_url_query) }}"></a>
