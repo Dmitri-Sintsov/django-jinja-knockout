@@ -263,7 +263,8 @@ void function(AlertError) {
         if (form === undefined || $.contains(form, this.$field.get(0))) {
             var $formErrors = this.$field.parent('.has-error');
             $formErrors.find('.alert').remove();
-            $formErrors.removeClass('has-error');
+            // Remove div.has-error wrapper, keep it's inner contents:
+            $formErrors.removeClass('has-error').contents().unwrap();
         }
     };
 
