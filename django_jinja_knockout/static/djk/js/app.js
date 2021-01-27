@@ -254,6 +254,13 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
 }
 
 
+App.localize = function($selector, localMap) {
+    for (var k of Object.keys(localMap)) {
+        $selector.find(k).text(App.trans(localMap[k]));
+    }
+};
+
+
 /**
  * Render nested Javascript structures as nested DOM nodes.
  */
@@ -909,11 +916,12 @@ void function(RangeFilter) {
         var self = this;
         this.urlSearchParams = new URLSearchParams(location.search);
         this.$componentSelector = $selector;
-        $selector
-        .find('.label-from').text(App.trans('From')).end()
-        .find('.label-to').text(App.trans('To')).end()
-        .find('.reset-url').text(App.trans('Remove selection')).end()
-        .find('.apply-url').text(App.trans('Apply'));
+        App.localize($selector, {
+            '.label-from': 'From',
+            '.label-to': 'To',
+            '.reset-url': 'Remove selection',
+            '.apply-url': 'Apply',
+        });
         this.$applyUrl = $selector.find('.apply-url');
         var $toggle = $selector.find('.accordion-toggle');
         var $titleListElement = $toggle.parents('li:first');
