@@ -55,7 +55,7 @@ msgstr "Elige año/decada"
 
 #, javascript-format
 msgid "Delete \"%s\""
-msgstr "Eliminar"
+msgstr "Eliminar "\"%s\""
 
 #, javascript-format
 msgid "Are you sure you want to delete \"%s\" ?"
