@@ -914,43 +914,64 @@ void function(RangeFilter) {
         this.$applyUrl.prop('href', urlParts.join('?'));
     };
 
+    RangeFilter.onChange = function(ev) {
+        if ($(ev.target).hasClass('input-from')) {
+            this.applyFilterValue(ev, this.fromFieldLookup);
+        } else if ($(ev.target).hasClass('input-to')) {
+            this.applyFilterValue(ev, this.toFieldLookup);
+        }
+    };
+
+    RangeFilter.onSearch = function(ev) {
+        this.$applyUrl.get(0).click();
+    };
+
+    RangeFilter.onShowBsCollapse = function(ev) {
+    };
+
+    RangeFilter.onShownBsCollapse = function(ev) {
+        this.$titleListElement.addClass('active');
+    };
+
+    RangeFilter.onHideBsCollapse = function(ev) {
+    };
+
+    RangeFilter.onHiddenBsCollapse = function(ev) {
+        this.$titleListElement.removeClass('active');
+    };
+
+    RangeFilter.onToggleClick = function(ev) {
+        this.$collapsible.collapse('toggle');
+        ev.stopPropagation();
+        return false;
+    };
+
     RangeFilter.runComponent = function($selector) {
         var self = this;
+        var $toggle = $selector.find('.accordion-toggle');
         this.urlSearchParams = new URLSearchParams(location.search);
         this.$componentSelector = $selector;
+        this.$collapsible = this.$componentSelector.find('.collapse');
         this.$applyUrl = $selector.find('.apply-url');
-        var $toggle = $selector.find('.accordion-toggle');
-        var $titleListElement = $toggle.parents('li:first');
-        var $collapsible = this.$componentSelector.find('.collapse');
+        this.$titleListElement = $toggle.parents('li:first');
+        this.$titleListElement = $toggle.parents('li:first');
         $selector.find('.input-from')
-        .on('change', function(ev) {
-            self.applyFilterValue(ev, self.fromFieldLookup);
-        })
-        .on('search', function(ev) {
-            self.$applyUrl.get(0).click();
-        });
+        .on('change', this.onChange.bind(this))
+        .on('search', this.onSearch.bind(this));
         $selector.find('.input-to')
-        .on('change', function(ev) {
-            self.applyFilterValue(ev, self.toFieldLookup);
-        })
-        .on('search', function(ev) {
-            self.$applyUrl.get(0).click();
-        });
-        if ($collapsible.hasClass('in')) {
-            $titleListElement.addClass('active');
+        .on('change', this.onChange.bind(this))
+        .on('search', this.onSearch.bind(this));
+        if (this.$collapsible.hasClass('in')) {
+            this.$titleListElement.addClass('active');
         } else {
-            $titleListElement.removeClass('active');
+            this.$titleListElement.removeClass('active');
         }
-        $collapsible.on('shown.bs.collapse', function(ev) {
-            $titleListElement.addClass('active');
-        }).on('hidden.bs.collapse', function(ev) {
-            $titleListElement.removeClass('active');
-        });
-        $toggle.on('click', function(ev) {
-            $collapsible.collapse('toggle');
-            ev.stopPropagation();
-            return false;
-        });
+        this.$collapsible
+        .on('show.bs.collapse', this.onShowBsCollapse.bind(this))
+        .on('shown.bs.collapse', this.onShownBsCollapse.bind(this))
+        .on('hide.bs.collapse', this.onHideBsCollapse.bind(this))
+        .on('hidden.bs.collapse', this.onHiddenBsCollapse.bind(this));
+        $toggle.on('click', this.onToggleClick.bind(this));
     };
 
 }(App.RangeFilter.prototype);
