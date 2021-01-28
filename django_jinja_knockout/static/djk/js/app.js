@@ -254,10 +254,12 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
 }
 
 
-App.localize = function($selector, localMap) {
-    for (var k of Object.keys(localMap)) {
-        $selector.find(k).text(App.trans(localMap[k]));
-    }
+App.localize = function($selector) {
+    $selector.findSelf('.localize-text').each(function() {
+        var $el = $(this);
+        $el.removeClass('localize-text');
+        $el.text(App.trans($el.text()));
+    });
 };
 
 
@@ -916,12 +918,6 @@ void function(RangeFilter) {
         var self = this;
         this.urlSearchParams = new URLSearchParams(location.search);
         this.$componentSelector = $selector;
-        App.localize($selector, {
-            '.label-from': 'From',
-            '.label-to': 'To',
-            '.reset-url': 'Remove selection',
-            '.apply-url': 'Apply',
-        });
         this.$applyUrl = $selector.find('.apply-url');
         var $toggle = $selector.find('.accordion-toggle');
         var $titleListElement = $toggle.parents('li:first');
@@ -3044,6 +3040,7 @@ App.initClientHooks.add({
     init: function($selector) {
         App.transformTags.applyTags($selector);
         App.bindTemplates($selector);
+        App.localize($selector);
         $selector.findSelf('[data-toggle="popover"]').each(App.ContentPopover);
         $selector.findSelf('[data-toggle="tooltip"]').tooltip({html: false});
         $selector.dataHref();

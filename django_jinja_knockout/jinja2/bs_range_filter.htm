@@ -1,13 +1,15 @@
 <div {{ tpl.json_flatatt(_render_.component_attrs)}}>
     <ul class="nav nav-tabs">
-        <li class="nav-item"><a class="nav-link active accordion-toggle pointer" data-toggle="collapse" aria-expanded="true">{{ _render_.title }}</a></li>
+        <li class="nav-item">
+            <a class="nav-link active accordion-toggle pointer" data-toggle="collapse" aria-expanded="true">{{ _render_.title }} <span class="caret"></span></a>
+        </li>
     </ul>
     <card-default class="nav-card">
         <div class="{{ _render_.collapse_class }}" aria-expanded="true" style="">
             <card-body>
                 <div class="row form-group">
                     {% block controls -%}
-                    <label class="control-label col-md-2 label-from"></label>
+                    <label class="control-label col-md-2 label-from localize-text">From</label>
                     <div class="field col-md-3">
                         {% block input_from -%}
                         {% set input -%}
@@ -26,7 +28,7 @@
                         {% endif -%}
                         {% endblock input_from -%}
                     </div>
-                    <label class="control-label col-md-2 label-to"></label>
+                    <label class="control-label col-md-2 label-to localize-text">To</label>
                     <div class="field col-md-3">
                         {% block input_to -%}
                         {% set input -%}
@@ -53,8 +55,8 @@
                         {% endblock extra -%}
                         <div class="pull-right">
                             {% block buttons -%}
-                            <a class="btn btn-small btn-default reset-url" href="{{ view.get_reverse_query(_render_.reset_url_query) }}"></a>
-                            <a class="btn btn-small btn-primary apply-url" href="{{ view.get_reverse_query(_render_.apply_url_query) }}"></a>
+                            <a class="btn btn-small btn-default reset-url localize-text" href="{{ view.get_reverse_query(_render_.reset_url_query) }}">Remove selection</a>
+                            <a class="btn btn-small btn-primary apply-url localize-text" href="{{ view.get_reverse_query(_render_.apply_url_query) }}">Apply</a>
                             {% endblock buttons -%}
                         </div>
                     </div>
