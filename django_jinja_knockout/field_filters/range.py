@@ -60,7 +60,7 @@ class RangeFilter(BaseFilter):
 
     def get_template_kwargs(self):
         try:
-            template_kwargs = super().get_template_kwargs()
+            base_kwargs = super().get_template_kwargs()
         except ValidationError as e:
             return self.to_error_filter(e)
         curr_list_filter = self.get_request_list_filter()
@@ -82,7 +82,7 @@ class RangeFilter(BaseFilter):
         if self.fieldname in curr_list_filter:
             del curr_list_filter[self.fieldname]
         reset_url_query = deepcopy(curr_list_filter)
-        template_kwargs.update({
+        template_kwargs = {
             'filter': self,
             'component_attrs': self.component_attrs,
             'collapse_class': collapse_class,
@@ -91,7 +91,8 @@ class RangeFilter(BaseFilter):
             'errors': self.get_errors(),
             'apply_url_query': apply_url_query,
             'reset_url_query': reset_url_query,
-        })
+        }
+        template_kwargs.update(base_kwargs)
         return template_kwargs
 
 

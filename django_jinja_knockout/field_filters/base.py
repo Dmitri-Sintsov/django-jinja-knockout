@@ -16,6 +16,7 @@ class BaseFilter:
         self.vm_filter = vm_filter
         # Query filter loaded from JSON. Field lookups are encoded as {'field': {'in': 1, 2, 3}}
         self.request_list_filter = request_list_filter
+        self.template_kwargs = {}
         # queryset.filter(*self.current_list_filter.args, **self.current_list_filter.kwargs)
         # self.current_list_filter = FuncArgs()
         # Text names of the currently selected filters.
@@ -33,6 +34,9 @@ class BaseFilter:
     def set_component_class(self, component_class):
         self.component_class = component_class
 
+    def set_template_kwargs(self, template_kwargs):
+        self.template_kwargs = template_kwargs
+
     def get_template(self):
         return self.template
 
@@ -49,7 +53,7 @@ class BaseFilter:
             raise ValidationError(
                 _('Invalid type of list filter')
             )
-        return {}
+        return self.template_kwargs
 
     def to_error_filter(self, ex):
         self.__class__ = ErrorFilter

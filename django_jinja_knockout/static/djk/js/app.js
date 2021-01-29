@@ -926,14 +926,8 @@ void function(RangeFilter) {
         this.$applyUrl.get(0).click();
     };
 
-    RangeFilter.onShowBsCollapse = function(ev) {
-    };
-
     RangeFilter.onShownBsCollapse = function(ev) {
         this.$titleListElement.addClass('active');
-    };
-
-    RangeFilter.onHideBsCollapse = function(ev) {
     };
 
     RangeFilter.onHiddenBsCollapse = function(ev) {
@@ -967,9 +961,7 @@ void function(RangeFilter) {
             this.$titleListElement.removeClass('active');
         }
         this.$collapsible
-        .on('show.bs.collapse', this.onShowBsCollapse.bind(this))
         .on('shown.bs.collapse', this.onShownBsCollapse.bind(this))
-        .on('hide.bs.collapse', this.onHideBsCollapse.bind(this))
         .on('hidden.bs.collapse', this.onHiddenBsCollapse.bind(this));
         $toggle.on('click', this.onToggleClick.bind(this));
     };

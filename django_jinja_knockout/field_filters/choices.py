@@ -125,7 +125,8 @@ class ChoicesFilter(MultiFilter):
 
     def get_template_kwargs(self):
         try:
-            template_kwargs = super().get_template_kwargs()
+            base_kwargs = super().get_template_kwargs()
+            template_kwargs = {}
             if self.vm_filter['multiple_choices'] is False:
                 curr_list_filter = self.get_request_list_filter()
             navs = []
@@ -140,6 +141,7 @@ class ChoicesFilter(MultiFilter):
                     link = self.get_link(choice_def, curr_list_filter)
                 navs.append(link)
             template_kwargs['navs'] = navs
+            template_kwargs.update(base_kwargs)
         except ValidationError as e:
             return self.to_error_filter(e)
         return template_kwargs
