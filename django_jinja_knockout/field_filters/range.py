@@ -26,7 +26,7 @@ class RangeFilter(BaseFilter):
         if self.to_field_lookup != 'lte':
             data_component_options['toFieldLookup'] = self.to_field_lookup
         self.component_attrs = {
-            'class': 'component',
+            'class': 'component display-inline',
             'data-component-options': data_component_options,
         }
         self.input_attrs = {
