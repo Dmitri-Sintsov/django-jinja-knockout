@@ -928,10 +928,16 @@ void function(RangeFilter) {
 
     RangeFilter.onShownBsCollapse = function(ev) {
         this.$titleListElement.addClass('active');
+        this.$componentSelector
+        .removeClass('display-inline')
+        .addClass('display-block');
     };
 
     RangeFilter.onHiddenBsCollapse = function(ev) {
         this.$titleListElement.removeClass('active');
+        this.$componentSelector
+        .removeClass('display-block')
+        .addClass('display-inline');
     };
 
     RangeFilter.onToggleClick = function(ev) {

@@ -387,7 +387,7 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         flat = kwargs.pop('flat', False)
         if kwargs:
             raise TypeError(
-                'Unexpected keyword arguments to values_list: %s' % (list(kwargs),)
+                f'Unexpected keyword arguments to values_list: {list(kwargs)}'
             )
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
@@ -615,8 +615,7 @@ class ListQuerySet(ValuesQuerySetMixin):
     def values_list(self, *fields, **kwargs):
         flat = kwargs.pop('flat', False)
         if kwargs:
-            raise TypeError('Unexpected keyword arguments to values_list: %s'
-                            % (list(kwargs),))
+            raise TypeError(f'Unexpected keyword arguments to values_list: {list(kwargs)}')
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         values_fields = self._get_fields(fields)

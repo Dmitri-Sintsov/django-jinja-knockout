@@ -26,7 +26,7 @@ class RangeFilter(BaseFilter):
         if self.to_field_lookup != 'lte':
             data_component_options['toFieldLookup'] = self.to_field_lookup
         self.component_attrs = {
-            'class': 'component display-inline',
+            'class': 'component',
             'data-component-options': data_component_options,
         }
         self.input_attrs = {
@@ -79,6 +79,11 @@ class RangeFilter(BaseFilter):
             to_input_attrs['value'] = filter_values['to']
             if not collapse_class.endswith(' in'):
                 collapse_class += ' in'
+        # See also App.RangeFilter.onShownBsCollapse() / .onHiddenBsCollapse().
+        tpl.add_css_classes_to_dict(
+            self.component_attrs,
+            'display-inline' if collapse_class == 'collapse' else 'display-block'
+        )
         if self.fieldname in curr_list_filter:
             del curr_list_filter[self.fieldname]
         reset_url_query = deepcopy(curr_list_filter)
