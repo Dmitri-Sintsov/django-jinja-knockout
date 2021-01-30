@@ -80,7 +80,7 @@ void function(Formset) {
             // Get form index in formset client-side generated form list.
             var match = $input.prop('name').match(/-(\d+)-DELETE/);
             if (match === null) {
-                throw "Unable to match form index: " + $formsDeleteFields.prop('name');
+                throw "Unable to match form index: " + $input.prop('name');
             }
             var koFormIndex = parseInt(match.pop()) - self.serversideFormsCount;
             $elements.addClass('alert alert-danger');
@@ -113,7 +113,7 @@ App.initClientHooks.add({
         $selector.findSelf('.formset').each(function(k, v) {
             var $formset = $(v);
             // Do not bind to display-only formsets.
-            if ($formset.parent('.formsets.display-only').length == 0) {
+            if ($formset.parent('.formsets.display-only').length === 0) {
                 var $formsTotalCount;
                 var serversideFormsCount;
                 var maxFormsCount;

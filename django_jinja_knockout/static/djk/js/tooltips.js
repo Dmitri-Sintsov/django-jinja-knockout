@@ -161,7 +161,8 @@ void function(FieldTooltip) {
 
     FieldTooltip.setupEvents = function() {
         var self = this;
-        if (this.hasInstance = this.$cssTarget.hasClass('validation-error')) {
+        this.hasInstance = this.$cssTarget.hasClass('validation-error');
+        if (this.hasInstance) {
             // @note: data-original-title is boostrap3 standard attribute, do not change the name.
             this.$messageTarget.attr(
                 'data-original-title',
