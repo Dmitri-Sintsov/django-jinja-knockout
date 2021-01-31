@@ -3,8 +3,8 @@ import json
 import re
 import pytz
 import lxml.html
-from jinja2 import Undefined, DebugUndefined
 from lxml import etree
+from jinja2 import Undefined, DebugUndefined
 from ensure import ensure_annotations
 from datetime import date, datetime
 from urllib.parse import urlencode
@@ -380,16 +380,47 @@ def remove_css_classes_from_dict(element, classnames, key='class'):
         element[key] = result
 
 
+# Protects from injecting multiple DTDs.
+# See "How do I use lxml safely as a web-service endpoint?"
+# https://lxml.de/FAQ.html
+def html_fromstring(s):
+    parser = etree.HTMLParser(encoding='utf-8')
+    html = lxml.html.fromstring(s, parser=parser)
+    if hasattr(html, 'docinfo'):
+        # Received the whole html document, not just fragment.
+        docinfo = html.docinfo
+        for dtd in docinfo.internalDTD, docinfo.externalDTD:
+            if dtd is None:
+                continue
+            for entity in dtd.iterentities():
+                raise ValueError(f"Forbidden entities: {entity.name}, {entity.content}")
+    return html
+
+
+# Optionally extracts html body, when available.
+def html_tostring(html, extract_body=True):
+    s = etree.tostring(html, method='html', encoding='utf-8', standalone=True).decode('utf-8')
+    if extract_body:
+        body_begin = s.find('<body>')
+        body_end = s.rfind('</body>')
+        if body_begin == -1 or body_end == -1:
+            return s
+        else:
+            # Received the whole html document, not just fragment.
+            return s[body_begin + len('<body>'):body_end]
+    else:
+        return s
+
+
 # Convert html fragment with anchor links into plain text with text links.
 def html_to_text(html):
-    doc = lxml.html.fromstring(html)
-    els = doc.xpath('//a[@href]')
+    html = html_fromstring(html)
+    els = html.xpath('//a[@href]')
     for el in els:
-        if el.text != el.attrib['href']:
-            href_span = etree.Element('span')
-            href_span.text = ' ' + el.attrib['href']
-            el.addnext(href_span)
-    return doc.text_content()
+        href_span = etree.Element('span')
+        href_span.text = ' ' + el.attrib['href']
+        el.addnext(href_span)
+    return etree.tostring(html, method='text', encoding='utf-8').decode('utf-8')
 
 
 def format_local_date(value, short_format=True, to_local_time=True, tz_name=None, use_l10n=None):

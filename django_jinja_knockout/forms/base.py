@@ -1,7 +1,4 @@
 import string
-from io import StringIO
-import lxml.html
-from lxml.etree import tostring
 
 from django.http import QueryDict
 from django.db import transaction
@@ -9,6 +6,7 @@ from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 
+from .. import tpl
 from ..apps import DjkAppConfig
 from ..utils import sdv
 from ..widgets import DisplayText
@@ -145,7 +143,7 @@ def set_knockout_template(formset, request, opts: dict = None):
     })
     empty_form_str = renderer.__str__()
     # return str(empty_form_str)
-    html = lxml.html.parse(StringIO(empty_form_str))
+    html = tpl.html_fromstring(empty_form_str)
     for element in html.xpath("//*[@id or @name or @for]"):
         # sdv.dbg('element', element)
         data_bind_args = []
@@ -161,15 +159,7 @@ def set_knockout_template(formset, request, opts: dict = None):
             data_bind = 'attr: {' + ', '.join(data_bind_args) + '}'
             # sdv.dbg('data_bind', data_bind)
             element.attrib['data-bind'] = data_bind
-    knockout_template = tostring(html, method='html', encoding='utf-8', standalone=True).decode('utf-8')
-    # sdv.dbg('knockout_template before', knockout_template)
-    body_begin = knockout_template.find('<body>')
-    body_end = knockout_template.rfind('</body>')
-    if body_begin == -1 or body_end == -1:
-        sdv.dbg('failed ko template', knockout_template)
-        raise ValueError('Knockout template is not wrapped in body tag')
-    # sdv.dbg('knockout_template after', formset.knockout_template)
-    formset.knockout_template = knockout_template[body_begin + len('<body>'):body_end]
+    formset.knockout_template = tpl.html_tostring(html)
     # @note: Uncomment next line to test knockout.js template for XSS.
     # alert() should execute only when new form is added into formset, not during the page load.
     # formset.knockout_template += '<script language="javascript">alert(1);</script>'
