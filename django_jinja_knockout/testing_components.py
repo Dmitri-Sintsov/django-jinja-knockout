@@ -65,6 +65,17 @@ class ComponentCommands:
         )
         return self._click()
 
+    def _rangefilter_by_id(self, id):
+        self.context = self._by_xpath(
+            self.format_xpath(
+                '//*[@data-component-class={classpath} and @data-component-options={options}]',
+                classpath='App.RangeFilter',
+                options='{"fieldName": "%s"}' % id
+            )
+        )
+        self.context.component = self.context.element
+        return self.context
+
 
 class DialogCommands(djk_ui_testing_components.DialogCommands):
 

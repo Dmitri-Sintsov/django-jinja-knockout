@@ -380,36 +380,19 @@ def remove_css_classes_from_dict(element, classnames, key='class'):
         element[key] = result
 
 
-# Protects from injecting multiple DTDs.
 # See "How do I use lxml safely as a web-service endpoint?"
 # https://lxml.de/FAQ.html
+# https://docs.freebsd.org/en/books/fdp-primer/xml-primer-include.html
 def html_fromstring(s):
-    parser = etree.HTMLParser(encoding='utf-8')
+    # Protect from injecting external DTDs / entities.
+    parser = etree.HTMLParser(encoding='utf-8', no_network=True)  # resolve_entities=False
     html = lxml.html.fromstring(s, parser=parser)
-    if hasattr(html, 'docinfo'):
-        # Received the whole html document, not just fragment.
-        docinfo = html.docinfo
-        for dtd in docinfo.internalDTD, docinfo.externalDTD:
-            if dtd is None:
-                continue
-            for entity in dtd.iterentities():
-                raise ValueError(f"Forbidden entities: {entity.name}, {entity.content}")
     return html
 
 
-# Optionally extracts html body, when available.
-def html_tostring(html, extract_body=True):
+def html_tostring(html):
     s = etree.tostring(html, method='html', encoding='utf-8', standalone=True).decode('utf-8')
-    if extract_body:
-        body_begin = s.find('<body>')
-        body_end = s.rfind('</body>')
-        if body_begin == -1 or body_end == -1:
-            return s
-        else:
-            # Received the whole html document, not just fragment.
-            return s[body_begin + len('<body>'):body_end]
-    else:
-        return s
+    return s
 
 
 # Convert html fragment with anchor links into plain text with text links.

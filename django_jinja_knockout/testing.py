@@ -420,6 +420,10 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         except WebDriverException:
             return self._by_wait(By.LINK_TEXT, link_text)
 
+    def _relative_by_link_text(self, link_text):
+        self.context.element = self.context.element.find_element(By.LINK_TEXT, link_text)
+        return self.context
+
     def _keys(self, *keys_list):
         for keys in keys_list:
             self.context.element.send_keys(keys)
@@ -455,6 +459,10 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         # Commented out, will not work for multiple elements (no iteration).
         # return self._by_wait(By.CSS_SELECTOR, css_selector)
         self.context.element = self.selenium.find_elements(By.CSS_SELECTOR, css_selector)
+        return self.context
+
+    def _relative_by_class_name(self, class_name):
+        self.context.element = self.context.element.find_element(By.CLASS_NAME, class_name)
         return self.context
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
@@ -512,15 +520,15 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
 
     # Client-side menu click.
-    def _click_by_link_text(self, link_text):
+    def _click_by_link_text(self, link_text, relative=False):
         return self.exec(
-            'by_link_text', (link_text,),
+            'relative_by_link_text' if relative else 'by_link_text', (link_text,),
             'click',
         )
 
     # Server-side menu click.
-    def _load_by_link_text(self, link_text):
-        self._click_by_link_text(link_text)
+    def _load_by_link_text(self, link_text, relative=False):
+        self._click_by_link_text(link_text, relative)
         return self._wait_page_ready()
 
     def _relative_button_click(self, button_title):
