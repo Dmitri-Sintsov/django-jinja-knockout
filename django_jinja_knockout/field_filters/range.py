@@ -13,6 +13,8 @@ class RangeFilter(BaseFilter):
     template = 'bs_range_filter.htm'
     from_field_lookup = 'gte'
     to_field_lookup = 'lte'
+    # in for Bootstrap3, show for Bootstrap 4
+    in_show_class = ' in show'
 
     def __init__(self, view, fieldname, vm_filter, request_list_filter=None):
         super().__init__(view, fieldname, vm_filter, request_list_filter)
@@ -74,11 +76,11 @@ class RangeFilter(BaseFilter):
         filter_values = self.get_values(curr_list_filter)
         if 'from' in filter_values:
             from_input_attrs['value'] = filter_values['from']
-            collapse_class += ' in'
+            collapse_class += self.in_show_class
         if 'to' in filter_values:
             to_input_attrs['value'] = filter_values['to']
-            if not collapse_class.endswith(' in'):
-                collapse_class += ' in'
+            if not collapse_class.endswith(self.in_show_class):
+                collapse_class += self.in_show_class
         # See also App.RangeFilter.onShownBsCollapse() / .onHiddenBsCollapse().
         tpl.add_css_classes_to_dict(
             self.component_attrs,

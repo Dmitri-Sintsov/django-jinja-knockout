@@ -920,6 +920,10 @@ void function(RangeFilter) {
         } else if ($(ev.target).hasClass('input-to')) {
             this.applyFilterValue(ev, this.toFieldLookup);
         }
+        if (ev.type === 'error') {
+            ev.stopPropagation();
+            return false;
+        }
     };
 
     RangeFilter.onSearch = function(ev) {
@@ -957,9 +961,13 @@ void function(RangeFilter) {
         this.$titleListElement = $toggle.parents('li:first');
         $selector.find('.input-from')
         .on('change', this.onChange.bind(this))
+        // TempusDominus Bootstrap 4 events:
+        .on('change.datetimepicker error.datetimepicker', this.onChange.bind(this))
         .on('search', this.onSearch.bind(this));
         $selector.find('.input-to')
         .on('change', this.onChange.bind(this))
+        // TempusDominus Bootstrap 4 events:
+        .on('change.datetimepicker error.datetimepicker', this.onChange.bind(this))
         .on('search', this.onSearch.bind(this));
         if (this.$collapsible.hasClass('in')) {
             this.$titleListElement.addClass('active');

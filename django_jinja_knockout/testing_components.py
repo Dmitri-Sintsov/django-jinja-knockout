@@ -65,12 +65,12 @@ class ComponentCommands:
         )
         return self._click()
 
-    def _rangefilter_by_id(self, id):
+    def _rangefilter_by_fieldname(self, fieldname):
         self.context = self._by_xpath(
             self.format_xpath(
                 '//*[@data-component-class={classpath} and @data-component-options={options}]',
                 classpath='App.RangeFilter',
-                options='{"fieldName": "%s"}' % id
+                options='{"fieldName": "%s"}' % fieldname
             )
         )
         self.context.component = self.context.element
