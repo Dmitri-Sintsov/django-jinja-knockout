@@ -32,6 +32,12 @@ class FieldValidator:
             'number',
             None
         ),
+        # Remove when dropping support of Django 2.2:
+        (
+            'AutoField',
+            'number',
+            None
+        ),
     )
 
     def __init__(self, view, fieldname, model_class=None):
