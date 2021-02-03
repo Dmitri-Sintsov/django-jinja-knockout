@@ -938,6 +938,8 @@ void function(RangeFilter) {
     };
 
     RangeFilter.onHiddenBsCollapse = function(ev) {
+        // Next line fixes the collapse for Bootstrap 3:
+        this.$collapsible.removeClass('show');
         this.$titleListElement.removeClass('active');
         this.$componentSelector
         .removeClass('display-block')
