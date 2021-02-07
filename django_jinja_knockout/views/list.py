@@ -333,7 +333,8 @@ class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
     # Non-AJAX filters. See KoGridView for AJAX version.
     def ioc_field_filter(self, fieldname, vm_filter):
         if vm_filter['type'] == 'choices':
-            return super().ioc_field_filter(fieldname, vm_filter)
+            from ..field_filters.choices import ChoicesFilter
+            return ChoicesFilter(self, fieldname, vm_filter)
         elif vm_filter['type'] == 'date':
             from ..field_filters.range import DateFilter
             return DateFilter(self, fieldname, vm_filter)
