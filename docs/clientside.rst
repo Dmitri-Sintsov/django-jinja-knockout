@@ -222,9 +222,7 @@ passed as constructor argument.
 JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
 is generated in Jinja2 macro, such as `ko_grid()`_::
 
-    {% if fragment_name is defined -%}<a name="{{ fragment_name }}"></a>{% endif -%}
-    <div{{ tpl.json_flatatt(_dom_attrs) }}>
-    </div>
+    <div{{ tpl.json_flatatt(_dom_attrs) }}></div>
 
 .. highlight:: javascript
 

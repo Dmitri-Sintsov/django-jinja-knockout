@@ -590,16 +590,7 @@ class BaseFilterView(PageContextMixin):
         return display_value
 
     def ioc_field_filter(self, fieldname, vm_filter):
-        if vm_filter['type'] == 'choices':
-            from ..field_filters.choices import ChoicesFilter
-            field_filter_cls = ChoicesFilter
-        elif vm_filter['type'] == 'error':
-            raise vm_filter['ex']
-        else:
-            # AJAX version. See ListSortingView for traditional seriver-side version.
-            from ..field_filters.base import MultiFilter
-            field_filter_cls = MultiFilter
-        return field_filter_cls(self, fieldname, vm_filter)
+        raise NotImplementedError
 
     def build_field_filter(self, field_filter, canon_filter_def):
         return field_filter.build(canon_filter_def)

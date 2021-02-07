@@ -864,6 +864,18 @@ class KoGridView(BaseFilterView, GridActionsMixin):
     grid_options = None
     preload_meta_list = False
 
+    # AJAX filters. See ListSortingView for traditional seriver-side version.
+    def ioc_field_filter(self, fieldname, vm_filter):
+        if vm_filter['type'] == 'choices':
+            from ..field_filters.choices import ChoicesFilter
+            field_filter_cls = ChoicesFilter
+        elif vm_filter['type'] == 'error':
+            raise vm_filter['ex']
+        else:
+            from ..field_filters.base import MultiFilter
+            field_filter_cls = MultiFilter
+        return field_filter_cls(self, fieldname, vm_filter)
+
     # Override in child class to set value of ko_grid() Jinja2 macro 'grid_options' argument.
     def get_grid_options(self):
         return {} if self.grid_options is None else deepcopy(self.grid_options)
