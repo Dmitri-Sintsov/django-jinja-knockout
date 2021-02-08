@@ -1,6 +1,6 @@
 .. _Class-Based views: https://docs.djangoproject.com/en/dev/topics/class-based-views/
 .. _re_path: https://docs.djangoproject.com/en/dev/ref/urls/#re-path
-.. _UrlPath: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=UrlPath
+.. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?q=UrlPath&type=code
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 =======

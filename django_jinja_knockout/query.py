@@ -178,10 +178,15 @@ class ValuesQuerySetMixin:
             # Try to get value from the relation path.
             for key in keypath:
                 try:
-                    if isinstance(value, list) and len(value) > 0:
-                        # Support for ordering by prefetched related queryset field:
-                        # qs.order_by('reverse_relation_list__field_name')
-                        value = getattr(value[0], key)
+                    # Support for ordering by prefetched related queryset field:
+                    # qs.order_by('reverse_relation_list__field_name')
+                    value_qs = None
+                    if isinstance(value, ListQuerySet):
+                        value_qs = value
+                    elif isinstance(value, list):
+                        value_qs = ListQuerySet(value)
+                    if value_qs is not None:
+                        value = getattr(value_qs.order_by(key).first(), key)
                     else:
                         value = getattr(value, key)
                 except (AttributeError, ObjectDoesNotExist):
