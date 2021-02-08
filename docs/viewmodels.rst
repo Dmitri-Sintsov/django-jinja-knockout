@@ -14,6 +14,7 @@
 .. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
+.. _conditional_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=conditional_action&type=code
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
 .. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
@@ -772,6 +773,60 @@ Here is the example of defining two custom actions, ``save_equipment`` and ``add
 Note that ``form_action`` argument of the ``.vm_form()`` method overrides default action name for the generated form.
 
 See the complete example: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
+
+Separate action handlers for each HTTP method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since v1.1.0 it's possible to define separate action handlers for each HTTP method::
+
+    from django_jinja_knockout.views import ActionsView
+    from django_jinja_knockout.viewmodels import vm_list
+
+    class MemberActions(ActionsView):
+
+        # ... skipped ...
+
+        # will be invoked for HTTP GET action 'reply':
+        def get_action_reply(self):
+            return tpl.Renderer(self.request, 'action_reply_template.htm', {
+                'component_atts': {
+                    'class': 'component',
+                    'data-component-class': 'App.MemberReplyActions',
+                    'data-component-options': {
+                        'route': self.request.resolver_match.view_name,
+                        'routeKwargs': copy(self.kwargs),
+                        'meta': {
+                            'actions': self.vm_get_actions(),
+                        },
+                    },
+                }
+            })()
+
+        # will be invoked for HTTP POST action 'reply',
+        # usually via Javascript App.MemberReplyActions.ajax('reply'):
+        def post_action_reply(self):
+            return vm_list({
+                'members': Member.objects.filter(club=club, role=role)
+            })
+
+However, by default automatic invocation of action handler is performed only for HTTP POST. To invoke HTTP GET action,
+one has to invoke it manually by calling `conditional_action`_ method in view code::
+
+    def get(self, request, *args, **kwargs):
+        reply = self.conditional_action('reply')
+        if reply:
+            return reply
+        else:
+            return super().get(request, *args, **kwargs)
+
+.. highlight:: jinja
+
+or in Jinja2 template::
+
+    {% set reply = view.conditional_action('reply') -%}
+    {% if reply %}
+        {{ reply }}
+    {% endif -%}
 
 The execution path of the action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

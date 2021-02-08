@@ -131,6 +131,8 @@ server-side has less glitches than browsers.
 
 Version 1.1.0
 -------------
+Optional separate action handlers for HTTP methods.
+
 RangeFilter / DateFilter / DateTimeFilter `ListSortingView`_ filters for numeric / DateField / DateTimeField Django
 model fields.
 
