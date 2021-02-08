@@ -133,8 +133,8 @@ Version 1.1.0
 -------------
 Optional separate action handlers for HTTP methods.
 
-RangeFilter / DateFilter / DateTimeFilter `ListSortingView`_ filters for numeric / DateField / DateTimeField Django
-model fields.
+``RangeFilter`` / ``DateFilter`` / ``DateTimeFilter`` `ListSortingView`_ filters for numeric / ``DateField`` /
+``DateTimeField`` Django model fields.
 
 `ListQuerySet`_ supports ordering by prefetched reverse relation list field name:
 ``qs.order_by('reverse_relation_list__field_name')``
