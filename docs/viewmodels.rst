@@ -779,12 +779,23 @@ Separate action handlers for each HTTP method
 
 Since v1.1.0 it's possible to define separate action handlers for each HTTP method::
 
+    from django_jinja_knockout import tpl
     from django_jinja_knockout.views import ActionsView
     from django_jinja_knockout.viewmodels import vm_list
 
     class MemberActions(ActionsView):
 
-        # ... skipped ...
+        template_name = 'member_template.htm'
+
+        def get_actions(self):
+            return {
+                # action type
+                'built_in': {
+                    # action definition
+                    # empty value means the action has no options and is enabled by default
+                    'reply': {}
+                }
+            }
 
         # will be invoked for HTTP GET action 'reply':
         def get_action_reply(self):
@@ -809,19 +820,18 @@ Since v1.1.0 it's possible to define separate action handlers for each HTTP meth
                 'members': Member.objects.filter(club=club, role=role)
             })
 
-However, by default automatic invocation of action handler is performed only for HTTP POST. To invoke HTTP GET action,
-one has to invoke it manually by calling `conditional_action`_ method in view code::
-
-    def get(self, request, *args, **kwargs):
-        reply = self.conditional_action('reply')
-        if reply:
-            return reply
-        else:
-            return super().get(request, *args, **kwargs)
+        def get(self, request, *args, **kwargs):
+            reply = self.conditional_action('reply')
+            if reply:
+                return reply
+            else:
+                return super().get(request, *args, **kwargs)
 
 .. highlight:: jinja
 
-or in Jinja2 template::
+However, by default automatic invocation of action handler is performed only for HTTP POST. To perform HTTP GET action,
+one has to invoke it manually by calling `conditional_action`_ method in ``get`` method view code (see above), or in
+``member_template.htm`` Jinja2 template (in such case custom ``get`` method is not required)::
 
     {% set reply = view.conditional_action('reply') -%}
     {% if reply %}
@@ -937,26 +947,33 @@ result (AJAX response):
   For example to conditionally "redirect" to ``show_readonly`` action callback for ``edit_inline`` action in a
   `KoGridView`_ derived class::
 
-    def action_edit_inline(self):
-        # Use qs = self.get_queryset_for_action() in case multiple objects are selected in the datatable.
-        obj = self.get_object_for_action()
-        if obj.is_editable:
-            if obj.is_invalid:
-                return {
-                    'view': 'alert_error',
-                    'title': obj.get_str_fields(),
-                    'message': tpl.format_html('<div>Invalid object={}</div>', obj.pk)
-                }
+    from django_jinja_knockout import tpl
+    from django_jinja_knockout.views import KoGridView
+
+    class CustomGridView(KoGridView):
+
+        # ... skipped...
+
+        def action_edit_inline(self):
+            # Use qs = self.get_queryset_for_action() in case multiple objects are selected in the datatable.
+            obj = self.get_object_for_action()
+            if obj.is_editable:
+                if obj.is_invalid:
+                    return {
+                        'view': 'alert_error',
+                        'title': obj.get_str_fields(),
+                        'message': tpl.format_html('<div>Invalid object={}</div>', obj.pk)
+                    }
+                else:
+                    title = obj.get_str_fields()
+                    # App.Action.callback_show_readonly() will be called instead of the default
+                    # App.Action.callback_edit_inline() with the following viewmodel as the argument.
+                    return {
+                        'callback_action': 'show_readonly',
+                        'title': title,
+                    }
             else:
-                title = obj.get_str_fields()
-                # App.Action.callback_show_readonly() will be called instead of the default
-                # App.Action.callback_edit_inline() with the following viewmodel as the argument.
-                return {
-                    'callback_action': 'show_readonly',
-                    'title': title,
-                }
-        else:
-            return super().action_edit_inline()
+                return super().action_edit_inline()
 
 
 Custom actions at the client-side
