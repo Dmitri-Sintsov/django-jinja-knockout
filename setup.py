@@ -67,7 +67,7 @@ setup(
     zip_safe=False,
     keywords='django jinja knockout.js ajax forms datatable datatables datagrid'.split(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
