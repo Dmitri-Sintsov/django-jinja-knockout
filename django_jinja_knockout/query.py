@@ -170,7 +170,7 @@ class FilteredRawQuery(RawQuery):
 class ValuesQuerySetMixin:
 
     # Span relationships emulation (for the prefetched data).
-    def _get_row_attr(self, row, attr):
+    def _get_row_attr(self, row, attr, is_desc=False):
         if '__' in attr:
             value = row
             keypath = attr.split('__')
@@ -179,14 +179,15 @@ class ValuesQuerySetMixin:
             for key in keypath:
                 try:
                     # Support for ordering by prefetched related queryset field:
-                    # qs.order_by('reverse_relation_list__field_name')
+                    # qs.order_by('-reverse_relation_list__field_name')
                     value_qs = None
                     if isinstance(value, ListQuerySet):
                         value_qs = value
                     elif isinstance(value, list):
                         value_qs = ListQuerySet(value)
                     if value_qs is not None:
-                        value = getattr(value_qs.order_by(key).first(), key)
+                        reverse_order = '-' if is_desc else ''
+                        value = getattr(value_qs.order_by(f"{reverse_order}{key}").first(), key)
                     else:
                         value = getattr(value, key)
                 except (AttributeError, ObjectDoesNotExist):
@@ -525,7 +526,7 @@ class ListQuerySet(ValuesQuerySetMixin):
             canon_name = fieldname.lstrip('-')
             is_desc = fieldname.startswith('-')
             if '__' in canon_name:
-                c.list.sort(key=lambda row: RichComparator(self._get_row_attr(row, canon_name)), reverse=is_desc)
+                c.list.sort(key=lambda row: RichComparator(self._get_row_attr(row, canon_name, is_desc)), reverse=is_desc)
             else:
                 c.list.sort(key=attrgetter(canon_name), reverse=is_desc)
         return c
