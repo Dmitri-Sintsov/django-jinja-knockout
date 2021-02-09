@@ -8,11 +8,13 @@ Client-side support
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClient+%3D+function
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks+%3D+function
+.. _App.localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.localize&type=code
 .. _App.OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.OrderedHooks
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
 .. _App.TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=transformtags
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
+.. _bs_range_filter.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_range_filter.htm
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
@@ -126,6 +128,18 @@ loaded. It allows to override built-in global instances and to add custom global
             'unread_count': {},
         }
     }};
+
+Automatic client-side localization
+----------------------------------
+
+.. highlight:: html
+
+Since v1.1.0, automatic localization of html text nodes is performed with `App.localize`_ by
+`Client-side initialization`_ ::
+
+    <div class="localize-text">Hello, world in your language!</div>
+
+See `bs_range_filter.htm`_ source for the complete example.
 
 .. _clientside_underscore_js_templates:
 

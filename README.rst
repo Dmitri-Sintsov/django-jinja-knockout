@@ -139,6 +139,8 @@ Optional separate action handlers for HTTP methods.
 `ListQuerySet`_ supports ordering by prefetched reverse relation list field name:
 ``qs.order_by('reverse_relation_list__field_name')``
 
+Automatic client-side localization.
+
 Support of Selenium 4. Additional Selenium commands. Improved Selenium logging.
 
 Version 1.0.0
