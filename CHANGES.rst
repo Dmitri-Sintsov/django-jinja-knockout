@@ -36,6 +36,25 @@
 .. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
+Version 1.0.0
+-------------
+Django 3.1 / Bootstrap 4.5 / Knockout 3.5 support.
+
+`MultipleKeyGridWidget`_ allows to edit `many to many relationships`_ for Django models.
+
+`PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
+custom scripts to templates via `TemplateResponse`_.
+
+`App.renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
+supports optional unwrapping of single top DOM node.
+
+Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` / ``.closeVisiblePopovers()``
+plugins.
+
+Support for `Nested components`_ in formsets.js (`empty_form`_) ``'anonymous_template'`` Knockout binding.
+
+* `UrlPath`_ class supports automatic ``re_path()`` generation with positional named keyword arguments.
+
 Major changes (version 0.9.0)
 -----------------------------
 Django 3.0 support.

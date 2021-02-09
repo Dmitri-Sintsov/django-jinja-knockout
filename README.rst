@@ -143,26 +143,6 @@ Automatic client-side localization.
 
 Support of Selenium 4. Additional Selenium commands. Improved Selenium logging.
 
-Version 1.0.0
--------------
-Django 3.1 / Bootstrap 4.5 / Knockout 3.5 support.
-
-`MultipleKeyGridWidget`_ allows to edit `many to many relationships`_ for Django models.
-
-`PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
-custom scripts to templates via `TemplateResponse`_.
-
-`App.renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
-supports optional unwrapping of single top DOM node.
-
-Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` / ``.closeVisiblePopovers()``
-plugins.
-
-Support for `Nested components`_ in formsets.js (`empty_form`_) ``'anonymous_template'`` Knockout binding.
-
-* `UrlPath`_ class supports automatic ``re_path()`` generation with positional named keyword arguments.
-
-
 .. _History: HISTORY.rst
 
 .. _Changes: CHANGES.rst
