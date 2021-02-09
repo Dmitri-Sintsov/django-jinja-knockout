@@ -54,6 +54,7 @@ setup(
     version=version,
     description="""Django AJAX ModelForms. Read-only display ModelForms. Django AJAX datatables with CRUD and custom actions. Supports Django Templates.""",
     long_description=readme,
+    long_description_content_type='text/x-rst',
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
     url='https://github.com/Dmitri-Sintsov/django-jinja-knockout',
