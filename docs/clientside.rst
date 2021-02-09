@@ -12,13 +12,16 @@ Client-side support
 .. _App.OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.OrderedHooks
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
+.. _App.trans: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.trans&type=code
 .. _App.TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=transformtags
 .. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
 .. _bs_range_filter.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_range_filter.htm
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
+.. _Internationalization in JavaScript code: https://docs.djangoproject.com/en/dev/topics/i18n/translation/#internationalization-in-javascript-code
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
+.. _sprintf: https://github.com/alexei/sprintf.js
 
 app.js
 ------
@@ -80,7 +83,6 @@ option to enable .initClient() call for grid rows DOM. See :doc:`datatables` for
 Custom ``'formset:added'`` jQuery event automatically supports client initialization, eg form field classes / form field
 event handlers when the new form is added to inline formset dynamically.
 
-
 Viewmodels (client-side response routing)
 -----------------------------------------
 See :doc:`viewmodels` for the detailed explanation.
@@ -129,17 +131,33 @@ loaded. It allows to override built-in global instances and to add custom global
         }
     }};
 
-Automatic client-side localization
-----------------------------------
+Client-side localization
+------------------------
+
+It's possible to format Javascript translated messages with `App.trans`_ function::
+
+    App.trans('Yes')
+    App.trans('No')
+    App.trans('Close')
+    App.trans('Delete "%s"', formModelName)
+    // named arguments
+    App.trans(
+        'Too big file size=%(size)s, max_size=%(maxsize)s',
+        {'size': file.size, 'maxsize': maxSize}
+    )
+    // with html escape
+    App.trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr))
 
 .. highlight:: html
 
-Since v1.1.0, automatic localization of html text nodes is performed with `App.localize`_ by
+Since v1.1.0, automatic translation of html text nodes with ``localize-text`` class is performed with `App.localize`_ by
 `Client-side initialization`_ ::
 
     <div class="localize-text">Hello, world in your language!</div>
 
-See `bs_range_filter.htm`_ source for the complete example.
+* See `Internationalization in JavaScript code`_ how to setup Javascript messages catalog in Django.
+* Internally, `sprintf`_ library and `App.trans`_ is used to convert messages to local versions.
+* See `bs_range_filter.htm`_ source for the complete example.
 
 .. _clientside_underscore_js_templates:
 
