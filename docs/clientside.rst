@@ -1,13 +1,17 @@
 ===================
 Client-side support
 ===================
+.. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&type=code
+.. _App.compileTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.compileTemplate&type=code
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.components
 .. _App.ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.componentmanager
 .. _App.documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
+.. _App.Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClient+%3D+function
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks+%3D+function
+.. _App.Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
 .. _App.localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.localize&type=code
 .. _App.OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.OrderedHooks
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
@@ -177,12 +181,12 @@ templates for the example of ``self.get`` method usage.
 Internally template processor is used for optional client-side overriding of default grid templates, supported via
 `App.Tpl`_ constructor ``options.templates`` argument.
 
-* ``App.compileTemplate`` provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
+* `App.compileTemplate`_ provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
   specified DOM id ``tplId``.
-* ``App.Tpl.domTemplate`` converts template with specified DOM id and template arguments into jQuery DOM subtee.
-* ``App.Tpl.loadTemplates`` recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
+* `App.Tpl.domTemplate`_ converts template with specified DOM id and template arguments into jQuery DOM subtee.
+* `App.Tpl.loadTemplates`_ recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
-* ``App.bindTemplates`` - templates class factory used by `App.initClient`_ auto-initialization of DOM nodes.
+* `App.bindTemplates`_ - templates class factory used by `App.initClient`_ auto-initialization of DOM nodes.
 
 The following html5 data attributes are used by `App.Tpl`_ template processor:
 
