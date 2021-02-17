@@ -11,14 +11,16 @@ class WebDriver(ChromeWebDriver):
     # Ubuntu snap path
     chrome_path = '/usr/bin/chromium-browser'
     webdriver_path = '/snap/bin/chromium.chromedriver'
+    log_path = None
 
     def __init__(self, *args, **kwargs):
 
         chrome_options = Options()
         if self.is_headless:
             # https://stackoverflow.com/questions/22424737/unknown-error-chrome-failed-to-start-exited-abnormally
-            chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--headless')
+            if self.log_path is None:
+                self.log_path = '/dev/stderr'
         if self.window_size:
             chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
         if self.chrome_path:
@@ -28,7 +30,15 @@ class WebDriver(ChromeWebDriver):
             webdriver_args = inspect.signature(ChromeWebDriver.__init__)
             if 'service' in webdriver_args.parameters:
                 # Selenium>=4.0
-                kwargs['service'] = Service(self.webdriver_path)
+                kwargs['service'] = Service(
+                    self.webdriver_path,
+                    service_args=['--verbose'],
+                    log_path=self.log_path
+                )
             else:
-                kwargs['executable_path'] = self.webdriver_path
+                kwargs.update({
+                    'executable_path': self.webdriver_path,
+                    'service_args': ['--verbose'],
+                    'service_log_path': self.log_path
+                })
         super().__init__(*args, **kwargs)
