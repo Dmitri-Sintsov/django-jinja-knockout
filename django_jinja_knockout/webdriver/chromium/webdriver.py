@@ -27,7 +27,7 @@ class WebDriver(ChromeWebDriver):
             chrome_options.add_argument('--headless')
             self.enable_logging = True
         if self.enable_logging:
-            log_file = tempfile.NamedTemporaryFile(mode='w', delete=False, encoding='utf-8')
+            log_file = tempfile.NamedTemporaryFile(mode='r+', delete=False, encoding='utf-8')
         if self.window_size:
             chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
         if self.chrome_path:
