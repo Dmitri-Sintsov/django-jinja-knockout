@@ -10,6 +10,7 @@ class WebDriver(ChromeWebDriver):
 
     is_headless = False
     enable_logging = False
+    remote_debugging_port = None
     window_size = False
     # Ubuntu snap path
     chrome_path = '/usr/bin/chromium-browser'
@@ -26,8 +27,11 @@ class WebDriver(ChromeWebDriver):
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--headless')
             self.enable_logging = True
+            self.remote_debugging_port = 9222
         if self.enable_logging:
             log_file = tempfile.NamedTemporaryFile(mode='r+', delete=False, encoding='utf-8')
+        if self.remote_debugging_port:
+            chrome_options.add_argument(f'--remote-debugging-port={self.remote_debugging_port}')
         if self.window_size:
             chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
         if self.chrome_path:
