@@ -18,6 +18,9 @@ class WebDriver(ChromeWebDriver):
         chrome_options = Options()
         if self.is_headless:
             # https://stackoverflow.com/questions/22424737/unknown-error-chrome-failed-to-start-exited-abnormally
+            # https://stackoverflow.com/questions/50642308/webdriverexception-unknown-error-devtoolsactiveport-file-doesnt-exist-while-t
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--headless')
             if self.log_path is None:
                 self.log_path = '/dev/stderr'
