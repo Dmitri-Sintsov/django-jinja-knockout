@@ -16,6 +16,8 @@ class WebDriver(ChromeWebDriver):
 
         chrome_options = Options()
         if self.is_headless:
+            # https://stackoverflow.com/questions/22424737/unknown-error-chrome-failed-to-start-exited-abnormally
+            chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--headless')
         if self.window_size:
             chrome_options.add_argument('--window-size={},{}'.format(*self.window_size))
