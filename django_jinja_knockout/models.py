@@ -3,10 +3,9 @@ from django.apps import apps
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.related import ForeignObject, ForeignObjectRel
-from django.contrib.auth.models import User, Permission
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
+from django.contrib import auth, contenttypes
+from django.contrib.admin import site
 
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
@@ -22,7 +21,7 @@ def normalize_fk_fieldname(fieldname):
 
 def get_permission_object(permission_str):
     app_label, codename = permission_str.split('.')
-    return Permission.objects.filter(content_type__app_label=app_label, codename=codename).first()
+    return auth.models.Permission.objects.filter(content_type__app_label=app_label, codename=codename).first()
 
 
 def get_users_with_permission(permission_str, include_su=True):
@@ -30,7 +29,7 @@ def get_users_with_permission(permission_str, include_su=True):
     q = Q(groups__permissions=permission_obj) | Q(user_permissions=permission_obj)
     if include_su:
         q |= Q(is_superuser=True)
-    return User.objects.filter(q).distinct()
+    return auth.models.User.objects.filter(q).distinct()
 
 
 def get_related_field_val(obj, fieldname, strict_related=True):
@@ -65,7 +64,7 @@ def get_meta(obj, meta_attr, fieldname=None):
     if fieldname is None:
         return getattr(obj._meta, meta_attr)
     related_field = get_related_field(obj, fieldname)
-    if isinstance(related_field, GenericForeignKey):
+    if isinstance(related_field, contenttypes.fields.GenericForeignKey):
         return get_meta(obj, meta_attr, related_field.ct_field)
     else:
         return getattr(related_field, meta_attr)
@@ -80,7 +79,7 @@ def model_fields_meta(model, meta_attr):
     for field in model._meta.get_fields():
         if isinstance(field, ForeignObjectRel):
             field_meta = getattr(field.related_model._meta, meta_attr)
-        elif isinstance(field, GenericForeignKey):
+        elif isinstance(field, contenttypes.fields.GenericForeignKey):
             content_obj = getattr(model, field.ct_field)
             if content_obj is None:
                 field_meta = ''
@@ -168,6 +167,7 @@ def get_app_label_model(label_model):
 
 
 def get_content_object(object_id, content_type_id=None, app_label=None, model=None):
+    ContentType = contenttypes.models.ContentType
     try:
         if content_type_id is not None:
             content_type = ContentType.objects.get_for_id(content_type_id)

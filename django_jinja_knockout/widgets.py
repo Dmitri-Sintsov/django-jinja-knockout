@@ -9,7 +9,7 @@ from django.forms.utils import flatatt
 from django.forms.widgets import (CheckboxInput, Widget, ChoiceWidget, Textarea, MultiWidget)
 from django.db.models.query import RawQuerySet, QuerySet
 
-from .apps import DjkAppConfig
+from . import apps
 from .models import model_fields_verbose_names
 from .query import ListQuerySet
 from .tpl import (
@@ -28,7 +28,7 @@ class RendererWidget(Widget):
     template_name = None
 
     def ioc_renderer(self, context):
-        ContextMiddleware = DjkAppConfig.get_context_middleware()
+        ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
         request = ContextMiddleware.get_request()
         return self.renderer_class(request, template=self.template_name, context=context)
 
@@ -285,7 +285,7 @@ class BaseGridWidget(ChoiceWidget):
         widget_ctx['value'] = value
 
         # Autodetect foreign key widgets fkGridOptions.
-        ContextMiddleware = DjkAppConfig.get_context_middleware()
+        ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
         widget_view = resolve_grid(
             request=self.request,

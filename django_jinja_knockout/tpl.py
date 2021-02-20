@@ -16,6 +16,7 @@ from django.utils.functional import Promise, SimpleLazyObject
 from django.utils.html import escape, mark_safe, format_html
 from django.middleware import csrf
 from django.template import loader as tpl_loader
+from django.contrib.admin import site
 
 try:
     from django.forms.models import ModelChoiceIteratorValue
@@ -29,10 +30,9 @@ from django.urls import (
     resolve, reverse, NoReverseMatch, get_resolver, get_ns_resolver, get_script_prefix
 )
 
+from . import models as djk_models
 from .utils import sdv
 from .utils.regex import finditer_with_separators
-from .models import model_fields_verbose_names
-from .admin import empty_value_display
 
 from djk_ui.tpl import (  # noqa: F401 imported but unused, used in Jinja2 templates
     print_bs_labels, print_bs_badges, print_bs_well, print_list_group, print_badge_list_group
@@ -414,7 +414,7 @@ def format_local_date(value, short_format=True, to_local_time=True, tz_name=None
         combined = datetime.combine(value, datetime.min.time())
         format = 'SHORT_DATE_FORMAT' if short_format else 'DATE_FORMAT'
     elif value is None:
-        return empty_value_display
+        return site.empty_value_display
     else:
         raise ValueError('Value must be instance of date or datetime')
     if timezone.is_aware(combined):
@@ -593,7 +593,7 @@ class ModelLinker:
             self.desc = None
         if self.desc is None:
             if self.str_fields is not None:
-                # todo: use models.model_fields_verbose_names() to optionally populate verbose (localized) list keys.
+                # todo: use model_fields_verbose_names() to optionally populate verbose (localized) list keys.
                 self.desc = print_list_group(self.str_fields)
             else:
                 if self.obj is not None:
@@ -607,7 +607,7 @@ class ModelLinker:
             nested_data['_strFields'] = self.str_fields
             nested_data['_options'] = {
                 'showKeys': True,
-                'i18n': model_fields_verbose_names(self.obj)
+                'i18n': djk_models.model_fields_verbose_names(self.obj)
             }
         return nested_data
 
@@ -621,7 +621,7 @@ class ModelLinker:
                 description=self.desc
             )
         else:
-            return empty_value_display if self.desc is None else self.desc
+            return site.empty_value_display if self.desc is None else self.desc
 
 
 class ContentTypeLinker(ModelLinker):
@@ -634,7 +634,7 @@ class ContentTypeLinker(ModelLinker):
         super().__init__(obj)
 
     def get_str_obj_type(self):
-        return str(empty_value_display if self.obj_type is None else self.obj_type)
+        return str(site.empty_value_display if self.obj_type is None else self.obj_type)
 
 
 # Resolve grid component view from the current request / grid view.

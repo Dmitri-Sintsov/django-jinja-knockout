@@ -14,7 +14,7 @@ from django.db import models
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.contenttypes.models import ContentType
+from django.contrib import contenttypes
 
 from ..context_processors import create_page_context
 from .. import http
@@ -507,7 +507,7 @@ class BaseFilterView(PageContextMixin):
     def get_contenttype_filter(self, *apps_models):
         filter_choices = []
         for app_label, model in apps_models:
-            ct = ContentType.objects.filter(app_label=app_label, model=model).first()
+            ct = contenttypes.models.ContentType.objects.filter(app_label=app_label, model=model).first()
             filter_choices.append((ct.pk, ct.name))
         return filter_choices
 

@@ -5,9 +5,6 @@ from django.db import models
 from django.contrib.admin import site
 
 
-empty_value_display = site.empty_value_display
-
-
 class DjkAdminMixin(object):
     """
     Use to optionally inject css / scripts into django.admin.
@@ -82,7 +79,7 @@ def get_model_change_link(model, modelattrs: list = None, tag_attrs: dict = None
         tag_attrs = {}
     from .tpl import format_html_attrs
     if model is None:
-        return empty_value_display
+        return site.empty_value_display
     display_text = model
     for attr in modelattrs:
         display_text = getattr(display_text, attr)

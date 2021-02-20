@@ -4,10 +4,11 @@ from django.http import QueryDict
 from django.db import transaction
 from django import forms
 from django.forms.models import BaseInlineFormSet, ModelFormMetaclass, inlineformset_factory
-from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.contrib import contenttypes
+
 
 from .. import tpl
-from ..apps import DjkAppConfig
+from .. import apps
 from ..utils import sdv
 from ..widgets import DisplayText
 from ..viewmodels import to_json
@@ -30,7 +31,7 @@ class RendererModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Automatically make current http request available as .request attribute of form instance.
-        context_middleware = DjkAppConfig.get_context_middleware()
+        context_middleware = apps.DjkAppConfig.get_context_middleware()
         self.request = context_middleware.get_request()
         if hasattr(self.Meta, 'field_templates'):
             for field_name in self.Meta.field_templates:
@@ -184,7 +185,7 @@ def ko_generic_inlineformset_factory(model, form, **kwargs):
             'extra': 0,
             'can_delete': False
         })
-    formset = generic_inlineformset_factory(model, form, **kwargs)
+    formset = contenttypes.forms.generic_inlineformset_factory(model, form, **kwargs)
     formset.set_knockout_template = set_empty_template \
         if isinstance(form, DisplayModelMetaclass) \
         else set_knockout_template

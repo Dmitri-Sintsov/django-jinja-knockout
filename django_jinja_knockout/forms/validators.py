@@ -2,8 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.db import models
+from django.contrib.admin import site
 
-from ..admin import empty_value_display
 from ..models import get_related_field
 
 
@@ -111,7 +111,7 @@ class FieldValidator:
             ]
             if isinstance(self.model_field, models.NullBooleanField):
                 filter_def['choices'].append(
-                    (None, str(empty_value_display))
+                    (None, str(site.empty_value_display))
                 )
             return {
                 'type': 'choices'
