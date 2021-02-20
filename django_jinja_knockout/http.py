@@ -23,12 +23,14 @@ class MockRequestFactory(RequestFactory):
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        from django.contrib.sites.models import Site
+        if 'django.contrib.sites' in settings.INSTALLED_APPS:
+            from django.contrib.sites.models import Site
+
         if len(settings.ALLOWED_HOSTS) > 0:
             environ['SERVER_NAME'] = settings.ALLOWED_HOSTS[-1]
         elif hasattr(settings, 'DOMAIN_NAME'):
             environ['SERVER_NAME'] = settings.DOMAIN_NAME
-        if Site._meta.installed:
+        if 'django.contrib.sites' in settings.INSTALLED_APPS and Site._meta.installed:
             site = Site.objects.get_current()
             environ['SERVER_NAME'] = site.name
         if environ['SERVER_NAME'] not in settings.ALLOWED_HOSTS:
