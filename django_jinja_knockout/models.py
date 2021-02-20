@@ -5,7 +5,6 @@ from django.db.models import Q
 from django.db.models.fields.related import ForeignObject, ForeignObjectRel
 from django.utils.translation import gettext_lazy as _
 from django.contrib import auth, contenttypes
-from django.contrib.admin import site
 
 
 # To be used as CHOICES argument value of NullBooleanField unique key.
