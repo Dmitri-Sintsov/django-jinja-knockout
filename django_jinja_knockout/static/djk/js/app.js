@@ -2978,7 +2978,9 @@ void function(Components) {
             $selector.unbind(desc.event, desc.handler);
         }
         if (component !== undefined) {
-            component.removeComponent($selector);
+            if (typeof component.removeComponent !== 'undefined') {
+                component.removeComponent($selector);
+            }
             this.list[componentIdx] = null;
         }
         return desc;
