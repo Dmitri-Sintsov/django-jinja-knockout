@@ -561,6 +561,13 @@ App.TabList = function(options) {};
 
 void function(TabList) {
 
+    TabList.onClickTab = function() {
+        var href = $(this).attr('href');
+        if (href !== undefined && href.match(/^#/)) {
+            window.location.hash = href;
+        }
+    };
+
     TabList.runComponent = function($selector) {
         this.$componentSelector = $selector;
         // Change hash upon pane activation
@@ -572,12 +579,12 @@ void function(TabList) {
                 tabPane.loadTemplate();
             }
         })
-        .on('click', function() {
-            var href = $(this).attr('href');
-            if (href !== undefined && href.match(/^#/)) {
-                window.location.hash = href;
-            }
-        });
+        .on('click', this.onClickTab);
+    };
+
+    TabList.removeComponent = function($selector) {
+        this.$componentSelector.find('a[role="tab"]')
+        .off('click', this.onClickTab);
     };
 
 }(App.TabList.prototype);
