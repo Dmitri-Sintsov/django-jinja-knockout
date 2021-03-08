@@ -422,6 +422,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
 
     def _relative_by_link_text(self, link_text):
         self.context.element = self.context.element.find_element(By.LINK_TEXT, link_text)
+        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
         return self.context
 
     def _keys(self, *keys_list):
@@ -461,12 +462,14 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.selenium.find_elements(By.CSS_SELECTOR, css_selector)
         return self.context
 
-    def _relative_by_class_name(self, class_name):
-        self.context.element = self.context.element.find_element(By.CLASS_NAME, class_name)
+    def _relative_by_classname(self, classname):
+        self.context.element = self.context.element.find_element(By.CLASS_NAME, classname)
+        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
         return self.context
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
         self.context.element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
+        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
         return self.context
 
     def _scroll_to_element(self):
