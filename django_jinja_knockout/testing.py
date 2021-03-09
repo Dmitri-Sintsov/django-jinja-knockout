@@ -421,8 +421,8 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             return self._by_wait(By.LINK_TEXT, link_text)
 
     def _relative_by_link_text(self, link_text):
-        self.context.element = self.context.element.find_element(By.LINK_TEXT, link_text)
-        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
+        element = self.context.element.find_element(By.LINK_TEXT, link_text)
+        self.context.element = self.wait_until(EC.visibility_of(element))
         return self.context
 
     def _keys(self, *keys_list):
@@ -463,13 +463,13 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.context
 
     def _relative_by_classname(self, classname):
-        self.context.element = self.context.element.find_element(By.CLASS_NAME, classname)
-        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
+        element = self.context.element.find_element(By.CLASS_NAME, classname)
+        self.context.element = self.wait_until(EC.visibility_of(element))
         return self.context
 
     def _relative_by_xpath(self, xpath, *args, **kwargs):
-        self.context.element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
-        self.context.element = self.wait_until(EC.visibility_of(self.context.element))
+        element = self.relative_by_xpath(self.context.element, xpath, *args, **kwargs)
+        self.context.element = self.wait_until(EC.visibility_of(element))
         return self.context
 
     def _scroll_to_element(self):
