@@ -4,8 +4,8 @@ from django.db.models.fields.related import ForeignObjectRel
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.translation import gettext_lazy as _
 from django.db import models
+from django.contrib.admin import site
 
-from .admin import empty_value_display
 from .utils import sdv
 from .models import model_fields_meta
 
@@ -281,7 +281,7 @@ class NestedLocalizer(NestedPath):
         'AutoField',
     )
     scalar_display = {
-        None: empty_value_display,
+        None: site.empty_value_display,
         False: _('No'),
         True: _('Yes'),
     }

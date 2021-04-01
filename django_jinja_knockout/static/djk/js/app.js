@@ -220,7 +220,7 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
         }
         if (App.conf.jsErrorsAlert) {
             var $message = $('<div>');
-            for (var k of Object.keys(data)) {
+            for (var k in data) {
                 if (k !== 'csrfmiddlewaretoken' && data.hasOwnProperty(k)) {
                     var $elem = $('<p>')
                         .append($('<b>').text(k))
