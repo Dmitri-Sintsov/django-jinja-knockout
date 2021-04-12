@@ -1,19 +1,10 @@
-'use strict';
+import { Trans } from './translate.js';
+import { initClient, initClientHooks } from './initclient.js';
+import { ComponentManager } from './components.js';
+import { Dialog } from './dialog.js';
+import { getCardTitle } from './ui.js';
 
-ko.bindingHandlers.anonymous_template = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var $textarea = $(element)
-        .parents(valueAccessor()['base-selector'])
-        .find('.ko-template')
-        .eq(valueAccessor()['template-index']);
-        $(element).append($textarea.val());
-        var cm = new App.ComponentManager({'elem': element});
-        cm.detachNestedComponents();
-        $(element).data({'componentManager': cm});
-    }
-};
-
-App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount) {
+function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
     var self = this;
     var formArray = [];
     /*
@@ -50,7 +41,7 @@ App.ko.Formset = function($formsTotalCount, serversideFormsCount, maxFormsCount)
             cm.reattachNestedComponents();
         }
         $rootNode.removeData('componentManager');
-        App.initClient($elements);
+        initClient($elements);
         $rootNode.findRunningComponents().each(function() {
             var gridWidget = $(this).component();
             if (typeof gridWidget.formsetIndex === 'function') {
@@ -69,7 +60,7 @@ void function(Formset) {
 
     Formset.deleteFormHandler = function($elements) {
         var self = this;
-        var formModelName = App.ui.getCardTitle($elements).html();
+        var formModelName = getCardTitle($elements).html();
         // Attach event handler to newly added form delete input.
         $elements.findSelf('input[name$="-DELETE"]')
         .on('change', function(ev) {
@@ -84,9 +75,9 @@ void function(Formset) {
             }
             var koFormIndex = parseInt(match.pop()) - self.serversideFormsCount;
             $elements.addClass('alert alert-danger');
-            new App.Dialog({
-                'title': App.trans('Delete "%s"', formModelName),
-                'message': App.trans('Are you sure you want to delete "%s" ?', formModelName),
+            new Dialog({
+                'title': Trans('Delete "%s"', formModelName),
+                'message': Trans('Are you sure you want to delete "%s" ?', formModelName),
                 'callback': function(result) {
                     if (result) {
                         self.forms.splice(koFormIndex, 1);
@@ -106,66 +97,84 @@ void function(Formset) {
         ko.cleanNode($formset.get(0));
     };
 
-}(App.ko.Formset.prototype);
+}(Formset.prototype);
 
-App.initClientHooks.add({
-    init: function($selector) {
-        $selector.findSelf('.formset').each(function(k, v) {
-            var $formset = $(v);
-            // Do not bind to display-only formsets.
-            if ($formset.parent('.formsets.display-only').length === 0) {
-                var $formsTotalCount;
-                var serversideFormsCount;
-                var maxFormsCount;
-                $formset.find('.management-form :input').each(function(k, v) {
-                    var $input = $(v);
-                    if ($input.prop('id').match(/TOTAL_FORMS$/)) {
-                        $formsTotalCount = $input;
-                        serversideFormsCount = parseInt($input.val());
+function useFormsets(ko) {
+
+    ko.bindingHandlers.anonymous_template = {
+        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+            var $textarea = $(element)
+            .parents(valueAccessor()['base-selector'])
+            .find('.ko-template')
+            .eq(valueAccessor()['template-index']);
+            $(element).append($textarea.val());
+            var cm = new ComponentManager({'elem': element});
+            cm.detachNestedComponents();
+            $(element).data({'componentManager': cm});
+        }
+    };
+
+    initClientHooks.add({
+        init: function($selector) {
+            $selector.findSelf('.formset').each(function(k, v) {
+                var $formset = $(v);
+                // Do not bind to display-only formsets.
+                if ($formset.parent('.formsets.display-only').length === 0) {
+                    var $formsTotalCount;
+                    var serversideFormsCount;
+                    var maxFormsCount;
+                    $formset.find('.management-form :input').each(function(k, v) {
+                        var $input = $(v);
+                        if ($input.prop('id').match(/TOTAL_FORMS$/)) {
+                            $formsTotalCount = $input;
+                            serversideFormsCount = parseInt($input.val());
+                        }
+                        if ($input.prop('id').match(/MAX_NUM_FORMS$/)) {
+                            maxFormsCount = parseInt($input.val());
+                        }
+                    });
+                    if (typeof serversideFormsCount === 'undefined' ||
+                            typeof maxFormsCount === 'undefined') {
+                        return;
                     }
-                    if ($input.prop('id').match(/MAX_NUM_FORMS$/)) {
-                        maxFormsCount = parseInt($input.val());
-                    }
-                });
-                if (typeof serversideFormsCount === 'undefined' ||
-                        typeof maxFormsCount === 'undefined') {
-                    return;
+                    var koFormset = new Formset(
+                        $formsTotalCount,
+                        serversideFormsCount,
+                        maxFormsCount
+                    );
+                    $formset.addInstance('Formset', koFormset);
+                    /**
+                     * Prevent nested components, embedded in formset.empty_form to be incorrectly bound to Formset
+                     * instance.
+                     * todo: rewrite Formset as component.
+                     */
+                    var cm = new ComponentManager({'elem': v});
+                    cm.detachNestedComponents();
+                    ko.applyBindings(koFormset, v);
+                    cm.reattachNestedComponents();
                 }
-                var koFormset = new App.ko.Formset(
-                    $formsTotalCount,
-                    serversideFormsCount,
-                    maxFormsCount
-                );
-                $formset.addInstance('App.ko.Formset', koFormset);
-                /**
-                 * Prevent nested components, embedded in formset.empty_form to be incorrectly bound to App.ko.Formset
-                 * instance.
-                 * todo: rewrite App.ko.Formset as component.
-                 */
-                var cm = new App.ComponentManager({'elem': v});
-                cm.detachNestedComponents();
-                ko.applyBindings(koFormset, v);
-                cm.reattachNestedComponents();
-            }
-        });
-    },
-    dispose: function($selector) {
-        $selector.findSelf('.formset').each(function(k, v) {
-            var $formset = $(v);
-            // Do not bind to display-only formsets.
-            if ($formset.parent('.formsets.display-only').length == 0) {
-                var koFormset = $formset.popInstance('App.ko.Formset');
-                koFormset.destroy($formset);
-            }
-        });
-    }
-});
+            });
+        },
+        dispose: function($selector) {
+            $selector.findSelf('.formset').each(function(k, v) {
+                var $formset = $(v);
+                // Do not bind to display-only formsets.
+                if ($formset.parent('.formsets.display-only').length == 0) {
+                    var koFormset = $formset.popInstance('Formset');
+                    koFormset.destroy($formset);
+                }
+            });
+        }
+    });
+};
 
-App.initClientHooks.add(function($selector) {
+initClientHooks.add(function($selector) {
     // Do not display delete input for required forms.
     var $requiredFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-required input[name$="-DELETE"]');
-    $requiredFormsDeleteFields.parents('.field').empty().html(App.trans('Required'));
+    $requiredFormsDeleteFields.parents('.field').empty().html(Trans('Required'));
     // Display different label for optional previously saved forms loaded at server-side.
     var $optionalFormsDeleteFields = $selector.findSelf('.formset-form-wrap.form-optional input[name$="-DELETE"]');
-    $optionalFormsDeleteFields.next('span').html(App.trans('Delete when saved'));
+    $optionalFormsDeleteFields.next('span').html(Trans('Delete when saved'));
 });
+
+export { useFormsets, Formset };

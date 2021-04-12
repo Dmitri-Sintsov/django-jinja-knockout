@@ -1,4 +1,18 @@
-'use strict';
+import { isScalar, intVal, inherit } from './dash.js';
+import { propGet, propCall } from './prop.js';
+import { Subscriber } from './ko.js';
+import { Trans } from './translate.js';
+import { Tpl, getTemplateSubstitution } from './tpl.js';
+import { globalIoc } from './ioc.js';
+import { blockTags, ui } from './ui.js';
+import { Actions } from './actions.vm.js';
+import { ModelFormDialog, ActionTemplateDialog } from './modelform.js';
+
+import { GridColumnOrder, GridColumn } from './grid/column.js';
+import { GridFilterChoice, GridFilter, FkGridFilter, GridRangeFilter } from './grid/filters.js';
+import { GridRow } from './grid/row.js';
+import { GridActions } from './grid/actions.vm.js';
+import { GridDialog, ActionsMenuDialog } from './grid/dialogs.js';
 
 ko.bindingHandlers.grid_row = {
     update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
@@ -53,1069 +67,9 @@ ko.bindingHandlers.grid_cell = {
 };
 
 /**
- * Grid column ordering control.
- */
-
-App.ko.GridColumnOrder = function(options) {
-    this.init(options);
-};
-
-void function(GridColumnOrder) {
-
-    GridColumnOrder.init = function(options) {
-        this.$switch = null;
-        this.ownerGrid = options.ownerGrid;
-        this.field = options.field;
-        this.name = options.name;
-        // '+' means 'asc', '-' means 'desc', null means unsorted.
-        this.order = ko.observable(options.order);
-        this.isSortedColumn = ko.observable(options.isSorted);
-        this.orderCss = ko.computed(this.getOrderCss, this);
-    };
-
-    GridColumnOrder.getOrderCss = function() {
-        return {
-            'display-block': true,
-            'sort-inactive': this.order() === null,
-            'sort-asc': this.order() === '+',
-            'sort-desc': this.order() === '-'
-        };
-    };
-
-    GridColumnOrder.setSwitchElement = function($element) {
-        this.$switch = $element;
-    };
-
-    GridColumnOrder.is = function(anotherOrder) {
-        return this.field === anotherOrder.field;
-    };
-
-    GridColumnOrder.onSwitchOrder = function() {
-        this.ownerGrid.deactivateAllSorting(this);
-        if (this.order() === '+') {
-            this.order('-');
-        } else {
-            // this.order() === null || this.order() === '-'
-            this.order('+');
-        }
-        var orderBy = {};
-        orderBy[this.field] = this.order();
-        this.ownerGrid.setQueryOrderBy(orderBy);
-        this.ownerGrid.listAction();
-    };
-
-    GridColumnOrder.blockTags = App.blockTags.list;
-
-    GridColumnOrder.getCellContainer = function() {
-        return $('<div>', {
-            'class': 'grid-cell',
-            'data-caption': this.name,
-        });
-    };
-
-    GridColumnOrder.getNestedListOptions = function() {
-        /**
-         * Do not escape nested list because it's escaped by default in App.ko.GridRow.htmlEncode().
-         * This allows to have both escaped and unescaped nested lists in row cells
-         * via App.ko.Grid.isMarkSafeField()
-         */
-        var nestedListOptions = $.extend(
-            {
-                blockTags: this.blockTags,
-                fn: 'html',
-                /**
-                 * Will try to use field name as a key prefix first,
-                 * falling back to non-prefixed field names when missing.
-                 *
-                 * This avoids related fields name clashes when two different related models has the same field name
-                 * (eg. 'category') but a different 'verbose_name'.
-                 */
-                keyPrefix: this.field,
-                unwrapTop: true,
-            },
-            this.ownerGrid.meta.fkNestedListOptions
-        );
-        return nestedListOptions;
-    };
-
-    // Supports jQuery elements / nested arrays / objects / HTML strings as grid cell value.
-    GridColumnOrder.renderRowValue = function(element, value) {
-        App.renderValue(element, value, this.getNestedListOptions());
-    };
-
-}(App.ko.GridColumnOrder.prototype);
-
-
-/**
- * Compound column which contains one or more of App.ko.GridColumnOrder instances.
- */
-
-App.ko.GridColumn = function(options) {
-    this.init(options);
-};
-
-
-void function(GridColumn) {
-
-    GridColumn.init = function(options) {
-        this.ownerGrid = options.ownerGrid;
-        this.lastColumnCss = {};
-        this.columnOrders = ko.observableArray(options.columnOrders);
-        this.columnCss = ko.computed(this.getColumnCss, this);
-        this.names = ko.computed(this.getNames, this);
-    };
-
-    GridColumn.blockTags = App.blockTags.list;
-
-    GridColumn.getColumnCss = function() {
-        this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
-            return false;
-        });
-        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
-        if (highlightModeRule.direction === 0) {
-            // Finds foreach $index() inaccessible directly in computed.
-            var index = this.ownerGrid.gridColumns().indexOf(this);
-            this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
-        }
-        return this.lastColumnCss;
-    };
-
-    GridColumn.getNames = function() {
-        var names = [];
-        _.find(this.columnOrders(), function(columnOrder) {
-            names.push(columnOrder.name);
-        });
-        return names.join(' / ');
-    };
-
-    GridColumn.getOrders_i18n = function() {
-        var i18n = {};
-        _.find(this.columnOrders(), function(columnOrder) {
-            i18n[columnOrder.field] = columnOrder.name;
-        });
-        return i18n;
-    };
-
-    GridColumn.getColumnOrder = function(fieldName) {
-        var result = null;
-        _.find(this.columnOrders(), function(columnOrder) {
-            if (columnOrder.field === fieldName) {
-                result = columnOrder;
-                return true;
-            }
-        });
-        return result;
-    };
-
-    GridColumn.deactivateAllSorting = function(exceptOrder) {
-        _.each(this.columnOrders(), function(columnOrder) {
-            if (!columnOrder.is(exceptOrder)) {
-                columnOrder.order(null);
-            }
-        });
-    };
-
-    GridColumn.getCompoundCells = function(gridRow) {
-        var self = this;
-        var cells = [];
-        _.map(this.columnOrders(), function(columnOrder) {
-            var $container = columnOrder.getCellContainer();
-            columnOrder.renderRowValue(
-                $container[0], ko.utils.unwrapObservable(
-                    gridRow.displayValues[columnOrder.field]
-                )
-            );
-            cells.push(
-                _.odict(columnOrder.field, $container)
-            );
-        });
-        return cells;
-    };
-
-    GridColumn.renderCompound = function($element, cells) {
-        App.renderNestedList($element, cells, {
-            blockTags: this.blockTags,
-            fn: 'html',
-            showKeys: this.ownerGrid.options.showCompoundKeys,
-            i18n: this.getOrders_i18n(),
-        });
-    };
-
-    GridColumn.render = function(options) {
-        options.$element.empty();
-        var cells = this.getCompoundCells(options.row);
-        if (cells.length === 1) {
-            options.$element.append(cells[0].v);
-        } else if (cells.length > 1) {
-            this.renderCompound(options.$element, cells);
-        }
-    };
-
-}(App.ko.GridColumn.prototype);
-
-
-/**
- * Grid filter choice control. One dropdown filter has multiple filter choices.
- */
-
-App.ko.GridFilterChoice = function(options) {
-    this.init(options);
-};
-
-void function (GridFilterChoice) {
-
-    GridFilterChoice.updateQueryFilter = function(newValue) {
-        // undefined value is used to reset filter because null can be valid choice value.
-        if (this.value === undefined) {
-            return;
-        }
-        if (newValue) {
-            this.ownerFilter.addQueryFilter({
-                value: this.value,
-                lookup: 'in'
-            });
-        } else {
-            this.ownerFilter.removeQueryFilter({
-                value: this.value,
-                lookup: 'in'
-            });
-        }
-    };
-
-    GridFilterChoice.init = function(options) {
-        this.$link = null;
-        this.ownerFilter = options.ownerFilter;
-        this.name = options.name;
-        this.value = options.value;
-        this.is_active = ko.observable();
-        this.is_active.subscribe(this.updateQueryFilter, this);
-        this.is_active(options.is_active);
-    };
-
-    GridFilterChoice.setLinkElement = function($element) {
-        this.$link = $element;
-    };
-
-    GridFilterChoice.onLoadFilter = function(data, ev) {
-        this.ownerFilter.switchKoFilterChoices(this, ev);
-        this.ownerFilter.ownerGrid.queryArgs.page = 1;
-        this.ownerFilter.refreshGrid();
-    };
-
-    GridFilterChoice.is = function(filterChoice) {
-        return this.$link.is(filterChoice.$link);
-    };
-
-}(App.ko.GridFilterChoice.prototype);
-
-/**
- * Common ancestor of App.ko.GridFilter and App.ko.FkGridFilter.
- */
-
-App.ko.AbstractGridFilter = function(options) {
-    this.init(options);
-};
-
-void function(AbstractGridFilter) {
-
-    AbstractGridFilter.templateName = '';
-
-    AbstractGridFilter.init = function(options) {
-        this.$dropdown = null;
-        this.ownerGrid =  options.ownerGrid;
-        this.field = options.field;
-        this.name = options.name;
-        if (typeof options.templateName !== 'undefined') {
-            this.templateName = options.templateName;
-        }
-        this.hasActiveChoices = ko.observable(false);
-        // List of instances of current filter choices.
-        this.choices = [];
-        // One of this.choices, special 'reset all choice'.
-        this.resetFilter = null;
-        this.allowMultipleChoices = App.propGet(options, 'allowMultipleChoices', false);
-    };
-
-    AbstractGridFilter.getTemplateName = function() {
-        return this.templateName;
-    };
-
-    // Called in FilterDialog.onShow().
-    AbstractGridFilter.applyBindings = function(selector) {
-        var self = this;
-        this.selector = $(selector);
-        this.selector.each(function(k, v) {
-            ko.applyBindings(self, v);
-        });
-    };
-
-    AbstractGridFilter.cleanBindings = function() {
-        if (this.selector) {
-            this.selector.each(function(k, v) {
-                ko.cleanNode(v);
-            });
-        }
-    };
-
-    AbstractGridFilter.setDropdownElement = function($element) {
-        this.$dropdown = $element;
-        /*
-        // Example of custom events.
-        // http://knockoutjs.com/documentation/custom-bindings-disposal.html
-        this.$dropdown.on({
-            "hide.bs.dropdown": function(ev) {
-                return true;
-            }
-        });
-        */
-    };
-
-    AbstractGridFilter.onDropdownClick = function(data, ev) {
-        // console.log('dropdown clicked');
-    };
-
-    AbstractGridFilter.getQueryFilter = function() {
-        return this.ownerGrid.getFieldQueryFilter(this.field);
-    };
-
-    AbstractGridFilter.addQueryFilter = function(options) {
-        var filterOptions = $.extend({
-            field: this.field
-        }, options);
-        this.ownerGrid.addQueryFilter(filterOptions);
-    };
-
-    AbstractGridFilter.removeQueryFilter = function(options) {
-        if (typeof options === 'undefined') {
-            options = {};
-        }
-        var filterOptions = $.extend({
-            field: this.field
-        }, options);
-        this.ownerGrid.removeQueryFilter(filterOptions);
-    };
-
-    /**
-     * Programmatically set specified values list of filter choices for current filter.
-     */
-    AbstractGridFilter.setChoices = function(values) {
-        throw new Error('Abstract method');
-    };
-
-    AbstractGridFilter.refreshGrid = function(callback) {
-        this.ownerGrid.listAction(callback);
-    };
-
-}(App.ko.AbstractGridFilter.prototype);
-
-/**
- * Grid filter control. Contains multiple App.ko.GridFilterChoice instances or their descendants.
- */
-
-App.ko.GridFilter = function(options) {
-    $.inherit(App.ko.AbstractGridFilter.prototype, this);
-    this.init(options);
-};
-
-void function(GridFilter) {
-
-    GridFilter.templateName = 'ko_grid_filter_choices';
-
-    GridFilter.init = function(options) {
-        this._super._call('init', options);
-        for (var i = 0; i < options.choices.length; i++) {
-            var choice = options.choices[i];
-            var koFilterChoice = this.ownerGrid.iocKoFilterChoice({
-                ownerFilter: this,
-                name: choice.name,
-                value: App.propGet(choice, 'value'),
-                is_active: (typeof choice.is_active) === 'undefined' ? false : choice.is_active
-            });
-            if (koFilterChoice.value === undefined) {
-                this.resetFilter = koFilterChoice;
-            }
-            this.choices.push(koFilterChoice);
-        }
-    };
-
-    // Return the count of active filter choices except for special 'reset all choice' (choice.value === undefined).
-    // Also initialized this.resetFilter.
-    GridFilter.getTotalActive = function() {
-        var totalActive = 0;
-        this.resetFilter = null;
-        for (var i = 0; i < this.choices.length; i++) {
-            // undefined value is used to reset filter because null can be valid choice value (App.ko.GridFilterChoice).
-            if (this.choices[i].value === undefined) {
-                this.resetFilter = this.choices[i];
-            } else if (this.choices[i].is_active()) {
-                totalActive++;
-            }
-        }
-        return totalActive;
-    };
-
-    GridFilter.activateResetFilter = function() {
-        var totalActive = this.getTotalActive();
-        if (this.resetFilter !== null) {
-            // Check whether all filter choices are active except for 'reset all choice'.
-            if (totalActive === this.choices.length - 1) {
-                // All choices of the filter are active. Activate (highlight) 'reset all choice' instead.
-                for (var i = 0; i < this.choices.length; i++) {
-                    if (this.choices[i].value !== undefined) {
-                        this.choices[i].is_active(false);
-                    }
-                }
-                this.resetFilter.is_active(true);
-            } else if (totalActive === 0) {
-                // No active filter choices means that 'reset all choice' must be highlighted (activated).
-                this.resetFilter.is_active(true);
-            } else {
-                // Only some of the filter choices are active. Deactivate 'reset all choice'.
-                this.resetFilter.is_active(false);
-            }
-        }
-    };
-
-    GridFilter.switchKoFilterChoices = function(currentChoice, ev) {
-        if (typeof currentChoice === 'undefined') {
-            // Reset filter by default.
-            currentChoice = this.resetFilter;
-        }
-        if (currentChoice.value === undefined) {
-            // Special 'all' value, deactivate all filter choices except current one.
-            for (var i = 0; i < this.choices.length; i++) {
-                this.choices[i].is_active(false);
-            }
-            currentChoice.is_active(true);
-        } else if (!this.allowMultipleChoices) {
-            // Switch current filter choice.
-            // Turn off all another filter choices.
-            for (var i = 0; i < this.choices.length; i++) {
-                if (!currentChoice.is(this.choices[i])) {
-                    this.choices[i].is_active(false);
-                }
-            }
-            // Allow to select none choices (reset) only if there is reset choice in menu.
-            if (this.resetFilter !== null || !currentChoice.is_active()) {
-                currentChoice.is_active(!currentChoice.is_active());
-            }
-            this.activateResetFilter();
-        } else {
-            // Do not close dropdown for multiple filter choices.
-            if (typeof ev !== 'undefined') {
-                ev.stopPropagation();
-            }
-            // Switch current filter choice.
-            currentChoice.is_active(!currentChoice.is_active());
-            this.activateResetFilter();
-        }
-        var resetFilterIsActive = (this.resetFilter !== null) ?
-            this.resetFilter.is_active() : false;
-        this.hasActiveChoices(!resetFilterIsActive);
-    };
-
-    GridFilter.getKoFilterChoice = function(value) {
-        for (var i = 0; i < this.choices.length; i++) {
-            var filterChoice = this.choices[i];
-            if (filterChoice.value === value) {
-                return filterChoice;
-            }
-        };
-        return undefined;
-    };
-
-    GridFilter.getActiveChoices = function() {
-        var activeChocies = [];
-        for (var i = 0; i < this.choices.length; i++) {
-            var filterChoice = this.choices[i];
-            if (filterChoice.is_active()) {
-                activeChocies.push(filterChoice);
-            }
-        }
-        return activeChocies;
-    };
-
-    /**
-     * Programmatically set specified values list of filter choices for current filter.
-     */
-    GridFilter.setChoices = function(values) {
-        this.activateResetFilter();
-        for (var i = 0; i < values.length; i++) {
-            var koFilterChoice = this.getKoFilterChoice(values[i]);
-            if (koFilterChoice !== undefined) {
-                this.switchKoFilterChoices(koFilterChoice);
-            }
-        }
-    };
-
-}(App.ko.GridFilter.prototype);
-
-/**
- * Foreign key grid filter control. Contains dialog with another grid that selects filter values.
- */
-
-App.ko.FkGridFilter = function(options) {
-    $.inherit(App.ko.AbstractGridFilter.prototype, this);
-    this.init(options);
-};
-
-void function(FkGridFilter) {
-
-    FkGridFilter.templateName = 'ko_grid_filter_popup';
-
-    FkGridFilter.init = function(options) {
-        var gridDialogOptions = {};
-        /**
-         * Allows to specifiy BootstrapDialog size in Jinja2 macro / .get_default_grid_options() for example:
-            ko_grid(
-                grid_options={
-                    'pageRoute': 'management_grid',
-                    'fkGridOptions': {
-                        'member__project': {
-                            'dialogOptions': {'size': 'size-wide'},
-                            'pageRoute': 'project_grid',
-                            'searchPlaceholder': 'Search object name'
-                        }
-                    }
-                }
-            )
-         */
-        if (typeof options.fkGridOptions.dialogOptions !== 'undefined') {
-            gridDialogOptions = options.fkGridOptions.dialogOptions;
-            delete options.fkGridOptions.dialogOptions;
-        }
-        var gridDialogOptions = $.extend({
-            owner: this,
-            filterOptions: options.fkGridOptions
-        }, gridDialogOptions);
-        this.gridDialog = new App.GridDialog(gridDialogOptions);
-        this._super._call('init', options);
-        // Reset filter choice.
-        this.choices = undefined;
-    };
-
-    FkGridFilter.onDropdownClick = function(ev) {
-        this.gridDialog.show();
-    };
-
-    FkGridFilter.onGridDialogSelectRow = function(options) {
-        if (!this.allowMultipleChoices) {
-            this.removeQueryFilter({
-                lookup: 'in'
-            });
-        }
-        this.addQueryFilter({
-            value: options.pkVal,
-            lookup: 'in'
-        });
-        this.hasActiveChoices(true);
-        this.ownerGrid.queryArgs.page = 1;
-        this.refreshGrid();
-    };
-
-    FkGridFilter.onGridDialogUnselectRow = function(options) {
-        if (this.allowMultipleChoices) {
-            this.removeQueryFilter({
-                value: options.pkVal,
-                lookup: 'in'
-            });
-            this.hasActiveChoices(options.childGrid.selectedRowsPks.length > 0);
-            this.ownerGrid.queryArgs.page = 1;
-            this.refreshGrid();
-        }
-    };
-
-    FkGridFilter.onGridDialogUnselectAllRows = function(options) {
-        this.removeQueryFilter({
-            lookup: 'in'
-        });
-        this.hasActiveChoices(false);
-        this.ownerGrid.queryArgs.page = 1;
-        this.refreshGrid();
-    };
-
-    FkGridFilter.setChoices = function(values) {
-        this.removeQueryFilter({
-            lookup: 'in'
-        });
-        for (var i = 0; i < values.length; i++) {
-            this.addQueryFilter({
-                value: values[i],
-                lookup: 'in'
-            });
-        }
-        this.hasActiveChoices(values.length > 0);
-    };
-
-}(App.ko.FkGridFilter.prototype);
-
-/**
- * Range grid filter control. Contains dialog with two scalar fields to select interval of field value.
- * Currently supports DateTimeField, DateField, DecimalField, IntegerField.
- */
-
-App.ko.RangeFilter = function(options) {
-    $.inherit(App.ko.AbstractGridFilter.prototype, this);
-    this.init(options);
-};
-
-void function(RangeFilter) {
-
-    RangeFilter.templateName = 'ko_grid_filter_popup';
-
-    RangeFilter.init = function(options) {
-        $.inherit(App.ko.Subscriber.prototype, this);
-        this.type = options.type;
-        this._super._call('init', options);
-        // Reset filter choice.
-        this.choices = undefined;
-        this.meta = {
-            from: App.trans('From'),
-            to: App.trans('To'),
-        };
-        this.from = ko.observable('');
-        this.to = ko.observable('');
-        this.subscribeToMethod('from');
-        this.subscribeToMethod('to');
-        var method = 'getFieldAttrs_' + this.type;
-        if (typeof this[method] !== 'function') {
-            throw new Error('App.ko.RangeFilter.' + method + ' is not the function');
-        }
-        this.fieldAttrs = this[method]();
-        this.filterDialog = new App.FilterDialog({
-            owner: this,
-            title: this.name,
-            template: 'ko_range_filter'
-        });
-    };
-
-    RangeFilter.getFieldAttrs_datetime = function() {
-        return {
-            'class': 'form-control datetime-control',
-            'type': 'text'
-        };
-    };
-
-    RangeFilter.getFieldAttrs_date = function() {
-        return {
-            'class': 'form-control date-control',
-            'type': 'text'
-        };
-    };
-
-    RangeFilter.getFieldAttrs_number = function() {
-        return {
-            'class': 'form-control',
-            'type': 'number'
-        };
-    };
-
-    RangeFilter.onDropdownClick = function(ev) {
-        this.filterDialog.show();
-    };
-
-    RangeFilter.onFilterDialogRemoveSelection = function() {
-        this.from('');
-        this.to('');
-        this.hasActiveChoices(false);
-    };
-
-    RangeFilter.doLookup = function(value, lookup) {
-        var self = this;
-        // console.log('lookup: ' + lookup);
-        this.addQueryFilter({
-            'value': value,
-            'lookup': lookup
-        });
-        this.hasActiveChoices(true);
-        this.ownerGrid.queryArgs.page = 1;
-        this.refreshGrid(function(viewModel) {
-            if (typeof self.filterDialog.bdialog !== 'undefined') {
-                var applyButton = self.filterDialog.bdialog.getButton('filter_apply');
-                if (App.propGet(viewModel, 'has_errors') === true) {
-                    applyButton.disable();
-                    self.hasActiveChoices(false);
-                } else {
-                    applyButton.enable();
-                    self.hasActiveChoices(self.from() !== '' || self.to() !== '');
-                }
-            }
-        });
-    };
-
-    RangeFilter.onFrom = function(value) {
-        this.doLookup(value, 'gte');
-    };
-
-    RangeFilter.onTo = function(value) {
-        this.doLookup(value, 'lte');
-    };
-
-    RangeFilter.setChoices = function(values) {
-        if (typeof values.gte !== 'undefined') {
-            this.from(values.gte);
-        }
-        if (typeof values.lte !== 'undefined') {
-            this.to(values.lte);
-        }
-    };
-
-}(App.ko.RangeFilter.prototype);
-
-/**
- * Single row of grid (ko viewmodel).
- */
-App.ko.GridRow = function(options) {
-    this.init(options);
-};
-
-void function(GridRow) {
-
-    // By default do not use App.initClient() for performance reasons.
-    GridRow.useInitClient = false;
-
-    // todo: turn off by default and update saved row at whole.
-    GridRow.observeDisplayValue = true;
-
-    GridRow.prepare = function() {
-        App.initClient(this.$row);
-    };
-
-    GridRow.dispose = function() {
-        App.initClient(this.$row, 'dispose');
-    };
-
-    GridRow.getPkVal = function() {
-        return this.getValue(this.ownerGrid.meta.pkField);
-    };
-
-    GridRow.is = function(gridRow) {
-        // .strFields has to be compared because when foreignkey field has modified values of .get_str_fields()
-        // such grids should be highlighted as changed.
-        return _.isEqual(this.values, gridRow.values) && _.isEqual(this.strFields, gridRow.strFields);
-    };
-
-    /**
-     * Used by App.ko.Grid.updateKoRows() to find matching rows to update after row saving,
-     * for example in 'save_form' or 'save_inline' actions callbacks.
-     * Some complex grids with LEFT JOIN's may have the same pk value (usually null) which require custom rules
-     * to match which row was modified. In such case override this method in a child class.
-     */
-    GridRow.matchesPk = function(gridRow) {
-        return this.getPkVal() === gridRow.getPkVal();
-    };
-
-    GridRow.afterRender = function() {
-        var self = this;
-        if (this.useInitClient) {
-            // Add row.
-            this.prepare();
-            ko.utils.domNodeDisposal.addDisposeCallback(this.$row.get(0), function() {
-                // Remove row.
-                self.dispose();
-            });
-        }
-    };
-
-    // Descendant could skip html encoding selected fields to preserve html formatting.
-    GridRow.htmlEncode = function(displayValue, field, markSafe) {
-        if (markSafe) {
-            return displayValue;
-        } else {
-            return _.recursiveMap(displayValue, $.htmlEncode);
-        }
-    };
-
-    GridRow.getDisplayValue = function(field) {
-        if (typeof this.strFields[field] !== 'undefined') {
-            return this.strFields[field];
-        }
-        var related = field.split(/__/).filter(Boolean);
-        if (related.length > 1) {
-            return App.propGet(this.strFields, related);
-        }
-        return undefined;
-    };
-
-    /**
-     * Low-level access for custom layout templates.
-     */
-    GridRow.val = function(field) {
-        var displayValue = this.getDisplayValue(field);
-        return (displayValue === undefined) ? this.getValue(field) : displayValue;
-    };
-
-    /**
-     * Descendant could format it's own displayValue, including html content.
-     */
-    GridRow.display = function(field) {
-        var value = this.getValue(field);
-        var displayValue;
-        var markSafe = this.ownerGrid.isMarkSafeField(field);
-        // Automatic server-side formatting.
-        displayValue = this.getDisplayValue(field);
-        if (displayValue === undefined || displayValue === null) {
-            var fieldRelated = field.match(/(.+)_id$/);
-            if (fieldRelated !== null) {
-                markSafe = this.ownerGrid.isMarkSafeField(fieldRelated[1]);
-                displayValue = this.getDisplayValue(fieldRelated[1]);
-            }
-            if (displayValue === undefined || displayValue === null) {
-                if (typeof value === 'boolean') {
-                    displayValue = {true: App.trans('Yes'), false: App.trans('No')}[value];
-                } else if (value === null) {
-                    displayValue = App.trans('N/A');
-                } else if (value === '') {
-                    // Mark safe. Without converting to &nbsp; rows may have smaller height sometimes.
-                    displayValue = '&nbsp;';
-                    markSafe = true;
-                } else {
-                    displayValue = value;
-                }
-            }
-        }
-        displayValue = this.htmlEncode(displayValue, field, markSafe);
-        return displayValue;
-    };
-
-    // Support jQuery objects as display values.
-    // Wraps display value into ko.observable(), when needed.
-    GridRow.wrapDisplayValue  = function(value, field) {
-        var displayValue = this.display(field);
-        return this.observeDisplayValue ? ko.observable(displayValue) : displayValue;
-    };
-
-    // 'Rendered' (formatted) field values, as displayed by ko_grid_body template bindings.
-    GridRow.initDisplayValues = function() {
-        var self = this;
-        this.displayValues = {};
-        // When there are virtual display values, assume empty values, otherwise _.mapObject() will miss these.
-        _.each(this.strFields, function(displayValue, field) {
-            if (typeof self.values[field] === 'undefined') {
-                self.values[field] = '';
-            }
-        });
-        this.displayValues = _.mapObject(this.values, this.wrapDisplayValue.bind(this));
-    };
-
-    GridRow.getSelectionCss = function() {
-        return {
-            'iconui-check': this.isSelectedRow(),
-            'iconui-unchecked': !this.isSelectedRow(),
-            'pointer': true,
-        };
-    };
-
-    GridRow.getActiveActions = function(actionType) {
-        return this.ownerGrid.getEnabledActions(this, actionType);
-    };
-
-    GridRow.getRowCss = function() {
-        this.lastRowCss = _.mapObject(this.lastRowCss, function() {
-            return false;
-        });
-        this.lastRowCss = $.extend(this.lastRowCss, {
-            'grid-new-row': this.isUpdated(),
-            'pointer': this.getActiveActions('click').length > 0,
-        });
-        var highlightModeRule = this.ownerGrid.getHighlightModeRule();
-        if (highlightModeRule.direction === 1) {
-            // Finds foreach $index() inaccessible directly in computed.
-            var index = this.ownerGrid.gridRows().indexOf(this);
-            this.lastRowCss = $.extend(this.lastRowCss, this.ownerGrid.getCycleCss(index));
-        }
-        return this.lastRowCss;
-    };
-
-    GridRow.init = function(options) {
-        var self = this;
-        this.ownerGrid = options.ownerGrid;
-        if (this.ownerGrid.options.useInitClient !== null) {
-            this.useInitClient = this.ownerGrid.options.useInitClient;
-        }
-        this.index = options.index;
-
-        this.$row = null;
-        // Source data field values. May be used for AJAX DB queries, for example.
-        this.values = options.values;
-        // See views.KoGridView.postprocess_row() how and when this.values.__str_fields are populated.
-        if (typeof this.values['__str_fields'] === 'undefined') {
-            this.strFields = {};
-        } else {
-            this.strFields = this.values.__str_fields;
-            delete this.values.__str_fields;
-        }
-        if (typeof this.values['__str'] !== 'undefined') {
-            this.str = this.values.__str;
-            delete this.values.__str;
-        } else {
-            this.str = null;
-        }
-        // Used by FkGridWidget.
-        this.perm = {};
-        if (typeof this.values['__perm'] !== 'undefined') {
-            this.perm = this.values['__perm'];
-            delete this.values['__perm'];
-        }
-        this.initDisplayValues();
-
-        // Permissions should be set after the values are initialized, because custom permissions may use this.values.
-        this.actionsACL = {};
-        this.ownerGrid.setACL(this);
-
-        // Visual part should be initialized last.
-        this.isSelectedRow = ko.observable(options.isSelectedRow);
-        this.selectionCss = ko.computed(this.getSelectionCss, this);
-        this.isUpdated = ko.observable(
-            (typeof options.isUpdated === 'undefined') ? false : options.isUpdated
-        );
-        this.lastRowCss = {};
-        this.rowCss = ko.computed(this.getRowCss, this);
-        this.isSelectedRow.subscribe(function(newValue) {
-            if (newValue) {
-                self.ownerGrid.onSelectRow(self);
-            } else {
-                self.ownerGrid.onUnselectRow(self);
-            }
-        });
-        if (this.isSelectedRow()) {
-            this.ownerGrid.addSelectedPkVal(this.getPkVal());
-        }
-    };
-
-    GridRow.getValue = function(field) {
-        return typeof this.values[field] === 'undefined' ? undefined : this.values[field];
-    };
-
-    GridRow.getActionOptions = function() {
-        return {'pk_val': this.getPkVal()};
-    };
-
-    GridRow.inverseSelection = function() {
-        this.isSelectedRow(!this.isSelectedRow());
-    };
-
-    GridRow.ignoreRowClickClosest = 'A, BUTTON, INPUT, OPTION, SELECT, TEXTAREA';
-
-    GridRow.onActiveClick = function(data, ev) {
-        if (this.getActiveActions('click').length > 0) {
-            return this.onRowClick(data, ev);
-        }
-        return false;
-    };
-
-    GridRow.onRowClick = function(data, ev) {
-        if ($(ev.target).closest(this.ignoreRowClickClosest).length > 0) {
-            return true;
-        }
-        this.ownerGrid.rowClick(this);
-        return false;
-    };
-
-    GridRow.onSelect = function(data, ev) {
-        this.ownerGrid.rowSelect(this);
-        return false;
-    };
-
-    GridRow.setRowElement = function($element) {
-        this.$row = $element;
-    };
-
-    /**
-     * Update this instance from savedRow instance.
-     */
-    GridRow.update = function(savedRow) {
-        var self = this;
-        this.str = savedRow.str;
-        if (this.useInitClient) {
-            // Dispose old row.
-            this.dispose();
-        }
-        this.isUpdated(savedRow.isUpdated);
-        _.each(savedRow.values, function(value, field) {
-            self.values[field] = value;
-        });
-        _.each(savedRow.strFields, function(value, field) {
-            self.strFields[field] = value;
-        });
-        _.each(savedRow.displayValues, function(value, field) {
-            var val = ko.utils.unwrapObservable(value);
-            if (ko.isObservable(self.displayValues[field])) {
-                self.displayValues[field](val);
-            } else {
-                self.displayValues[field] = val;
-            }
-            // self.displayValues[field].valueHasMutated();
-        });
-        if (this.useInitClient) {
-            // Init updated row.
-            this.prepare();
-        };
-        // https://stackoverflow.com/questions/14149551/subscribe-to-observable-array-for-new-or-removed-entry-only
-        this.ownerGrid.propCall('ownerCtrl.onChildGridRowsChange', [{
-            status: 'modified',
-            value: savedRow,
-        }]);
-    };
-
-    GridRow.getDescParts = function() {
-        if (this.ownerGrid.meta.strDesc && this.str !== null) {
-            return [this.str];
-        }
-        if (_.size(this.strFields) > 0) {
-            return this.strFields;
-        } else if (this.str !== null) {
-            return [this.str];
-        }
-        // Last resort.
-        return [this.getPkVal()];
-    };
-
-    GridRow.renderDesc = function(renderOptions) {
-        var descParts = this.getDescParts();
-        if (_.size(descParts) === 0) {
-            return '';
-        }
-        var $content = $('<span>');
-        return App.renderNestedList($content, descParts, renderOptions);
-    };
-
-    /**
-     * Override in child class to selectively enable only some of actions for the particular grid row,
-     * depending on this.values.
-     */
-    GridRow.hasEnabledAction = function(action) {
-        return true;
-    };
-
-    // Observable factory of this.hasEnabledAction(action) result for current row.
-    GridRow.observeEnabledAction = function(action) {
-        var isEnabled = this.hasEnabledAction(action);
-        var actType = action.actDef.type;
-        if (typeof this.actionsACL[actType] !== 'object') {
-            this.actionsACL[actType] = {};
-        }
-        if (typeof this.actionsACL[actType][action.name] !== 'function') {
-            this.actionsACL[actType][action.name] = ko.observable(false);
-        }
-        this.actionsACL[actType][action.name](isEnabled);
-        return this.actionsACL[actType][action.name];
-    };
-
-    GridRow.executeAction = function(actionName, options) {
-        var action = this.ownerGrid.getKoAction(actionName);
-        if (action === null) {
-            return;
-        }
-        action.doForRow(this, options);
-    };
-
-}(App.ko.GridRow.prototype);
-
-/**
  * Pagination link ko model.
  */
-App.ko.GridPage = function(options) {
+function GridPage(options) {
     this.init(options);
 };
 
@@ -1132,237 +86,22 @@ void function(GridPage) {
         this.ownerGrid.onPagination(this.pageNumber);
     };
 
-}(App.ko.GridPage.prototype);
-
-/**
- * Actions performed for particular grid (row) instance.
- * Mostly are row-click AJAX actions, although not limited to.
- * .owner is the instance of App.ko.Grid.
- */
-App.GridActions = function(options) {
-    $.inherit(App.Actions.prototype, this);
-    this.init(options);
-};
-
-void function(GridActions) {
-
-    GridActions.actionKwarg = 'action';
-    GridActions.viewModelName = 'grid_page';
-
-    GridActions.init = function(options) {
-        this._super._call('init', options);
-        // Compatibility alias. Also it has more precise meaning.
-        this.grid = this.owner;
-    };
-
-    /**
-     * Sample action. Actual actions are configured at server-side and populated via AJAX response
-     * in App.ko.Grid.listCallback() when data.meta was received from remote host, during first execution
-     * of 'list' command.
-     */
-    GridActions.getActions = function() {
-        return {
-            'delete': {
-                'localName': App.trans('Remove'),
-                'type': 'iconui',
-                'glyph': 'remove',
-                'enabled': false
-            }
-        };
-    };
-
-    // Set last action name from the visual action instance supplied.
-    // koAction: instance of App.ko.Action - visual representation of action in knockout template.
-    GridActions.setLastKoAction = function(koAction) {
-        this.lastKoAction = koAction;
-        // Do not remove this property, because it may be overridden separately via AJAX call result in this.respond().
-        this.lastActionName = koAction.name;
-    };
-
-    // Perform last action.
-    GridActions.performLastAction = function(actionOptions) {
-        this.lastActionOptions = actionOptions;
-        this.perform(this.lastActionName, actionOptions);
-    };
-
-    GridActions.perform_rows_per_page = function(queryArgs, ajaxCallback) {
-        this.grid.lastClickedKoRow = undefined;
-        var dialog = new App.ActionTemplateDialog({
-            // initClient: true,
-            template: 'ko_grid_rows_per_page_dialog',
-            owner: this.grid,
-            buttons: [
-                {
-                    icon: 'iconui iconui-ok',
-                    label: App.trans('Ok'),
-                    hotkey: 27,
-                    cssClass: 'btn-success',
-                    action: function(bdialog) {
-                        bdialog._owner.close();
-                    }
-                },
-            ]
-        });
-        dialog.show();
-    };
-
-    GridActions.perform_switch_highlight = function(queryArgs, ajaxCallback) {
-        this.grid.onSwitchHighlight();
-    };
-
-    GridActions.callback_create_form = function(viewModel) {
-        viewModel.owner = this.grid;
-        var dialog = new App.ModelFormDialog(viewModel);
-        dialog.show();
-    };
-
-    GridActions.callback_create_inline = function(viewModel) {
-        this.callback_create_form(viewModel);
-    };
-
-    GridActions.blockTags = null;
-
-    /**
-     * Get rendering options with localized / verbose model field names, including nested relationships
-     * to use these with current grid row data in actions dialog.
-     */
-    GridActions.getNestedListOptions = function() {
-        // todo: Check related fields name clash (disambiguation).
-        var options = $.extend(
-            true,
-            {
-                blockTags: (this.blockTags === null) ? App.ui.dialogBlockTags : App.blockTags.badges,
-                unwrapTop: true,
-            },
-            this.grid.meta.fkNestedListOptions,
-            this.grid.meta.listOptions
-        );
-        return options;
-    };
-
-    /**
-     * Issued as the confirmation dialog for two-stages actions, such as select one or many grid rows
-     * then perform something with these, for example deletion.
-     */
-    GridActions.renderDescription = function(viewModel, dialogType) {
-        viewModel.message = App.renderNestedList(
-            $('<div>'), viewModel.description, this.getNestedListOptions()
-        );
-        if (typeof dialogType === 'undefined') {
-            dialogType = BootstrapDialog.TYPE_DANGER;
-        }
-        viewModel.type = dialogType;
-        delete viewModel.description;
-    };
-
-    GridActions.callback_delete = function(viewModel) {
-        var self = this;
-        if (typeof viewModel.has_errors !== 'undefined') {
-            this.renderDescription(viewModel);
-            new App.Dialog(viewModel).alert();
-            return;
-        }
-        var pkVals = viewModel.pkVals;
-        delete viewModel.pkVals;
-        viewModel.callback = function(result) {
-            if (result) {
-                self.perform('delete_confirmed', {'pk_vals': pkVals});
-            }
-        };
-        this.renderDescription(viewModel);
-        var dialog = new App.Dialog(viewModel);
-        dialog.confirm();
-    };
-
-    GridActions.callback_delete_confirmed = function(viewModel) {
-        if (typeof viewModel.has_errors !== 'undefined') {
-            this.renderDescription(viewModel);
-            new App.Dialog(viewModel).alert();
-        } else {
-            this.grid.updatePage(viewModel);
-        }
-    };
-
-    /**
-     * The same client-side AJAX form is used both to add new objects and to update existing ones.
-     */
-    GridActions.callback_edit_form = function(viewModel) {
-        this.callback_create_form(viewModel);
-    };
-
-    GridActions.callback_edit_inline = function(viewModel) {
-        this.callback_create_form(viewModel);
-    };
-
-    GridActions.callback_save_form = function(viewModel) {
-        this.grid.updatePage(viewModel);
-        // Brute-force approach:
-        // this.perform('list');
-    };
-
-    GridActions.callback_save_inline = function(viewModel) {
-        this.grid.updatePage(viewModel);
-    };
-
-    /**
-     * Load metadata from AJAX response.
-     * Can be used separately to update columns descriptions / sort orders / filters on the fly.
-     */
-    GridActions.callback_meta = function(data) {
-        if (typeof data.action_kwarg !== 'undefined') {
-            this.setActionKwarg(data.action_kwarg);
-        }
-        this.grid.loadMetaCallback(data);
-    };
-
-    GridActions.queryargs_list = function(options) {
-        var result = $.extend(options, this.grid.getListQueryArgs());
-        return result;
-    };
-
-    GridActions.queryargs_update = function(options) {
-        return this.queryargs_list(options);
-    };
-
-    /**
-     * Populate viewmodel from AJAX response.
-     */
-    GridActions.callback_list = function(data) {
-        this.grid.listCallback(data);
-    };
-
-    GridActions.callback_update = function(data) {
-        this.callback_list(data);
-    };
-
-    /**
-     * Combined 'meta' / 'list' action to reduce HTTP traffic.
-     */
-    GridActions.queryargs_meta_list = function(options) {
-        return this.grid.getListQueryArgs();
-    };
-
-    GridActions.callback_meta_list = function(data) {
-        this.callback_meta(data);
-        this.callback_list(data);
-    };
-
-}(App.GridActions.prototype);
+}(GridPage.prototype);
 
 /**
  * AJAX Grid powered by Knockout.js.
  *
  * To display custom-formatted field values, one has to inherit
- * from App.ko.Grid to override App.ko.Grid.iocRow() and
- * from App.ko.GridRow to override App.ko.GridRow.initDisplayValues().
+ * from Grid to override Grid.iocRow() and
+ * from GridRow to override GridRow.initDisplayValues().
  *
  * To implement custom client-side actions (such as multiple grids interaction) one has to inherit
- * from App.ko.Grid to override App.ko.Grid.iocGridActions() and
- * from App.GridActions / App.Actions to setup custom .perform_* / .callback_* / .queryargs_* methods.
+ * from Grid to override Grid.iocGridActions() and
+ * from GridActions / Actions to setup custom .perform_* / .callback_* / .queryargs_* methods.
  *
  */
 
-App.ko.Grid = function(options) {
+function Grid(options) {
     this.init(options);
 };
 
@@ -1376,11 +115,11 @@ void function(Grid) {
 
     Grid.localize = function() {
         this.local = {
-            toBegin: App.trans('First page'),
-            toEnd: App.trans('Last page'),
+            toBegin: Trans('First page'),
+            toEnd: Trans('Last page'),
         };
         this.meta.searchPlaceholder = ko.observable(
-            (this.options.searchPlaceholder === null) ? App.trans('Search') : this.options.searchPlaceholder
+            (this.options.searchPlaceholder === null) ? Trans('Search') : this.options.searchPlaceholder
         );
     };
 
@@ -1403,7 +142,7 @@ void function(Grid) {
                 vm.view = this.actions.viewModelName;
             }
             this.options.preloadedMetaList = false;
-            this.actions.respond('meta_list', vm, App.propGet(callback, 'context'));
+            this.actions.respond('meta_list', vm, propGet(callback, 'context'));
             self.meta.firstLoad(false);
             if (typeof callback === 'function') {
                 callback(queryArgs);
@@ -1472,7 +211,7 @@ void function(Grid) {
     };
 
     Grid.iocGridActions = function(options) {
-        return new App.GridActions(options);
+        return new GridActions(options);
     };
 
     Grid.onGridSearchStr = function(newValue) {
@@ -1519,7 +258,7 @@ void function(Grid) {
     Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui'];
 
     Grid.init = function(options) {
-        $.inherit(App.ko.Subscriber.prototype, this);
+        inherit(Subscriber.prototype, this);
         var self = this;
         this.componentSelector = null;
         this.options = $.extend({
@@ -1534,7 +273,7 @@ void function(Grid) {
             //   0 - do not highlight,
             //   1 - highlight columns,
             //   2 - highlight rows,
-            highlightModeRules: App.ui.highlightModeRules,
+            highlightModeRules: ui.highlightModeRules,
             // false - no preloadedMetaList,
             // object - result of server-side preloaded 'action_meta_list' call in KoGridView.discover_grid_options().
             pkField: '',
@@ -1551,7 +290,7 @@ void function(Grid) {
             pageRoute: null,
             pageRouteKwargs: {},
             vScrollPage: true,
-            // By default will use App.ko.GridRow.useInitClient = false value:
+            // By default will use GridRow.useInitClient = false value:
             useInitClient : null,
         }, options);
         if (this.options.defaultOrderBy !== null) {
@@ -1727,7 +466,7 @@ void function(Grid) {
                     // Already added single 'in' value.
                     return;
                 }
-                if ($.isScalar(this.queryFilters[field])) {
+                if (isScalar(this.queryFilters[field])) {
                     // Convert single value into array of values with 'in' lookup.
                     this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
@@ -1736,7 +475,7 @@ void function(Grid) {
                     this.queryFilters[field]['in'].push(value);
                 }
             } else {
-                if ($.isScalar(this.queryFilters[field])) {
+                if (isScalar(this.queryFilters[field])) {
                     // Convert single value into array of values with 'in' lookup.
                     this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
@@ -1774,7 +513,7 @@ void function(Grid) {
         }
         if (options.lookup === 'in') {
             // Special case of 'in' lookup that may have multiple filter values.
-            if ($.isScalar(this.queryFilters[field])) {
+            if (isScalar(this.queryFilters[field])) {
                 if (hasValue) {
                     if (this.queryFilters[field] === options.value) {
                         delete this.queryFilters[field];
@@ -1797,7 +536,7 @@ void function(Grid) {
                 }
             }
         } else {
-            if (!$.isScalar(this.queryFilters[field]) &&
+            if (!isScalar(this.queryFilters[field]) &&
                     typeof this.queryFilters[field][options.lookup] !== 'undefined') {
                 if (hasValue) {
                     if (this.queryFilters[field][options.lookup] === options.value) {
@@ -1884,7 +623,7 @@ void function(Grid) {
         this.hasSelectAllRows(false);
     };
 
-    Grid.propCall = App.propCall;
+    Grid.propCall = propCall;
 
     /**
      * Called from child row when the row is selected.
@@ -1916,19 +655,19 @@ void function(Grid) {
     };
 
     /**
-     * Find App.ko.GridRow instance in this.gridRows by row pk value.
+     * Find GridRow instance in this.gridRows by row pk value.
      */
     Grid.findKoRowByPkVal = function(options) {
         var self = this;
         var pkVal, withKey;
         if (typeof options === 'object') {
             pkVal = options.pkVal;
-            withKey = App.propGet(options, 'withKey', false);
+            withKey = propGet(options, 'withKey', false);
         } else {
             pkVal = options;
             withKey = false;
         }
-        var intPkVal = $.intVal(pkVal);
+        var intPkVal = intVal(pkVal);
         var koRow = null;
         var key = -1;
         $.each(this.gridRows(), function(k, v) {
@@ -1965,7 +704,7 @@ void function(Grid) {
         var intPkVals = [];
         for (var i = 0; i < pkVals.length; i++) {
             intPkVals.push(pkVals[i]);
-            var intPkVal = $.intVal(pkVals[i]);
+            var intPkVal = intVal(pkVals[i]);
             if (intPkVal !== pkVals[i]) {
                 intPkVals.push(intPkVal);
             }
@@ -2075,7 +814,7 @@ void function(Grid) {
     Grid.deleteKoRows = function(pks) {
         var notDeletedPks = [];
         for (var i = 0; i < pks.length; i++) {
-            var pkVal = $.intVal(pks[i]);
+            var pkVal = intVal(pks[i]);
             this.removeSelectedPkVal(pkVal);
             var koRow = this.unselectRow(pkVal);
             if (koRow !== null) {
@@ -2111,13 +850,13 @@ void function(Grid) {
      * You may optionally postprocess returned row before applying it to ko viewmodel.
      */
     Grid.iocRow = function(options) {
-        return new App.ko.GridRow(options);
+        return new GridRow(options);
     };
 
     Grid.iocRowOwner = function(options) {
         options.ownerGrid = this;
         if (typeof options.isSelectedRow === 'undefined') {
-            // raw row (direct access to pkField); for App.ko.GridRow use .getPkVal().
+            // raw row (direct access to pkField); for GridRow use .getPkVal().
             var pkVal = options.values[this.meta.pkField];
             options.isSelectedRow = this.hasSelectedPkVal(pkVal);
         }
@@ -2159,13 +898,13 @@ void function(Grid) {
             }
         });
         // Current row must be inversed _after_ all unselected ones.
-        // Otherwise App.FkGridWidget will fail to set proper input value.
+        // Otherwise FkGridWidget will fail to set proper input value.
         currKoRow.inverseSelection();
         return currPkVal;
     };
 
     Grid.iocActionsMenuDialog = function(options) {
-        return new App.ActionsMenuDialog(options);
+        return new ActionsMenuDialog(options);
     };
 
     Grid.rowSelect = function(currKoRow) {
@@ -2217,14 +956,14 @@ void function(Grid) {
     };
 
     Grid.iocKoGridColumn = function(options) {
-        return new App.ko.GridColumn(options);
+        return new GridColumn(options);
     };
 
     Grid.iocKoGridColumnOrder = function(options) {
-        return new App.ko.GridColumnOrder(options);
+        return new GridColumnOrder(options);
     };
 
-    // May be used in descendant of App.ko.GridRow() to get metadata of current field.
+    // May be used in descendant of GridRow() to get metadata of current field.
     Grid.getKoGridColumn = function(fieldName) {
         var result = null;
         _.find(this.gridColumns(), function(gridColumn) {
@@ -2250,7 +989,7 @@ void function(Grid) {
             var koGridColumnOrders = [];
             for (var j = 0; j < gridColumnOrders.length; j++) {
                 var gridColumn = gridColumnOrders[j];
-                var order = App.propGet(this.meta.orderBy, gridColumn.field, null);
+                var order = propGet(this.meta.orderBy, gridColumn.field, null);
                 koGridColumnOrders.push(this.iocKoGridColumnOrder({
                     field: gridColumn.field,
                     name: gridColumn.name,
@@ -2268,7 +1007,7 @@ void function(Grid) {
     };
 
     Grid.iocKoFilterChoice = function(options) {
-        return new App.ko.GridFilterChoice(options);
+        return new GridFilterChoice(options);
     };
 
     Grid.getFkGridOptions = function(field) {
@@ -2287,7 +1026,7 @@ void function(Grid) {
     Grid.expandFilterContents = function(elements, koFilter) {
         var self = koFilter.ownerGrid;
         if (self.options.expandFilterContents) {
-            var tpl = new App.Tpl();
+            var tpl = new Tpl();
             return tpl.expandContents($(elements));
         }
     };
@@ -2295,7 +1034,7 @@ void function(Grid) {
     Grid.filterTemplateName = function(koFilter, bindingContext) {
         var templateName = koFilter.getTemplateName();
         var self = bindingContext.grid;
-        return App.getTemplateSubstitution(self.componentSelector, templateName);
+        return getTemplateSubstitution(self.componentSelector, templateName);
     };
 
     Grid.iocKoFilter_fk = function(filter, options) {
@@ -2306,29 +1045,29 @@ void function(Grid) {
                 showSelection: true
             }
         );
-        // Will use App.ko.FkGridFilter to select filter choices.
-        return {cls: App.ko.FkGridFilter, options: options};
+        // Will use FkGridFilter to select filter choices.
+        return {cls: FkGridFilter, options: options};
     };
 
     Grid.iocKoFilter_datetime = function(filter, options) {
         options.type = 'datetime';
-        return {cls: App.ko.RangeFilter, options: options};
+        return {cls: GridRangeFilter, options: options};
     };
 
     Grid.iocKoFilter_date = function(filter, options) {
         options.type = 'date';
-        return {cls: App.ko.RangeFilter, options:options};
+        return {cls: GridRangeFilter, options:options};
     };
 
     Grid.iocKoFilter_number = function(filter, options) {
         options.type = 'number';
-        return {cls: App.ko.RangeFilter, options: options};
+        return {cls: GridRangeFilter, options: options};
     };
 
     Grid.iocKoFilter_choices = function(filter, options) {
         options.choices = filter.choices;
-        return {cls: App.ko.GridFilter, options: options};
-        var filterModel = new App.ko.GridFilter(options);
+        return {cls: GridFilter, options: options};
+        var filterModel = new GridFilter(options);
     };
 
     Grid.createKoFilter = function(filter) {
@@ -2410,7 +1149,7 @@ void function(Grid) {
 
     Grid.iocGridPage = function(options) {
         options.ownerGrid = this;
-        return new App.ko.GridPage(options);
+        return new GridPage(options);
     };
 
     /**
@@ -2472,7 +1211,7 @@ void function(Grid) {
     };
 
     /**
-     * Used in App.GridDialog to display title outside of message template.
+     * Used in GridDialog to display title outside of message template.
      */
     Grid.ownerCtrlSetTitle = function(verboseNamePlural) {
     };
@@ -2508,7 +1247,7 @@ void function(Grid) {
         }
         if (typeof data.gridFields !== 'undefined') {
             if (this.options.defaultOrderBy !== null) {
-                // Override grid meta.orderBy via supplied App.ko.Grid() options.
+                // Override grid meta.orderBy via supplied Grid() options.
                 this.meta.orderBy = this.options.defaultOrderBy;
             }
             this.setKoGridColumns(data.gridFields);
@@ -2532,7 +1271,7 @@ void function(Grid) {
 
     Grid.listCallback = function(data) {
         var self=this;
-        if (App.propGet(data, 'has_errors') === true) {
+        if (propGet(data, 'has_errors') === true) {
             // There is nothing to list. Additional error viewmodel might be processed instead.
             return;
         }
@@ -2557,7 +1296,7 @@ void function(Grid) {
                 })
             );
         });
-        if (App.propGet(data, 'update') === true) {
+        if (propGet(data, 'update') === true) {
             for (var i = 0; i < gridRows.length; i++) {
                 var newRow = gridRows[i];
                 var findResult = this.findKoRowByPkVal({
@@ -2587,8 +1326,8 @@ void function(Grid) {
     };
 
     Grid.iocKoAction = function(options) {
-        var classPath = App.propGet(options.actDef, 'classPath', 'App.ko.Action');
-        return new App.newClassByPath(classPath, [options]);
+        var classPath = propGet(options.actDef, 'classPath', 'KoGridAction');
+        return globalIoc.factory(classPath, options);
     };
 
     Grid.setKoActionTypes = function(metaActions) {
@@ -2652,7 +1391,7 @@ void function(Grid) {
         this.performKoAction(koAction, actionOptions)
     };
 
-    // Returns only enabled actions for particular App.ko.GridRow instance of the specified actionType.
+    // Returns only enabled actions for particular GridRow instance of the specified actionType.
     Grid.getEnabledActions = function(koRow, actionType) {
         var enabledActions = [];
         var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
@@ -2681,7 +1420,7 @@ void function(Grid) {
         if (vm === null) {
             /**
              * If response has no our grid viewmodel (this.actions.viewModelName), then it's a form viewmodel errors
-             * response which will be processed by App.AjaxForm.submit().
+             * response which will be processed by AjaxForm.submit().
              */
             return true;
         } else {
@@ -2732,587 +1471,6 @@ void function(Grid) {
         );
     };
 
-}(App.ko.Grid.prototype);
+}(Grid.prototype);
 
-/**
- * Visual representation of grid action. Should be used to display / trigger button / iconui actions.
- * Do not confuse with App.Actions / App.GridActions which is the abstraction layer for AJAX handling of viewmodels.
- */
-App.ko.Action = function(options) {
-    this.init(options);
-};
-
-void function(Action) {
-
-    Action.init = function(options) {
-        this.grid = options.grid;
-        this.actDef = options.actDef;
-        this.name = this.actDef.name;
-        this.localName = this.actDef.localName;
-    };
-
-    Action.actionCss = function(type) {
-        var koCss = {};
-        switch (typeof this.actDef.css) {
-        case 'string':
-            koCss[this.actDef.css] = true;
-            break;
-        case 'object':
-            if (typeof this.actDef.css[type] !== 'undefined') {
-                koCss[this.actDef.css[type]] = true;
-            }
-        }
-        return koCss;
-    };
-
-    Action.doAction = function(actionOptions) {
-        if (typeof actionOptions === 'undefined') {
-            actionOptions = {};
-        }
-        if (this.grid.selectedRowsPks.length > 0) {
-            // Multiple rows selected. Add all selected rows pk values.
-            actionOptions['pk_vals'] =  this.grid.selectedRowsPks;
-        }
-        this.grid.performKoAction(this, actionOptions);
-    };
-
-    Action.doForRow = function(gridRow, actionOptions) {
-        if (typeof actionOptions === 'undefined') {
-            actionOptions = {};
-        }
-        if (gridRow.observeEnabledAction(this)()) {
-            this.grid.lastClickedKoRow = gridRow;
-            // Clicked row pk value ('pkVal').
-            actionOptions = $.extend(actionOptions, gridRow.getActionOptions());
-            this.doAction(actionOptions);
-        }
-    };
-
-    Action.doLastClickedRowAction = function() {
-        if (typeof this.grid.actionsMenuDialog !== 'undefined') {
-            this.grid.actionsMenuDialog.close();
-            delete this.grid.actionsMenuDialog;
-        }
-        this.doForRow(this.grid.lastClickedKoRow);
-    };
-
-}(App.ko.Action.prototype);
-
-
-App.ko.RowsPerPageAction = function(options) {
-    $.inherit(App.ko.Action.prototype, this);
-    this.init(options);
-};
-
-void function(RowsPerPageAction) {
-
-    RowsPerPageAction.init = function(options) {
-        this._super._call('init', options);
-        this.grid.meta.rowsPerPageRange(this.actDef.range);
-        this.grid.meta.rowsPerPageValues([]);
-        for (var i = this.actDef.range.min; i <= this.actDef.range.max; i += this.actDef.range.step) {
-            this.grid.meta.rowsPerPageValues.push(i);
-        }
-    };
-
-}(App.ko.RowsPerPageAction.prototype);
-
-
-/**
- * Base class for dialog-based grid filters.
- */
-App.FilterDialog = function(options) {
-    $.inherit(App.Dialog.prototype, this);
-    this.create(options);
-};
-
-void function(FilterDialog) {
-
-    FilterDialog.propCall = App.propCall;
-
-    FilterDialog.getButtons = function() {
-        var self = this;
-        if (typeof this.owner !== 'undefined') {
-            return [{
-                id: 'filter_remove_selection',
-                hotkey: 27,
-                label: App.trans('Remove selection'),
-                action: function(dialogItself) {
-                    self.onRemoveSelection();
-                }
-            },{
-                id: 'filter_apply',
-                hotkey: 13,
-                label: App.trans('Apply'),
-                action: function(dialogItself) {
-                    if (self.onApply()) {
-                        self.close();
-                    }
-                }
-            }];
-        } else {
-            return [{
-                label: App.trans('Close'),
-                hotkey: 27,
-                action: function(dialogItself) {
-                    self.close();
-                }
-            }];
-        }
-    };
-
-    FilterDialog.create = function(options) {
-        this.wasOpened = false;
-        if (typeof options !== 'object') {
-            options = {};
-        }
-        // Reference to owner component (for example App.ko.FkGridFilter instance).
-        this.owner = options.owner;
-        delete options.owner;
-        // Filter options.
-        this.filterOptions = $.extend({
-                selectMultipleRows: typeof this.owner !== 'undefined'
-            },
-            options.filterOptions
-        );
-        delete options.filterOptions;
-        this._super._call('create', options);
-    };
-
-    FilterDialog.onApply = function() {
-        this.propCall('owner.onFilterDialogApply', {});
-        return true;
-    };
-
-    FilterDialog.onRemoveSelection = function() {
-        this.propCall('owner.onFilterDialogRemoveSelection', {});
-    };
-
-    FilterDialog.onShow = function() {
-        this._super._call('onShow');
-        if (this.wasOpened) {
-            this.recreateContent();
-        }
-        this.owner.applyBindings(this.bdialog.getModal());
-        App.initClient(this.bdialog.getModal());
-        this.wasOpened = true;
-    };
-
-    FilterDialog.onHide = function() {
-        ko.cleanNode(this.bdialog.getModal().get(0));
-        App.initClient(this.bdialog.getModal(), 'dispose');
-        this._super._call('onHide');
-    };
-
-}(App.FilterDialog.prototype);
-
-/**
- * BootstrapDialog that incorporates App.ko.Grid descendant instance bound to it's content (this.dialog.message).
- *
- * Example of manual invocation:
-
-App.documentReadyHooks.push(function() {
-    var dialog = new App.GridDialog({
-        iocGrid: function(options) {
-            options.pageRoute = 'region_grid';
-            // options.selectMultipleRows = false;
-            return new App.ko.Grid(options);
-        }
-    });
-    dialog.show();
-});
-
-*/
-
-App.GridDialog = function(options) {
-    $.inherit(App.FilterDialog.prototype, this);
-    $.inherit(App.Dialog.prototype, this);
-    this.create(options);
-};
-
-void function(GridDialog) {
-
-    GridDialog.template = 'ko_grid_body';
-
-    /**
-     * Pass grid options as options.filterOptions argument.
-     * Override grid class to custom one by passing options.iocGrid argument.
-     */
-    GridDialog.create = function(options) {
-        this.componentSelector = null;
-        this._super._call('create', options);
-    };
-
-    GridDialog.runComponent = function($selector) {
-        this.componentSelector = $selector;
-        this.show();
-    };
-
-    GridDialog.removeComponent = function($selector) {
-        if (this.grid) {
-            this.grid.removeComponent();
-        }
-    };
-
-    GridDialog.onRemoveSelection = function() {
-        this.grid.unselectAllRows();
-        this.propCall('owner.onGridDialogUnselectAllRows', {
-            'childGrid': this.grid
-        });
-    };
-
-    GridDialog.onChildGridFirstLoad = function() {
-        this.propCall('owner.onGridDialogFirstLoad', {
-            'childGrid': this.grid
-        });
-    };
-
-    GridDialog.onChildGridSelectRow = function(pkVal) {
-        console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('owner.onGridDialogSelectRow', {
-            'pkVal': pkVal,
-            'childGrid': this.grid
-        });
-    };
-
-    GridDialog.onChildGridUnselectRow = function(pkVal) {
-        console.log('pkVal: ' + JSON.stringify(pkVal));
-        this.propCall('owner.onGridDialogUnselectRow', {
-            'pkVal': pkVal,
-            'childGrid': this.grid
-        });
-    };
-
-    GridDialog.onChildGridRowsChange = function(changes) {
-        this.propCall('owner.onGridDialogRowsChange', changes);
-    };
-
-    GridDialog.iocGrid = function(options) {
-        var options = $.extend(
-            this.filterOptions,
-            options
-        );
-        if (typeof options.classPath === 'string') {
-            var gridClass = App.objByPath(options.classPath);
-            return new gridClass(options);
-        } else if (typeof this.dialogOptions.iocGrid === 'function') {
-            return this.dialogOptions.iocGrid(options);
-        } else if (typeof this.dialogOptions.iocGrid === 'string') {
-            var gridClass = App.objByPath(this.dialogOptions.iocGrid);
-            return new gridClass(options);
-        } else {
-            return new App.ko.Grid(options);
-        }
-    };
-
-    GridDialog.iocGridOwner = function() {
-        this.grid = this.iocGrid({
-            ownerCtrl: this
-        });
-        this.grid.ownerCtrlSetTitle = function(verboseNamePlural) {
-            this.ownerCtrl.setTitle(verboseNamePlural);
-        }.bind(this.grid);
-    };
-
-    GridDialog.onHide = function() {
-        this.grid.cleanBindings();
-        this.propCall('owner.onGridDialogHide');
-        if (this.componentSelector !== null) {
-            delete this.grid;
-            delete this.bdialog;
-            var desc = App.components.unbind(this.componentSelector);
-            if (typeof desc.event !== 'undefined') {
-                App.components.add(this.componentSelector, desc.event);
-            }
-        }
-    };
-
-    GridDialog.onShow = function() {
-        App.globalIoc.exec('App.Dialog.baseOnShow', null, this);
-        var self = this;
-        // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
-        var $footer = this.bdialog.getModalFooter();
-        $footer.find('button').addClass('m-1');
-        if (App.ui.version === 4) {
-            $footer.wrapInner('<div class="row m-1"></div>');
-        }
-        var $gridPagination = this.iocTemplateProcessor().domTemplate('ko_grid_pagination');
-        // $gridPagination = $gridPagination.wrapAll('<div class="pagination-wrap"></div>').parent();
-        $footer.prepend($gridPagination);
-        if (this.wasOpened) {
-            this.recreateContent();
-        } else {
-            // FkGridWidget may already instantiate grid, in case options.initialFkRows are supplied.
-            if (!this.grid) {
-                // Apply App.ko.Grid or descendant bindings to BootstrapDialog modal.
-                this.iocGridOwner();
-            }
-            this.gridRowsSubscription = this.grid.ownerRowsChange();
-            this.grid.firstLoad(function() {
-                // Select grid rows when there are filter choices set already.
-                var filterChoices = self.propCall('owner.getQueryFilter');
-                if (filterChoices !== null) {
-                    self.grid.selectKoRowsByPkVals(filterChoices);
-                }
-            });
-        }
-        this.grid.applyBindings(this.bdialog.getModal());
-        this.wasOpened = true;
-        this.propCall('owner.onGridDialogShow', {
-            'childGrid': this.grid
-        });
-    };
-
-    GridDialog.close = function() {
-        this.gridRowsSubscription.dispose();
-        this._super._call('close');
-        this.propCall('owner.onGridDialogClose');
-    };
-
-}(App.GridDialog.prototype);
-
-
-/**
- * Client-side part of widgets.MultipleKeyGridWidget / ForeignKeyGridWidget
- * to select foreign key relationships via App.GridDialog.
- * Similar to django.admin FilteredSelectMultiple / ForeignKeyRawIdWidget but is Knockout.js driven.
- */
-App.FkGridWidget = function(options) {
-    this.init(options);
-};
-
-void function(FkGridWidget) {
-
-    FkGridWidget.getInputAttrs = function(inputRow, fieldIdIndex) {
-        var attrs = $.extend({}, this.attrs);
-        if (this.idParts) {
-            attrs.id = this.idParts.prefix + this.formsetIndex() + this.idParts.suffix;
-        }
-        if (this.selectMultipleRows) {
-            attrs.id += '_' + fieldIdIndex;
-        }
-        if (this.nameParts) {
-            attrs.name = this.nameParts.prefix + this.formsetIndex() + this.nameParts.suffix;
-        } else {
-            attrs.name = this.baseName;
-        }
-        attrs.value = inputRow.pk;
-        return attrs;
-    };
-
-    FkGridWidget.getEmptyAttrs = function() {
-        return this.getInputAttrs({pk: 0});
-    };
-
-    FkGridWidget.parseFormsetPrefix = function(val) {
-        var parts = val.split('__prefix__', 2);
-        return (parts.length === 2) ? {prefix: parts[0], suffix: parts[1]} : false;
-    };
-
-    FkGridWidget.init = function(options) {
-        var gridOptions = options.fkGridOptions;
-        gridOptions.showSelection = true;
-        delete options.fkGridOptions;
-        this.selectMultipleRows = gridOptions.selectMultipleRows;
-        this.baseName = options.name;
-        this.nameParts = this.parseFormsetPrefix(options.name);
-        this.attrs = options.attrs;
-        this.isRequired = options.isRequired;
-        this.idParts = this.parseFormsetPrefix(options.attrs.id);
-        this.formsetIndex = ko.observable(0);
-
-        this.inputRows = ko.observableArray();
-        if (typeof options.initialFkRows !== 'undefined') {
-            var initialFkRows = options.initialFkRows;
-            delete options.initialFkRows;
-        } else {
-            var initialFkRows = [];
-        }
-        this.gridDialog = new App.GridDialog({
-            owner: this,
-            filterOptions: gridOptions
-        });
-        if (typeof options.clickActions !== 'undefined') {
-            if (this.gridDialog.grid === undefined) {
-                this.gridDialog.iocGridOwner();
-            }
-            this.gridDialog.grid.setKoActionTypes(options.clickActions);
-            delete options.clickActions;
-        }
-        if (initialFkRows.length > 0) {
-            if (this.gridDialog.grid === undefined) {
-                this.gridDialog.iocGridOwner();
-            }
-            for (var i = 0; i < initialFkRows.length; i++) {
-                var koRow = this.gridDialog.grid.iocRowOwner({
-                    isSelectedRow: true,
-                    values: initialFkRows[i],
-                    index: i
-                });
-                var inputRow = this.iocInputRow(koRow);
-                this.inputRows.push(inputRow);
-            }
-        }
-    };
-
-    FkGridWidget.applyBindings = function(selector) {
-        var self = this;
-        this.componentSelector = $(selector);
-        this.componentSelector.each(function(k, v) {
-            ko.applyBindings(self, v);
-        });
-    };
-
-    FkGridWidget.cleanBindings = function() {
-        if (this.componentSelector) {
-            this.componentSelector.each(function(k, v) {
-                ko.cleanNode(v);
-            });
-        }
-    };
-
-    FkGridWidget.runComponent = function($selector) {
-        this.applyBindings($selector);
-    };
-
-    FkGridWidget.removeComponent = function($selector) {
-        this.gridDialog.removeComponent();
-        this.cleanBindings();
-    };
-
-    FkGridWidget.getTemplateName = function(templateName) {
-        return App.getTemplateSubstitution(this.componentSelector, templateName);
-    };
-
-    FkGridWidget.deleteFk = function(inputRow) {
-        this.inputRows.remove(inputRow);
-        var fkGrid = this.gridDialog.grid;
-        var koRow = fkGrid.findKoRowByPkVal(inputRow.pk);
-        if (koRow !== null) {
-            koRow.isSelectedRow(false);
-        } else {
-            fkGrid.removeSelectedPkVal(inputRow.pk);
-        }
-    };
-
-    FkGridWidget.findInputRowByPkVal = function(pkVal) {
-        return ko.utils.arrayFirst(this.inputRows(), function(inputRow) {
-            return inputRow.pk === pkVal;
-        });
-    };
-
-    FkGridWidget.getInputRowDescParts = function(koRow) {
-        return koRow.getDescParts();
-    };
-
-    // note: "this" is bound to inputRow, not to FkGridWidget.
-    FkGridWidget.getInputRowDisplay = function() {
-        var $content = $('<div>');
-        return App.renderNestedList(
-            $content, this.desc(), {blockTags: App.blockTags.badges, unwrapTop: true}
-        );
-    };
-
-    FkGridWidget.iocInputRow = function(koRow) {
-        var self = this;
-        var inputRow = {
-            pk: koRow.getPkVal(),
-            desc: ko.observable(this.getInputRowDescParts(koRow)),
-            css: {
-                'pointer': koRow.getActiveActions('click').length > 0,
-            },
-            onClick: koRow.onActiveClick.bind(koRow),
-            canDelete: App.propGet(koRow, 'perm.canDeleteFk', true),
-        };
-        inputRow.display = ko.pureComputed(this.getInputRowDisplay, inputRow);
-        inputRow.remove = function() {
-            self.deleteFk(inputRow);
-        };
-        return inputRow;
-    };
-
-    FkGridWidget.updateInputRow = function(koRow) {
-        var matchingRow = this.findInputRowByPkVal(koRow.getPkVal());
-        // not found matchingRow === null in Knockout 3.4, === undefined in Knockout 3.5.
-        if (matchingRow) {
-            matchingRow.desc(this.getInputRowDescParts(koRow));
-        }
-    };
-
-    FkGridWidget.onFkButtonClick = function(data, ev) {
-        this.gridDialog.show();
-    };
-
-    FkGridWidget.onGridDialogRowsChange = function(changes) {
-        console.log(changes);
-        for (var i = 0; i < changes.length; i++) {
-            var change = changes[i];
-            if (['modified', 'added'].indexOf(change.status) !== -1) {
-                var koRow = change.value;
-                this.updateInputRow(koRow);
-                break;
-            }
-        }
-    };
-
-    FkGridWidget.onGridDialogSelectRow = function(options) {
-        var koRow = options.childGrid.findKoRowByPkVal(options.pkVal);
-        var inputRow = this.iocInputRow(koRow);
-        if (this.selectMultipleRows) {
-            // MultipleKeyGridWidget
-            this.inputRows.push(inputRow);
-        } else {
-            // ForeignKeyGridWidget
-            this.inputRows([inputRow]);
-        }
-    };
-
-    FkGridWidget.onGridDialogUnselectRow = function(options) {
-        this.inputRows.remove(function(inputRow) {
-            return inputRow.pk === options.pkVal;
-        });
-    };
-
-    FkGridWidget.onGridDialogUnselectAllRows = function(options) {
-    };
-
-}(App.FkGridWidget.prototype);
-
-
-/**
- * BootstrapDialog displayed when grid row is clicked and multiple 'click' actions are defined.
- * .owner is the instance of App.ko.Grid.
- */
-App.ActionsMenuDialog = function(options) {
-    this.inherit();
-    this.create(options);
-};
-
-void function(ActionsMenuDialog) {
-
-    ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';
-
-    ActionsMenuDialog.inherit = function() {
-        // Import methods of direct ancestor.
-        $.inherit(App.ActionTemplateDialog.prototype, this);
-        // Import methods of base class that are missing in direct ancestor.
-        $.inherit(App.Dialog.prototype, this);
-    };
-
-    ActionsMenuDialog.getButtons = function() {
-        var self = this;
-        return [{
-            label: App.trans('Cancel'),
-            hotkey: 27,
-            action: function(dialogItself) {
-                self.close();
-            }
-        }];
-    };
-
-    ActionsMenuDialog.ownerOnCreate = function(options) {
-        options.title = App.trans('Choose action');
-        options.actionLabel = options.title;
-    };
-
-}(App.ActionsMenuDialog.prototype);
+export { Grid };

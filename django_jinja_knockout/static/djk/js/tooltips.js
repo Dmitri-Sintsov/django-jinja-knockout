@@ -1,32 +1,39 @@
-'use strict';
+import { inherit } from './dash.js';
+import { renderNestedList } from './nestedlist.js';
+import { disposePopover } from './ui.js';
+import { vmRouter } from './ioc.js';
+import { Dialog } from './dialog.js';
+import { AjaxForm } from './ajaxform.js';
 
-App.vmRouter.add({
-    'tooltip_error': function(viewModel) {
-        var fieldTooltip = new App.FieldTooltip(viewModel);
-        // Save instance of tooltip to delete it later via applying _.filter() to
-        // App.vmRouter.executedViewModels only when there was no previous instance created
-        // for the matching or the same selector.
-        if (!fieldTooltip.hasInstance) {
-            viewModel.instance = fieldTooltip;
+function useTooltips() {
+    vmRouter.add({
+        'tooltip_error': function(viewModel) {
+            var fieldTooltip = new FieldTooltip(viewModel);
+            // Save instance of tooltip to delete it later via applying _.filter() to
+            // vmRouter.executedViewModels only when there was no previous instance created
+            // for the matching or the same selector.
+            if (!fieldTooltip.hasInstance) {
+                viewModel.instance = fieldTooltip;
+            }
+        },
+        'popover_error': function(viewModel) {
+            // Do not forget to escape viewModel.message from XSS.
+            // Is not reliable due to: https://github.com/twbs/bootstrap/issues/20511
+            viewModel.instance = new FieldPopover(viewModel);
+        },
+        'bs_alert_error': function(viewModel) {
+            viewModel.instance = new AlertError(viewModel);
+        },
+        'form_error': function(viewModel, vmRouter) {
+            vmRouter.exec('bs_alert_error', viewModel);
         }
-    },
-    'popover_error': function(viewModel) {
-        // Do not forget to escape viewModel.message from XSS.
-        // Is not reliable due to: https://github.com/twbs/bootstrap/issues/20511
-        viewModel.instance = new App.FieldPopover(viewModel);
-    },
-    'bs_alert_error': function(viewModel) {
-        viewModel.instance = new App.AlertError(viewModel);
-    },
-    'form_error': function(viewModel, vmRouter) {
-        vmRouter.exec('bs_alert_error', viewModel);
-    }
-});
+    });
+}
 
 /**
  * Information popover (useful to show ajax form errors and more).
  */
-App.GenericPopover = function(options) {
+function GenericPopover(options) {
     this.create(options);
 };
 
@@ -87,11 +94,11 @@ void function(GenericPopover) {
         this.setupEvents();
     }
 
-}(App.GenericPopover.prototype);
+}(GenericPopover.prototype);
 
 
-App.FieldPopover = function(options) {
-    $.inherit(App.GenericPopover.prototype, this);
+function FieldPopover(options) {
+    inherit(GenericPopover.prototype, this);
     this.create(options);
 };
 
@@ -104,7 +111,7 @@ void function(FieldPopover) {
         // Do not show/hide multiple times to prevent flickering.
         this.status = 'show';
         var $errmsg = $('<div>');
-        App.renderNestedList($errmsg, this.messages);
+        renderNestedList($errmsg, this.messages);
         var _popover = this.$messageTarget.popover({
             trigger: 'manual',
             placement: 'bottom',
@@ -119,7 +126,7 @@ void function(FieldPopover) {
         _popover.data("bs.popover").options.content = $errmsg;
         this.$messageTarget.popover(self.status);
         this.onDestroy = function(ev) {
-            App.ui.disposePopover(self.$messageTarget);
+            disposePopover(self.$messageTarget);
         };
         this.onBlur = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'hide') {
@@ -144,16 +151,16 @@ void function(FieldPopover) {
             .off('blur', this.onBlur)
             .off('focus', this.onFocus);
             // https://github.com/twbs/bootstrap/issues/20511
-            App.ui.disposePopover(this.$messageTarget.popover);
+            disposePopover(this.$messageTarget.popover);
             this.destroyed = true;
         }
     };
 
-}(App.FieldPopover.prototype);
+}(FieldPopover.prototype);
 
 
-App.FieldTooltip = function(options) {
-    $.inherit(App.GenericPopover.prototype, this);
+function FieldTooltip(options) {
+    inherit(GenericPopover.prototype, this);
     this.create(options);
 };
 
@@ -201,10 +208,10 @@ void function(FieldTooltip) {
         }
     };
 
-}(App.FieldTooltip.prototype);
+}(FieldTooltip.prototype);
 
 
-App.AlertError = function(options) {
+function AlertError(options) {
     this.init(options);
 };
 
@@ -222,8 +229,8 @@ void function(AlertError) {
         }
         if (errTitle !== null) {
             var $errmsg = $('<div>');
-            App.renderNestedList($errmsg, options.messages);
-            new App.Dialog({
+            renderNestedList($errmsg, options.messages);
+            new Dialog({
                 title: errTitle,
                 message: $errmsg,
             }).alert();
@@ -269,11 +276,11 @@ void function(AlertError) {
         }
     };
 
-}(App.AlertError.prototype);
+}(AlertError.prototype);
 
 
 /**
- * Extend App.AjaxForm.always() to support 'form_error' viewmodel removal.
+ * Extend AjaxForm.always() to support 'form_error' viewmodel removal.
  */
 void function(AjaxForm) {
 
@@ -284,7 +291,7 @@ void function(AjaxForm) {
      */
     AjaxForm.destroyFormErrors = function() {
         var form = this.$form.get(0);
-        App.vmRouter.filterExecuted(
+        vmRouter.filterExecuted(
             function(viewModel) {
                 if (viewModel.view === 'form_error' && typeof viewModel.instance !== 'undefined') {
                     viewModel.instance.destroy(form);
@@ -300,4 +307,6 @@ void function(AjaxForm) {
         superAlways.apply(this);
     };
 
-}(App.AjaxForm.prototype);
+}(AjaxForm.prototype);
+
+export { useTooltips, GenericPopover, FieldPopover, FieldTooltip, AlertError };

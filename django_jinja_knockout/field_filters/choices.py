@@ -9,7 +9,7 @@ from .base import MultiFilter
 # Server-side implementation of filter field 'type': 'choices'.
 #
 # For AJAX (client-side) implementation used in conjunction with KoGridView,
-# see App.ko.GridFilterChoice class in grid.js.
+# see GridFilterChoice class in grid.js.
 #
 class ChoicesFilter(MultiFilter):
 

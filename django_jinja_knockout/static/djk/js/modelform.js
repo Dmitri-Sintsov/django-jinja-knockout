@@ -1,10 +1,14 @@
-'use strict';
+import { inherit, moveOptions } from './dash.js';
+import { Trans } from './translate.js';
+import { Actions } from './actions.vm.js';
+import { Dialog } from './dialog.js';
+import { AjaxForm } from './ajaxform.js';
 
 /**
- * Unused by App.ko.Grid.
+ * Unused by Grid.
  */
-App.ModelFormActions = function(options) {
-    $.inherit(App.Actions.prototype, this);
+function ModelFormActions(options) {
+    inherit(Actions.prototype, this);
     this.init(options);
 };
 
@@ -23,7 +27,7 @@ void function(ModelFormActions) {
 
     ModelFormActions.callback_create_form = function(viewModel) {
         viewModel.owner = this.owner;
-        var dialog = new App.ModelFormDialog(viewModel);
+        var dialog = new ModelFormDialog(viewModel);
         dialog.show();
     };
 
@@ -35,15 +39,15 @@ void function(ModelFormActions) {
         // noop
     };
 
-}(App.ModelFormActions.prototype);
+}(ModelFormActions.prototype);
 
 
 /**
  * BootstrapDialog that is used to create / edit model object instance.
- * May be used standalone, also is used by App.ko.Grid actions (eg. 'click' type ones).
+ * May be used standalone, also is used by Grid actions (eg. 'click' type ones).
  */
-App.ModelFormDialog = function(options) {
-    $.inherit(App.Dialog.prototype, this);
+function ModelFormDialog(options) {
+    inherit(Dialog.prototype, this);
     this.create(options);
 };
 
@@ -57,7 +61,7 @@ void function(ModelFormDialog) {
             options = {};
         }
         delete options.view;
-        _.moveOptions(this, options, ['owner']);
+        moveOptions(this, options, ['owner']);
         var dialogOptions = $.extend({
                 type: BootstrapDialog.TYPE_PRIMARY,
             }, options
@@ -66,14 +70,14 @@ void function(ModelFormDialog) {
     };
 
     ModelFormDialog.getActionLabel = function() {
-        return App.trans('Save');
+        return Trans('Save');
     };
 
     ModelFormDialog.action = function(bdialog) {
         var self = this;
         var $form = bdialog.getModalBody().find('form');
         var $button = bdialog.getModalFooter().find('button.submit');
-        var ajaxForm = new App.AjaxForm($form);
+        var ajaxForm = new AjaxForm($form);
         ajaxForm.submit($button, {
             success: function(response) {
                 if (typeof self.owner !== 'undefined') {
@@ -96,7 +100,7 @@ void function(ModelFormDialog) {
         return [
             {
                 icon: 'iconui iconui-ban-circle',
-                label: App.trans('Cancel'),
+                label: Trans('Cancel'),
                 hotkey: 27,
                 cssClass: 'btn-default',
                 action: function(bdialog) {
@@ -114,17 +118,17 @@ void function(ModelFormDialog) {
         ];
     };
 
-}(App.ModelFormDialog.prototype);
+}(ModelFormDialog.prototype);
 
 
 /**
  * May be inherited to create BootstrapDialog with client-side template form for implemented action.
  * .owner can be any knockout.js bound class which may have purely optional owner-implemented methods.
- * Built-in example of .owner is an instance of App.ko.Grid class.
+ * Built-in example of .owner is an instance of Grid class.
  * Usage:
 
-    App.ChildActionDialog = function(options) {
-        $.inherit(App.ActionTemplateDialog.prototype, this);
+    ChildActionDialog = function(options) {
+        inherit(ActionTemplateDialog.prototype, this);
         this.inherit();
         this.create(options);
     };
@@ -134,7 +138,7 @@ void function(ModelFormDialog) {
         ...
     };
  */
-App.ActionTemplateDialog = function(options) {
+function ActionTemplateDialog(options) {
     this.inherit();
     this.create(options);
 };
@@ -147,16 +151,16 @@ void function(ActionTemplateDialog) {
     ActionTemplateDialog.actionCssClass = 'iconui-plus';
 
     ActionTemplateDialog.inherit = function() {
-        $.inherit(App.Dialog.prototype, this);
-        this.getButtons = App.ModelFormDialog.prototype.getButtons;
-        this.action = App.ModelFormDialog.prototype.action;
+        inherit(Dialog.prototype, this);
+        this.getButtons = ModelFormDialog.prototype.getButtons;
+        this.action = ModelFormDialog.prototype.action;
     };
 
     ActionTemplateDialog.create = function(options) {
         this.wasOpened = false;
-        _.moveOptions(this, options, ['owner', {'template': this.templateId}]);
+        moveOptions(this, options, ['owner', {'template': this.templateId}]);
         this.ownerOnCreate(options);
-        _.moveOptions(this, options, ['actionLabel']);
+        moveOptions(this, options, ['actionLabel']);
         this._super._call('create', options);
     };
 
@@ -199,13 +203,13 @@ void function(ActionTemplateDialog) {
         return this.actionLabel;
     };
 
-}(App.ActionTemplateDialog.prototype);
+}(ActionTemplateDialog.prototype);
 
 
 /**
- * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
+ * Standalone component for ModelFormActionsView. Unused by Grid.
  */
-App.EditForm = function(options) {
+function EditForm(options) {
     this.init(options);
 };
 
@@ -220,7 +224,7 @@ void function(EditForm) {
      * See also views.ajax.ModelFormActionsView.get_pk_val().
      */
     EditForm.init = function(options) {
-        _.moveOptions(this, options, [
+        moveOptions(this, options, [
             'route',
             {'routeKwargs': {}},
             {'pkUrlKwarg': null},
@@ -246,7 +250,7 @@ void function(EditForm) {
     };
 
     EditForm.iocActions = function(options) {
-        return new App.ModelFormActions(options);
+        return new ModelFormActions(options);
     };
 
     EditForm.runComponent = function(elem) {
@@ -269,7 +273,7 @@ void function(EditForm) {
         if (vm === null) {
             /**
              * If response has no our grid viewmodel (this.actions.viewModelName), then it's a
-             * form viewmodel errors response which will be processed by App.AjaxForm.submit().
+             * form viewmodel errors response which will be processed by AjaxForm.submit().
              */
             return true;
         } else {
@@ -282,14 +286,14 @@ void function(EditForm) {
         }
     };
 
-}(App.EditForm.prototype);
+}(EditForm.prototype);
 
 
 /**
- * Standalone component for ModelFormActionsView. Unused by App.ko.Grid.
+ * Standalone component for ModelFormActionsView. Unused by Grid.
  */
-App.EditInline = function(options) {
-    $.inherit(App.EditForm.prototype, this);
+function EditInline(options) {
+    inherit(EditForm.prototype, this);
     this.init(options);
 };
 
@@ -299,4 +303,6 @@ void function(EditInline) {
         return (this.pkVal === null) ? 'create_inline' : 'edit_inline';
     };
 
-}(App.EditInline.prototype);
+}(EditInline.prototype);
+
+export { ModelFormActions, ModelFormDialog, ActionTemplateDialog, EditForm, EditInline };

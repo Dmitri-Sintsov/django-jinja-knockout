@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from copy import copy
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -26,6 +27,8 @@ class PageContext:
     # dict manipulation functions are used with self.client_data or with self.request.session.
     ONLOAD_KEY = 'onloadViewModels'
 
+    default_script_atts = {'type': 'module'}
+
     def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
         self.request = None
         # view_title may be used by macro / template to build current page title.
@@ -34,10 +37,12 @@ class PageContext:
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
+        default_scripts = getattr(settings, 'DEFAULT_SCRIPTS', ['djk/js/app.js',])
         # Ordered list of custom scripts urls injected to client-side Javascript.
-        self.custom_scripts = OrderedDict.fromkeys(
-            [] if custom_scripts is None else custom_scripts, None
-        )
+        # Keys are script names, values are the list of tag attributes.
+        self.set_custom_scripts(*default_scripts)
+        if custom_scripts is not None:
+            self.add_custom_scripts(custom_scripts)
         self.view_title_args = []
         self.view_title_kwargs = {}
 
@@ -88,11 +93,22 @@ class PageContext:
     def has_custom_script(self, custom_script):
         return custom_script in self.custom_scripts.keys()
 
+    def set_custom_scripts(self, *custom_scripts):
+        self.custom_scripts = OrderedDict()
+        self.add_custom_scripts(*custom_scripts)
+
     def add_custom_scripts(self, *custom_scripts):
-        self.custom_scripts.update(OrderedDict.fromkeys(custom_scripts, None))
+        for custom_script in custom_scripts:
+            if isinstance(custom_script, dict):
+                name = custom_script.pop('name')
+                atts = copy(self.default_script_atts)
+                atts.update(custom_script)
+                self.custom_scripts[name] = atts
+            else:
+                self.custom_scripts[custom_script] = self.default_script_atts
 
     def get_custom_scripts(self):
-        return self.custom_scripts.keys()
+        return self.custom_scripts.items()
 
     def has_session(self):
         return self.ONLOAD_KEY in self.request.session

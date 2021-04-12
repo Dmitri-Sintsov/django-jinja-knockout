@@ -85,7 +85,7 @@ class FieldValidator:
 
     # Detect type of filter.
     # Override in child class to add new type of custom filters.
-    # Implement "App.ko.Grid.iocKoFilter_custom_type" method at client-side.
+    # Implement "Grid.iocKoFilter_custom_type" method at client-side.
     def detect_field_filter(self, filter_def):
         # Model.choices should have preference over self.field_filter_type because integer fields
         # may have choice attribute, which should have preference over 'number' filter.
@@ -99,7 +99,7 @@ class FieldValidator:
                 'type': self.field_filter_type
             }
         elif isinstance(self.model_field, models.ForeignKey):
-            # Use App.ko.FkGridFilter to select filter choices.
+            # Use FkGridFilter to select filter choices.
             return {
                 'type': 'fk',
                 'multiple_choices': True

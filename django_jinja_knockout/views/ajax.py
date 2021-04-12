@@ -173,10 +173,10 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
         self.kwargs = kwargs
         result = self.get_action_handler()()
         if result is None:
-            # Will process client-side App.Actions class "callback_{viewmodel_name}"  method.
+            # Will process client-side Actions class "callback_{viewmodel_name}"  method.
             result = vm_list(view=self.viewmodel_name)
         elif result is False:
-            # Will suppress client-side App.Actions class "callback_{viewmodel_name}" method.
+            # Will suppress client-side Actions class "callback_{viewmodel_name}" method.
             result = vm_list()
         elif not isinstance(result, list):
             result = vm_list(result)
@@ -301,7 +301,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     # KoGridView uses .request_get() value because one grid may edit different model objects.
     # ModelFormActionsView may use either pk_url_kwarg value or .request_get() value.
-    # See also App.EditForm.init() / .runComponent() at client-side.
+    # See also EditForm.init() / .runComponent() at client-side.
     def get_pk_val(self):
         return self.request_get('pk_val') if self.pk_url_kwarg is None else self.kwargs[self.pk_url_kwarg]
 
@@ -548,7 +548,7 @@ class GridActionsMixin(ModelFormActionsView):
     # Set to dict with key fieldname: value related_model to use prefixed field names,
     # Set to list of two-element tuples to use duplicate prefixed field names for related models (eg. generic relationships).
     # Set to list of related models to use non-prefixed root field names.
-    # See also .get_related_model_fields_verbose_names() and App.ko.GridColumnOrder.renderRowValue() implementations.
+    # See also .get_related_model_fields_verbose_names() and GridColumnOrder.renderRowValue() implementations.
     related_models = None
 
     def get_actions(self):
@@ -590,7 +590,7 @@ class GridActionsMixin(ModelFormActionsView):
             'button_footer': OrderedDict(),
             'pagination': OrderedDict([
                 ('rows_per_page', {
-                    'classPath': 'App.ko.RowsPerPageAction',
+                    'classPath': 'GridRowsPerPageAction',
                     'localName': _('Rows per page'),
                     'css': {
                         'iconui': 'iconui-th-list'
@@ -754,13 +754,13 @@ class GridActionsMixin(ModelFormActionsView):
         return vm_grid_fields
 
     # Collect field names verbose_name or i18n of field names from related model classes when available.
-    # These usually are stored into App.ko.Grid.meta.fkNestedListOptions.i18n
+    # These usually are stored into Grid.meta.fkNestedListOptions.i18n
     def get_related_model_fields_verbose_names(self, add_field_related=None):
         # Grid model fields are not rendered as nested fields in grid, thus are not included into result of this call.
         related_verbose_names = {}
         related_models = self.get_related_models(add_field_related=add_field_related)
         # See the description of related_models class attribute.
-        # The value of field_name will be used at client-side as App.renderNestedList() options.keyPrefix attribute.
+        # The value of field_name will be used at client-side as renderNestedList() options.keyPrefix attribute.
         # See grid.js for more details.
         for field_name, model in sdv.iter_enumerate(related_models, repeated_keys=True):
             verbose_names = self.get_model_fields_verbose_names(field_name, model)
@@ -791,7 +791,7 @@ class GridActionsMixin(ModelFormActionsView):
             i18n = self.get_related_model_fields_verbose_names(add_field_related=True)
             if len(i18n) > 0:
                 meta['fkNestedListOptions']['i18n'] = i18n
-            # Current model verbose / local field names used by client-side App.FkGridWidget.setDisplayValue() call.
+            # Current model verbose / local field names used by client-side FkGridWidget.setDisplayValue() call.
             meta['listOptions'] = {
                 'showKeys': True,
                 'i18n': self.get_model_fields_verbose_names()
@@ -841,10 +841,10 @@ class GridActionsMixin(ModelFormActionsView):
 #     UrlPath(MyModelGrid)(name='my_model_grid')
 # To browse specified Django model rows and columns.
 #
-# HTTP GET response is 'Content-Type: text/html' generated from template_name, which should have App.ko.Grid client-side
+# HTTP GET response is 'Content-Type: text/html' generated from template_name, which should have Grid client-side
 # component defined. See 'cbv_grid.htm' for example of component definition. It is optional and is not required.
 #
-# HTTP POST response is AJAX JSON for App.ko.Grid / App.FkGridWidget Javascript components.
+# HTTP POST response is AJAX JSON for Grid / FkGridWidget Javascript components.
 #
 class KoGridView(BaseFilterView, GridActionsMixin):
 

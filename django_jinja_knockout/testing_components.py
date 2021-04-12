@@ -69,7 +69,7 @@ class ComponentCommands:
         self.context = self._by_xpath(
             self.format_xpath(
                 '//*[@data-component-class={classpath} and @data-component-options={options}]',
-                classpath='App.RangeFilter',
+                classpath='ListRangeFilter',
                 options='{"fieldName": "%s"}' % fieldname
             )
         )

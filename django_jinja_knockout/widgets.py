@@ -238,7 +238,7 @@ class BaseGridWidget(ChoiceWidget):
 
     allow_multiple_selected = None
     required = None
-    js_classpath = 'App.FkGridWidget'
+    js_classpath = 'FkGridWidget'
     template_id = 'ko_fk_grid_widget'
     template_options = None
 

@@ -8,7 +8,7 @@ from .base import BaseFilter, ErrorFilter
 
 
 class RangeFilter(BaseFilter):
-    component_class = 'App.RangeFilter'
+    component_class = 'ListRangeFilter'
     input_type = 'search'
     template = 'bs_range_filter.htm'
     from_field_lookup = 'gte'
@@ -81,7 +81,7 @@ class RangeFilter(BaseFilter):
             to_input_attrs['value'] = filter_values['to']
             if not collapse_class.endswith(self.in_show_class):
                 collapse_class += self.in_show_class
-        # See also App.RangeFilter.onShownBsCollapse() / .onHiddenBsCollapse().
+        # See also ListRangeFilter.onShownBsCollapse() / .onHiddenBsCollapse().
         tpl.add_css_classes_to_dict(
             self.component_attrs,
             'display-inline' if collapse_class == 'collapse' else 'display-block'

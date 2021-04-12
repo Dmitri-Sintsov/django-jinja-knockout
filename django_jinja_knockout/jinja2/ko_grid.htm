@@ -33,7 +33,7 @@ Setup component dom_attrs.
     {% do dom_attrs.update({'data-component-class': _grid_options['classPath']}) -%}
     {% do _grid_options.pop('classPath') -%}
 {% else -%}
-    {% do dom_attrs.update({'data-component-class': 'App.ko.Grid'}) -%}
+    {% do dom_attrs.update({'data-component-class': 'Grid'}) -%}
 {% endif -%}
 {% do dom_attrs.update({'data-component-options': _grid_options}) -%}
 {% if 'name' in dom_attrs -%}

@@ -612,7 +612,7 @@ class BaseFilterView(PageContextMixin):
             if isinstance(canon_filter_def.get('choices'), (list, tuple)):
                 vm_filter['type'] = 'choices'
             else:
-                # Use App.ko.FkGridFilter to select filter choices.
+                # Use FkGridFilter to select filter choices.
                 # Autodetect widget.
                 field_validator = self.get_field_validator(fieldname)
                 vm_filter_autodetect = field_validator.detect_field_filter(canon_filter_def)

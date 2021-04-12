@@ -1,6 +1,10 @@
-'use strict';
+import { inherit } from './dash.js';
+import { propGet } from './prop.js';
+import { initClient } from './initclient.js';
+import { globalIoc } from './ioc.js';
+import { disposePopover } from './ui.js';
 
-App.ClosablePopover = function(target, popoverOptions) {
+function ClosablePopover(target, popoverOptions) {
     this.create(target, popoverOptions);
 };
 
@@ -70,7 +74,7 @@ void function(ClosablePopover) {
         this.$target
         .off('mouseenter', this.onMouseEnter)
         .off('click', this.onClick);
-        App.ui.disposePopover(this.$target.popover);
+        disposePopover(this.$target.popover);
     };
 
     ClosablePopover.getThisOverrides = function() {
@@ -180,10 +184,10 @@ void function(ClosablePopover) {
         this.goto();
     };
 
-}(App.ClosablePopover.prototype);
+}(ClosablePopover.prototype);
 
-App.ButtonPopover = function(popoverOptions) {
-    $.inherit(App.ClosablePopover.prototype, this);
+function ButtonPopover(popoverOptions) {
+    inherit(ClosablePopover.prototype, this);
     this.create(popoverOptions);
 };
 
@@ -218,4 +222,42 @@ void function(ButtonPopover) {
         return ['message', 'mouseEnterTarget', 'mouseClickTarget', 'closeButtonEvent', 'clickPopoverButton'];
     };
 
-}(App.ButtonPopover.prototype);
+}(ButtonPopover.prototype);
+
+/**
+ * Instantiation of bootstrap popover which optionally supports underscore.js templates.
+ */
+function ContentPopover(k, v) {
+    var $popover = $(v);
+    $popover.popover({
+        container: 'body',
+        html : $(this).data('html'),
+        placement: $(this).data('placement'),
+        content: function() {
+            var template = $(this).data("contentTemplate");
+            if (template !== undefined) {
+                var options = $(this).data("contentTemplateOptions");
+                var processor = globalIoc.factory('Tpl', options);
+                var $content = processor.domTemplate(template);
+                initClient($content);
+                return $content;
+            } else {
+                return $(this).data('content');
+            }
+        },
+        title: function() {
+            return $(this).attr('title');
+        },
+    }).on("hidden.bs.popover", function(e) {
+        if ($popover.data("contentTemplate") !== undefined) {
+            var $tip = propGet($popover.data('bs.popover'), '$tip');
+            if ($tip !== undefined) {
+                var $content = $tip.find('.popover-content');
+                initClient($content, 'dispose');
+                $tip.find('.popover-content').empty();
+            }
+        }
+    });
+};
+
+export { ClosablePopover, ButtonPopover, ContentPopover };

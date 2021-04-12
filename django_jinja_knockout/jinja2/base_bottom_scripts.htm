@@ -16,15 +16,12 @@
     <script src="{{ static('djk/js/lib/spin.min.js') }}"></script>
     <script src="{{ static('djk/js/lib/ladda.min.js') }}"></script>
     <script src="{{ static('djk/js/plugins.js') }}"></script>
-    <script src="{{ static('djk/js/app.js') }}"></script>
-    <script src="{{ static('djk/js/ui.js') }}"></script>
-    <script src="{{ static('djk/js/modelform.js') }}"></script>
-    <script language="JavaScript">
-        App.conf = {{ page_context.get_client_conf()|to_json(True) }};
-        App.clientData = {{ page_context.get_client_data()|to_json(True) }};
+    <script type="application/json" class="app-conf">
+        {{ page_context.get_client_conf()|to_json(True) }}
     </script>
-    <script src="{{ static('djk/js/button-popover.js') }}"></script>
-    <script src="{{ static('djk/js/tooltips.js') }}"></script>
-    {% for script in page_context.get_custom_scripts() -%}
-    <script src="{{ static(script) }}"></script>
+    <script type="application/json" class="app-client-data">
+        {{ page_context.get_client_data()|to_json(True) }}
+    </script>
+    {% for script, atts in page_context.get_custom_scripts() -%}
+    <script src="{{ static(script) }}"{{ tpl.flatatt(atts) }}></script>
     {% endfor -%}

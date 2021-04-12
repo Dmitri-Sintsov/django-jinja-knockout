@@ -1,46 +1,8 @@
-'use strict';
-
 $ = (typeof $ === 'undefined') ? django.jQuery : $;
-
-$.isMapping = function(v) {
-    return typeof v === 'object' && v !== null;
-};
-
-$.isScalar = function(v) {
-    var nonScalarTypes = ['object', 'undefined', 'function'];
-    return (nonScalarTypes.indexOf(typeof(v)) === -1) || v === null;
-};
-
-$.intVal = function(s) {
-    var i = parseInt(s);
-    return isNaN(i) ? s : i;
-};
-
-$.capitalize = function(s) {
-    if (s.length === 0) {
-        return s;
-    } else {
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-};
-
-// note: $.camelCase() is built-in function.
-$.camelCaseToDash = function(value) {
-    return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
-};
 
 $.randomHash = function() {
     return Math.random().toString(36).slice(2);
 };
-
-$.inheritProps = function(parent, child) {
-    for (var prop in parent) {
-        if (parent.hasOwnProperty(prop) && !(prop in child)) {
-            child[prop] = parent[prop];
-        }
-    }
-};
-
 
 $.id = function(id) {
     // FF 54 generates warning when empty string is passed.
@@ -60,57 +22,6 @@ $.select = function(selector) {
         );
     }
     return $selector;
-};
-
-/**
- * OrderedDict element.
- */
-_.ODict = function(k, v) {
-    this.k = k;
-    this.v = v;
-};
-
-_.odict = function(k, v) {
-    return new _.ODict(k, v);
-};
-
-_.recursiveMap = function(value, fn) {
-    if (_.isArray(value)) {
-        return _.map(value, function(v) {
-            return _.recursiveMap(v, fn);
-        });
-    } else if (typeof value === 'object') {
-        return _.mapObject(value, function(v) {
-            return _.recursiveMap(v, fn);
-        });
-    } else {
-        return fn(value);
-    }
-};
-
-
-_.moveOptions = function(toObj, fromObj, keys) {
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var defVal = undefined;
-        if (typeof key === 'object') {
-            // tuple key / defVal.
-            var k;
-            for (k in key) {
-                if (key.hasOwnProperty(k)) {
-                    break;
-                }
-            }
-            defVal = key[k];
-            key = k;
-        }
-        if (typeof fromObj[key] !== 'undefined') {
-            toObj[key] = fromObj[key];
-            delete fromObj[key];
-        } else if (defVal !== undefined) {
-            toObj[key] = defVal;
-        }
-    }
 };
 
 $.htmlEncode = function(value) {
@@ -182,130 +93,6 @@ $.fn.getInstance = function(key, pop) {
 $.fn.popInstance = function(key) {
     var $this = $(this[0]);
     return $this.getInstance(key, true);
-};
-
-/**
- * Chain of multi-level inheritance.
- * An instance of $.SuperChain represents parent class context which may be nested.
- * Each context has following properties:
- *  .instance
- *     childInstance reference
- *  .proto
- *     prototype of ancestor class (parentPrototype)
- *  ._super
- *     null, when there is no more parent, instance of $.SuperChain when there are base parents.
- *     Deepest nested level of ._super._super is the context of top class prototype (context of base class).
- */
-$.SuperChain = function(childInstance, parentPrototype) {
-    /**
-     * childInstance._super represents current parent call context, which originally matches
-     * immediate parent but may be changed to deeper parents when calling nested _super.
-     *
-     * this.instance._superTop represents immediate parent call top context (immediate ancestor context).
-     */
-    this._super = null;
-    if (typeof childInstance._superTop !== 'undefined') {
-        var lastSuper = childInstance._superTop;
-        while (lastSuper._super !== null) {
-            lastSuper = lastSuper._super;
-        }
-        lastSuper._super = this;
-    } else {
-        childInstance._superTop = this;
-        childInstance._super = this;
-    }
-    this.instance = childInstance;
-    this.proto = parentPrototype;
-    /**
-     * Meta inheritance.
-     * Copies parent object prototype methods into the instance of pseudo-child.
-     */
-    for (var k in parentPrototype) {
-        if (parentPrototype.hasOwnProperty(k) && typeof childInstance[k] === 'undefined') {
-            childInstance[k] = parentPrototype[k];
-        }
-    }
-};
-
-/**
- * Implements nested chains of prototypes (multi-level inheritance).
- */
-void function(SuperChain) {
-
-    /**
-     * Find method / property among inherited prototypes from top (immediate ancestor) to bottom (base class).
-     */
-    SuperChain._find = function(name, hasOwnProto) {
-        // Chain of multi-level inheritance.
-        var hasProp = typeof this.proto[name] !== 'undefined';
-        var atTopAndOwnProto = this === this.instance._superTop && !hasOwnProto;
-        // Will return immediate _super property only when method is defined in instance own prototype.
-        if (hasProp && !atTopAndOwnProto) {
-            return this;
-        }
-        if (this._super !== null) {
-            return this._super._find(name, hasOwnProto);
-        } else {
-            if (hasProp && atTopAndOwnProto) {
-                // Fallback for _super methods which are not defined in instance own prototype.
-                return this;
-            } else {
-                throw 'No such property: ' + name;
-            }
-        }
-    };
-
-    SuperChain.find = function(name) {
-        // var instanceProto = this.instance.__proto__.
-        var instanceProto = Object.getPrototypeOf(this.instance);
-        return this._find(name, typeof instanceProto[name] !== 'undefined');
-    };
-
-    SuperChain.prop = function(name) {
-        var context = this.find(name);
-        return context.proto[name];
-    };
-
-    /**
-     * Usage: this._super._call('methodName', arg1, .. argN);
-     */
-    SuperChain._call = function() {
-        return this._apply(arguments[0], Array.prototype.slice.call(arguments, 1));
-    };
-
-    /**
-     * Usage: this._super._apply('methodName', argsArray);
-     */
-    SuperChain._apply = function(methodName, args) {
-        var context = this.find(methodName);
-        var method = context.proto[methodName];
-        if (typeof method !== 'function') {
-            throw 'No such method: ' + methodName;
-        }
-        var callerSuper = this.instance._super;
-        // Switch instance _super to context parent to allow nested _super._call() / _super._apply().
-        this.instance._super = context._super;
-        var result = method.apply(this.instance, args);
-        this.instance._super = callerSuper;
-        return result;
-    };
-
-}($.SuperChain.prototype);
-
-/**
- * Multi-level inheritance should be specified in descendant to ancestor order.
- *
- * For example to inherit from base class App.ClosablePopover, then from immediate ancestor class App.ButtonPopover,
- * use the following code:
- *
- *  App.CustomPopover = function(options) {
- *      $.inherit(App.ButtonPopover.prototype, this);
- *      $.inherit(App.ClosablePopover.prototype, this);
- *      // this.init(options);
- *  };
- */
-$.inherit = function(parentPrototype, childInstance) {
-    new $.SuperChain(childInstance, parentPrototype);
 };
 
 $.fn.findSelf = function(selector) {
@@ -803,54 +590,6 @@ $.fn.linkPreview = function(method) {
     }[method].call(this);
 
 };
-
-
-$.fn.highlightListUrl = function(location) {
-    if (location === undefined) {
-        var url = $(document.body).data('highlightUrl');
-        if (url !== undefined) {
-            location = $.parseUrl(url);
-        } else {
-            location = window.location;
-        }
-    }
-    var $anchors = this.findSelf('ul.auto-highlight > li > a');
-    var exactMatches = [];
-    var searchMatches = [];
-    var pathnameMatches = [];
-    $anchors.each(function() {
-        App.ui.highlightNav(this, false);
-    });
-    $anchors.each(function(k, a) {
-        var a_pathname = a.pathname;
-        if (a_pathname === location.pathname &&
-            a.port === location.port &&
-            a.hostname === location.hostname &&
-            // Ignore anchors which actually have no 'href' with pathname defined.
-            !a.getAttribute('href').match(/^#/)
-        ) {
-            if (a.search === location.search) {
-                if (a.hash === location.hash) {
-                    exactMatches.push(a);
-                } else {
-                    searchMatches.push(a);
-                }
-            } else {
-                pathnameMatches.push(a);
-            }
-        }
-    });
-    if (exactMatches.length > 0) {
-        for (var i = 0; i < exactMatches.length; i++) {
-            App.ui.highlightNav(exactMatches[i], true);
-        }
-    } else if (searchMatches.length === 1) {
-        App.ui.highlightNav(searchMatches[0], true);
-    } else if (pathnameMatches.length === 1) {
-        App.ui.highlightNav(pathnameMatches[0], true);
-    }
-};
-
 
 /**
  * Change properties of Bootstrap popover.

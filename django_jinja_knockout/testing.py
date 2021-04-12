@@ -47,8 +47,8 @@ Do not forget to update to latest ESR when running the tests.
 # Selenium commands with errors logging and automation commands support.
 class BaseSeleniumCommands(AutomationCommands):
 
-    DEFAULT_SLEEP_TIME = 2
-    DEFAULT_WAIT_TIME = 2
+    DEFAULT_SLEEP_TIME = 1
+    DEFAULT_WAIT_TIME = 1
     SAVE_COMMANDS_HTML = 0
     sync_commands_list = []
 

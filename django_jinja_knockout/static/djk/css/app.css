@@ -360,24 +360,24 @@ a[name="#"] {
 	width: 2em;
 }
 
-/* Support for App.ko.Grid highlightMode */
+/* Support for Grid highlightMode */
 table > tbody > tr.grid-new-row > td {
 	background-color: #F4F4F4; /* original: ffffff */
 }
 
-/* Support for App.ko.Grid highlightMode */
+/* Support for Grid highlightMode */
 table > tbody > tr.grid-new-row.success > td,
 table > tbody > tr.grid-new-row > td.success {
 	background-color: #EDFFE6; /* original: dff0d8 */
 }
 
-/* Support for App.ko.Grid highlightMode */
+/* Support for Grid highlightMode */
 table > tbody > tr.grid-new-row.info > td,
 table > tbody > tr.grid-new-row > td.info {
 	background-color: #E0F5FF; /* original: d9edf7 */
 }
 
-/* Support for App.ko.Grid highlightMode */
+/* Support for Grid highlightMode */
 table > tbody > tr.grid-new-row.warning > td,
 table > tbody > tr.grid-new-row > td.warning {
 	background-color: #FEF9E5; /* original: fcf8e3 */
