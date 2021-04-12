@@ -1,3 +1,4 @@
+import { isArray } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
 import { vmRouter, globalIoc } from './ioc.js';
 import { Trans } from './translate.js';
@@ -87,7 +88,7 @@ void function(Dialog) {
         delete this.dialogOptions.initClient;
         if (typeof this.dialogOptions.buttons === 'undefined') {
             this.dialogOptions.buttons = this.getButtons();
-            if (!_.isArray(this.dialogOptions.buttons)) {
+            if (!isArray(this.dialogOptions.buttons)) {
                 delete this.dialogOptions.buttons;
             }
         }

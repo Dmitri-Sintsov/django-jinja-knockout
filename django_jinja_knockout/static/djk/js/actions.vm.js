@@ -1,3 +1,4 @@
+import { each } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
 import { showAjaxError } from './errors.js';
@@ -40,7 +41,7 @@ void function(Actions) {
      */
     Actions.setActions = function(actions) {
         var self = this;
-        _.each(actions, function(actions, actionType) {
+        each(actions, function(actions, actionType) {
             for (var i = 0; i < actions.length; i++) {
                 actions[i].type = actionType;
                 self.actions[actions[i].name] = actions[i];

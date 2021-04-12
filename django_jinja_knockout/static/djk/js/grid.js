@@ -1,3 +1,4 @@
+import { each, mapObject, isArray, find, filter, size, indexOf } from './lib/underscore-esm.js';
 import { isScalar, intVal, inherit } from './dash.js';
 import { propGet, propCall } from './prop.js';
 import { Subscriber } from './ko.js';
@@ -321,7 +322,7 @@ void function(Grid) {
         this.meta.firstLoad.subscribe(this.onFirstLoad, this);
         this.meta.rowsPerPage.extend({ rateLimit: 500 });
         this.actionTypes = {};
-        _.each(this.uiActionTypes, function(type) {
+        each(this.uiActionTypes, function(type) {
             self.actionTypes[type] = ko.observableArray();
         })
         this.actions = this.iocGridActions({
@@ -405,7 +406,7 @@ void function(Grid) {
     }
 
     Grid.getHeaderCss = function() {
-        this.lastHeaderCss = _.mapObject(this.lastHeaderCss, function() {
+        this.lastHeaderCss = mapObject(this.lastHeaderCss, function() {
             return false;
         });
         var highlightModeRule = this.getHighlightModeRule();
@@ -439,7 +440,7 @@ void function(Grid) {
         var lookup = (typeof options.lookup === 'undefined') ? 'in' : options.lookup;
         if (typeof this.queryFilters[field] === 'undefined') {
             // New single scalar / single array value.
-            if (_.isArray(value)) {
+            if (isArray(value)) {
                 if (lookup !== 'in') {
                     throw new Error(sprintf(
                         "Array value '%s' requires lookup type 'in', given lookup type='%s'",
@@ -449,7 +450,7 @@ void function(Grid) {
                 }
             }
             if (lookup === 'in') {
-                if (_.isArray(value)) {
+                if (isArray(value)) {
                     this.queryFilters[field] = {'in': value};
                 } else {
                     this.queryFilters[field] = value;
@@ -470,7 +471,7 @@ void function(Grid) {
                     // Convert single value into array of values with 'in' lookup.
                     this.queryFilters[field] = {'in': [this.queryFilters[field]]};
                 }
-                if (_.find(this.queryFilters[field]['in'], function(val) { return val === value; }) === undefined) {
+                if (find(this.queryFilters[field]['in'], function(val) { return val === value; }) === undefined) {
                     // Multiple values: 'field__in' at server-side.
                     this.queryFilters[field]['in'].push(value);
                 }
@@ -493,9 +494,9 @@ void function(Grid) {
         var field = options.field;
         var hasValue = typeof options.value !== 'undefined';
         var hasLookup = typeof options.lookup !== 'undefined';
-        if (hasValue && _.isArray(options.value)) {
+        if (hasValue && isArray(options.value)) {
             var opt = $.extend({}, options);
-            _.each(options.value, function(val) {
+            each(options.value, function(val) {
                 opt.value = val;
                 self.removeQueryFilter(opt);
             });
@@ -522,7 +523,7 @@ void function(Grid) {
                     delete this.queryFilters[field];
                 }
             } else if (typeof this.queryFilters[field]['in'] !== 'undefined') {
-                this.queryFilters[field]['in'] = _.filter(this.queryFilters[field]['in'], function(val) {
+                this.queryFilters[field]['in'] = filter(this.queryFilters[field]['in'], function(val) {
                     return val !== options.value;
                 });
                 var len = this.queryFilters[field]['in'].length;
@@ -530,7 +531,7 @@ void function(Grid) {
                     this.queryFilters[field] = this.queryFilters[field]['in'].pop();
                 } else if (len === 0) {
                     delete this.queryFilters[field]['in'];
-                    if (_.size(this.queryFilters[field]) === 0) {
+                    if (size(this.queryFilters[field]) === 0) {
                         delete this.queryFilters[field];
                     }
                 }
@@ -545,7 +546,7 @@ void function(Grid) {
                 } else {
                     delete this.queryFilters[field][options.lookup];
                 }
-                if (_.size(this.queryFilters[field]) === 0) {
+                if (size(this.queryFilters[field]) === 0) {
                     delete this.queryFilters[field];
                 }
             }
@@ -555,7 +556,7 @@ void function(Grid) {
     // Supported multiple order_by at api level but not in 'ko_grid.htm' templates.
     Grid.setQueryOrderBy = function(orderBy) {
         var prefixedOrders = [];
-        _.each(orderBy, function(direction, fieldName) {
+        each(orderBy, function(direction, fieldName) {
             var prefixedOrder = '';
             // Django specific implementation.
             if (direction === '-') {
@@ -612,7 +613,7 @@ void function(Grid) {
                 sprintf("Supplied row has no '%s' key", this.meta.pkField)
             );
         }
-        this.selectedRowsPks = _.filter(this.selectedRowsPks, function(val) {
+        this.selectedRowsPks = filter(this.selectedRowsPks, function(val) {
             return val !== pkVal;
         });
         this.hasSelectAllRows(this.checkAllRowsSelected());
@@ -645,7 +646,7 @@ void function(Grid) {
 
     Grid.findMatchingPkRow = function(savedRow) {
         var koRow = null;
-        _.find(this.gridRows(), function(v) {
+        find(this.gridRows(), function(v) {
             if (v.matchesPk(savedRow)) {
                 koRow = v;
                 return true;
@@ -698,7 +699,7 @@ void function(Grid) {
     Grid.selectKoRowsByPkVals = function(pkVals) {
         var self = this;
         this.removeAllSelectedPkVals();
-        if (!_.isArray(pkVals)) {
+        if (!isArray(pkVals)) {
             pkVals = [pkVals];
         }
         var intPkVals = [];
@@ -709,9 +710,9 @@ void function(Grid) {
                 intPkVals.push(intPkVal);
             }
         }
-        _.each(this.gridRows(), function(v) {
+        each(this.gridRows(), function(v) {
             var val = v.getPkVal();
-            var isSelected = _.indexOf(intPkVals, val) !== -1;
+            var isSelected = indexOf(intPkVals, val) !== -1;
             if (isSelected) {
                 self.addSelectedPkVal(val);
             }
@@ -748,7 +749,7 @@ void function(Grid) {
     Grid.markUpdated = function(isUpdated) {
         var self = this;
         var koRow = null;
-        _.each(this.gridRows(), function(koRow) {
+        each(this.gridRows(), function(koRow) {
             koRow.isUpdated(isUpdated);
         });
     };
@@ -892,7 +893,7 @@ void function(Grid) {
         var self = this;
         var currPkVal = currKoRow.getPkVal();
         // Unselect all rows except current one.
-        _.each(this.gridRows(), function(koRow) {
+        each(this.gridRows(), function(koRow) {
             if (koRow.getPkVal() !== currPkVal) {
                 koRow.isSelectedRow(false);
             }
@@ -941,7 +942,7 @@ void function(Grid) {
     };
 
     Grid.deactivateAllSorting = function(exceptOrder) {
-        _.each(this.gridColumns(), function(gridColumn) {
+        each(this.gridColumns(), function(gridColumn) {
             gridColumn.deactivateAllSorting(exceptOrder);
         });
     };
@@ -966,7 +967,7 @@ void function(Grid) {
     // May be used in descendant of GridRow() to get metadata of current field.
     Grid.getKoGridColumn = function(fieldName) {
         var result = null;
-        _.find(this.gridColumns(), function(gridColumn) {
+        find(this.gridColumns(), function(gridColumn) {
             var columnOrder = gridColumn.getColumnOrder(fieldName);
             if (columnOrder !== null) {
                 result = {
@@ -982,7 +983,7 @@ void function(Grid) {
     Grid.setKoGridColumns = function(gridFields) {
         var koGridColumns = [];
         for (var i = 0; i < gridFields.length; i++) {
-            if (!_.isArray(gridFields[i])) {
+            if (!isArray(gridFields[i])) {
                 gridFields[i] = [gridFields[i]];
             }
             var gridColumnOrders = gridFields[i];
@@ -1092,7 +1093,7 @@ void function(Grid) {
     // Get filter model by field name.
     Grid.getKoFilter = function(fieldName) {
         var result = null;
-        _.find(this.gridFilters(), function(gridFilter) {
+        find(this.gridFilters(), function(gridFilter) {
             if (gridFilter.field === fieldName) {
                 result = gridFilter;
                 return true;
@@ -1131,7 +1132,7 @@ void function(Grid) {
     Grid.setFiltersChoices = function(filterChoices, listActionCallback ) {
         var self = this;
         var foundFilters = 0;
-        _.each(filterChoices, function(choices, filterName) {
+        each(filterChoices, function(choices, filterName) {
             var filter = self.getKoFilter(filterName);
             if (filter !== null) {
                 foundFilters++;
@@ -1255,13 +1256,13 @@ void function(Grid) {
         if (typeof data.filters !== 'undefined') {
             this.setupKoFilters(data.filters);
         }
-        if (typeof data.markSafe !== 'undefined' && _.isArray(data.markSafe)) {
+        if (typeof data.markSafe !== 'undefined' && isArray(data.markSafe)) {
             this.meta.markSafeFields = data.markSafe;
         }
     };
 
     Grid.isMarkSafeField = function(fieldName) {
-        return _.indexOf(this.meta.markSafeFields, fieldName) !== -1;
+        return indexOf(this.meta.markSafeFields, fieldName) !== -1;
     };
 
     Grid.vScrollPage = function() {
@@ -1282,7 +1283,7 @@ void function(Grid) {
         // Set grid rows viewmodels.
         var gridRows = [];
         this.totalRowsCount = data.entries.length;
-        _.each(data.entries, function(row, k) {
+        each(data.entries, function(row, k) {
             // Recall previously selected grid rows from this.hasSelectedPkVal().
             if (typeof row[self.meta.pkField] === 'undefined') {
                 throw new Error(
@@ -1332,11 +1333,11 @@ void function(Grid) {
 
     Grid.setKoActionTypes = function(metaActions) {
         var self = this;
-        _.each(this.uiActionTypes, function(type) {
+        each(this.uiActionTypes, function(type) {
             self.actionTypes[type]([]);
         });
         // Do not forget to include all possible types of actions into this list.
-        _.each(metaActions, function(actions, actionType) {
+        each(metaActions, function(actions, actionType) {
             // Built-in actions are invisible to Knockout.js UI and should not be added into self.actionTypes.
             if (actionType !== 'built_in') {
                 if (typeof self.actionTypes[actionType] === 'undefined') {

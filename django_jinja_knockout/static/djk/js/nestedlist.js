@@ -1,3 +1,4 @@
+import { isArray, size } from './lib/underscore-esm.js';
 import { ODict } from './dash.js';
 import { propGet, propByPath } from './prop.js';
 import { globalIoc } from './ioc.js';
@@ -21,7 +22,7 @@ void function(NestedList) {
         this.keyPath = [];
         if (typeof options.blockTags === 'undefined') {
             this.blockTags = blockTags.list;
-        } else if (_.isArray(options.blockTags)) {
+        } else if (isArray(options.blockTags)) {
             this.blockTags = options.blockTags;
         } else if (typeof options.blockTags === 'string') {
             this.blockTags = propByPath(options.blockTags);
@@ -93,7 +94,7 @@ void function(NestedList) {
             $element[fn](value);
             return;
         }
-        if (_.size(value) > 0) {
+        if (size(value) > 0) {
             var $ul = this.getListContainer(level);
             $.each(value, function(k, v) {
                 fn = curr_fn;

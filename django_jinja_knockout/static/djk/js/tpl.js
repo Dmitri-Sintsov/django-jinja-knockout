@@ -1,3 +1,4 @@
+import { template, each, sortBy } from './lib/underscore-esm.js';
 import { inheritProps } from './dash.js';
 import { propGet } from './prop.js';
 import { globalIoc } from './ioc.js';
@@ -17,7 +18,7 @@ function compileTemplate(tplId) {
         // Local context variables will be passed to 'self' object variable in template text,
         // to speed-up template expansion and to inject helper functions.
         // http://underscorejs.org/#template
-        _templates[tplId] = _.template(
+        _templates[tplId] = template(
             $(tpl).html(), {variable: 'self'}
         );
     }
@@ -49,7 +50,7 @@ void function(Tpl) {
 
     Tpl.init = function(options) {
         var defOptions = {}
-        _.each(this.parentProps, function(propName) {
+        each(this.parentProps, function(propName) {
             defOptions[propName] = {};
         });
         var _options = $.extend(defOptions, options);
@@ -89,7 +90,7 @@ void function(Tpl) {
     // Override for custom inheritance.
     Tpl.inheritProps = function(parent) {
         var child = this;
-        _.each(this.parentProps, function(propName) {
+        each(this.parentProps, function(propName) {
             inheritProps(parent[propName], child[propName]);
         });
     };
@@ -260,7 +261,7 @@ void function(Tpl) {
             $ancestors[k]._targetKey = k;
         });
         // Sort the list of parent templates from outer to inner nodes of the tree.
-        $ancestors = _.sortBy($ancestors, 'length');
+        $ancestors = sortBy($ancestors, 'length');
         // Expand innermost templates first, outermost last.
         for (var k = $ancestors.length - 1; k >= 0; k--) {
             var target = $targets.get($ancestors[k]._targetKey);

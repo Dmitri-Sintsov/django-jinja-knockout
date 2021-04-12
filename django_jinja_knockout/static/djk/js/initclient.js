@@ -1,3 +1,4 @@
+import { isArray } from './lib/underscore-esm.js';
 import { intVal } from './dash.js';
 import { propGet } from './prop.js';
 
@@ -10,7 +11,7 @@ void function(OrderedHooks) {
     OrderedHooks.init = function(hooks) {
         this.weightIndex = {};
         this.hooks = [];
-        if (_.isArray(hooks)) {
+        if (isArray(hooks)) {
             for (var i = 0; i < hooks.length; i++) {
                 this.add(hooks[i]);
             }

@@ -1,3 +1,4 @@
+import { isArray } from './lib/underscore-esm.js';
 import { isMapping } from './dash.js';
 
 /**
@@ -20,7 +21,7 @@ function propGetParent(self, propChain) {
     var prop = self;
     var propName;
     propChain = splitPropChain(propChain);
-    if (_.isArray(propChain)) {
+    if (isArray(propChain)) {
         propName = propChain[propChain.length - 1];
         for (var i = 0; i < propChain.length - 1; i++) {
             if (typeof prop[propChain[i]] !== 'object') {
@@ -41,7 +42,7 @@ function propGetParent(self, propChain) {
 function propSet(self, propChain, val) {
     var prop = (self === null)? window : self;
     propChain = splitPropChain(propChain);
-    if (_.isArray(propChain)) {
+    if (isArray(propChain)) {
         for (var i = 0; i < propChain.length - 1; i++) {
             var propName = propChain[i];
             if (typeof prop === 'undefined') {

@@ -1,3 +1,5 @@
+import { isArray, map, mapObject } from './lib/underscore-esm.js';
+
 function isMapping(v) {
     return typeof v === 'object' && v !== null;
 };
@@ -46,12 +48,12 @@ function odict(k, v) {
 };
 
 function recursiveMap(value, fn) {
-    if (_.isArray(value)) {
-        return _.map(value, function(v) {
+    if (isArray(value)) {
+        return map(value, function(v) {
             return recursiveMap(v, fn);
         });
     } else if (typeof value === 'object') {
-        return _.mapObject(value, function(v) {
+        return mapObject(value, function(v) {
             return recursiveMap(v, fn);
         });
     } else {

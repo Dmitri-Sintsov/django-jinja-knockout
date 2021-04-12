@@ -1,3 +1,4 @@
+import { map, mapObject, find, each } from '../lib/underscore-esm.js';
 import { odict } from '../dash.js';
 import { blockTags } from '../ui.js';
 import { renderNestedList, renderValue } from '../nestedlist.js';
@@ -118,7 +119,7 @@ void function(GridColumn) {
     GridColumn.blockTags = blockTags.list;
 
     GridColumn.getColumnCss = function() {
-        this.lastColumnCss = _.mapObject(this.lastColumnCss, function() {
+        this.lastColumnCss = mapObject(this.lastColumnCss, function() {
             return false;
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
@@ -132,7 +133,7 @@ void function(GridColumn) {
 
     GridColumn.getNames = function() {
         var names = [];
-        _.find(this.columnOrders(), function(columnOrder) {
+        find(this.columnOrders(), function(columnOrder) {
             names.push(columnOrder.name);
         });
         return names.join(' / ');
@@ -140,7 +141,7 @@ void function(GridColumn) {
 
     GridColumn.getOrders_i18n = function() {
         var i18n = {};
-        _.find(this.columnOrders(), function(columnOrder) {
+        find(this.columnOrders(), function(columnOrder) {
             i18n[columnOrder.field] = columnOrder.name;
         });
         return i18n;
@@ -148,7 +149,7 @@ void function(GridColumn) {
 
     GridColumn.getColumnOrder = function(fieldName) {
         var result = null;
-        _.find(this.columnOrders(), function(columnOrder) {
+        find(this.columnOrders(), function(columnOrder) {
             if (columnOrder.field === fieldName) {
                 result = columnOrder;
                 return true;
@@ -158,7 +159,7 @@ void function(GridColumn) {
     };
 
     GridColumn.deactivateAllSorting = function(exceptOrder) {
-        _.each(this.columnOrders(), function(columnOrder) {
+        each(this.columnOrders(), function(columnOrder) {
             if (!columnOrder.is(exceptOrder)) {
                 columnOrder.order(null);
             }
@@ -168,7 +169,7 @@ void function(GridColumn) {
     GridColumn.getCompoundCells = function(gridRow) {
         var self = this;
         var cells = [];
-        _.map(this.columnOrders(), function(columnOrder) {
+        map(this.columnOrders(), function(columnOrder) {
             var $container = columnOrder.getCellContainer();
             columnOrder.renderRowValue(
                 $container[0], ko.utils.unwrapObservable(

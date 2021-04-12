@@ -1,3 +1,4 @@
+import { isEqual, each, mapObject, size } from '../lib/underscore-esm.js';
 import { recursiveMap } from '../dash.js';
 import { propGet } from '../prop.js';
 import { initClient } from '../initclient.js';
@@ -34,7 +35,7 @@ void function(GridRow) {
     GridRow.is = function(gridRow) {
         // .strFields has to be compared because when foreignkey field has modified values of .get_str_fields()
         // such grids should be highlighted as changed.
-        return _.isEqual(this.values, gridRow.values) && _.isEqual(this.strFields, gridRow.strFields);
+        return isEqual(this.values, gridRow.values) && isEqual(this.strFields, gridRow.strFields);
     };
 
     /**
@@ -131,13 +132,13 @@ void function(GridRow) {
     GridRow.initDisplayValues = function() {
         var self = this;
         this.displayValues = {};
-        // When there are virtual display values, assume empty values, otherwise _.mapObject() will miss these.
-        _.each(this.strFields, function(displayValue, field) {
+        // When there are virtual display values, assume empty values, otherwise mapObject() will miss these.
+        each(this.strFields, function(displayValue, field) {
             if (typeof self.values[field] === 'undefined') {
                 self.values[field] = '';
             }
         });
-        this.displayValues = _.mapObject(this.values, this.wrapDisplayValue.bind(this));
+        this.displayValues = mapObject(this.values, this.wrapDisplayValue.bind(this));
     };
 
     GridRow.getSelectionCss = function() {
@@ -153,7 +154,7 @@ void function(GridRow) {
     };
 
     GridRow.getRowCss = function() {
-        this.lastRowCss = _.mapObject(this.lastRowCss, function() {
+        this.lastRowCss = mapObject(this.lastRowCss, function() {
             return false;
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
@@ -274,13 +275,13 @@ void function(GridRow) {
             this.dispose();
         }
         this.isUpdated(savedRow.isUpdated);
-        _.each(savedRow.values, function(value, field) {
+        each(savedRow.values, function(value, field) {
             self.values[field] = value;
         });
-        _.each(savedRow.strFields, function(value, field) {
+        each(savedRow.strFields, function(value, field) {
             self.strFields[field] = value;
         });
-        _.each(savedRow.displayValues, function(value, field) {
+        each(savedRow.displayValues, function(value, field) {
             var val = ko.utils.unwrapObservable(value);
             if (ko.isObservable(self.displayValues[field])) {
                 self.displayValues[field](val);
@@ -304,7 +305,7 @@ void function(GridRow) {
         if (this.ownerGrid.meta.strDesc && this.str !== null) {
             return [this.str];
         }
-        if (_.size(this.strFields) > 0) {
+        if (size(this.strFields) > 0) {
             return this.strFields;
         } else if (this.str !== null) {
             return [this.str];
@@ -315,7 +316,7 @@ void function(GridRow) {
 
     GridRow.renderDesc = function(renderOptions) {
         var descParts = this.getDescParts();
-        if (_.size(descParts) === 0) {
+        if (size(descParts) === 0) {
             return '';
         }
         var $content = $('<span>');

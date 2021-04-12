@@ -1,3 +1,4 @@
+import { isArray, isEqual, filter } from './lib/underscore-esm.js';
 import { newClassByPath } from './prop.js';
 import { Trans } from './translate.js';
 import { Dialog } from './dialog.js';
@@ -39,7 +40,7 @@ void function(ViewModelRouter) {
     ViewModelRouter.addHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] === 'undefined') {
             this.handlers[viewName] = handler;
-        } else if (_.isArray(this.handlers[viewName])) {
+        } else if (isArray(this.handlers[viewName])) {
             this.handlers[viewName].push(handler);
         } else {
             // Convert single handler to the array of handlers.
@@ -69,10 +70,10 @@ void function(ViewModelRouter) {
 
     ViewModelRouter.removeHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] !== 'undefined') {
-            if (_.isArray(this.handlers[viewName])) {
+            if (isArray(this.handlers[viewName])) {
                 var k = -1;
                 for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined '; i++) {
-                    if (_.isEqual(this.handlers[viewName][i], handler)) {
+                    if (isEqual(this.handlers[viewName][i], handler)) {
                         k = i;
                         break;
                     }
@@ -84,7 +85,7 @@ void function(ViewModelRouter) {
                     delete this.handlers[viewName];
                 }
             } else {
-                if (_.isEqual(this.handlers[viewName], handler)) {
+                if (isEqual(this.handlers[viewName], handler)) {
                     delete this.handlers[viewName];
                 };
             }
@@ -130,7 +131,7 @@ void function(ViewModelRouter) {
      */
     ViewModelRouter.factory = function(viewName, viewModel, bindContext) {
         if (typeof this.handlers[viewName] === 'undefined') {
-            if (_.isArray(viewModel)) {
+            if (isArray(viewModel)) {
                 // Class args [].
                 return newClassByPath(viewName, viewModel);
             } else {
@@ -149,7 +150,7 @@ void function(ViewModelRouter) {
     ViewModelRouter.exec = function(viewName, viewModel, bindContext) {
         if (typeof this.handlers[viewName] !== 'undefined') {
             var handler = this.handlers[viewName];
-            if (_.isArray(handler)) {
+            if (isArray(handler)) {
                 for (var i = 0; typeof handler[i] !== 'undefined'; i++) {
                     this.applyHandler(viewModel, handler[i], bindContext);
                 }
@@ -209,7 +210,7 @@ void function(ViewModelRouter) {
     };
 
     ViewModelRouter.filterExecuted = function(filterFn) {
-        this.executedViewModels = _.filter(
+        this.executedViewModels = filter(
             this.executedViewModels, filterFn
         );
     };
@@ -219,7 +220,7 @@ void function(ViewModelRouter) {
             options = {};
         }
         var bindContext = (typeof options.context ==='undefined') ? undefined : options.context;
-        if (!_.isArray(response)) {
+        if (!isArray(response)) {
             response = [response];
         }
         options = $.extend({before: {}, after: {}}, options);

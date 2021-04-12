@@ -1,3 +1,4 @@
+import { size } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
 
 function ListRangeFilter(options) {
@@ -31,7 +32,7 @@ void function(ListRangeFilter) {
             if (fieldLookup in filterKeyValue[this.fieldName]) {
                 delete filterKeyValue[this.fieldName][fieldLookup];
             }
-            if (_.size(filterKeyValue[this.fieldName]) === 0) {
+            if (size(filterKeyValue[this.fieldName]) === 0) {
                 delete filterKeyValue[this.fieldName];
             }
             this.urlSearchParams.set(this.filterKey, JSON.stringify(filterKeyValue));

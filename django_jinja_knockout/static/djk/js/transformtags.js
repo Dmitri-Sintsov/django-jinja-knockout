@@ -1,3 +1,5 @@
+import { keys, sortBy } from './lib/underscore-esm.js';
+
 /**
  * Tags converter which is executed during initClient() content ready and for each expanded underscore.js template.
  * Converts <card-success id="panel1" class="my-panel"> to <div id="panel1" class="card text-white bg-success my-panel">
@@ -59,14 +61,14 @@ void function(TransformTags) {
     TransformTags.applyTags = function(selector) {
         var self = this;
         var $selector = $(selector);
-        var tagNames = _.keys(this.tags)
+        var tagNames = keys(this.tags)
         var tagsSelector = tagNames.join(',');
         var nodes = [];
         // Transform the nested tags from the innermost to the outermost order.
         $selector.find(tagsSelector).each(function() {
             nodes.push({node: this, depth: -$(this).parents().length});
         });
-        nodes = _.sortBy(nodes, 'depth');
+        nodes = sortBy(nodes, 'depth');
         for (var i = 0; i < nodes.length; i++) {
             this.convertTag(nodes[i].node);
         }
