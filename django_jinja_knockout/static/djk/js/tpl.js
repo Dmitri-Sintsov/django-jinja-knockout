@@ -23,7 +23,7 @@ function compileTemplate(tplId) {
         );
     }
     return _templates[tplId];
-};
+}
 
 /**
  * underscore.js templates default processor (default class binding),
@@ -41,10 +41,10 @@ function compileTemplate(tplId) {
  * todo: Add .flatatt() to easily manipulate DOM attrs in templates.
  */
 function Tpl(options) {
-    this.init(options);
-};
 
-void function(Tpl) {
+    this.init(options);
+
+} void function(Tpl) {
 
     Tpl.parentProps = ['data', 'templates'];
 
@@ -285,7 +285,7 @@ function bindTemplates($selector, tpl) {
         }
         tpl.loadTemplates($(this));
     });
-};
+}
 
 function getTemplateSubstitution($element, templateName) {
     if ($element) {
@@ -294,6 +294,6 @@ function getTemplateSubstitution($element, templateName) {
     } else {
         return templateName;
     }
-};
+}
 
 export { Tpl, bindTemplates, getTemplateSubstitution };

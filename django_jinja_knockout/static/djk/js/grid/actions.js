@@ -7,16 +7,16 @@ import { Dialog } from '../dialog.js';
 import { ModelFormDialog, ActionTemplateDialog } from '../modelform.js';
 
 /**
- * Actions performed for particular grid (row) instance.
+ * ViewModel actions performed for particular grid (row) instance.
  * Mostly are row-click AJAX actions, although not limited to.
  * .owner is the instance of Grid.
  */
 function GridActions(options) {
+
     inherit(Actions.prototype, this);
     this.init(options);
-};
 
-void function(GridActions) {
+} void function(GridActions) {
 
     GridActions.actionKwarg = 'action';
     GridActions.viewModelName = 'grid_page';

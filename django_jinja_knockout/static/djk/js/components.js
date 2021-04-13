@@ -11,10 +11,10 @@ import { globalIoc } from './ioc.js';
  *     nested sparse components;
  */
 function ComponentManager(options) {
-    this.init(options);
-};
 
-void function(ComponentManager) {
+    this.init(options);
+
+} void function(ComponentManager) {
 
     ComponentManager.init = function(options) {
         this.elem = options.elem;
@@ -69,10 +69,10 @@ void function(ComponentManager) {
  *         otherwise, the class is instantiated when DOM is ready;
  */
 function Components() {
-    this.init();
-};
 
-void function(Components) {
+    this.init();
+
+} void function(Components) {
 
     Components.init = function() {
         this.list = [];

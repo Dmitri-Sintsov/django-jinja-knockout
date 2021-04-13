@@ -1,14 +1,12 @@
 import { inherit } from './dash.js';
-import { splitPropChain, propGetParent, propSet, propGet, propByPath } from './prop.js';
 import { AppClientData } from './conf.js';
-import { Trans, localize } from './translate.js';
-import { initClient, initClientHooks, initClientMark, initClientApply } from './initclient.js';
+import { localize } from './translate.js';
+import { initClient, initClientHooks } from './initclient.js';
 import { ComponentManager, components } from './components.js';
-import { transformTags, disposePopover, BaseDatetimeWidget } from './ui.js';
+import { transformTags, disposePopover, UiDatetimeWidget } from './ui.js';
 import { bindTemplates } from './tpl.js';
 import { vmRouter } from './ioc.js';
 import { ContentPopover } from './button-popover.js';
-import { Dialog } from './dialog.js';
 import { SelectMultipleAutoSize } from './inputs.js';
 import { initTabPane } from './tabpane.js';
 import { useTooltips } from './tooltips.js';
@@ -31,11 +29,11 @@ if (typeof console.dir !== 'function') {
 
 
 function DatetimeWidget($selector) {
-    inherit(BaseDatetimeWidget.prototype, this);
-    this.create($selector);
-};
 
-void function(DatetimeWidget) {
+    inherit(UiDatetimeWidget.prototype, this);
+    this.create($selector);
+
+} void function(DatetimeWidget) {
 
     // Override moment.js Django-incompatible locales formatting used by bootstrap datetimepicker.
     // Locale 'ru' moment.js is compatible to Django thus does not require override, for example.
@@ -129,21 +127,6 @@ initClientHooks.add({
     weight: 9999,
 });
 
-function createInstances(readyInstances) {
-    for (var instancePath in readyInstances) {
-        if (readyInstances.hasOwnProperty(instancePath)) {
-            var classDef = readyInstances[instancePath];
-            for (var classPath in classDef) {
-                if (classDef.hasOwnProperty(classPath)) {
-                    var args = classDef[classPath];
-                    var instance = vmRouter.factory(classPath, args);
-                    propSet(null, instancePath, instance);
-                }
-            }
-        }
-    }
-};
-
 /**
  * Warning: does not parse the querystring, so the same script still could be included via the different querystring.
  */
@@ -159,18 +142,12 @@ function assertUniqueScripts() {
             scripts[src] = true;
         }
     });
-};
-
-// Late initialization allows to patch / replace classes in user scripts.
-var readyInstances = {
-    'queryString': {'QueryString' : []},
-};
+}
 
 var documentReadyHooks = [function() {
     assertUniqueScripts();
     var m = moment();
     Cookies.set('local_tz', parseInt(-m.utcOffset() / 60));
-    createInstances(readyInstances);
     initClient(document);
     initTabPane();
     $(window).on('hashchange', function() {

@@ -3,17 +3,15 @@ import { isScalar, intVal, inherit } from './dash.js';
 import { propGet, propCall } from './prop.js';
 import { Subscriber } from './ko.js';
 import { Trans } from './translate.js';
-import { Tpl, getTemplateSubstitution } from './tpl.js';
+import { getTemplateSubstitution } from './tpl.js';
 import { globalIoc } from './ioc.js';
-import { blockTags, ui } from './ui.js';
-import { Actions } from './actions.vm.js';
-import { ModelFormDialog, ActionTemplateDialog } from './modelform.js';
+import { ui } from './ui.js';
 
 import { GridColumnOrder, GridColumn } from './grid/column.js';
 import { GridFilterChoice, GridFilter, FkGridFilter, GridRangeFilter } from './grid/filters.js';
 import { GridRow } from './grid/row.js';
-import { GridActions } from './grid/actions.vm.js';
-import { GridDialog, ActionsMenuDialog } from './grid/dialogs.js';
+import { GridActions } from './grid/actions.js';
+import { ActionsMenuDialog } from './grid/dialogs.js';
 
 ko.bindingHandlers.grid_row = {
     update: function(element, valueAccessor, allBindings, koGridRow, bindingContext) {
@@ -71,10 +69,10 @@ ko.bindingHandlers.grid_cell = {
  * Pagination link ko model.
  */
 function GridPage(options) {
-    this.init(options);
-};
 
-void function(GridPage) {
+    this.init(options);
+
+} void function(GridPage) {
 
     GridPage.init = function(options) {
         this.ownerGrid = options.ownerGrid;
@@ -103,10 +101,10 @@ void function(GridPage) {
  */
 
 function Grid(options) {
-    this.init(options);
-};
 
-void function(Grid) {
+    this.init(options);
+
+} void function(Grid) {
 
     Grid.queryKeys = {
         filter: 'list_filter',
@@ -1027,7 +1025,7 @@ void function(Grid) {
     Grid.expandFilterContents = function(elements, koFilter) {
         var self = koFilter.ownerGrid;
         if (self.options.expandFilterContents) {
-            var tpl = new Tpl();
+            var tpl = globalIoc.factory('Tpl');
             return tpl.expandContents($(elements));
         }
     };

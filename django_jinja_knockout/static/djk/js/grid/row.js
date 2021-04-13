@@ -9,10 +9,10 @@ import { Trans } from '../translate.js';
  * Single row of grid (ko viewmodel).
  */
 function GridRow(options) {
-    this.init(options);
-};
 
-void function(GridRow) {
+    this.init(options);
+
+} void function(GridRow) {
 
     // By default does not use initClient() for performance reasons.
     GridRow.useInitClient = false;

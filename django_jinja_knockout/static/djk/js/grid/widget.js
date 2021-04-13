@@ -10,10 +10,10 @@ import { GridDialog } from './dialogs.js';
  * Similar to django.admin FilteredSelectMultiple / ForeignKeyRawIdWidget but is Knockout.js driven.
  */
 function FkGridWidget(options) {
-    this.init(options);
-};
 
-void function(FkGridWidget) {
+    this.init(options);
+
+} void function(FkGridWidget) {
 
     FkGridWidget.getInputAttrs = function(inputRow, fieldIdIndex) {
         var attrs = $.extend({}, this.attrs);

@@ -10,10 +10,10 @@ import { FilterDialog, GridDialog } from './dialogs.js';
  */
 
 function GridFilterChoice(options) {
-    this.init(options);
-};
 
-void function (GridFilterChoice) {
+    this.init(options);
+
+} void function (GridFilterChoice) {
 
     GridFilterChoice.updateQueryFilter = function(newValue) {
         // undefined value is used to reset filter because null can be valid choice value.
@@ -64,10 +64,10 @@ void function (GridFilterChoice) {
  */
 
 function AbstractGridFilter(options) {
-    this.init(options);
-};
 
-void function(AbstractGridFilter) {
+    this.init(options);
+
+} void function(AbstractGridFilter) {
 
     AbstractGridFilter.templateName = '';
 
@@ -164,11 +164,11 @@ void function(AbstractGridFilter) {
  */
 
 function GridFilter(options) {
+
     inherit(AbstractGridFilter.prototype, this);
     this.init(options);
-};
 
-void function(GridFilter) {
+} void function(GridFilter) {
 
     GridFilter.templateName = 'ko_grid_filter_choices';
 
@@ -306,11 +306,11 @@ void function(GridFilter) {
  */
 
 function FkGridFilter(options) {
+
     inherit(AbstractGridFilter.prototype, this);
     this.init(options);
-};
 
-void function(FkGridFilter) {
+} void function(FkGridFilter) {
 
     FkGridFilter.templateName = 'ko_grid_filter_popup';
 
@@ -406,11 +406,11 @@ void function(FkGridFilter) {
  */
 
 function GridRangeFilter(options) {
+
     inherit(AbstractGridFilter.prototype, this);
     this.init(options);
-};
 
-void function(GridRangeFilter) {
+} void function(GridRangeFilter) {
 
     GridRangeFilter.templateName = 'ko_grid_filter_popup';
 

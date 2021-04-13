@@ -1,6 +1,6 @@
 import { inherit, moveOptions } from './dash.js';
 import { Trans } from './translate.js';
-import { Actions } from './actions.vm.js';
+import { Actions } from './actions.js';
 import { Dialog } from './dialog.js';
 import { AjaxForm } from './ajaxform.js';
 

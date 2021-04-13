@@ -2,7 +2,8 @@ import { each } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
 import { showAjaxError } from './errors.js';
-import { Url, vmRouter } from './app.js';
+import { Url } from './url.js';
+import { vmRouter } from './ioc.js';
 
 /**
  * Client-side AJAX request / response viewmodel handler for server-side ActionsView.

@@ -8,10 +8,10 @@ import { renderNestedList, renderValue } from '../nestedlist.js';
  */
 
 function GridColumnOrder(options) {
-    this.init(options);
-};
 
-void function(GridColumnOrder) {
+    this.init(options);
+
+} void function(GridColumnOrder) {
 
     GridColumnOrder.init = function(options) {
         this.$switch = null;
@@ -102,11 +102,10 @@ void function(GridColumnOrder) {
  */
 
 function GridColumn(options) {
+
     this.init(options);
-};
 
-
-void function(GridColumn) {
+} void function(GridColumn) {
 
     GridColumn.init = function(options) {
         this.ownerGrid = options.ownerGrid;

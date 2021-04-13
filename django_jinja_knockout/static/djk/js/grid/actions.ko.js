@@ -1,14 +1,14 @@
 import { inherit } from '../dash.js';
 
 /**
- * Visual representation of grid action. Should be used to display / trigger button / iconui actions.
- * Do not confuse with Actions / GridActions which is the abstraction layer for AJAX handling of viewmodels.
+ * Knockout.js models for visual representation of grid action. Used to display / trigger button / iconui actions in templates.
+ * Do not confuse with Actions / GridActions which is the abstraction layer for AJAX handling of viewmodel HTTP response.
  */
 function KoGridAction(options) {
-    this.init(options);
-};
 
-void function(KoGridAction) {
+    this.init(options);
+
+} void function(KoGridAction) {
 
     KoGridAction.init = function(options) {
         this.grid = options.grid;
@@ -66,11 +66,11 @@ void function(KoGridAction) {
 
 
 function GridRowsPerPageAction(options) {
+
     inherit(KoGridAction.prototype, this);
     this.init(options);
-};
 
-void function(GridRowsPerPageAction) {
+} void function(GridRowsPerPageAction) {
 
     GridRowsPerPageAction.init = function(options) {
         this._super._call('init', options);

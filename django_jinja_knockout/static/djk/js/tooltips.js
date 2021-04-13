@@ -34,10 +34,10 @@ function useTooltips() {
  * Information popover (useful to show ajax form errors and more).
  */
 function GenericPopover(options) {
-    this.create(options);
-};
 
-void function(GenericPopover) {
+    this.create(options);
+
+} void function(GenericPopover) {
 
     GenericPopover.create = function(options) {
         this.destroyEventName = 'input';
@@ -98,11 +98,11 @@ void function(GenericPopover) {
 
 
 function FieldPopover(options) {
+
     inherit(GenericPopover.prototype, this);
     this.create(options);
-};
 
-void function(FieldPopover) {
+} void function(FieldPopover) {
 
     FieldPopover.setupEvents = function() {
         var self = this;
@@ -160,11 +160,11 @@ void function(FieldPopover) {
 
 
 function FieldTooltip(options) {
+
     inherit(GenericPopover.prototype, this);
     this.create(options);
-};
 
-void function(FieldTooltip) {
+} void function(FieldTooltip) {
 
     FieldTooltip.setupEvents = function() {
         var self = this;
@@ -212,10 +212,10 @@ void function(FieldTooltip) {
 
 
 function AlertError(options) {
-    this.init(options);
-};
 
-void function(AlertError) {
+    this.init(options);
+
+} void function(AlertError) {
 
     AlertError.init = function(options) {
         var self = this;

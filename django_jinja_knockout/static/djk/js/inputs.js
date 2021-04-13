@@ -7,7 +7,7 @@ function disableInput(input) {
     if ($input.attr('type') === 'radio') {
         $input.trigger('refresh');
     }
-};
+}
 
 function enableInput(input) {
     var $input = $(input);
@@ -23,19 +23,19 @@ function enableInput(input) {
     if ($input.attr('type') === 'radio') {
         $input.trigger('refresh');
     }
-};
+}
 
 function disableInputs(parent) {
     $(parent).find(':input:visible').each(function(k, v) {
         disableInput(v);
     });
-};
+}
 
 function enableInputs(parent) {
     $(parent).find(':input:visible').each(function(k, v) {
         enableInput(v);
     });
-};
+}
 
 function clearInputs(parent) {
     var $parent = $(parent);
@@ -47,7 +47,7 @@ function clearInputs(parent) {
     .autogrow('update')
     .collapsibleSubmit('update');
     $parent.find('.select2-container').remove();
-};
+}
 
 function SelectMultipleAutoSize($selector) {
     $selector.findSelf('select[multiple]').each(function(k, v) {
@@ -58,7 +58,7 @@ function SelectMultipleAutoSize($selector) {
             $select.prop('size', length);
         }
     });
-};
+}
 
 function Ladder($selector) {
     var self = this;
@@ -68,7 +68,7 @@ function Ladder($selector) {
         l.start();
         self.laddas.push(l);
     });
-};
+}
 
 Ladder.prototype.remove = function() {
     $.each(this.laddas, function(k, v) {

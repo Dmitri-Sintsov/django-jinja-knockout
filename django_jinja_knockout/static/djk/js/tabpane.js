@@ -1,5 +1,6 @@
-import { globalIoc } from './ioc.js';
 import { propGet } from './prop.js';
+import { initClient } from './initclient.js';
+import { globalIoc } from './ioc.js';
 import { AppPost } from './url.js';
 
 /**

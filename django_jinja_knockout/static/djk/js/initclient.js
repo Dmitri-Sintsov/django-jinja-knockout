@@ -3,10 +3,10 @@ import { intVal } from './dash.js';
 import { propGet } from './prop.js';
 
 function OrderedHooks(hooks) {
-    this.init(hooks);
-};
 
-void function(OrderedHooks) {
+    this.init(hooks);
+
+} void function(OrderedHooks) {
 
     OrderedHooks.init = function(hooks) {
         this.weightIndex = {};
@@ -107,11 +107,11 @@ function initClient(selector, method, reverse) {
     } else {
         initClientHooks.exec($selector, method);
     }
-};
+}
 
 function initClientMark(html) {
     return '<span class="init-client-begin"></span>' + html + '<span class="init-client-end"></span>';
-};
+}
 
 function initClientApply(selector, method) {
     var $selector = $(selector);
@@ -137,6 +137,6 @@ function initClientApply(selector, method) {
         $selector.findSelf('.' + markerBegin).remove();
         $selector.find('.' + markerEnd).remove();
     }
-};
+}
 
 export { initClientHooks, initClient, initClientMark, initClientApply };

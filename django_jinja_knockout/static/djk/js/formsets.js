@@ -5,6 +5,7 @@ import { Dialog } from './dialog.js';
 import { getCardTitle } from './ui.js';
 
 function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
+
     var self = this;
     var formArray = [];
     /*
@@ -50,9 +51,8 @@ function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
         });
         self.deleteFormHandler($elements);
     }
-};
 
-void function(Formset) {
+} void function(Formset) {
 
     Formset.getTotalFormsCount = function() {
         return this.serversideFormsCount + this.forms().length;
@@ -166,7 +166,7 @@ function useFormsets(ko) {
             });
         }
     });
-};
+}
 
 initClientHooks.add(function($selector) {
     // Do not display delete input for required forms.

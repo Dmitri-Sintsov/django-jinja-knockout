@@ -9,7 +9,7 @@ function DataUrl($element) {
     } else {
         return Url(route, $element.data('routeKwargs'));
     }
-};
+}
 
 function Url(route, kwargs) {
     if (typeof AppConf(['url', route]) === 'undefined') {
@@ -22,7 +22,7 @@ function Url(route, kwargs) {
     } else {
         return sprintf(AppConf(['url', route]), kwargs);
     }
-};
+}
 
 function AppGet(route, data, options) {
     if (typeof options === 'undefined') {
@@ -40,7 +40,7 @@ function AppGet(route, data, options) {
         },
         'json'
     ).fail(showAjaxError);
-};
+}
 
 function AppPost(route, data, options) {
     if (typeof data === 'undefined') {
@@ -64,6 +64,6 @@ function AppPost(route, data, options) {
         },
         'json'
     ).fail(showAjaxError);
-};
+}
 
 export { Url, DataUrl, AppGet, AppPost };

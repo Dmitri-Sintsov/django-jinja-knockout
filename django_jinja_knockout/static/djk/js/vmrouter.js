@@ -2,19 +2,18 @@ import { isArray, isEqual, filter } from './lib/underscore-esm.js';
 import { newClassByPath } from './prop.js';
 import { Trans } from './translate.js';
 import { Dialog } from './dialog.js';
-import { AjaxForms } from './ajaxform.js';
 
 /**
  * https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
  */
 function ViewModelRouter(viewHandlers) {
+
     this.handlers = [];
     this.executedViewModels = [];
     this.savedResponses = {};
     this.add(viewHandlers);
-};
 
-void function(ViewModelRouter) {
+} void function(ViewModelRouter) {
 
     /**
      * Require viewModel handlers with specified viewModel names to exists.

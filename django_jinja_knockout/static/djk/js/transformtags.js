@@ -9,10 +9,10 @@ import { keys, sortBy } from './lib/underscore-esm.js';
  *   Using custom tags in templates is encouraged and produces no extra flickering.
  */
 function TransformTags() {
-    this.init();
-};
 
-void function(TransformTags) {
+    this.init();
+
+} void function(TransformTags) {
 
     TransformTags.toTag = function(elem, tag, cssClasses) {
         return $(elem).replaceWithTag(tag).addClass(cssClasses);

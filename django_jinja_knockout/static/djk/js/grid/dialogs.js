@@ -14,11 +14,11 @@ import { Grid } from '../grid.js';
  * Base class for dialog-based grid filters.
  */
 function FilterDialog(options) {
+
     inherit(Dialog.prototype, this);
     this.create(options);
-};
 
-void function(FilterDialog) {
+} void function(FilterDialog) {
 
     FilterDialog.propCall = propCall;
 
@@ -119,12 +119,12 @@ documentReadyHooks.push(function() {
 */
 
 function GridDialog(options) {
+
     inherit(FilterDialog.prototype, this);
     inherit(Dialog.prototype, this);
     this.create(options);
-};
 
-void function(GridDialog) {
+} void function(GridDialog) {
 
     GridDialog.template = 'ko_grid_body';
 
@@ -270,11 +270,11 @@ void function(GridDialog) {
  * .owner is the instance of .Grid.
  */
 function ActionsMenuDialog(options) {
+
     this.inherit();
     this.create(options);
-};
 
-void function(ActionsMenuDialog) {
+} void function(ActionsMenuDialog) {
 
     ActionsMenuDialog.templateId = 'ko_grid_row_click_menu';
 

@@ -135,13 +135,13 @@ function useKo(ko) {
 }
 
 
-function Subscriber() {}
-
 /**
  * Switches Knockout.js subscription to bound instance methods.
  * https://django-jinja-knockout.readthedocs.io/en/latest/quickstart.html#knockout-js-subscriber
  */
-void function(Subscriber) {
+function Subscriber() {
+
+} void function(Subscriber) {
 
     Subscriber.getPropSubscription = function(propChain, methodChain) {
         propChain = splitPropChain(propChain);

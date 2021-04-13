@@ -2,17 +2,17 @@ import { isArray, map, mapObject } from './lib/underscore-esm.js';
 
 function isMapping(v) {
     return typeof v === 'object' && v !== null;
-};
+}
 
 function isScalar(v) {
     var nonScalarTypes = ['object', 'undefined', 'function'];
     return (nonScalarTypes.indexOf(typeof(v)) === -1) || v === null;
-};
+}
 
 function intVal(s) {
     var i = parseInt(s);
     return isNaN(i) ? s : i;
-};
+}
 
 function capitalize(s) {
     if (s.length === 0) {
@@ -20,12 +20,12 @@ function capitalize(s) {
     } else {
         return s.charAt(0).toUpperCase() + s.slice(1);
     }
-};
+}
 
 // note: jQuery.camelCase() is a built-in function.
 function camelCaseToDash(value) {
     return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
-};
+}
 
 function inheritProps(parent, child) {
     for (var prop in parent) {
@@ -33,7 +33,7 @@ function inheritProps(parent, child) {
             child[prop] = parent[prop];
         }
     }
-};
+}
 
 /**
  * OrderedDict element.
@@ -41,11 +41,11 @@ function inheritProps(parent, child) {
 function ODict(k, v) {
     this.k = k;
     this.v = v;
-};
+}
 
 function odict(k, v) {
     return new ODict(k, v);
-};
+}
 
 function recursiveMap(value, fn) {
     if (isArray(value)) {
@@ -59,7 +59,7 @@ function recursiveMap(value, fn) {
     } else {
         return fn(value);
     }
-};
+}
 
 function moveOptions(toObj, fromObj, keys) {
     for (var i = 0; i < keys.length; i++) {
@@ -83,10 +83,11 @@ function moveOptions(toObj, fromObj, keys) {
             toObj[key] = defVal;
         }
     }
-};
+}
 
 /**
- * Chain of multi-level inheritance.
+ * Implements nested chains of prototypes (multi-level inheritance).
+ *
  * An instance of SuperChain represents parent class context which may be nested.
  * Each context has following properties:
  *  .instance
@@ -98,6 +99,7 @@ function moveOptions(toObj, fromObj, keys) {
  *     Deepest nested level of ._super._super is the context of top class prototype (context of base class).
  */
 function SuperChain(childInstance, parentPrototype) {
+
     /**
      * childInstance._super represents current parent call context, which originally matches
      * immediate parent but may be changed to deeper parents when calling nested _super.
@@ -126,12 +128,8 @@ function SuperChain(childInstance, parentPrototype) {
             childInstance[k] = parentPrototype[k];
         }
     }
-};
 
-/**
- * Implements nested chains of prototypes (multi-level inheritance).
- */
-void function(SuperChain) {
+} void function(SuperChain) {
 
     /**
      * Find method / property among inherited prototypes from top (immediate ancestor) to bottom (base class).
@@ -199,6 +197,7 @@ void function(SuperChain) {
  * For example to inherit from base class ClosablePopover, then from immediate ancestor class ButtonPopover,
  * use the following code:
  *
+ *  import { inherit } from './dash.js';
  *  import { ClosablePopover, ButtonPopover } from './button-popover.js';
  *  CustomPopover = function(options) {
  *      inherit(ButtonPopover.prototype, this);
@@ -208,7 +207,7 @@ void function(SuperChain) {
  */
 function inherit(parentPrototype, childInstance) {
     new SuperChain(childInstance, parentPrototype);
-};
+}
 
 export {
     isMapping, isScalar, intVal, capitalize, camelCaseToDash, inheritProps, ODict, odict, recursiveMap, moveOptions,

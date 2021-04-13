@@ -1,3 +1,4 @@
+import { Trans } from  './translate.js';
 import { initClient, initClientApply, initClientMark } from './initclient.js';
 import { ViewModelRouter } from './vmrouter.js';
 import { NestedList } from './nestedlist.js';
@@ -6,7 +7,8 @@ import { TabList } from './tabpane.js';
 import { Dialog } from './dialog.js';
 
 import { ListRangeFilter } from './filters.js';
-import { EditForm } from './modelform.js';
+import { AjaxForms } from './ajaxform.js';
+import { EditForm, EditInline } from './modelform.js';
 
 import { Grid } from './grid.js';
 import { GridDialog } from './grid/dialogs.js';
@@ -38,6 +40,9 @@ var globalIoc = new ViewModelRouter({
     },
     'EditForm': function(options) {
         return new EditForm(options);
+    },
+    'EditInline': function(options) {
+        return new EditInline(options);
     },
     'Grid': function(options) {
         return new Grid(options);

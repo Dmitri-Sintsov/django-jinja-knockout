@@ -11,7 +11,7 @@ function splitPropChain(propChain) {
     } else {
         return propChain;
     }
-};
+}
 
 /**
  * A supplementary function to propGet() which gets the immediate parent of property instead of it's value.
@@ -37,7 +37,7 @@ function propGetParent(self, propChain) {
         childName: propName,
     };
     return parent;
-};
+}
 
 function propSet(self, propChain, val) {
     var prop = (self === null)? window : self;
@@ -65,7 +65,7 @@ function propSet(self, propChain, val) {
     }
     prop[propName] = val;
     return true;
-};
+}
 
 /**
  * Usage:
@@ -98,7 +98,7 @@ function propGet(self, propChain, defVal, get_context) {
         }
     }
     return defVal;
-};
+}
 
 /**
  * Usage:
@@ -118,11 +118,11 @@ function propCall() {
     } else {
         return propVal;
     }
-};
+}
 
 function propByPath(propPath) {
     return propGet(window, propPath);
-};
+}
 
 function objByPath(propPath, typ) {
     if (typ === undefined) {
@@ -135,7 +135,7 @@ function objByPath(propPath, typ) {
         );
     }
     return obj;
-};
+}
 
 // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
 function newClassByPath(classPath, classPathArgs) {
@@ -149,6 +149,6 @@ function newClassByPath(classPath, classPathArgs) {
     var self = Object.create(cls.prototype);
     cls.apply(self, classPathArgs);
     return self
-};
+}
 
 export { splitPropChain, propGetParent, propSet, propGet, propCall, propByPath, objByPath, newClassByPath };

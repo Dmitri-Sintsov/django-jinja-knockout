@@ -5,10 +5,10 @@ import { globalIoc } from './ioc.js';
 import { disposePopover } from './ui.js';
 
 function ClosablePopover(target, popoverOptions) {
-    this.create(target, popoverOptions);
-};
 
-void function(ClosablePopover) {
+    this.create(target, popoverOptions);
+
+} void function(ClosablePopover) {
 
     ClosablePopover.dataKey = 'ClosablePopover';
 
@@ -187,11 +187,11 @@ void function(ClosablePopover) {
 }(ClosablePopover.prototype);
 
 function ButtonPopover(popoverOptions) {
+
     inherit(ClosablePopover.prototype, this);
     this.create(popoverOptions);
-};
 
-void function(ButtonPopover) {
+} void function(ButtonPopover) {
 
     ButtonPopover.dataKey = 'ButtonPopover';
 
@@ -258,6 +258,6 @@ function ContentPopover(k, v) {
             }
         }
     });
-};
+}
 
 export { ClosablePopover, ButtonPopover, ContentPopover };

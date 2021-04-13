@@ -2,10 +2,10 @@ import { size } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
 
 function ListRangeFilter(options) {
-    this.init(options);
-};
 
-void function(ListRangeFilter) {
+    this.init(options);
+
+} void function(ListRangeFilter) {
 
     ListRangeFilter.init = function(options) {
         this.filterKey = propGet(options, 'filterKey' ,'list_filter');
