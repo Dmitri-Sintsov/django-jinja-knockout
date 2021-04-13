@@ -8,11 +8,11 @@ import { AjaxForm } from './ajaxform.js';
  * Unused by Grid.
  */
 function ModelFormActions(options) {
+
     inherit(Actions.prototype, this);
     this.init(options);
-};
 
-void function(ModelFormActions) {
+} void function(ModelFormActions) {
 
     /**
      * The same client-side AJAX form is used both to add new objects and to update existing ones.
@@ -47,11 +47,11 @@ void function(ModelFormActions) {
  * May be used standalone, also is used by Grid actions (eg. 'click' type ones).
  */
 function ModelFormDialog(options) {
+
     inherit(Dialog.prototype, this);
     this.create(options);
-};
 
-void function(ModelFormDialog) {
+} void function(ModelFormDialog) {
 
     ModelFormDialog.initClient = true;
     ModelFormDialog.actionCssClass = 'iconui-save';
@@ -139,11 +139,11 @@ void function(ModelFormDialog) {
     };
  */
 function ActionTemplateDialog(options) {
+
     this.inherit();
     this.create(options);
-};
 
-void function(ActionTemplateDialog) {
+} void function(ActionTemplateDialog) {
 
     ActionTemplateDialog.initClient = true;
     ActionTemplateDialog.type = BootstrapDialog.TYPE_PRIMARY;
@@ -210,10 +210,10 @@ void function(ActionTemplateDialog) {
  * Standalone component for ModelFormActionsView. Unused by Grid.
  */
 function EditForm(options) {
-    this.init(options);
-};
 
-void function(EditForm) {
+    this.init(options);
+
+} void function(EditForm) {
 
     EditForm.getInitialAction = function() {
         return (this.pkVal === null) ? 'create_form' : 'edit_form';
@@ -235,7 +235,7 @@ void function(EditForm) {
                 this.routeKwargs[this.pkUrlKwarg] = this.pkVal;
             }
         } else {
-            if (typeof this.pkUrlKwarg !== null) {
+            if (this.pkUrlKwarg !== null) {
                 this.pkVal = this.routeKwargs[this.pkUrlKwarg];
                 if (this.pkVal === 0 || this.pkVal === '0') {
                     this.pkVal = null;
@@ -293,11 +293,11 @@ void function(EditForm) {
  * Standalone component for ModelFormActionsView. Unused by Grid.
  */
 function EditInline(options) {
+
     inherit(EditForm.prototype, this);
     this.init(options);
-};
 
-void function(EditInline) {
+} void function(EditInline) {
 
     EditInline.getInitialAction = function() {
         return (this.pkVal === null) ? 'create_inline' : 'edit_inline';

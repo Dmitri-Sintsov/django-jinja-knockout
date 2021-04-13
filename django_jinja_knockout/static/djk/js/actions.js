@@ -8,10 +8,10 @@ import { Url, vmRouter } from './app.js';
  * Client-side AJAX request / response viewmodel handler for server-side ActionsView.
  */
 function Actions(options) {
-    this.init(options);
-};
 
-void function(Actions) {
+    this.init(options);
+
+} void function(Actions) {
 
     Actions.actionKwarg = 'action';
     Actions.viewModelName = 'action';

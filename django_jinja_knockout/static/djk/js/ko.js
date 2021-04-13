@@ -1,5 +1,6 @@
 import { isMapping, capitalize } from './dash.js';
 import { splitPropChain, propGet, propGetParent } from './prop.js';
+import { initClient } from './initclient.js';
 
 function replaceInto(element, value) {
     var prepend = $(element).find('.preserve-prepend').detach();
@@ -15,7 +16,7 @@ function replaceInto(element, value) {
     if (append.length > 0) {
         append.appendTo(immediateChildren);
     }
-};
+}
 
 function useKo(ko) {
     // https://github.com/knockout/knockout/issues/1019
@@ -134,7 +135,7 @@ function useKo(ko) {
 }
 
 
-function Subscriber() {};
+function Subscriber() {}
 
 /**
  * Switches Knockout.js subscription to bound instance methods.
@@ -155,7 +156,7 @@ void function(Subscriber) {
                     isMapping(parent.obj) &&
                     ko.es5.isTracked(parent.obj, parent.childName)
             ) {
-                var prop = ko.getObservable(parent.obj, parent.childName);
+                prop = ko.getObservable(parent.obj, parent.childName);
             } else {
                 throw new Error(
                     sprintf("%s is not observable", JSON.stringify(propChain))

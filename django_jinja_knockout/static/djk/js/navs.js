@@ -44,6 +44,6 @@ function highlightListUrl($selector, location) {
     } else if (pathnameMatches.length === 1) {
         highlightNav(pathnameMatches[0], true);
     }
-};
+}
 
 export { highlightListUrl };

@@ -54,11 +54,12 @@ void function(FkGridWidget) {
         this.formsetIndex = ko.observable(0);
 
         this.inputRows = ko.observableArray();
+        var initialFkRows;
         if (typeof options.initialFkRows !== 'undefined') {
-            var initialFkRows = options.initialFkRows;
+            initialFkRows = options.initialFkRows;
             delete options.initialFkRows;
         } else {
-            var initialFkRows = [];
+            initialFkRows = [];
         }
         this.gridDialog = new GridDialog({
             owner: this,

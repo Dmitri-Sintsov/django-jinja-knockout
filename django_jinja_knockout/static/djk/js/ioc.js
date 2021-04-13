@@ -1,3 +1,4 @@
+import { initClient, initClientApply, initClientMark } from './initclient.js';
 import { ViewModelRouter } from './vmrouter.js';
 import { NestedList } from './nestedlist.js';
 import { Tpl } from './tpl.js';

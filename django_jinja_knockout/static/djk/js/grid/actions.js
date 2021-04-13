@@ -2,7 +2,7 @@ import { inherit } from '../dash.js';
 import { Trans } from '../translate.js';
 import { Actions } from '../actions.js';
 import { renderNestedList } from '../nestedlist.js';
-import { ui } from '../ui.js';
+import { blockTags, ui } from '../ui.js';
 import { Dialog } from '../dialog.js';
 import { ModelFormDialog, ActionTemplateDialog } from '../modelform.js';
 

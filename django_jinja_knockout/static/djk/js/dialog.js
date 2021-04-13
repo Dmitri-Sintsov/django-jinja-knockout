@@ -10,10 +10,10 @@ import { initClient } from  './initclient.js';
  * BootstrapDialog wrapper.
  */
 function Dialog(options) {
-    this.create(options);
-};
 
-void function(Dialog) {
+    this.create(options);
+
+} void function(Dialog) {
 
     Dialog.type = BootstrapDialog.TYPE_WARNING;
     Dialog.size = null;

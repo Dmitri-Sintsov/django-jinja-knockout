@@ -182,20 +182,20 @@ void function(GridDialog) {
     };
 
     GridDialog.iocGrid = function(options) {
-        var options = $.extend(
+        var gridOptions = $.extend(
             this.filterOptions,
             options
         );
-        if (typeof options.classPath === 'string') {
-            var gridClass = globalIoc.factory(options.classPath);
-            return new gridClass(options);
+        if (typeof gridOptions.classPath === 'string') {
+            var gridClass = globalIoc.factory(gridOptions.classPath);
+            return new gridClass(gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'function') {
-            return this.dialogOptions.iocGrid(options);
+            return this.dialogOptions.iocGrid(gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'string') {
             var gridClass = globalIoc.factory(this.dialogOptions.iocGrid);
-            return new gridClass(options);
+            return new gridClass(gridOptions);
         } else {
-            return new Grid(options);
+            return new Grid(gridOptions);
         }
     };
 

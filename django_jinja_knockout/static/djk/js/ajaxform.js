@@ -1,3 +1,4 @@
+import { showAjaxError } from './errors.js';
 import { Trans } from './translate.js';
 import { disableInput, enableInput, disableInputs, enableInputs, clearInputs, Ladder } from './inputs.js';
 import { AppConf } from './conf.js';
@@ -6,10 +7,10 @@ import { DataUrl } from './url.js';
 import { vmRouter } from './ioc.js';
 
 function AjaxButton($selector) {
-    this.create($selector);
-};
 
-void function(AjaxButton) {
+    this.create($selector);
+
+} void function(AjaxButton) {
 
     AjaxButton.create = function($selector) {
         this.$ajaxButtons = $selector.findSelf('a[data-route], a[data-url], ' +
@@ -60,10 +61,10 @@ void function(AjaxButton) {
  * Do not define form[action], otherwise the form may be submitted twice.
  */
 function AjaxForms($selector) {
-    this.create($selector);
-};
 
-void function(AjaxForms) {
+    this.create($selector);
+
+} void function(AjaxForms) {
 
     AjaxForms.formSelector = 'form.ajax-form';
     AjaxForms.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
@@ -133,10 +134,10 @@ void function(AjaxForms) {
  * Single instance of submitted ajax form.
  */
 function AjaxForm($form) {
-    this.init($form);
-};
 
-void function(AjaxForm) {
+    this.init($form);
+
+} void function(AjaxForm) {
 
     AjaxForm.init = function($form) {
         this.$form = $form;
@@ -150,7 +151,7 @@ void function(AjaxForm) {
                 for (var j = 0; j < files.length; j++) {
                     var file = files[j];
                     if (file.size > AppConf('fileMaxSize')) {
-                        var message = Trans('Too big file size=%s, max_size=%s', file.size, maxSize)
+                        var message = Trans('Too big file size=%s, max_size=%s', file.size, maxSize);
                         if (typeof $formFiles[i].id === 'string') {
                             vmRouter.showView({
                                 'view': 'form_error',

@@ -1,10 +1,12 @@
+import { globalIoc } from './ioc.js';
 import { propGet } from './prop.js';
 import { AppPost } from './url.js';
 
 /**
  * Bootstrap tabs management class.
  */
-function _TabPane(hash) {
+function TabPaneManager(hash) {
+
     if (hash === undefined) {
         hash = window.location.hash;
     }
@@ -17,26 +19,25 @@ function _TabPane(hash) {
             this.tab = this.anchor.parents('li[role="presentation"]:first');
         }
     }
-};
 
-void function(_TabPane) {
+} void function(TabPaneManager) {
 
-    _TabPane.exists = function() {
+    TabPaneManager.exists = function() {
         return propGet(this, 'anchor.length', 0) > 0;
     };
 
-    _TabPane.isActive = function() {
+    TabPaneManager.isActive = function() {
         return this.exists() && this.tab.hasClass('active');
     };
 
-    _TabPane.setLocation = function() {
+    TabPaneManager.setLocation = function() {
         if (this.exists()) {
             window.location.hash = '#' + this.cleanHash;
         }
         return this;
     };
 
-    _TabPane.loadTemplate = function() {
+    TabPaneManager.loadTemplate = function() {
         if (this.exists()) {
             var tabTemplate = this.tab.data('tabTemplate');
             if (tabTemplate !== undefined) {
@@ -50,7 +51,7 @@ void function(_TabPane) {
         }
     };
 
-    _TabPane.switchTo = function() {
+    TabPaneManager.switchTo = function() {
         if (this.exists()) {
             this.loadTemplate();
             this.anchor.tab('show');
@@ -65,7 +66,7 @@ void function(_TabPane) {
         return this;
     };
 
-    _TabPane.hide = function() {
+    TabPaneManager.hide = function() {
         if (this.exists()) {
             this.tab.addClass('hidden');
             this.pane.addClass('hidden');
@@ -73,7 +74,7 @@ void function(_TabPane) {
         return this;
     };
 
-    _TabPane.show = function() {
+    TabPaneManager.show = function() {
         if (this.exists()) {
             this.pane.removeClass('hidden');
             this.tab.removeClass('hidden');
@@ -81,7 +82,7 @@ void function(_TabPane) {
         return this;
     };
 
-    _TabPane.highlight = function(bgClass, permanent) {
+    TabPaneManager.highlight = function(bgClass, permanent) {
         if (this.exists()) {
             if (typeof bgClass !== 'string') {
                 bgClass = 'bg-success';
@@ -94,7 +95,7 @@ void function(_TabPane) {
         return this;
     };
 
-    _TabPane.load = function(route, data, options) {
+    TabPaneManager.load = function(route, data, options) {
         if (this.exists()) {
             data.clean_hash = this.cleanHash;
             AppPost(route, data, options);
@@ -102,15 +103,15 @@ void function(_TabPane) {
         return this;
     };
 
-}(_TabPane.prototype);
+}(TabPaneManager.prototype);
 
 function TabPane(hash) {
-    return new _TabPane(hash);
-};
+    return new TabPaneManager(hash);
+}
 
-function TabList(options) {};
+function TabList(options) {
 
-void function(TabList) {
+} void function(TabList) {
 
     TabList.onClickTab = function() {
         var href = $(this).attr('href');
@@ -147,6 +148,6 @@ function initTabPane() {
     $(window).on('hashchange', function() {
         TabPane().switchTo();
     });
-};
+}
 
 export { TabPane, TabList, initTabPane };

@@ -1,6 +1,7 @@
 function disableInput(input) {
     var $input = $(input);
-    for (var i = 0; typeof $input.data('formInputOriginalDisabled' + i) !== 'undefined'; i++);
+    var i;
+    for (i = 0; typeof $input.data('formInputOriginalDisabled' + i) !== 'undefined'; i++);
     $input.data('formInputOriginalDisabled' + i, $input.prop('disabled'));
     $input.prop('disabled', true);
     if ($input.attr('type') === 'radio') {
@@ -10,7 +11,8 @@ function disableInput(input) {
 
 function enableInput(input) {
     var $input = $(input);
-    for (var i = 0; typeof $input.data('formInputOriginalDisabled' + i) !== 'undefined'; i++);
+    var i;
+    for (i = 0; typeof $input.data('formInputOriginalDisabled' + i) !== 'undefined'; i++);
     if (i === 0) {
         // Skipped already enabled input.
         return;

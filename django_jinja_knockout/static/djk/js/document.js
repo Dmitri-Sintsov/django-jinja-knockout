@@ -2,7 +2,6 @@ import { inherit } from './dash.js';
 import { splitPropChain, propGetParent, propSet, propGet, propByPath } from './prop.js';
 import { AppClientData } from './conf.js';
 import { Trans, localize } from './translate.js';
-import { showAjaxError } from './errors.js';
 import { initClient, initClientHooks, initClientMark, initClientApply } from './initclient.js';
 import { ComponentManager, components } from './components.js';
 import { transformTags, disposePopover, BaseDatetimeWidget } from './ui.js';
