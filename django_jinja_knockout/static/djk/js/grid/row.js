@@ -293,7 +293,7 @@ function GridRow(options) {
         if (this.useInitClient) {
             // Init updated row.
             this.prepare();
-        };
+        }
         // https://stackoverflow.com/questions/14149551/subscribe-to-observable-array-for-new-or-removed-entry-only
         this.ownerGrid.propCall('ownerCtrl.onChildGridRowsChange', [{
             status: 'modified',

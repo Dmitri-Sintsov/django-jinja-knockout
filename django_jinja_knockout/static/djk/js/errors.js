@@ -28,7 +28,7 @@ function showAjaxError(jqXHR, exception) {
         'title': Trans('Request error'),
         'message': message
     });
-};
+}
 
 /**
  * Do not log googlebot errors, because it has flawed interpreter which constantly produces errors, unavailable in
@@ -40,7 +40,7 @@ var jsErrorFilter = function(data) {
 
 function setErrorFilter(fn) {
     jsErrorFilter = fn;
-};
+}
 
 var previousErrorHandler = window.onerror;
 window.onerror = function(messageOrEvent, source, lineno, colno, error) {

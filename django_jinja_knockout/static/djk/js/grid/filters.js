@@ -271,7 +271,7 @@ function GridFilter(options) {
             if (filterChoice.value === value) {
                 return filterChoice;
             }
-        };
+        }
         return undefined;
     };
 

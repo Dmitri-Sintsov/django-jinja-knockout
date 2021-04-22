@@ -8,10 +8,10 @@ import { blockTags } from './ui.js';
  * Render nested Javascript structures as nested DOM nodes.
  */
 function NestedList(options) {
-    this.init(options);
-};
 
-void function(NestedList) {
+    this.init(options);
+
+} void function(NestedList) {
 
     NestedList.init = function(options) {
         if (typeof options !== 'object') {

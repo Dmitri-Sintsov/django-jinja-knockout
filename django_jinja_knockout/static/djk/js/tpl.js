@@ -267,7 +267,7 @@ function Tpl(options) {
             var target = $targets.get($ancestors[k]._targetKey);
             var ancestorTpl = this.inheritProcessor(target);
             ancestorTpl.prependTemplates(target, $ancestors[k]);
-        };
+        }
         $targets.each(function() {
             $(this).contents().unwrap();
         });

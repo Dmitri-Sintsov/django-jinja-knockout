@@ -71,7 +71,7 @@ function ViewModelRouter(viewHandlers) {
         if (typeof this.handlers[viewName] !== 'undefined') {
             if (isArray(this.handlers[viewName])) {
                 var k = -1;
-                for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined '; i++) {
+                for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined'; i++) {
                     if (isEqual(this.handlers[viewName][i], handler)) {
                         k = i;
                         break;
@@ -86,7 +86,7 @@ function ViewModelRouter(viewHandlers) {
             } else {
                 if (isEqual(this.handlers[viewName], handler)) {
                     delete this.handlers[viewName];
-                };
+                }
             }
         }
         return this;

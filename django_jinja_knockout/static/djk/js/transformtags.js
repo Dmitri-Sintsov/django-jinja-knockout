@@ -54,7 +54,7 @@ function TransformTags() {
         var tagName = $(elem).prop('tagName');
         if (tagName !== undefined) {
             var $result = this.tags[tagName].call(this, elem, tagName);
-        };
+        }
         return $result;
     };
 

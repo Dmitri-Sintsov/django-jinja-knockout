@@ -189,7 +189,7 @@ $.fn.optionalInput = function(method) {
 
     function updateInput(ev) {
         $(ev.target).optionalInput('update');
-    };
+    }
 
     return {
         'init' : function() {
