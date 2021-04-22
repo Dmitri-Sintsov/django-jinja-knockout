@@ -22,3 +22,4 @@
     {% for script, atts in page_context.get_custom_scripts() -%}
     <script src="{{ static(script) }}"{{ tpl.flatatt(atts) }}></script>
     {% endfor -%}
+    <script src="{{ static('djk/js/ie11.js') }}"></script>
