@@ -37,7 +37,7 @@ class PageContext:
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
-        default_scripts = getattr(settings, 'DEFAULT_SCRIPTS', ['djk/js/app.js',])
+        default_scripts = getattr(settings, 'DJK_DEFAULT_SCRIPTS', ['djk/js/app.js',])
         # Ordered list of custom scripts urls injected to client-side Javascript.
         # Keys are script names, values are the list of tag attributes.
         self.set_custom_scripts(*default_scripts)
