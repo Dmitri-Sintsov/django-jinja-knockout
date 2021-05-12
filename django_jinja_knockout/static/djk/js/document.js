@@ -161,18 +161,25 @@ var documentReadyHooks = [function() {
 }];
 
 function startApp($selector) {
-    if ($selector === undefined) {
-        $selector = $(document);
-    }
-    $(document).ready(function() {
-        for (var i = 0; i < documentReadyHooks.length; i++) {
-            documentReadyHooks[i]();
+    if (!startApp.isInitialized) {
+        startApp.isInitialized = true;
+        if ($selector === undefined) {
+            $selector = $(document);
         }
-    })
-    .on('formset:added', function(event, $row, formsetName) {
-        initClient($row);
-    });
+        $(document).ready(function() {
+            for (var i = 0; i < documentReadyHooks.length; i++) {
+                documentReadyHooks[i]();
+            }
+        })
+        .on('formset:added', function(event, $row, formsetName) {
+            initClient($row);
+        });
+    } else {
+        console.log('startApp() should run only once.');
+    }
 }
+
+startApp.isInitialized = false;
 
 // Required to display form errors:
 useTooltips();
