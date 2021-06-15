@@ -1,4 +1,6 @@
+import { sprintf } from './lib/sprintf-esm.js';
 import { isArray } from './lib/underscore-esm.js';
+
 import { isMapping } from './dash.js';
 
 /**

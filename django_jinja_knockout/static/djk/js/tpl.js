@@ -1,4 +1,6 @@
+import { sprintf } from './lib/sprintf-esm.js';
 import { template, each, sortBy } from './lib/underscore-esm.js';
+
 import { inheritProps } from './dash.js';
 import { propGet } from './prop.js';
 import { globalIoc } from './ioc.js';

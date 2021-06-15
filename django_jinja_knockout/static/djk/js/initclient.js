@@ -1,3 +1,4 @@
+import { sprintf } from './lib/sprintf-esm.js';
 import { isArray } from './lib/underscore-esm.js';
 import { intVal } from './dash.js';
 import { propGet } from './prop.js';

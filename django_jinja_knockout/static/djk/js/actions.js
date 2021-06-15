@@ -1,4 +1,6 @@
+import { sprintf } from './lib/sprintf-esm.js';
 import { each } from './lib/underscore-esm.js';
+
 import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
 import { showAjaxError } from './errors.js';

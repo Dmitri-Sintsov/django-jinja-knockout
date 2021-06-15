@@ -1,3 +1,5 @@
+import { sprintf } from './lib/sprintf-esm.js';
+
 import { globalIoc } from './ioc.js';
 
 /**

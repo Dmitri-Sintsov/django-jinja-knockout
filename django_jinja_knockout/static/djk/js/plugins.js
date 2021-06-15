@@ -17,9 +17,7 @@ $.id = function(id) {
 $.select = function(selector) {
     var $selector = $(selector);
     if ($selector.length === 0) {
-        console.log(
-            sprintf('selector is not found: "%s"', selector)
-        );
+        console.log('selector is not found: "' + selector + '"');
     }
     return $selector;
 };

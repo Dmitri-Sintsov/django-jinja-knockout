@@ -1,4 +1,6 @@
+import { sprintf } from './lib/sprintf-esm.js';
 import { each, mapObject, isArray, find, filter, size, indexOf } from './lib/underscore-esm.js';
+
 import { isScalar, intVal, inherit } from './dash.js';
 import { propGet, propCall } from './prop.js';
 import { Subscriber } from './ko.js';

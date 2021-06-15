@@ -1,3 +1,5 @@
+import { sprintf } from './lib/sprintf-esm.js';
+
 import { inherit } from './dash.js';
 import { AppClientData } from './conf.js';
 import { localize } from './translate.js';

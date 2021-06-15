@@ -1,3 +1,5 @@
+import { sprintf } from './lib/sprintf-esm.js';
+
 var Trans;
 
 if (typeof django === 'object' && typeof django.gettext === 'function') {
@@ -13,8 +15,6 @@ if (typeof django === 'object' && typeof django.gettext === 'function') {
 } else if (typeof sprintf === 'function') {
     Trans = sprintf;
     console.log('@note: No Django gettext is loaded, no localization, falling back to sprintf.js');
-} else {
-    throw new Error("@error: Neither Django gettext nor sprintf.js are available.");
 }
 
 function localize($selector) {

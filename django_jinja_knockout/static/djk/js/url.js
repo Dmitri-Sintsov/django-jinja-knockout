@@ -1,3 +1,5 @@
+import { sprintf } from './lib/sprintf-esm.js';
+
 import { showAjaxError } from './errors.js';
 import { AppConf } from './conf.js';
 import { vmRouter } from './ioc.js';

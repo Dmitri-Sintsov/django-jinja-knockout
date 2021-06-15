@@ -1,3 +1,5 @@
+import { sprintf } from './lib/sprintf-esm.js';
+
 import { isMapping, capitalize } from './dash.js';
 import { splitPropChain, propGet, propGetParent } from './prop.js';
 import { initClient } from './initclient.js';
