@@ -1,4 +1,5 @@
 import { sprintf } from './lib/sprintf-esm.js';
+import Cookies from './lib/js.cookie.mjs';
 
 import { inherit } from './dash.js';
 import { AppClientData } from './conf.js';
