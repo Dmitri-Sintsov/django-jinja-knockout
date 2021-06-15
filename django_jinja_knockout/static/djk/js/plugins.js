@@ -679,6 +679,7 @@ $.fn.scroller = function(method) {
     var directions = ['top', 'bottom'];
 
     function Scroller(scroller) {
+
         this.scrollPadding = 20;
         // Milliseconds.
         this.scrollThrottleTime = 300;
@@ -692,9 +693,8 @@ $.fn.scroller = function(method) {
             this.$scroller.data('lastScrollTime', lastScrollTime);
         }
         this.$scroller.focus()
-    }
 
-    void function(Scroller) {
+    } void function(Scroller) {
 
         Scroller.getPos = function() {
             // Number of pixels the element is scrolled down vertically (top visible scrolling point).
