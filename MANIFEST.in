@@ -6,5 +6,5 @@ include LICENSE
 include QUICKSTART.rst
 include README.rst
 include requirements.txt
-recursive-include django_jinja_knockout *.htm *.html *.js *.css *.py *.po *.mo *.gif *.eot *.svg *.ttf *.woff *.woff2
+recursive-include django_jinja_knockout *.htm *.html *.js *.mjs *.css *.py *.po *.mo *.gif *.eot *.svg *.ttf *.woff *.woff2
 
