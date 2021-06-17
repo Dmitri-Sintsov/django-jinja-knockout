@@ -6,7 +6,7 @@
  *
  */
 
-(function(self) {
+export default function(self) {
     'use strict';
 
     var nativeURLSearchParams = (function() {
@@ -346,4 +346,4 @@
         return Object.prototype.hasOwnProperty.call(obj, prop);
     }
 
-})(typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : this));
+}
