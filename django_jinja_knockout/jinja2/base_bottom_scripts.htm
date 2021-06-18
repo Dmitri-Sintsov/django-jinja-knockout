@@ -14,6 +14,15 @@
     <script type="application/json" class="app-client-data">
         {{ page_context.get_client_data()|to_json(True) }}
     </script>
+    <script>
+    // https://github.com/systemjs/systemjs#ie11-support
+    if (typeof Promise === 'undefined') {
+        document.write('<script src="{{ static('djk/js/lib/bluebird.core.min.js') }}"><\/script>');
+    }
+    if (typeof fetch === 'undefined') {
+        document.write('<script src="{{ static('djk/js/lib/fetch.umd.js') }}"><\/script>');
+    }
+    </script>
     <script src="{{ static('djk/js/lib/system.min.js') }}"></script>
     {% for script, atts in page_context.get_custom_scripts() -%}
     <script src="{{ static(script) }}"{{ tpl.flatatt(atts) }}></script>
