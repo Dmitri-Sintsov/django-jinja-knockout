@@ -27,11 +27,12 @@ class PageContext:
     # dict manipulation functions are used with self.client_data or with self.request.session.
     ONLOAD_KEY = 'onloadViewModels'
 
-    default_script_atts = {'type': 'module'}
-
     def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
         self.request = None
         # view_title may be used by macro / template to build current page title.
+        self.default_script_atts =  {
+            'type': getattr(settings, 'DJK_JS_MODULE_TYPE', 'module'),
+        }
         self.view_title = view_title
         # client_data for custom vars and onload viewmodels.
         self.client_data = {} if client_data is None else client_data
