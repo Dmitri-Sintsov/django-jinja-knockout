@@ -1,12 +1,10 @@
-/**
+/**!
+ * url-search-params-polyfill
  *
- *
- * @author Jerry Bendy <jerry@icewingcc.com>
+ * @author Jerry Bendy (https://github.com/jerrybendy)
  * @licence MIT
- *
  */
-
-export default function(self) {
+(function(self) {
     'use strict';
 
     var nativeURLSearchParams = (function() {
@@ -136,18 +134,24 @@ export default function(self) {
     // There is a bug in Safari 10.1 and `Proxy`ing it is not enough.
     var forSureUsePolyfill = !decodesPlusesCorrectly;
     var useProxy = (!forSureUsePolyfill && nativeURLSearchParams && !isSupportObjectConstructor && self.Proxy);
+    var propValue; 
+    if (useProxy) {
+        // Safari 10.0 doesn't support Proxy, so it won't extend URLSearchParams on safari 10.0
+        propValue = new Proxy(nativeURLSearchParams, {
+            construct: function (target, args) {
+                return new target((new URLSearchParamsPolyfill(args[0]).toString()));
+            }
+        })
+        // Chrome <=60 .toString() on a function proxy got error "Function.prototype.toString is not generic"
+        propValue.toString = Function.prototype.toString.bind(URLSearchParamsPolyfill);
+    } else {
+        propValue = URLSearchParamsPolyfill;
+    }
     /*
      * Apply polifill to global object and append other prototype into it
      */
     Object.defineProperty(self, 'URLSearchParams', {
-        value: (useProxy ?
-            // Safari 10.0 doesn't support Proxy, so it won't extend URLSearchParams on safari 10.0
-            new Proxy(nativeURLSearchParams, {
-                construct: function(target, args) {
-                    return new target((new URLSearchParamsPolyfill(args[0]).toString()));
-                }
-            }) :
-            URLSearchParamsPolyfill)
+        value: propValue
     });
 
     var USPProto = self.URLSearchParams.prototype;
@@ -346,4 +350,4 @@ export default function(self) {
         return Object.prototype.hasOwnProperty.call(obj, prop);
     }
 
-}
+})(typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : this));

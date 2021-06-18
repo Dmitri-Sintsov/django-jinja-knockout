@@ -1,9 +1,3 @@
-// Remove css.escape polyfill when IE11 support is dropped:
-import cssEscapeFactory from './lib/css.escape.js';
-cssEscapeFactory(window);
-import urlSearchParamsFactory from './lib/url-search-params-polyfill.js';
-urlSearchParamsFactory(window);
-
 import { sprintf } from './lib/sprintf-esm.js';
 import Cookies from './lib/js.cookie.mjs';
 
