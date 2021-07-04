@@ -150,7 +150,8 @@ function assertUniqueScripts() {
 var documentReadyHooks = [function() {
     assertUniqueScripts();
     var m = moment();
-    Cookies.set('local_tz', parseInt(-m.utcOffset() / 60));
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+    Cookies.set('local_tz', parseInt(-m.utcOffset() / 60), {sameSite: 'Lax'});
     initClient(document);
     initTabPane();
     $(window).on('hashchange', function() {
