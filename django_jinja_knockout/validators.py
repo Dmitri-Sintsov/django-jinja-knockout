@@ -1,3 +1,4 @@
+import decimal
 import json
 from datetime import date, datetime
 from django.utils.functional import Promise
@@ -7,9 +8,12 @@ from .utils import sdv
 from .viewmodels import vm_list
 
 
+# See also tpl.DjkJSONEncoder.
 class ViewmodelFormatting:
 
-    json_serializable = (str, int, float, bool, type(None), date, datetime, Promise)
+    json_serializable = (
+        str, int, float, bool, type(None), date, datetime, Promise, decimal.Decimal
+    )
     # Not a HTML, not a safe string.
     default_msgs = {
     }
@@ -94,8 +98,8 @@ class ViewmodelValidator(ViewmodelFormatting):
         'min_str': 'Length of the string {_len} is smaller than {minlen}',
         'max_str': 'Length of the string {_len} is bigger than {minlen}',
         'load_json_ids': 'Not a non-empty JSON array of integer values',
-        'invalid_json_key': 'Invalid JSON data, key path: {key_path}, key type: {key_type}',
-        'invalid_json_val': 'Invalid JSON data, key path: {key_path}, val type: {val_type}',
+        'invalid_json_key': 'Invalid JSON key, key path: {key_path}, key type: {key_type}',
+        'invalid_json_val': 'Invalid JSON value, key path: {key_path}, val type: {val_type}',
     }
 
     # Limit AJAX string argument to min / max length.

@@ -1,4 +1,5 @@
 from copy import copy
+import decimal
 import json
 import re
 import pytz
@@ -515,11 +516,14 @@ def get_formatted_url(url_name):
             raise NoReverseMatch('Multiple sprintf formatted url for %s' % url_name) from ex
 
 
+# See also validators.ViewmodelFormatting.json_serializable.
 class DjkJSONEncoder(DjangoJSONEncoder):
 
     def default(self, o):
         if isinstance(o, ModelChoiceIteratorValue):
             return o.value
+        if isinstance(o, decimal.Decimal):
+            return str(o)
         if isinstance(o, Promise):
             # force_str() is used because django.contrib.auth.models.User incorporates the instances of
             # django.utils.functional.lazy.<locals>.__proxy__ object, which are not JSON serializable.
