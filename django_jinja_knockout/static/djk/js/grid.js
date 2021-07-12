@@ -136,7 +136,9 @@ function Grid(options) {
     Grid.firstLoad = function(callback) {
         var self = this;
         // todo: add 'firstLoad' queryarg in KoGridView.discover_grid_options().
-        var queryArgs = {firstLoad: 1};
+        var actionOptions = {
+            queryArgs: {firstLoad: 1},
+        };
         if (this.options.preloadedMetaList) {
             var vm = this.options.preloadedMetaList;
             if (typeof vm.view === 'undefined') {
@@ -146,7 +148,7 @@ function Grid(options) {
             this.actions.respond('meta_list', vm, propGet(callback, 'context'));
             self.meta.firstLoad(false);
             if (typeof callback === 'function') {
-                callback(queryArgs);
+                callback(actionOptions);
             }
         } else if (this.options.separateMeta) {
             /**
@@ -154,24 +156,24 @@ function Grid(options) {
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
              * values of dict type: see views.GridActionxMixin.vm_get_filters().
              */
-            this.actions.perform('meta', queryArgs, function(viewmodel) {
+            this.actions.perform('meta', actionOptions, function(viewmodel) {
                 if (self.options.defaultOrderBy !== null) {
                     // Override 'list' action AJAX queryargs ordering.
                     self.setQueryOrderBy(self.options.defaultOrderBy);
                 }
-                self.actions.perform('list', queryArgs, function(viewmodel) {
+                self.actions.perform('list', actionOptions, function(viewmodel) {
                     self.meta.firstLoad(false);
                     if (typeof callback === 'function') {
-                        callback(queryArgs);
+                        callback(actionOptions);
                     }
                 });
             });
         } else {
             // Save a bit of HTTP traffic by default.
-            this.actions.perform('meta_list', queryArgs, function(viewmodel) {
+            this.actions.perform('meta_list', actionOptions, function(viewmodel) {
                 self.meta.firstLoad(false);
                 if (typeof callback === 'function') {
-                    callback(queryArgs);
+                    callback(actionOptions);
                 }
             });
         }
@@ -933,10 +935,10 @@ function Grid(options) {
         }
         /*
             if (this.actions.has('edit_formset')) {
-                this.actions.perform('edit_formset', {'pk_vals': this.selectedRowsPks});
+                this.actions.perform('edit_formset', {queryArgs: {'pk_vals': this.selectedRowsPks}});
             }
             if (this.actions.has('edit_form')) {
-                this.actions.perform('edit_form', {'pk_val': currPkVal});
+                this.actions.perform('edit_form', {queryArgs: 'pk_val': currPkVal}});
             }
         */
     };

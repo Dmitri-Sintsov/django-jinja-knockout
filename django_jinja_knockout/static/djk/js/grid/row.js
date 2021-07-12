@@ -231,7 +231,11 @@ function GridRow(options) {
     };
 
     GridRow.getActionOptions = function() {
-        return {'pk_val': this.getPkVal()};
+        return {
+            queryArgs: {
+                'pk_val': this.getPkVal()
+            }
+        };
     };
 
     GridRow.inverseSelection = function() {

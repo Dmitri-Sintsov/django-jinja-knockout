@@ -253,7 +253,7 @@ function EditForm(options) {
         return new ModelFormActions(options);
     };
 
-    EditForm.runComponent = function(elem) {
+    EditForm.runComponent = function(elem, event) {
         this.actions = this.iocActions({
             owner: this,
             route: this.route,
@@ -261,7 +261,10 @@ function EditForm(options) {
         });
         this.componentElement = elem;
         var queryArgs = (this.pkUrlKwarg === null) ? {pk_val: this.pkVal} : {};
-        this.actions.perform(this.initialAction, queryArgs);
+        this.actions.perform(this.initialAction, {
+            // 'ajaxIndicator': event.currentTarget,
+            'queryArgs': queryArgs,
+        });
     };
 
     EditForm.removeComponent = function(elem) {

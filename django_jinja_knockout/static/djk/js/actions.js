@@ -1,5 +1,6 @@
 import { sprintf } from './lib/sprintf-esm.js';
 import { each } from './lib/underscore-esm.js';
+import { create } from './lib/ladda.js'
 
 import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
@@ -74,15 +75,15 @@ function Actions(options) {
         return this.getUrl(this.lastActionName);
     };
 
-    Actions.getQueryArgs = function(action, options) {
-        if (typeof options === 'undefined') {
-            options = {};
+    Actions.getQueryArgs = function(action, queryArgs) {
+        if (typeof queryArgs === 'undefined') {
+            queryArgs = {};
         }
         var method = 'queryargs_' + action;
         if (typeof this[method] === 'function') {
-            return this[method](options);
+            return this[method](queryArgs);
         } else {
-            return options;
+            return queryArgs;
         }
     };
 
@@ -130,6 +131,10 @@ function Actions(options) {
 
     Actions.respond = function(action, response, options) {
         var self = this;
+        if (this.ladda) {
+            this.ladda.stop();
+            this.ladda = false;
+        }
         // Cannot use vmRouter.add(this.viewModelName, function(){}) because
         // this.viewModelName is dynamical (may vary) in child class.
         var responseOptions = $.extend({'after': {}}, options);
@@ -159,12 +164,17 @@ function Actions(options) {
     };
 
     Actions.perform = function(action, actionOptions, ajaxCallback) {
-        var queryArgs = this.getQueryArgs(action, actionOptions);
+        var queryArgs = this.getQueryArgs(action, actionOptions.queryArgs);
         var method = 'perform_' + action;
+        this.ladda = false;
         if (typeof this[method] === 'function') {
             // Override default AJAX action. This can be used to create client-side actions.
             this[method](queryArgs, ajaxCallback);
         } else {
+            if (actionOptions.ajaxIndicator) {
+                this.ladda = create(actionOptions.ajaxIndicator);
+                this.ladda.start();
+            }
             // Call server-side ActionsView handler by default, which should return viewmodel response.
             this.ajax(action, queryArgs, ajaxCallback);
         }

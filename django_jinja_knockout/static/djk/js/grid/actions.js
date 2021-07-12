@@ -138,7 +138,7 @@ function GridActions(options) {
         delete viewModel.pkVals;
         viewModel.callback = function(result) {
             if (result) {
-                self.perform('delete_confirmed', {'pk_vals': pkVals});
+                self.perform('delete_confirmed', {queryArgs: {'pk_vals': pkVals}});
             }
         };
         this.renderDescription(viewModel);
@@ -187,13 +187,13 @@ function GridActions(options) {
         this.grid.loadMetaCallback(data);
     };
 
-    GridActions.queryargs_list = function(options) {
-        var result = $.extend(options, this.grid.getListQueryArgs());
+    GridActions.queryargs_list = function(queryArgs) {
+        var result = $.extend(queryArgs, this.grid.getListQueryArgs());
         return result;
     };
 
-    GridActions.queryargs_update = function(options) {
-        return this.queryargs_list(options);
+    GridActions.queryargs_update = function(queryArgs) {
+        return this.queryargs_list(queryArgs);
     };
 
     /**
@@ -210,7 +210,7 @@ function GridActions(options) {
     /**
      * Combined 'meta' / 'list' action to reduce HTTP traffic.
      */
-    GridActions.queryargs_meta_list = function(options) {
+    GridActions.queryargs_meta_list = function(queryArgs) {
         return this.grid.getListQueryArgs();
     };
 

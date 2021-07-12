@@ -138,7 +138,7 @@
                 <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
             </div>
             <!-- ko foreach: {data: actionTypes['button'], as: 'koAction'} -->
-                <button class="btn form-control" data-bind="css: actionCss('button'), click: function() { doAction(); }">
+                <button class="btn form-control" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
                     <span class="iconui" data-bind="css: actionCss('iconui')"></span>
                     <span data-bind="text: koAction.localName"></span>
                 </button>
@@ -166,7 +166,7 @@
 <script type="text/template" id="ko_grid_bottom_nav">
     <div class="navbar navbar-left">
         <!-- ko foreach: {data: actionTypes['button_footer'], as: 'koAction'} -->
-        <button class="btn" data-bind="css: actionCss('button'), click: function() { doAction(); }">
+        <button class="btn" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
             <span class="iconui" data-bind="css: actionCss('iconui')"></span>
             <span data-bind="text: koAction.localName"></span>
         </button>
@@ -315,7 +315,7 @@
     <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper">
         <ul class="pagination flex-wrap default-margin">
             <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
-                <li data-bind="click: function() { doAction(); }" class="page-item">
+                <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
                     <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-ctrl iconui mr-2"></span>
                 </li>
             <!-- /ko -->

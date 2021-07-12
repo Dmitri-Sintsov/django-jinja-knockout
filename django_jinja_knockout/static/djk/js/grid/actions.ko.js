@@ -31,25 +31,35 @@ function KoGridAction(options) {
         return koCss;
     };
 
+    KoGridAction.getDefaultOptions = function(options) {
+        if (typeof options === 'undefined') {
+            options = {};
+        }
+        if (typeof options.queryArgs === 'undefined') {
+            options.queryArgs = {};
+        }
+        return options;
+    };
+
     KoGridAction.doAction = function(actionOptions) {
-        if (typeof actionOptions === 'undefined') {
-            actionOptions = {};
+        actionOptions = this.getDefaultOptions(actionOptions);
+        if (this.actDef['ajaxIndicator'] && actionOptions['event']) {
+            // Do not use .target, as it may point to button nested tags such as span.
+            actionOptions.ajaxIndicator = actionOptions.event.currentTarget;
         }
         if (this.grid.selectedRowsPks.length > 0) {
             // Multiple rows selected. Add all selected rows pk values.
-            actionOptions['pk_vals'] =  this.grid.selectedRowsPks;
+            actionOptions.queryArgs['pk_vals'] =  this.grid.selectedRowsPks;
         }
         this.grid.performKoAction(this, actionOptions);
     };
 
     KoGridAction.doForRow = function(gridRow, actionOptions) {
-        if (typeof actionOptions === 'undefined') {
-            actionOptions = {};
-        }
+        actionOptions = this.getDefaultOptions(actionOptions);
         if (gridRow.observeEnabledAction(this)()) {
             this.grid.lastClickedKoRow = gridRow;
             // Clicked row pk value ('pkVal').
-            actionOptions = $.extend(actionOptions, gridRow.getActionOptions());
+            actionOptions = $.extend(true, actionOptions, gridRow.getActionOptions());
             this.doAction(actionOptions);
         }
     };

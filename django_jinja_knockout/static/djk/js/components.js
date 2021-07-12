@@ -147,11 +147,11 @@ function Components() {
             }
         } else {
             desc = {'event': evt};
-            desc.handler = function() {
+            desc.handler = function(event) {
                 try {
                     // Re-use already bound component, if any.
                     var component = self.get(elem);
-                    component.runComponent($selector);
+                    component.runComponent($selector, event);
                 } catch (e) {
                     desc.component = self.create(elem);
                     if (desc.component !== null) {
