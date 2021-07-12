@@ -164,6 +164,7 @@ function Actions(options) {
     };
 
     Actions.perform = function(action, actionOptions, ajaxCallback) {
+        actionOptions = $.extend({queryArgs: {}}, actionOptions);
         var queryArgs = this.getQueryArgs(action, actionOptions.queryArgs);
         var method = 'perform_' + action;
         this.ladda = false;
