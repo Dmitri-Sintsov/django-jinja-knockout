@@ -273,9 +273,9 @@ function EditForm(options) {
 
     EditForm.modelFormAction = function(response) {
         var vm = this.actions.getOurViewmodel(response);
-        if (vm === null) {
+        if (response.length > 0 && vm === null) {
             /**
-             * If response has no our grid viewmodel (this.actions.viewModelName), then it's a
+             * If non-empty response has no our grid viewmodel (this.actions.viewModelName), then it's a
              * form viewmodel errors response which will be processed by AjaxForm.submit().
              */
             return true;
