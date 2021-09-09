@@ -4,6 +4,7 @@ import re
 import sys
 import os
 import inspect
+import traceback
 from pprint import pprint
 
 LOGPATH = ['logs']
@@ -139,6 +140,19 @@ def dbg(name, value=None):
     # http://stackoverflow.com/questions/192109/is-there-a-function-in-python-to-print-all-the-current-properties-and-values-of
     pprint(value, f)
     f.close()
+
+
+def get_full_class_name(obj):
+    module = obj.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        return obj.__class__.__name__
+    return module + '.' + obj.__class__.__name__
+
+
+def parse_exception(ex):
+    ex_fcn = get_full_class_name(ex)
+    ex_tb = "".join(traceback.TracebackException.from_exception(ex).format())
+    return ex_fcn, ex_tb
 
 
 # http://stackoverflow.com/questions/3589311/get-defining-class-of-unbound-method-object-in-python-3/25959545#25959545

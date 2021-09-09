@@ -535,8 +535,12 @@ class DjkJSONEncoder(DjangoJSONEncoder):
         return super().default(o)
 
 
-def to_json(self):
-    return json.dumps(self, ensure_ascii=False, cls=DjkJSONEncoder)
+def to_json(self, **kwargs):
+    return json.dumps(self, ensure_ascii=False, cls=DjkJSONEncoder, **kwargs)
+
+
+def pretty_json(self):
+    return to_json(self, sort_keys=True, indent=4)
 
 
 def json_flatatt(atts):
