@@ -234,7 +234,13 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
         if len(kwargs) > 0:
             vms = vm_list(dict(**kwargs))
         else:
-            vms = vm_list(*args)
+            if isinstance(args, dict):
+                vms = vm_list(*args)
+            else:
+                vms = vm_list(
+                    title=_('Error'),
+                    message=args,
+                )
         self.process_error_vm_list(vms)
         raise http.ImmediateJsonResponse(vms)
 
@@ -415,6 +421,7 @@ class BaseFilterView(PageContextMixin):
         self.search_fields = None
         self.has_get_str_fields = False
 
+    # yields flattened fields from possibly nested .grid_fields (optional compound columns)
     def yield_fields(self):
         for column in self.grid_fields:
             if isinstance(column, list):
@@ -424,7 +431,13 @@ class BaseFilterView(PageContextMixin):
                 yield column
 
     def yield_fields_attnames(self):
-        return [field[0] if isinstance(field, tuple) else field for field in self.yield_fields()]
+        for field in self.yield_fields():
+            if isinstance(field, dict):
+                yield field['field']
+            elif isinstance(field, tuple):
+                yield field[0]
+            else:
+                yield field
 
     def get_grid_fields_attnames(self):
         return [field for field in self.yield_fields_attnames() if field not in self.exclude_fields]

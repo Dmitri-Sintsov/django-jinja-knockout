@@ -550,6 +550,11 @@ class GridActionsMixin(ModelFormActionsView):
     # Set to list of related models to use non-prefixed root field names.
     # See also .get_related_model_fields_verbose_names() and GridColumnOrder.renderRowValue() implementations.
     related_models = None
+    virtual_fields = None
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.virtual_fields = set()
 
     def get_actions(self):
         return {
@@ -731,7 +736,14 @@ class GridActionsMixin(ModelFormActionsView):
         if not isinstance(grid_fields, list):
             self.vm_error('grid_fields must be list')
         for field_def in grid_fields:
-            if isinstance(field_def, tuple):
+            if isinstance(field_def, dict):
+                vm_grid_fields.append({
+                    'field': field_def['field'],
+                    'name': field_def['name'] if 'name' in field_def else self.get_field_verbose_name(field_def['field']),
+                })
+                if field_def.get('virtual', False):
+                    self.virtual_fields.add(field_def['field'])
+            elif isinstance(field_def, tuple):
                 vm_grid_fields.append({
                     'field': field_def[0],
                     'name': field_def[1]
@@ -746,7 +758,7 @@ class GridActionsMixin(ModelFormActionsView):
                 self.vm_add_grid_fields(field_def, vm_compound_fields)
                 vm_grid_fields.append(vm_compound_fields)
             else:
-                self.vm_error('grid_fields list values must be instances of str or tuple or list')
+                self.vm_error('grid_fields list values must be instances of str / tuple / list / dict')
 
     def vm_get_grid_fields(self):
         vm_grid_fields = []
@@ -960,6 +972,14 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         if not isinstance(self.allowed_filter_fields, OrderedDict):
             self.vm_error('KoGridView.allowed_filter_fields must be instance of OrderedDict')
         return super().get_filters()
+
+    def get_related_fields(self, query_fields=None):
+        query_fields = super().get_related_fields(query_fields)
+        # Remove virtual fields from queryset values().
+        for field_name in self.virtual_fields:
+            if self.has_grid_field(field_name):
+                query_fields.remove(field_name)
+        return query_fields
 
     def set_row_related_fields(self, row):
         row_related = {}
