@@ -41,7 +41,7 @@ msgstr "Ostatnia"
 
 #: 
 msgid "Add \"%(verbose_name)s\""
-msgstr "Dodaj \"%(verbose_name)s\" \n"
+msgstr "Dodaj \"%(verbose_name)s\""
 ""
 
 #: 
@@ -170,7 +170,7 @@ msgstr ""
 
 #: 
 msgid "Not allowed filter field: \"{}\""
-msgstr "Nie dozwolone pole: \"{}\" \n"
+msgstr "Nie dozwolone pole: \"{}\""
 ""
 
 #: 
