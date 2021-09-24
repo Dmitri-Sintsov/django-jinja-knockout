@@ -287,10 +287,11 @@ class BaseGridWidget(ChoiceWidget):
         # Autodetect foreign key widgets fkGridOptions.
         ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
         self.request = ContextMiddleware.get_request()
-        widget_view = resolve_grid(
+        widget_view_cls, widget_view_kwargs = resolve_grid(
             request=self.request,
             view_options=self.component_options['fkGridOptions']
-        )()
+        )
+        widget_view = widget_view_cls(**widget_view_kwargs)
         foreign_key_grid_options = widget_view.discover_grid_options(
             self.request, self.component_options['fkGridOptions']
         )

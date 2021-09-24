@@ -463,10 +463,7 @@ def resolve_cbv(viewname, urlconf=None, args=None, kwargs=None, current_app=None
         current_app = get_current_app(request)
     url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs, current_app=current_app)
     view_fn = resolve(url)[0]
-    if hasattr(view_fn, '__wrapped__'):
-        return sdv.get_cbv_from_dispatch_wrapper(view_fn)
-    else:
-        return view_fn
+    return view_fn.view_class, view_fn.view_initkwargs
 
 
 def get_namespace_path_resolver(urlresolver, ns_path):
@@ -655,9 +652,13 @@ def resolve_grid(request, view_options):
     if 'pageRouteKwargs' in view_options:
         view_kwargs.update(view_options['pageRouteKwargs'])
     view_kwargs['action'] = ''
-    view_cls = resolve_cbv(viewname=view_options['pageRoute'], kwargs=view_kwargs, request=request)
-    return view_cls
+    view_cls, view_kwargs = resolve_cbv(viewname=view_options['pageRoute'], kwargs=view_kwargs, request=request)
+    return view_cls, view_kwargs
 
 
-def discover_grid_options(request, grid_options):
-    return resolve_grid(request, grid_options)().discover_grid_options(request, grid_options)
+def discover_grid_options(request, grid_options, extra_view_kwargs=None):
+    view_cls, view_kwargs = resolve_grid(request, grid_options)
+    if extra_view_kwargs is not None:
+        view_kwargs.update(extra_view_kwargs)
+    view = view_cls(**view_kwargs)
+    return view.discover_grid_options(request, grid_options)

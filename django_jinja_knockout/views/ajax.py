@@ -932,7 +932,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             for filter_field, filter_def in view_allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
                     # 'type': 'fk' filter field with 'pageRoute' autodiscovery.
-                    related_view = tpl.resolve_grid(
+                    related_view_cls, related_view_kwargs = tpl.resolve_grid(
                         request,
                         view_options=filter_def
                     )
@@ -942,7 +942,8 @@ class KoGridView(BaseFilterView, GridActionsMixin):
                     if 'type' in field_fkGridOptions:
                         del field_fkGridOptions['type']
                     # Apply relations to fkGridOptions recursively.
-                    field_fkGridOptions.update(related_view().discover_grid_options(request))
+                    related_view = related_view_cls(**related_view_kwargs)
+                    field_fkGridOptions.update(related_view.discover_grid_options(request))
                     grid_options['fkGridOptions'][filter_field] = field_fkGridOptions
             if self.preload_meta_list:
                 grid_options['preloadedMetaList'] = self.get_preloaded_meta_list()

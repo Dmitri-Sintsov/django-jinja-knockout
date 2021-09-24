@@ -7,6 +7,6 @@
         'action': action,
     }) }}
     {% for formset in formsets -%}
-        {{ formset.renderer() }}
+        {{ formset.djk_renderer() }}
     {% endfor -%}
 {% endmacro -%}

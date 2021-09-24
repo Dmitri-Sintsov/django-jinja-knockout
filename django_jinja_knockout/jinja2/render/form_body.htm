@@ -23,5 +23,5 @@
     {{ field|safe }}
 {% endfor -%}
 {% for field in form.visible_fields() -%}
-    {{ field.renderer() }}
+    {{ field.djk_renderer() }}
 {% endfor -%}

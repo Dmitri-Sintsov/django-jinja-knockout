@@ -257,7 +257,7 @@ class FormWithInlineFormsets:
     # Note that 'GET' mode formset can be generateed in AJAX 'POST' request,
     # thus method argument value should be hardcoded, not filled from current request.
     def prepare_formset(self, formset, method):
-        formset.renderer = self.ioc_formset_renderer(formset)
+        formset.djk_renderer = self.ioc_formset_renderer(formset)
         inline_title = self.get_formset_inline_title(formset)
         if inline_title is not None:
             formset.inline_title = inline_title

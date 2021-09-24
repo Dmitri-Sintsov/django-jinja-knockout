@@ -22,7 +22,7 @@ Setup underscore.js template args (stored to dom_attrs as json at later step).
 Setup url name kwargs both for tpl.resolve_cbv() and as grid_options.pageRoute / .pageRouteKwargs
 
 -#}
-{% set _grid_options = tpl.discover_grid_options(request, grid_options) -%}
+{% set _grid_options = tpl.discover_grid_options(request, grid_options, view.kwargs) -%}
 {#
 
 Setup component dom_attrs.

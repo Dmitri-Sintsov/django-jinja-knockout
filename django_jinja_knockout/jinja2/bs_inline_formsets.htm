@@ -55,13 +55,13 @@
             {% else -%}
                 {% do opts.update({'inline_title': formset.model._meta.verbose_name}) -%}
             {% endif -%}
-            {% do formset.renderer.update_context({
+            {% do formset.djk_renderer.update_context({
                 'action': action,
                 'caller': caller,
                 'opts': opts,
                 'loop': loop,
             }) -%}
-            {{ formset.renderer() }}
+            {{ formset.djk_renderer() }}
         {% endfor -%}
         {% if opts.submit_text is defined -%}
         <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>

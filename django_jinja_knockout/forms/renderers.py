@@ -82,7 +82,7 @@ def render_form(request, typ, form, context=None):
 
 
 def render_fields(form, *fields):
-    return mark_safe(''.join(form[field].renderer() for field in fields))
+    return mark_safe(''.join(form[field].djk_renderer() for field in fields))
 
 
 class RelativeRenderer(tpl.Renderer):
@@ -168,14 +168,14 @@ class FormBodyRenderer(RelativeRenderer):
     def ioc_fields(self):
         field_classes = self.context.get('layout_classes', self.get_layout_classes())
         for field in self.obj.visible_fields():
-            field.renderer = self.ioc_render_field(field)
-            field.renderer.set_classes(field_classes)
+            field.djk_renderer = self.ioc_render_field(field)
+            field.djk_renderer.set_classes(field_classes)
 
     def render_raw(self):
         self.ioc_fields()
         output = ''.join([
             format_html(
-                '<div><div>{}</div><div>{}</div></div>', field.label, field.renderer.render_raw()
+                '<div><div>{}</div><div>{}</div></div>', field.label, field.djk_renderer.render_raw()
             ) for field in self.obj.visible_fields()
         ])
         return mark_safe(output)
