@@ -255,7 +255,15 @@ function GridRow(options) {
         if ($(ev.target).closest(this.ignoreRowClickClosest).length > 0) {
             return true;
         }
-        this.ownerGrid.rowClick(this);
+        var $componentParents = $(ev.target).parentsUntil('.component');
+        var $cellElement = $componentParents.filter('[data-nested-list-key]');
+        if ($cellElement.length > 0 ) {
+            var compoundCellName = $cellElement.eq(0).data('nestedListKey');
+            console.log('Clicked cell name: ' + compoundCellName);
+            this.ownerGrid.rowClick(this, compoundCellName);
+        } else {
+            this.ownerGrid.rowClick(this);
+        }
         return false;
     };
 

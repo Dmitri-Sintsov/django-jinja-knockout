@@ -41,6 +41,7 @@ function NestedList(options) {
 
     NestedList.getElementContainer = function(k, v, level) {
         return $(this.blockTags[level].itemTag)
+            .attr('data-nested-list-key', k)
             .addClass(this.blockTags[level].itemClasses)
     };
 

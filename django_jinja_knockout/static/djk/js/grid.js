@@ -919,7 +919,7 @@ function Grid(options) {
         }
     };
 
-    Grid.rowClick = function(currKoRow) {
+    Grid.rowClick = function(currKoRow, compoundCellName) {
         this.lastClickedKoRow = currKoRow;
         var enabledActions = this.getEnabledActions(currKoRow, 'click');
         if (enabledActions.length > 1) {
