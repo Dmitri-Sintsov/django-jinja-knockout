@@ -345,7 +345,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
 
-    def vm_form(self, form, template=None, verbose_name=None, form_action='save_form', action_query: dict = None):
+    def vm_form(
+            self, form, template=None, verbose_name=None, form_action='save_form',
+            action_query: dict = None, callback_action=None
+    ):
         if template is None:
             template = self.form_template
         if action_query is None:
@@ -359,7 +362,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         })
         if verbose_name is None:
             verbose_name = get_verbose_name(form.Meta.model)
-        return vm_list({
+        vm = {
             'last_action': form_action,
             'title': format_html(
                 '{}: {}',
@@ -367,7 +370,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 verbose_name
             ),
             'message': form_html
-        })
+        }
+        if callback_action is not None:
+            vm['callback_action'] = callback_action
+        return vm_list(vm)
 
     def vm_inline(self, ff, template=None, verbose_name=None, form_action='save_inline', action_query: dict = None):
         if template is None:
