@@ -919,9 +919,9 @@ function Grid(options) {
         }
     };
 
-    Grid.rowClick = function(currKoRow, compoundCellName) {
+    Grid.rowClick = function(currKoRow, cellName) {
         this.lastClickedKoRow = currKoRow;
-        var enabledActions = this.getEnabledActions(currKoRow, 'click');
+        var enabledActions = this.getEnabledActions(currKoRow, 'click', cellName);
         if (enabledActions.length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
@@ -1395,12 +1395,15 @@ function Grid(options) {
     };
 
     // Returns only enabled actions for particular GridRow instance of the specified actionType.
-    Grid.getEnabledActions = function(koRow, actionType) {
+    Grid.getEnabledActions = function(koRow, actionType, cellName) {
         var enabledActions = [];
         var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
         for (var i = 0; i < actions.length; i++) {
-            if (koRow.observeEnabledAction(actions[i])()) {
-                enabledActions.push(actions[i]);
+            var action = actions[i];
+            if (koRow.observeEnabledAction(action)()) {
+                if (action.hasCell(cellName)) {
+                    enabledActions.push(action);
+                }
             }
         }
         return enabledActions;

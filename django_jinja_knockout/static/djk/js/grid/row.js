@@ -244,6 +244,26 @@ function GridRow(options) {
 
     GridRow.ignoreRowClickClosest = 'A, BUTTON, INPUT, OPTION, SELECT, TEXTAREA';
 
+    GridRow.getCellProps = function($target) {
+        var $componentParents = $target.parentsUntil('.component');
+        var $cellElement = $componentParents.filter('[data-nested-list-key]');
+        var cellProps = {
+            isCompound: $cellElement.length > 0
+        }
+        if (cellProps.isCompound) {
+            cellProps.name = $cellElement.eq(0).data('nestedListKey');
+        } else {
+            $cellElement = $target.find('[data-column-name]');
+            if ($cellElement.length > 0) {
+                cellProps.name = $cellElement.data('columnName');
+            } else {
+                $cellElement = $target.closest('[data-column-name]');
+                cellProps.name = $cellElement.data('columnName');
+            }
+        }
+        return cellProps;
+    };
+
     GridRow.onActiveClick = function(data, ev) {
         if (this.getActiveActions('click').length > 0) {
             return this.onRowClick(data, ev);
@@ -255,15 +275,9 @@ function GridRow(options) {
         if ($(ev.target).closest(this.ignoreRowClickClosest).length > 0) {
             return true;
         }
-        var $componentParents = $(ev.target).parentsUntil('.component');
-        var $cellElement = $componentParents.filter('[data-nested-list-key]');
-        if ($cellElement.length > 0 ) {
-            var compoundCellName = $cellElement.eq(0).data('nestedListKey');
-            console.log('Clicked cell name: ' + compoundCellName);
-            this.ownerGrid.rowClick(this, compoundCellName);
-        } else {
-            this.ownerGrid.rowClick(this);
-        }
+        var cellProps = this.getCellProps($(ev.target));
+        console.log('Clicked cell: ' + JSON.stringify(cellProps));
+        this.ownerGrid.rowClick(this, cellProps.name);
         return false;
     };
 

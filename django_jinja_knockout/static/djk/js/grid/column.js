@@ -195,6 +195,7 @@ function GridColumn(options) {
         options.$element.empty();
         var cells = this.getCompoundCells(options.row);
         if (cells.length === 1) {
+            cells[0].v.attr('data-column-name', cells[0].k);
             options.$element.append(cells[0].v);
         } else if (cells.length > 1) {
             this.renderCompound(options.$element, cells);

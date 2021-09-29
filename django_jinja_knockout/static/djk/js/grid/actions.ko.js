@@ -1,3 +1,4 @@
+import { propGet } from '../prop.js';
 import { inherit } from '../dash.js';
 
 /**
@@ -15,6 +16,22 @@ function KoGridAction(options) {
         this.actDef = options.actDef;
         this.name = this.actDef.name;
         this.localName = this.actDef.localName;
+    };
+
+    KoGridAction.hasCell = function(cellName) {
+        if (cellName) {
+            var cells = propGet(this, 'actDef.cells');
+            if (cells) {
+                if (typeof cells.indexOf == 'function') {
+                    // array
+                    return cells.indexOf(cellName) !== -1;
+                } else {
+                    // string
+                    return cells = cellName;
+                }
+            }
+        }
+        return true;
     };
 
     KoGridAction.actionCss = function(type) {
