@@ -71,6 +71,8 @@ class SendmailQueue:
 
         try:
             # raise SMTPDataError(code=123, msg='Test error')
+            if hasattr(self.ioc, 'before_sending'):
+                self.ioc.before_sending()
             result = self.connection.send_messages(self.messages)
             if hasattr(self.ioc, 'success'):
                 self.ioc.success()
