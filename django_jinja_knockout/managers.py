@@ -23,11 +23,11 @@ class DupesManager(models.Manager):
                 f_fields.append(V('…'))
             f_fields.append(F(field))
         annotate_kwargs = {
-            self.dupe_id=Concat(*f_fields, output_field=models.CharField())
-            self.dupe_count=Count(self.dupe_id)
+            self.dupe_id: Concat(*f_fields, output_field=models.CharField()),
+            self.dupe_count: Count(self.dupe_id)
         }
         filter_kwargs = {
-            f'{self.dupe_count}__gt'=self.max_dupe_count
+            f'{self.dupe_count}__gt': self.max_dupe_count
         }
         qs = self.values(
             *fields
@@ -56,4 +56,3 @@ class DupesManager(models.Manager):
                 pks_to_delete = self.filter_dupe_pks(pks)
                 self.filter(pk__in=pks_to_delete).delete()
         return pks, pks_to_delete
-

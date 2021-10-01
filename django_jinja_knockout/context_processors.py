@@ -30,7 +30,7 @@ class PageContext:
     def __init__(self, view_title=None, client_data=None, client_routes=None, custom_scripts=None):
         self.request = None
         # view_title may be used by macro / template to build current page title.
-        self.default_script_atts =  {
+        self.default_script_atts = {
             'type': getattr(settings, 'DJK_JS_MODULE_TYPE', 'module'),
         }
         self.view_title = view_title
@@ -38,7 +38,7 @@ class PageContext:
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
-        default_scripts = getattr(settings, 'DJK_DEFAULT_SCRIPTS', ['djk/js/app.js',])
+        default_scripts = getattr(settings, 'DJK_DEFAULT_SCRIPTS', ['djk/js/app.js'])
         # Ordered list of custom scripts urls injected to client-side Javascript.
         # Keys are script names, values are the list of tag attributes.
         self.set_custom_scripts(*default_scripts)
