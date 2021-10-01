@@ -1,5 +1,5 @@
 from socket import gaierror
-from smtplib import SMTPDataError, SMTPServerDisconnected
+from smtplib import SMTPDataError, SMTPServerDisconnected, SMTPSenderRefused, SMTPRecipientsRefused
 from bleach import linkify
 from django.utils.html import linebreaks
 from django.utils.translation import gettext_lazy as _
@@ -78,7 +78,10 @@ class SendmailQueue:
                 self.ioc.success()
             self.messages = []
             return result
-        except (SMTPDataError, SMTPServerDisconnected, gaierror, ConnectionError) as e:
+        except (
+                SMTPDataError, SMTPServerDisconnected, SMTPRecipientsRefused, SMTPSenderRefused,
+                gaierror, ConnectionError
+        ) as e:
             if isinstance(e, SMTPDataError):
                 title = e.smtp_code
                 trans_msg = 'Error "%(err_type)s" "%(code)s" "%(msg)s" while sending email.'
