@@ -57,6 +57,7 @@ Datatables
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _forms.FormWithInlineFormsets: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms.py
 .. _.get_actions(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_actions&type=&utf8=%E2%9C%93
+.. _.vm_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=vm_form&type=&utf8=%E2%9C%93
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
 .. _views.KoGridInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
@@ -69,6 +70,10 @@ Datatables
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 .. _widgets.BaseGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=BaseGridWidget
 .. _widgets.ForeignKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/widgets.py
+
+.. _last_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=last_action&type=code
+.. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=callback_action
+.. _getLastActionUrl(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=getLastActionUrl
 
 .. _discover_grid_options: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=discover_grid_options
 
@@ -2370,12 +2375,20 @@ code, there is ``'last_action'`` viewmodel key with value ``'save_form'`` return
             'message': form_html
         })
 
-Viewmodel's ``'last_action'`` key is used in client-side Javascript ``App.GridActions`` class ``respond()`` method to
-override the name of last executed action from current ``'create_form'`` to ``'save_form'``.
+Viewmodel's `last_action`_ optional key is used in client-side Javascript ``App.GridActions`` class ``respond()``
+method to override the name of last executed action from current ``'create_form'`` to ``'save_form'``. The name of
+last executed action is used to generate last action url value in grid templates (`ko_grid_body.htm`_) / component
+templates via ``Actions`` class `getLastActionUrl()`_ method.
 
 It is then used in client-side Javascript `App.ModelFormDialog`_ class ``getButtons()`` method ``submit`` button event
 handler to perform `'save_form' action`_ when that button is clicked by end-user, instead of already executed
 `'create_form' action`_, which already generated AJAX model form and displayed it using `App.ModelFormDialog`_ instance.
+
+Viewmodel's `callback_action`_ optional key is used in client-side Javascript to override the action callback method.
+Some viewmodel callbacks may share the same action callback method (handler) to reduce duplication of code. Since v2.0
+`views.ModelFormActionsView`_ `.vm_form()`_ also supports optional specifying ot `callback_action`_ value.
+
+See `Action AJAX response handler`_ for more info on action client-side AJAX callbacks.
 
 'create_inline' action
 ~~~~~~~~~~~~~~~~~~~~~~
