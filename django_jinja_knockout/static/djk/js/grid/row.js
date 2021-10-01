@@ -249,7 +249,7 @@ function GridRow(options) {
         var $cellElement = $componentParents.filter('[data-nested-list-key]');
         var cellProps = {
             isCompound: $cellElement.length > 0
-        }
+        };
         if (cellProps.isCompound) {
             cellProps.name = $cellElement.eq(0).data('nestedListKey');
         } else {
