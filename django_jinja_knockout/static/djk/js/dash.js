@@ -41,7 +41,29 @@ function inheritProps(parent, child) {
 function ODict(k, v) {
     this.k = k;
     this.v = v;
-}
+} void function(ODict) {
+
+    ODict.keys = function(odictArray) {
+        var keys = []
+        for (var k in odictArray) {
+            if (odictArray.hasOwnProperty(k)) {
+                keys.push(odictArray[k].k);
+            }
+        }
+        return keys;
+    };
+
+    ODict.values = function(odictArray) {
+        var values = []
+        for (var k in odictArray) {
+            if (odictArray.hasOwnProperty(k)) {
+                values.push(odictArray[k].v);
+            }
+        }
+        return values;
+    };
+
+}(ODict.prototype);
 
 function odict(k, v) {
     return new ODict(k, v);

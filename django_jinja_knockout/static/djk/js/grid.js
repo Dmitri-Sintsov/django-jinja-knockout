@@ -1,5 +1,5 @@
 import { sprintf } from './lib/sprintf-esm.js';
-import { each, mapObject, isArray, find, filter, size, indexOf } from './lib/underscore-esm.js';
+import { any, each, mapObject, isArray, find, filter, size, indexOf } from './lib/underscore-esm.js';
 
 import { isScalar, intVal, inherit } from './dash.js';
 import { propGet, propCall } from './prop.js';
@@ -919,9 +919,9 @@ function Grid(options) {
         }
     };
 
-    Grid.rowClick = function(currKoRow, cellName) {
+    Grid.rowClick = function(currKoRow, cellNames) {
         this.lastClickedKoRow = currKoRow;
-        var enabledActions = this.getEnabledActions(currKoRow, 'click', cellName);
+        var enabledActions = this.getEnabledActions(currKoRow, 'click', cellNames);
         if (enabledActions.length > 1) {
             // Multiple click actions are available. Open row click actions menu.
             this.actionsMenuDialog = this.iocActionsMenuDialog({
@@ -1395,13 +1395,16 @@ function Grid(options) {
     };
 
     // Returns only enabled actions for particular GridRow instance of the specified actionType.
-    Grid.getEnabledActions = function(koRow, actionType, cellName) {
+    Grid.getEnabledActions = function(koRow, actionType, cellNames) {
         var enabledActions = [];
         var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
+        if (cellNames !== undefined && !Array.isArray(cellNames)) {
+            cellNames = [cellNames];
+        }
         for (var i = 0; i < actions.length; i++) {
             var action = actions[i];
             if (koRow.observeEnabledAction(action)()) {
-                if (action.hasCell(cellName)) {
+                if (cellNames === undefined || any(cellNames, action.hasCell.bind(action))) {
                     enabledActions.push(action);
                 }
             }

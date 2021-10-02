@@ -1,5 +1,5 @@
 import { map, mapObject, find, each } from '../lib/underscore-esm.js';
-import { odict } from '../dash.js';
+import { odict, ODict } from '../dash.js';
 import { blockTags } from '../ui.js';
 import { renderNestedList, renderValue } from '../nestedlist.js';
 
@@ -183,7 +183,7 @@ function GridColumn(options) {
     };
 
     GridColumn.renderCompound = function($element, cells) {
-        renderNestedList($element, cells, {
+        return renderNestedList($element, cells, {
             blockTags: this.blockTags,
             fn: 'html',
             showKeys: this.ownerGrid.options.showCompoundKeys,
@@ -198,7 +198,9 @@ function GridColumn(options) {
             cells[0].v.attr('data-column-name', cells[0].k);
             options.$element.append(cells[0].v);
         } else if (cells.length > 1) {
-            this.renderCompound(options.$element, cells);
+            var $cell = this.renderCompound(options.$element, cells).$ul;
+            var cellNames = ODict.prototype.keys(cells);
+            $cell.attr('data-column-name', JSON.stringify(cellNames));
         }
     };
 
