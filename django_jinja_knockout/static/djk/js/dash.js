@@ -44,7 +44,7 @@ function ODict(k, v) {
 } void function(ODict) {
 
     ODict.keys = function(odictArray) {
-        var keys = []
+        var keys = [];
         for (var k in odictArray) {
             if (odictArray.hasOwnProperty(k)) {
                 keys.push(odictArray[k].k);
@@ -54,7 +54,7 @@ function ODict(k, v) {
     };
 
     ODict.values = function(odictArray) {
-        var values = []
+        var values = [];
         for (var k in odictArray) {
             if (odictArray.hasOwnProperty(k)) {
                 values.push(odictArray[k].v);

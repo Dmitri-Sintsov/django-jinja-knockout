@@ -123,8 +123,8 @@ function NestedList(options) {
                 }
             });
             $element.append($ul);
+            $element.$ul = $ul;
         }
-        $element.$ul = $ul;
         return $element;
     };
 
