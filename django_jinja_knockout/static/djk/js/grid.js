@@ -1394,6 +1394,21 @@ function Grid(options) {
         this.performKoAction(koAction, actionOptions)
     };
 
+    Grid.getCellActions = function(actionType, cellNames) {
+        var enabledActions = [];
+        var actions = ko.utils.unwrapObservable(this.actionTypes[actionType]);
+        if (cellNames !== undefined && !Array.isArray(cellNames)) {
+            cellNames = [cellNames];
+        }
+        for (var i = 0; i < actions.length; i++) {
+            var action = actions[i];
+            if (cellNames === undefined || any(cellNames, action.hasCell.bind(action))) {
+                enabledActions.push(action);
+            }
+        }
+        return enabledActions;
+    };
+
     // Returns only enabled actions for particular GridRow instance of the specified actionType.
     Grid.getEnabledActions = function(koRow, actionType, cellNames) {
         var enabledActions = [];

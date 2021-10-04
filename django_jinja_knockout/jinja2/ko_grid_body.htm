@@ -263,7 +263,7 @@
                         <td data-bind="
                             click: gridRow.onRowClick.bind(gridRow),
                             attr: {index: $index, 'data-caption': names},
-                            css: columnCss,
+                            css: columnCss(),
                             grid_compound_cell
                         "></td>
                         <!-- /ko -->

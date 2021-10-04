@@ -127,7 +127,18 @@ function GridColumn(options) {
             var index = this.ownerGrid.gridColumns().indexOf(this);
             this.lastColumnCss = $.extend(this.lastColumnCss, this.ownerGrid.getCycleCss(index));
         }
+        var cellActions = this.ownerGrid.getCellActions('click', this.getFields());
+        this.lastColumnCss['pointer'] = cellActions.length > 0;
+        this.lastColumnCss['active'] = cellActions.length > 0;
         return this.lastColumnCss;
+    };
+
+    GridColumn.getFields = function() {
+        var fields = [];
+        find(this.columnOrders(), function(columnOrder) {
+            fields.push(columnOrder.field);
+        });
+        return fields;
     };
 
     GridColumn.getNames = function() {
@@ -199,7 +210,7 @@ function GridColumn(options) {
             options.$element.append(cells[0].v);
         } else if (cells.length > 1) {
             var $cell = this.renderCompound(options.$element, cells).$ul;
-            var cellNames = ODict.prototype.keys(cells);
+            var cellNames = this.getFields();
             $cell.attr('data-column-name', JSON.stringify(cellNames));
         }
     };

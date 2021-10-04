@@ -159,7 +159,7 @@ function GridRow(options) {
         });
         this.lastRowCss = $.extend(this.lastRowCss, {
             'grid-new-row': this.isUpdated(),
-            'pointer': this.getActiveActions('click').length > 0,
+            // 'pointer': this.getActiveActions('click').length > 0,
         });
         var highlightModeRule = this.ownerGrid.getHighlightModeRule();
         if (highlightModeRule.direction === 1) {
