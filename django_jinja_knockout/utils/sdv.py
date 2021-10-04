@@ -123,13 +123,13 @@ def nested_update(d, u):
     return d
 
 
-def dbg(name, value=None):
+def dbg(name, value=None, basename='sdv_out.py3'):
     logdir = os.path.join(*LOGPATH)
     try:
         os.mkdir(logdir, 0o770)
     except OSError:
         pass
-    fname = os.path.join(logdir, 'sdv_out.py3')
+    fname = os.path.join(logdir, basename)
     f = open(fname, 'a+')
     try:
         # @note: inspect.stack() sometimes produces IndexError in Windows. Not [1] produces it.
