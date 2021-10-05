@@ -129,7 +129,7 @@ function GridColumn(options) {
         }
         var cellActions = this.ownerGrid.getCellActions('click', this.getFields());
         this.lastColumnCss['pointer'] = cellActions.length > 0;
-        this.lastColumnCss['active'] = cellActions.length > 0;
+        this.lastColumnCss['active-action'] = cellActions.length > 0;
         return this.lastColumnCss;
     };
 
