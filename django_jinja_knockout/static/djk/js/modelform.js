@@ -271,6 +271,15 @@ function EditForm(options) {
         // todo: implement
     };
 
+    EditForm.respond = function(response) {
+        this.actions.respond(
+            this.actions.lastActionName,
+            response
+        );
+        // Do not process viewmodel response, because we already processed it here.
+        return false;
+    }
+
     EditForm.modelFormAction = function(response) {
         var vm = this.actions.getOurViewmodel(response);
         if (response.length > 0 && vm === null) {
@@ -280,12 +289,7 @@ function EditForm(options) {
              */
             return true;
         } else {
-            this.actions.respond(
-                this.actions.lastActionName,
-                response
-            );
-            // Do not process viewmodel response, because we already processed it here.
-            return false;
+            return this.respond(response);
         }
     };
 

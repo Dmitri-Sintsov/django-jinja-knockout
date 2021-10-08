@@ -67,6 +67,12 @@ function ViewModelRouter(viewHandlers) {
         return this;
     };
 
+    ViewModelRouter.addOnce = function(viewName, handler) {
+        if (!this.hasView(viewName)) {
+            this.addHandler(viewName, handler);
+        }
+    };
+
     ViewModelRouter.removeHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] !== 'undefined') {
             if (isArray(this.handlers[viewName])) {
@@ -90,6 +96,10 @@ function ViewModelRouter(viewHandlers) {
             }
         }
         return this;
+    };
+
+    ViewModelRouter.hasView = function(viewName) {
+        return typeof this.handlers[viewName] !== 'undefined';
     };
 
     ViewModelRouter.removeAll = function() {
@@ -138,7 +148,11 @@ function ViewModelRouter(viewHandlers) {
                 return newClassByPath(viewName, [viewModel, bindContext]);
             }
         } else {
-            return this.applyHandler(viewModel, this.handlers[viewName], bindContext);
+            if (Array.isArray(this.handlers[viewName])) {
+                throw new Error("ViewModelRouter.factory supports only single viewmodel handler: " + viewName);
+            } else {
+                return this.applyHandler(viewModel, this.handlers[viewName], bindContext);
+            }
         }
     };
 
