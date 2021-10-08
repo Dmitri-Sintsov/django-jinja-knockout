@@ -23,7 +23,7 @@ urlpatterns = [
          kwargs={'view_title': _("Account")}),
     path("confirm-email/", views.email_verification_sent, name="account_email_verification_sent",
          kwargs={'allow_anonymous': True, 'view_title': _("Verify Your E-mail Address")}),
-    re_path(r"^confirm-email/(?P<key>\w+)/$", views.confirm_email, name="account_confirm_email",
+    re_path(r"^confirm-email/(?P<key>[-:\w]+)/$", views.confirm_email, name="account_confirm_email",
             kwargs={'allow_anonymous': True, 'view_title': _("Confirm E-mail Address")}),
 
     # password reset

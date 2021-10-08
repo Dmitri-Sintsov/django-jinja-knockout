@@ -66,8 +66,8 @@
 
 
 {% block bottom_scripts -%}
-<script type="text/javascript" type="module">
-import { Dialog } from './dialog.js';
+<script type="module">
+import { Dialog } from '{{ static('djk/js/dialog.js') }}';
 
 (function() {
     var message = "{{ _('Do you really want to remove the selected e-mail address?') }}";
