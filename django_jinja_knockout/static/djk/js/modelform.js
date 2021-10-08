@@ -278,7 +278,7 @@ function EditForm(options) {
         );
         // Do not process viewmodel response, because we already processed it here.
         return false;
-    }
+    };
 
     EditForm.modelFormAction = function(response) {
         var vm = this.actions.getOurViewmodel(response);
