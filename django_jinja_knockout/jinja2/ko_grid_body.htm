@@ -48,7 +48,7 @@
 
 {% if 'ko_grid_row_click_menu' in _include_ids -%}
 <script type="text/template" id="ko_grid_row_click_menu">
-    <div data-bind="foreach: {data: getEnabledActions(lastClickedKoRow, 'click'), as: 'koAction'}">
+    <div data-bind="foreach: {data: getEnabledActions(lastClickedKoRow, 'click', lastClickedCellNames), as: 'koAction'}">
         <button class="btn btn-block" data-bind="css: actionCss(), click: function() { doLastClickedRowAction(); }, text: koAction.localName">
         </button>
     </div>

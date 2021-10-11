@@ -921,6 +921,7 @@ function Grid(options) {
 
     Grid.rowClick = function(currKoRow, cellNames) {
         this.lastClickedKoRow = currKoRow;
+        this.lastClickedCellNames = cellNames;
         var enabledActions = this.getEnabledActions(currKoRow, 'click', cellNames);
         if (enabledActions.length > 1) {
             // Multiple click actions are available. Open row click actions menu.
