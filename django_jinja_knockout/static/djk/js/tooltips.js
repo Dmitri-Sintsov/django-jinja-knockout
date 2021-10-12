@@ -263,7 +263,7 @@ function AlertError(options) {
                 var $fieldTabPane = this.$field.closest('.tab-pane');
                 if ($fieldTabPane.length > 0 && $fieldTabPane.prop('id')) {
                     var tabPane = TabPane($fieldTabPane.prop('id'));
-                    tabPane.switchTo();
+                    tabPane.switchTo().highlight();
                 } else {
                     var $scrollable = this.$field.scrollableParent();
                     window.setTimeout(function() {
