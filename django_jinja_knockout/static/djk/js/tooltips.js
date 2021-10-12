@@ -4,6 +4,7 @@ import { disposePopover } from './ui.js';
 import { vmRouter } from './ioc.js';
 import { Dialog } from './dialog.js';
 import { AjaxForm } from './ajaxform.js';
+import { TabPane } from './tabpane.js';
 
 function useTooltips() {
     vmRouter.add({
@@ -259,10 +260,16 @@ function AlertError(options) {
                 this.$field.after($contents);
             }
             if (options.messages.length > 0) {
-                var $scrollable = this.$field.scrollableParent();
-                window.setTimeout(function() {
-                    $scrollable.scrollTop(self.$field.position().top);
-                }, 100);
+                var $fieldTabPane = this.$field.closest('.tab-pane');
+                if ($fieldTabPane.length > 0 && $fieldTabPane.prop('id')) {
+                    var tabPane = TabPane($fieldTabPane.prop('id'));
+                    tabPane.switchTo();
+                } else {
+                    var $scrollable = this.$field.scrollableParent();
+                    window.setTimeout(function() {
+                        $scrollable.scrollTop(self.$field.position().top);
+                    }, 100);
+                }
             }
         }
     };

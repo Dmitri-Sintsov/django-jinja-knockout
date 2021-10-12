@@ -1,5 +1,5 @@
 {# http://getbootstrap.com/javascript/#tabs #}
-{% macro bs_tabs(tabs=None, tabs_attrs=None, content_attrs=None) -%}
+{% macro bs_tabs(tabs=None, tabs_attrs=None, content_attrs=None, component_attrs=None) -%}
 {% if tabs is none -%}
     {% set tabs = [] -%}
 {% endif -%}
@@ -9,67 +9,83 @@
 {% if content_attrs is none -%}
     {% set content_attrs = {} -%}
 {% endif -%}
+{% if component_attrs is none -%}
+    {% set component_attrs = {} -%}
+{% endif -%}
+
 {% set _tabs_attrs = {
-    'data-component-class': 'TabList',
     'role': 'tablist',
 } -%}
 {% do _tabs_attrs.update(tabs_attrs) -%}
-{% do tpl.prepend_css_classes_to_dict(_tabs_attrs, 'component nav nav-tabs') -%}
-{% do tpl.prepend_css_classes_to_dict(content_attrs,  'tab-content') -%}
-<ul {{ tpl.json_flatatt(_tabs_attrs) }}>
-{% for tab in tabs -%}
-    {% set li_atts = {
-        'class': 'nav-item',
-        'role': 'presentation'
-    } -%}
-    {% if tab.is_active -%}
-        {% do li_atts.update({'class': 'active'}) -%}
-    {% endif -%}
-    {% if tab.template_id is defined -%}
-        {% do li_atts.update({'data-tab-template': tab.template_id}) -%}
-    {% endif -%}
-    {% set a_atts = {
-        'href': '#' + tab.id,
-        'aria-controls': tab.id,
-        'class': 'nav-link',
-        'role': 'tab',
-        'data-toggle': 'tab'
-    } -%}
-    {% if tab.tooltip -%}
-        {% do li_atts.update({
-            'data-toggle': 'tooltip',
-            'data-placement': 'bottom',
-            'data-html': 'false',
-            'title': tab.tooltip,
-        }) -%}
-    {% endif -%}
-    <li {{ tpl.json_flatatt(li_atts) }}>
-        <a {{ tpl.json_flatatt(a_atts) }}>{{ tab.title }}</a>
-    </li>
-{% endfor -%}
-</ul>
-{% if caller -%}
-    {{ caller() }}
-{% endif -%}
-<div {{ tpl.json_flatatt(content_attrs) }}>
-{% for tab in tabs -%}
-    {% set div_atts = {
-        'role': 'tabpanel',
-        'class': 'tab-pane',
-        'id': tab.id
-    } -%}
-    {% if tab.is_active -%}
-        {% do tpl.add_css_classes_to_dict(div_atts, 'active') -%}
-    {% endif -%}
-    <div {{ tpl.json_flatatt(div_atts) }}>
-        <a name="{{ tab.id }}"></a>
-        {% if tab.html -%}
-            {{ tab.html|safe }}
-        {% else -%}
-        <div class="template-holder"></div>
+{% do tpl.prepend_css_classes_to_dict(_tabs_attrs, 'nav nav-tabs') -%}
+
+{% set _content_attrs = {} %}
+{% do _content_attrs.update(content_attrs) -%}
+{% do tpl.prepend_css_classes_to_dict(_content_attrs,  'tab-content') -%}
+
+{% set _component_attrs = {
+    'data-component-class': 'TabList',
+} -%}
+{% do _component_attrs.update(component_attrs) -%}
+{% do tpl.prepend_css_classes_to_dict(_component_attrs, 'component') -%}
+
+
+<div {{ tpl.json_flatatt(_component_attrs) }}>
+    <ul {{ tpl.json_flatatt(_tabs_attrs) }}>
+    {% for tab in tabs -%}
+        {% set li_atts = {
+            'class': 'nav-item',
+            'role': 'presentation'
+        } -%}
+        {% if tab.is_active -%}
+            {% do li_atts.update({'class': 'active'}) -%}
         {% endif -%}
+        {% if tab.template_id is defined -%}
+            {% do li_atts.update({'data-tab-template': tab.template_id}) -%}
+        {% endif -%}
+        {% set a_atts = {
+            'href': '#' + tab.id,
+            'aria-controls': tab.id,
+            'class': 'nav-link',
+            'role': 'tab',
+            'data-toggle': 'tab'
+        } -%}
+        {% if tab.tooltip -%}
+            {% do li_atts.update({
+                'data-toggle': 'tooltip',
+                'data-placement': 'bottom',
+                'data-html': 'false',
+                'title': tab.tooltip,
+            }) -%}
+        {% endif -%}
+        <li {{ tpl.json_flatatt(li_atts) }}>
+            <a {{ tpl.json_flatatt(a_atts) }}>{{ tab.title }}</a>
+        </li>
+    {% endfor -%}
+    </ul>
+    {% if caller -%}
+        {{ caller() }}
+    {% endif -%}
+    <div {{ tpl.json_flatatt(_content_attrs) }}>
+    {% for tab in tabs -%}
+        {% set div_atts = {
+            'role': 'tabpanel',
+            'class': 'tab-pane',
+            'id': tab.id
+        } -%}
+        {% if tab.is_active -%}
+            {% do tpl.add_css_classes_to_dict(div_atts, 'active') -%}
+        {% endif -%}
+        <div {{ tpl.json_flatatt(div_atts) }}>
+            <a name="{{ tab.id }}"></a>
+            {% if tab.html -%}
+                {{ tab.html|safe }}
+            {% else -%}
+            <div class="template-holder"></div>
+            {% endif -%}
+        </div>
+    {% endfor -%}
     </div>
-{% endfor -%}
 </div>
 {% endmacro -%}
 {% if _render_ -%}
