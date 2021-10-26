@@ -35,7 +35,7 @@ function showAjaxError(jqXHR, exception) {
  * Selenium tests.
  */
 var jsErrorFilter = function(data) {
-    return data.userAgent.indexOf('Googlebot') === -1;
+    return data.userAgent.search('Googlebot|YandexBot') === -1;
 };
 
 function setErrorFilter(fn) {
