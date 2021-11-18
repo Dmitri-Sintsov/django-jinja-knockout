@@ -130,7 +130,18 @@ function Components() {
         cm.each(function(k, elem) {
             self.bind(desc, elem, freeIdx);
         });
-        desc.component.runComponent(cm.$selector);
+        if (desc.component instanceof Promise) {
+            /**
+             * // For modern browsers:
+             * desc.component = await desc.component;
+             */
+            desc.component.then(function(resolve) {
+                desc.component = resolve;
+                desc.component.runComponent(cm.$selector);
+            });
+        } else {
+            desc.component.runComponent(cm.$selector);
+        }
         cm.reattachNestedComponents();
     };
 

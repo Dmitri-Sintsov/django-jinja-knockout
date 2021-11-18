@@ -10,7 +10,6 @@ import { ListRangeFilter } from './filters.js';
 import { AjaxForms } from './ajaxform.js';
 import { EditForm, EditInline } from './modelform.js';
 
-import { Grid } from './grid.js';
 import { GridDialog } from './grid/dialogs.js';
 import { FkGridWidget } from './grid/widget.js';
 import { KoGridAction, GridRowsPerPageAction } from './grid/actions.ko.js';
@@ -45,7 +44,9 @@ var globalIoc = new ViewModelRouter({
         return new EditInline(options);
     },
     'Grid': function(options) {
-        return new Grid(options);
+        return import('./grid.js').then(function(module) {
+            return new module.Grid(options);
+        });
     },
     'GridDialog': function(options) {
         return new GridDialog(options);
