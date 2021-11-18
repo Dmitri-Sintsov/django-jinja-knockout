@@ -742,29 +742,34 @@ class GridActionsMixin(ModelFormActionsView):
         if not isinstance(grid_fields, list):
             self.vm_error('grid_fields must be list')
         for field_def in grid_fields:
+            vm_field = None
             if isinstance(field_def, dict):
-                vm_grid_fields.append({
+                vm_field = {
                     'field': field_def['field'],
                     'name': field_def['name'] if 'name' in field_def else self.get_field_verbose_name(field_def['field']),
-                })
+                }
                 if field_def.get('virtual', False):
                     self.virtual_fields.add(field_def['field'])
             elif isinstance(field_def, tuple):
-                vm_grid_fields.append({
+                vm_field = {
                     'field': field_def[0],
                     'name': field_def[1]
-                })
+                }
             elif isinstance(field_def, str):
-                vm_grid_fields.append({
+                vm_field = {
                     'field': field_def,
                     'name': self.get_field_verbose_name(field_def)
-                })
-            elif isinstance(field_def, list):
-                vm_compound_fields = []
-                self.vm_add_grid_fields(field_def, vm_compound_fields)
-                vm_grid_fields.append(vm_compound_fields)
+                }
+            if vm_field is None:
+                if isinstance(field_def, list):
+                    vm_compound_fields = []
+                    self.vm_add_grid_fields(field_def, vm_compound_fields)
+                    vm_grid_fields.append(vm_compound_fields)
+                else:
+                    self.vm_error('grid_fields list values must be instances of str / tuple / list / dict')
             else:
-                self.vm_error('grid_fields list values must be instances of str / tuple / list / dict')
+                vm_grid_fields.append(vm_field)
+                self.field_names[vm_field['field']] = vm_field['name']
 
     def vm_get_grid_fields(self):
         vm_grid_fields = []
@@ -818,12 +823,14 @@ class GridActionsMixin(ModelFormActionsView):
         return meta
 
     def action_meta(self):
+        # self.get_filters may fail in case self.vm_get_grid_fields() is not called first.
+        vm_grid_fields = self.vm_get_grid_fields()
         vm = {
             'action_kwarg': self.action_kwarg,
             'sortOrders': self.allowed_sort_orders,
             'meta': self.get_ko_meta(),
             'actions': self.vm_get_actions(),
-            'gridFields': self.vm_get_grid_fields(),
+            'gridFields': vm_grid_fields,
             'filters': self.get_filters()
         }
         if self.__class__.mark_safe_fields is not None:

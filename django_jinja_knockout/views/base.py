@@ -416,6 +416,8 @@ class BaseFilterView(PageContextMixin):
         self.grid_fields = None
         # Filtered names of grid_fields (no excluded field names)
         self.grid_fields_attnames = None
+        # Verbose names of fields
+        self.field_names = None
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
@@ -577,12 +579,16 @@ class BaseFilterView(PageContextMixin):
         self.allowed_sort_orders = self.get_allowed_sort_orders()
         self.allowed_filter_fields = self.get_allowed_filter_fields()
         self.search_fields = self.get_search_fields()
+        self.field_names = {}
 
         self.has_get_str_fields = hasattr(self.model, 'get_str_fields')
 
     def get_field_verbose_name(self, field_name):
-        # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
-        return str(get_verbose_name(self.model, field_name))
+        if field_name in self.field_names:
+            return self.field_names[field_name]
+        else:
+            # str() is used to avoid "<django.utils.functional.__proxy__ object> is not JSON serializable" error.
+            return str(get_verbose_name(self.model, field_name))
 
     # Override in child class to customize output.
     def get_display_value(self, obj, field):
