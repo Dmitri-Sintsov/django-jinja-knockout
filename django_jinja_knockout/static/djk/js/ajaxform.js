@@ -2,7 +2,6 @@ import { showAjaxError } from './errors.js';
 import { Trans } from './translate.js';
 import { disableInput, enableInput, disableInputs, enableInputs, clearInputs, Ladder } from './inputs.js';
 import { AppConf } from './conf.js';
-import { Dialog } from './dialog.js';
 import { DataUrl } from './url.js';
 import { vmRouter } from './ioc.js';
 
@@ -159,11 +158,13 @@ function AjaxForm($form) {
                                 'messages': [message]
                             });
                         } else {
-                            new Dialog({
-                                'title': file.name,
-                                'message': message,
-                                'type': BootstrapDialog.TYPE_DANGER,
-                            }).alert();
+                            import('./dialog.js').then(function(module) {
+                                new module.Dialog({
+                                    'title': file.name,
+                                    'message': message,
+                                    'type': BootstrapDialog.TYPE_DANGER,
+                                }).alert();
+                            });
                         }
                         return false;
                     }

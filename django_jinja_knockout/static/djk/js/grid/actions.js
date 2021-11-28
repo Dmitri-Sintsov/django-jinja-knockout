@@ -3,7 +3,6 @@ import { Trans } from '../translate.js';
 import { Actions } from '../actions.js';
 import { renderNestedList } from '../nestedlist.js';
 import { blockTags, ui } from '../ui.js';
-import { Dialog } from '../dialog.js';
 import { ModelFormDialog, ActionTemplateDialog } from '../modelform.js';
 
 /**
@@ -131,7 +130,9 @@ function GridActions(options) {
         var self = this;
         if (typeof viewModel.has_errors !== 'undefined') {
             this.renderDescription(viewModel);
-            new Dialog(viewModel).alert();
+            import('../dialog.js').then(function(module) {
+                new module.Dialog(viewModel).alert();
+            });
             return;
         }
         var pkVals = viewModel.pkVals;
@@ -142,14 +143,18 @@ function GridActions(options) {
             }
         };
         this.renderDescription(viewModel);
-        var dialog = new Dialog(viewModel);
-        dialog.confirm();
+        import('../dialog.js').then(function(module) {
+            var dialog = new module.Dialog(viewModel);
+            dialog.confirm();
+        });
     };
 
     GridActions.callback_delete_confirmed = function(viewModel) {
         if (typeof viewModel.has_errors !== 'undefined') {
             this.renderDescription(viewModel);
-            new Dialog(viewModel).alert();
+            import('../dialog.js').then(function(module) {
+                new module.Dialog(viewModel).alert();
+            });
         } else {
             this.grid.updatePage(viewModel);
         }

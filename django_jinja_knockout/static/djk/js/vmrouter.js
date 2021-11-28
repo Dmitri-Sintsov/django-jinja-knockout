@@ -1,7 +1,6 @@
 import { isArray, isEqual, filter } from './lib/underscore-esm.js';
 import { newClassByPath } from './prop.js';
 import { Trans } from './translate.js';
-import { Dialog } from './dialog.js';
 
 /**
  * https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -185,10 +184,13 @@ function ViewModelRouter(viewHandlers) {
             } catch (e) {
                 console.log('@exception: ' + e);
             }
-            new Dialog({
-                'title': Trans('AJAX response error'),
-                'message': Trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr)),
-            }).alertError();
+            import('./dialog.js').then(function(module) {
+                new module.Dialog({
+                    'title': Trans('AJAX response error'),
+                    'message': Trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr)),
+                }).alertError();
+            });
+
             throw new Error('ViewModelRouter.show() error');
         }
         var hasView;

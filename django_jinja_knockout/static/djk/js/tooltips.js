@@ -2,7 +2,6 @@ import { inherit } from './dash.js';
 import { renderNestedList } from './nestedlist.js';
 import { disposePopover } from './ui.js';
 import { vmRouter } from './ioc.js';
-import { Dialog } from './dialog.js';
 import { AjaxForm } from './ajaxform.js';
 import { TabPane } from './tabpane.js';
 
@@ -231,10 +230,12 @@ function AlertError(options) {
         if (errTitle !== null) {
             var $errmsg = $('<div>');
             renderNestedList($errmsg, options.messages);
-            new Dialog({
-                title: errTitle,
-                message: $errmsg,
-            }).alert();
+            import('./dialog.js').then(function(module) {
+                new module.Dialog({
+                    title: errTitle,
+                    message: $errmsg,
+                }).alert();
+            });
         } else {
             var $inputGroup = this.$field.parents('.input-group:eq(0)');
             if ($inputGroup.length > 0) {

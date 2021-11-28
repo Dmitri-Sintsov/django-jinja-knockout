@@ -2,7 +2,6 @@ import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
 import { Trans } from './translate.js';
 import { vmRouter } from './ioc.js';
-import { Dialog } from './dialog.js';
 
 function showAjaxError(jqXHR, exception) {
     var message;
@@ -91,10 +90,12 @@ window.onerror = function(messageOrEvent, source, lineno, colno, error) {
                     $message.append($elem);
                 }
             }
-            new Dialog({
-                'title': 'Javascript error at: ' + data.url,
-                'message': $message
-            }).alertError();
+            import('./dialog.js').then(function(module) {
+                new module.Dialog({
+                    'title': 'Javascript error at: ' + data.url,
+                    'message': $message
+                }).alertError();
+            });
         }
     }
 };

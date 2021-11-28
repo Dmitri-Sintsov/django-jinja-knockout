@@ -1,7 +1,6 @@
 import { Trans } from './translate.js';
 import { initClient, initClientHooks } from './initclient.js';
 import { ComponentManager } from './components.js';
-import { Dialog } from './dialog.js';
 import { getCardTitle } from './ui.js';
 
 function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
@@ -75,20 +74,22 @@ function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
             }
             var koFormIndex = parseInt(match.pop()) - self.serversideFormsCount;
             $elements.addClass('alert alert-danger');
-            new Dialog({
-                'title': Trans('Delete "%s"', formModelName),
-                'message': Trans('Are you sure you want to delete "%s" ?', formModelName),
-                'callback': function(result) {
-                    if (result) {
-                        self.forms.splice(koFormIndex, 1);
-                        // Update DOM node for forms total count.
-                        self.$formsTotalCount.val(self.getTotalFormsCount());
-                    } else {
-                        $input.prop('checked', false);
-                        $elements.removeClass('alert alert-danger');
+            import('./dialog.js').then(function(module) {
+                new module.Dialog({
+                    'title': Trans('Delete "%s"', formModelName),
+                    'message': Trans('Are you sure you want to delete "%s" ?', formModelName),
+                    'callback': function(result) {
+                        if (result) {
+                            self.forms.splice(koFormIndex, 1);
+                            // Update DOM node for forms total count.
+                            self.$formsTotalCount.val(self.getTotalFormsCount());
+                        } else {
+                            $input.prop('checked', false);
+                            $elements.removeClass('alert alert-danger');
+                        }
                     }
-                }
-            }).confirm();
+                }).confirm();
+            });
         });
     };
 

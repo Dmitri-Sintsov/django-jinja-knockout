@@ -4,7 +4,6 @@ import { ViewModelRouter } from './vmrouter.js';
 import { NestedList } from './nestedlist.js';
 import { Tpl } from './tpl.js';
 import { TabList } from './tabpane.js';
-import { Dialog } from './dialog.js';
 
 import { ListRangeFilter } from './filters.js';
 import { AjaxForms } from './ajaxform.js';
@@ -29,7 +28,9 @@ var globalIoc = new ViewModelRouter({
         return new NestedList(options);
     },
     'Dialog': function(options) {
-        return new Dialog(options);
+        return import('./dialog.js').then(function(module) {
+            return new module.Dialog(options);
+        });
     },
     'TabList': function(options) {
         return new TabList(options);
@@ -88,16 +89,22 @@ var vmRouter = new ViewModelRouter({
         DjangoPost(viewModel.route, viewModel.data, viewModel.options);
     },
     'alert' : function(viewModel) {
-        new Dialog(viewModel).alert();
+        return import('./dialog.js').then(function(module) {
+            new module.Dialog(viewModel).alert();
+        });
     },
     'alert_error' : function(viewModel) {
         if (typeof viewModel.title === 'undefined') {
             viewModel.title = Trans('Error');
         }
-        new Dialog(viewModel).alertError();
+        return import('./dialog.js').then(function(module) {
+            new module.Dialog(viewModel).alertError();
+        });
     },
     'confirm' : function(viewModel) {
-        new Dialog(viewModel).confirm();
+        return import('./dialog.js').then(function(module) {
+            new module.Dialog(viewModel).confirm();
+        });
     },
     'trigger': function(viewModel) {
         $(viewModel.selector).trigger(viewModel.event);
