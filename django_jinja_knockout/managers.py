@@ -4,7 +4,7 @@ from django.db.models.functions import Concat
 
 
 # https://gist.github.com/victorono/cd9d14b013487b8b22975512225c5b4c
-# https://docs.djangoproject.com/en/3.0/topics/db/aggregation/#order-of-annotate-and-values-clauses
+# https://docs.djangoproject.com/en/dev/topics/db/aggregation/#order-of-annotate-and-values-clauses
 # https://stackoverflow.com/questions/54249645/how-to-find-duplicate-records-based-on-certain-fields-in-django
 class DupesManager(models.Manager):
 
