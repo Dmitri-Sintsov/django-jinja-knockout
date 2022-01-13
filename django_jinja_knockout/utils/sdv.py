@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from collections.abc import ValuesView, Mapping
+from datetime import datetime
 import re
 import sys
 import os
@@ -136,7 +137,7 @@ def dbg(name, value=None, basename='sdv_out.py3'):
         caller = inspect.stack()[1]
     except IndexError:
         caller = ['', 'unknown file', 'unknown line', 'unknown function']
-    f.write('# %s::%s()::%s\n# %s\n' % (caller[1], caller[3], caller[2], name))
+    f.write('# %s\n# %s::%s()::%s\n# %s\n' % (datetime.now(), caller[1], caller[3], caller[2], name))
     # http://stackoverflow.com/questions/192109/is-there-a-function-in-python-to-print-all-the-current-properties-and-values-of
     pprint(value, f)
     f.close()
