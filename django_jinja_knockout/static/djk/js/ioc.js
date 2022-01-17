@@ -7,7 +7,6 @@ import { TabList } from './tabpane.js';
 
 import { AjaxForms } from './ajaxform.js';
 
-import { GridDialog } from './grid/dialogs.js';
 import { FkGridWidget } from './grid/widget.js';
 import { KoGridAction, GridRowsPerPageAction } from './grid/actions.ko.js';
 
@@ -54,7 +53,9 @@ var globalIoc = new ViewModelRouter({
         });
     },
     'GridDialog': function(options) {
-        return new GridDialog(options);
+        return import('./grid/dialogs.js').then(function(module) {
+            return new module.GridDialog(options);
+        });
     },
     'FkGridWidget': function(options) {
         return new FkGridWidget(options);
