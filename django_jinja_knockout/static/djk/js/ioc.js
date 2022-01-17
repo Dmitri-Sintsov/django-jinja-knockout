@@ -5,9 +5,7 @@ import { NestedList } from './nestedlist.js';
 import { Tpl } from './tpl.js';
 import { TabList } from './tabpane.js';
 
-import { ListRangeFilter } from './filters.js';
 import { AjaxForms } from './ajaxform.js';
-import { EditForm, EditInline } from './modelform.js';
 
 import { GridDialog } from './grid/dialogs.js';
 import { FkGridWidget } from './grid/widget.js';
@@ -36,13 +34,19 @@ var globalIoc = new ViewModelRouter({
         return new TabList(options);
     },
     'ListRangeFilter': function(options) {
-        return new ListRangeFilter(options);
+        return import('./filters.js').then(function(module) {
+            return new module.ListRangeFilter(options);
+        });
     },
     'EditForm': function(options) {
-        return new EditForm(options);
+        return import('./modelform.js').then(function(module) {
+            return new module.EditForm(options);
+        });
     },
     'EditInline': function(options) {
-        return new EditInline(options);
+        return import('./modelform.js').then(function(module) {
+            return new module.EditInline(options);
+        });
     },
     'Grid': function(options) {
         return import('./grid.js').then(function(module) {
@@ -55,9 +59,11 @@ var globalIoc = new ViewModelRouter({
     'FkGridWidget': function(options) {
         return new FkGridWidget(options);
     },
+    // not a component, instantiated via ViewModelRouter.factory().
     'KoGridAction': function(options) {
         return new KoGridAction(options);
     },
+    // not a component, instantiated via ViewModelRouter.factory().
     'GridRowsPerPageAction': function(options) {
         return new GridRowsPerPageAction(options);
     },
