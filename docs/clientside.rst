@@ -1,24 +1,30 @@
 ===================
 Client-side support
 ===================
+.. _AjaxButton:: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxButton&type=&utf8=%E2%9C%93
+.. _AjaxForm:: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxForm&type=&utf8=%E2%9C%93
+.. _AppGet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppGet&type=&utf8=%E2%9C%93
+.. _AppPost: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppPost&type=&utf8=%E2%9C%93
 .. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&type=code
 .. _App.compileTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.compileTemplate&type=code
 .. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.components
 .. _App.ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.componentmanager
-.. _App.documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
+.. _documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
 .. _App.Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
+.. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
 .. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
 .. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
 .. _App.initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClient+%3D+function
 .. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks+%3D+function
 .. _App.Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
-.. _App.localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.localize&type=code
+.. _localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=localize&type=code
 .. _App.OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.OrderedHooks
 .. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
 .. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
-.. _App.trans: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.trans&type=code
+.. _Trans: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search??l=JavaScript&q=Trans&type=code
 .. _App.TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=transformtags
-.. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
+.. _vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=vmRouter&type=&utf8=%E2%9C%93
+.. _Url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Url&type=&utf8=%E2%9C%93
 .. _bs_range_filter.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_range_filter.htm
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
 .. _Internationalization in JavaScript code: https://docs.djangoproject.com/en/dev/topics/i18n/translation/#internationalization-in-javascript-code
@@ -26,16 +32,84 @@ Client-side support
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 .. _sprintf: https://github.com/alexei/sprintf.js
+.. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
+.. _system.js: https://github.com/systemjs/systemjs
+.. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 
 app.js
 ------
-Implements client-side helper classes, including:
+Since v2.0, the monolithic app.js which used global ``App`` container, has been refactored into es6 modules, which makes
+the client-side development more flexible. The modules themselves still use es5 syntax, with the exception of es6
+imports / exports. To run the code in outdated browser which does not support es6 modules (eg IE11), `django_deno`_
+bundling app should be used. It also has optional terser support. There is sample app django_deno config (see
+djk-sample `settings.py`_ for full sample):
+
+.. highlight:: python
+
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        # 'sites' is required by allauth
+        'django.contrib.sites',
+        'django_deno',
+    ] + DJANGO_JINJA_APPS + [
+        'djk_ui',
+        'django_jinja_knockout',
+        'django_jinja_knockout._allauth',
+    ] + DJK_APPS + [
+        'allauth',
+        'allauth.account',
+        # Required for socialaccount template tag library despite we do not use social login
+        'allauth.socialaccount',
+    ]
+
+    DENO_ROLLUP_ENTRY_POINTS = [
+        'sample/js/app.js',
+        'sample/js/club-grid.js',
+        'sample/js/member-grid.js',
+    ]
+
+    DENO_ROLLUP_BUNDLES = {
+        'djk': {
+            'writeEntryPoint': 'sample/js/app.js',
+            'matches': [
+                'djk/js/*',
+                'djk/js/lib/*',
+                'djk/js/grid/*',
+            ],
+            'excludes': [],
+            'virtualEntryPoints': 'matches',
+            'virtualEntryPointsExcludes': 'excludes',
+        },
+    }
+
+    # Do not forget to re-run collectrollup management command after changing rollup.js bundles module type:
+    DENO_OUTPUT_MODULE_TYPE = 'module' if DEBUG else 'systemjs-module'
+    DJK_JS_MODULE_TYPE = DENO_OUTPUT_MODULE_TYPE
+
+    # Run $VIRTUAL_ENV/djk-sample/cherry_django.py to check validity of collectrollup command output.
+    DENO_ROLLUP_COLLECT_OPTIONS = {
+        'terser': True,
+    }
+
+    DENO_ENABLE = True
+    DENO_DEBUG = False
+    DENO_RELOAD = False
+
+Old browsers such as IE11 will use the bundled `system.js`_ loader.
+Note that modern browsers do not require any bundling at all.
+
+Client-side modules include many different features:
 
 * `Viewmodels (client-side response routing)`_
 * `Underscore.js templates`_
 * `Components`_
 * `Multiple level Javascript class inheritance`_
-* ``App.Dialog`` BootstrapDialog wrapper.
+* `Dialog`_ BootstrapDialog wrapper.
 
 Client-side initialization
 --------------------------
@@ -44,11 +118,11 @@ Client-side initialization
 
 There are two different hooks / methods of client-side initialization:
 
-* `App.documentReadyHooks`_ - the list of function handlers which are called via ``$(document).ready()`` event handler,
+* `documentReadyHooks`_ - the list of function handlers which are called via ``$(document).ready()`` event handler,
   so these do not interfere with the third party scripts code.
-* `App.initClientHooks`_ - the ordered list of function handlers applied to content generated by the viewmodels /
+* `initClientHooks`_ - the ordered list of function handlers applied to content generated by the viewmodels /
   Underscore.js / Knockout.js templates to provide the dynamic styles / event handlers / client-side components. It's
-  processed via calling `App.initClient`_ function. `App.OrderedHooks`_ class instance is used to add hooks in proper
+  processed via calling `initClient`_ function. `OrderedHooks`_ class instance is used to add hooks in proper
   order, where the component initialization hook should always be executed at the last step.
 
 Read more about viewmodels here: :doc:`viewmodels`.
@@ -58,7 +132,9 @@ are called in the reverse order. It's also possible to define custom types of ha
 
 To add new client-side initialization handlers of the 'init' / 'dispose' types::
 
-    App.initClientHooks.add({
+    import { initClientHooks } from '../../djk/js/initclient.js';
+
+    initClientHooks.add({
         init: function($selector) {
             $selector.myPlugin('init');
         },
@@ -69,17 +145,23 @@ To add new client-side initialization handlers of the 'init' / 'dispose' types::
 
 To add only the 'init' type of handler (when disposal is not needed)::
 
-    App.initClientHooks.add(function($selector) {
+    import { initClientHooks } from '../../djk/js/initclient.js';
+
+    initClientHooks.add(function($selector) {
         $selector.myPlugin('init');
     });
 
 To call all the chain of 'init' handlers::
 
-    App.initClient($selector);
+    import { initClient } from '../../djk/js/initclient.js';
+
+    initClient($selector);
 
 To call all the chain of 'dispose' handlers::
 
-    App.initClient($selector, 'dispose');
+    import { initClient } from '../../djk/js/initclient.js';
+
+    initClient($selector, 'dispose');
 
 Note that the handlers usually are callled automatically, except for grid rows where one has to use grid .useInitClient
 option to enable .initClient() call for grid rows DOM. See :doc:`datatables` for more info.
@@ -97,16 +179,16 @@ See :doc:`viewmodels` for the detailed explanation.
 * Client-side view models can also be executed in Javascript directly.
 * Possibility to optionally inject client-side viewmodels into html pages, executing these on load.
 * Possibility to execute client-side viewmodels from current user session (persistent onload).
-* `App.vmRouter`_ - predefined built-in AJAX response viewmodels router to perform standard client-side actions, such as
+* `vmRouter`_ - predefined built-in AJAX response viewmodels router to perform standard client-side actions, such as
   displaying BootstrapDialogs, manipulate DOM content with graceful AJAX errors handling. It can be used to define new
   viewmodel handlers.
 
 Simplifying AJAX calls
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* ``App.routeUrl`` - mapping of Django server-side route urls to client-side Javascript.
-* ``App.ajaxButton`` - automation of button click event AJAX POST handling for Django.
-* ``App.ajaxForm`` - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
+* `Url`_ - mapping of Django server-side route urls to client-side Javascript.
+* `AjaxButton`_ - automation of button click event AJAX POST handling for Django.
+* `AjaxForm`_ - Django form AJAX POST submission with validation errors display via response client-side viewmodels.
 
   Requires ``is_ajax=True`` argument of :ref:`macros_bs_form` / :ref:`macros_bs_inline_formsets` Jinja2 macros.
 
@@ -116,51 +198,50 @@ Simplifying AJAX calls
   Supports multiple Django POST routes for the same AJAX form via multiple ``input[type="submit"]`` buttons in the
   generated form html body.
 
-* ``App.get()`` / ``App.post()`` automate execution of AJAX POST handling for Django using named urls like
+* `AppGet`_ / `AppPost`_ automate execution of AJAX POST handling for Django using named urls like
   ``url(name='my_url_name')`` exported to client-side code directly.
 
 Global IoC
 ----------
-The ``App.readyInstances`` variable holds lazy definitions of global instances initialized when browser document is
-loaded. It allows to override built-in global instances and to add custom global instances in user scripts like this::
+Since v2.0, monolithic ``App.readyInstances`` has been replaced by `globalIoc`_ instance of `ViewModelRouter`_ class,
+which holds lazy definitions of global instances initialized when browser document is loaded. It allows to override
+built-in global instances and to add custom global instances in user scripts like this::
+
+    import { globalIoc } from '../../djk/js/ioc.js';
 
     // Late initialization allows to patch / replace classes in user scripts.
-    App.readyInstances['App.userActions'] = {'App.Actions': {
-        route: 'user_actions',
-        actions: {
-            'send': {},
-            'receive_for_room': {},
-            'room_list': {},
-            'unread_count': {},
-        }
-    }};
+    globalIoc.add('UserClass', function(options) {
+        return new UserClass(options);
+    });
 
 Client-side localization
 ------------------------
 
-It's possible to format Javascript translated messages with `App.trans`_ function::
+It's possible to format Javascript translated messages with `Trans`_ function::
 
-    App.trans('Yes')
-    App.trans('No')
-    App.trans('Close')
-    App.trans('Delete "%s"', formModelName)
+    import { Trans } from '../../djk/js/translate.js';
+
+    Trans('Yes')
+    Trans('No')
+    Trans('Close')
+    Trans('Delete "%s"', formModelName)
     // named arguments
-    App.trans(
+    Trans(
         'Too big file size=%(size)s, max_size=%(maxsize)s',
         {'size': file.size, 'maxsize': maxSize}
     )
     // with html escape
-    App.trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr))
+    Trans('Undefined viewModel.view %s', $.htmlEncode(viewModelStr))
 
 .. highlight:: html
 
-Since v1.1.0, automatic translation of html text nodes with ``localize-text`` class is performed with `App.localize`_ by
+Automatic translation of html text nodes with ``localize-text`` class is performed with `localize`_ by
 `Client-side initialization`_ ::
 
     <div class="localize-text">Hello, world in your language!</div>
 
 * See `Internationalization in JavaScript code`_ how to setup Javascript messages catalog in Django.
-* Internally, `sprintf`_ library and `App.trans`_ is used to convert messages to local versions.
+* Internally, `sprintf`_ library and `Trans`_ is used to convert messages to local versions.
 * See `bs_range_filter.htm`_ source for the complete example.
 
 .. _clientside_underscore_js_templates:

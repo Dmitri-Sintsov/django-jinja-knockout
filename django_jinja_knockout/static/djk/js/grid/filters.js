@@ -290,13 +290,11 @@ function GridFilter(options) {
      * Programmatically set specified values list of filter choices for current filter.
      */
     GridFilter.setChoices = function(values) {
-        this.activateResetFilter();
-        for (var i = 0; i < values.length; i++) {
-            var koFilterChoice = this.getKoFilterChoice(values[i]);
-            if (koFilterChoice !== undefined) {
-                this.switchKoFilterChoices(koFilterChoice);
-            }
+        for (var i = 0; i < this.choices.length; i++) {
+            var koFilterChoice = this.choices[i];
+            koFilterChoice.is_active(values.indexOf(koFilterChoice.value) !== -1);
         }
+        this.activateResetFilter();
     };
 
 }(GridFilter.prototype);

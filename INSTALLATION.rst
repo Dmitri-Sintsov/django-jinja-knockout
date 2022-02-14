@@ -297,14 +297,18 @@ every view which includes Javascript template that accesses these url names (for
 
 The current url generated for ``'blog_feed'`` url name will be available at client-side Javascript as::
 
-    App.routeUrl('blog_feed', {'blog_id': 1});
+    import { Url } from '../../djk/js/url.js';
+
+    Url('blog_feed', {'blog_id': 1});
 
 One will be able to call Django view via AJAX request in your Javascript code like this::
 
-    App.post('blog_feed', {'postvar1': 1, 'postvar2': 2}, {
+    import { AppGet, AppPost } from '../../djk/js/url.js';
+
+    AppPost('blog_feed', {'postvar1': 1, 'postvar2': 2}, {
         kwargs: {'blog_id': 1}
     });
-    App.get('blog_feed', {'getvar1': 1}, {
+    AppGet('blog_feed', {'getvar1': 1}, {
         kwargs: {'blog_id': 1}
     });
 
