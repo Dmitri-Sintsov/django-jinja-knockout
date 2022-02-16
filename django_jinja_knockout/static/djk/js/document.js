@@ -9,7 +9,7 @@ import { ComponentManager, components } from './components.js';
 import { transformTags, disposePopover, UiDatetimeWidget } from './ui.js';
 import { bindTemplates } from './tpl.js';
 import { vmRouter } from './ioc.js';
-import { ContentPopover } from './button-popover.js';
+import { ContentPopover } from './popover.js';
 import { SelectMultipleAutoSize } from './inputs.js';
 import { initTabPane } from './tabpane.js';
 import { useTooltips } from './tooltips.js';

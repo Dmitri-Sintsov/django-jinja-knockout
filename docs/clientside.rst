@@ -1,32 +1,36 @@
 ===================
 Client-side support
 ===================
-.. _AjaxButton:: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxButton&type=&utf8=%E2%9C%93
-.. _AjaxForm:: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxForm&type=&utf8=%E2%9C%93
+.. _AjaxButton: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxButton&type=&utf8=%E2%9C%93
+.. _AjaxForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxForm&type=&utf8=%E2%9C%93
 .. _AppGet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppGet&type=&utf8=%E2%9C%93
 .. _AppPost: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppPost&type=&utf8=%E2%9C%93
-.. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&type=code
-.. _App.compileTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.compileTemplate&type=code
-.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.components
-.. _App.ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.componentmanager
+.. _bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=bindTemplates&type=code
+.. _cbv_grid_breadcrumbs.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid_breadcrumbs.htm
+.. _compileTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=compileTemplate&type=code
+.. _Components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Components
+.. _ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ComponentManager
 .. _documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
-.. _App.Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
+.. _Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
 .. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
-.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
-.. _App.globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=app.globalioc&type=&utf8=%E2%9C%93
-.. _App.initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClient+%3D+function
-.. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks+%3D+function
-.. _App.Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
+.. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
+.. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalioc&type=&utf8=%E2%9C%93
+.. _initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClient+%3D+function
+.. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks+%3D+function
+.. _Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
 .. _localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=localize&type=code
-.. _App.OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.OrderedHooks
-.. _App.ko.Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ko.Subscriber&type=&utf8=%E2%9C%93
-.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
-.. _Trans: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search??l=JavaScript&q=Trans&type=code
-.. _App.TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=transformtags
+.. _OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=OrderedHooks
+.. _Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Subscriber&type=&utf8=%E2%9C%93
+.. _SuperChain: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=SuperChain&type=&utf8=%E2%9C%93
+.. _Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl&utf8=%E2%9C%93
+.. _Trans: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Trans&type=code
+.. _TransformTags: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TransformTags
 .. _vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=vmRouter&type=&utf8=%E2%9C%93
+.. _ViewModelRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ViewModelRouter&type=code
 .. _Url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Url&type=&utf8=%E2%9C%93
 .. _bs_range_filter.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_range_filter.htm
 .. _data-component-class: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-class
+.. _data-component-selector: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=data-component-selector
 .. _Internationalization in JavaScript code: https://docs.djangoproject.com/en/dev/topics/i18n/translation/#internationalization-in-javascript-code
 .. _ko_grid(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid.htm
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
@@ -35,16 +39,18 @@ Client-side support
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _system.js: https://github.com/systemjs/systemjs
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
+.. _terser: https://terser.org
 
 app.js
 ------
-Since v2.0, the monolithic app.js which used global ``App`` container, has been refactored into es6 modules, which makes
-the client-side development more flexible. The modules themselves still use es5 syntax, with the exception of es6
-imports / exports. To run the code in outdated browser which does not support es6 modules (eg IE11), `django_deno`_
-bundling app should be used. It also has optional terser support. There is sample app django_deno config (see
-djk-sample `settings.py`_ for full sample):
 
 .. highlight:: python
+
+Since v2.0, the monolithic app.js which used global ``App`` container, was refactored into es6 modules, which makes
+the client-side development more flexible. The modules themselves still use es5 syntax, with the exception of es6
+imports / exports. To run the code in outdated browser which does not support es6 modules (eg IE11), `django_deno`_
+bundling app should be used. It also has optional `terser`_ support. There is sample django_deno config (see djk-sample
+`settings.py`_ for full working example)::
 
     INSTALLED_APPS = [
         'django.contrib.admin',
@@ -55,6 +61,7 @@ djk-sample `settings.py`_ for full sample):
         'django.contrib.staticfiles',
         # 'sites' is required by allauth
         'django.contrib.sites',
+        # django_deno is an optional Javascript module bundler, not required to run in modern browsers
         'django_deno',
     ] + DJANGO_JINJA_APPS + [
         'djk_ui',
@@ -91,7 +98,7 @@ djk-sample `settings.py`_ for full sample):
     DENO_OUTPUT_MODULE_TYPE = 'module' if DEBUG else 'systemjs-module'
     DJK_JS_MODULE_TYPE = DENO_OUTPUT_MODULE_TYPE
 
-    # Run $VIRTUAL_ENV/djk-sample/cherry_django.py to check validity of collectrollup command output.
+    # Run $VIRTUAL_ENV/djk-sample/cherry_django.py to check the validity of collectrollup command output bundle.
     DENO_ROLLUP_COLLECT_OPTIONS = {
         'terser': True,
     }
@@ -163,7 +170,7 @@ To call all the chain of 'dispose' handlers::
 
     initClient($selector, 'dispose');
 
-Note that the handlers usually are callled automatically, except for grid rows where one has to use grid .useInitClient
+Note that the handlers usually are called automatically, except for grid rows where one has to use grid .useInitClient
 option to enable .initClient() call for grid rows DOM. See :doc:`datatables` for more info.
 
 Custom ``'formset:added'`` jQuery event automatically supports client initialization, eg form field classes / form field
@@ -203,9 +210,9 @@ Simplifying AJAX calls
 
 Global IoC
 ----------
-Since v2.0, monolithic ``App.readyInstances`` has been replaced by `globalIoc`_ instance of `ViewModelRouter`_ class,
-which holds lazy definitions of global instances initialized when browser document is loaded. It allows to override
-built-in global instances and to add custom global instances in user scripts like this::
+Since v2.0, monolithic ``App.readyInstances`` was replaced by `globalIoc`_ instance of `ViewModelRouter`_ class, which
+holds lazy definitions of global instances initialized when browser document is loaded. It allows to override built-in
+global instances and to add custom global instances in user scripts like this::
 
     import { globalIoc } from '../../djk/js/ioc.js';
 
@@ -248,33 +255,56 @@ Automatic translation of html text nodes with ``localize-text`` class is perform
 
 Underscore.js templates
 -----------------------
-Underscore.js templates can be autoloaded as ``App.Dialog`` modal body content. Also they are used in conjunction with
+Underscore.js templates can be autoloaded as `Dialog`_ modal body content. Also they are used in conjunction with
 Knockout.js templates to generate components, for example AJAX grids (Django datatables).
 
-Template processor is implemented as `App.Tpl`_ class. It makes possible to extend or to replace template processor
-class by altering `App.globalIoc`_ factory ``['App.Tpl']`` key. Such custom template processor class could override one
-of the (sub)templates loading methods ``.expandTemplate()`` or ``.compileTemplate()``.
+.. highlight:: javascript
 
-In the underscore.js template execution context, the instance of `App.Tpl`_ class is available as ``self`` variable.
-Thus calling `App.Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
+Template processor is implemented as `Tpl`_ class. It's possible to extend or to replace template processor class by
+calling `globalIoc`_ factory method::
+
+    import { propGet } from '../../djk/js/prop.js';
+    import { inherit } from '../../djk/js/dash.js';
+    import { Tpl } from '../../djk/js/tpl.js';
+    import { globalIoc } from '../../djk/js/ioc.js';
+
+    globalIoc.removeAll('Tpl').add('Tpl', function(options) {
+        var _options = $.extend({}, options);
+        if (propGet(_options, 'meta_is_ie')) {
+            return new IeTpl(_options);
+        } else {
+            return new Tpl(_options);
+        }
+    });
+
+    IeTpl = function(options) {
+        inherit(Tpl.prototype, this);
+        return this.init(options);
+    };
+
+Such custom template processor class could override one of the (sub)templates loading methods such as
+``.expandTemplate()`` or ``.compileTemplate()``.
+
+In the underscore.js template execution context, the instance of `Tpl`_ class is available as ``self`` variable. Thus
+calling `Tpl`_ class ``.get('varname')`` method is performed as ``self.get('varname')``. See `ko_grid_body()`_
 templates for the example of ``self.get`` method usage.
 
 Internally template processor is used for optional client-side overriding of default grid templates, supported via
-`App.Tpl`_ constructor ``options.templates`` argument.
+`Tpl`_ constructor ``options.templates`` argument.
 
-* `App.compileTemplate`_ provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
+* `compileTemplate`_ provides singleton factory for compiled underscore.js templates from ``<script>`` tag with
   specified DOM id ``tplId``.
-* `App.Tpl.domTemplate`_ converts template with specified DOM id and template arguments into jQuery DOM subtee.
-* `App.Tpl.loadTemplates`_ recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
+* `Tpl.domTemplate`_ converts single template with specified DOM id and template arguments into jQuery DOM subtree.
+* `Tpl.loadTemplates`_ recursively loads existing underscore.js templates by their DOM id into DOM nodes with html5
   ``data-template-id`` attributes for specified ``$selector``.
-* `App.bindTemplates`_ - templates class factory used by `App.initClient`_ auto-initialization of DOM nodes.
+* `bindTemplates`_ - templates class factory used by `initClient`_ auto-initialization of DOM nodes.
 
-The following html5 data attributes are used by `App.Tpl`_ template processor:
+The following html5 data attributes are used by `Tpl`_ template processor:
 
 * ``data-template-id`` - destination DOM node which will be replaced by expanded underscore.js template with specified
   template id. Attribute can be applied recursively.
-* ``data-template-class`` - optional override of default `App.Tpl`_ template processor class. Allows to process
-  different underscore.js templates with different template processor classes.
+* ``data-template-class`` - optional override of default `Tpl`_ template processor class. Allows to process different
+  underscore.js templates with different template processor classes.
 * ``data-template-args`` - optional values of current template processor instance ``.extendData()`` method argument.
   This value will be appended to ``.data`` property of template processor instance. The values stored in ``.data``
   property are used to control template execution flow via ``self.get()`` method calls in template source code.
@@ -283,8 +313,8 @@ The following html5 data attributes are used by `App.Tpl`_ template processor:
 * ``data-template-options`` - optional value of template processor class constructor ``options`` argument, which
   may have the following keys:
 
-    * ``.data`` - used by `App.Tpl`_ class ``.get()`` method to control template execution flow.
-    * ``.templates`` - key map of template ids to optionally substitute template names.
+    * ``.data`` - used by `Tpl`_ class ``.get()`` method to control template execution flow.
+    * ``.templates`` - key map of template ids to optionally substitute some or all of template names.
 
 .. _clientside_attributes_merging:
 
@@ -299,25 +329,25 @@ components. For example datatables / grid templates do not use separate wrapper 
 
 Custom tags
 ~~~~~~~~~~~
-The built-in template processor supports custom tags via `App.TransformTags`_ Javascript class ``applyTags()`` method.
+The built-in template processor supports custom tags via `TransformTags`_ Javascript class ``applyTags()`` method.
 By default there are the ``CARD-*`` tags registered, which are transformed to Bootstrap 4 cards or to Bootstrap 3 panels
 depending on the :doc:`djk_ui` version.
 
-Custom tags are also applied via `App.initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
+Custom tags are also applied via `initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
 However because the custom tags are not browser-native, such usage of custom tags is not recommended as extra flicker
 may occur. Such flicker never occurs in built-in `Underscore.js templates`_, because the template tags are substituted
 before they are attached to the page DOM.
 
 It's possible to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
-``fn`` to `App.TransformTags`_ class ``add()`` method.
+``fn`` to `TransformTags`_ class ``add()`` method.
 
 .. _clientside_components:
 
 Components
 ----------
-`App.Components`_ class allows to automatically instantiate Javascript classes by their string path specified in
-element's ``data-component-class`` html5 attribute and bind these to that element. It is used to provide Knockout.js
-``App.ko.Grid`` component auto-loading / auto-binding, but is not limited to that.
+`Components`_ class allows to automatically instantiate Javascript classes by their `globalIoc`_ string path specified
+in element's `data-component-class`_ html5 attribute and bind these to that element. It is used to provide Knockout.js
+``Grid`` component auto-loading / auto-binding, but is not limited to.
 
 .. highlight:: html
 
@@ -326,20 +356,36 @@ Components can be also instantiated via target element event instead of document
 
     <button class="component"
         data-event="click"
-        data-component-class="App.GridDialog"
+        data-component-class="GridDialog"
         data-component-options='{"filterOptions": {"pageRoute": "club_member_grid"}}'>
         Click to see project list
     </button>
 
-When target button is clicked, ``App.GridDialog`` class will be instantiated with ``data-component-options`` value
-passed as constructor argument.
+When target button is clicked, `GridDialog`_ class registered by `globalIoc`_ will be instantiated with
+``data-component-options`` value passed as it's constructor argument.
 
 .. highlight:: jinja
 
-JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so usually it
-is generated in Jinja2 macro, such as `ko_grid()`_::
+JSON string value of ``data-component-options`` attribute can be nested object with many parameter values, so for
+convenience it can be generated in Jinja2 macro, such as `ko_grid()`_
+See the example of overriding two default templates in `cbv_grid_breadcrumbs.htm`_::
 
-    <div{{ tpl.json_flatatt(_dom_attrs) }}></div>
+    {{
+    ko_grid(
+        grid_options={
+            'pageRoute': view.request.resolver_match.view_name,
+            'pageRouteKwargs': view.kwargs,
+        },
+        dom_attrs={
+            'data-template-options': {
+                'templates': {
+                    'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
+                    'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
+                }
+            },
+        }
+    )
+    }}
 
 .. highlight:: javascript
 
@@ -352,7 +398,9 @@ re-instantiated, one should save target element in component instance like this:
         this.doStuff();
     };
 
-Then in your component shutdown code call `App.components`_ instance ``.unbind()`` method, then ``.add()`` method::
+Then in your component shutdown code call `components`_ instance ``.unbind()`` method, then ``.add()`` method::
+
+    import { components } from '../../djk/components.js';
 
     MyComponent.onHide = function() {
         // Run your shutdown code ...
@@ -360,23 +408,23 @@ Then in your component shutdown code call `App.components`_ instance ``.unbind()
         // Detect component, so it will work without component instantiation too.
         if (this.componentElement !== null) {
             // Unbind component.
-            var desc = App.components.unbind(this.componentElement);
+            var desc = components.unbind(this.componentElement);
             if (typeof desc.event !== 'undefined') {
                 // Re-bind component to the same element with the same event.
-                App.components.add(this.componentElement, desc.event);
+                components.add(this.componentElement, desc.event);
             }
         }
     };
 
-See `App.GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
+See `GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
 
-Because `App.GridDialog`_ class constructor may have many options, including dynamically-generated ones, it's
-preferable to generate ``data-component-options`` JSON string value in Python / Jinja2 code.
+Because `GridDialog`_ class constructor may have many options, including dynamically-generated ones, it's preferable to
+generate ``data-component-options`` JSON string value in Python / Jinja2 code.
 
 Search for `data-component-class`_ in djk-sample code for the examples of both document ready and button click
 component binding.
 
-Components use `App.ComponentManager`_ class which provides the support for nested components and for sparse components.
+Components use `ComponentManager`_ class which provides the support for nested components and for sparse components.
 
 .. _clientside_nested_components:
 
@@ -387,20 +435,20 @@ Nested components
 
 It's possible to nest component DOM nodes recursively unlimited times::
 
-    <div class="component" data-component-class="App.ko.Grid">
+    <div class="component" data-component-class="Grid">
         <input type="button" value="Grid button" data-bind="click: onClick()">
-        <div class="component" data-component-class="App.MyComponent">
+        <div class="component" data-component-class="MyComponent">
             <input type="button" value="My component button" data-bind="click: onClick()">
         </div>
     </div>
 
-The Knockout.js bindings will be provided correctly to ``App.ko.Grid`` class instance ``onClick()`` method for the
-``Grid button`` and to ``App.MyComponent`` class instance ``onClick()`` method for the ``My component button``.
+The Knockout.js ``click`` bindings of the ``Grid button`` will be directed to ``Grid`` class instance ``onClick()``
+method and from the ``My component button`` to ``MyComponent`` class instance ``onClick()`` method.
 
 Note that to achieve nested binding, DOM subtrees of nested components are detached until the outer components are run.
 Thus, in case the outer component is run on some event, for example ``data-event="click"``, nested component nodes will
 be hidden until outer component is run via the click event. Thus it's advised to think carefully when using nested
-components running on events, while the default document ready nested components have no such possible limitation.
+components running on events, while the document ready nested components have no such possible limitation.
 
 The limitation is not so big, however because most of the components have dynamic content populated only when they run.
 
@@ -414,7 +462,7 @@ Sparse components
 .. highlight:: jinja
 
 In some cases the advanced layout of the page requires one component to be bound to the multiple separate DOM subtrees
-of the page. In such case sparse components may be used. To specify sparse component, add ``data-component-selector``
+of the page. In such case sparse components may be used. To specify sparse component, add `data-component-selector`_
 HTML attribute to it with the jQuery selector that should select sparse DOM nodes bound to that component.
 
 Let's define the datatable grid::
@@ -422,7 +470,7 @@ Let's define the datatable grid::
     {{
         ko_grid(
             grid_options={
-                'classPath': 'App.ko.ClubEditGrid',
+                'classPath': 'ClubEditGrid',
                 'pageRoute': 'club_edit_grid',
                 'pageRouteKwargs': {'club_id': view.kwargs['club_id']},
             },
@@ -445,7 +493,7 @@ page::
             <h3>Grid rows:</h3>
             <ul class="auto-highlight" data-bind="foreach: {data: $('#club_edit_grid').component().gridRows, as: 'row'}">
                 <li>
-                    <a data-bind="text: row.displayValues.name, attr: {href: App.routeUrl('member_detail', {member_id: row.values.member_id})}"></a>
+                    <a data-bind="text: row.displayValues.name, attr: {href: getUrl('member_detail', {member_id: row.values.member_id})}"></a>
                 </li>
             </ul>
         </div>
@@ -457,8 +505,8 @@ page::
         </button>
     </div>
 
-When the document DOM will be ready, ``App.ClubEditGrid`` class will be bound to three DOM subtrees, one is generated
-via ``ko_grid()`` Jinja2 macro and two located inside separate ``<div class="club-edit-grid">`` wrappers.
+When the document DOM will be ready, ``ClubEditGrid`` class will be bound to three DOM subtrees, one is generated via
+``ko_grid()`` Jinja2 macro and two located inside separate ``<div class="club-edit-grid">`` wrappers.
 
 Sparse components may also include inner non-sparse (single DOM subtree) nested components. Nesting of sparse components
 is unsupported.
@@ -468,10 +516,13 @@ Knockout.js subscriber
 
 .. highlight:: javascript
 
-Javascript mixin class `App.ko.Subscriber`_ may be used to control Knockout.js viewmodel methods subscriptions. To add
-this mixin to your class::
+Javascript mixin class `Subscriber`_ may be used to control Knockout.js viewmodel methods subscriptions. To add this
+mixin to your class::
 
-    $.inherit(App.ko.Subscriber.prototype, this);
+    import { inherit } from '../../djk/js/dash.js';
+    import { Subscriber } from '../../djk/js/ko.js';
+
+    inherit(Subscriber.prototype, this);
 
 In case there is observable property::
 
@@ -504,93 +555,155 @@ execution of an observation handler::
         // ... skipped ...
     }
 
-plugins.js
-----------
-Set of jQuery plugins.
+dash.js
+-------
+
+This module implements low-level Javascript helpers, such as:
+
+* advanced typechecking ``isMapping()`` / ``isScalar()``
+* value conversion ``intVal()`` / ``capitalize()`` / ``camelCaseToDash()``
+* ``ODict`` ordered dict element, used by ``NestedList`` / ``GridColumn`` (See :doc:`datatables` for more info.)
+* Multiple level Javascript class inheritance
 
 Multiple level Javascript class inheritance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* ``$.inherit`` - implementation of meta inheritance.
+* ``inherit()`` - implementation of meta inheritance.
   Copies parent object ``prototype`` methods into ``instance`` of pseudo-child. Supports nested multi-level inheritance
-  with chains of ``_super`` calls in Javascript via ``$.SuperChain`` class.
+  with chains of ``_super`` calls in Javascript via `SuperChain`_ class.
 
-Multi-level inheritance should be specified in descendant to ancestor order.
+* Multi-level inheritance should be specified in descendant to ancestor order.
 
 .. highlight:: javascript
 
-For example to inherit from base class App.ClosablePopover, then from immediate ancestor class App.ButtonPopover,
+For example to inherit from base class ``ClosablePopover``, then from immediate ancestor class ``ButtonPopover``,
 use the following Javascript code::
 
-    App.CustomPopover = function(options) {
+    import { inherit } from '../../djk/js/dash.js';
+    import { ButtonPopover, ClosablePopover } from '../../djk/js/popover.js';
+
+    CustomPopover = function(options) {
         // Immediate ancestor.
-        $.inherit(App.ButtonPopover.prototype, this);
+        inherit(ButtonPopover.prototype, this);
         // Base ancestor.
-        $.inherit(App.ClosablePopover.prototype, this);
+        inherit(ClosablePopover.prototype, this);
         this.init(options);
     };
 
     (function(CustomPopover) {
 
         CustomPopover.init = function(options) {
-            // Will call App.ButtonPopover.init(), with current 'this' context when such method is defined, or
-            // will call App.ClosablePopower.init(), with current 'this' context, otherwise.
-            // App.ButtonPopover.init() also will be able to call it's this._super._call('init', options);
-            // as inheritance chain.
+            // Will call ButtonPopover.init(), with current 'this' context when such method is defined, or
+            // will call ClosablePopover.init(), with current 'this' context, otherwise.
+            // ButtonPopover.init() also may call it's this._super._call('init', options) via inheritance chain.
             this._super._call('init', options);
         };
 
-    })(App.CustomPopover.prototype);
+    })(CustomPopover.prototype);
 
-Real examples of inheritance are available in ``button-popover.js`` ``App.ButtonPopover`` class implementation and in
-``grid.js``, including multi-level one::
+An example of multi-level inheritance from the built-in ``grid/dialogs.js``::
 
-    ActionTemplateDialog.inherit = function() {
-        // First, import methods of direct ancestor.
-        $.inherit(App.ActionsMenuDialog.prototype, this);
-        // Second, import methods of base class that are missing in direct ancestor.
-        $.inherit(App.Dialog.prototype, this);
-        // Third, import just one method from ModelFormDialog (simple mixin).
-        this.getButtons = App.ModelFormDialog.prototype.getButtons;
-    };
+    import { Dialog } from '../dialog.js';
+
+    function FilterDialog(options) {
+
+        inherit(Dialog.prototype, this);
+        this.create(options);
+
+    } void function(FilterDialog) {
+
+        FilterDialog.create = function(options) {
+            // ... skipped ...
+        };
+
+        // ... skipped ...
+
+    }(FilterDialog.prototype);
+
+    function GridDialog(options) {
+
+        inherit(FilterDialog.prototype, this);
+        inherit(Dialog.prototype, this);
+        this.create(options);
+
+    } void function(GridDialog) {
+
+        GridDialog.template = 'ko_grid_body';
+
+        GridDialog.create = function(options) {
+            this.componentSelector = null;
+            this._super._call('create', options);
+        };
+
+        // ... skipped ...
+
+    }(GridDialog.prototype);
+
+See :doc:`datatables` for more info.
+
+popovers.js
+-----------
 
 Advanced popovers
 ~~~~~~~~~~~~~~~~~
-App.ClosablePopover creates the popover with close button. The popover is shown when mouse enters the target area.
+
+``ClosablePopover`` creates the popover with close button. The popover is shown when mouse enters the target area.
 It's possible to setup the list of related popovers to auto-close the rest of popovers besides the current one like this::
 
-    App.bag.messagingPopovers = [];
+    import { ClosablePopover } from '../../djk/js/popover.js';
 
-    var messagingPopover = new App.ClosablePopover({
+    messagingPopovers = [];
+
+    var messagingPopover = new ClosablePopover({
         target: document.getElementById('notification_popover'),
         message: 'Test',
-        relatedPopovers: App.bag.messagingPopovers,
+        relatedPopovers: .messagingPopovers,
     });
 
-App.ButtonPopover creates closable popover with additional dialog button which allows to perform onclick action via
+``ButtonPopover`` creates closable popover with additional dialog button which allows to perform onclick action via
 overridable ``.clickPopoverButton()`` method.
+
+plugins.js
+----------
+
+Set of jQuery plugins.
 
 jQuery plugins
 ~~~~~~~~~~~~~~
+
 * ``$.autogrow`` plugin to automatically expand text lines of textarea elements;
 * ``$.linkPreview`` plugin to preview outer links in secured html5 iframes;
 * ``$.scroller`` plugin - AJAX driven infinite vertical scroller;
-* ``$.fn.replaceWithTag`` plugin to replace HTML tag with another one, used by `App.initClient`_ and by
+* ``$.replaceWithTag`` plugin to replace HTML tag with another one, used by `initClient`_ and by
   `Underscore.js templates`_ to create custom tags.
 
 .. highlight:: html
 
-Some of these jQuery plugins have corresponding Knockout.js bindings in ``app.js``, simplifying their usage in
+ko.js
+-----
+Some of these jQuery plugins have corresponding Knockout.js bindings in ``ko.js``, simplifying their usage in
 client-side scripts:
 
 * ``ko.bindingHandlers.autogrow``::
 
     <textarea data-bind="autogrow: {rows: 4}"></textarea>
+
 * ``ko.bindingHandlers.linkPreview``::
 
     <div data-bind="html: text, linkPreview"></div>
+
 * ``ko.bindingHandlers.scroller``::
 
     <div class="rows" data-bind="scroller: {top: 'loadPreviousRows', bottom: 'loadNextRows'}"></div>
+
+.. highlight:: javascript
+
+To make these bindings available, one has to import and to execute ``useKo`` function::
+
+    import { useKo } from '../../djk/js/ko.js';
+
+    useKo(ko);
+
+which is performed already in ``document.js``.
 
 tooltips.js
 -----------

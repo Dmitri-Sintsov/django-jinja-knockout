@@ -220,7 +220,7 @@ function SuperChain(childInstance, parentPrototype) {
  * use the following code:
  *
  *  import { inherit } from './dash.js';
- *  import { ClosablePopover, ButtonPopover } from './button-popover.js';
+ *  import { ClosablePopover, ButtonPopover } from './popover.js';
  *  CustomPopover = function(options) {
  *      inherit(ButtonPopover.prototype, this);
  *      inherit(ClosablePopover.prototype, this);
