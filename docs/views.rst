@@ -7,6 +7,7 @@
 .. _bs_list: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_list.htm
 .. _bs_pagination: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_pagination.htm
 .. _ChoicesFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ChoicesFilter&type=code
+.. _component_class: https://github.com/Dmitri-Sintsov/djk-sample/search?q=component_class&type=code
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FoldingPaginationMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=FoldingPaginationMixin
 .. _.get_main_navs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=get_main_navs
@@ -124,7 +125,7 @@ inline formsets to refresh the form HTML with just saved values instead of `.get
 This is useful when the additional client-side processing is required, or when the form is the part of some component,
 like :ref:`macros_bs_tabs` tab.
 
-Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inlie forms is
+Zero or one related form is supported and zero / one / many of inline formsets. Adding / removing inline forms is
 supported via Knockout.js custom bindings with XSS protection, which are generated via `set_knockout_template`_ function
 that uses `InlineFormRenderer`_ with formset `empty_form`_. HTML rendering usually is performed with Jinja2
 `bs_inline_formsets()`_ macro.
@@ -203,7 +204,7 @@ ListSortingView
 `ListSortingView`_ is a `ListView`_ with built-in support of sorting and field filtering.
 
 Version 1.1.0 implements standard Django ``range`` / ``date`` / ``datetime`` filter fields, which could be extended by
-specifying custom ``template`` / ``component_class`` arguments of ``allowed_filter_fields`` dict items, see the sample
+specifying custom ``template`` / `component_class`_ arguments of ``allowed_filter_fields`` dict items, see the sample
 `ActionList`_::
 
 
@@ -237,7 +238,7 @@ specifying custom ``template`` / ``component_class`` arguments of ``allowed_filt
                 'action_type': {'template': 'bs_navs.htm'},
                 # Specify custom client-side Javascript component class to extend it's functionality:
                 'id': {
-                    'component_class': 'App.RangeFilter',
+                    'component_class': 'RangeFilter',
                 },
                 'date': None,
                 # Generate widget choices for contenttypes framework:
@@ -255,7 +256,7 @@ It's possible to specify ``allowed_filter_fields`` widget ``choices``, ``templat
         'club': {
             'choices': [(club.pk, club.title) for club in Club.objects.filter(category=Club.CATEGORY_PROFESSIONAL)],
             'multiple_choices': False,
-            'component_class': 'App.CustomChoicesFilter',
+            'component_class': 'CustomChoicesFilter',
             # should generate client-side component which uses specified component_class:
             'template': 'custom_choices_widget.htm',
         },
@@ -279,7 +280,7 @@ option::
         ),
     }
 
-* Some options, such as ``template`` / ``component_class`` are applicable to any filter, inherited from `BaseFilter`_.
+* Some options, such as ``template`` / `component_class`_ are applicable to any filter, inherited from `BaseFilter`_.
 * ``choices`` / ``multiple_choices`` options are applicable only to `ChoicesFilter`_.
 * See `ChoicesFilter`_  / `RangeFilter`_ for the examples of widget.
 * See :ref:`clientside_components` how to create client-side components.
