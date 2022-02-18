@@ -22,28 +22,30 @@ Datatables
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
+.. _components.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/components.js
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
 .. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/formsets.js
 .. _grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _knockout.js: http://knockoutjs.com/
 .. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/member-grid.js
+.. _tpl.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tpl.js
 .. _underscore.js template: http://underscorejs.org/#template
 
 .. _iconui: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=iconui&unscoped_q=iconui
 .. _inputRow: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=inputRow&unscoped_q=inputRow
-.. _App.ko.GridRow.getDescParts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=getDescParts&unscoped_q=getDescParts
+.. _GridRow.getDescParts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=getDescParts
 
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
-.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
-.. _App.ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
-.. _App.ActionsMenuDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ActionsMenuDialog&type=Code
-.. _App.FilterDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FilterDialog
-.. _App.GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridDialog&utf8=%E2%9C%93
-.. _App.ModelFormDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormDialog
-.. _App.initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.initClientHooks&utf8=%E2%9C%93
-.. _App.bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.bindTemplates&utf8=%E2%9C%93
-.. _App.renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.renderNestedList&utf8=%E2%9C%93
-.. _App.Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Tpl&utf8=%E2%9C%93
+.. _components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=components&utf8=%E2%9C%93
+.. _ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
+.. _ActionsMenuDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionsMenuDialog&type=Code
+.. _FilterDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FilterDialog
+.. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
+.. _ModelFormDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormDialog
+.. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks&utf8=%E2%9C%93
+.. _bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=bindTemplates&utf8=%E2%9C%93
+.. _renderNestedList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=renderNestedList&utf8=%E2%9C%93
+.. _Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl&utf8=%E2%9C%93
 
 .. _Model.get_str_fields(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_str_fields
 .. _NestedSerializer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NestedSerializer
@@ -115,7 +117,7 @@ Possible ways of usage
 * Optional `Foreign key filter`_ for AJAX grid components.
 * Django ``ModelForm`` widget `ForeignKeyGridWidget`_ which provides ``ForeignKeyRawIdWidget`` - like functionality for
   ``ModelForm`` to select foreign key field value via AJAX query / response.
-* Pop-up AJAX datatable browser via `App.GridDialog`_.
+* Pop-up AJAX datatable browser via `GridDialog`_.
 
 Models used in this documentation
 ---------------------------------
@@ -311,10 +313,10 @@ html::
 
 The code is inserted into web page body block. This HTML is not the full DOM subtree of grid but an initial stub.
 It will be automatically expanded with the content of `underscore.js template`_ with name ``ko_grid_body`` by
-`App.bindTemplates`_ called via `App.initClientHooks`_. See :ref:`clientside_underscore_js_templates` for more details.
+`bindTemplates`_ called via `initClientHooks`_. See :ref:`clientside_underscore_js_templates` for more details.
 
 At the next step, expanded DOM subtree will be automatically bound to newly created instance of ``App.ko.Grid``
-Javascript class via `App.components`_ class instance `.add()` method to make the grid "alive".
+Javascript class via `components`_ class instance `.add()` method to make the grid "alive".
 
 ``ko_grid()`` macro accepts the following kwargs:
 
@@ -351,14 +353,14 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
       client-side class instead.
 
       * See `Customizing visual display of fields at client-side`_ for a simple example of grid inheritance.
-      * See `App.GridDialog`_ code for the example of embedding grid into another Javascript class via ``ownerCtrl``
+      * See `GridDialog`_ code for the example of embedding grid into another Javascript class via ``ownerCtrl``
         property.
 
     * ``selectMultipleRows`` - set to ``True`` to enable multiple rows selection. Can be used to perform action with
       querysets of models, not just one Model instance. Use ``objects = self.get_queryset_for_action()`` in Django
       ``KoGridView`` derived CBV action handler to get the queryset with selected model instances. See `action_delete`_
       implementation for example.
-    * ``vScrollPage`` - whether datatable with ``"template_args":`` ``{`` ``"vscroll"``: ``true`` ``}`` shoud have it's
+    * ``vScrollPage`` - whether datatable with ``"template_args":`` ``{`` ``"vscroll"``: ``true`` ``}`` should have it's
       rows scrolled to the top after each page load; by default is ``True``.
 
 * Optional ``template_args`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
@@ -375,15 +377,15 @@ Javascript class via `App.components`_ class instance `.add()` method to make th
   on these attributes usage. See also `member_grid_tabs.htm`_ for the example of overriding the template.
 
 * See `ko_grid.htm`_ for the source code of `ko_grid() macro`_.
-* See `app.js`_ `App.components`_ instance for the details of client-side components implementation.
-* See `app.js`_ `App.Tpl`_ class for the details of client-side template processor implementation.
+* See `components.js`_ `components`_ instance for the details of client-side components implementation.
+* See `tpl.js`_ `Tpl`_ class for the details of client-side template processor implementation.
 
 ko_grid_body() macro
 ~~~~~~~~~~~~~~~~~~~~
 
 ``ko_grid_body()`` macro, defined in `ko_grid_body.htm`_ is inserted into web page bottom scripts block.
 However it does not contain directly executed Javascript code, but a set of recursive ``underscore.js`` templates (such
-as ``ko_grid_body``) that are applied automatically to each grid component DOM nodes, generated by beforementioned
+as ``ko_grid_body``) that are applied automatically to each grid component DOM nodes, generated by before mentioned
 ``ko_grid()`` Jinja2 macro.
 
 Then `cbv_grid.htm`_ includes actual client-side implementation of ``App.ko.Grid`` from `grid.js`_. The script is not
@@ -605,7 +607,7 @@ following cases:
 * Grid row actions;
 * `ForeignKeyGridWidget`_ display of chosen fk value;
 
-* Client-side support of field names display is added into `App.renderNestedList`_ via ``options`` . ``i18n`` mapping.
+* Client-side support of field names display is added into `renderNestedList`_ via ``options`` . ``i18n`` mapping.
 * Server-side support of rendering verbose field names is implemented in:
 
   * ``tpl`` module ``print_list()`` function now supports optional ``show_keys`` / ``i18n`` arguments.
@@ -1178,7 +1180,7 @@ illustrate how foreign key filter widgets are nested:
 * Append ``'specialization_grid'`` entry to class ``MemberGrid`` attribute ``client_routes`` list.
 
 ``KoGridView`` is able to autodetect ``fkGridOptions`` of foreign key fields when these are specified in
-``allowed_fitler_fields`` (see `discover_grid_options`_ for the implementation), making definitions of foreign key
+``allowed_filter_fields`` (see `discover_grid_options`_ for the implementation), making definitions of foreign key
 filters shorter and more DRY::
 
     class MemberGrid(KoGridView):
@@ -1641,7 +1643,7 @@ the same ``App.Actions.perform()`` method::
         this.grid.lastClickedKoRow.getValue('role');
     };
 
-Javascript invocation of interacive action with specified target grid row when grid just loaded first time::
+Javascript invocation of interactive action with specified target grid row when grid just loaded first time::
 
     Model1Grid.onFirstLoad = function() {
         // Get instance of App.ko.Action for specified action name:
@@ -1727,7 +1729,7 @@ which will be parsed by ``KoGridView`` derived instance ``action_list()`` method
 
 .. highlight:: javascript
 
-it is also possivble to execute actions interactively with custom options (queryargs)::
+it is also possible to execute actions interactively with custom options (queryargs)::
 
     Model1Grid.onFirstLoad = function() {
         var myAction = this.getKoAction('my_custom_action');
@@ -1771,7 +1773,7 @@ Client-side actions
 
 It is also possible to perform actions partially or entirely at client-side. To implement this, one should define
 ``perform_NAME()`` method of ``App.ko.GridActions`` derived class. It's used to display client-side BootstrapDialogs via
-`App.ActionTemplateDialog`_ -derived instances with underscore.js / knockout.js templates bound to current
+`ActionTemplateDialog`_ -derived instances with underscore.js / knockout.js templates bound to current
 ``App.ko.Grid`` derived instance::
 
     App.MemberGridActions = function(options) {
@@ -1835,7 +1837,7 @@ Where the ``'member_note_form'`` template could be like this, based on ``ko_acti
         </card-default>
     </script>
 
-which may include any custom Knockout.js properties / observables bound to current grid instance. That allows to prodice
+which may include any custom Knockout.js properties / observables bound to current grid instance. That allows to produce
 interactive client-side forms without extra AJAX requests.
 
 See `club_app.views_ajax`_, `member_grid_custom_actions.htm`_ and `member-grid.js`_ for full example of 'edit_note' action
@@ -1930,7 +1932,7 @@ Action type 'built_in'
 ----------------------
 
 Actions that are supposed to be used internally without generation of associated invocation elements (buttons,
-iconuis).
+iconui-s).
 
 'meta' action
 ~~~~~~~~~~~~~
@@ -2074,7 +2076,7 @@ via overloading of client-side ``App.ko.Grid`` by custom class::
 When ``options.separateMeta`` is ``true``, ``meta`` action will be issued first, setting ``'plays'`` filter selected
 choices, then ``'list'`` action will be performed separately, respecting these filter choices.
 
-Otherwise, grid ``plays`` filter will be visually highlighed as selected, but the first (initial) ``list`` action will
+Otherwise, grid ``plays`` filter will be visually highlighted as selected, but the first (initial) ``list`` action will
 return unfiltered rows.
 
 'meta_list' action and custom initial ordering
@@ -2094,7 +2096,7 @@ When one supplies custom initial ordering of rows that does not match default Dj
         }
     ) }}
 
-``App.ko.Grid`` ``options.separateMeta`` will be enabled automatically and does not require to be explicitely passed in.
+``App.ko.Grid`` ``options.separateMeta`` will be enabled automatically and does not require to be explicitly passed in.
 
 See `club_app.views_ajax`_, `club_grid_with_action_logging.htm`_ for fully featured example.
 
@@ -2237,7 +2239,7 @@ See also `views.ModelFormActionsView`_ class ``action_save_form()`` and `views.G
 Client-side part of multiple CRUD operation is implemented in `grid.js`_ ``App.ko.Grid`` class ``updatePage()`` method.
 
 ``'update_rows'`` response processing internally uses ``App.ko.GridRow`` class ``.matchesPk()`` method to check whether
-two grid rows match the same Django model instance, instead of direct ``pkVal`` comparsion.
+two grid rows match the same Django model instance, instead of direct ``pkVal`` comparison.
 
 It is possible to override ``.matchesPk()`` method in child class for custom grid rows matching - for example in
 grids datatables with RAW query ``LEFT JOIN`` which may have multiple rows with the same ``pkVal`` == ``null``, while
@@ -2380,9 +2382,9 @@ method to override the name of last executed action from current ``'create_form'
 last executed action is used to generate last action url value in grid templates (`ko_grid_body.htm`_) / component
 templates via ``Actions`` class `getLastActionUrl()`_ method.
 
-It is then used in client-side Javascript `App.ModelFormDialog`_ class ``getButtons()`` method ``submit`` button event
+It is then used in client-side Javascript `ModelFormDialog`_ class ``getButtons()`` method ``submit`` button event
 handler to perform `'save_form' action`_ when that button is clicked by end-user, instead of already executed
-`'create_form' action`_, which already generated AJAX model form and displayed it using `App.ModelFormDialog`_ instance.
+`'create_form' action`_, which already generated AJAX model form and displayed it using `ModelFormDialog`_ instance.
 
 Viewmodel's `callback_action`_ optional key is used in client-side Javascript to override the action callback method.
 Some viewmodel callbacks may share the same action callback method (handler) to reduce duplication of code. Since v2.0
@@ -2430,12 +2432,12 @@ to `'create_inline' action`_ new row and `'edit_inline' action`_ existing grid r
         def get_edit_form_with_inline_formsets(self):
             return Model1EditFormWithInlineFormsets
 
-* Server-side part of this action overrides the name of last execuded action by setting AJAX response viewmodel
+* Server-side part of this action overrides the name of last executed action by setting AJAX response viewmodel
   ``last_action`` key to ``save_inline`` value, which specifies the action of BootstrapDialog form modal button.
   See `'create_form' action`_ description for more info about ``last_action`` key.
 * `views.KoGridInline`_ class is the same `views.KoGridView`_ class only using different value of
-  ``template_name`` class property poitning to Jinja2 template which includes `formsets.js`_ by default.
-* See `club_app.views_ajax`_ for fullly featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
+  ``template_name`` class property pointing to Jinja2 template which includes `formsets.js`_ by default.
+* See `club_app.views_ajax`_ for fully featured example of ``KoGridView`` ``form_with_inline_formsets`` usage.
 
 Action type 'button_footer'
 ---------------------------
@@ -2452,7 +2454,7 @@ These actions are designed to process already displayed grid row, associated to 
 * By default there is no active click actions, so clicking grid row does nothing.
 * When there is only one click action enabled, it will be executed immediately after end-user clicking of target row.
 * When there is more than one click actions enabled, ``App.ko.Grid`` will use special version of BootstrapDialog
-  wrapper `App.ActionsMenuDialog`_ to display menu with clickable buttons to select one action from the list of
+  wrapper `ActionsMenuDialog`_ to display menu with clickable buttons to select one action from the list of
   available ones.
 
 'edit_form' action
@@ -2476,7 +2478,7 @@ It returns AJAX response with generated HTML of ``ModelForm`` instance bound to 
 Returned viewmodel ``last_action`` property value is set to ``'save_form'``, to override ``App.GridActions`` class
 ``lastActionName`` property.
 
-Client-side of this action uses `App.ModelFormDialog`_ to display generated ``ModelForm`` html and to submit AJAX form
+Client-side of this action uses `ModelFormDialog`_ to display generated ``ModelForm`` html and to submit AJAX form
 to `'save_form' action`_.
 
 'edit_inline' action
@@ -2502,7 +2504,7 @@ It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` insta
 model instance. Returned viewmodel ``last_action`` property value is set to ``'save_inline'``, to override
 ``App.GridActions`` class ``lastActionName`` property.
 
-Client-side of this action uses `App.ModelFormDialog`_ to display generated ``FormWithInlineFormsets`` html and to
+Client-side of this action uses `ModelFormDialog`_ to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
 
 See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'iconui'``
@@ -2803,7 +2805,7 @@ might be implemented like this::
 
 .. highlight:: javascript
 
-`App.ModelFormDialog`_ class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
+`ModelFormDialog`_ class will be used to render AJAX-generated Django ``ModelForm`` at client-side. One has to
 inherit ``App.ProfileGridActions`` from ``App.GridActions`` and define custom action's own ``callback_NAME``::
 
     ProfileGridActions.callback_ask_user = function(viewModel) {
@@ -2974,7 +2976,7 @@ ForeignKeyGridWidget implementation notes
 Both `ForeignKeyGridWidget`_ and `MultipleKeyGridWidget`_ inherit from base class `widgets.BaseGridWidget`_.
 
 Client-side part of ``ForeignKeyGridWidget`` is implemented in ``App.FkGridWidget`` class. It uses the instance of
-`App.GridDialog`_ class to browse and to select foreign key field value(s) for the related ``ModelForm``.
+`GridDialog`_ class to browse and to select foreign key field value(s) for the related ``ModelForm``.
 
 `views.KoGridView`_ class ``postprocess_row()`` method is used to generate ``str()`` representation for each Django
 model instance associated to each grid row, in case there is neither Django model `get_str_fields()`_ method nor grid
@@ -3078,10 +3080,10 @@ Then to define actual templates in html code::
 
 .. highlight:: python
 
-``inputRow`` ``.desc()`` attribute is generated by `App.ko.GridRow.getDescParts()`_ method, which uses
-`get_str_fields()`_, when available and falls down to ``str()`` representation otherwise.
+``inputRow`` ``.desc()`` attribute is generated by `GridRow.getDescParts()`_ method, which uses `get_str_fields()`_,
+when available and falls down to ``str()`` representation otherwise.
 
-The value of ``attrs`` argumemnt of ``ForeignKeyGridWidget`` defines widget DOM attrs which may optionally include
+The value of ``attrs`` argument of ``ForeignKeyGridWidget`` defines widget DOM attrs which may optionally include
 the following special DOM attributes:
 
 * ``classPath`` - override widget component Javascript class name ('App.FkGridWidget')
@@ -3263,7 +3265,7 @@ pagination and optional search / filtering - not having to load the whole querys
                 }
             })
 
-* ``'add_equipment' action`` creates ``ClubEquipmentForm`` bound to paricular ``Club`` foreign key instance.
+* ``'add_equipment' action`` creates ``ClubEquipmentForm`` bound to particular ``Club`` foreign key instance.
 * ``'save_equipment' action`` validates and saves ``Equipment`` model instance related to target row ``Club``
   instance via bound ``ClubEquipmentForm``.
 * Because both ``ClubEquipmentGrid`` and ``EquipmentGrid`` are sharing single `club_equipment.htm`_ template,
@@ -3456,7 +3458,7 @@ Second step is to override ``uiActionTypes`` property of client-side ``App.ko.Gr
 the list of interactive action types.
 
 One also has to implement client-side handling methods for newly defined ``approve_user`` action. The following example
-assumes that the action will be perofmed as AJAX query / response with ``Model1Grid`` class ``action_approve_user()``
+assumes that the action will be performed as AJAX query / response with ``Model1Grid`` class ``action_approve_user()``
 method::
 
     App.ko.Model1Grid = function(options) {
@@ -3583,12 +3585,12 @@ Grids API
 ---------
 See `the source code`_ and `the sample project code`_.
 
-* `App.FilterDialog`_ - `todo`
-* `App.GridDialog`_ - `ForeignKeyGridWidget implementation notes`_
-* `App.ModelFormDialog`_ - `Action AJAX response handler`_, `'create_form' action`_, `'edit_form' action`_,
+* `FilterDialog`_ - `todo`
+* `GridDialog`_ - `ForeignKeyGridWidget implementation notes`_
+* `ModelFormDialog`_ - `Action AJAX response handler`_, `'create_form' action`_, `'edit_form' action`_,
    `'create_inline' action`_, `'edit_inline' action`_, `Implementing custom grid row actions`_
-* `App.ActionsMenuDialog`_ - `Action type 'click'`_
-* `App.ActionTemplateDialog`_ - `Client-side actions`_
+* `ActionsMenuDialog`_ - `Action type 'click'`_
+* `ActionTemplateDialog`_ - `Client-side actions`_
 * Grid init options - `ko_grid() macro`_
 * ioc methods - `todo`
 * methods to get actions / filters / rows / row field values - `todo`
