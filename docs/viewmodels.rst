@@ -1,23 +1,23 @@
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
-.. _App.Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.Actions(&type=&utf8=%E2%9C%93
-.. _App.ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
-.. _App.components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.components&utf8=%E2%9C%93
-.. _App.destroyTooltipErrors: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.destroyTooltipErrors&type=&utf8=%E2%9C%93
-.. _App.EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editform&type=&utf8=%E2%9C%93
-.. _App.EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=EditForm
-.. _App.EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editinline&type=&utf8=%E2%9C%93
-.. _App.ViewModelRouter.applyHandler(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=applyHandler
-.. _App.ViewModelRouter.filterExecuted(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=filterExecuted
-.. _App.vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.vmRouter&type=&utf8=%E2%9C%93
-.. _App.ko.Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
+.. _Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Actions(&type=&utf8=%E2%9C%93
+.. _ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
+.. _components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=components&utf8=%E2%9C%93
+.. _destroyFormErrors: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=destroyFormErrors&type=&utf8=%E2%9C%93
+.. _EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editform&type=&utf8=%E2%9C%93
+.. _EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=EditForm
+.. _EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editinline&type=&utf8=%E2%9C%93
+.. _ViewModelRouter.applyHandler(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=applyHandler
+.. _ViewModelRouter.filterExecuted(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=filterExecuted
+.. _vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=vmRouter&type=&utf8=%E2%9C%93
+.. _Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
-.. _App.ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.ModelFormActions&type=&utf8=%E2%9C%93
+.. _ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormActions&type=&utf8=%E2%9C%93
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
-.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
-.. _conditional_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=conditional_action&type=code
+.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/sample/js/club-grid.js
+.. _conditional_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=conditional_action&type=code
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView&type=Code
 .. _KoGridView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=KoGridView&type=&utf8=%E2%9C%93
-.. _App.GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=App.GridActions&type=&utf8=%E2%9C%93
+.. _GridActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridActions&type=&utf8=%E2%9C%93
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView&type=&utf8=%E2%9C%93
 .. _PageContext.onload_vm_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=onload_vm_list
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
@@ -258,16 +258,16 @@ New properties might be added to viewmodel for further access, like ``.instance`
     });
 
 Every already executed viewmodel is stored in ``.executedViewModels`` property of `App.vmRouter`_ instance, which may be
-processed later. An example of such processing is `App.destroyTooltipErrors`_ static method, which clears form input
+processed later. An example of such processing is `destroyFormErrors`_ static method, which clears form input
 Bootstrap tooltips previously set by ``'tooltip_error'`` viewmodel handler then removes these viewmodels from
 ``.executedViewModels`` list via `App.ViewModelRouter.filterExecuted()`_ method::
 
-    App.destroyTooltipErrors = function(form) {
-        App.vmRouter.filterExecuted(
+    AjaxForm.destroyFormErrors = function() {
+        var form = this.$form.get(0);
+        vmRouter.filterExecuted(
             function(viewModel) {
-                if (viewModel.view === 'tooltip_error' &&
-                        typeof viewModel.instance !== 'undefined') {
-                    viewModel.instance.destroy();
+                if (viewModel.view === 'form_error' && typeof viewModel.instance !== 'undefined') {
+                    viewModel.instance.destroy(form);
                     return false;
                 }
                 return true;
@@ -451,8 +451,10 @@ It is also possible to override the value of context for viewmodel handler dynam
 
 That allows to use method prototypes bound to different instances of the same Javascript class::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.AjaxDialog = function(options) {
-        $.inherit(App.Dialog.prototype, this);
+        inherit(App.Dialog.prototype, this);
         this.create(options);
     };
 
@@ -849,10 +851,12 @@ The execution of action usually is initiated in the browser via the :ref:`client
 binding handler, or is programmatically invoked in Javascript via the `App.Actions`_ inherited class ``.perform()``
 method::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.ClubActions = function(options) {
         // Comment out, when overriding App.ko.Grid actions.
-        // $.inherit(App.GridActions.prototype, this);
-        $.inherit(App.Actions.prototype, this);
+        // inherit(App.GridActions.prototype, this);
+        inherit(App.Actions.prototype, this);
         this.init(options);
     };
 
@@ -986,8 +990,10 @@ Custom actions at the client-side
 To implement or to override client-side processing of AJAX action response, one should define custom Javascript class,
 inherited from `App.Actions`_ (or from `App.GridActions`_ in case of custom grid :doc:`datatables`)::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.MyModelFormActions = function(options) {
-        $.inherit(App.Actions.prototype, this);
+        inherit(App.Actions.prototype, this);
         this.init(options);
     };
 
@@ -1051,9 +1057,11 @@ Knockout.js templates when two way binding is required. Here is the sample templ
 
 Custom grid actions should inherit from both ``App.GridActions`` and it's base class ``App.Actions``::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.MyGridActions = function(options) {
-        $.inherit(App.GridActions.prototype, this);
-        $.inherit(App.Actions.prototype, this);
+        inherit(App.GridActions.prototype, this);
+        inherit(App.Actions.prototype, this);
         this.init(options);
     };
 

@@ -23,11 +23,11 @@ Datatables
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _components.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/components.js
-.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/club-grid.js
+.. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/sample/js/club-grid.js
 .. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/formsets.js
 .. _grid.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _knockout.js: http://knockoutjs.com/
-.. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/js/member-grid.js
+.. _member-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/sample/js/member-grid.js
 .. _tpl.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tpl.js
 .. _underscore.js template: http://underscorejs.org/#template
 
@@ -699,10 +699,10 @@ condensed representations of long text values via Bootstrap popovers, or even to
 using grid as paginated AJAX form - (which is also possible but requires writing custom ``underscore.js`` grid layout
 templates, partially covered in modifying_visual_layout_of_grid_)::
 
-    'use strict';
+    import { inherit } from '../../djk/js/dash.js';
 
     App.ko.MemberGridRow = function(options) {
-        $.inherit(App.ko.GridRow.prototype, this);
+        inherit(App.ko.GridRow.prototype, this);
         this.init(options);
     };
 
@@ -758,7 +758,7 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
 
     App.ko.MemberGrid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
+        inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
@@ -1776,8 +1776,10 @@ It is also possible to perform actions partially or entirely at client-side. To 
 `ActionTemplateDialog`_ -derived instances with underscore.js / knockout.js templates bound to current
 ``App.ko.Grid`` derived instance::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.MemberGridActions = function(options) {
-        $.inherit(App.GridActions.prototype, this);
+        inherit(App.GridActions.prototype, this);
         this.init(options);
     };
 
@@ -1803,7 +1805,7 @@ It is also possible to perform actions partially or entirely at client-side. To 
     })(App.MemberGridActions.prototype);
 
     App.ko.MemberGrid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
+        inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
@@ -2062,8 +2064,10 @@ by overriding Django grid class ``get_grid_options()`` method::
 
 via overloading of client-side ``App.ko.Grid`` by custom class::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.ko.ClubMemberGrid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
+        inherit(App.ko.Grid.prototype, this);
         /**
          * This grid has selected choices for query filter 'plays' by default,
          * thus requires separate 'list' action after 'meta' action,
@@ -2681,8 +2685,10 @@ actions of type ``'iconui'``, because these are always visible in grid columns.
 To implement online visibility update of grid row actions one should override client-side ``App.ko.GridRow`` class
 ``hasEnabledAction()`` method like this::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.ko.MemberGridRow = function(options) {
-        $.inherit(App.ko.GridRow.prototype, this);
+        inherit(App.ko.GridRow.prototype, this);
         this.init(options);
     };
 
@@ -2700,7 +2706,7 @@ To implement online visibility update of grid row actions one should override cl
     })(App.ko.MemberGridRow.prototype);
 
     App.ko.MemberGrid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
+        inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
@@ -3461,8 +3467,10 @@ One also has to implement client-side handling methods for newly defined ``appro
 assumes that the action will be performed as AJAX query / response with ``Model1Grid`` class ``action_approve_user()``
 method::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.ko.Model1Grid = function(options) {
-        $.inherit(App.ko.Grid.prototype, this);
+        inherit(App.ko.Grid.prototype, this);
         this.init(options);
     };
 
@@ -3489,8 +3497,10 @@ method::
 Mandatory (for server-side AJAX actions only) ``callback_approve_user`` method and optional ``queryargs_approve_user``
 method are implemented to perform custom action (see `Action AJAX response handler`_, `Action queryargs`_)::
 
+    import { inherit } from '../../djk/js/dash.js';
+
     App.Model1GridActions = function(options) {
-        $.inherit(App.GridActions.prototype, this);
+        inherit(App.GridActions.prototype, this);
         this.init(options);
     };
 
