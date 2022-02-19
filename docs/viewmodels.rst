@@ -838,6 +838,8 @@ one has to invoke it manually by calling `conditional_action`_ method in ``get``
         {{ reply }}
     {% endif -%}
 
+See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``.
+
 The execution path of the action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

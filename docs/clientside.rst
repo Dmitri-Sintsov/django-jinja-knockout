@@ -208,6 +208,8 @@ Simplifying AJAX calls
 * `AppGet`_ / `AppPost`_ automate execution of AJAX POST handling for Django using named urls like
   ``url(name='my_url_name')`` exported to client-side code directly.
 
+.. _clientside_global_ioc:
+
 Global IoC
 ----------
 Since v2.0, monolithic ``App.readyInstances`` was replaced by `globalIoc`_ instance of `ViewModelRouter`_ class, which
@@ -220,6 +222,17 @@ global instances and to add custom global instances in user scripts like this::
     globalIoc.add('UserClass', function(options) {
         return new UserClass(options);
     });
+
+    // To check whether the class name was already registered:
+    globalIoc.hasView('UserClass');
+
+    // To add custom class just once:
+    globalIoc.addOnce('UserClass', function(options) {
+        return new UserClass(options);
+    });
+
+See `clientside_components`_, :doc:`views`, :doc:`widgets`, :doc:`viewmodels` for the examples how to specify custom
+component class name at server-side via `data-component-class`_ html5 attribute.
 
 Client-side localization
 ------------------------
@@ -415,6 +428,8 @@ Then in your component shutdown code call `components`_ instance ``.unbind()`` m
             }
         }
     };
+
+See `Global IoC`_ how to register custom Javascript class.
 
 See `GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
 
