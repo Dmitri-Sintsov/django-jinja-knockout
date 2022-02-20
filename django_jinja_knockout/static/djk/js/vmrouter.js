@@ -39,12 +39,25 @@ function ViewModelRouter(viewHandlers) {
         if (typeof this.handlers[viewName] === 'undefined') {
             this.handlers[viewName] = handler;
         } else if (isArray(this.handlers[viewName])) {
-            this.handlers[viewName].push(handler);
+            if (_.find(
+                    this.handlers[viewName], function(existingHandler) {
+                        return isEqual(handler, existingHandler);
+                    }
+                ) === undefined
+            ) {
+                this.handlers[viewName].push(handler);
+            } else {
+                console.log('Warning: skipping already existing handler');
+            }
         } else {
-            // Convert single handler to the array of handlers.
-            this.handlers[viewName] = [
-                this.handlers[viewName], handler
-            ];
+            if (!isEqual(this.handlers[viewName], handler)) {
+                // Convert single handler to the array of handlers.
+                this.handlers[viewName] = [
+                    this.handlers[viewName], handler
+                ];
+            } else {
+                console.log('Warning: skipping already existing handler');
+            }
         }
     };
 

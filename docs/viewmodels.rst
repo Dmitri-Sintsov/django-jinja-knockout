@@ -1,18 +1,22 @@
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Actions(&type=&utf8=%E2%9C%93
 .. _ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
+.. _ajaxform.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ajaxform.js
+.. _AjaxButton: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxButton
+.. _AppPost(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppPost%28
 .. _components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=components&utf8=%E2%9C%93
 .. _destroyFormErrors: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=destroyFormErrors&type=&utf8=%E2%9C%93
 .. _EditForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editform&type=&utf8=%E2%9C%93
 .. _EditForm usage: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=EditForm
 .. _EditInline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=editinline&type=&utf8=%E2%9C%93
+.. _ioc.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ioc.js
 .. _ViewModelRouter.applyHandler(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=applyHandler
 .. _ViewModelRouter.filterExecuted(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=filterExecuted
 .. _vmRouter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=vmRouter&type=&utf8=%E2%9C%93
+.. _vmrouter.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/vmrouter.js
 .. _Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/grid.js
 .. _ActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ActionsView&type=&utf8=%E2%9C%93
 .. _ModelFormActions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormActions&type=&utf8=%E2%9C%93
-.. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=callback_action
+.. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=callback_action&type=code
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/sample/js/club-grid.js
 .. _conditional_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=conditional_action&type=code
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView&type=Code
@@ -22,7 +26,7 @@
 .. _PageContext.onload_vm_list(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=onload_vm_list
 .. _tooltips.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/tooltips.js
 .. _viewmodel_name: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=viewmodel_name
-.. _vm_list: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=vm_list&type=&utf8=%E2%9C%93
+.. _vm_list: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=vm_list
 .. _vm_list.find_by_kw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=find_by_kw
 
 
@@ -102,11 +106,15 @@ argument of their particular handler:
 
 Now, how to execute these viewmodels we defined actually? At Javascript side it's a simple call::
 
-    App.vmRouter.respond(viewmodels);
+    import { vmRouter } from '../../djk/js/ioc.js';
 
-While single viewmodel may be execuded via the following call::
+    vmRouter.respond(viewmodels);
 
-    App.vmRouter.show({
+While single viewmodel may be executed via the following call::
+
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.show({
         'view': 'form_error',
         'id': $formFiles[i].id,
         'messages': [message]
@@ -124,28 +132,30 @@ Second reason: It is possible to setup multiple viewmodel handlers and then to r
 another handler. Think of event subscription: these are very similar, however not only plain functions are supported,
 but also functions bound to particular instance (methods) and classpath strings to instantiate new Javascript classes::
 
+    import { vmRouter } from '../../djk/js/ioc.js';
+
     // viewmodel bind context with method
     var handler = {
-        fn: App.MyClass.prototype.myMethod,
-        context: App.myClassInstance
+        fn: MyClass.prototype.myMethod,
+        context: myClassInstance
     };
     // Subscribe to bound method:
-    App.vmRouter.addHandler('my_view', handler)
+    vmRouter.addHandler('my_view', handler)
     // Subscribe to bound method:
-        .add('my_view', App.MyClass.prototype.myMethod2, App.myClassInstance)
+        .add('my_view', MyClass.prototype.myMethod2, myClassInstance)
     // Subscribe to unbound function:
         .add('my_view', myFunc)
     // Subscribe to instantiate a new class via classpath specified:
-        .addHandler('my_view', 'App.MyClass');
+        .addHandler('my_view', 'MyClass');
     // ...
     // Will execute all four handlers attached above with passed viewmodel argument:
-    App.vmRouter.exec('my_view', {'a': 1, 'b': 2});
+    vmRouter.exec('my_view', {'a': 1, 'b': 2});
     // ...
     // Unsubscribe handlers. The order is arbitrary.
-    App.vmRouter.removeHandler('my_view', {fn: App.MyClass.prototype.myMethod2, context: App.myClassInstance})
+    vmRouter.removeHandler('my_view', {fn: MyClass.prototype.myMethod2, context: myClassInstance})
         .removeHandler('my_view', myFunc)
         .removeHandler('my_view', handler)
-        .removeHandler('my_view', 'App.MyClass');
+        .removeHandler('my_view', 'MyClass');
 
 Javascript bind context
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +168,7 @@ The following types of context arguments of  are available:
 * plain object with optional ``fn`` and ``context`` arguments: to subscribe to bound method;
 * string: Javascript class name to instantiate;
 
-See `App.ViewModelRouter.applyHandler()`_ for the implementation details.
+See `ViewModelRouter.applyHandler()`_ for the implementation details.
 
 Viewmodel data format
 ~~~~~~~~~~~~~~~~~~~~~
@@ -166,7 +176,7 @@ Viewmodel data format
 Key ``'view'`` of each Javascript object / Python dict in the list specifies the value of ``viewmodel name``, that is
 bound to particular Javascript ``viewmodel handler``. The viewmodel itself is used as the Javascript object argument of
 each particular ``viewmodel handler`` with the corresponding keys and their values. The following built-in viewmodel
-names currently are available in `app.js`_::
+names currently are available in `ioc.js`_::
 
     [
         'redirect_to',
@@ -180,6 +190,7 @@ names currently are available in `app.js`_::
         'after',
         'before',
         'remove',
+        'text',
         'html',
         'replaceWith',
         'replace_data_url'
@@ -208,59 +219,68 @@ which are primarily used to display errors for AJAX submitted forms via viewmode
 
 The following methods allows to attach one or multiple handlers to one viewmodel name::
 
-    App.vmRouter.add('my_view', function(viewModel, vmRouter) {
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.add('my_view', function(viewModel, vmRouter) {
         // execute viewmodel here...
     })
-        .add('my_view2', {fn: App.MyClass.prototype.method, context: MyClassInstance})
-        .add('my_view3', 'App.MyClass');
+        .add('my_view2', {fn: MyClass.prototype.method, context: MyClassInstance})
+        .add('my_view3', 'MyClass');
     // or
-    App.vmRouter.add({
+    vmRouter.add({
         'my_view': function(viewModel, vmRouter) {
             // execute viewmodel here...
         },
-        'my_view2': {fn: App.MyClass.prototype.method, context: MyClassInstance},
-        'my_view3': 'App.MyClass'
+        'my_view2': {fn: MyClass.prototype.method, context: MyClassInstance},
+        'my_view3': 'MyClass'
     });
 
 The following syntax allows to reset previous handlers with the names specified (if any)::
 
-    App.vmRouter.removeAll('my_view', 'my_view2', 'my_view3')
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.removeAll('my_view', 'my_view2', 'my_view3')
         .add({
             'my_view': function(viewModel, vmRouter) {
                 // execute viewmodel here...
             },
-            'my_view2': {fn: App.MyClass.prototype.method, context: MyClassInstance},
-            'my_view3': 'App.MyClass'
+            'my_view2': {fn: MyClass.prototype.method, context: MyClassInstance},
+            'my_view3': 'MyClass'
         });
 
 When ``function`` handler is called, it's ``viewModel`` argument receives the actual instance of ``viewmodel``.
-Second optional argument ``vmRouter`` points to the instance of `App.vmRouter`_ that was used to process current
-``viewmodel``. This instance of `App.vmRouter`_ could be used to call another viewmodel handler inside the current
+Second optional argument ``vmRouter`` points to the instance of `vmRouter`_ that was used to process current
+``viewmodel``. This instance of `vmRouter`_ could be used to call another viewmodel handler inside the current
 handler, or to add / remove handlers via calling vmRouter instance methods::
 
-    App.vmRouter.add('my_view1', function(viewModel, vmRouter) {
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.add('my_view1', function(viewModel, currentVmRouter) {
         // dynamically add 'my_view2' viewmodel handler when 'my_view1' handler is executed:
-        vmRouter.add('my_view2', function(viewModelNested, vmRouter) {
+        currentVmRouter.add('my_view2', function(viewModelNested, vmRouter) {
             // will receive argument viewModelNested == {'a': 1, 'b': 2}}
             // execute viewModelNested here...
         });
         // ... skipped ...
         // nested execution of 'my_view2' viewmodel from 'my_view1' handler:
-        vmRouter.exec('my_view2', {'a': 1, 'b': 2});
+        currentVmRouter.exec('my_view2', {'a': 1, 'b': 2});
     });
 
 New properties might be added to viewmodel for further access, like ``.instance`` property which holds an instance of
-``App.FieldPopover`` in the following code::
+``FieldPopover`` in the following code::
 
-    App.vmRouter.add('tooltip_error', function(viewModel) {
+    import { vmRouter } from '../../djk/js/ioc.js';
+    import { FieldPopover } from '../../djk/js/tooltips.js';
+
+    vmRouter.add('tooltip_error', function(viewModel) {
         // Adding .instance property at the client-side to server-side generated viewModel:
-        viewModel.instance = new App.FieldPopover(viewModel);
+        viewModel.instance = new FieldPopover(viewModel);
     });
 
-Every already executed viewmodel is stored in ``.executedViewModels`` property of `App.vmRouter`_ instance, which may be
+Every already executed viewmodel is stored in ``.executedViewModels`` property of `vmRouter`_ instance, which may be
 processed later. An example of such processing is `destroyFormErrors`_ static method, which clears form input
 Bootstrap tooltips previously set by ``'tooltip_error'`` viewmodel handler then removes these viewmodels from
-``.executedViewModels`` list via `App.ViewModelRouter.filterExecuted()`_ method::
+``.executedViewModels`` list via `ViewModelRouter.filterExecuted()`_ method::
 
     AjaxForm.destroyFormErrors = function() {
         var form = this.$form.get(0);
@@ -277,8 +297,11 @@ Bootstrap tooltips previously set by ``'tooltip_error'`` viewmodel handler then 
 
 It is possible to chain viewmodel handlers, implementing a code-reuse and a pseudo-inheritance of viewmodels::
 
-    App.vmRouter.add('popover_error', function(viewModel, vmRouter) {
-        viewModel.instance = new App.FieldPopover(viewModel);
+    import { vmRouter } from '../../djk/js/ioc.js';
+    import { FieldPopover } from '../../djk/js/tooltips.js';
+
+    vmRouter.add('popover_error', function(viewModel, vmRouter) {
+        viewModel.instance = new FieldPopover(viewModel);
         // Override viewModel.name without altering it:
         vmRouter.exec('tooltip_error', viewModel);
         // or, to preserve the bound context (if any):
@@ -297,7 +320,7 @@ AJAX response routing
 .. highlight:: html
 
 When one develops mixed web application with traditional server-side generated html responses but also having lots of
-AJAX interaction, with tradidional approach, the developer would have to write a lot of boilerplate code, like this,
+AJAX interaction, with traditional approach, the developer would have to write a lot of boilerplate code, like this,
 html::
 
     <button id="my_button" class="button btn btn-default">Save your form template</button>
@@ -306,10 +329,12 @@ html::
 
 Javascript::
 
+    import { AppConf } from '../../djk/js/conf.js';
+
     $('#my_button').on('click', function(ev) {
         $.post(
             '/url_to_ajax_handler',
-            {csrfmiddlewaretoken: App.conf.csrfToken},
+            {csrfmiddlewaretoken: AppConf('csrfToken')},
             function(response) {
                 BootstrapDialog.confirm('After the registration our manager will contact <b>you</b> ' +
                         'to validate your personal data.',
@@ -345,8 +370,9 @@ code will be enough::
 
 .. highlight:: python
 
-`app.js`_ will care itself of setting Javascript event handler, performing AJAX request POST, then AJAX response routing
-will execute viewmodels returned from Django view. Define the view path in project ``urls.py``::
+`ajaxform.js`_ `AjaxButton`_ class will care itself of setting Javascript event handler, performing AJAX request POST,
+then AJAX response routing will execute viewmodels returned from Django view. Define the view path in project
+``urls.py``::
 
     from my_app.views import button_click
     # ...
@@ -373,7 +399,7 @@ Let's implement the view. Return the list of viewmodels which will be returned v
                 })
         })
 
-Register AJAX client-side route (url name) in ``settings.py``, to make url available in `app.js`_ Javascript::
+Register AJAX client-side route (url name) in ``settings.py``, to make url available in Javascript application::
 
     DJK_CLIENT_ROUTES = {
         # True means that the 'button-click' url will be available to anonymous users:
@@ -427,7 +453,9 @@ and per class-based view::
 
 It is possible to specify view handler function bind context via ``.add()`` method optional argument::
 
-    App.vmRouter.add({
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.add({
         'set_context_title': {
             fn: function(viewModel) {
                 // this == bindContext1
@@ -444,17 +472,22 @@ It is possible to specify view handler function bind context via ``.add()`` meth
         }
     });
 
-It is also possible to override the value of context for viewmodel handler dynamically with ``App.post()`` optional
+It is also possible to override the value of context for viewmodel handler dynamically with `AppPost()`_ optional
 ``bindContext`` argument::
 
-    App.post('button-click', postData, bindContext);
+    import { AppPost } from '../../djk/js/url.js';
+
+    AppPost('button-click', postData, bindContext);
 
 That allows to use method prototypes bound to different instances of the same Javascript class::
 
     import { inherit } from '../../djk/js/dash.js';
+    import { vmRouter } from '../../djk/js/ioc.js';
+    import { AppPost } from '../../djk/js/url.js';
+    import { Dialog } from '../../djk/js/dialog.js';
 
-    App.AjaxDialog = function(options) {
-        inherit(App.Dialog.prototype, this);
+    AjaxDialog = function(options) {
+        inherit(Dialog.prototype, this);
         this.create(options);
     };
 
@@ -474,21 +507,21 @@ That allows to use method prototypes bound to different instances of the same Ja
         AjaxDialog.receiveMessages = function() {
             /**
              * When AJAX response will contain one of 'add_received_message' / 'add_sent_message' viewmodels,
-             * currently bound instance of App.AjaxDialog passed via App.post() this argument
+             * currently bound instance of AjaxDialog passed via AppPost() this argument
              * methods .vm_addReceivedMessage() / .vm_addSentMessage() will be called:
              */
-            App.post('my_url_name', this.postData, this);
+            AppPost('my_url_name', this.postData, this);
         };
 
         // Subscribe to 'add_received_message' / 'add_sent_message' custom viewmodel handlers:
-        App.vmRouter.add({
+        vmRouter.add({
             'add_received_message': AjaxDialog.vm_addReceivedMessage,
             'add_sent_message': AjaxDialog.vm_addSentMessage,
         });
 
-    })(App.AjaxDialog.prototype);
+    })(AjaxDialog.prototype);
 
-    var ajaxDialog = new App.AjaxDialog(options);
+    var ajaxDialog = new AjaxDialog(options);
     ajaxDialog.receiveMessages();
 
 .. highlight:: python
@@ -532,7 +565,7 @@ of ``data-route``::
 Non-AJAX server-side invocation of client-side viewmodels
 ---------------------------------------------------------
 
-Besides direct client-side invocation of viewmodels via `app.js`_ ``App.vmRouter.respond()`` method, and AJAX POST /
+Besides direct client-side invocation of viewmodels via `vmrouter.js`_ ``vmRouter.respond()`` method, and AJAX POST /
 AJAX GET invocation via AJAX response routing, there are two additional ways to execute client-side viewmodels with
 server-side invocation:
 
@@ -570,9 +603,9 @@ next request::
     def set_session_viewmodels(request):
         last_message = Message.objects.last()
         # Custom viewmodel. Define it's handler at client-side with .add() method::
-        # App.vmRouter.add('session_view', function(viewModel) { ... });
+        # vmRouter.add('session_view', function(viewModel) { ... });
         # // or:
-        # App.vmRouter.add({'session_view': {fn: myMethod, context: myClass}});
+        # vmRouter.add({'session_view': {fn: myMethod, context: myClass}});
         view_model = {
             'view': 'session_view'
         }
@@ -619,24 +652,28 @@ Require viewmodels handlers
 .. highlight:: javascript
 
 Sometimes there are many separate Javascript source files which define different viewmodel handlers. To assure that
-required external source viewmodel handlers are immediately available, use `App.vmRouter`_ instance ``.req()`` method::
+required external source viewmodel handlers are immediately available, use `vmRouter`_ instance ``.req()`` method::
 
-    App.vmRouter.req('field_error', 'carousel_images');
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.req('field_error', 'carousel_images');
 
 Nested / conditional execution of client-side viewmodels
 --------------------------------------------------------
 Nesting viewmodels via callbacks is available for automated conditional / event subscribe viewmodels execution. Example
-of such approach is the implementation of ``'confirm'`` viewmodel in `app.js`_ ``App.Dialog`` callback via
-``App.vmRouter.respond()`` method conditionally processing returned viewmodels::
+of such approach is the implementation of ``'confirm'`` viewmodel in `ioc.js`_ ``Dialog`` callback via
+``vmRouter.respond()`` method conditionally processing returned viewmodels::
+
+    import { vmRouter } from '../../djk/js/ioc.js';
 
     var self = this;
     var cbViewModel = this.dialogOptions.callback;
     this.dialogOptions.callback = function(result) {
         // @note: Do not use alert view as callback, it will cause stack overflow.
         if (result) {
-            App.vmRouter.respond(cbViewModel);
+            vmRouter.respond(cbViewModel);
         } else if (typeof self.dialogOptions.cb_cancel === 'object') {
-            App.vmRouter.respond(self.dialogOptions.cb_cancel);
+            vmRouter.respond(self.dialogOptions.cb_cancel);
         }
     };
 
@@ -648,50 +685,54 @@ In some complex cases, for example when one needs to wait for some DOM loaded fi
 "save" viewmodels received from AJAX response, then "restore" (execute) these later in another DOM event / promise
 handler.
 
-`App.vmRouter`_ method ``.saveResponse()`` saves received viewmodels::
+`vmRouter`_ method ``.saveResponse()`` saves received viewmodels::
 
-    App.vmRouter.add('popup_modal_error', function(viewModel, vmRouter) {
+    import { vmRouter } from '../../djk/js/ioc.js';
+
+    vmRouter.add('popup_modal_error', function(viewModel, currentVmRouter) {
         // Save received response to execute it in the 'shown.bs.modal' event handler (see just below).
-        vmRouter.saveResponse('popupModal', viewModel);
+        currentVmRouter.saveResponse('popupModal', viewModel);
         // Open modal popup to show actual errors (received as viewModel from server-side).
         $popupModal.modal('show');
     });
 
-`App.vmRouter`_ method ``loadResponse()`` executes viewmodels previously saved with ``.saveResponse()`` call::
+`vmRouter`_ method ``loadResponse()`` executes viewmodels previously saved with ``.saveResponse()`` call::
+
+    import { vmRouter } from '../../djk/js/ioc.js';
 
     // Open modal popup.
     $popupModal.on('shown.bs.modal', function (ev) {
         // Execute viewmodels previously received in 'popup_modal_error' viewmodel handler.
-        App.vmRouter.loadResponse('popupModal');
+        vmRouter.loadResponse('popupModal');
     });
 
-Multiple save points might be set by calling `App.vmRouter`_ ``.saveResponse()`` with the particular ``name`` argument
-value, then calling `App.vmRouter`_ ``.loadResponse()`` with the matching ``name`` argument value.
+Multiple save points might be set by calling `vmRouter`_ ``.saveResponse()`` with the particular ``name`` argument
+value, then calling `vmRouter`_ ``.loadResponse()`` with the matching ``name`` argument value.
 
 .. _viewmodels_ajax_actions:
 
 AJAX actions
 ------------
-Large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from `App.Actions`_ at
+Large classes of AJAX viewmodel handlers inherit from `ActionsView`_ at server-side and from `Actions`_ at
 client-side, which utilize the same viewmodel handler for multiple actions. It allows to structurize AJAX code and to
 build the client-server AJAX interaction more easily.
 
-`ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `App.ModelFormActions`_ and
-`App.GridActions`_ inherit from `App.Actions`_. See :doc:`datatables` for more info.
+`ModelFormActionsView`_ and `KoGridView`_ inherit from `ActionsView`_, while client-side `ModelFormActions`_ and
+`GridActions`_ inherit from `Actions`_. See :doc:`datatables` for more info.
 
 Viewmodel router defines own (our) viewmodel name as Python `ActionsView`_ class `viewmodel_name`_ attribute /
-Javascript `App.Actions`_ class ``.viewModelName`` property. By default it has the value ``action`` but the derived
+Javascript `Actions`_ class ``.viewModelName`` property. By default it has the value ``action`` but the derived
 classes may change it's name; for example grid datatables use ``grid_page`` as the viewmodel name.
 
-Viewmodels which have non-matching names are not processed by ``App.Actions`` directly. Instead, they are routed to
-standard viewmodel handlers, added via `App.vmRouter`_ methods - see `Defining custom viewmodel handlers`_ section.
+Viewmodels which have non-matching names are not processed by `Actions`_ directly. Instead, they are routed to
+standard viewmodel handlers, added via `vmRouter`_ methods - see `Defining custom viewmodel handlers`_ section.
 Such way standard built-in viewmodel handlers are not ignored. For example server-side exception reporting is done with
-``alert_error`` viewmodel handler (see `app.js`_), while AJAX form validation errors are processed via ``form_error``
+``alert_error`` viewmodel handler (see `ioc.js`_), while AJAX form validation errors are processed via ``form_error``
 viewmodel handler (see `tooltips.js`_).
 
-The difference between handling AJAX viewmodels with `App.vmRouter`_ (see `Defining custom viewmodel handlers`_) and
-AJAX actions is that the later shares the same viewmodel handler by routing multiple actions to methods of
-`App.Actions`_ class or it's descendant class.
+The difference between handling AJAX viewmodels with `vmRouter`_ (see `Defining custom viewmodel handlers`_) and AJAX
+actions is that the later shares the same viewmodel handler by routing multiple actions to methods of `Actions`_
+class or it's descendant class.
 
 Custom actions at the server-side
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -804,7 +845,7 @@ Since v1.1.0 it's possible to define separate action handlers for each HTTP meth
             return tpl.Renderer(self.request, 'action_reply_template.htm', {
                 'component_atts': {
                     'class': 'component',
-                    'data-component-class': 'App.MemberReplyActions',
+                    'data-component-class': 'MemberReplyActions',
                     'data-component-options': {
                         'route': self.request.resolver_match.view_name,
                         'routeKwargs': copy(self.kwargs),
@@ -816,7 +857,7 @@ Since v1.1.0 it's possible to define separate action handlers for each HTTP meth
             })()
 
         # will be invoked for HTTP POST action 'reply',
-        # usually via Javascript App.MemberReplyActions.ajax('reply'):
+        # usually via Javascript MemberReplyActions.ajax('reply'):
         def post_action_reply(self):
             return vm_list({
                 'members': Member.objects.filter(club=club, role=role)
@@ -840,7 +881,8 @@ one has to invoke it manually by calling `conditional_action`_ method in ``get``
         {{ reply }}
     {% endif -%}
 
-See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``.
+See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``, like ``MemberReplyActions``
+mentioned in this example.
 
 The execution path of the action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -848,19 +890,21 @@ The execution path of the action
 .. highlight:: javascript
 
 The execution of action usually is initiated in the browser via the :ref:`clientside_components` DOM event / Knockout.js
-binding handler, or is programmatically invoked in Javascript via the `App.Actions`_ inherited class ``.perform()``
+binding handler, or is programmatically invoked in Javascript via the `Actions`_ inherited class ``.perform()``
 method::
 
     import { inherit } from '../../djk/js/dash.js';
+    import { Actions } from '../../djk/js/actions.js';
+    // import { GridActions } from '../../djk/js/grid/actions.js';
 
-    App.ClubActions = function(options) {
-        // Comment out, when overriding App.ko.Grid actions.
-        // inherit(App.GridActions.prototype, this);
-        inherit(App.Actions.prototype, this);
+    ClubActions = function(options) {
+        // Comment out, when overriding Grid actions.
+        // inherit(GridActions.prototype, this);
+        inherit(Actions.prototype, this);
         this.init(options);
     };
 
-    var clubActions = new App.ClubActions({
+    var clubActions = new ClubActions({
         route: 'club_actions_view',
         actions: {
             'review_club': {},
@@ -875,7 +919,7 @@ method::
 
 ``actionOptions`` and ``ajaxCallback`` arguments are the optional ones.
 
-* In case there is ``perform_review_club()`` method defined in ``App.ClubActions`` Javascript class, it will be called
+* In case there is ``perform_review_club()`` method defined in ``ClubActions`` Javascript class, it will be called
   first.
 
 * If there is no ``perform_review_club()`` method defined, ``.ajax()`` method will be called, executing AJAX POST request
@@ -888,7 +932,7 @@ method::
     ``after`` callbacks, to define custom viewmodel handlers on the fly::
 
        var self = this;
-       App.clubActions.ajax(
+       clubActions.ajax(
             'member_names',
             {
                 club_id: this.club.id,
@@ -903,31 +947,31 @@ method::
             }
        );
 
-       App.clubActions.ajax(
+       clubActions.ajax(
             'member_roles',
             {
                 club_id: this.club.id,
             },
-            // viewmodel response will be returned to the bound method App.clubRolesEditor.updateMemberRoles():
+            // viewmodel response will be returned to the bound method clubRolesEditor.updateMemberRoles():
             {
-                context: App.clubRolesEditor,
-                fn: App.ClubRolesEditor.updateMemberRoles,
+                context: clubRolesEditor,
+                fn: ClubRolesEditor.updateMemberRoles,
             }
        );
 
 * Note: ``actionOptions`` value may be dynamically altered / generated via optional ``queryargs_review_club()`` method in
-  case it's defined in ``App.ClubActions`` class.
+  case it's defined in ``ClubActions`` class.
 
 * Custom ``perform_review_club()`` method could execute some client-side Javascript code first then call ``.ajax()``
   method manually to execute Django view code, or just perform a pure client-side action only.
 
-* In case ``App.ClubActions`` class ``.ajax()`` method was called, the resulting viewmodel will be passed to
-  ``App.ClubActions`` class ``callback_review_club()`` method, in case it's defined. That makes the execution chain of
+* In case ``ClubActions`` class ``.ajax()`` method was called, the resulting viewmodel will be passed to
+  ``ClubActions`` class ``callback_review_club()`` method, in case it's defined. That makes the execution chain of
   AJAX action complete.
 
 See `Client-side routes`_ how to make ``club_actions_view`` Django view name (route) available in Javascript.
 
-See `club-grid.js`_ for sample overriding of ``App.ko.Grid`` actions. See :doc:`datatables` for more info.
+See `club-grid.js`_ for sample overriding of ``Grid`` actions. See :doc:`datatables` for more info.
 
 Overriding action callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -937,16 +981,16 @@ Overriding action callback
 Possible interpretation of server-side `ActionsView`_ class ``.action\*()`` method (eg ``.action_perform_review()``)
 result (AJAX response):
 
-* ``None`` - client-side `App.Actions`_ class ``.callback_perform_review()`` method will be called, no arguments passed
+* ``None`` - client-side `Actions`_ class ``.callback_perform_review()`` method will be called, no arguments passed
   to it except the default `viewmodel_name`_;
-* ``False`` - client-side `App.Actions`_ class ``.callback_perform_review()`` will be suppressed, not called at all;
+* ``False`` - client-side `Actions`_ class ``.callback_perform_review()`` will be suppressed, not called at all;
 * ``list`` / ``dict`` - the result will be converted to `vm_list`_
 
   * In case the viewmodel ``view`` key is omitted or contains the default Django view `viewmodel_name`_ attribute value,
-    the default client-side `App.Actions`_ class ``.callback_perform_review()`` method will be called;
-  * The rest of viewmodels (if any) will be processed by the `App.vmRouter`_;
+    the default client-side `Actions`_ class ``.callback_perform_review()`` method will be called;
+  * The rest of viewmodels (if any) will be processed by the `vmRouter`_;
 
-* `special case`: override callback method by routing to ``another_action`` Javascript `App.Actions`_ class
+* `special case`: override callback method by routing to ``another_action`` Javascript `Actions`_ class
   ``.callback_another_action()`` method by providing `callback_action`_ key with the value ``another_action`` in the
   viewmodel dict response.
 
@@ -972,8 +1016,8 @@ result (AJAX response):
                     }
                 else:
                     title = obj.get_str_fields()
-                    # App.Action.callback_show_readonly() will be called instead of the default
-                    # App.Action.callback_edit_inline() with the following viewmodel as the argument.
+                    # Action.callback_show_readonly() will be called instead of the default
+                    # Action.callback_edit_inline() with the following viewmodel as the argument.
                     return {
                         'callback_action': 'show_readonly',
                         'title': title,
@@ -988,30 +1032,33 @@ Custom actions at the client-side
 .. highlight:: javascript
 
 To implement or to override client-side processing of AJAX action response, one should define custom Javascript class,
-inherited from `App.Actions`_ (or from `App.GridActions`_ in case of custom grid :doc:`datatables`)::
+inherited from `Actions`_ (or from `GridActions`_ in case of custom grid :doc:`datatables`)::
 
     import { inherit } from '../../djk/js/dash.js';
+    import { Actions } from '../../djk/js/actions.js';
 
-    App.MyModelFormActions = function(options) {
-        inherit(App.Actions.prototype, this);
+    MyModelFormActions = function(options) {
+        inherit(Actions.prototype, this);
         this.init(options);
     };
 
 Client-side part of ``edit_form`` action response, which receives AJAX viewmodel(s) response is defined as::
 
+    import { ModelFormDialog } from  '../../djk/js/modelform.js';
+
     (function(MyModelFormActions) {
 
         MyModelFormActions.callback_edit_form = function(viewModel) {
             viewModel.owner = this.grid;
-            var dialog = new App.ModelFormDialog(viewModel);
+            var dialog = new ModelFormDialog(viewModel);
             dialog.show();
         };
 
         // ... See more sample methods below.
 
-    })(App.MyModelFormActions.prototype);
+    })(MyModelFormActions.prototype);
 
-Client-side `App.Actions`_ descendant classes can optionally add queryargs to AJAX HTTP request in a custom
+Client-side `Actions`_ descendant classes can optionally add queryargs to AJAX HTTP request in a custom
 ``queryargs_ACTION_NAME`` method::
 
     MyFormActions.queryargs_edit_form = function(options) {
@@ -1019,12 +1066,14 @@ Client-side `App.Actions`_ descendant classes can optionally add queryargs to AJ
         options['myArg'] = 1;
     };
 
-Client-side `App.Actions`_ descendant classes can directly process actions without calling AJAX viewmodel server-side
+Client-side `Actions`_ descendant classes can directly process actions without calling AJAX viewmodel server-side
 part (client-only actions) by defining ``perform_ACTION_NAME`` method::
 
+    import { ActionTemplateDialog } from '../../djk/js/modelform.js';
+
     MyFormActions.perform_edit_form = function(queryArgs, ajaxCallback) {
-        // this.owner may be instance of App.ko.Grid or another class which implements proper owner interface.
-        new App.ActionTemplateDialog({
+        // this.owner may be instance of Grid or another class which implements proper owner interface.
+        new ActionTemplateDialog({
             template: 'my_form_template',
             owner: this.owner,
             meta: {
@@ -1035,7 +1084,7 @@ part (client-only actions) by defining ``perform_ACTION_NAME`` method::
 
 .. highlight:: XML
 
-For such client-only actions `App.ActionTemplateDialog`_ utilizes Underscore.js templates for one-way binding, or
+For such client-only actions `ActionTemplateDialog`_ utilizes Underscore.js templates for one-way binding, or
 Knockout.js templates when two way binding is required. Here is the sample template ::
 
     <script type="text/template" id="my_form_template">
@@ -1055,16 +1104,18 @@ Knockout.js templates when two way binding is required. Here is the sample templ
 
 .. highlight:: javascript
 
-Custom grid actions should inherit from both ``App.GridActions`` and it's base class ``App.Actions``::
+Custom grid actions should inherit from both `GridActions`_ and it's base class `Actions`_::
 
     import { inherit } from '../../djk/js/dash.js';
+    import { Actions } from '../../djk/js/actions.js';
+    import { GridActions } from '../../djk/js/grid/actions.js';
 
-    App.MyGridActions = function(options) {
-        inherit(App.GridActions.prototype, this);
-        inherit(App.Actions.prototype, this);
+    MyGridActions = function(options) {
+        inherit(GridActions.prototype, this);
+        inherit(Actions.prototype, this);
         this.init(options);
     };
 
 For more detailed example of using viewmodel actions routing, see the documentation :doc:`datatables` section
-:ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `App.EditForm`_, `App.EditInline`_
-and by `App.ko.Grid`_ client-side components. See also `App.EditForm usage`_ in ``djk-sample`` project.
+:ref:`datatables_client_side_action_routing`. Internally, AJAX actions are used by `EditForm`_, `EditInline`_
+and by `Grid`_ client-side components. See also `EditForm usage`_ in ``djk-sample`` project.

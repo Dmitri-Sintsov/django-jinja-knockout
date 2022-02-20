@@ -1,5 +1,5 @@
 import { map, mapObject, find, each } from '../lib/underscore-esm.js';
-import { odict, ODict } from '../dash.js';
+import { odict } from '../dash.js';
 import { blockTags } from '../ui.js';
 import { renderNestedList, renderValue } from '../nestedlist.js';
 

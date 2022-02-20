@@ -1,3 +1,4 @@
+.. _AppConf: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppConf
 .. _client_routes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=client_routes
 .. _create_page_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=create_page_context
 .. _DJK_PAGE_CONTEXT_CLS: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=DJK_PAGE_CONTEXT_CLS
@@ -157,8 +158,8 @@ The following `page_context`_ methods are used to get page data in templates:
 Injection of Django url routes into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* `get_client_conf()`_ method returns the dict which is passed to client-side as ``App.conf`` Javascript object with the
-  following keys:
+* `get_client_conf()`_ method returns the dict which is passed to client-side via `AppConf`_ Javascript instance with
+  the following keys:
 
  * ``'jsErrorsAlert'`` - boolean value, whether Javascript errors should produce modal alert;
  * ``'jsErrorsLogging'`` - boolean value, whether Javascript errors should be reported to admin email;
@@ -236,9 +237,11 @@ Injection of server-side data into loaded page
 
 Sample template ::
 
-    <script language="JavaScript">
-        App.conf = {{ page_context.get_client_conf()|to_json(True) }};
-        App.clientData = {{ page_context.get_client_data()|to_json(True) }};
+    <script type="application/json" class="app-conf">
+        {{ page_context.get_client_conf()|to_json(True) }}
+    </script>
+    <script type="application/json" class="app-client-data">
+        {{ page_context.get_client_data()|to_json(True) }}
     </script>
 
 .. highlight:: Python
