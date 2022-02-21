@@ -26,6 +26,19 @@ function ViewModelRouter(viewHandlers) {
         return this;
     };
 
+    ViewModelRouter.findHandler = function(viewName, handler) {
+        if (isArray(this.handlers[viewName])) {
+            for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined'; i++) {
+                if (isEqual(this.handlers[viewName][i], handler)) {
+                    return i;
+                }
+            }
+            return -1;
+        } else {
+            return isEqual(this.handlers[viewName], handler);
+        }
+    };
+
     /**
      * Add bound method: handler={'fn': methodName, 'context': classInstance}
      *   'fn' is not bound, and context is passed separately (re-binding is available)
@@ -38,24 +51,17 @@ function ViewModelRouter(viewHandlers) {
     ViewModelRouter.addHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] === 'undefined') {
             this.handlers[viewName] = handler;
-        } else if (isArray(this.handlers[viewName])) {
-            if (_.find(
-                    this.handlers[viewName], function(existingHandler) {
-                        return isEqual(handler, existingHandler);
-                    }
-                ) === undefined
-            ) {
-                this.handlers[viewName].push(handler);
-            } else {
-                console.log('Warning: skipping already existing handler');
-            }
         } else {
-            if (!isEqual(this.handlers[viewName], handler)) {
+            var k = this.findHandler(viewName, handler);
+            if (k === -1) {
+                this.handlers[viewName].push(handler);
+            } else if (k === false) {
                 // Convert single handler to the array of handlers.
                 this.handlers[viewName] = [
                     this.handlers[viewName], handler
                 ];
             } else {
+                // k !== -1 || k === true
                 console.log('Warning: skipping already existing handler');
             }
         }
@@ -87,22 +93,15 @@ function ViewModelRouter(viewHandlers) {
 
     ViewModelRouter.removeHandler = function(viewName, handler) {
         if (typeof this.handlers[viewName] !== 'undefined') {
-            if (isArray(this.handlers[viewName])) {
-                var k = -1;
-                for (var i = 0; typeof this.handlers[viewName][i] !== 'undefined'; i++) {
-                    if (isEqual(this.handlers[viewName][i], handler)) {
-                        k = i;
-                        break;
-                    }
-                }
-                if (k !== -1) {
-                    this.handlers[viewName].splice(k, 1);
-                }
-                if (this.handlers[viewName].length === 0) {
-                    delete this.handlers[viewName];
-                }
+            var k = this.findHandler(viewName, handler);
+            if (k === false || k === -1) {
+                // return this;
+            } else if (k === true) {
+                delete this.handlers[viewName];
             } else {
-                if (isEqual(this.handlers[viewName], handler)) {
+                // k !== -1
+                this.handlers[viewName].splice(k, 1);
+                if (this.handlers[viewName].length === 0) {
                     delete this.handlers[viewName];
                 }
             }
@@ -187,7 +186,7 @@ function ViewModelRouter(viewHandlers) {
     };
 
     /**
-     * Executes viewModel based on it's viewModel.view property which contanis viewModel name.
+     * Executes viewModel based on it's viewModel.view property which contains viewModel name.
      */
     ViewModelRouter.showView = function(viewModel, bindContext) {
         if (typeof viewModel.view === 'undefined') {
