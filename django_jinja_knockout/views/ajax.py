@@ -375,7 +375,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             vm['callback_action'] = callback_action
         return vm_list(vm)
 
-    def vm_inline(self, ff, template=None, verbose_name=None, form_action='save_inline', action_query: dict = None):
+    def vm_inline(
+            self, ff, template=None, verbose_name=None, form_action='save_inline',
+            action_query: dict = None, callback_action=None
+    ):
         if template is None:
             template = self.inline_template
         if action_query is None:
@@ -390,7 +393,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         })
         if verbose_name is None:
             verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
-        return vm_list({
+        vm = {
             'last_action': form_action,
             'title': format_html(
                 '{}: {}',
@@ -398,7 +401,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
                 verbose_name
             ),
             'message': ff_html
-        })
+        }
+        if callback_action is not None:
+            vm['callback_action'] = callback_action
+        return vm_list(vm)
 
     def get_initial(self):
         return self.initial.copy()

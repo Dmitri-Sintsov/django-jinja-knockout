@@ -170,7 +170,7 @@ function renderValue(element, value, getOptions) {
             $(element).empty();
             renderNestedList(element, value, options);
         } else {
-            // Primarily use is to display server-side formatted strings (Djano local date / currency format).
+            // Primarily used to display server-side formatted strings (Django local date / currency format).
             $(element)[options.fn](value);
         }
     }

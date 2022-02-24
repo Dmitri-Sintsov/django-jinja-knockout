@@ -27,7 +27,7 @@ function KoGridAction(options) {
                     return cells.indexOf(cellName) !== -1;
                 } else {
                     // string
-                    return cells = cellName;
+                    return cells === cellName;
                 }
             }
         }
