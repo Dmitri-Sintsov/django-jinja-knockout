@@ -12,6 +12,7 @@ Client-side support
 .. _ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ComponentManager
 .. _documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
 .. _Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
+.. _DENO_ROLLUP_ENTRY_POINTS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=DENO_ROLLUP_ENTRY_POINTS
 .. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
 .. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
 .. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalioc&type=&utf8=%E2%9C%93
@@ -36,10 +37,13 @@ Client-side support
 .. _ko_grid_body(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/ko_grid_body.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 .. _sprintf: https://github.com/alexei/sprintf.js
+.. _set_custom_scripts: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=set_custom_scripts
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _system.js: https://github.com/systemjs/systemjs
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _terser: https://terser.org
+
+.. _clientside_es6:
 
 app.js
 ------
@@ -107,8 +111,17 @@ bundling app should be used. It also has optional `terser`_ support. There is sa
     DENO_DEBUG = False
     DENO_RELOAD = False
 
-Old browsers such as IE11 will use the bundled `system.js`_ loader.
-Note that modern browsers do not require any bundling at all.
+Old browsers such as IE11 will use the bundled `system.js`_ loader. Note that modern browsers do not require any
+bundling at all, however could benefit from optional generating terser-optimized es6 bundles.
+
+.. _clientside_entry_points:
+
+Client-side entry points
+------------------------
+
+See `DENO_ROLLUP_ENTRY_POINTS`_ / `set_custom_scripts`_ for the example how to specify browser / rollup entry points.
+Note that `DENO_ROLLUP_ENTRY_POINTS` setting is optional and is used only when `django_deno`_ is installed and enabled
+in ``settings.py`` to generate the minified bundle and / or to generate IE11 compatible bundle.
 
 Client-side modules include many different features:
 
@@ -214,7 +227,8 @@ Global IoC
 ----------
 Since v2.0, monolithic ``App.readyInstances`` was replaced by `globalIoc`_ instance of `ViewModelRouter`_ class, which
 holds lazy definitions of global instances initialized when browser document is loaded. It allows to override built-in
-global instances and to add custom global instances in user scripts like this::
+global instances and to add custom global instances in user scripts (usually in the :ref:`clientside_entry_points`) like
+this::
 
     import { globalIoc } from '../../djk/js/ioc.js';
 
