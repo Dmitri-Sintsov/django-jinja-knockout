@@ -16,6 +16,7 @@ Client-side support
 .. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
 .. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
 .. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalioc&type=&utf8=%E2%9C%93
+.. _globalIoc sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=JavaScript&q=globalIoc&type=code
 .. _initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClient+%3D+function
 .. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks+%3D+function
 .. _Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
@@ -45,8 +46,8 @@ Client-side support
 
 .. _clientside_es6:
 
-app.js
-------
+es6 loader
+----------
 
 .. highlight:: python
 
@@ -111,8 +112,8 @@ bundling app should be used. It also has optional `terser`_ support. There is sa
     DENO_DEBUG = False
     DENO_RELOAD = False
 
-Old browsers such as IE11 will use the bundled `system.js`_ loader. Note that modern browsers do not require any
-bundling at all, however could benefit from optional generating terser-optimized es6 bundles.
+Old browsers such as IE11 will use bundled `system.js`_ loader. Note that modern browsers do not require any bundling
+at all, however could benefit from optional generating terser-optimized es6 bundles.
 
 .. _clientside_entry_points:
 
@@ -245,8 +246,9 @@ this::
         return new UserClass(options);
     });
 
-See `clientside_components`_, :doc:`views`, :doc:`widgets`, :doc:`viewmodels` for the examples how to specify custom
-component class name at server-side via `data-component-class`_ html5 attribute.
+* See `globalIoc sample`_ for the complete example.
+* See `clientside_components`_, :doc:`views`, :doc:`widgets`, :doc:`viewmodels` for the examples how to specify custom
+  component class name at server-side via `data-component-class`_ html5 attribute.
 
 Client-side localization
 ------------------------
