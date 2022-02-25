@@ -44,7 +44,7 @@ Client-side support
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _terser: https://terser.org
 
-.. _clientside_es6:
+.. _clientside_es6_loader:
 
 es6 loader
 ----------

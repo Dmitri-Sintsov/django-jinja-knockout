@@ -1,6 +1,9 @@
+.. _add_custom_scripts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=add_custom_scripts
 .. _AppConf: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppConf
+.. _AppClientData: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AppClientData
 .. _client_routes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=client_routes
 .. _create_page_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=create_page_context
+.. _DJK_JS_MODULE_TYPE: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=DJK_JS_MODULE_TYPE
 .. _DJK_PAGE_CONTEXT_CLS: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=DJK_PAGE_CONTEXT_CLS
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://github.com/django/django/search?l=Python&q=format_html
@@ -14,6 +17,7 @@
 .. _page_context: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=page_context
 .. _page_context_decorator: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=page_context_decorator
 .. _PageContextMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PageContextMixin
+.. _set_custom_scripts() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=set_custom_scripts&type=code
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/tpl.py
 .. _.update_page_context(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=update_page_context
@@ -95,11 +99,11 @@ ancestors as basically all class-based views of ``django-jinja-knockout`` inheri
     class CreateClub(PageContextMixin):
 
         view_title = 'Create new club'
-        # Will be available as App.clientData['club'] in Javascript code.
+        # Will be available as AppClientData['club'] in Javascript code.
         client_data = {
             'club': 12,
         }
-        # Will be available as client-side url App.routeUrl('manufacturer_fk_widget', {'action': 'name-of-action'})
+        # Will be available as client-side url Url('manufacturer_fk_widget', {'action': 'name-of-action'})
         client_routes = {
             'manufacturer_fk_widget',
             'profile_fk_widget',
@@ -131,7 +135,9 @@ Also, one may add `page_context`_ via `PageContextMixin`_ ``.create_page_context
 
 To access client route in Javascript code::
 
-    App.routeUrl('profile_detail', {profile_id: pk})
+    import { Url } from '../../djk/js/url.js';
+
+    Url('profile_detail', {profile_id: pk})
 
 .. highlight:: Jinja
 
@@ -232,8 +238,8 @@ Injection of server-side data into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. highlight:: html
 
-* `get_client_data()`_ method returns the dict, injected as JSON to HTML page, which is accessible at client-side as
-  ``App.clientData`` Javascript object.
+* `get_client_data()`_ method returns the dict, injected as JSON to HTML page, which is accessible at client-side via
+  ``AppClientData()`` Javascript function call.
 
 Sample template ::
 
@@ -256,7 +262,9 @@ To pass data from server-side Python to client-side Javascript, one has to acces
 
 To access the injected data in Javascript code::
 
-    App.clientData['club_id']
+    import { AppClientData } from '../../djk/js/conf.js';
+
+    AppClientData('club_id')
 
 .. highlight:: Python
 
@@ -275,24 +283,35 @@ Injection of custom script urls into loaded page
 
 To inject custom script to the bottom of loaded page, use the following call in Django view::
 
-    self.create_page_context().add_custom_scripts(
-        'djk/js/formsets.js',
-        'djk/js/grid.js',
+    self.create_page_context().set_custom_scripts(
+        'my_project/js/my-custom-dialog.js',
+        'my_project/js/my-custom-grid.js',
     )
 
 .. highlight:: jinja
 
-To dynamically add custom script from within Django template, use `PageContext`_ instance stored into `page_context`_
+To dynamically set custom script from within Django template, use `PageContext`_ instance stored into `page_context`_
 template context variable::
 
-    {% do page_context.add_custom_scripts(
-        'djk/js/formsets.js',
-        'djk/js/grid.js',
+    {% do page_context.set_custom_scripts(
+        'my_project/js/my-custom-dialog.js',
+        'my_project/js/my-custom-grid.js',
     ) -%}
 
 The order of added scripts is respected, however multiple inclusion of the same script will be omitted to prevent
 client-side glitches. There is also an additional check against inclusion of duplicate scripts at client-side via
-``App.assertUniqueScripts()`` function call.
+``assertUniqueScripts()`` function call.
+
+It's also possible to conditionally add extra scripts to already set of scripts via `PageContext`_ class
+`add_custom_scripts()`_ method, however with :ref:`clientside_es6_loader` it's rarely needed as the extra scripts can be
+imported as es6 modules.
+
+It's also possible to pass custom tag attributes to set / added scripts by specifying dict as the value of
+``add_custom_scripts()`` / ``set_custom_scripts()`` method. The key ``name`` of the passed dict will specify the
+name of script, the rest of it's keys has the values of script attributes, such as ``type``. The default ``type`` key
+value is ``module`` for es6 modules which can be overriden by `DJK_JS_MODULE_TYPE`_ ``settings.py`` variable value.
+
+* See `set_custom_scripts() sample`_ for the complete example.
 
 Meta and formatting
 -------------------
@@ -319,8 +338,8 @@ Advanced url resolution, both forward and reverse
 
 See :doc:`tpl` for more info.
 
-Miscelaneous
-------------
+Miscellaneous
+-------------
 * ``sdv.dbg()`` for optional template variable dump (debug).
 * Context processor is inheritable which allows greater flexibility to implement your own custom features by
   overloading it's methods.
