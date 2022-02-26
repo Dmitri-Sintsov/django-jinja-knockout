@@ -2,9 +2,12 @@
 Forms
 ======
 
+.. _ajaxform.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ajaxform.js
 .. _base module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/base.py
 .. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=bootstrapmodelform
+.. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
+.. _Formset: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Formset&type=code
 .. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
 .. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formsetrenderer
 .. _forms package: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout/forms
@@ -180,7 +183,7 @@ Some attributes are used only by some renderers:
 Rendering customization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The most simpliest way to customize form is to override / extend one of the default model form templates via
+The most simplest way to customize form is to override / extend one of the default model form templates via
 overriding `RendererModelForm`_ template attributes, for example to change inline form wrapper::
 
     class EquipmentForm(RendererModelForm):
@@ -312,7 +315,7 @@ is any. Such form will behave very similarly to usual non-AJAX submitted form wi
 1. AJAX response saves HTTP traffic.
 2. Instead of just redirecting to ``success_url``, one may perform custom actions, including displaying BootstrapDialog
    alerts and confirmations.
-3. app.js also includes Bootstrap progress bar when the form has file inputs. So when large files are uploaded, the
+3. `ajaxform.js`_ includes Bootstrap progress bar when the form has file inputs. So when large files are uploaded, the
    progress indicator will be updated, instead of just waiting until the request completes.
 
 .. highlight:: python
@@ -397,7 +400,7 @@ from ``UnchangeableModelMixin``::
 
     from django_jinja_knockout.forms import UnchangeableModelMixin
 
-to make sure bound model instances cannot be updated via custom script submission (Greasemonkey?).
+to make sure bound model instances cannot be updated via custom script submission (eg. Greasemonkey).
 
 In case related many to one inline formset ModelForms should be included into read-only "form", define their
 ``ModelForm`` class with ``metaclass=DisplayModelMetaclass`` and specify that class as ``form`` kwarg of
@@ -508,7 +511,7 @@ Dynamically adding new related formset forms
 
 ``bs_inline_formsets()`` macro with conjunction of ``django_jinja_knockout.forms.set_knockout_template()`` monkey
 patching formset method and client-side ``formsets.js`` script supports dynamic adding / removing of new formset forms
-(so-called ``empty_form``) via Knockout.js custom binding to ``App.ko.Formset``.
+(so-called `empty_form`_) via Knockout.js custom binding to `Formset`_.
 
 .. highlight:: javascript
 
@@ -519,16 +522,16 @@ Instead of simply storing ``formset.empty_form`` value then cloning it via jQuer
 
 Knockout.js bindings offer the following advantages:
 
-* Imagine unintentional or malicious content where ``__prefix__`` substring appears in ``empty_form`` representation
+* Imagine unintentional or malicious content where ``__prefix__`` substring appears in `empty_form`_ representation
   outside form inputs DOM attribute values. ``set_knockout_template()`` of ``django_jinja_knockout.forms`` ensures that
   only ``__prefix__`` substring in specified DOM attributes is bound to be changed by using ``lxml`` to convert
-  ``empty_form`` naive string prefixes to proper Knockout.js ``data-bind`` attribute values.
+  `empty_form`_ naive string prefixes to proper Knockout.js ``data-bind`` attribute values.
 * Knockout.js automatically re-calculates form prefix index when one of newly dynamically added formset
   forms are deleted before submitting.
-* Knockout.js translated version of empty_form template is stored in ``bs_inline_formsets()`` Jinja2 macro as value of
-  hidden textarea, which   allows to dynamically add field widgets with inline scripts.
+* Knockout.js translated version of `empty_form`_ template is stored in ``bs_inline_formsets()`` Jinja2 macro as
+  the value of hidden textarea, which allows to dynamically add field widgets with inline scripts.
 
-AFAIK it's the only solution to add client-side ``empty_form`` dynamically without possible XSS attacks. If there are
+AFAIK it's the only solution to add client-side `empty_form`_ dynamically without possible XSS attacks. If there are
 another such solutions, please let me know.
 
 .. highlight:: python
@@ -612,3 +615,4 @@ views as well::
             'form': ff.form,
             'formsets': ff.formsets,
         })
+
