@@ -278,6 +278,8 @@ html page is loaded (see :doc:`viewmodels` for more info)::
         }
     })
 
+.. _context_processor_custom_scripts:
+
 Injection of custom script urls into loaded page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -303,8 +305,8 @@ client-side glitches. There is also an additional check against inclusion of dup
 ``assertUniqueScripts()`` function call.
 
 It's also possible to conditionally add extra scripts to the existing set of scripts via `PageContext`_ class
-`add_custom_scripts()`_ method, however with :ref:`clientside_es6_loader` it's rarely needed as the extra scripts can be
-imported as es6 modules.
+`add_custom_scripts()`_ method, however with :ref:`clientside_es6_module_loader` it's rarely needed as the extra scripts
+can be imported as es6 modules.
 
 To set custom tag attributes to `PageContext`_ scripts one may pass the dict as the value of ``add_custom_scripts()`` /
 ``set_custom_scripts()`` method. The key ``src`` of the passed dict will specify the name of script, the rest of it's
@@ -312,6 +314,7 @@ keys has the values of script attributes, such as ``type``. The default ``type``
 which can be overridden by `DJK_JS_MODULE_TYPE`_ ``settings.py`` variable value.
 
 * See `set_custom_scripts() sample`_ for the complete example.
+* See :ref:`clientside_es6_module_loader` for additional information about `DJK_JS_MODULE_TYPE`_ setting.
 
 Meta and formatting
 -------------------

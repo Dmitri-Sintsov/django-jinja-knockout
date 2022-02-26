@@ -44,10 +44,10 @@ Client-side support
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _terser: https://terser.org
 
-.. _clientside_es6_loader:
+.. _clientside_es6_module_loader:
 
-es6 loader
-----------
+es6 module loader
+-----------------
 
 .. highlight:: python
 
@@ -120,11 +120,15 @@ at all, however could benefit from optional generating terser-optimized es6 bund
 Client-side entry points
 ------------------------
 
-See `DENO_ROLLUP_ENTRY_POINTS`_ / `set_custom_scripts`_ for the example how to specify browser / rollup entry points.
-Note that `DENO_ROLLUP_ENTRY_POINTS` setting is optional and is used only when `django_deno`_ is installed and enabled
+See :ref:`context_processor_custom_scripts` how to add custom Javascript entry points.
+
+* `DENO_ROLLUP_ENTRY_POINTS`_ specifies optional rollup entry points
+* `set_custom_scripts`_ specifies browser entry points.
+
+Note that ``DENO_ROLLUP_ENTRY_POINTS`` setting is optional and is used only when `django_deno`_ is installed and enabled
 in ``settings.py`` to generate the minified bundle and / or to generate IE11 compatible bundle.
 
-Client-side modules include many different features:
+Client-side modules include the following features:
 
 * `Viewmodels (client-side response routing)`_
 * `Underscore.js templates`_
