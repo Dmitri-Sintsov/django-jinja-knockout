@@ -1,5 +1,4 @@
 .. _$.optionalInput: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=optionalinput
-.. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _DisplayText sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=get_text_method&type=
 .. _djk_sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _ForeignKeyGridWidget wiki: https://github.com/Dmitri-Sintsov/djk-sample/wiki#ajax-inline-editing-with-foreign-key-editing
@@ -7,6 +6,7 @@
 .. _ListQuerySet: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=listqueryset&type=&utf8=%E2%9C%93
 .. _plugins.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/plugins.js
 .. _PrefillWidget: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=PrefillWidget&type=
+.. _renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=_renderer&type=code
 .. _vLargeTextField: https://github.com/django/django/search?q=vLargeTextField&unscoped_q=vLargeTextField
 .. _widget_prefill_dropdown.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/render/widget_prefill_dropdown.htm
 
@@ -18,7 +18,7 @@ OptionalWidget
 --------------
 
 `OptionalWidget`_ - A two-component ``MultiField``: a checkbox that indicates optional value and a field itself
-(``widget_class`` = ``Textarea`` by default). The field itself is enabled / disabled accrording to the checkbox state
+(``widget_class`` = ``Textarea`` by default). The field itself is enabled / disabled according to the checkbox state
 via client-side `$.optionalInput`_ plugin, implemented in `plugins.js`_::
 
     from django_jinja_knockout.widgets import OptionalWidget
@@ -36,7 +36,7 @@ DisplayText
 Use ``DisplayModelMetaclass`` from ``django_jinja_knockout.forms`` to set all field widgets of form as
 ``DisplayText``, making the whole form read-only.
 
-In last case the form will have special table rendering in Jinja2 `bs_field()`_ macro.
+In last case the form will have special `renderer`_ with table like view. See :ref:`forms_read_only` for more info.
 
 Widget allows to specify custom formatting callback to display complex fields, including foreign relationships,
 pre-defined string mapping for scalar ``True`` / ``False`` / ``None`` and layout override for :ref:`macros_bs_form`
@@ -61,7 +61,7 @@ For example, to override ``Member`` model ``note`` field `DisplayText`_ widget h
                     '<button {attrs}>Read</button>',
                     attrs={
                         'class': 'component btn btn-info',
-                        'data-component-class': 'App.Dialog',
+                        'data-component-class': 'Dialog',
                         'data-event': 'click',
                         'data-component-options': {
                             'title': '<b>Note for </b> <i>{}</i>'.format(self.instance.profile),
@@ -77,7 +77,7 @@ For example, to override ``Member`` model ``note`` field `DisplayText`_ widget h
                 'note': DisplayText(get_text_method=get_note)
             }
 
-See :ref:`clientside_global_ioc` how to register custom Javascript component_class.
+See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``.
 
 See `DisplayText sample`_ for the complete example.
 
@@ -93,7 +93,7 @@ of foreign key table rows.
 
 See :ref:`datatables_foreignkeygridwidget` section of :doc:`datatables` for the detailed explanation.
 
-Here is the scrinshot of the `ForeignKeyGridWidget`_ running `djk_sample`_ project:
+Here is the screenshot of the `ForeignKeyGridWidget`_ running `djk_sample`_ project:
 
 .. image:: https://raw.githubusercontent.com/wiki/Dmitri-Sintsov/djk-sample/djk_change_or_create_foreign_key_for_inline_form.png
   :width: 740px

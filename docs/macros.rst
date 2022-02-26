@@ -2,14 +2,12 @@
 Jinja2 macros
 ==============
 
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _TabList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabList&type=code
 .. _TabPane: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabPane&type=code
 .. _TabPaneManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabPaneManager&type=code
 .. _bs_breadcrumbs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
 .. _bs_choice_list: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
 .. _bs_dropdown: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
-.. _bs_field(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_field.htm
 .. _bs_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_form.htm
 .. _bs_inline_formsets(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_inline_formsets.htm
 .. _bs_tabs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/bs_tabs.htm

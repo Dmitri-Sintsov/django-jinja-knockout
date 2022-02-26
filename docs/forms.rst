@@ -362,6 +362,8 @@ Actual AJAX ModelForm response success / error viewmodels can be overridden in c
 These examples shows how to generate dynamic lists of client-side viewmodels at server-side. ``viewmodels.py``
 defines methods to alter viewmodels in already existing ``vm_list()`` instances.
 
+.. _forms_read_only:
+
 Displaying read-only "forms"
 ----------------------------
 
