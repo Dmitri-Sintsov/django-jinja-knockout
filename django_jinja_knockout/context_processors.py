@@ -101,10 +101,10 @@ class PageContext:
     def add_custom_scripts(self, *custom_scripts):
         for custom_script in custom_scripts:
             if isinstance(custom_script, dict):
-                name = custom_script.pop('name')
+                src = custom_script.pop('src')
                 atts = copy(self.default_script_atts)
                 atts.update(custom_script)
-                self.custom_scripts[name] = atts
+                self.custom_scripts[src] = atts
             else:
                 self.custom_scripts[custom_script] = self.default_script_atts
 
@@ -160,7 +160,7 @@ class PageContext:
         return client_conf
 
 
-class TemplateContextProcessor():
+class TemplateContextProcessor:
 
     def __init__(self, HttpRequest=None):
         self.user_id = 0

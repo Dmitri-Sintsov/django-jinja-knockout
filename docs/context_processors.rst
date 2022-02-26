@@ -302,14 +302,14 @@ The order of added scripts is respected, however multiple inclusion of the same 
 client-side glitches. There is also an additional check against inclusion of duplicate scripts at client-side via
 ``assertUniqueScripts()`` function call.
 
-It's also possible to conditionally add extra scripts to already set of scripts via `PageContext`_ class
+It's also possible to conditionally add extra scripts to the existing set of scripts via `PageContext`_ class
 `add_custom_scripts()`_ method, however with :ref:`clientside_es6_loader` it's rarely needed as the extra scripts can be
 imported as es6 modules.
 
-It's also possible to pass custom tag attributes to set / added scripts by specifying dict as the value of
-``add_custom_scripts()`` / ``set_custom_scripts()`` method. The key ``name`` of the passed dict will specify the
-name of script, the rest of it's keys has the values of script attributes, such as ``type``. The default ``type`` key
-value is ``module`` for es6 modules which can be overriden by `DJK_JS_MODULE_TYPE`_ ``settings.py`` variable value.
+To set custom tag attributes to `PageContext`_ scripts one may pass the dict as the value of ``add_custom_scripts()`` /
+``set_custom_scripts()`` method. The key ``src`` of the passed dict will specify the name of script, the rest of it's
+keys has the values of script attributes, such as ``type``. The default ``type`` key value is ``module`` for es6 modules
+which can be overridden by `DJK_JS_MODULE_TYPE`_ ``settings.py`` variable value.
 
 * See `set_custom_scripts() sample`_ for the complete example.
 
