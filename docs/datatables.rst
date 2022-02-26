@@ -22,7 +22,6 @@ Datatables
 .. _member_grid_custom_actions.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_custom_actions.htm
 .. _member_grid_tabs.htm: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/jinja2/member_grid_tabs.htm
 
-.. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _components.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/components.js
 .. _club-grid.js: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/sample/js/club-grid.js
 .. _formsets.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/formsets.js
@@ -37,6 +36,7 @@ Datatables
 .. _inputRow: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=inputRow&unscoped_q=inputRow
 .. _Grid.getCellActions(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=getCellActions
 .. _GridRow.getDescParts(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=getDescParts
+.. _mark_safe_fields: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=mark_safe_fields&type=code
 
 .. _action_delete: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=action_delete
 .. _components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=components&utf8=%E2%9C%93
@@ -519,7 +519,7 @@ relationships, which are implemented in Django ORM via ``'__'`` separator betwee
 ``club__category`` in this example.
 
 Set Django grid class ``grid_fields`` property value to the list of model fields that will be displayed as grid columns.
-Foreign key relationship spans are supported too.
+Spanned foreign key relationship are supported as well.
 
 Compound columns
 ~~~~~~~~~~~~~~~~
@@ -700,7 +700,7 @@ initialize grid ``related_models`` class level property as the list of tuple pai
         ]
         # ... skipped ...
 
-To override automatic collecting of Django model verbose field names, one has to define Django model @classmethod
+To override automatic collecting of Django model verbose field names, one has to define Django model ``@classmethod``
 ``get_fields_i18n``, which should return a dict with keys as field names and values as their verbose / localized names.
 
 Customizing visual display of fields at client-side
@@ -832,9 +832,8 @@ property. See `'list' action`_ for more info.
 
 .. highlight:: javascript
 
-* Scalar values will be placed into grid cells via ``jQuery.html()`` WITHOUT XSS protection. Usually these values are
-  server-side Django generated strings. Make sure these strings do not contain unsafe HTML to prevent XSS. Here's the
-  sample implementation in the version 1.0.0 of `grid.js`_::
+* Scalar values usually are server-side Django generated strings. Make sure these strings do not contain unsafe HTML to
+  prevent XSS. Here's the sample implementation in the version 2.0::
 
     import { renderValue } from '../../djk/js/nestedlist.js';
 
@@ -842,6 +841,10 @@ property. See `'list' action`_ for more info.
     GridColumnOrder.renderRowValue = function(element, value) {
         renderValue(element, value, this.getNestedListOptions());
     };
+
+Nested list values are escaped by default in ``GridRow.htmlEncode()``, thus are not escaped twice in
+``GridColumnOrder.renderRowValue()``. This allows to have both escaped and unescaped nested lists in row cells with
+`Grid`_ `mark_safe_fields`_ attribute list that allows to disable HTML escaping for the selected grid fields.
 
 .. highlight:: python
 
@@ -1259,7 +1262,7 @@ There are many cases when datatables require dynamic generation of filter fields
 Let's explain the last case as the most advanced one.
 
 Generation of ``'choices' filter`` list of choice values for Django contenttypes framework is implemented via
-``BaseFilterView.get_contenttype_filter()`` method, whose class is a base class for both ``KoGridView`` and it's
+``BaseFilterView.get_contenttype_filter()`` method, whose class is a base class to both ``KoGridView`` and it's
 traditional request counterpart ``ListSortingView`` (see `views`_ for details).
 
 We want to implement generic action logging, similar to ``django.admin`` logging but visually displayed as AJAX grid.
@@ -2593,7 +2596,7 @@ Alternatively, one may define ``get_edit_form_with_inline_formsets()`` Django gr
 Server-side of this action is implemented in `views.GridActionsMixin`_ class ``action_edit_inline()`` method.
 It returns AJAX response with generated HTML of ``FormWithInlineFormsets`` instance bound to target grid row Django
 model instance. Returned viewmodel ``last_action`` property value is set to ``'save_inline'``, to override
-``App.GridActions`` class ``lastActionName`` property.
+`GridActions`_ class ``lastActionName`` property.
 
 Client-side of this action uses `ModelFormDialog`_ to display generated ``FormWithInlineFormsets`` html and to
 submit AJAX form to `'save_inline' action`_.
@@ -3616,7 +3619,7 @@ method are implemented to perform custom action (see `Action AJAX response handl
             dialog.alert();
         };
 
-    })(App.Model1GridActions.prototype);
+    })(Model1GridActions.prototype);
 
 
 .. highlight:: jinja
