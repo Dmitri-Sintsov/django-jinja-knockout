@@ -3,7 +3,9 @@ Jinja2 macros
 ==============
 
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
-.. _App.TabPane: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=tabpane
+.. _TabList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabList&type=code
+.. _TabPane: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabPane&type=code
+.. _TabPaneManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=TabPaneManager&type=code
 .. _bs_breadcrumbs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_breadcrumbs
 .. _bs_choice_list: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_choice_list
 .. _bs_dropdown: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=bs_dropdown
@@ -16,11 +18,12 @@ Jinja2 macros
 .. _.get_filter_kwargs(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=get_filter_kwargs
 .. _.get_filter_kwargs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=HTML&q=get_filter_kwargs
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
+.. _ModelForm: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/
 .. _prepare_bs_navs: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=prepare_bs_navs
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _tpl.json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
 .. _bs_tabs() sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=bs_tabs
-.. _App.TabPane sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=App.TabPane
+.. _TabPane sample: https://github.com/Dmitri-Sintsov/djk-sample/search?utf8=%E2%9C%93&q=TabPane
 
 .. highlight:: jinja
 
@@ -32,7 +35,7 @@ ModelForms
 bs_form()
 ~~~~~~~~~
 
-`bs_form()`_ macro allows to generate html representation of ``ModelForm``::
+`bs_form()`_ macro allows to generate html representation of `ModelForm`_::
 
     {% extends 'base_min.htm' %}
     {% from 'bs_form.htm' import bs_form with context %}
@@ -48,7 +51,7 @@ bs_form()
     {% endblock main %}
 
 Since the introduction of form renderers in version 0.8.0, `bs_form()`_ macro become a simple compatibility wrapper,
-while the actial HTML code of form is generated with the following `render_form()`_ call::
+while the actual HTML code of form is generated with the following `render_form()`_ call::
 
     {{ render_form(request, 'standalone', form, {
         'action': action,
@@ -62,7 +65,7 @@ function instead::
 
     {{ render_form(request, 'body', form) }}
 
-To read more about `render_form()`_ template context function and built-in form / inline formsets renderers, see
+To read more about `render_form()`_ template context function and the built-in form / inline formsets renderers, see
 :doc:`forms`.
 
 Inline formsets
@@ -73,7 +76,7 @@ Inline formsets
 bs_inline_formsets()
 ~~~~~~~~~~~~~~~~~~~~
 
-`bs_inline_formsets()`_ is a macro that supports html rendering of one or zero Django ``ModelForm`` with one or multiple
+`bs_inline_formsets()`_ is a macro that supports html rendering of one or zero Django `ModelForm`_ with one or multiple
 related inline formsets. It also supports two types of rendering layouts:
 
 * ``<div>`` layout for real changeable submittable forms.
@@ -321,7 +324,7 @@ bs_navs()
 ~~~~~~~~~
 This macro takes the result of `prepare_bs_navs`_ function or the result of :ref:`views_bstabsmixin` template context
 ``main_navs`` variable to display automatically highlighted server-side bootstrap navigation tabs. Do not confuse to
-`bs_tabs()`_ macro, which is similar but switches between tabs at the client-side via `App.TabPane`_ Javascript class.
+`bs_tabs()`_ macro, which is similar but switches between tabs at the client-side via `TabPane`_ Javascript class.
 
 Since v0.9.0, `bs_navs()`_ macro is also argument-compatible to filter choices from the result of
 :ref:`views_listsortingview` class `.get_filter_kwargs()`_ call (see also `bs_breadcrumbs()`_  / `bs_choice_list()`_ /
@@ -336,24 +339,23 @@ Since v0.9.0, `bs_navs()`_ macro is also argument-compatible to filter choices f
 bs_tabs()
 ~~~~~~~~~
 
-`bs_tabs()`_ macro creates ``App.TabList`` Javascript component which manages client-side bootstrap tabs. Internally
-it uses ``App._TabPane`` Javascript class. Both classes are defined in `app.js`_. Let's explain some methods of
-``App._TabPane`` class:
+`bs_tabs()`_ macro creates `TabList`_ Javascript component which manages client-side bootstrap tabs. Internally
+it uses `TabPaneManager`_ Javascript class. Let's explain some methods of `TabPaneManager`_ class:
 
-* ``.switchTo()`` method enables automatic switching of bootstrap tab panes upon page load and via window.location.hash
+* ``.switchTo()`` method enables automatic switching of bootstrap tab panes upon page load and via ``window.location.hash``
   change. Hash change may occur programmatically from user script, or via clicking the anchor with matching hash name.
 * ``.highlight()`` method provides permanent or temporary highlighting of displayed bootstrap tab, to indicate that
   it's contents was updated / changed. This is particularly useful when `bs_tabs()`_ is used together with AJAX
   dynamic components, such as datatables.
 * ``.loadTemplate()`` method allows one-time filling of tab content from the specified ``template_id`` attribute of
   `bs_tabs()`_ macro. It allows to delay AJAX calls of the template components until the user actually clicked on the
-  tab, instead of performing all AJAX calls even for the inivisible tabs at once. Which is useful for the long lists
+  tab, instead of performing all AJAX calls even for the invisible tabs at once. Which is useful for the long lists
   of tabs with :ref:`datatables_ko_grid_macro` generated datatable component for example.
 
-djk_sample demo project has `bs_tabs() sample`_ / `App.TabPane sample`_ which places grids into bootstrap tabs.
+djk_sample demo project has `bs_tabs() sample`_ / `TabPane sample`_ which places grids into bootstrap tabs.
 
 The first mandatory argument of `bs_tabs()`_ macro is the ``tabs`` list. Each element of the ``tabs`` list should be the
-dict that defines content of each tab. The following mandarory key-value pairs are required:
+dict that defines content of each tab. The following mandatory key-value pairs are required:
 
 * ``id`` - the value of window.location.hash for current tab;
 * ``title`` - title of current tab;
@@ -362,9 +364,9 @@ The following keys are mutually exclusive:
 
 * ``html`` - html of tab pane. Use Jinja 2.8+ ``{% set html %}`` ``{% endset %}`` syntax to capture complex content,
   such as grid, ModelForm, inline formset and so on;
-* ``template_id`` - one may specifify underscore.js template id which will be expanded to tab pane when the user
-  switches to that pane, instead of ``html`` which loads the content to the tab immediately. It may be used to delay
-  loading of Javascript components, eg. datatables (grids). See :ref:`clientside_underscore_js_templates`  and
+* ``template_id`` - one may specify underscore.js template id which will be expanded to tab pane when the user
+  switches to that pane, instead of ``html`` which loads the content to the tab immediately. It's used to lazy load
+  Javascript components, eg. datatables (grids). See :ref:`clientside_underscore_js_templates`  and
   :ref:`clientside_components` for more info.
 
 Optional key-value pairs:
