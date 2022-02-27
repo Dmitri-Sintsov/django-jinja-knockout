@@ -4,11 +4,11 @@ addons:
   chrome: stable
 language: python
 python:
-  - '3.7'
+  - '3.8'
 env:
   matrix:
-    - TOXENV=py3.7-django-2.2-bs3
-    - TOXENV=py3.7-django-2.2-bs4
+    - TOXENV=py3.8-django-2.2-bs3
+    - TOXENV=py3.8-django-2.2-bs4
 branches:
   only:
   - master
