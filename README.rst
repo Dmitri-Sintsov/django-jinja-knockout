@@ -2,8 +2,8 @@
 django-jinja-knockout
 =====================
 
-.. _App.renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=App.renderValue&unscoped_q=App.renderValue
-.. _App.renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
+.. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
+.. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _data-bind: https://knockoutjs.com/documentation/binding-syntax.html
@@ -39,10 +39,7 @@ django-jinja-knockout
 .. image:: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout.svg?style=shield
     :target: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout
 
-.. image:: https://img.shields.io/travis/Dmitri-Sintsov/django-jinja-knockout.svg?style=flat
-    :target: https://travis-ci.org/Dmitri-Sintsov/django-jinja-knockout
-
-.. image:: http://www.icoph.org/img/ic-youtube.png
+.. image:: https://icons.iconarchive.com/icons/dtafalonso/android-lollipop/24/Youtube-icon.png
     :alt: Watch selenium tests recorded videos.
     :target: https://www.youtube.com/channel/UCZTrByxVSXdyW0z3e3qjTsQ
 
@@ -63,7 +60,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Supports Django 2.2 LTS, 3.0, 3.1; Python 3.6 / 3.7 / 3.8 / 3.9.
+* Supports Django 2.2 LTS, 3.2 LTS, 4.0; Python 3.8 / 3.9 / 3.10.
 
 Please contribute to the localization of the project:
 
