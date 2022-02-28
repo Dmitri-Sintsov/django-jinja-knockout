@@ -7,7 +7,7 @@
 .. _management_commands: https://django-jinja-knockout.readthedocs.io/en/latest/management_commands.html
 .. _middleware: https://django-jinja-knockout.readthedocs.io/en/latest/middleware.html
 .. _models: https://django-jinja-knockout.readthedocs.io/en/latest/models.html
-.. _pretetch_related: https://docs.djangoproject.com/en/dev/ref/models/querysets/#prefetch-related
+.. _prefetch_related: https://docs.djangoproject.com/en/dev/ref/models/querysets/#prefetch-related
 .. _PrintList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PrintList
 .. _Renderer: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
 .. _Renderers: https://django-jinja-knockout.readthedocs.io/en/latest/forms.html#renderers
@@ -66,7 +66,7 @@ forms.py / formsets.js
 * ``SeparateInitialFormMixin`` - Mixed to ``BaseInlineFormset`` to use different form classes for already existing model
   objects and for newly added ones (empty_form). May be used with ``DisplayModelMetaclass`` to display existing forms as
   read-only, while making newly added ones editable.
-* ``CustomFullClean`` / ``StripWhilespaceMixin`` mixins for Django forms.
+* ``CustomFullClean`` / ``StripWhitespaceMixin`` mixins for Django forms.
 
 See `forms`_ for the detailed explanation.
 
@@ -101,7 +101,7 @@ query.py
 --------
 * Allows to create raw Django querysets with filter methods such as filter() / order_by() / count().
 * Allows to convert Python lists to Django-like querysets, which is useful to filter the data received via
-  `pretetch_related`_ Django ORM reverse relation query.
+  `prefetch_related`_ Django ORM reverse relation query.
 
 It makes possible to use raw SQL queries and Python lists as the arguments of datatables / filtered lists.
 See `query.py`_ for more info.

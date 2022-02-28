@@ -1,11 +1,13 @@
 .. _action 'meta_list' preload: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#meta-list-action-preload
 .. _ActionsView: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html#ajax-actions
-.. _App.Actions: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html#ajax-actions
-.. _App.AjaxForm: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
-.. _App.Components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#components
-.. _App.Dialog: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
-.. _App.renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
-.. _App.routeUrl(): https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
+.. _Actions: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html#ajax-actions
+.. _AjaxForm: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
+.. _Components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#components
+.. _Dialog: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
+.. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
+.. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
+.. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=renderValue&type=code
+.. _routeUrl(): https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#simplifying-ajax-calls
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _bs_tabs(): https://django-jinja-knockout.readthedocs.io/en/latest/macros.html#macros-bs-tabs
@@ -21,9 +23,12 @@
 .. _KoGridView: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _ListSortingView: https://django-jinja-knockout.readthedocs.io/en/latest/views.html#listsortingview
 .. _ListQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#listqueryset
+.. _many to many relationships: https://docs.djangoproject.com/en/dev/topics/db/examples/many_to_many/
 .. _ModelForm: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#modelform
+.. _MultipleKeyGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=MultipleKeyGridWidget&type=code
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
 .. _Nested serializer: https://django-jinja-knockout.readthedocs.io/en/latest/usage.html#quickstart-serializers
+.. _PageContext: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PageContext
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _PrefillWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#id1
 .. _prepare_bs_navs(): https://django-jinja-knockout.readthedocs.io/en/latest/views.html#bstabsmixin
@@ -32,8 +37,10 @@
 .. _SendmailQueue: https://django-jinja-knockout.readthedocs.io/en/latest/utils_mail.html
 .. _Sparse components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-sparse-components
 .. _template attributes merging: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-attributes-merging
+.. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _tpl.resolve_cbv(): https://django-jinja-knockout.readthedocs.io/en/latest/tpl.html#url-resolution
 .. _underscore.js templates: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#underscore-js-templates
+.. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 Version 1.0.0
@@ -45,7 +52,7 @@ Django 3.1 / Bootstrap 4.5 / Knockout 3.5 support.
 `PageContext`_ replaces ``TemplateContext`` class with cleaner way to inject view title / client data / client routes /
 custom scripts to templates via `TemplateResponse`_.
 
-`App.renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `App.renderNestedList`_
+`renderValue`_ supports jQuery elements / nested arrays / objects / strings HTML rendering. `renderNestedList`_
 supports optional unwrapping of single top DOM node.
 
 Improved Bootstrap popovers support with jQuery ``.getPopoverTip()`` / ``.getVisiblePopovers()`` / ``.closeVisiblePopovers()``
@@ -110,34 +117,34 @@ Static assets are moved to '/djk' subdirectory, minimizing the risk of conflicts
 
 Updated to latest versions of Knockout.js / jQuery / Bootstrap 3 (should also work with not-too-old ones).
 
-`viewmodels`_ AJAX response routing is rewritten as ``App.ViewModelRouter`` class with default instance
-``App.vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
+`viewmodels`_ AJAX response routing is rewritten as ``ViewModelRouter`` class with default instance
+``vmRouter``. It now supports binding viewmodel handlers to Javascript class instances methods.
 
 Optional built-in Javascript error logger.
 
-``App.NestedList`` internally used by `App.renderNestedList`_ for greater flexibility of client-side Javascript nested
-lists rendering. ``App.NestedList`` now supports ordered maps via ``_.ODict`` instances.
+``NestedList`` internally used by `renderNestedList`_ for greater flexibility of client-side Javascript nested
+lists rendering. ``NestedList`` now supports ordered maps via ``_.ODict`` instances.
 
-Ajax forms submitting is refactored into `App.AjaxForm`_ class, while setting up the ajax forms is performed by
-``App.AjaxForms``, for better flexibility.
+Ajax forms submitting is refactored into `AjaxForm`_ class, while setting up the ajax forms is performed by
+``AjaxForms``, for better flexibility.
 
-``App.readyInstances`` introduced for global client-side IoC, available in custom user scripts as well.
+``readyInstances`` introduced for global client-side IoC, available in custom user scripts as well.
 
-Knockout.js method subscription / unsubscription is placed into ``App.ko.Subscriber`` mixin class. ``focus`` binding
+Knockout.js method subscription / unsubscription is placed into ``Subscriber`` mixin class. ``focus`` binding
 is implemented for Knockout.js.
 
 Request mock-up when running without web server is greatly improved. That enables reverse resolving of FQN urls in
 console management commands and in background celery tasks via `reverseq()`_ calls when sites framework is correctly
 set up.
 
-``ast_eval`` templage tag.
+``ast_eval`` template tag.
 
 Headless Chrome Selenium webdriver support (phantom.js is deprecated).
 
 Major changes (version 0.6.0)
 -----------------------------
-AJAX actions are rewritten as server-side `ActionsView`_ class and client-side counterpart `App.Actions`_. It is now
-used as foundation for most of AJAX code, including grid datatables and new ``App.EditForm`` / ``App.EditInline``
+AJAX actions are rewritten as server-side `ActionsView`_ class and client-side counterpart `Actions`_. It is now
+used as foundation for most of AJAX code, including grid datatables and new ``EditForm`` / ``EditInline``
 client-side components.
 
 New widget `PrefillWidget`_ to select pre-filled text from the list of supplied values.
@@ -210,7 +217,7 @@ via `celery`_ task.
 Major changes (version 0.2.0)
 -----------------------------
 ``$.inherit()`` Javascript prototype inheritance function now supports multi-level inheritance with nested ``.super``
-calls without having to specify parent class prototype property implicitely in descendant class instances, with newly
+calls without having to specify parent class prototype property implicitly in descendant class instances, with newly
 introduced ``$.SuperChain`` class.
 
 "django.admin-like" AJAX functionality was implemented via `KoGridView`_ class-based view (CBV) at server-side with
@@ -223,14 +230,14 @@ New `ForeignKeyGridWidget`_ was developed which provides `ForeignKeyRawIdWidget`
 `ModelForm`_ classes to select foreign key fields value via AJAX query / response.
 
 Support of auto-instantiating Javascript classes with binding these to selected DOM nodes with 'component' css class via
-`App.Components`_ class.
+`Components`_ class.
 
-Support of auto-compiling / auto-loading client-side underscore.js templates via ``App.compileTemplate`` /
-``App.domTemplate`` / ``App.loadTemplates``. One of usage examples is the possibility of loading modal body from
-underscore.js template in `App.Dialog`_.
+Support of auto-compiling / auto-loading client-side underscore.js templates via ``compileTemplate`` /
+``domTemplate`` / ``loadTemplates``. One of usage examples is the possibility of loading modal body from
+underscore.js template in `Dialog`_.
 
 Support of client-side generation of view urls with kwargs for client-side url names via updated ``context_processors.py``
-and client-side `App.routeUrl()`_ Javascript function.
+and client-side `routeUrl()`_ Javascript function.
 
 `tpl.resolve_cbv()`_ allows to resolve view class via url name and it's kwargs.
 

@@ -1,3 +1,4 @@
+.. _AjaxForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=AjaxForm&type=code
 .. _app.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/app.js
 .. _apps.DjkAppConfig: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/apps.py
 .. _club_app/templates: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/templates
@@ -29,6 +30,7 @@
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
+.. _url.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/url.js
 .. _urls.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/urls.py
 
 =============
@@ -89,7 +91,7 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_A
     # Order of installed apps is important for Django Template loader to find 'djk_sample/templates/base.html'
     # before original allauth 'base.html' is found, when allauth DTL templates are used instead of built-in
     # 'django_jinja_knockout._allauth' Jinja2 templates, thus DJK_APPS are included before 'allauth'.
-    # For the same reason, djk_ui app is included before django_jinja_knockout, to make it possivble to override
+    # For the same reason, djk_ui app is included before django_jinja_knockout, to make it possible to override
     # any of django_jinja_knockout template / macro.
     INSTALLED_APPS = (
         'django.contrib.admin',
@@ -146,7 +148,7 @@ from django-jinja-knockout middleware, one should specify it import string as ``
 FILE_MAX_SIZE
 ~~~~~~~~~~~~~
 
-This optional setting allows to specify maximal allowed file size to upload with `app.js`_ ``App.AjaxForm()`` class::
+This optional setting allows to specify maximal allowed file size to upload with `AjaxForm`_ class::
 
     FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.TemporaryFileUploadHandler",)
     FILE_MAX_SIZE = 100 * 1024 * 1024
@@ -312,7 +314,7 @@ One will be able to call Django view via AJAX request in your Javascript code li
         kwargs: {'blog_id': 1}
     });
 
-where the AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `app.js`_ to
+where the AJAX response will be treated as the list of `viewmodels`_ and will be automatically routed by `url.js`_ to
 appropriate viewmodel handler. Django exceptions and AJAX errors are handled gracefully, displayed in
 ``BootstrapDialog`` window by default.
 
@@ -365,8 +367,10 @@ That makes possible to add custom client data to `page_context`_ instance::
 
 which will be available in Javascript as::
 
-    App.clientConf['email_host']
-    App.clientConf.userName
+    import { AppClientData } from '../../djk/js/conf.js';
+
+    AppClientData('email_host')
+    AppClientData('userName')
 
 Middleware
 ----------

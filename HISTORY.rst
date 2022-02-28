@@ -116,7 +116,7 @@ History
 forms.py
 ~~~~~~~~
 * ``BootstrapModelForm`` always populates ``.request`` attribute for convenience.
-* ``CustomFullClean`` / ``StripWhilespaceMixin`` mixins for Django forms.
+* ``CustomFullClean`` / ``StripWhitespaceMixin`` mixins for Django forms.
 
 middleware.py
 ~~~~~~~~~~~~~
@@ -146,9 +146,9 @@ widgets.py
   * ``get_text_method`` which binds passed function to DisplayText widget instance (self as first argument)
   * ``get_text_fn`` which uses unbound function (no self).
 
-If form that defined widget uses ``WidgetInstancsMixin`` and model field instance has ``get_str_fields()`` method
+If form that defined widget uses ``WidgetInstancesMixin`` and model field instance has ``get_str_fields()`` method
 implemented, such field will be auto-rendered via ``print_list_group()`` / ``print_bs_well()`` functions of ``tpl``
-modile to produce structured output.
+module to produce structured output.
 
 ko_grid_body.htm
 ~~~~~~~~~~~~~~~~
@@ -190,7 +190,7 @@ Alternative breadcrumbs layout of field filters widgets.
 0.4.2
 -----
 * Compatibility to 1.10+ new-style middleware (thanks to Melvyn Sopacua).
-* Fixed pagination when multiple filter field choices are seiected in views.ListSortingView.
+* Fixed pagination when multiple filter field choices are selected in views.ListSortingView.
 
 0.4.3
 -----
@@ -247,7 +247,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * Separate ``admin.js`` script to enable client-side of ``OptionalWidget`` in django admin.
 * ``App.ko.Grid`` actions ``meta`` / ``list`` / ``meta_list`` first requests passing HTTP POST ``firstLoad`` variable to
   detect the initial grid datatable action at server-side in `KoGridView`_ derived class.
-* Fixed selection of all current page grid datatable rows at miltiple grid datatable pages.
+* Fixed selection of all current page grid datatable rows at multiple grid datatable pages.
 * `plugins.js`_: ``jQuery.id()`` to get multiple DOM ids, ``_.moveOptions()`` to move options with possible default
   values. ``highlightListUrl`` jQuery function bugfixes.
 * `tooltips.js`_: ``form_error`` viewmodel handler, used to display AJAX forms validation errors now has the diagnostic
@@ -287,7 +287,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``focus`` binding is implemented for Knockout.js.
 * Request mock-up when running without web server allows reverse resolving of FQN urls in console management commands
   and in background celery tasks via `reverseq()`_ calls when sites framework is correctly set up.
-* ``ast_eval`` templage tag.
+* ``ast_eval`` template tag.
 * Headless Chrome Selenium webdriver support.
 
 0.8.0
