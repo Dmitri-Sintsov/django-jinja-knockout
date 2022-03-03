@@ -305,8 +305,8 @@ client-side glitches. There is also an additional check against inclusion of dup
 ``assertUniqueScripts()`` function call.
 
 It's also possible to conditionally add extra scripts to the existing set of scripts via `PageContext`_ class
-`add_custom_scripts()`_ method, however with :ref:`clientside_es6_module_loader` it's rarely needed as the extra scripts
-can be imported as es6 modules.
+`add_custom_scripts()`_ method which is intended to add legacy es5 scripts / non-JS scripts, because the es6 scripts are
+imported as es6 modules, see :ref:`clientside_es6_module_loader`.
 
 To set custom tag attributes to `PageContext`_ scripts one may pass the dict as the value of ``add_custom_scripts()`` /
 ``set_custom_scripts()`` method. The key ``src`` of the passed dict will specify the name of script, the rest of it's

@@ -43,6 +43,7 @@ Datatables
 .. _Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Actions&type=Code
 .. _ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
 .. _ActionsMenuDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionsMenuDialog&type=Code
+.. _ClubGridRawQuery: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _FilterDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FilterDialog
 .. _FkGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FkGridWidget&type=code
 .. _Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Grid&type=code
@@ -520,6 +521,43 @@ relationships, which are implemented in Django ORM via ``'__'`` separator betwee
 
 Set Django grid class ``grid_fields`` property value to the list of model fields that will be displayed as grid columns.
 Spanned foreign key relationship are supported as well.
+
+Grid fields dicts
+~~~~~~~~~~~~~~~~~
+
+Since v2.0, each value of ``grid_fields`` can be dict with the following keys:
+
+* ``field``: mandatory name of Django Model field or a name of virtual field (`Virtual fields`_).
+* ``name``: optional localized name of field, displayed in datatable header.
+* ``virtual``: optional boolean, which indicates that the current field is a virtual one (`Virtual fields`_).
+
+The example of defining both `Grid fields dicts`_, `Compound columns`_ and `Virtual fields`_::
+
+    from django_jinja_knockout.views import KoGridView
+
+    class ControlGrid(KoGridView):
+
+        model = Control
+
+        grid_fields = [
+            # Three compound columns:
+            [
+                'control__start_date',
+                'ctrl_id',
+                # Virtual field with custom local verbose name
+                {'field': 'ctrl_set__count', 'name': 'Controls count', 'virtual': True},
+            ],
+            'start_date',
+            'finish_date`,
+            # Two coumpound columns. Each field has relation spans.
+            [
+                'control__decline_threshold',
+                'control__growth_threshold',
+            ],
+        ]
+
+
+See `ClubGridRawQuery`_ for the actual example of using ``grid_fields`` dict values.
 
 Compound columns
 ~~~~~~~~~~~~~~~~
