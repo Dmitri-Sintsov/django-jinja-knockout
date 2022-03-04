@@ -547,9 +547,10 @@ The example of defining both `Grid fields dicts`_, `Compound columns`_ and `Virt
                 # Virtual field with custom local verbose name
                 {'field': 'ctrl_set__count', 'name': 'Controls count', 'virtual': True},
             ],
+            # Two "ordinary" columns:
             'start_date',
             'finish_date`,
-            # Two coumpound columns. Each field has relation spans.
+            # Two compound columns. Each field has relation spans.
             [
                 'control__decline_threshold',
                 'control__growth_threshold',

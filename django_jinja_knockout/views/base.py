@@ -433,16 +433,19 @@ class BaseFilterView(PageContextMixin):
                 yield column
 
     def yield_fields_attnames(self):
-        for field in self.yield_fields():
-            if isinstance(field, dict):
-                yield field['field']
-            elif isinstance(field, tuple):
-                yield field[0]
+        for field_def in self.yield_fields():
+            if isinstance(field_def, dict):
+                yield field_def['field']
+            elif isinstance(field_def, tuple):
+                yield field_def[0]
             else:
-                yield field
+                yield field_def
 
     def get_grid_fields_attnames(self):
         return [field for field in self.yield_fields_attnames() if field not in self.exclude_fields]
+
+    def set_grid_fields(self):
+        self.grid_fields_attnames = self.get_grid_fields_attnames()
 
     def has_grid_field(self, fieldname):
         return fieldname in self.get_grid_fields_attnames()
@@ -575,7 +578,7 @@ class BaseFilterView(PageContextMixin):
                 )
 
         self.exclude_fields = self.get_exclude_fields()
-        self.grid_fields_attnames = self.get_grid_fields_attnames()
+        self.set_grid_fields()
         self.allowed_sort_orders = self.get_allowed_sort_orders()
         self.allowed_filter_fields = self.get_allowed_filter_fields()
         self.search_fields = self.get_search_fields()

@@ -566,7 +566,6 @@ class GridActionsMixin(ModelFormActionsView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.virtual_fields = set()
 
     def get_actions(self):
         return {
@@ -754,8 +753,6 @@ class GridActionsMixin(ModelFormActionsView):
                     'field': field_def['field'],
                     'name': field_def['name'] if 'name' in field_def else self.get_field_verbose_name(field_def['field']),
                 }
-                if field_def.get('virtual', False):
-                    self.virtual_fields.add(field_def['field'])
             elif isinstance(field_def, tuple):
                 vm_field = {
                     'field': field_def[0],
@@ -982,6 +979,19 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         else:
             # Initial BaseGridWidget.get_context() / .discover_grid_options() server-side call.
             return self.template_options['pageRouteKwargs'][k]
+
+    def set_grid_fields(self):
+        self.grid_fields_attnames = []
+        self.virtual_fields = set()
+        for field_def in self.yield_fields():
+            if isinstance(field_def, dict):
+                self.grid_fields_attnames.append(field_def['field'])
+                if field_def.get('virtual', False):
+                    self.virtual_fields.add(field_def['field'])
+            elif isinstance(field_def, tuple):
+                self.grid_fields_attnames.append(field_def[0])
+            else:
+                self.grid_fields_attnames.append(field_def)
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
