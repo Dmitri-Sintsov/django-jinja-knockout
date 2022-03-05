@@ -44,8 +44,12 @@ function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
         initClient($elements);
         $rootNode.findRunningComponents().each(function() {
             var gridWidget = $(this).component();
-            if (typeof gridWidget.formsetIndex === 'function') {
-                gridWidget.formsetIndex(self.getTotalFormsCount() - 1);
+            if (gridWidget instanceof Promise) {
+                gridWidget.then(function(resolve) {
+                    self.setFormsetIndex(resolve);
+                });
+            } else {
+                this.setFormsetIndex(gridWidget);
             }
         });
         self.deleteFormHandler($elements);
@@ -55,6 +59,12 @@ function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
 
     Formset.getTotalFormsCount = function() {
         return this.serversideFormsCount + this.forms().length;
+    };
+
+    Formset.setFormsetIndex = function(gridWidget) {
+        if (typeof gridWidget.formsetIndex === 'function') {
+            gridWidget.formsetIndex(this.getTotalFormsCount() - 1);
+        }
     };
 
     Formset.deleteFormHandler = function($elements) {

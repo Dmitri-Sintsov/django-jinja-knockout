@@ -7,7 +7,6 @@ import { TabList } from './tabpane.js';
 
 import { AjaxForms } from './ajaxform.js';
 
-import { FkGridWidget } from './grid/widget.js';
 import { KoGridAction, GridRowsPerPageAction } from './grid/actions.ko.js';
 
 // todo: dynamic import for new classes.
@@ -58,7 +57,9 @@ var globalIoc = new ViewModelRouter({
         });
     },
     'FkGridWidget': function(options) {
-        return new FkGridWidget(options);
+        return import('./grid/widget.js').then(function(module) {
+            return new module.FkGridWidget(options);
+        });
     },
     // not a component, instantiated via ViewModelRouter.factory().
     'KoGridAction': function(options) {
