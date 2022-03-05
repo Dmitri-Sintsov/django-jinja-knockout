@@ -43,7 +43,6 @@ Datatables
 .. _Actions: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Actions&type=Code
 .. _ActionTemplateDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionTemplateDialog
 .. _ActionsMenuDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ActionsMenuDialog&type=Code
-.. _ClubGridRawQuery: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/club_app/views_ajax.py
 .. _FilterDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FilterDialog
 .. _FkGridWidget: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=FkGridWidget&type=code
 .. _Grid: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Grid&type=code
@@ -533,6 +532,8 @@ Since v2.0, each value of ``grid_fields`` can be dict with the following keys:
 
 The example of defining both `Grid fields dicts`_, `Compound columns`_ and `Virtual fields`_::
 
+    from django.utils.translation import gettext as _
+
     from django_jinja_knockout.views import KoGridView
 
     class ControlGrid(KoGridView):
@@ -545,7 +546,7 @@ The example of defining both `Grid fields dicts`_, `Compound columns`_ and `Virt
                 'control__start_date',
                 'ctrl_id',
                 # Virtual field with custom local verbose name
-                {'field': 'ctrl_set__count', 'name': 'Controls count', 'virtual': True},
+                {'field': 'ctrl_set__count', 'name': _('Number of controls'), 'virtual': True},
             ],
             # Two "ordinary" columns:
             'start_date',
@@ -558,7 +559,7 @@ The example of defining both `Grid fields dicts`_, `Compound columns`_ and `Virt
         ]
 
 
-See `ClubGridRawQuery`_ for the actual example of using ``grid_fields`` dict values.
+See `club_app.views_ajax`_ for the actual examples of using ``grid_fields`` dict values.
 
 Compound columns
 ~~~~~~~~~~~~~~~~

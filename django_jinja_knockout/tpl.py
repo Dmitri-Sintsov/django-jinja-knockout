@@ -463,6 +463,7 @@ def resolve_cbv(viewname, urlconf=None, args=None, kwargs=None, current_app=None
         current_app = get_current_app(request)
     url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs, current_app=current_app)
     view_fn = resolve(url)[0]
+    view_fn.view_initkwargs.update(kwargs)
     return view_fn.view_class, view_fn.view_initkwargs
 
 
@@ -661,4 +662,8 @@ def discover_grid_options(request, grid_options, extra_view_kwargs=None):
     if extra_view_kwargs is not None:
         view_kwargs.update(extra_view_kwargs)
     view = view_cls(**view_kwargs)
-    return view.discover_grid_options(request, grid_options)
+    view_options = copy(grid_options)
+    if 'pageRouteKwargsKeys' in view_options:
+        del view_options['pageRouteKwargsKeys']
+        view_options['pageRouteKwargs'] = view_kwargs
+    return view.discover_grid_options(request, view_options)
