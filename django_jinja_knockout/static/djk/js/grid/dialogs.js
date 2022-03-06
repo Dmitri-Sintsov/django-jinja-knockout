@@ -5,7 +5,7 @@ import { initClient } from '../initclient.js';
 import { components } from '../components.js';
 import { globalIoc } from '../ioc.js';
 import { ui } from '../ui.js';
-import { Dialog } from '../dialog.js';
+import { dialogIoc, Dialog } from '../dialog.js';
 import { ActionTemplateDialog } from '../modelform.js';
 
 import { Grid } from '../grid.js';
@@ -222,7 +222,7 @@ function GridDialog(options) {
     };
 
     GridDialog.onShow = function() {
-        globalIoc.exec('Dialog.baseOnShow', null, this);
+        dialogIoc.exec('Dialog.baseOnShow', null, this);
         var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();

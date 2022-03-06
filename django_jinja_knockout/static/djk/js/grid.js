@@ -13,6 +13,7 @@ import { GridColumnOrder, GridColumn } from './grid/column.js';
 import { GridFilterChoice, GridFilter, FkGridFilter, GridRangeFilter } from './grid/filters.js';
 import { GridRow } from './grid/row.js';
 import { GridActions } from './grid/actions.js';
+import { gridActionIoc } from './grid/ioc.js';
 import { ActionsMenuDialog } from './grid/dialogs.js';
 
 ko.bindingHandlers.grid_row = {
@@ -1331,7 +1332,7 @@ function Grid(options) {
 
     Grid.iocKoAction = function(options) {
         var classPath = propGet(options.actDef, 'classPath', 'KoGridAction');
-        return globalIoc.factory(classPath, options);
+        return gridActionIoc.factory(classPath, options);
     };
 
     Grid.setKoActionTypes = function(metaActions) {

@@ -1,10 +1,20 @@
 import { isArray } from './lib/underscore-esm.js';
 import { propGet } from './prop.js';
+import { ViewModelRouter } from './vmrouter.js';
 import { vmRouter, globalIoc } from './ioc.js';
 import { Trans } from './translate.js';
 import { ui } from './ui.js';
 import { renderNestedList } from './nestedlist.js';
 import { initClient } from  './initclient.js';
+
+var dialogIoc = new ViewModelRouter({
+    'Dialog.baseOnShow' : function() {
+        // Close opened popovers otherwise they may overlap opened dialog.
+        $(document.body).closeVisiblePopovers();
+        // Ensure dialog size is set.
+        this.bdialog.setSize(this.dialogOptions.size);
+    },
+});
 
 /**
  * BootstrapDialog wrapper.
@@ -150,7 +160,7 @@ function Dialog(options) {
     };
 
     Dialog.onShow = function() {
-        globalIoc.exec('Dialog.baseOnShow', null, this);
+        dialogIoc.exec('Dialog.baseOnShow', null, this);
         if (this.initClient) {
             initClient(this.bdialog.getModalBody());
         }
@@ -267,4 +277,4 @@ function Dialog(options) {
 
 }(Dialog.prototype);
 
-export { Dialog };
+export { dialogIoc, Dialog };

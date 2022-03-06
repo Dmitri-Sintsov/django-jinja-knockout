@@ -7,16 +7,7 @@ import { TabList } from './tabpane.js';
 
 import { AjaxForms } from './ajaxform.js';
 
-import { KoGridAction, GridRowsPerPageAction } from './grid/actions.ko.js';
-
-// todo: dynamic import for new classes.
 var globalIoc = new ViewModelRouter({
-    'Dialog.baseOnShow' : function() {
-        // Close opened popovers otherwise they may overlap opened dialog.
-        $(document.body).closeVisiblePopovers();
-        // Ensure dialog size is set.
-        this.bdialog.setSize(this.dialogOptions.size);
-    },
     'Tpl': function(options) {
         return new Tpl(options);
     },
@@ -60,14 +51,6 @@ var globalIoc = new ViewModelRouter({
         return import('./grid/widget.js').then(function(module) {
             return new module.FkGridWidget(options);
         });
-    },
-    // not a component, instantiated via ViewModelRouter.factory().
-    'KoGridAction': function(options) {
-        return new KoGridAction(options);
-    },
-    // not a component, instantiated via ViewModelRouter.factory().
-    'GridRowsPerPageAction': function(options) {
-        return new GridRowsPerPageAction(options);
     },
 });
 
