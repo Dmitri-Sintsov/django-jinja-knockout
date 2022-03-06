@@ -14,6 +14,9 @@ var globalIoc = new ViewModelRouter({
     'NestedList': function(options) {
         return new NestedList(options);
     },
+});
+
+var componentIoc = new ViewModelRouter({
     'Dialog': function(options) {
         return import('./dialog.js').then(function(module) {
             return new module.Dialog(options);
@@ -164,4 +167,4 @@ var vmRouter = new ViewModelRouter({
     }
 });
 
-export { vmRouter, globalIoc };
+export { vmRouter, globalIoc, componentIoc };

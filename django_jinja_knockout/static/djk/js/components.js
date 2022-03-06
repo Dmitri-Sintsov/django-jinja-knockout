@@ -1,6 +1,6 @@
 import { sprintf } from './lib/sprintf-esm.js';
 
-import { globalIoc } from './ioc.js';
+import { componentIoc } from './ioc.js';
 
 /**
  * Nested components support.
@@ -101,7 +101,7 @@ function Components() {
             if (classPath === undefined) {
                 throw new Error('Undefined data-component-class classPath.');
             }
-            var component = globalIoc.factory(classPath, options);
+            var component = componentIoc.factory(classPath, options);
             return component;
         }
     };

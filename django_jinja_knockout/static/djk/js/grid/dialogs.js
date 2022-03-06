@@ -3,7 +3,7 @@ import { propCall } from '../prop.js';
 import { Trans } from '../translate.js';
 import { initClient } from '../initclient.js';
 import { components } from '../components.js';
-import { globalIoc } from '../ioc.js';
+import { componentIoc } from '../ioc.js';
 import { ui } from '../ui.js';
 import { dialogIoc, Dialog } from '../dialog.js';
 import { ActionTemplateDialog } from '../modelform.js';
@@ -187,12 +187,12 @@ function GridDialog(options) {
             options
         );
         if (typeof gridOptions.classPath === 'string') {
-            var gridClass = globalIoc.factory(gridOptions.classPath);
+            var gridClass = componentIoc.factory(gridOptions.classPath);
             return new gridClass(gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'string') {
-            var gridClass = globalIoc.factory(this.dialogOptions.iocGrid);
+            var gridClass = componentIoc.factory(this.dialogOptions.iocGrid);
             return new gridClass(gridOptions);
         } else {
             return new Grid(gridOptions);
