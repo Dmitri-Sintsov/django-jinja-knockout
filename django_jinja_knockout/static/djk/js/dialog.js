@@ -160,7 +160,7 @@ function Dialog(options) {
     };
 
     Dialog.onShow = function() {
-        dialogIoc.exec('Dialog.baseOnShow', null, this);
+        dialogIoc.exec('baseOnShow', null, this);
         if (this.initClient) {
             initClient(this.bdialog.getModalBody());
         }

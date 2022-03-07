@@ -222,7 +222,7 @@ function GridDialog(options) {
     };
 
     GridDialog.onShow = function() {
-        dialogIoc.exec('Dialog.baseOnShow', null, this);
+        dialogIoc.exec('baseOnShow', null, this);
         var self = this;
         // Inject ko_grid_pagination underscore / knockout.js template into BootstrapDialog modal footer.
         var $footer = this.bdialog.getModalFooter();
