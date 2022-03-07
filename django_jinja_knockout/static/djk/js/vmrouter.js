@@ -85,7 +85,7 @@ function ViewModelRouter(viewHandlers) {
         return this;
     };
 
-    ViewModelRouter.addOnce = function(viewName, handler) {
+    ViewModelRouter.once = function(viewName, handler) {
         if (!this.hasView(viewName)) {
             this.addHandler(viewName, handler);
         }
