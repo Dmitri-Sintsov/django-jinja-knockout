@@ -77,7 +77,7 @@ For example, to override ``Member`` model ``note`` field `DisplayText`_ widget h
                 'note': DisplayText(get_text_method=get_note)
             }
 
-See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``.
+See :ref:`clientside_component_ioc` how to register custom Javascript ``data-component-class``.
 
 See `DisplayText sample`_ for the complete example.
 

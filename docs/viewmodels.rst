@@ -881,8 +881,8 @@ one has to invoke it manually by calling `conditional_action`_ method in ``get``
         {{ reply }}
     {% endif -%}
 
-See :ref:`clientside_global_ioc` how to register custom Javascript ``data-component-class``, like ``MemberReplyActions``
-mentioned in this example.
+See :ref:`clientside_component_ioc` how to register custom Javascript ``data-component-class``, like
+``MemberReplyActions`` mentioned in this example.
 
 The execution path of the action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

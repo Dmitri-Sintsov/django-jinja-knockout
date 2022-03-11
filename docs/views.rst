@@ -250,7 +250,7 @@ specifying custom ``template`` / `component_class`_ arguments of ``allowed_filte
             }
             return allowed_filter_fields
 
-See :ref:`clientside_global_ioc` how to register custom Javascript ``component_class``.
+See :ref:`clientside_component_ioc` how to register custom Javascript ``component_class``.
 
 It's possible to specify ``allowed_filter_fields`` widget ``choices``, ``template`` name and extra options at once::
 

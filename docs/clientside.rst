@@ -8,20 +8,26 @@ Client-side support
 .. _bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=bindTemplates&type=code
 .. _cbv_grid_breadcrumbs.htm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/jinja2/cbv_grid_breadcrumbs.htm
 .. _compileTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=compileTemplate&type=code
+.. _$.component: https://github.com/Dmitri-Sintsov/djk-sample/search?l=JavaScript&q=%24.component&type=code
+.. _$.component promise: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=instanceof+promise&type=code
+.. _componentIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=componentIoc&type=&utf8=%E2%9C%93
+.. _componentIoc sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=JavaScript&q=componentIoc&type=code
 .. _Components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Components
 .. _ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ComponentManager
 .. _documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
 .. _Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
 .. _DENO_ROLLUP_ENTRY_POINTS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=DENO_ROLLUP_ENTRY_POINTS
 .. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
+.. _dialogIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=dialogIoc&type=&utf8=%E2%9C%93
 .. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
-.. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalioc&type=&utf8=%E2%9C%93
-.. _globalIoc sample: https://github.com/Dmitri-Sintsov/djk-sample/search?l=JavaScript&q=globalIoc&type=code
+.. _gridActionIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=gridActionIoc&type=&utf8=%E2%9C%93
+.. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalIoc&type=&utf8=%E2%9C%93
 .. _initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClient+%3D+function
 .. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks+%3D+function
 .. _Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
 .. _localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=localize&type=code
 .. _OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=OrderedHooks
+.. _Promise: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 .. _Subscriber: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Subscriber&type=&utf8=%E2%9C%93
 .. _SuperChain: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=SuperChain&type=&utf8=%E2%9C%93
 .. _Tpl: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl&utf8=%E2%9C%93
@@ -250,7 +256,26 @@ this::
         return new UserClass(options);
     });
 
-* See `globalIoc sample`_ for the complete example.
+.. _clientside_component_ioc:
+
+Component IoC
+-------------
+* Components use the similar `componentIoc`_ instance of `ViewModelRouter`_ class for the client-side Javascript class
+  registration. See `componentIoc sample`_ for the complete example. There is also `dialogIoc`_ used by `Dialog`_
+  component and `gridActionIoc`_ used by :doc:`datatables`, which allows to optionally override their functionality.
+
+Base example::
+
+    import { componentIoc } from '../../djk/js/ioc.js';
+
+    function UserComponentClass(options) {
+        // ... skipped ...
+    };
+
+    componentIoc.add('UserComponentClass', function(options) {
+        return new UserComponentClass(options);
+    });
+
 * See `clientside_components`_, :doc:`views`, :doc:`widgets`, :doc:`viewmodels` for the examples how to specify custom
   component class name at server-side via `data-component-class`_ html5 attribute.
 
@@ -378,9 +403,9 @@ It's possible to add new custom tags via supplying the capitalized ``tagName`` a
 
 Components
 ----------
-`Components`_ class allows to automatically instantiate Javascript classes by their `globalIoc`_ string path specified
-in element's `data-component-class`_ html5 attribute and bind these to that element. It is used to provide Knockout.js
-``Grid`` component auto-loading / auto-binding, but is not limited to.
+`Components`_ class allows to automatically instantiate Javascript classes by their `componentIoc`_ string path
+specified in element's `data-component-class`_ html5 attribute and bind these to that element. It is used to provide
+Knockout.js ``Grid`` component auto-loading / auto-binding, but is not limited to.
 
 .. highlight:: html
 
@@ -394,7 +419,7 @@ Components can be also instantiated via target element event instead of document
         Click to see project list
     </button>
 
-When target button is clicked, `GridDialog`_ class registered by `globalIoc`_ will be instantiated with
+When target button is clicked, `GridDialog`_ class registered by `componentIoc`_ will be instantiated with
 ``data-component-options`` value passed as it's constructor argument.
 
 .. highlight:: jinja
@@ -449,12 +474,16 @@ Then in your component shutdown code call `components`_ instance ``.unbind()`` m
         }
     };
 
-See `Global IoC`_ how to register custom Javascript class.
+There is built-in `$.component`_ plugin, which allows to get the Javascript component instance bound to particular
+DOM element. It returns either an component object, `null` when there is no bound component, or an instance of `Promise`_
+to resolve the lazy loaded component, see `$.component promise`_.
+
+See `Component IoC`_ how to register custom Javascript component class.
 
 See `GridDialog`_ code for the example of built-in component, which allows to fire AJAX datatables via click events.
 
 Because `GridDialog`_ class constructor may have many options, including dynamically-generated ones, it's preferable to
-generate ``data-component-options`` JSON string value in Python / Jinja2 code.
+generate ``data-component-options`` JSON string value in Python / Jinja2 code (see :ref:`tpl_string_formatting`).
 
 Search for `data-component-class`_ in djk-sample code for the examples of both document ready and button click
 component binding.

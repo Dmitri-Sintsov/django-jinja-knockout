@@ -136,6 +136,8 @@ String manipulation
 * ``limitstr()`` - cut string after specified length.
 * ``repeat_insert()`` - separate string every nth character with specified separator characters.
 
+.. _tpl_string_formatting:
+
 String formatting
 -----------------
 
