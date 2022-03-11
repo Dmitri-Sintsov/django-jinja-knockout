@@ -135,7 +135,6 @@ initClientHooks.add({
  */
 function assertUniqueScripts() {
     var scripts = {};
-    var isIE11 = typeof window.msCrypto !== 'undefined';
     $(document).find('script[src]').each(function(k, v) {
         var src = $(v).prop('src');
         if (typeof scripts[src] !== 'undefined') {
@@ -144,10 +143,6 @@ function assertUniqueScripts() {
             );
         } else {
             scripts[src] = true;
-        }
-        // Always convert type=module to type=systemjs-module as IE11 does not support ES6 modules anyway.
-        if (isIE11 && $(v).prop('type') === 'module') {
-            $(v).prop('type', 'systemjs-module');
         }
     });
 }
