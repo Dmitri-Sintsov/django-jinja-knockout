@@ -43,6 +43,20 @@
 .. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
+Version 1.1.0
+-------------
+Optional separate action handlers for HTTP methods.
+
+``RangeFilter`` / ``DateFilter`` / ``DateTimeFilter`` `ListSortingView`_ filters for numeric / ``DateField`` /
+``DateTimeField`` Django model fields.
+
+`ListQuerySet`_ supports ordering by prefetched reverse relation list field name:
+``qs.order_by('reverse_relation_list__field_name')``
+
+Automatic client-side localization.
+
+Support of Selenium 4. Additional Selenium commands. Improved Selenium logging.
+
 Version 1.0.0
 -------------
 Django 3.1 / Bootstrap 4.5 / Knockout 3.5 support.

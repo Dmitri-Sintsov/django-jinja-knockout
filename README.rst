@@ -29,6 +29,8 @@ django-jinja-knockout
 .. _MultipleKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#multiplekeygridwidget
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
 .. _PageContext: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
+.. _pageRouteKwargsKeys: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=pageRouteKwargsKeys&type=code
+.. _pageRouteKwargsKeys example: https://github.com/Dmitri-Sintsov/djk-sample/search?q=pageRouteKwargsKeys&type=code
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _SystemJS: https://github.com/systemjs/systemjs
@@ -145,7 +147,8 @@ More throughout support for `datatables`_ annotated fields / virtual fields via 
 
 Optional lazy registration of client-side components.
 
-Numerous fixes, including improved related grid view kwargs auto-detection.
+Numerous fixes, including improved related grid view kwargs auto-detection, see `pageRouteKwargsKeys`_ and
+`pageRouteKwargsKeys example`_.
 
 `ListRangeFilter`_ for `ListSortingView`_ range fields.
 

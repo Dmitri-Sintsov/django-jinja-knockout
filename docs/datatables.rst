@@ -53,6 +53,8 @@ Datatables
 .. _GridRow: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridRow&utf8=%E2%9C%93
 .. _KoGridAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=KoGridAction&type=Code
 .. _ModelFormDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormDialog
+.. _pageRouteKwargsKeys: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=pageRouteKwargsKeys&type=code
+.. _pageRouteKwargsKeys example: https://github.com/Dmitri-Sintsov/djk-sample/search?q=pageRouteKwargsKeys&type=code
 .. _RangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=RangeFilter&utf8=%E2%9C%93
 .. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks&utf8=%E2%9C%93
 .. _bindTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=bindTemplates&utf8=%E2%9C%93
@@ -1969,6 +1971,9 @@ The component template should provide the options with specified view kwargs val
     ) }}
 
 This way grid will have custom list of club members according to ``club_id`` view kwarg value.
+
+* Version 2.0 has the improved support for automatic filling of related grid ``pageRouteKwargs`` values from the current
+  grid view via `pageRouteKwargsKeys`_. See `pageRouteKwargsKeys example`_.
 
 .. highlight:: python
 

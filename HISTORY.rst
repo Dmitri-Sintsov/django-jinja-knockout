@@ -345,3 +345,15 @@ Alternative breadcrumbs layout of field filters widgets.
   ``.closeVisiblePopovers()`` plugins.
 * Support for nested components in formsets.js (empty_form) 'anonymous_template' Knockout binding.
 * ``UrlPath`` class for automatic ``re_path()`` generation with positional named keyword arguments.
+
+2.0.0
+-----
+* Django 3.2 / Django 4.0 support.
+* ``es6 modules`` support for modern browsers.
+* ``SystemJS`` loader support for IE11 via ``django_deno``.
+* ``terser`` bundles support both for ``es6 modules`` and for ``SystemJS`` loader via ``django_deno``.
+* ``datatables`` support separate cell click actions.
+* Support for ``datatables`` annotated fields / virtual fields via ``grid_fields`` dicts.
+* Optional lazy registration of client-side components.
+* Improved related grid view kwargs auto-detection.
+* ``ListRangeFilter`` for ``ListSortingView`` range fields.
