@@ -8,9 +8,11 @@ django-jinja-knockout
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _data-bind: https://knockoutjs.com/documentation/binding-syntax.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
+.. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
+.. _es6 modules: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 .. _FilteredRawQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#filteredrawqueryset
 .. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#foreignkeygridwidget
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
@@ -18,6 +20,7 @@ django-jinja-knockout
 .. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
+.. _ListRangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ListRangeFilter&type=code
 .. _ListSortingView: https://django-jinja-knockout.readthedocs.io/en/latest/views.html#listsortingview
 .. _KoGridView: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _ListQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#listqueryset
@@ -28,7 +31,9 @@ django-jinja-knockout
 .. _PageContext: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
 .. _prefetch_related(): https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.Prefetch
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
+.. _SystemJS: https://github.com/systemjs/systemjs
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
+.. _terser:
 .. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
@@ -124,21 +129,25 @@ Uses
 It's not a pure SPA framework, but a mixed approach of server-side pages with embedded AJAX content and client-side
 scripts. Although it may be used for SPA as well. Classical Web applications aren't "outdated" in any way - because such
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
-server-side has less glitches than browsers.
+server-side rendering generally is more robust.
 
-Version 1.1.0
+Version 2.0.0
 -------------
-Optional separate action handlers for HTTP methods.
+Built-in `es6 modules`_ support for modern browsers.
 
-``RangeFilter`` / ``DateFilter`` / ``DateTimeFilter`` `ListSortingView`_ filters for numeric / ``DateField`` /
-``DateTimeField`` Django model fields.
+Optional `SystemJS`_ loader support for IE11 via `django_deno`_.
 
-`ListQuerySet`_ supports ordering by prefetched reverse relation list field name:
-``qs.order_by('reverse_relation_list__field_name')``
+Optional minified `terser`_ bundles support both for `es6 modules`_ and for `SystemJS`_ loader via `django_deno`_.
 
-Automatic client-side localization.
+`datatables`_ support separate cell click actions, not just row actions.
 
-Support of Selenium 4. Additional Selenium commands. Improved Selenium logging.
+More throughout support for `datatables`_ annotated fields / virtual fields via ``grid_fields`` dicts.
+
+Optional lazy registration of client-side components.
+
+Numerous fixes, including improved related grid view kwargs auto-detection.
+
+`ListRangeFilter`_ for `ListSortingView`_ range fields.
 
 .. _History: HISTORY.rst
 

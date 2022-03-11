@@ -252,7 +252,7 @@ this::
     globalIoc.hasView('UserClass');
 
     // To add custom class just once:
-    globalIoc.addOnce('UserClass', function(options) {
+    globalIoc.once('UserClass', function(options) {
         return new UserClass(options);
     });
 
