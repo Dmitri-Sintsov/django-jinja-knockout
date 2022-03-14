@@ -5,12 +5,15 @@
 .. _content types framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _context_processors.py: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
 .. _ContextMiddleware: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/middleware.py
+.. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
+.. _deno rollup: https://deno.land/x/drollup
 .. _django-allauth: https://github.com/pennersr/django-allauth
+.. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _djk_sample.ContextMiddleware: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/middleware.py
 .. _djk_sample.TemplateContextProcessor: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/context_processors.py
 .. _djk_ui: https://django-jinja-knockout.readthedocs.io/en/latest/djk_ui.html
+.. _es6 modules: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 .. _.get_context_middleware(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=get_context_middleware
-.. _grids: https://django-jinja-knockout.readthedocs.io/en/latest/grids.html
 .. _INSTALLED_APPS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-INSTALLED_APPS
 .. _jinja2/base_min.htm (bs3): https://github.com/Dmitri-Sintsov/djk-bootstrap3/blob/master/djk_ui/jinja2/base_min.htm
 .. _jinja2/base_min.htm (bs4): https://github.com/Dmitri-Sintsov/djk-bootstrap4/blob/master/djk_ui/jinja2/base_min.htm
@@ -25,9 +28,11 @@
 .. _release: https://github.com/Dmitri-Sintsov/django-jinja-knockout/releases
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _settings.ADMINS: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ADMINS
+.. _SystemJS: https://github.com/systemjs/systemjs
 .. _templates/base_min.html (bs3): https://github.com/Dmitri-Sintsov/djk-bootstrap3/blob/master/djk_ui/templates/base_min.html
 .. _templates/base_min.html (bs4): https://github.com/Dmitri-Sintsov/djk-bootstrap4/blob/master/djk_ui/templates/base_min.html
 .. _TemplateContextProcessor: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/context_processors.py
+.. _terser: https://terser.org
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _url.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/url.js
@@ -55,10 +60,9 @@ To install latest master from repository::
 
     python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git
 
-To install specific commit::
+To install specific tag::
 
-    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@df2c52271c915dc9261d6bb0613205ec46a1ae46
-
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@v2.0.0
 
 settings.py
 -----------
@@ -88,32 +92,38 @@ It increases the compatibility with external apps which views do not require to 
 
 Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_APPS`_ in ``settings.py``::
 
+    OPTIONAL_APPS = ['django_deno']
+
     # Order of installed apps is important for Django Template loader to find 'djk_sample/templates/base.html'
     # before original allauth 'base.html' is found, when allauth DTL templates are used instead of built-in
     # 'django_jinja_knockout._allauth' Jinja2 templates, thus DJK_APPS are included before 'allauth'.
+    #
     # For the same reason, djk_ui app is included before django_jinja_knockout, to make it possible to override
     # any of django_jinja_knockout template / macro.
-    INSTALLED_APPS = (
-        'django.contrib.admin',
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.messages',
-        'django.contrib.staticfiles',
-        # 'sites' is required by allauth
-        'django.contrib.sites',
-        'djk_ui',
-        'django_jinja_knockout',
-        'django_jinja_knockout._allauth',
-    ) + DJK_APPS + \
-    (
-        'allauth',
-        'allauth.account',
-        # Required for socialaccount template tag library despite we do not use social login
-        'allauth.socialaccount',
-    )
+        INSTALLED_APPS = [
+            'django.contrib.admin',
+            'django.contrib.auth',
+            'django.contrib.contenttypes',
+            'django.contrib.sessions',
+            'django.contrib.messages',
+            'django.contrib.staticfiles',
+            # 'sites' is required by allauth
+            'django.contrib.sites',
+        ] + OPTIONAL_APPS + [
+            'djk_ui',
+            'django_jinja_knockout',
+            'django_jinja_knockout._allauth',
+        ] + DJK_APPS + [
+            'allauth',
+            'allauth.account',
+            # Required for socialaccount template tag library despite we do not use social login
+            'allauth.socialaccount',
+        ]
 
 `djk_ui`_ app provides pluggable support for Bootstrap 3 / Bootstrap 4.
+
+`django_deno`_ may be included to ``OPTIONAL_APPS`` to provide `es6 modules`_ / `terser`_ / `SystemJS`_ support via
+`deno rollup`_. See sample project `settings.py`_ for the example of actual `django_deno`_ configuration.
 
 `django-allauth`_ support is not mandatory but optional; just remove the following apps from `INSTALLED_APPS`_ in case
 you do not need it::
@@ -123,6 +133,7 @@ you do not need it::
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'django_deno`,
     'django_jinja_knockout._allauth',
 
 Built-in allauth DTL templates are supported without any modification. In such case the next module may be removed
@@ -291,9 +302,9 @@ for ``urls.py`` like this::
 
 to make the resolved url available in client-side scripts.
 
-In such case defining `DJK_CLIENT_ROUTES`_ is not necessary, but one has to specify required client-side url names in
-every view which includes Javascript template that accesses these url names (for example foreign key widgets of
-`grids`_ require resolved url names of their view classes).
+In such case defining `DJK_CLIENT_ROUTES`_ is not necessary, however one has to specify required client-side url names
+in every view which includes Javascript template that accesses these url names (for example foreign key widgets of
+`datatables`_ require resolved url names of their view classes).
 
 .. highlight:: javascript
 

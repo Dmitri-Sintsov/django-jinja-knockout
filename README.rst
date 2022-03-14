@@ -35,7 +35,7 @@ django-jinja-knockout
 .. _sample project: https://github.com/Dmitri-Sintsov/djk-sample
 .. _SystemJS: https://github.com/systemjs/systemjs
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
-.. _terser:
+.. _terser: https://terser.org
 .. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
