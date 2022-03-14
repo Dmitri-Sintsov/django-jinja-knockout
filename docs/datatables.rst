@@ -2547,6 +2547,9 @@ These actions are designed to process already displayed grid row, associated to 
 * When there is more than one click actions enabled, `Grid`_ will use special version of BootstrapDialog wrapper
   `ActionsMenuDialog`_ to display menu with clickable buttons to select one action from the list of available ones.
 
+Cell actions
+~~~~~~~~~~~~
+
 Since v2.0, ``click`` type of action optionally supports specifying `Grid`_ row cells as action target, which makes
 possible to define separate ``click`` actions for each / multiple cells of `Grid`_ row::
 
