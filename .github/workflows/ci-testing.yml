@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python}}
+        python-version: ${{ matrix.python }}
     - name: Install dependencies
       run: |
         python3 -m pip install -U pip wheel tox tox-pyenv setuptools pysqlite3 --user
