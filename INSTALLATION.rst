@@ -92,7 +92,14 @@ It increases the compatibility with external apps which views do not require to 
 
 Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_APPS`_ in ``settings.py``::
 
-    OPTIONAL_APPS = ['django_deno']
+    OPTIONAL_APPS = []
+
+    try:
+        import django_deno
+        # django_deno is an optional Javascript module bundler, not required to run in modern browsers
+        OPTIONAL_APPS.append('django_deno')
+    except ImportError:
+        pass
 
     # Order of installed apps is important for Django Template loader to find 'djk_sample/templates/base.html'
     # before original allauth 'base.html' is found, when allauth DTL templates are used instead of built-in
