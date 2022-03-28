@@ -1,7 +1,6 @@
 import bleach
 from collections.abc import Iterable
 
-import jinja2
 from jinja2.ext import Extension
 
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -11,6 +10,12 @@ from django.utils.safestring import mark_safe
 
 from .. import tpl
 from ..viewmodels import to_json
+
+try:
+    from jinja2 import pass_context
+except ImportError:
+    # Jinja2 3.0 compatibility
+    from jinja2 import contextfunction as pass_context
 
 
 def filter_is_iterable(val):
@@ -46,7 +51,7 @@ class UrlsExtension(Extension):
         super().__init__(environment)
         environment.globals['url'] = self._url_reverse
 
-    @jinja2.contextfunction
+    @pass_context
     def _url_reverse(self, context, name, *args, **kwargs):
         return tpl.url(name, request=context.get('request'), *args, **kwargs)
 
