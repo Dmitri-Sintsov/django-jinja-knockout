@@ -1,4 +1,5 @@
 from copy import copy
+import inspect
 import decimal
 import json
 import re
@@ -32,6 +33,7 @@ from django.urls import (
 )
 
 from . import models as djk_models
+from .obj_dict import ObjDict
 from .utils import sdv
 from .utils.regex import finditer_with_separators
 
@@ -588,11 +590,18 @@ class Str(str):
 class ModelLinker:
 
     # Use Str instance to add .html or .text attribute value to Model.get_absoulte_url() result.
-    def __init__(self, obj):
+    def __init__(self, request_user, obj):
         self.obj = obj
-        self.str_fields = self.obj.get_str_fields() if hasattr(self.obj, 'get_str_fields') else None
+        if self.obj is not None:
+            obj_dict = ObjDict.from_obj(self.obj, request_user=request_user)
+            self.str_fields = obj_dict.get_str_fields() if obj_dict.has_str_fields() else None
+        else:
+            self.str_fields = None
         if hasattr(self.obj, 'get_absolute_url') and callable(self.obj.get_absolute_url):
-            self.url = self.obj.get_absolute_url()
+            if 'request_user' in inspect.signature(self.obj.get_absolute_url).parameters.keys():
+                self.url = self.obj.get_absolute_url(request_user=request_user)
+            else:
+                self.url = self.obj.get_absolute_url()
             self.desc = mark_safe(self.url.html) if hasattr(self.url, 'html') else getattr(self.url, 'text', None)
         else:
             self.url = None
@@ -632,12 +641,12 @@ class ModelLinker:
 
 class ContentTypeLinker(ModelLinker):
 
-    def __init__(self, obj, typefield, idfield):
+    def __init__(self, request_user, obj, typefield, idfield):
         self.obj_type = getattr(obj, typefield)
         if self.obj_type is not None:
             model_class = self.obj_type.model_class()
             obj = model_class.objects.filter(pk=getattr(obj, idfield)).first()
-        super().__init__(obj)
+        super().__init__(request_user, obj)
 
     def get_str_obj_type(self):
         return str(site.empty_value_display if self.obj_type is None else self.obj_type)

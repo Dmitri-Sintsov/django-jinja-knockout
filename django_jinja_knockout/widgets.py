@@ -11,6 +11,7 @@ from django.db.models.query import RawQuerySet, QuerySet
 
 from . import apps
 from .models import model_fields_verbose_names
+from .obj_dict import ObjDict
 from .query import ListQuerySet
 from .tpl import (
     Renderer, PrintList, print_list_group, print_bs_well,
@@ -22,14 +23,22 @@ from .utils import sdv
 from .viewmodels import to_json
 
 
-class RendererWidget(Widget):
+class RequestWidget(Widget):
+
+    def get_request(self):
+        if not hasattr(self, 'request'):
+            ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
+            self.request = ContextMiddleware.get_request()
+        return self.request
+
+
+class RendererWidget(RequestWidget):
 
     renderer_class = Renderer
     template_name = None
 
     def ioc_renderer(self, context):
-        ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
-        request = ContextMiddleware.get_request()
+        request = self.get_request()
         return self.renderer_class(request, template=self.template_name, context=context)
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -117,7 +126,7 @@ class PrefillWidget(Widget):
 
 
 # Read-only widget for existing models.
-class DisplayText(Widget):
+class DisplayText(RequestWidget):
 
     print_list_tpl = {
         # @note: when changing to ['tpl']['v'], one has to set flatatt() name index.
@@ -214,7 +223,8 @@ class DisplayText(Widget):
         elif hasattr(self, 'instance') and hasattr(self.instance, name):
             field = getattr(self.instance, name)
             if hasattr(field, 'get_str_fields'):
-                str_fields = field.get_str_fields()
+                request = self.get_request()
+                str_fields = ObjDict.from_obj(obj=field, request_user=request.user).get_str_fields()
                 print_list_kwargs = self.get_print_list_kwargs(field)
                 if len(str_fields) < 4:
                     return print_list_group(str_fields, **print_list_kwargs)
@@ -234,7 +244,7 @@ class DisplayText(Widget):
             return self.render_scalar(final_attrs, value, display_values[0])
 
 
-class BaseGridWidget(ChoiceWidget):
+class BaseGridWidget(ChoiceWidget, RequestWidget):
 
     allow_multiple_selected = None
     required = None
@@ -285,8 +295,7 @@ class BaseGridWidget(ChoiceWidget):
         widget_ctx['value'] = value
 
         # Autodetect foreign key widgets fkGridOptions.
-        ContextMiddleware = apps.DjkAppConfig.get_context_middleware()
-        self.request = ContextMiddleware.get_request()
+        self.request = self.get_request()
         widget_view_cls, widget_view_kwargs = resolve_grid(
             request=self.request,
             view_options=self.component_options['fkGridOptions']

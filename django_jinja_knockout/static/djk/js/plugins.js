@@ -23,7 +23,7 @@ $.select = function(selector) {
 };
 
 $.htmlEncode = function(value) {
-	return $('<div>').text(value).html();
+	return $('<div>').text(value).html().replace(/&nbsp;/g, '\xa0');
 };
 
 $.htmlDecode = function(value) {

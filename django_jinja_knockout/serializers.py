@@ -6,31 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.contrib.admin import site
 
+from .obj_dict import ObjDict
 from .utils import sdv
-from .models import model_fields_meta
-
-
-class ObjDict(dict):
-
-    def __init__(self, obj, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.obj = obj
-        self.update(obj.get_str_fields() if self.has_str_fields() else {})
-
-    def has_str_fields(self):
-        return hasattr(self.obj, 'get_str_fields')
-
-    def get_field(self, field_name):
-        return self.obj._meta.get_field(field_name)
-
-    def is_anon(self, field_name):
-        return field_name in self
-
-    def get_field_val(self, field_name):
-        return self.get(field_name, getattr(self.obj, field_name))
-
-    def get_verbose_names(self):
-        return model_fields_meta(self.obj, 'verbose_name')
 
 
 class FieldData:
@@ -110,9 +87,8 @@ class NestedPath:
 #   model_dict = ns.to_dict(nesting_level=2, serialize_reverse_relationships=False)
 class NestedSerializer(NestedPath):
 
-    objdict_class = ObjDict
     fielddata_class = FieldData
-    model_class = None
+    model_class = models.Model
     serialize_reverse_relationships = True
     # (field value, exists)
     not_found = None, False
@@ -124,14 +100,11 @@ class NestedSerializer(NestedPath):
         self.obj = obj
         self.metadata = {}
 
-    def ioc_objdict(self, obj):
-        return self.objdict_class(obj)
-
     def ioc_fielddata(self, field_name, field):
         return self.fielddata_class(field_name, field)
 
     def is_valid_obj(self, obj):
-        return self.model_class is None or isinstance(obj, self.model_class)
+        return isinstance(obj, self.model_class)
 
     def get_reverse_qs(self, obj, field_name):
         reverse_qs = sdv.get_nested(obj, [field_name + '_set', 'all'])
@@ -183,7 +156,7 @@ class NestedSerializer(NestedPath):
             verbose_name = fd.get_related_verbose_name(verbose_name)
         fd.set_metadata({
             'verbose_name': str(verbose_name),
-            'is_anon': field_name in od,
+            'is_anon': od.is_anon(field_name),
         })
         if fd.is_serializable():
             v, exists = self.get_field_val(od.obj, fd, nesting_level)
@@ -210,7 +183,7 @@ class NestedSerializer(NestedPath):
             if field_name in od:
                 self.metadata[self.treepath] = {
                     'verbose_name': str(verbose_name),
-                    'is_anon': True,
+                    'is_anon': od.is_anon(field_name),
                     'type': fd.get_str_type(od[field_name]),
                 }
                 return od[field_name], True
@@ -223,7 +196,7 @@ class NestedSerializer(NestedPath):
         self.metadata[self.treepath] = fd.metadata
         sdv.set_nested(model_dict, fd.field_name, val)
         if isinstance(val, dict) and isinstance(fd.field, models.Model):
-            od = self.ioc_objdict(fd.field)
+            od = ObjDict.from_obj(fd.field)
             od.clear()
             od.update(val)
             self.get_str_val_dict(od)
@@ -238,14 +211,15 @@ class NestedSerializer(NestedPath):
                 val = od.get_field_val(field_name)
                 fd.metadata = {
                     'verbose_name': str(verbose_names[field_name]),
-                    'is_anon': field_name in od,
+                    'is_anon': od.is_anon(field_name),
                     'type': fd.get_str_type(val if field_name in od else fd.field),
                 }
                 self.push_str_field(model_dict, fd, val)
         return model_dict
 
     def recursive_to_dict(self, obj, nesting_level):
-        od = self.ioc_objdict(obj)
+        od = ObjDict.from_obj(obj)
+        od.update_fields()
         if nesting_level > 0:
             model_dict = {}
             for field_name, verbose_name in od.get_verbose_names().items():
@@ -272,8 +246,11 @@ class NestedSerializer(NestedPath):
 # Usage:
 #   nl = NestedLocalizer(metadata=ns.metadata)
 #   pp.pprint(nl.localize_model_dict(model_dict))
+#   # None value - display field value regardless of self.is_anon value
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=None))
+#   # Display field value only when self.is_anon is True
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=True))
+#   # Display field value only when self.is_anon is False
 #   pp.pprint(nl.localize_model_dict(model_dict, is_anon=False))
 class NestedLocalizer(NestedPath):
 

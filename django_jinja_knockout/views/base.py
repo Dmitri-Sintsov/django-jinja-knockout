@@ -22,6 +22,7 @@ from .. import tpl
 from ..models import (
     normalize_fk_fieldname, get_verbose_name, get_related_field_val, yield_model_fieldnames
 )
+from ..obj_dict import ObjDict
 from ..viewmodels import vm_list
 from ..utils.sdv import yield_ordered, get_nested, FuncArgs
 from ..forms.validators import FieldValidator
@@ -543,7 +544,7 @@ class BaseFilterView(PageContextMixin):
     def get_row_str_fields(self, obj, row=None):
         if self.has_get_str_fields:
             str_fields = OrderedDict()
-            for fieldname, v in obj.get_str_fields().items():
+            for fieldname, v in ObjDict.from_obj(obj=obj, request_user=self.request.user).get_str_fields().items():
                 if fieldname not in self.exclude_fields:
                     str_fields[fieldname] = v
             for fieldname in self.grid_fields_attnames:
@@ -600,7 +601,7 @@ class BaseFilterView(PageContextMixin):
         normalized_field = normalize_fk_fieldname(field)
         field_val = get_related_field_val(obj, field)
         if isinstance(field_val, models.Model) and hasattr(field_val, 'get_absolute_url'):
-            display_value = tpl.ModelLinker(field_val).__html__()
+            display_value = tpl.ModelLinker(request_user=self.request.user, obj=field_val).__html__()
         elif field in obj._display_value:
             display_value = obj._display_value[field]
         elif normalized_field in obj._display_value:
