@@ -189,7 +189,7 @@ function Elements(options) {
             };
         }
 
-        var attributeChanged = this.getAttributeChanged(tagDef)
+        var attributeChanged = this.getAttributeChanged(tagDef);
         $.extend(elProperties, attributeChanged.elProperties);
 
         for (var k in tagDef) {
