@@ -15,7 +15,7 @@ function reattachElement(selector) {
     var $el = $(selector);
     $el.detach();
     $(document.body).append($el);
-};
+}
 
 function Elements(options) {
 
@@ -51,27 +51,26 @@ function Elements(options) {
         return styleList;
     };
 
-    Elements.create = function(tagDef) {
-
-        if (typeof tagDef.ancestor === 'undefined') {
-            tagDef.ancestor = HTMLElement;
-        }
-
-        function el() {
+    Elements.getNewElement = function(tagDef) {
+        return function() {
             return Reflect.construct(tagDef.ancestor, [], this.constructor);
-        }
+        };
+    };
 
-        var attributeChanged;
-
-        function disconnected() {
+    Elements.getDisconnected = function(tagDef) {
+        return function() {
             tagDef.disconnected.call(this);
-        }
+        };
+    };
 
-        function adopted() {
+    Elements.getAdopted = function(tagDef) {
+        return function() {
             tagDef.adopted.call(this);
         }
+    };
 
-        function connected() {
+    Elements.getConnected = function(tagDef) {
+        return function() {
             if (typeof this._isAlreadyInitialized === 'undefined') {
                 if (Array.isArray(tagDef.classes)) {
                     for (var i = 0; i < tagDef.classes.length; i++) {
@@ -90,8 +89,10 @@ function Elements(options) {
                 }
             }
         }
+    }
 
-        function observedAttributes() {
+    Elements.getObservedAttributes = function(tagDef, attributeChanged) {
+        return function() {
             if (typeof tagDef.observedAttributes === 'function') {
                 return tagDef.observedAttributes.call(this);
             }
@@ -108,13 +109,59 @@ function Elements(options) {
                 return tagDef.observedAttributes;
             }
         }
+    };
 
-        function attributeChangedCb(name, oldValue, newValue) {
+    Elements.getAttributeChangedCb = function(attributeChanged) {
+        return function(name, oldValue, newValue) {
             if (typeof attributeChanged === 'function') {
                 attributeChanged.call(this, name, oldValue, newValue);
             } else if (typeof attributeChanged[name] === 'function') {
                 attributeChanged[name].call(this, oldValue, newValue);
             }
+        }
+    };
+
+    Elements.getAttributeChanged = function(tagDef) {
+        var attributeChanged = {
+            attributes: {},
+            elProperties: {},
+        };
+        if (typeof tagDef.attributeChanged !== 'undefined') {
+            if (typeof tagDef.attributeChanged !== 'undefined') {
+                if (typeof tagDef.attributeChanged === 'object') {
+                    // Clone and store attributeChanged to custom element instance so the existing listeners
+                    // can be set / removed dynamically after the instance is already initialized.
+                    for (var k in tagDef.attributeChanged) {
+                        if (tagDef.attributeChanged.hasOwnProperty(k)) {
+                            attributeChanged.attributes[k] = tagDef.attributeChanged[k];
+                        }
+                    }
+                    /**
+                     *  Modifying / removing existing DOM attribute handlers is supported.
+                     *  Dynamically adding / removing observable attributes is tricky / has performance issues
+                     *  is rarely needed and is not supported. See these links for more info:
+                     *    https://andyogo.github.io/custom-element-reactions-diagram/
+                     *    https://github.com/WICG/webcomponents/issues/565
+                     *    https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+                     */
+                    attributeChanged.elProperties['attributeChanged'] = {
+                        value: attributeChanged.attributes
+                    };
+                } else if (typeof tagDef.attributeChanged === 'function') {
+                    attributeChanged.attributes = tagDef.attributeChanged;
+                }
+            }
+            attributeChanged.elProperties['attributeChangedCallback'] = {
+                value: this.getAttributeChangedCb(attributeChanged.attributes)
+            };
+        }
+        return attributeChanged;
+    };
+
+    Elements.create = function(tagDef) {
+
+        if (typeof tagDef.ancestor === 'undefined') {
+            tagDef.ancestor = HTMLElement;
         }
 
         if (typeof tagDef.styles === 'object') {
@@ -126,52 +173,24 @@ function Elements(options) {
 
         var elProperties = {
             connectedCallback: {
-                value: connected
+                value: this.getConnected(tagDef)
             },
         };
 
         if (typeof tagDef.disconnected !== 'undefined') {
             elProperties['disconnectedCallback'] = {
-                value: disconnected
+                value: this.getDisconnected(tagDef)
             };
         }
 
         if (typeof tagDef.adopted !== 'undefined') {
             elProperties['adoptedCallback'] = {
-                value: adopted
+                value: this.getAdopted(tagDef)
             };
         }
 
-        if (typeof tagDef.attributeChanged !== 'undefined') {
-            elProperties['attributeChangedCallback'] = {
-                value: attributeChangedCb
-            };
-            if (typeof tagDef.attributeChanged !== 'undefined') {
-                if (typeof tagDef.attributeChanged === 'object') {
-                    // Clone and store attributeChanged to custom element instance so the existing listeners
-                    // can be set / removed dynamically after the instance is already initialized.
-                    attributeChanged = {};
-                    for (var k in tagDef.attributeChanged) {
-                        if (tagDef.attributeChanged.hasOwnProperty(k)) {
-                            attributeChanged[k] = tagDef.attributeChanged[k];
-                        }
-                    }
-                    /**
-                     *  Modifying / removing existing DOM attribute handlers is supported.
-                     *  Dynamically adding / removing observable attributes is tricky / has performance issues
-                     *  is rarely needed and is not supported. See these links for more info:
-                     *    https://andyogo.github.io/custom-element-reactions-diagram/
-                     *    https://github.com/WICG/webcomponents/issues/565
-                     *    https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-                     */
-                    elProperties['attributeChanged'] = {
-                        value: attributeChanged
-                    }
-                } else if (typeof tagDef.attributeChanged === 'function') {
-                    attributeChanged = tagDef.attributeChanged;
-                }
-            }
-        }
+        var attributeChanged = this.getAttributeChanged(tagDef)
+        $.extend(elProperties, attributeChanged.elProperties);
 
         for (var k in tagDef) {
             if (tagDef.hasOwnProperty(k) && this.builtInProperties.indexOf(k) === -1) {
@@ -181,13 +200,15 @@ function Elements(options) {
             }
         }
 
+        var el = this.getNewElement(tagDef);
+
         el.prototype = Object.create(tagDef.ancestor.prototype, elProperties);
 
         el.prototype.constructor = el;
         Object.setPrototypeOf(el, tagDef.ancestor);
 
         if (typeof tagDef.observedAttributes !== 'undefined' || typeof attributeChanged === 'object') {
-            Object.defineProperty(el, 'observedAttributes', { get: observedAttributes });
+            Object.defineProperty(el, 'observedAttributes', { get: this.getObservedAttributes(tagDef, attributeChanged.attributes) });
         }
 
         if (typeof tagDef.properties !== 'undefined') {
@@ -204,7 +225,7 @@ function Elements(options) {
             customElements.define(tagDef.name, el);
         }
 
-        return el
+        return el;
 
     };
 
