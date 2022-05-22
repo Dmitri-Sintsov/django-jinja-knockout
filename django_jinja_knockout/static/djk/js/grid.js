@@ -6,7 +6,8 @@ import { propGet, propCall } from './prop.js';
 import { Subscriber } from './ko.js';
 import { Trans } from './translate.js';
 import { getTemplateSubstitution } from './tpl.js';
-import { globalIoc } from './ioc.js';
+import { initClient } from './initclient.js';
+import { transformTags } from './ui.js';
 import { ui } from './ui.js';
 
 import { GridColumnOrder, GridColumn } from './grid/column.js';
@@ -270,7 +271,8 @@ function Grid(options) {
             ajaxParams: {},
             // Overrides this.meta.orderBy value when not null.
             defaultOrderBy: null,
-            expandFilterContents: false,
+            // 0 - do not expand templates, 1 - transform bs attributes, 2 - full initClient
+            expandFilterContents: 1,
             fkGridOptions: {},
             highlightMode: 'cycleRows',
             // Currently available highlight directions:
@@ -1031,8 +1033,11 @@ function Grid(options) {
     Grid.expandFilterContents = function(elements, koFilter) {
         var self = koFilter.ownerGrid;
         if (self.options.expandFilterContents) {
-            var tpl = globalIoc.factory('Tpl');
-            return tpl.expandContents($(elements));
+            if (self.options.expandFilterContents > 1) {
+                initClient(elements);
+            } else {
+                transformTags.applyAttrs(elements);
+            }
         }
     };
 

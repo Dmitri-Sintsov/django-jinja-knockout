@@ -16,10 +16,8 @@
     if (typeof Reflect === 'undefined') {
         document.write('<script src="{{ static('djk/js/lib/es6-shim.min.js') }}"><\/script>');
     }
-    if (typeof customElements === 'undefined') {
-        document.write('<script src="{{ static('djk/js/lib/custom-elements.min.js') }}"><\/script>');
-    }
     </script>
+    <script src="{{ static('djk/js/lib/ungap-custom-elements-min.js') }}"></script>
     <script src="{{ static('djk/js/lib/jquery.min.js') }}"></script>
     <script src="{{ tpl.url('javascript-catalog') }}"></script>
     <script src="{{ static('djk/js/lib/knockout.js') }}"></script>

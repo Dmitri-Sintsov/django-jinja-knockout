@@ -2,7 +2,7 @@ import { inherit } from './dash.js';
 import { propGet } from './prop.js';
 import { initClient } from './initclient.js';
 import { globalIoc } from './ioc.js';
-import { disposePopover } from './ui.js';
+import { UiPopover } from './ui.js';
 
 function ClosablePopover(target, popoverOptions) {
 
@@ -41,7 +41,7 @@ function ClosablePopover(target, popoverOptions) {
 
         var $content = $('<div/>');
         this.$popoverContent = this.createPopoverContent();
-        var $closeButton = $.contents('<button class="close" type="button">×</button>');
+        var $closeButton = $.contents('<a class="close"><button is="btn-dismiss"></button></a>');
         $closeButton.on('click', function(ev) {
             ev.preventDefault();
             return self.closeButtonEvent(ev);
@@ -54,7 +54,7 @@ function ClosablePopover(target, popoverOptions) {
         self.onClick = function(ev) {
             self.mouseClickTarget(ev);
         };
-        self.$target.popover(popoverOptions);
+        new UiPopover(self.$target).create(popoverOptions);
         self.$target
         .on('shown.bs.popover', function() {
             var id = $(this).attr('aria-describedby');
@@ -66,7 +66,7 @@ function ClosablePopover(target, popoverOptions) {
     };
 
     ClosablePopover.leave = function() {
-        this.$target.popover('hide');
+        new UiPopover(this.$target).hide();
         this.popoverContent.off('mouseleave', this.leave);
     };
 
@@ -74,7 +74,7 @@ function ClosablePopover(target, popoverOptions) {
         this.$target
         .off('mouseenter', this.onMouseEnter)
         .off('click', this.onClick);
-        disposePopover(this.$target.popover);
+        new UiPopover(this.$target).dispose();
     };
 
     ClosablePopover.getThisOverrides = function() {
@@ -85,13 +85,13 @@ function ClosablePopover(target, popoverOptions) {
         return {
             trigger: 'manual',
             placement: 'bottom',
-            html: 'true',
+            html: true,
             container: 'body',
         };
     };
 
     ClosablePopover.isVisible = function() {
-        return this.$target.getVisiblePopovers().length > 0;
+        return new UiPopover(this.$target).isVisible();
     };
 
     ClosablePopover.hide = function(skippedPopover) {
@@ -102,7 +102,7 @@ function ClosablePopover(target, popoverOptions) {
         }
         // Prevent flicker.
         if (this.isVisible()) {
-            this.$target.popover('hide');
+            new UiPopover(this.$target).hide();
             this.back();
         }
     };
@@ -229,10 +229,8 @@ function ButtonPopover(popoverOptions) {
  */
 function ContentPopover(k, v) {
     var $popover = $(v);
-    $popover.popover({
+    new UiPopover($popover).create({
         container: 'body',
-        html : $(this).data('html'),
-        placement: $(this).data('placement'),
         content: function() {
             var template = $(this).data("contentTemplate");
             if (template !== undefined) {
@@ -242,20 +240,16 @@ function ContentPopover(k, v) {
                 initClient($content);
                 return $content;
             } else {
-                return $(this).data('content');
+                return $(this).attr('bs-content');
             }
         },
         title: function() {
             return $(this).attr('title');
         },
-    }).on("hidden.bs.popover", function(e) {
+    })
+    $popover.on("hidden.bs.popover", function(e) {
         if ($popover.data("contentTemplate") !== undefined) {
-            var $tip = propGet($popover.data('bs.popover'), '$tip');
-            if ($tip !== undefined) {
-                var $content = $tip.find('.popover-content');
-                initClient($content, 'dispose');
-                $tip.find('.popover-content').empty();
-            }
+            new UiPopover($popover).empty();
         }
     });
 }

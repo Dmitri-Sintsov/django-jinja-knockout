@@ -7,6 +7,7 @@
  *  https://github.com/webcomponents/custom-elements/issues/94
  *  https://github.com/webcomponents/polyfills/issues/108
  *  https://github.com/webcomponents/webcomponentsjs/issues/809
+ *  https://stackoverflow.com/questions/39196503/how-to-wait-for-custom-element-reference-to-be-upgraded
  *
  */
 
@@ -26,18 +27,39 @@ function Elements(options) {
     Elements.init = function(options) {
     };
 
+    Elements.DOMProperties = [
+        'innerHTML',
+        'innerText',
+        'outerHTML',
+    ];
+
     Elements.builtInProperties = [
+        // callback
         'adopted',
+        // callback
         'alwaysConnected',
+        // DOM ancestor class like HTMLAnchorElement, HTMLFormElement
         'ancestor',
+        // callback or object with keys element attribute names / values callbacks for each attribute
         'attributeChanged',
+        // initially set DOM attributes
+        'attrs',
+        // initlally set DOM classes
         'classes',
+        // callback
         'connected',
+        // callback
         'disconnected',
+        // original DOM element name when the 'ancestor' is specified
         'extendsTagName',
+        // optional list / callback to get observedAttributes,
+        // generated dynamically from 'attributeChanged' object keys, when available
         'observedAttributes',
+        // custom Javascript class properties to set
         'properties',
+        // custom tag name
         'name',
+        // initial element styles, converted to dynamically generated stylesheet
         'styles',
     ];
 
@@ -45,7 +67,7 @@ function Elements(options) {
         var styleList = '';
         for (var k in styles) {
             if (styles.hasOwnProperty(k)) {
-                styleList += CSS.escape(k) + ': ' + CSS.escape(styles[k]) + '; ';
+                styleList += CSS.escape(k) + ': ' + styles[k] + '; ';
             }
         }
         return styleList;
@@ -70,11 +92,28 @@ function Elements(options) {
     };
 
     Elements.getConnected = function(tagDef) {
+        var self = this;
         return function() {
             if (typeof this._isAlreadyInitialized === 'undefined') {
+                if (typeof tagDef.attrs === 'object') {
+                    for (var k in tagDef.attrs) {
+                        if (tagDef.attrs.hasOwnProperty(k)) {
+                            this.setAttribute(k, tagDef.attrs[k]);
+                        }
+                    }
+                }
                 if (Array.isArray(tagDef.classes)) {
                     for (var i = 0; i < tagDef.classes.length; i++) {
                         this.classList.add(tagDef.classes[i]);
+                    }
+                }
+                for (var i = 0; i < self.DOMProperties.length; i++) {
+                    var propName = self.DOMProperties[i];
+                    // Set tagDef default .innerText / .innerHTML only when this DOM element .innerText / .innerHTML
+                    // is an empty one.
+                    if (typeof tagDef[propName] !== 'undefined' &&
+                            (typeof this[propName] !== 'string' || this[propName].trim() === '')) {
+                        this[propName] = tagDef[propName];
                     }
                 }
                 if (typeof tagDef.connected === 'function') {
@@ -165,9 +204,13 @@ function Elements(options) {
         }
 
         if (typeof tagDef.styles === 'object') {
+            var selector = CSS.escape(tagDef.name);
+            if (typeof tagDef.extendsTagName !== 'undefined') {
+                selector = CSS.escape(tagDef.extendsTagName) + '[is=' + selector + ']';
+            }
             document.head.insertAdjacentHTML(
                 'afterbegin',
-                '<style>' + CSS.escape(tagDef.name) + ' { ' + this.getStyleList(tagDef.styles) + ' }' + '</style>'
+                '<style>' + selector + ' { ' + this.getStyleList(tagDef.styles) + ' }' + '</style>'
             );
         }
 
@@ -192,8 +235,10 @@ function Elements(options) {
         var attributeChanged = this.getAttributeChanged(tagDef);
         $.extend(elProperties, attributeChanged.elProperties);
 
+        var skippedProperties = this.builtInProperties.concat(this.DOMProperties);
+
         for (var k in tagDef) {
-            if (tagDef.hasOwnProperty(k) && this.builtInProperties.indexOf(k) === -1) {
+            if (tagDef.hasOwnProperty(k) && skippedProperties.indexOf(k) === -1) {
                 elProperties[k] = {
                     value: tagDef[k]
                 }
@@ -237,7 +282,6 @@ function Elements(options) {
         return this.create(tagDef);
     };
 
-    // Unused, because inherited custom elements fails both in Chrome / IE11 polyfill.
     Elements.createDiv = function(tagDef) {
         tagDef.ancestor = HTMLDivElement;
         tagDef.extendsTagName = 'div';

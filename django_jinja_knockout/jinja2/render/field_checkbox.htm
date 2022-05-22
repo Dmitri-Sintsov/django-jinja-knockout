@@ -1,8 +1,8 @@
-<div class="row form-group{% if field.errors -%} has-error{% endif -%}">
+<div is="form-row" class="{% if field.errors -%} has-error{% endif -%}">
     <div class="{{ classes.label }}"></div>
     <div class="field {{ classes.field }}">
         <div class="checkbox">
-            {% set label_att = {'class': 'control-label'} -%}
+            {% set label_att = {'is': 'form-label'} -%}
             {% if field.auto_id -%}
                 {% do label_att.update({'for': field.auto_id}) -%}
             {% endif -%}

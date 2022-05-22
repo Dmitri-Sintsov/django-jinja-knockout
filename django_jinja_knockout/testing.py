@@ -383,6 +383,11 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         self.context.element = self.selenium.switch_to.active_element
         return self.context
 
+    def _blur_active_element(self):
+        self.selenium.execute_script('document.activeElement.blur();')
+        # self.selenium.execute_script('arguments[0].blur();', self.context.element)
+        return self.context
+
     # See https://github.com/django/django/blob/master/django/contrib/admin/tests.py
     def wait_until(self, callback):
         return WebDriverWait(self.selenium, self.DEFAULT_WAIT_TIME).until(callback)
@@ -480,6 +485,12 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         )
         return self.context
 
+    def get_attributes(self):
+        attributes = {}
+        for attr_def in self.context.element.get_property('attributes'):
+            attributes[attr_def['name']] = attr_def['value']
+        return attributes
+
     def _click(self):
         # A workaround for "Element is not clickable at point" error.
         # http://stackoverflow.com/questions/11908249/debugging-element-is-not-clickable-at-point-error
@@ -499,6 +510,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             'arguments[0].click();', self.context.element
         )
         """
+        print(f'Clicked element: {self.context.element.tag_name} {self.get_attributes()}')
         self.context.element.click()
 
         return self.context
@@ -570,13 +582,14 @@ class DjkSeleniumCommands(SeleniumQueryCommands, GridCommands, DialogCommands, C
         return self.exec(
             'by_id', (dom_id,),
             'relative_by_xpath', (
-                'parent::div[@class="has-error"]/div[text()={}]', text
+                'ancestor::div[@class="has-error"]//div[text()={}]',
+                text
             ),
         )
 
     def _fk_widget_click(self, dom_id):
         return self.exec(
-            'by_xpath', ('//label[@for={}]/parent::*//button', dom_id),
+            'by_xpath', ('//label[@for={}]/..//button[@data-bind="click: onFkButtonClick, clickBubble: false"]', dom_id),
             'click',
             'to_top_bootstrap_dialog',
             'dialog_is_component',

@@ -48,13 +48,15 @@
             'aria-controls': tab.id,
             'class': 'nav-link',
             'role': 'tab',
-            'data-toggle': 'tab'
+            'bs-data': '',
+            'bs-toggle': 'tab',
         } -%}
         {% if tab.tooltip -%}
             {% do li_atts.update({
-                'data-toggle': 'tooltip',
-                'data-placement': 'bottom',
-                'data-html': 'false',
+                'bs-data': '',
+                'bs-toggle': 'tooltip',
+                'bs-placement': 'bottom',
+                'bs-html': 'false',
                 'title': tab.tooltip,
             }) -%}
         {% endif -%}

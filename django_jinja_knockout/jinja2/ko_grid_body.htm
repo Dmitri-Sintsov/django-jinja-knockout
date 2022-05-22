@@ -31,12 +31,14 @@
 <script type="text/template" id="ko_range_filter">
     <card-default>
         <card-body>
-            <div class="row form-group">
-                <label data-bind="text: meta.from" class="control-label col-md-4" for="id_range_from"></label>
+            <div is="form-row">
+                <label is="form-label" data-bind="text: meta.from" class="col-md-3" for="id_range_from"></label>
                 <div class="field col-md-6">
                     <input data-bind="textInput: from, attr: fieldAttrs" id="id_range_from" name="range_from">
                 </div>
-                <label data-bind="text: meta.to" class="control-label col-md-4" for="id_range_to"></label>
+            </div>
+            <div is="form-row">
+                <label is="form-label" data-bind="text: meta.to" for="id_range_to" class="col-md-3"></label>
                 <div class="field col-md-6">
                     <input data-bind="textInput: to, attr: fieldAttrs" id="id_range_to" name="range_to">
                 </div>
@@ -77,7 +79,7 @@
 {% if 'ko_grid_filter_choices' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_choices">
     <li data-bind="grid_filter, click: onDropdownClick.bind(gridFilter), css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
-        <a aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
+        <a aria-expanded="false" class="dropdown-toggle nav-link" bs-data bs-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
         <ul data-bind="foreach: {data: choices, as: 'filterChoice'}" class="dropdown-menu">
@@ -94,7 +96,7 @@
 <script type="text/template" id="ko_grid_breadcrumb_filter_choices">
     <li data-bind="grid_filter">
         <ol class="breadcrumb grid-breadcrumb">
-            <li class="bold pr-2" data-bind="text: name"></li>
+            <li class="bold pr-2 pe-2" data-bind="text: name"></li>
             <!-- ko foreach: {data: choices, as: 'filterChoice'} -->
             <li data-bind="css: {active: is_active(), 'breadcrumb-item': true}">
                 <a data-bind="css: {bold: is_active(), 'breadcrumb-item': true}, text: name, grid_filter_choice, click: onLoadFilter.bind(filterChoice)" name="#"></a>
@@ -108,9 +110,10 @@
 {% if 'ko_grid_filter_popup' in _include_ids -%}
 <script type="text/template" id="ko_grid_filter_popup">
     <li data-bind="grid_filter, css: {'bg-info': hasActiveChoices()}" class="dropdown nav-item">
-        <a data-bind="click: onDropdownClick.bind(gridFilter)" aria-expanded="false" class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">
+        <a data-bind="click: onDropdownClick.bind(gridFilter)" aria-expanded="false" class="dropdown-toggle nav-link" bs-data bs-toggle="dropdown" href="#">
             <span data-bind="text: name"></span> <b class="caret"></b>
         </a>
+        <ul class="dropdown-menu visually-hidden"></ul>
     </li>
 </script>
 {% endif -%}
@@ -132,8 +135,8 @@
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
     <li class="nav-item">
-        <form-inline data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
-            <div data-bind="if: meta.hasSearch()" class="form-group">
+        <form is="form-inline" data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
+            <div is="form-group" data-bind="if: meta.hasSearch()">
                 <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
                 <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
             </div>
@@ -143,7 +146,7 @@
                     <span data-bind="text: koAction.localName"></span>
                 </button>
             <!-- /ko -->
-        </form-inline>
+        </form>
     </li>
 </script>
 {% endif -%}
@@ -316,7 +319,7 @@
         <ul class="pagination flex-wrap default-margin">
             <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
                 <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
-                    <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-ctrl iconui mr-2"></span>
+                    <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-button iconui mr-2"></span>
                 </li>
             <!-- /ko -->
             <!-- ko foreach: {data: gridPages, as: 'gridPage'} -->
@@ -349,7 +352,8 @@
 <script id="ko_fk_grid_widget" language="text/html">
     <div data-top="true" data-bind="using: $root, as: 'widget'">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
-            <li class="list-group-item" data-bind="template: {name: widget.getTemplateName('ko_fk_grid_widget_row'), foreach: inputRows, as: 'inputRow'}">
+            <li class="list-group-item"
+                data-bind="template: {name: widget.getTemplateName('ko_fk_grid_widget_row'), foreach: inputRows, as: 'inputRow', afterRender: widget.expandRowContents }">
             </li>
         </ul>
         <!-- ko if: inputRows().length === 0 -->
@@ -371,7 +375,7 @@
 {% if 'ko_fk_grid_widget_row' in _include_ids -%}
 <script id="ko_fk_grid_widget_row" language="text/html">
     <div data-bind="css: inputRow.css, click: inputRow.onClick, replaceInto: inputRow.display()">
-        <a class="close preserve-append" data-bind="visible: inputRow.canDelete, click: inputRow.remove">×</a>
+        <a class="close preserve-append" data-bind="visible: inputRow.canDelete, click: inputRow.remove"><button is="btn-dismiss"></button></a>
     </div>
 </script>
 {% endif -%}

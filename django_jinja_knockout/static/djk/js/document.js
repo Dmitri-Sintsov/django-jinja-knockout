@@ -6,7 +6,7 @@ import { AppClientData } from './conf.js';
 import { localize } from './translate.js';
 import { initClient, initClientHooks } from './initclient.js';
 import { ComponentManager, components } from './components.js';
-import { transformTags, disposePopover, UiDatetimeWidget } from './ui.js';
+import { transformTags, UiPopover, UiTooltip, UiDatetimeWidget } from './ui.js';
 import { bindTemplates } from './tpl.js';
 import { vmRouter } from './ioc.js';
 import { ContentPopover } from './popover.js';
@@ -74,11 +74,13 @@ function DatetimeWidget($selector) {
 
 initClientHooks.add({
     init: function($selector) {
-        transformTags.applyTags($selector);
+        transformTags.apply($selector);
         bindTemplates($selector);
         localize($selector);
-        $selector.findSelf('[data-toggle="popover"]').each(ContentPopover);
-        $selector.findSelf('[data-toggle="tooltip"]').tooltip({html: false});
+        $selector.findSelf('[bs-toggle="popover"]').each(ContentPopover);
+        $selector.findSelf('[bs-toggle="tooltip"]').each(function() {
+            new UiTooltip(this).create({html: false});
+        });
         $selector.dataHref();
         highlightListUrl($selector);
         SelectMultipleAutoSize($selector);
@@ -102,7 +104,12 @@ initClientHooks.add({
         new AjaxButton($selector).destroy();
         new AjaxForms($selector).destroy();
         new DatetimeWidget($selector).destroy();
-        disposePopover($selector.findSelf('[data-toggle="popover"]'));
+        $selector.findSelf('[bs-toggle="popover"]').each(function() {
+            new UiPopover(this).dispose();
+        });
+        $selector.findSelf('[bs-toggle="tooltip"]').each(function() {
+            new UiTooltip(this).dispose();
+        });
     }
 });
 

@@ -3,14 +3,19 @@ import { propGet } from './prop.js';
 import { ViewModelRouter } from './vmrouter.js';
 import { vmRouter, globalIoc } from './ioc.js';
 import { Trans } from './translate.js';
-import { ui } from './ui.js';
+import { ui, UiPopover } from './ui.js';
 import { renderNestedList } from './nestedlist.js';
 import { initClient } from  './initclient.js';
 
 var dialogIoc = new ViewModelRouter({
-    'Dialog.baseOnShow' : function() {
+    'baseOnShow' : function() {
         // Close opened popovers otherwise they may overlap opened dialog.
-        $(document.body).closeVisiblePopovers();
+        $(document.body).find('[bs-toggle="popover"]').each(function() {
+            var uiPopover = new UiPopover(this);
+            if (uiPopover.isVisible()) {
+                uiPopover.close();
+            }
+        });
         // Ensure dialog size is set.
         this.bdialog.setSize(this.dialogOptions.size);
     },

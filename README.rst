@@ -2,10 +2,12 @@
 django-jinja-knockout
 =====================
 
+.. _custom elements: https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
 .. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
 .. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
+.. _Bootstrap 5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
 .. _data-bind: https://knockoutjs.com/documentation/binding-syntax.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
@@ -86,7 +88,7 @@ Key features
 
 * AJAX based django.admin-like paginated `datatables`_ (grids) with sorting / filters and custom actions.
 * Integrates Jinja2 into existing Django templates (DTL).
-* `Bootstrap 3`_ / `Bootstrap 4`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
+* `Bootstrap 3`_ / `Bootstrap 4`_ / `Bootstrap 5`_ / `Jinja2`_ / `Knockout.js`_ for Django projects.
 * No deep knowledge of Knockout.js is required: it has ready working components.
 * Dynamic adding / removing of inline formsets with Knockout.js, protected from XSS.
 * Default template renderers for Django forms / related forms / inline formsets with the possibility to override these
@@ -132,6 +134,12 @@ It's not a pure SPA framework, but a mixed approach of server-side pages with em
 scripts. Although it may be used for SPA as well. Classical Web applications aren't "outdated" in any way - because such
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
 server-side rendering generally is more robust.
+
+Version 2.1.0
+-------------
+Built-in `custom elements`_, including es5 IE11 polyfills.
+
+`Bootstrap 5`_ compatibility.
 
 Version 2.0.0
 -------------

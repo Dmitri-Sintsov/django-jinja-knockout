@@ -1,6 +1,6 @@
 import { inherit } from './dash.js';
 import { renderNestedList } from './nestedlist.js';
-import { disposePopover } from './ui.js';
+import { UiPopover, UiTooltip } from './ui.js';
 import { vmRouter } from './ioc.js';
 import { AjaxForm } from './ajaxform.js';
 import { TabPane } from './tabpane.js';
@@ -82,8 +82,7 @@ function GenericPopover(options) {
                 }
                 break;
             default:
-                // Find associated input by [data-popover].
-                this.$field = $('[name="' + CSS.escape(this.$messageTarget.data('popover')) + ']"');
+                this.$field = new UiPopover(this.$messageTarget).getRelatedInput();
         }
 
         if (this.$field.length === 0) {
@@ -112,7 +111,7 @@ function FieldPopover(options) {
         this.status = 'show';
         var $errmsg = $('<div>');
         renderNestedList($errmsg, this.messages);
-        var _popover = this.$messageTarget.popover({
+        var _popover = new UiPopover(this.$messageTarget).create({
             trigger: 'manual',
             placement: 'bottom',
             container: 'body',
@@ -120,22 +119,22 @@ function FieldPopover(options) {
             html: true,
             template:
                 "<div class=\"popover\">" +
-                "<div class=\"arrow\"></div><div class=\"popover-inner\"><div class=\"popover-content\"><p></p></div></div>" +
+                "<div class=\"arrow\"></div><div class=\"popover-inner\"><div class=\"bs-popover-body\"><p></p></div></div>" +
                 "</div>"
         });
-        _popover.data("bs.popover").options.content = $errmsg;
-        this.$messageTarget.popover(self.status);
+        // new UiPopover(_popover).setContent($errmsg);
+        new UiPopover(this.$messageTarget).state(self.status);
         this.onDestroy = function(ev) {
-            disposePopover(self.$messageTarget);
+            new UiPopover(self.$messageTarget).dispose();
         };
         this.onBlur = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'hide') {
-                self.$messageTarget.popover(self.status = 'hide');
+                new UiPopover(self.$messageTarget).state(self.status = 'hide');
             }
         };
         this.onFocus = function(ev) {
             if (typeof self.$messageTarget.popover === 'function' && self.status !== 'show') {
-                self.$messageTarget.popover(self.status = 'show');
+                new UiPopover(self.$messageTarget).state(self.status = 'show');
             }
         };
         this.$field
@@ -178,7 +177,7 @@ function FieldTooltip(options) {
         } else {
             this.$messageTarget
               .attr('title', this.messages.join('\n'));
-            this.$messageTarget.tooltip({
+            new UiTooltip(this.$messageTarget).create({
                 container: 'body',
                 html: false,
                 placement: 'bottom'
@@ -200,7 +199,8 @@ function FieldTooltip(options) {
     FieldTooltip.destroy = function(form) {
         if (!this.destroyed) {
             if (form === undefined || $.contains(form, this.$field.get(0))) {
-                this.$messageTarget.removeAttr('title').tooltip('destroy');
+                this.$messageTarget.removeAttr('title');
+                new UiTooltip(this.$messageTarget).dispose();
                 this.$cssTarget.removeClass('validation-error');
                 this.$field.off(this.destroyEventName, this.onDestroy);
                 this.destroyed = true;
@@ -253,11 +253,7 @@ function AlertError(options) {
                 var $contents = $('<div>', {
                     'class': 'alert alert-' + CSS.escape(alert_class) + ' alert-dismissible"></div>',
                 }).text(options.messages[i]);
-                $contents.prepend($('<button>', {
-                    'class': 'close',
-                    'data-dismiss': 'alert',
-                    'type': 'button'
-                }).text('×'));
+                $contents.append($('<button is="dismiss-alert">'));
                 this.$field.after($contents);
             }
             if (options.messages.length > 0) {

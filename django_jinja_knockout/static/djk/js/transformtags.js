@@ -1,4 +1,4 @@
-import { keys, sortBy } from './lib/underscore-esm.js';
+import { keys, map, sortBy } from './lib/underscore-esm.js';
 
 /**
  * Tags converter which is executed during initClient() content ready and for each expanded underscore.js template.
@@ -19,6 +19,7 @@ function TransformTags() {
     };
 
     TransformTags.init = function() {
+        this.attrs = {};
         // Upper case keys only!
         this.tags = {
             // Shortcut attrs for underscore.js templates:
@@ -41,10 +42,19 @@ function TransformTags() {
         };
     };
 
-    TransformTags.add = function(tags) {
+    TransformTags.addTags = function(tags) {
         for (var tagName in tags) {
             if (tags.hasOwnProperty(tagName)) {
                 this.tags[tagName] = tags[tagName];
+            }
+        }
+        return this;
+    }
+
+    TransformTags.addAttrs = function(attrs) {
+        for (var attrName in attrs) {
+            if (attrs.hasOwnProperty(attrName)) {
+                this.attrs[attrName] = attrs[attrName];
             }
         }
         return this;
@@ -58,11 +68,36 @@ function TransformTags() {
         return $result;
     };
 
+    TransformTags.applyAttrs = function(selector) {
+        var self = this;
+        var $selector = $(selector);
+        var attrNames = keys(this.attrs);
+        var attrsSelector = map(attrNames, function(attrName) { return '[' + CSS.escape(attrName) + ']'; }).join(',');
+        $selector.find(attrsSelector).each(function() {
+            for (var i = 0; i < attrNames.length; i++) {
+                var attrName = attrNames[i];
+                if (this.hasAttribute(attrName)) {
+                    self.attrs[attrName](this, attrName);
+                }
+            }
+        });
+        $.each($selector, function(k, v) {
+            if (v.nodeType === Node.ELEMENT_NODE) {
+                for (var i = 0; i < attrNames.length; i++) {
+                    var attrName = attrNames[i];
+                    if (v.hasAttribute(attrName)) {
+                        self.attrs[attrName](v, attrName);
+                    }
+                }
+            }
+        });
+    };
+
     TransformTags.applyTags = function(selector) {
         var self = this;
         var $selector = $(selector);
-        var tagNames = keys(this.tags)
-        var tagsSelector = tagNames.join(',');
+        var tagNames = keys(this.tags);
+        var tagsSelector = map(tagNames, function(tagName) { return CSS.escape(tagName); }).join(',');
         var nodes = [];
         // Transform the nested tags from the innermost to the outermost order.
         $selector.find(tagsSelector).each(function() {
@@ -86,6 +121,12 @@ function TransformTags() {
             }
         });
         return $selector;
+    };
+
+    TransformTags.apply = function(selector) {
+        var $appliedTags = this.applyTags(selector);
+        this.applyAttrs($appliedTags);
+        return $appliedTags;
     };
 
 }(TransformTags.prototype);

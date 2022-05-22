@@ -1,5 +1,7 @@
 import { propGet } from '../prop.js';
 import { getTemplateSubstitution } from '../tpl.js';
+import { initClient } from '../initclient.js';
+import { transformTags } from '../ui.js';
 import { blockTags } from '../ui.js';
 import { renderNestedList } from '../nestedlist.js';
 import { GridDialog } from './dialogs.js';
@@ -60,6 +62,10 @@ function FkGridWidget(options) {
             delete options.initialFkRows;
         } else {
             initialFkRows = [];
+        }
+        // 0 - do not expand templates, 1 - transform bs attributes, 2 - full initClient
+        this.options = {
+            expandRowContents: propGet(options, 'expandRowContents', 1)
         }
         this.gridDialog = new GridDialog({
             owner: this,
@@ -146,9 +152,21 @@ function FkGridWidget(options) {
         );
     };
 
+    FkGridWidget.expandRowContents = function(elements, koRow) {
+        var self = koRow.widget;
+        if (self.options.expandRowContents) {
+            if (self.options.expandRowContents > 1) {
+                initClient(elements);
+            } else {
+                transformTags.applyAttrs(elements);
+            }
+        }
+    };
+
     FkGridWidget.iocInputRow = function(koRow) {
         var self = this;
         var inputRow = {
+            widget: this,
             pk: koRow.getPkVal(),
             desc: ko.observable(this.getInputRowDescParts(koRow)),
             css: {

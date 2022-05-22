@@ -144,7 +144,7 @@ function Tpl(options) {
      */
     Tpl.expandContents = function($contents) {
         var self = this;
-        $contents = transformTags.applyTags($contents);
+        $contents = transformTags.apply($contents);
         // Load recursive nested templates, if any.
         $contents.each(function(k, v) {
             var $node = $(v);

@@ -7,7 +7,7 @@
 {% endif -%}
 <ol{{ tpl.json_flatatt(menu_attrs) }}>
     {% if title is not none -%}
-    <li class="bold pr-2">{{ title }}:</li>
+    <li class="bold pr-2 pe-2">{{ title }}:</li>
     {% endif -%}
     {% for nav in navs -%}
     {% do tpl.add_css_classes_to_dict(nav.atts, 'breadcrumb-item') -%}

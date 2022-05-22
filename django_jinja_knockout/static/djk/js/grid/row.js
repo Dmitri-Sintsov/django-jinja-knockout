@@ -2,6 +2,7 @@ import { isEqual, each, mapObject, size } from '../lib/underscore-esm.js';
 import { recursiveMap } from '../dash.js';
 import { propGet } from '../prop.js';
 import { initClient } from '../initclient.js';
+import { transformTags } from '../ui.js';
 import { renderNestedList } from '../nestedlist.js';
 import { Trans } from '../translate.js';
 
@@ -15,13 +16,18 @@ function GridRow(options) {
 } void function(GridRow) {
 
     // By default does not use initClient() for performance reasons.
-    GridRow.useInitClient = false;
+    // 0 - do not expand templates, 1 - transform bs attributes, 2 - full initClient
+    GridRow.useInitClient = 1;
 
     // todo: turn off by default and update saved row at whole.
     GridRow.observeDisplayValue = true;
 
     GridRow.prepare = function() {
-        initClient(this.$row);
+        if (this.useInitClient > 1) {
+            initClient(this.$row);
+        } else {
+            transformTags.applyAttrs(this.$row);
+        }
     };
 
     GridRow.dispose = function() {

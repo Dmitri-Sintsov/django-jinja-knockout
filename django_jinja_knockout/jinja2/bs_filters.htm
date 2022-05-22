@@ -8,9 +8,9 @@
 {% set filters_str -%}
     {% for filter_field, filters in filter_display.items() -%}
         {% if filters|length > 0 -%}
-            <span class="badge">{{ filter_title[filter_field] }}</span>
+            <badge-primary>{{ filter_title[filter_field] }}</badge-primary>
             {% for filter_name in filters -%}
-                <span class="label label-info">{{ filter_name }}</span>
+                <label-info>{{ filter_name }}</label-info>
             {% endfor -%}
         {% endif -%}
     {% endfor -%}
