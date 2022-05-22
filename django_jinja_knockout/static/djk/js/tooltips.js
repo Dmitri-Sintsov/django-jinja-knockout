@@ -150,7 +150,7 @@ function FieldPopover(options) {
             .off('blur', this.onBlur)
             .off('focus', this.onFocus);
             // https://github.com/twbs/bootstrap/issues/20511
-            disposePopover(this.$messageTarget.popover);
+            new UiPopover(this.$messageTarget).dispose();
             this.destroyed = true;
         }
     };

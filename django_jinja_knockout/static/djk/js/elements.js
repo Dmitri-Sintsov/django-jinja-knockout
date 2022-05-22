@@ -63,14 +63,23 @@ function Elements(options) {
         'styles',
     ];
 
-    Elements.getStyleList = function(styles) {
-        var styleList = '';
-        for (var k in styles) {
-            if (styles.hasOwnProperty(k)) {
-                styleList += CSS.escape(k) + ': ' + styles[k] + '; ';
+    // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
+    Elements.createStyles = function(selector, rules) {
+        var styleElem = document.createElement('style');
+        document.head.appendChild(styleElem);
+        var styleSheet = styleElem.sheet;
+        var ruleStr = '{';
+        for (var i = 0; i < rules.length; i++) {
+            var rule = rules[i];
+            for (var k in rule) {
+                if (rule.hasOwnProperty(k)) {
+                    ruleStr += k + ': ' + rule[k] + ';\n';
+                }
             }
         }
-        return styleList;
+        if (ruleStr !== '{') {
+            styleSheet.insertRule(selector + ' ' + ruleStr + '}', styleSheet.cssRules.length);
+        }
     };
 
     Elements.getNewElement = function(tagDef) {
@@ -203,15 +212,12 @@ function Elements(options) {
             tagDef.ancestor = HTMLElement;
         }
 
-        if (typeof tagDef.styles === 'object') {
-            var selector = CSS.escape(tagDef.name);
+        if (Array.isArray(tagDef.styles)) {
+            var selector = tagDef.name;
             if (typeof tagDef.extendsTagName !== 'undefined') {
-                selector = CSS.escape(tagDef.extendsTagName) + '[is=' + selector + ']';
+                selector = tagDef.extendsTagName + '[is=' + selector + ']';
             }
-            document.head.insertAdjacentHTML(
-                'afterbegin',
-                '<style>' + selector + ' { ' + this.getStyleList(tagDef.styles) + ' }' + '</style>'
-            );
+            this.createStyles(selector, tagDef.styles);
         }
 
         var elProperties = {
@@ -276,9 +282,9 @@ function Elements(options) {
 
     Elements.createBlock = function(tagDef) {
         if (typeof tagDef.styles === 'undefined') {
-            tagDef.styles = {};
+            tagDef.styles = [];
         }
-        tagDef.styles.display = 'block';
+        tagDef.styles.push({'display': 'block'});
         return this.create(tagDef);
     };
 

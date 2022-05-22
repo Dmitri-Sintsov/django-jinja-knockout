@@ -49,7 +49,7 @@ function TransformTags() {
             }
         }
         return this;
-    }
+    };
 
     TransformTags.addAttrs = function(attrs) {
         for (var attrName in attrs) {

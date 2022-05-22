@@ -66,7 +66,7 @@ function FkGridWidget(options) {
         // 0 - do not expand templates, 1 - transform bs attributes, 2 - full initClient
         this.options = {
             expandRowContents: propGet(options, 'expandRowContents', 1)
-        }
+        };
         this.gridDialog = new GridDialog({
             owner: this,
             filterOptions: gridOptions

@@ -246,7 +246,7 @@ function ContentPopover(k, v) {
         title: function() {
             return $(this).attr('title');
         },
-    })
+    });
     $popover.on("hidden.bs.popover", function(e) {
         if ($popover.data("contentTemplate") !== undefined) {
             new UiPopover($popover).empty();
