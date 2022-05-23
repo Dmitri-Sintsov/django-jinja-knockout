@@ -175,29 +175,27 @@ function Elements(options) {
             elProperties: {},
         };
         if (typeof tagDef.attributeChanged !== 'undefined') {
-            if (typeof tagDef.attributeChanged !== 'undefined') {
-                if (typeof tagDef.attributeChanged === 'object') {
-                    // Clone and store attributeChanged to custom element instance so the existing listeners
-                    // can be set / removed dynamically after the instance is already initialized.
-                    for (var k in tagDef.attributeChanged) {
-                        if (tagDef.attributeChanged.hasOwnProperty(k)) {
-                            attributeChanged.attributes[k] = tagDef.attributeChanged[k];
-                        }
+            if (typeof tagDef.attributeChanged === 'object') {
+                // Clone and store attributeChanged to custom element instance so the existing listeners
+                // can be set / removed dynamically after the instance is already initialized.
+                for (var k in tagDef.attributeChanged) {
+                    if (tagDef.attributeChanged.hasOwnProperty(k)) {
+                        attributeChanged.attributes[k] = tagDef.attributeChanged[k];
                     }
-                    /**
-                     *  Modifying / removing existing DOM attribute handlers is supported.
-                     *  Dynamically adding / removing observable attributes is tricky / has performance issues
-                     *  is rarely needed and is not supported. See these links for more info:
-                     *    https://andyogo.github.io/custom-element-reactions-diagram/
-                     *    https://github.com/WICG/webcomponents/issues/565
-                     *    https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-                     */
-                    attributeChanged.elProperties['attributeChanged'] = {
-                        value: attributeChanged.attributes
-                    };
-                } else if (typeof tagDef.attributeChanged === 'function') {
-                    attributeChanged.attributes = tagDef.attributeChanged;
                 }
+                /**
+                 *  Modifying / removing existing DOM attribute handlers is supported.
+                 *  Dynamically adding / removing observable attributes is tricky / has performance issues
+                 *  is rarely needed and is not supported. See these links for more info:
+                 *    https://andyogo.github.io/custom-element-reactions-diagram/
+                 *    https://github.com/WICG/webcomponents/issues/565
+                 *    https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+                 */
+                attributeChanged.elProperties['attributeChanged'] = {
+                    value: attributeChanged.attributes
+                };
+            } else if (typeof tagDef.attributeChanged === 'function') {
+                attributeChanged.attributes = tagDef.attributeChanged;
             }
             attributeChanged.elProperties['attributeChangedCallback'] = {
                 value: this.getAttributeChangedCb(attributeChanged.attributes)
