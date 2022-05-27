@@ -248,10 +248,10 @@ function AlertError(options) {
             } else {
                 $formErrors.find('.alert').remove();
             }
-            var alert_class = (typeof options.class === 'undefined') ? 'warning' : 'danger';
+            var alertClass = (typeof options.class === 'undefined') ? 'warning' : 'danger';
             for (var i = 0; i < options.messages.length; i++) {
                 var $contents = $('<div>')
-                .addClass('alert alert-' + alert_class + ' alert-dismissible')
+                .addClass('alert alert-' + alertClass + ' alert-dismissible')
                 .text(options.messages[i]);
                 $contents.append($('<button is="dismiss-alert">'));
                 this.$field.after($contents);
