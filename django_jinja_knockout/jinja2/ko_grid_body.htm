@@ -141,7 +141,7 @@
                 <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
             </div>
             <!-- ko foreach: {data: actionTypes['button'], as: 'koAction'} -->
-                <button class="btn form-control" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
+                <button class="btn" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
                     <span class="iconui" data-bind="css: actionCss('iconui')"></span>
                     <span data-bind="text: koAction.localName"></span>
                 </button>
