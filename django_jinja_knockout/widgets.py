@@ -248,8 +248,8 @@ class BaseGridWidget(ChoiceWidget, RequestWidget):
 
     allow_multiple_selected = None
     required = None
-    js_classpath = 'FkGridWidget'
-    template_id = 'ko_fk_grid_widget'
+    js_classpath = None  # 'FkGridWidget'
+    template_id = None   # 'ko_fk_grid_widget'
     template_options = None
 
     def __init__(self, attrs=None, grid_options=None, widget_view_kwargs=None):
@@ -274,10 +274,12 @@ class BaseGridWidget(ChoiceWidget, RequestWidget):
     def get_component_attrs(self):
         component_attrs = {
             'class': 'component',
-            'data-component-class': self.js_classpath,
             'data-component-options': to_json(self.component_options),
-            'data-template-id': self.template_id,
         }
+        if self.js_classpath is not None:
+            component_attrs['data-component-class'] = self.js_classpath
+        if self.template_id is not None:
+            component_attrs['data-template-id'] = self.template_id
         if self.template_options is not None:
             component_attrs['data-template-options'] = self.template_options
         return component_attrs
@@ -333,7 +335,7 @@ class BaseGridWidget(ChoiceWidget, RequestWidget):
     def render(self, name, value, attrs=None, renderer=None):
         context = self.get_context(name, value, attrs)
         result = format_html_attrs(
-            '<span{component_attrs}></span>', **context['widget']
+            '<fk-grid-widget{component_attrs}></fk-grid-widget>', **context['widget']
         )
         return result
 

@@ -161,7 +161,7 @@ function Tpl(options) {
      */
     Tpl.domTemplate = function(tplId) {
         var contents = this.expandTemplate(tplId);
-        var $contents = $.contents(contents);
+        var $contents = $.contents(contents, true);
         $contents = this.expandContents($contents);
         return $contents;
     };

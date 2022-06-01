@@ -104,22 +104,22 @@ var vmRouter = new ViewModelRouter({
         $(viewModel.selector).trigger(viewModel.event);
     },
     'append': function(response) {
-        var $html = $.contents(response.html);
+        var $html = $.contents(response.html, true);
         initClient($html);
         $(response.selector).append($html);
     },
     'prepend': function(response) {
-        var $html = $.contents(response.html);
+        var $html = $.contents(response.html, true);
         initClient($html);
         $(response.selector).prepend($html);
     },
     'after': function(response) {
-        var $html = $.contents(response.html);
+        var $html = $.contents(response.html, true);
         initClient($html);
         $(response.selector).after($html);
     },
     'before': function(response) {
-        var $html = $.contents(response.html);
+        var $html = $.contents(response.html, true);
         initClient($html);
         $(response.selector).before($html);
     },
@@ -136,7 +136,7 @@ var vmRouter = new ViewModelRouter({
     'html': function(response) {
         var $selector = $.select(response.selector);
         initClient($selector.find('*'), 'dispose');
-        var $html = $.contents(response.html);
+        var $html = $.contents(response.html, true);
         initClient($html);
         $selector.empty().append($html);
     },

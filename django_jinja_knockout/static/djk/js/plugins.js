@@ -32,8 +32,23 @@ $.htmlDecode = function(value) {
 
 // Create jQuery DOM nodes from arbitrary text contents.
 // Do not use $(contents) as $() is supposed to accept only top-level tags or jQuery selectors, not arbitrary text.
-$.contents = function(contents) {
-    return $('<span>').html(contents).contents();
+$.contents = function(contents, initCustomElements) {
+    var $contents = $('<span>').html(contents).contents();
+    if (initCustomElements) {
+        // https://stackoverflow.com/questions/55791168/initialisation-of-custom-elements-inside-document-fragment
+        // Append fragment to document so the custom elements are properly initialized,
+        // otherwise nested components test will fail):
+        /*
+        var $span = $('span').css({'display': 'none'});
+        $span.appendTo('body');
+        $contents.appendTo($span);
+        $contents.detach();
+        $span.remove();
+        */
+        $contents.appendTo('body');
+        $contents.detach();
+    }
+    return $contents;
 };
 
 $.parseUrl = function(url) {

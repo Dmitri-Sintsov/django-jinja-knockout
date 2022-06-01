@@ -53,7 +53,7 @@ function Dialog(options) {
                     $content, obj, this.getNestedListOptions()
                 );
             } else {
-                return $.contents(obj);
+                return $.contents(obj, true);
             }
         }
     };

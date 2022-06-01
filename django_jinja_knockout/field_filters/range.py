@@ -8,7 +8,7 @@ from .base import BaseFilter, ErrorFilter
 
 
 class RangeFilter(BaseFilter):
-    component_class = 'ListRangeFilter'
+    component_class = None  # 'ListRangeFilter'
     input_type = 'search'
     template = 'bs_range_filter.htm'
     from_field_lookup = 'gte'
@@ -67,7 +67,9 @@ class RangeFilter(BaseFilter):
             return self.to_error_filter(e)
         curr_list_filter = self.get_request_list_filter()
         apply_url_query = deepcopy(curr_list_filter)
-        self.component_attrs['data-component-class'] = self.get_component_class()
+        component_class = self.get_component_class()
+        if component_class is not None:
+            self.component_attrs['data-component-class'] = component_class
         collapse_class = 'collapse'
         from_input_attrs = deepcopy(self.input_attrs)
         to_input_attrs = deepcopy(self.input_attrs)

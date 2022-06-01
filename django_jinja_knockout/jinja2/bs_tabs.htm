@@ -23,14 +23,12 @@
 {% do _content_attrs.update(content_attrs) -%}
 {% do tpl.prepend_css_classes_to_dict(_content_attrs,  'tab-content') -%}
 
-{% set _component_attrs = {
-    'data-component-class': 'TabList',
-} -%}
+{% set _component_attrs = {} -%}
 {% do _component_attrs.update(component_attrs) -%}
 {% do tpl.prepend_css_classes_to_dict(_component_attrs, 'component') -%}
 
 
-<div {{ tpl.json_flatatt(_component_attrs) }}>
+<tab-list {{ tpl.json_flatatt(_component_attrs) }}>
     <ul {{ tpl.json_flatatt(_tabs_attrs) }}>
     {% for tab in tabs -%}
         {% set li_atts = {
@@ -88,7 +86,7 @@
         </div>
     {% endfor -%}
     </div>
-</div>
+</tab-list>
 {% endmacro -%}
 {% if _render_ -%}
     {% if not isinstance(_render_, dict) -%}

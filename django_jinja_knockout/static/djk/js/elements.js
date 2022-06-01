@@ -49,6 +49,8 @@ function Elements(options) {
         // callback
         'connected',
         // callback
+        // initially set DOM attributes in case the tag has no such attribute set already
+        'defaultAttrs',
         'disconnected',
         // original DOM element name when the 'ancestor' is specified
         'extendsTagName',
@@ -100,16 +102,23 @@ function Elements(options) {
         }
     };
 
+    Elements.setAttrs = function(attrs, isDefault) {
+        for (var k in attrs) {
+            if (attrs.hasOwnProperty(k) && (!isDefault || !this.hasAttribute(k))) {
+                this.setAttribute(k, attrs[k]);
+            }
+        }
+    };
+
     Elements.getConnected = function(tagDef) {
         var self = this;
         return function() {
             if (typeof this._isAlreadyInitialized === 'undefined') {
+                if (typeof tagDef.defaultAttrs === 'object') {
+                    self.setAttrs.call(this, tagDef.defaultAttrs, true);
+                }
                 if (typeof tagDef.attrs === 'object') {
-                    for (var k in tagDef.attrs) {
-                        if (tagDef.attrs.hasOwnProperty(k)) {
-                            this.setAttribute(k, tagDef.attrs[k]);
-                        }
-                    }
+                    self.setAttrs.call(this, tagDef.attrs, false);
                 }
                 if (Array.isArray(tagDef.classes)) {
                     for (var i = 0; i < tagDef.classes.length; i++) {

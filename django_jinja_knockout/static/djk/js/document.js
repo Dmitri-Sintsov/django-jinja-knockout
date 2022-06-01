@@ -5,6 +5,7 @@ import { inherit } from './dash.js';
 import { AppClientData } from './conf.js';
 import { localize } from './translate.js';
 import { initClient, initClientHooks } from './initclient.js';
+import { elements } from './elements.js';
 import { ComponentManager, components } from './components.js';
 import { transformTags, UiPopover, UiTooltip, UiDatetimeWidget } from './ui.js';
 import { bindTemplates } from './tpl.js';
@@ -156,6 +157,36 @@ function assertUniqueScripts() {
 
 var documentReadyHooks = [function() {
     assertUniqueScripts();
+
+    elements.newCustomElements(
+        {
+            name: 'tab-list',
+            defaultAttrs: {
+                'data-component-class': 'TabList',
+            }
+        },
+        {
+            name: 'list-range-filter',
+            defaultAttrs: {
+                'data-component-class': 'ListRangeFilter',
+            }
+        },
+        {
+            name: 'ko-grid',
+            defaultAttrs: {
+                'data-component-class': 'Grid',
+                'data-template-id': 'ko_grid_body',
+            }
+        },
+        {
+            name: 'fk-grid-widget',
+            defaultAttrs: {
+                'data-component-class': 'FkGridWidget',
+                'data-template-id': 'ko_fk_grid_widget',
+            }
+        }
+    );
+
     var m = moment();
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
     Cookies.set('local_tz', parseInt(-m.utcOffset() / 60), {sameSite: 'Lax'});
