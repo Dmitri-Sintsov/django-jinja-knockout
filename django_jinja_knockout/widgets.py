@@ -6,8 +6,10 @@ from django.utils.translation import gettext as _
 from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.forms.utils import flatatt
-from django.forms.widgets import (CheckboxInput, Widget, ChoiceWidget, Textarea, MultiWidget)
+from django.forms.widgets import (CheckboxInput, Widget, Textarea, MultiWidget)
 from django.db.models.query import RawQuerySet, QuerySet
+
+from djk_ui.widgets import UiBaseGridWidget
 
 from . import apps
 from .models import model_fields_verbose_names
@@ -244,12 +246,11 @@ class DisplayText(RequestWidget):
             return self.render_scalar(final_attrs, value, display_values[0])
 
 
-class BaseGridWidget(ChoiceWidget, RequestWidget):
+class BaseGridWidget(UiBaseGridWidget, RequestWidget):
 
     allow_multiple_selected = None
     required = None
-    js_classpath = None  # 'FkGridWidget'
-    template_id = None   # 'ko_fk_grid_widget'
+    template_id = 'ko_fk_grid_widget'
     template_options = None
 
     def __init__(self, attrs=None, grid_options=None, widget_view_kwargs=None):
@@ -335,7 +336,7 @@ class BaseGridWidget(ChoiceWidget, RequestWidget):
     def render(self, name, value, attrs=None, renderer=None):
         context = self.get_context(name, value, attrs)
         result = format_html_attrs(
-            '<fk-grid-widget{component_attrs}></fk-grid-widget>', **context['widget']
+            self.component_template_str, **context['widget']
         )
         return result
 
