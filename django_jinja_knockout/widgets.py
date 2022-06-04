@@ -250,7 +250,6 @@ class BaseGridWidget(UiBaseGridWidget, RequestWidget):
 
     allow_multiple_selected = None
     required = None
-    template_id = 'ko_fk_grid_widget'
     template_options = None
 
     def __init__(self, attrs=None, grid_options=None, widget_view_kwargs=None):
