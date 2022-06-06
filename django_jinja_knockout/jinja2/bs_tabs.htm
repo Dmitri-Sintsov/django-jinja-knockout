@@ -28,7 +28,7 @@
 {% do tpl.prepend_css_classes_to_dict(_component_attrs, 'component') -%}
 
 
-<tab-list {{ tpl.json_flatatt(_component_attrs) }}>
+<tab-list{{ tpl.json_flatatt(_component_attrs) }}>
     <ul {{ tpl.json_flatatt(_tabs_attrs) }}>
     {% for tab in tabs -%}
         {% set li_atts = {
