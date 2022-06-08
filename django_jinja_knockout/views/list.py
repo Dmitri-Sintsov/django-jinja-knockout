@@ -11,6 +11,8 @@ from django.views.generic.base import ContextMixin
 from django.views.generic import ListView
 from django.template.response import TemplateResponse
 
+from djk_ui.views.list import UiListSortingView
+
 from ..utils.sdv import nested_update
 from .. import middleware
 from .. import tpl
@@ -76,28 +78,10 @@ class FoldingPaginationMixin(ContextMixin):
 # Traditional server-side (non-AJAX) generated filtered / sorted ListView.
 # todo: Implement more filters ('range', 'fk').
 # todo: Support self.current_list_filter.args Q() __or__.
-class ListSortingView(FoldingPaginationMixin, BaseFilterView, ListView):
+class ListSortingView(UiListSortingView, FoldingPaginationMixin, BaseFilterView, ListView):
 
     paginate_by = getattr(settings, 'OBJECTS_PER_PAGE', 10)
     template_name = 'cbv_list.htm'
-    highlight_mode = 'cycleRows'
-    highlight_mode_rules = {
-        'none': {
-            'cycler': [],
-        },
-        'cycleColumns': {
-            'direction': 0,
-            'cycler': ['success', 'info', 'warning'],
-        },
-        'cycleRows': {
-            'direction': 1,
-            'cycler': ['success', 'info', 'warning'],
-        },
-        'linearRows': {
-            'direction': 1,
-            'cycler': ['linear-white'],
-        }
-    }
     data_caption = True
 
     def __init__(self, **kwargs):
