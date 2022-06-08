@@ -139,11 +139,13 @@ server-side rendering generally is more robust.
 
 Version 2.1.0
 -------------
-* Built-in `custom elements`_, including es5 IE11 polyfills.
-* `Bootstrap 5`_ compatibility.
-* `ObjDict`_ Django model serializer with built-in field permissions check for AJAX `viewmodels`_, including
-  `datatables`_.
-* `get_absoulte_url`_ with optional user permission check / link title generation.
+Built-in `custom elements`_, including es5 IE11 polyfills.
+
+`Bootstrap 5`_ compatibility.
+
+`ObjDict`_ Django model serializer with built-in field permissions check for AJAX `viewmodels`_, including `datatables`_.
+
+`get_absoulte_url`_ with optional user permission check / link title generation.
 
 Version 2.0.0
 -------------
