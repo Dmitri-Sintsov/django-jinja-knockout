@@ -48,9 +48,9 @@ function Elements(options) {
         'classes',
         // callback
         'connected',
-        // callback
         // initially set DOM attributes in case the tag has no such attribute set already
         'defaultAttrs',
+        // callback
         'disconnected',
         // original DOM element name when the 'ancestor' is specified
         'extendsTagName',

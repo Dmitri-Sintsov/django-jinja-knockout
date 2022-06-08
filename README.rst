@@ -2,7 +2,7 @@
 django-jinja-knockout
 =====================
 
-.. _custom elements: https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
+.. _custom elements: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/elements.js
 .. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
 .. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
@@ -18,6 +18,7 @@ django-jinja-knockout
 .. _FilteredRawQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#filteredrawqueryset
 .. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#foreignkeygridwidget
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
+.. _get_absoulte_url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_absolute_url
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
@@ -30,6 +31,7 @@ django-jinja-knockout
 .. _ModelForm: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#modelform
 .. _MultipleKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#multiplekeygridwidget
 .. _Nested components: https://django-jinja-knockout.readthedocs.io/en/latest/clientside.html#clientside-nested-components
+.. _ObjDict: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=objdict
 .. _PageContext: https://django-jinja-knockout.readthedocs.io/en/latest/context_processors.html#pagecontext-page-context
 .. _pageRouteKwargsKeys: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=pageRouteKwargsKeys&type=code
 .. _pageRouteKwargsKeys example: https://github.com/Dmitri-Sintsov/djk-sample/search?q=pageRouteKwargsKeys&type=code
@@ -137,9 +139,11 @@ server-side rendering generally is more robust.
 
 Version 2.1.0
 -------------
-Built-in `custom elements`_, including es5 IE11 polyfills.
-
-`Bootstrap 5`_ compatibility.
+* Built-in `custom elements`_, including es5 IE11 polyfills.
+* `Bootstrap 5`_ compatibility.
+* `ObjDict`_ Django model serializer with built-in field permissions check for AJAX `viewmodels`_, including
+  `datatables`_.
+* `get_absoulte_url`_ with optional user permission check / link title generation.
 
 Version 2.0.0
 -------------
