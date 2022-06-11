@@ -138,10 +138,10 @@
         <form is="form-inline" data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
             <div is="form-group" data-bind="if: meta.hasSearch()">
                 <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
-                <button data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
+                <button type="button" data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
             </div>
             <!-- ko foreach: {data: actionTypes['button'], as: 'koAction'} -->
-                <button class="btn" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
+                <button type="button" class="btn" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
                     <span class="iconui" data-bind="css: actionCss('iconui')"></span>
                     <span data-bind="text: koAction.localName"></span>
                 </button>
