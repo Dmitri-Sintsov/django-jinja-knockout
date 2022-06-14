@@ -360,13 +360,15 @@ Extending context processor is useful when templates should receive additional c
 * See `djk_sample.TemplateContextProcessor`_ source code for the trivial example of extending `django-jinja-knockout`
   `TemplateContextProcessor`_.
 
+.. _installation_djk_page_context_cls:
+
 DJK_PAGE_CONTEXT_CLS
 ~~~~~~~~~~~~~~~~~~~~
 `DJK_PAGE_CONTEXT_CLS`_ setting allows to override default `PageContext`_ class::
 
     DJK_PAGE_CONTEXT_CLS = 'djk_sample.context_processors.PageContext'
 
-That makes possible to add custom client data to `page_context`_ instance::
+That makes possible to add custom client configuration to `page_context`_ instance::
 
     from django.conf import settings
     from django_jinja_knockout.context_processors import PageContext as BasePageContext
@@ -376,6 +378,8 @@ That makes possible to add custom client data to `page_context`_ instance::
         def get_client_conf(self):
             client_conf = super().get_client_conf()
             client_conf.update({
+                # v2.1.0 - enable built-in custom tags (by default is off)
+                'compatTransformTags': True,
                 'email_host': settings.EMAIL_HOST,
                 'userName': '' if self.request.user.id == 0 else self.request.user.username,
             })
@@ -385,10 +389,30 @@ That makes possible to add custom client data to `page_context`_ instance::
 
 which will be available in Javascript as::
 
+    import { AppConf } from '../../djk/js/conf.js';
+
+    // used by djk_ui ui.js
+    AppConf('compatTransformTags')
+    AppConf('email_host')
+    AppConf('userName')
+
+.. highlight:: python
+
+Note that client conf is added globally, while the client data are added per view::
+
+    from django_jinja_knockout.views import create_page_context
+
+    def my_view(request, **kwargs):
+        page_context = create_page_context(request=request)
+        page_context.update_client_data({'isVerifiedUser': True})
+
+.. highlight:: Javascript
+
+to be queried later in Javascript::
+
     import { AppClientData } from '../../djk/js/conf.js';
 
-    AppClientData('email_host')
-    AppClientData('userName')
+    AppClientData('isVerifiedUser')
 
 Middleware
 ----------

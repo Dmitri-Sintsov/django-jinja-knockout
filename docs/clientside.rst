@@ -22,8 +22,8 @@ Client-side support
 .. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
 .. _gridActionIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=gridActionIoc&type=&utf8=%E2%9C%93
 .. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalIoc&type=&utf8=%E2%9C%93
-.. _initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClient+%3D+function
-.. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks+%3D+function
+.. _initClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClient
+.. _initClientHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=initClientHooks
 .. _Tpl.loadTemplates: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.loadTemplates&type=code
 .. _localize: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=localize&type=code
 .. _OrderedHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=OrderedHooks
@@ -387,9 +387,11 @@ components. For example datatables / grid templates do not use separate wrapper 
 
 Custom tags
 ~~~~~~~~~~~
+* Since v2.1.0 built-in custom tags are deprecated, disabled by default and may be removed in the future.
+
 The built-in template processor supports custom tags via `TransformTags`_ Javascript class ``applyTags()`` method.
-By default there are the ``CARD-*`` tags registered, which are transformed to Bootstrap 4 cards or to Bootstrap 3 panels
-depending on the :doc:`djk_ui` version.
+By default there are the ``CARD-*`` tags registered, which are transformed to Bootstrap 4 / 5 cards or to Bootstrap 3
+panels, depending on the :doc:`djk_ui` version.
 
 Custom tags are also applied via `initClient`_ to the loaded DOM page and to dynamically loaded AJAX DOM fragments.
 However because the custom tags are not browser-native, such usage of custom tags is not recommended as extra flicker
@@ -398,6 +400,10 @@ before they are attached to the page DOM.
 
 It's possible to add new custom tags via supplying the capitalized ``tagName`` argument and function processing argument
 ``fn`` to `TransformTags`_ class ``add()`` method.
+
+To enable built-in custom tags, set ``AppConf('compatTransformTags')`` value to ``True`` via custom page context.
+
+See :ref:`installation_djk_page_context_cls` for more detailed explanation how to set custom client conf values.
 
 .. _clientside_components:
 

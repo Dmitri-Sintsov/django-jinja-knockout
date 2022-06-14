@@ -8,7 +8,7 @@ function getJsonScript(cls) {
 var appConf = getJsonScript('app-conf');
 var appClientData = getJsonScript('app-client-data');
 
-function AppConf(propChain, defVal ) {
+function AppConf(propChain, defVal) {
     return propGet(appConf, propChain, defVal);
 }
 
