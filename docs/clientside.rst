@@ -15,10 +15,12 @@ Client-side support
 .. _Components: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Components
 .. _ComponentManager: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ComponentManager
 .. _documentReadyHooks: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=documentreadyhooks
+.. _document.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/document.js
 .. _Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Tpl.domTemplate&type=code
 .. _DENO_ROLLUP_ENTRY_POINTS: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=DENO_ROLLUP_ENTRY_POINTS
 .. _Dialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Dialog&utf8=%E2%9C%93
 .. _dialogIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=dialogIoc&type=&utf8=%E2%9C%93
+.. _Elements.builtInProperties: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=Elements.builtInProperties
 .. _GridDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
 .. _gridActionIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=gridActionIoc&type=&utf8=%E2%9C%93
 .. _globalIoc: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=globalIoc&type=&utf8=%E2%9C%93
@@ -387,7 +389,7 @@ components. For example datatables / grid templates do not use separate wrapper 
 
 Custom tags
 ~~~~~~~~~~~
-* Since v2.1.0 built-in custom tags are deprecated, disabled by default and may be removed in the future.
+* Since v2.1.0 built-in custom tags are replaced by `Custom elements`_, disabled by default and may be removed in the future.
 
 The built-in template processor supports custom tags via `TransformTags`_ Javascript class ``applyTags()`` method.
 By default there are the ``CARD-*`` tags registered, which are transformed to Bootstrap 4 / 5 cards or to Bootstrap 3
@@ -404,6 +406,51 @@ It's possible to add new custom tags via supplying the capitalized ``tagName`` a
 To enable built-in custom tags, set ``AppConf('compatTransformTags')`` value to ``True`` via custom page context.
 
 See :ref:`installation_djk_page_context_cls` for more detailed explanation how to set custom client conf values.
+
+Custom elements
+---------------
+Since v2.1.0, built-in Elements class allows to create custom elements in es5 syntax::
+
+    import { elements } from './elements.js';
+
+    elements.newCustomElements(
+        {
+            ancestor: HTMLDivElement,
+            name: 'form-group',
+            extendsTagName: 'div',
+            classes: ['form-group'],
+        },
+        {
+            ancestor: HTMLLabelElement,
+            name: 'form-label',
+            extendsTagName: 'label',
+            classes: ['control-label'],
+        }
+    )
+
+See `Elements.builtInProperties`_ list for the description of awailable elements options.
+
+Custom elements also can be used to simplify creation of `Components`_. For example in `document.js`_::
+
+    import { elements } from './elements.js';
+
+    elements.newCustomElements(
+        {
+            name: 'list-range-filter',
+            defaultAttrs: {
+                'data-component-class': 'ListRangeFilter',
+            }
+        },
+        {
+            name: 'ko-grid',
+            defaultAttrs: {
+                'data-component-class': 'Grid',
+                'data-template-id': 'ko_grid_body',
+            }
+        },
+    );
+
+Note that ``<list-range-filter>`` component does not use the default template, while ``<ko-grid>`` component does use it.
 
 .. _clientside_components:
 
@@ -773,7 +820,7 @@ To make these bindings available, one has to import and to execute ``useKo`` fun
 
     useKo(ko);
 
-which is performed already in ``document.js``.
+which is performed already in `document.js`_.
 
 tooltips.js
 -----------
