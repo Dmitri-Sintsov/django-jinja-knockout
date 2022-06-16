@@ -12,12 +12,12 @@ else:
 
 # Model field low-level serialization.
 #
-# Stores the instance of models.Model as self.obj and it's .get_str_fields() as OrderedDict items.
+# Stores the instance of models.Model as self.obj, and it's .get_str_fields() as OrderedDict items.
 #
 # To override this class, initialize models.Model Meta.obj_dict_cls to ObjDict child class name
 # then use ObjDict.from_obj(obj)
 #
-# request_user attribute may be used to set the visibility of fields per user in overriden .get_str_fields() method.
+# request_user attribute may be used to set the visibility of fields per user in overridden .get_str_fields() method.
 class ObjDict(OrderedDict):
 
     def __init__(self, obj, request_user=None, *args, **kwargs):

@@ -73,6 +73,8 @@ Datatables
 .. _event_app.views_ajax: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/event_app/views_ajax.py
 .. _forms.FormWithInlineFormsets: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms.py
 .. _.get_actions(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_actions&type=&utf8=%E2%9C%93
+.. _ObjDict: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=objdict
+.. _ObjDict.from_obj: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=from_obj
 .. _.vm_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=vm_form&type=&utf8=%E2%9C%93
 .. _views: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/
 .. _views.GridActionsMixin: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/views/ajax.py
@@ -888,9 +890,84 @@ Nested list values are escaped by default in ``GridRow.htmlEncode()``, thus are 
 ``GridColumnOrder.renderRowValue()``. This allows to have both escaped and unescaped nested lists in row cells with
 `Grid`_ `mark_safe_fields`_ attribute list that allows to disable HTML escaping for the selected grid fields.
 
+Since v2.1.0 it's preferable to implement custom serialization via `ObjDict`_ class ``get_str_fields()`` method.
+The instantiation of serializer is performed via `ObjDict.from_obj`_ static method.
+
+See `ObjDict serialization`_ just below.
+
 .. highlight:: python
 
-`Model.get_str_fields()`_ is also used to serialize model instances by `NestedSerializer`_, when available.
+ObjDict serialization
+~~~~~~~~~~~~~~~~~~~~~
+
+Since v2.1.0, all low-level serialization is performed either via default `ObjDict`_ or derived class. It incorporates
+both serialized Django Model instance fields as dict key / value pairs and `self.obj` attribute as the instance itself.
+To perform custom serialization and / or to implement field permissions filters, one has to inherit from `ObjDict`_ class
+then specify the child class name as the ``models.Model`` ``Meta.obj_dict_cls`` attribute value::
+
+    from django_jinja_knockout.obj_dict import ObjDict
+
+    class ActionObjDict(ObjDict):
+
+        def can_view_field(self, field_name=None):
+            return self.request_user is None or self.request_user == self.obj.performer or self.request_user.is_superuser
+
+        def get_str_fields(self):
+            return OrderedDict([
+                ('performer', self.obj.performer.username),
+                ('date', format_local_date(self.obj.date) if self.can_view_field() else site.empty_value_display),
+                ('action_type', self.obj.get_action_type_display()),
+                ('content_type', str(self.obj.content_type)),
+                (
+                    'content_object',
+                    site.empty_value_display
+                    if self.obj.content_object is None
+                    else ObjDict(obj=self.obj.content_object, request_user=self.request_user).get_description()
+                )
+            ])
+
+
+    class Action(models.Model):
+
+        TYPE_CREATED = 0
+        TYPE_MODIFIED = 1
+        TYPES = (
+            (TYPE_CREATED, 'Created'),
+            (TYPE_MODIFIED, 'Modified'),
+        )
+
+        performer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+', verbose_name='Performer')
+        date = models.DateTimeField(verbose_name='Date', db_index=True)
+        action_type = models.IntegerField(choices=TYPES, verbose_name='Type of action')
+        content_type = models.ForeignKey(
+            ContentType, blank=True, null=True, on_delete=models.CASCADE,
+            related_name='related_content', verbose_name='Related object'
+        )
+        object_id = models.PositiveIntegerField(blank=True, null=True, verbose_name='Object link')
+        content_object = GenericForeignKey('content_type', 'object_id')
+
+        class Meta:
+            verbose_name = 'Action'
+            verbose_name_plural = 'Actions'
+            ordering = ('-date',)
+            obj_dict_cls = ActionObjDict
+
+        def get_str_fields(self):
+            return ObjDict.from_obj(obj=self).get_str_fields()
+
+        def __str__(self):
+            str_fields = self.get_str_fields()
+            return str_dict(str_fields)
+
+Note that ``Action.get_str_fields()`` method will automatically instantiate specified ``Meta.obj_dict_cls`` =
+``ActionObjDict`` class, then will call ``ActionObjDict`` instance ``.get_str_fields()`` method.
+
+
+See ``djk-sample`` `event_app.models`_ for the complete example of custom `ObjDict`_ serialization class with
+user permission check.
+
+`ObjDict`_ class ``request_user`` constructor optional argument may be set to filter the visibility of fields per user
+in the overridden ``ObjDict.get_str_fields()`` method, where ``request_user`` is available (not models but views / forms).
 
 Client-side class overriding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
