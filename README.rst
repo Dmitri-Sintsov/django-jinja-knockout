@@ -47,8 +47,9 @@ django-jinja-knockout
    :alt: PyPI package
    :target: https://badge.fury.io/py/django-jinja-knockout
 
-.. image:: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout.svg?style=shield
-    :target: https://circleci.com/gh/Dmitri-Sintsov/django-jinja-knockout
+.. image:: https://readthedocs.org/projects/django-jinja-knockout/badge/?version=latest
+    :alt: Documentation Status
+    :target: https://django-jinja-knockout.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://icons.iconarchive.com/icons/dtafalonso/android-lollipop/24/Youtube-icon.png
     :alt: Watch selenium tests recorded videos.
@@ -57,10 +58,6 @@ django-jinja-knockout
 .. image:: https://badges.gitter.im/django-jinja-knockout/Lobby.svg
    :alt: Join the chat at https://gitter.im/django-jinja-knockout/Lobby
    :target: https://gitter.im/django-jinja-knockout/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
-.. image:: https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif
-   :alt: Donate to support further development
-   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=EWVQRCWPUE652&source=url
 
 Screenshot of the `sample project`_:
 
