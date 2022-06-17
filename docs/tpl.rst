@@ -1,4 +1,5 @@
 .. _.addClass(): https://api.jquery.com/addclass/
+.. _ContentTypeLinker: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ContentTypeLinker
 .. _flatatt(): https://github.com/django/django/search?l=Python&q=flatatt
 .. _format_html(): https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.html.format_html
 .. _format_html_attrs(): https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=format_html_attrs
@@ -6,6 +7,7 @@
 .. _get_absolute_url() documentation: https://docs.djangoproject.com/en/dev/ref/models/instances/#get-absolute-url
 .. _.hasClass(): https://api.jquery.com/hasclass/
 .. _json_flatatt(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=json_flatatt
+.. _ModelLinker: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelLinker
 .. _namespaced urls: https://docs.djangoproject.com/en/dev/topics/http/urls/#url-namespaces-and-included-urlconfs
 .. _PrintList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=PrintList
 .. _readonly_fields: https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.readonly_fields
@@ -42,13 +44,13 @@ Contenttypes framework helpers
 
 .. highlight:: jinja
 
-* ``ContentTypeLinker`` - class to simplify generation of contenttypes framework object links::
+* `ContentTypeLinker`_ - class to simplify generation of contenttypes framework object links::
 
-    {% set ctl = tpl.ContentTypeLinker(object, 'content_type', 'object_id') %}
+    {% set ctl = tpl.ContentTypeLinker(request.user, object, 'content_type', 'object_id') %}
     {% if ctl.url is not none %}
         <a href="{{ ctl.url }}" title="{{ str(ctl.obj_type) }}" target="_blank">
     {% endif %}
-        {{ ctl.description }}
+        {{ ctl.desc }}
     {% if ctl.url is not none %}
         </a>
     {% endif %}
@@ -73,7 +75,7 @@ Objects rendering
 
 .. highlight:: python
 
-* ``Str`` - string with may have extra attributes. It's used with ``get_absolute_url()`` model method. See
+* ``Str`` - string with may have extra attributes. It's used with ``get_absolute_url()`` Django model method. See
   `get_absolute_url() documentation`_ and `get_absolute_url() sample`_::
 
     class Manufacturer(models.Model):
@@ -87,8 +89,26 @@ Objects rendering
             url.text = str(self.title)
             return url
 
-* ``ModelLinker`` - render Model links with descriptions which supports ``get_absolute_url()`` and
-  :ref:`get_str_fields()`.
+* `ModelLinker`_ - render Model links with descriptions which supports ``get_absolute_url()`` and
+  :ref:`get_str_fields()`. Since v2.1.0, optional ``request_user`` argument can be defined for custom
+  ``get_absolute_url()`` Django model method which then may be used to hide part of ``url.text`` per user permissions.
+  In such case `ModelLinker`_ / `ContentTypeLinker`_ instance should be initialized with ``request_user`` value, when
+  available::
+
+    from django_jinja_knockout import tpl
+
+    obj = Model.objects.get(pk=1)
+    ctl = tpl.ContentTypeLinker(request.user, obj.content, 'content_type', 'object_id')
+    content_type_str = ctl.get_str_obj_type()
+    # nested serialization of generic relation optional check of request.user permissions
+    # see serializers.py
+    content_tree = ctl.get_nested_data()
+    # render nested serialization to str
+    content_tree_str = tpl.print_list(content_tree)
+    # get url / description text of content_object, when available
+    content_url = obj.content.content_object.get_absolute_url(request_user)
+    content_desc = ctl.desc if content_url is none else content_url.text
+
 * `PrintList`_ class supports custom formatting of nested Python structures, including the mix of dicts and lists.
   There are some already setup function helpers which convert nested content to various (HTML) string representations,
   using `PrintList`_ class instances:
