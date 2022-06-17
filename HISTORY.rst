@@ -357,3 +357,10 @@ Alternative breadcrumbs layout of field filters widgets.
 * Optional lazy registration of client-side components.
 * Improved related grid view kwargs auto-detection.
 * ``ListRangeFilter`` for ``ListSortingView`` range fields.
+
+2.1.0
+-----
+* Built-in ``custom elements`` in es5 with IE11 polyfills.
+* ``Bootstrap 5`` compatibility.
+* ``ObjDict`` Django model serializer with built-in field permissions check.
+* ``get_absolute_url`` with optional user permission check.
