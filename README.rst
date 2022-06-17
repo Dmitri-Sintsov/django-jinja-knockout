@@ -18,7 +18,7 @@ django-jinja-knockout
 .. _FilteredRawQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#filteredrawqueryset
 .. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#foreignkeygridwidget
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
-.. _get_absoulte_url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_absolute_url
+.. _get_absolute_url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_absolute_url
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
@@ -142,7 +142,7 @@ Built-in `custom elements`_, including es5 IE11 polyfills.
 
 `ObjDict`_ Django model serializer with built-in field permissions check for AJAX `viewmodels`_, including `datatables`_.
 
-`get_absoulte_url`_ with optional user permission check / link title generation.
+`get_absolute_url`_ with optional user permission check / link title generation.
 
 Version 2.0.0
 -------------
