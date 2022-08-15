@@ -68,7 +68,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Supports Django 2.2 LTS, 3.2 LTS, 4.0; Python 3.8 / 3.9 / 3.10.
+* Supports Django 2.2 LTS, 3.2 LTS, 4.1; Python 3.8 / 3.9 / 3.10.
 
 Please contribute to the localization of the project:
 
