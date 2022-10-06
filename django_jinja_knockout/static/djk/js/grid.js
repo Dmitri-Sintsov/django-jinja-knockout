@@ -1,7 +1,7 @@
 import { sprintf } from './lib/sprintf-esm.js';
 import { any, each, mapObject, isArray, find, filter, size, indexOf } from './lib/underscore-esm.js';
 
-import { isScalar, intVal, inherit } from './dash.js';
+import { isScalar, intVal, inherit, inheritProps } from './dash.js';
 import { propGet, propCall } from './prop.js';
 import { Subscriber } from './ko.js';
 import { Trans } from './translate.js';
@@ -263,7 +263,7 @@ function Grid(options) {
     Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui'];
 
     Grid.init = function(options) {
-        inherit(Subscriber.prototype, this);
+        inheritProps(Subscriber.prototype, this);
         var self = this;
         this.componentSelector = null;
         this.options = $.extend({

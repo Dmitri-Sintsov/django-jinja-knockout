@@ -27,6 +27,10 @@ function camelCaseToDash(value) {
     return value.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();
 }
 
+/**
+ * Use when ._super._call() / ._super._apply() is not required and / or
+ * when multiple inheritance is used, which is unsupported by SuperChain / inherit.
+ */
 function inheritProps(parent, child) {
     for (var prop in parent) {
         if (parent.hasOwnProperty(prop) && !(prop in child)) {
