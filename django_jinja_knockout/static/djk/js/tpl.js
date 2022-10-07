@@ -1,7 +1,7 @@
 import { sprintf } from './lib/sprintf-esm.js';
 import { template, each, sortBy } from './lib/underscore-esm.js';
 
-import { inheritProps } from './dash.js';
+import { mixProps } from './dash.js';
 import { propGet } from './prop.js';
 import { globalIoc } from './ioc.js';
 import { transformTags } from './ui.js';
@@ -80,7 +80,7 @@ function Tpl(options) {
                 classPath = 'Tpl';
             }
             child = globalIoc.factory('Tpl', options);
-            child.inheritProps(this);
+            child.mixProps(this);
         }
         return child;
     };
@@ -90,10 +90,10 @@ function Tpl(options) {
     };
 
     // Override for custom inheritance.
-    Tpl.inheritProps = function(parent) {
+    Tpl.mixProps = function(parent) {
         var child = this;
         each(this.parentProps, function(propName) {
-            inheritProps(parent[propName], child[propName]);
+            mixProps(parent[propName], child[propName]);
         });
     };
 

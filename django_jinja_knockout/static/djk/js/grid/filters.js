@@ -1,4 +1,4 @@
-import { inherit } from '../dash.js';
+import { mixProps, inherit } from '../dash.js';
 import { propGet } from '../prop.js';
 import { Subscriber } from '../ko.js';
 import { Trans } from '../translate.js';
@@ -413,7 +413,7 @@ function GridRangeFilter(options) {
     GridRangeFilter.templateName = 'ko_grid_filter_popup';
 
     GridRangeFilter.init = function(options) {
-        inherit(Subscriber.prototype, this);
+        mixProps(Subscriber.prototype, this);
         this.type = options.type;
         this._super._call('init', options);
         // Reset filter choice.

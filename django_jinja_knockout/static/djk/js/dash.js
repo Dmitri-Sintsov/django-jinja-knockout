@@ -31,9 +31,9 @@ function camelCaseToDash(value) {
  * Use when ._super._call() / ._super._apply() is not required and / or
  * when multiple inheritance is used, which is unsupported by SuperChain / inherit.
  */
-function inheritProps(parent, child) {
+function mixProps(parent, child) {
     for (var prop in parent) {
-        if (parent.hasOwnProperty(prop) && !(prop in child)) {
+        if (parent.hasOwnProperty(prop) && typeof child[prop] === 'undefined') {
             child[prop] = parent[prop];
         }
     }
@@ -236,6 +236,6 @@ function inherit(parentPrototype, childInstance) {
 }
 
 export {
-    isMapping, isScalar, intVal, capitalize, camelCaseToDash, inheritProps, ODict, odict, recursiveMap, moveOptions,
+    isMapping, isScalar, intVal, capitalize, camelCaseToDash, mixProps, ODict, odict, recursiveMap, moveOptions,
     inherit
 };
