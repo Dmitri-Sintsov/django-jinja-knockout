@@ -187,13 +187,11 @@ function GridDialog(options) {
             options
         );
         if (typeof gridOptions.classPath === 'string') {
-            var gridClass = componentIoc.factory(gridOptions.classPath);
-            return new gridClass(gridOptions);
+            return componentIoc.factory(gridOptions.classPath, gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'function') {
             return this.dialogOptions.iocGrid(gridOptions);
         } else if (typeof this.dialogOptions.iocGrid === 'string') {
-            var gridClass = componentIoc.factory(this.dialogOptions.iocGrid);
-            return new gridClass(gridOptions);
+            return componentIoc.factory(this.dialogOptions.iocGrid, gridOptions);
         } else {
             return new Grid(gridOptions);
         }
