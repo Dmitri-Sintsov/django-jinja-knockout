@@ -1,4 +1,4 @@
-import * as Ladda from './lib/ladda.js';
+import { create as laddaCreate } from './lib/ladda.js';
 
 function disableInput(input) {
     var $input = $(input);
@@ -66,7 +66,7 @@ function Ladder($selector) {
     var self = this;
     this.laddas = [];
     $selector.findSelf('button[type="submit"], button.submit, input[type="submit"]').each(function(k, v) {
-        var l = Ladda.create(v);
+        var l = laddaCreate(v);
         l.start();
         self.laddas.push(l);
     });

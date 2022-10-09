@@ -1,6 +1,6 @@
 import { sprintf } from './lib/sprintf-esm.js';
 import { each } from './lib/underscore-esm.js';
-import * as Ladda from './lib/ladda.js';
+import { create as laddaCreate } from './lib/ladda.js';
 
 import { propGet } from './prop.js';
 import { AppConf } from './conf.js';
@@ -173,7 +173,7 @@ function Actions(options) {
             this[method](queryArgs, ajaxCallback);
         } else {
             if (actionOptions.ajaxIndicator) {
-                this.ladda = Ladda.create(actionOptions.ajaxIndicator);
+                this.ladda = laddaCreate(actionOptions.ajaxIndicator);
                 this.ladda.start();
             }
             // Call server-side ActionsView handler by default, which should return viewmodel response.
