@@ -38,7 +38,9 @@ class PageContext:
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
-        if custom_scripts is not None:
+        if custom_scripts is None:
+            self.set_custom_scripts()
+        else:
             self.add_custom_scripts(custom_scripts)
         self.view_title_args = []
         self.view_title_kwargs = {}
