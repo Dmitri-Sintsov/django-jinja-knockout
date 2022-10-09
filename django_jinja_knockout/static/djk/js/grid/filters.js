@@ -511,4 +511,4 @@ function GridRangeFilter(options) {
 
 }(GridRangeFilter.prototype);
 
-export { GridFilterChoice, GridFilter, FkGridFilter, GridRangeFilter };
+export { GridFilterChoice, AbstractGridFilter, GridFilter, FkGridFilter, GridRangeFilter };
