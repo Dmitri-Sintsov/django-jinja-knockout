@@ -38,10 +38,6 @@ class PageContext:
         self.client_data = {} if client_data is None else client_data
         # urls injected to client-side Javascript.
         self.client_routes = set() if client_routes is None else client_routes
-        default_scripts = getattr(settings, 'DJK_DEFAULT_SCRIPTS', ['djk/js/app.js'])
-        # Ordered list of custom scripts urls injected to client-side Javascript.
-        # Keys are script names, values are the list of tag attributes.
-        self.set_custom_scripts(*default_scripts)
         if custom_scripts is not None:
             self.add_custom_scripts(custom_scripts)
         self.view_title_args = []
@@ -108,7 +104,14 @@ class PageContext:
             else:
                 self.custom_scripts[custom_script] = self.default_script_atts
 
-    def get_custom_scripts(self):
+    def get_custom_scripts(self, default_scripts=None):
+        if len(self.custom_scripts) == 0:
+            if default_scripts is None:
+                default_scripts = getattr(settings, 'DJK_DEFAULT_SCRIPTS', ['djk/js/app.js'])
+            if default_scripts is not None:
+                # Ordered list of custom scripts urls injected to client-side Javascript.
+                # Keys are script names, values are the list of tag attributes.
+                self.set_custom_scripts(*default_scripts)
         return self.custom_scripts.items()
 
     def has_session(self):
