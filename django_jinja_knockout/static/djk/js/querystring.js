@@ -1,9 +1,9 @@
 function QueryString(locationSearch) {
 
     if (typeof locationSearch === 'undefined') {
-        this.urlSearchParams = new UrlSearchParams(location.search);
+        this.urlSearchParams = new URLSearchParams(location.search);
     } else {
-        this.urlSearchParams = new UrlSearchParams(locationSearch);
+        this.urlSearchParams = new URLSearchParams(locationSearch);
     }
 
 } void function(QueryString) {
