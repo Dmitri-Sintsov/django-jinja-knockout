@@ -208,6 +208,11 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
 # GET request usually generates html template, POST - returns AJAX viewmodels.
 class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
 
+    # Add generic __init__() otherwise tpl.discover_grid_options() may break.
+    # See also: https://code.djangoproject.com/ticket/21111
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     @ensure_annotations
     def process_error_viewmodel(self, viewmodel: dict):
         viewmodel.setdefault('view', 'alert_error')
