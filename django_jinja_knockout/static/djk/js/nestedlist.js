@@ -1,6 +1,6 @@
 import { isArray, size } from './lib/underscore-esm.js';
 import { ODict } from './dash.js';
-import { propGet, propByPath } from './prop.js';
+import { propGet } from './prop.js';
 import { globalIoc } from './ioc.js';
 import { blockTags } from './ui.js';
 
@@ -25,7 +25,7 @@ function NestedList(options) {
         } else if (isArray(options.blockTags)) {
             this.blockTags = options.blockTags;
         } else if (typeof options.blockTags === 'string') {
-            this.blockTags = propByPath(options.blockTags);
+            this.blockTags = propGet(blockTags, options.blockTags);
         } else {
             console.log('Invalid type of options.blockTags: ' + typeof(options.blockTags));
         }
