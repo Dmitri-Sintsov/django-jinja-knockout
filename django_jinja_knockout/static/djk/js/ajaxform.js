@@ -1,3 +1,5 @@
+import { create as laddaCreate } from './lib/ladda.js';
+
 import { showAjaxError } from './errors.js';
 import { Trans } from './translate.js';
 import { disableInput, enableInput, disableInputs, enableInputs, clearInputs, Ladder } from './inputs.js';
@@ -20,7 +22,7 @@ function AjaxButton($selector) {
     AjaxButton.onClick = function(ev) {
         var $target = $(ev.target);
         disableInput($target);
-        var l = Ladda.create($target.get(0));
+        var l = laddaCreate($target.get(0));
         l.start();
         var url = DataUrl($target);
         if (url === undefined) {
