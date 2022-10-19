@@ -155,11 +155,38 @@ $.fn.autogrow = function(method) {
         $(ev.target).autogrow('update');
     }
 
+    function update(textarea) {
+        var $textarea = $(textarea);
+        if ($textarea.prop('tagName') !== 'TEXTAREA' ||
+                $textarea.data('autogrowInit') !== true) {
+            return;
+        }
+        if (typeof $textarea.data('autogrowMinRows') === 'undefined') {
+            // Default value for data-autogrow-min-rows.
+            $textarea.data('autogrowMinRows', $textarea.prop('rows'));
+        }
+        var minRows = $textarea.data('autogrowMinRows');
+        var maxRows = $textarea.data('maxRows');
+        if (typeof maxRows === 'undefined') {
+            maxRows = 10;
+        }
+        if (maxRows < minRows) {
+            maxRows = minRows;
+        }
+        var lines = $textarea.val().split('\n').length;
+        if (lines > maxRows) {
+            lines = maxRows;
+        } else if (lines < minRows) {
+            lines = minRows;
+        }
+        $textarea.css({'height': 'auto'}).prop('rows', lines);
+    }
+
     return {
         'init' : function() {
             this.findSelf('textarea.autogrow')
             .data('autogrowInit', true)
-            .autogrow('update')
+            .autogrow('initialUpdate')
             .on('click keyup input paste', updateAutogrow);
         },
         'destroy' : function() {
@@ -167,38 +194,48 @@ $.fn.autogrow = function(method) {
             .removeData('autogrowInit')
             .off('click keyup input paste', updateAutogrow);
         },
+        'initialUpdate' : function() {
+            return this.each(function() {
+                // keep the original css height / textarea.rows values when it's empty.
+                if ($(this).val().trim() !== '') {
+                    update(this);
+                }
+            })
+        },
         'update' : function() {
             return this.each(function() {
-                var $textarea = $(this);
-                if ($textarea.prop('tagName') !== 'TEXTAREA' ||
-                        $textarea.data('autogrowInit') !== true) {
-                    return;
-                }
-                if (typeof $textarea.data('autogrowMinRows') === 'undefined') {
-                    // Default value for data-autogrow-min-rows.
-                    $textarea.data('autogrowMinRows', $textarea.prop('rows'));
-                }
-                var minRows = $textarea.data('autogrowMinRows');
-                var maxRows = $textarea.data('maxRows');
-                if (typeof maxRows === 'undefined') {
-                    maxRows = 10;
-                }
-                if (maxRows < minRows) {
-                    maxRows = minRows;
-                }
-                var lines = $textarea.val().split('\n').length;
-                if (lines > maxRows) {
-                    lines = maxRows;
-                } else if (lines < minRows) {
-                    lines = minRows;
-                }
-                $textarea.prop('rows', lines);
-            });
+                update(this);
+            })
         }
     }[method].call(this);
 };
 
 $.fn.optionalInput = function(method) {
+
+    function update(checkbox) {
+        var $checkbox = $(checkbox);
+        if ($checkbox.data('optionalInputInit') !== true) {
+            return;
+        }
+        var $optInp = $checkbox.next();
+        if (!$optInp.is(':input')) {
+            throw "optInp is not :input";
+        }
+        $optInp.prop('disabled', !checkbox.checked);
+        if (checkbox.checked) {
+            var originalValue = $optInp.data('optionalInputOriginalValue');
+            if (typeof originalValue !== 'undefined') {
+                $optInp
+                .focus()
+                .val(originalValue);
+            }
+        } else {
+            $optInp
+            .data('optionalInputOriginalValue', $optInp.val())
+            .val('');
+        }
+        return $optInp;
+    }
 
     function updateInput(ev) {
         $(ev.target).optionalInput('update');
@@ -210,7 +247,7 @@ $.fn.optionalInput = function(method) {
             // Next line is required because Django 1.8 MultiWidget does not allow to set css classes of child widgets separately.
             .prop('class', 'optional-input')
             .data('optionalInputInit', true)
-            .optionalInput('update')
+            .optionalInput('initialUpdate')
             .on('change', updateInput);
         },
         'destroy' : function() {
@@ -222,26 +259,17 @@ $.fn.optionalInput = function(method) {
         },
         'update' : function() {
             return this.each(function() {
-                var $checkbox = $(this);
-                if ($checkbox.data('optionalInputInit') !== true) {
-                    return;
+                var $optInp = update(this);
+                if ($optInp.hasClass('autogrow')) {
+                    $optInp.autogrow('update');
                 }
-                var $optInp = $checkbox.next();
-                if (!$optInp.is(':input')) {
-                    throw "optInp is not :input";
-                }
-                $optInp.prop('disabled', !this.checked);
-                if (this.checked) {
-                    var originalValue = $optInp.data('optionalInputOriginalValue');
-                    if (typeof originalValue !== 'undefined') {
-                        $optInp
-                        .focus()
-                        .val(originalValue).autogrow('update');
-                    }
-                } else {
-                    $optInp
-                    .data('optionalInputOriginalValue', $optInp.val())
-                    .val('').autogrow('update');
+            });
+        },
+        'initialUpdate' : function() {
+            return this.each(function() {
+                var $optInp = update(this);
+                if ($optInp.hasClass('autogrow')) {
+                    $optInp.autogrow('initialUpdate');
                 }
             });
         }
