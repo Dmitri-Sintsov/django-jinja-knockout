@@ -21,6 +21,4 @@
 {# for field in form.hidden_fields() -%}
     {{ field|safe }}
 {% endfor -#}
-{% for field in form.visible_fields() -%}
-    {{ field.djk_renderer() }}
-{% endfor -%}
+{{ form._renderer['fields']() }}
