@@ -1,0 +1,4 @@
+{% for field in form.visible_fields() -%}
+    {{ field.djk_renderer() }}
+{% endfor -%}
+

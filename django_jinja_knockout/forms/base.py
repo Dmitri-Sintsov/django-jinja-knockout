@@ -20,6 +20,7 @@ from . import renderers
 class RendererModelForm(forms.ModelForm):
 
     # None value means that the default template from renderer class will be used.
+    fields_template = None
     body_template = None
     standalone_template = None
     related_template = None
@@ -46,6 +47,7 @@ class RendererModelForm(forms.ModelForm):
 class BootstrapModelForm(RendererModelForm):
 
     class Meta(RendererModelForm.Meta):
+        render_fields_cls = renderers.FormFieldsRenderer
         render_body_cls = renderers.FormBodyRenderer
         render_inline_cls = renderers.InlineFormRenderer
         render_related_cls = renderers.RelatedFormRenderer

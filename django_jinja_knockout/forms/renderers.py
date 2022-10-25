@@ -152,12 +152,12 @@ class FieldRenderer(tpl.Renderer):
         self.context['classes'] = _classes
 
 
-# The instance is stored into form._renderer['body']
-class FormBodyRenderer(RelativeRenderer):
+# The instance is stored into form._renderer['fields']
+class FormFieldsRenderer(RelativeRenderer):
 
     obj_kwarg = 'form'
-    obj_template_attr = 'body_template'
-    template = 'form_body.htm'
+    obj_template_attr = 'fields_template'
+    template = 'form_fields.htm'
     field_renderer_cls = FieldRenderer
 
     def ioc_render_field(self, field):
@@ -168,7 +168,8 @@ class FormBodyRenderer(RelativeRenderer):
     def ioc_fields(self):
         field_classes = self.context.get('layout_classes', self.get_layout_classes())
         for field in self.obj.visible_fields():
-            field.djk_renderer = self.ioc_render_field(field)
+            if not hasattr(field, 'djk_renderer'):
+                field.djk_renderer = self.ioc_render_field(field)
             field.djk_renderer.set_classes(field_classes)
 
     def render_raw(self):
@@ -183,6 +184,37 @@ class FormBodyRenderer(RelativeRenderer):
     def __str__(self):
         self.ioc_fields()
         return super().__str__()
+
+
+class FormBodyRenderer(RelativeRenderer):
+    obj_kwarg = 'form'
+    obj_template_attr = 'body_template'
+    template = 'form_body.htm'
+    form_fields_renderer_cls = FormFieldsRenderer
+
+    def ioc_render_form_fields(self, opts):
+        return ioc_form_renderer(
+            self.request, 'fields', {
+                'caller': self.context.get('caller'),
+                'opts': opts,
+                'form': self.obj,
+            },
+            default_cls=self.form_fields_renderer_cls
+        )
+
+    def render_raw(self):
+        context = self.get_template_context()
+        return context[self.obj_kwarg]._renderer['fields']()
+
+    def get_template_context(self):
+        context = super().get_template_context()
+        if 'opts' not in self.context:
+            self.context['opts'] = {}
+        if 'layout_classes' not in self.context['opts']:
+            self.context['opts']['layout_classes'] = self.context['opts'].get('layout_classes', self.get_layout_classes())
+        fields_renderer = self.ioc_render_form_fields(self.context['opts'])
+        fields_renderer.ioc_fields()
+        return context
 
 
 # The instance is stored into form._renderer['related'].
