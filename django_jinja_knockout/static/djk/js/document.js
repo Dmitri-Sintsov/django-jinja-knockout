@@ -1,6 +1,14 @@
+import moment from './lib/moment.js';
+import './lib/jquery.form.min.js'
 import { sprintf } from './lib/sprintf-esm.js';
 import Cookies from './lib/js.cookie.js';
 
+/**
+ * Note: datetime.js is not the part of django-jinja-knockout. It should be created in project static directory,
+ * so the moment locales can be customized.
+ * See djk-sample datetime.js for example.
+ */
+import './datetime.js';
 import { inherit } from './dash.js';
 import { AppClientData } from './conf.js';
 import { localize } from './translate.js';
@@ -21,6 +29,9 @@ import { AjaxButton, AjaxForms } from './ajaxform.js';
 
 // Requires plugins.js to be loaded before.
 
+// bootstrap-datetimepicker compatibility.
+window.moment = moment;
+
 if (typeof console !== 'object') {
     console = {
         log: function() {}
@@ -30,7 +41,6 @@ if (typeof console !== 'object') {
 if (typeof console.dir !== 'function') {
     console.dir = function(s) { console.log(s) };
 }
-
 
 elements.newCustomElements(
     {
