@@ -1,7 +1,7 @@
 import moment from './lib/moment.js';
-import './lib/jquery.form.min.js'
 import { sprintf } from './lib/sprintf-esm.js';
 import Cookies from './lib/js.cookie.js';
+import './lib/jquery.form.min.js'
 
 /**
  * Note: datetime.js is not the part of django-jinja-knockout. It should be created in project static directory,
@@ -9,6 +9,8 @@ import Cookies from './lib/js.cookie.js';
  * See djk-sample datetime.js for example.
  */
 import './datetime.js';
+import './lib/bootstrap-datetimepicker.min.js';
+
 import { inherit } from './dash.js';
 import { AppClientData } from './conf.js';
 import { localize } from './translate.js';
