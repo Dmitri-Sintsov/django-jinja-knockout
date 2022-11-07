@@ -204,6 +204,15 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
             result = maxval
         return result
 
+    def request_get_json(self, key, default=None):
+        try:
+            result = self.request_get(key, default)
+            if isinstance(result, str):
+                result = json.loads(result)
+            return result
+        except ValueError:
+            return default
+
 
 # GET request usually generates html template, POST - returns AJAX viewmodels.
 class ViewmodelView(TemplateResponseMixin, ContextMixin, View):

@@ -76,7 +76,7 @@ function KoGridAction(options) {
         if (gridRow.observeEnabledAction(this)()) {
             this.grid.lastClickedKoRow = gridRow;
             // Clicked row pk value ('pkVal').
-            actionOptions = $.extend(true, actionOptions, gridRow.getActionOptions());
+            actionOptions = $.extend(true, actionOptions, gridRow.getActionOptions(this));
             this.doAction(actionOptions);
         }
     };

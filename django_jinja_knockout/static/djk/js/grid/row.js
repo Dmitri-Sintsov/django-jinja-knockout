@@ -236,7 +236,7 @@ function GridRow(options) {
         return typeof this.values[field] === 'undefined' ? undefined : this.values[field];
     };
 
-    GridRow.getActionOptions = function() {
+    GridRow.getActionOptions = function(koGridAction) {
         return {
             queryArgs: {
                 'pk_val': this.getPkVal()
