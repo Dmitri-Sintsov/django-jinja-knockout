@@ -492,6 +492,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             }
         )
 
+    def save_form(self, form):
+        return form.save()
+
     # Supports both 'create_form' and 'edit_form' actions.
     def action_save_form(self):
         self.instance = old_obj = self.get_object_for_action()
@@ -504,7 +507,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         form = form_class(self.request.POST, self.request.FILES, instance=self.instance, **self.get_form_kwargs(form_class))
         if form.is_valid():
             if form.has_changed():
-                self.instance = form.save()
+                self.instance = self.save_form(form)
                 self.event('save_form_success', old_obj=old_obj, form=form)
                 vms = self.vm_save_form(old_obj, self.instance, form=form)
             else:
