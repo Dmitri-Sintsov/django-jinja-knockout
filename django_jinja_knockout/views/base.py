@@ -107,25 +107,14 @@ def prepare_bs_navs(navs, request):
     if not has_active:
         # Select active nav tab according to request.path, if any.
         for nav in navs:
-            nav['is_active'] = 0
+            is_active = False
             if callable(nav.get('is_active')):
                 is_active = nav['is_active'](request, nav)
             else:
-                if nav['url'] == request.path:
-                    nav['is_active'] = 1
-                elif '?' in nav['url'] and nav['url'].split('?', 1)[0] == request.path:
-                    nav['is_active'] = 2
-        has_active = False
-        for nav in navs:
-            if nav['is_active'] == 1:
+                is_active = nav['url'] == request.path
+            if is_active:
                 nav['atts']['class'] += ' active'
-                nav['atts']['class'].strip()
-                has_active = True
-        if not has_active:
-            for nav in navs:
-                if nav['is_active'] == 2:
-                    nav['atts']['class'] += ' active'
-                    nav['atts']['class'].strip()
+            nav['atts']['class'].strip()
 
 
 # NavsList allows to pass extra props to templates, which enables further customization of menu,
