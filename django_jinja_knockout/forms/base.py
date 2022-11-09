@@ -165,7 +165,7 @@ def set_knockout_template(formset, request, opts: dict = None):
     formset.knockout_template = tpl.html_tostring(html)
     # @note: Uncomment next line to test knockout.js template for XSS.
     # alert() should execute only when new form is added into formset, not during the page load.
-    # formset.knockout_template += '<script language="javascript">alert(1);</script>'
+    # formset.knockout_template += '<script type="text/javascript">alert(1);</script>'
 
 
 def ko_inlineformset_factory(parent_model, model, form, **kwargs):
