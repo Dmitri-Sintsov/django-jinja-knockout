@@ -697,7 +697,7 @@ class GridActionsMixin(ModelFormActionsView):
         else:
             return self.related_models
 
-    def get_title_action_not_allowed(self):
+    def get_title_action_not_allowed(self, objects):
         return _('Action "%(action)s" is not allowed') % \
             {'action': self.get_action_local_name()}
 
@@ -729,7 +729,7 @@ class GridActionsMixin(ModelFormActionsView):
         else:
             viewmodel.update({
                 'has_errors': True,
-                'title': self.get_title_action_not_allowed()
+                'title': self.get_title_action_not_allowed(objects)
             })
         return vm_list(viewmodel)
 
@@ -745,7 +745,7 @@ class GridActionsMixin(ModelFormActionsView):
         else:
             return vm_list({
                 'has_errors': True,
-                'title': self.get_title_action_not_allowed(),
+                'title': self.get_title_action_not_allowed(objects),
                 'description': self.get_objects_descriptions(objects)
             })
 
