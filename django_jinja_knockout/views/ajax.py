@@ -492,6 +492,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             }
         )
 
+    def form_is_valid(self, form):
+        return form.is_valid()
+
     def save_form(self, form):
         return form.save()
 
@@ -505,7 +508,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
             old_obj = model_to_dict(old_obj, exclude=['id'])
             form_class = self.get_edit_form()
         form = form_class(self.request.POST, self.request.FILES, instance=self.instance, **self.get_form_kwargs(form_class))
-        if form.is_valid():
+        if self.form_is_valid(form):
             if form.has_changed():
                 self.instance = self.save_form(form)
                 self.event('save_form_success', old_obj=old_obj, form=form)
