@@ -27,6 +27,7 @@ function ModelFormActions(options) {
 
     ModelFormActions.callback_create_form = function(viewModel) {
         viewModel.owner = this.owner;
+        $.extend(viewModel, this.owner.dialogOptions);
         var dialog = new ModelFormDialog(viewModel);
         dialog.show();
     };
@@ -225,6 +226,7 @@ function EditForm(options) {
      */
     EditForm.init = function(options) {
         moveOptions(this, options, [
+            {'dialogOptions': {}},
             'route',
             {'routeKwargs': {}},
             {'pkUrlKwarg': null},
