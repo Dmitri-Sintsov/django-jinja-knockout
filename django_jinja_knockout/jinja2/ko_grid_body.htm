@@ -333,7 +333,7 @@
 {% endif -%}
 
 {% if 'ko_grid_rows_per_page_dialog' in _include_ids -%}
-<script id="ko_grid_rows_per_page_dialog" type="text/html">
+<script type="text/html" id="ko_grid_rows_per_page_dialog">
     <card-default>
         <card-header class="flex-space-between" data-bind="foreach: {data: meta.rowsPerPageValues, as: 'rangeValue'}">
             <div data-bind="text: rangeValue"></div>
@@ -349,7 +349,7 @@
 {% endif -%}
 
 {% if 'ko_fk_grid_widget' in _include_ids -%}
-<script id="ko_fk_grid_widget" type="text/html">
+<script type="text/html" id="ko_fk_grid_widget">
     <div data-top="true" data-bind="using: $root, as: 'widget'">
         <ul class="list-group vscroll" data-bind="if: inputRows().length > 0">
             <li class="list-group-item"
@@ -373,7 +373,7 @@
 {% endif -%}
 
 {% if 'ko_fk_grid_widget_row' in _include_ids -%}
-<script id="ko_fk_grid_widget_row" type="text/html">
+<script type="text/html" id="ko_fk_grid_widget_row">
     <div data-bind="css: inputRow.css, click: inputRow.onClick, replaceInto: inputRow.display()">
         <a class="close preserve-append" data-bind="visible: inputRow.canDelete, click: inputRow.remove"><button is="btn-dismiss"></button></a>
     </div>
@@ -381,7 +381,7 @@
 {% endif -%}
 
 {% if 'ko_fk_grid_widget_controls' in _include_ids -%}
-<script id="ko_fk_grid_widget_controls" type="text/html">
+<script type="text/html" id="ko_fk_grid_widget_controls">
     <button class="btn btn-info default-margin" data-bind="click: onFkButtonClick, clickBubble: false">{{ _('Change') }}</button>
 </script>
 {% endif -%}
