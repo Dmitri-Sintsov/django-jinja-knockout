@@ -2,9 +2,13 @@
 {% from 'bs_pagination.htm' import bs_pagination with context -%}
 
 <card-primary>
+    {% if caller and 'has_header' in caller.arguments -%}
+        {{ caller(has_header=True) }}
+    {% else -%}
     <card-header>
         <card-title>{{ view.get_heading() }}</card-title>
     </card-header>
+    {% endif -%}
     <card-body>
         {% if caller and 'has_filters' in caller.arguments -%}
             {{ caller(has_filters=True) }}
