@@ -259,6 +259,16 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
         self.process_error_vm_list(vms)
         raise http.ImmediateJsonResponse(vms)
 
+    def get_report_error(self, message, *args, **kwargs):
+        title = kwargs.pop('title') if 'title' in kwargs else _('Error')
+        raise http.ImmediateHttpResponse(
+            format_html(
+                '{title}: {message}', title=title, message=format_html(
+                    _(message), *args, **kwargs
+                )
+            )
+        )
+
     def post_report_error(self, message, *args, **kwargs):
         title = kwargs.pop('title') if 'title' in kwargs else _('Error')
         self.vm_error(
