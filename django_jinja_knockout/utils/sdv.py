@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from collections.abc import ValuesView, Mapping
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 import re
 import sys
 import os
@@ -25,13 +26,19 @@ def get_choice_str(choices, selected_choice):
 
 
 def str_to_numeric(val):
-    if isinstance(val, (int, float)):
+    if isinstance(val, (int, Decimal, float)):
         return val
     try:
         int_val = int(val)
         if str(int_val) == val:
             return int_val
     except ValueError:
+        pass
+    try:
+        decimal_val = Decimal(val)
+        if str(decimal_val) == val:
+            return decimal_val
+    except InvalidOperation:
         pass
     try:
         float_val = float(val)
