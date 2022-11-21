@@ -25,6 +25,8 @@ def get_choice_str(choices, selected_choice):
 
 
 def str_to_numeric(val):
+    if isinstance(val, (int, float)):
+        return val
     try:
         int_val = int(val)
         if str(int_val) == val:
