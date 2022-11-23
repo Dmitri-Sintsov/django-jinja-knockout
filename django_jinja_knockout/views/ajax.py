@@ -949,7 +949,10 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             # Autodiscover 'fkGridOptions'.
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
             self.set_template_options(template_options)
-            self.setup(request, **request.resolver_match.kwargs)
+            view_kwargs = deepcopy(request.resolver_match.kwargs)
+            if 'pageRouteKwargs' in template_options:
+                view_kwargs.update(template_options['pageRouteKwargs'])
+            self.setup(request, **view_kwargs)
             view_allowed_filter_fields = self.get_allowed_filter_fields()
             for filter_field, filter_def in view_allowed_filter_fields.items():
                 if isinstance(filter_def, dict) and 'pageRoute' in filter_def:
