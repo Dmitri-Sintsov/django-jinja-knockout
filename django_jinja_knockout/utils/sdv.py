@@ -121,16 +121,17 @@ def nested_values(d):
 
 
 # http://stackoverflow.com/a/32357112
-def nested_update(d, u):
-    for k, v in u.items():
-        if isinstance(d, Mapping):
-            if isinstance(v, Mapping):
-                d[k] = nested_update(d.get(k, {}), v)
+def nested_update(dest, *args):
+    for src in args:
+        for k, v in src.items():
+            if isinstance(dest, Mapping):
+                if isinstance(v, Mapping):
+                    dest[k] = nested_update(dest.get(k, {}), v)
+                else:
+                    dest[k] = src[k]
             else:
-                d[k] = u[k]
-        else:
-            d = {k: u[k]}
-    return d
+                dest = {k: src[k]}
+    return dest
 
 
 def dbg(name, value=None, basename='sdv_out.py3'):
