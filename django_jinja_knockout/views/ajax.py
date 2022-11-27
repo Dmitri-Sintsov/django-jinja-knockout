@@ -930,6 +930,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         return self.postprocess_qs(qs)
 
     def get_preloaded_meta_list(self):
+        self.request_set('page', 1)
         self.kwargs['firstLoad'] = '1'
         self.actions = self.get_actions()
         self.get_current_query()
