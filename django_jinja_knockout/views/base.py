@@ -187,18 +187,6 @@ class PageContextMixin(TemplateResponseMixin, ContextMixin, View):
             else:
                 return http.exception_response(request, e)
 
-    def request_set(self, key, v):
-        if key in self.request.POST:
-            _mutable = self.request.POST._mutable
-            self.request.POST._mutable = True
-            self.request.POST[key] = v
-            self.request.POST._mutable = _mutable
-        if key in self.request.GET:
-            _mutable = self.request.GET._mutable
-            self.request.GET._mutable = True
-            self.request.GET[key] = v
-            self.request.GET._mutable = _mutable
-
     def request_get(self, key, default=None):
         if key in self.request.POST:
             return self.request.POST.get(key)

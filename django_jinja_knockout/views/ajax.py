@@ -930,7 +930,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         return self.postprocess_qs(qs)
 
     def get_preloaded_meta_list(self):
-        self.request_set('page', 1)
+        self.preloading_meta_list = True
         self.kwargs['firstLoad'] = '1'
         self.actions = self.get_actions()
         self.get_current_query()
@@ -1005,6 +1005,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
+        self.preloading_meta_list = False
         if self.query_fields is None:
             self.query_fields = self.get_query_fields()
 
@@ -1056,7 +1057,7 @@ class KoGridView(BaseFilterView, GridActionsMixin):
         }
         objects_per_page = self.request_get_int('rows_per_page', default=self.objects_per_page, **kw)
         prev_objects_per_page = self.request_get_int('prev_rows_per_page', default=objects_per_page, **kw)
-        page_num = self.request_get('page', 1)
+        page_num = 1 if self.preloading_meta_list else self.request_get('page', 1)
         try:
             page_num = int(page_num)
         except ValueError:
