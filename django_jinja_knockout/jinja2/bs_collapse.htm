@@ -1,6 +1,10 @@
 {# http://anvoz.github.io/bootstrap-tldr/ #}
-{% macro bs_collapse(accordion_id, collapsed='out', card_type='default') -%}
-<div class="panel-group" id="{{ accordion_id }}">
+{% macro bs_collapse(accordion_id, collapsed='out', card_type='default', panel_group_attrs=None) -%}
+{% set _panel_group_attrs = {'class': 'panel-group', 'id': accordion_id} -%}
+{% if panel_group_attrs is not none -%}
+    {% do sdv.nested_update(_panel_group_attrs, panel_group_attrs) -%}
+{% endif -%}
+<div{{ tpl.json_flatatt(_panel_group_attrs) }}>
     <card-type type="{{ card_type }}">
         <card-header>
             <card-title class="accordion-toggle pointer" bs-data bs-toggle="collapse" bs-parent="#{{ accordion_id }}" href="#collapse-{{ accordion_id }}">
