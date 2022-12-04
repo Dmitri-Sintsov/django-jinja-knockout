@@ -1,3 +1,4 @@
+import { isArray } from './lib/underscore-esm.js';
 import { sprintf } from './lib/sprintf-esm.js';
 
 import { isMapping, capitalize } from './dash.js';
@@ -39,6 +40,10 @@ function useKo(ko) {
         $.each(src, function(k, v) {
             if (typeof dst[k] === 'function') {
                 dst[k](v);
+            } else if (typeof dst[k] === 'object' && typeof src[k] === 'object' &&
+                    !isArray(dst) && !isArray(src)
+            ) {
+                ko.utils.setProps(src[k], dst[k]);
             } else {
                 dst[k] = v;
             }

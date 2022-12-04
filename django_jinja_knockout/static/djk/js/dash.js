@@ -236,6 +236,7 @@ function inherit(parentPrototype, childInstance) {
 }
 
 export {
-    isMapping, isScalar, intVal, capitalize, camelCaseToDash, mixProps, ODict, odict, recursiveMap, moveOptions,
+    isMapping, isScalar, intVal, capitalize, camelCaseToDash, mixProps,
+    ODict, odict, recursiveMap, moveOptions,
     inherit
 };

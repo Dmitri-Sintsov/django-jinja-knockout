@@ -634,12 +634,12 @@ Knockout.js subscriber
 .. highlight:: javascript
 
 Javascript mixin class `Subscriber`_ may be used to control Knockout.js viewmodel methods subscriptions. To add this
-mixin to your class::
+mixin, use ``mixProps()`` function, which is similar to ``inherit()``, but does not use inheritance chain::
 
-    import { inherit } from '../../djk/js/dash.js';
+    import { mixProps } from '../../djk/js/dash.js';
     import { Subscriber } from '../../djk/js/ko.js';
 
-    inherit(Subscriber.prototype, this);
+    mixProps(Subscriber.prototype, this);
 
 In case there is observable property::
 
