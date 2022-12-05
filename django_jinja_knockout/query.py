@@ -1,9 +1,12 @@
 import types
+from collections.abc import Mapping
+from distutils.version import LooseVersion
 from operator import attrgetter
 from copy import copy
 from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
+from django.utils import version
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
@@ -626,3 +629,22 @@ class ListQuerySet(ValuesQuerySetMixin):
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         values_fields = self._get_fields(fields)
         yield from self._values_list(values_fields, flat=flat)
+
+
+# https://docs.djangoproject.com/en/dev/topics/db/managers/#creating-a-manager-with-queryset-methods
+# To make custom QuerySet methods be available in custom Manager:
+# class MyQuerySet(FutureQuerySet):
+# class MyManager(models.Manager.from_queryset(MyQuerySet))
+class FutureQuerySet(models.QuerySet):
+
+    unique_fields = None
+
+    def bulk_create_future(self, objs, **kwargs):
+        if len(objs) > 0 and isinstance(objs[0], Mapping):
+            objs = [self.model(**obj) for obj in objs]
+        if self.unique_fields is not None and LooseVersion(version.get_version()) >= LooseVersion('4.1'):
+            kwargs.update({
+                'update_conflicts': True,
+                'unique_fields': self.unique_fields,
+            })
+        return super().bulk_create(objs, **kwargs)
