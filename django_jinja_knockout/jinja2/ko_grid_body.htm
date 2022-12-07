@@ -324,7 +324,7 @@
             <!-- /ko -->
             <!-- ko foreach: {data: gridPages, as: 'gridPage'} -->
             <li data-bind="
-                visible: grid.options.alwaysShowPagination || grid.gridTotalPages() > 1,
+                visible: $parent.options.alwaysShowPagination || $parent.gridTotalPages() > 1,
                 css:{active: isActive}
             " class="page-item">
                 <a data-bind="text:title, click: onPagination" name="#" class="page-link" ></a>
