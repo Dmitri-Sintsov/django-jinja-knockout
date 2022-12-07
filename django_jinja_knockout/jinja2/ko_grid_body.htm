@@ -315,7 +315,7 @@
 
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
-    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1" class="pagination-wrapper">
+    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1 || actionTypes['pagination']().length > 0" class="pagination-wrapper">
         <ul class="pagination flex-wrap default-margin">
             <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
                 <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
@@ -323,7 +323,10 @@
                 </li>
             <!-- /ko -->
             <!-- ko foreach: {data: gridPages, as: 'gridPage'} -->
-            <li data-bind="css:{active: isActive}" class="page-item">
+            <li data-bind="
+                visible: grid.options.alwaysShowPagination || grid.gridTotalPages() > 1,
+                css:{active: isActive}
+            " class="page-item">
                 <a data-bind="text:title, click: onPagination" name="#" class="page-link" ></a>
             </li>
             <!-- /ko -->
