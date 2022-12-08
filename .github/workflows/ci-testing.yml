@@ -18,9 +18,9 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - name: Install dependencies
+    - name: Install dependencies # https://github.com/tox-dev/tox-pyenv/issues/21
       run: |
-        python3 -m pip install -U pip wheel tox tox-pyenv setuptools pysqlite3 --user
+        python3 -m pip install -U pip wheel tox\<4 tox-pyenv setuptools pysqlite3 --user
     - name: Test with tox
       run: |
         echo Environment used to run the tests
