@@ -114,7 +114,12 @@ function Tpl(options) {
         if (typeof varName !== 'string') {
             throw new Error('varName must be string');
         }
-        return (typeof this.data[varName] === 'undefined') ? defaultValue : this.data[varName];
+        var value = (typeof this.data[varName] === 'undefined') ? defaultValue : this.data[varName];
+        if (typeof value === 'object') {
+            return JSON.stringify(value);
+        } else {
+            return value;
+        }
     };
 
     Tpl.padLeft = function(varName, l) {
@@ -157,9 +162,13 @@ function Tpl(options) {
 
     /**
      * Manually loads one template (by it's DOM id) and expands it with specified instance self into jQuery DOM nodes.
+     * Optional data arg may be used to specify template args.
      * Template will be processed recursively.
      */
-    Tpl.domTemplate = function(tplId) {
+    Tpl.domTemplate = function(tplId, data) {
+        if (typeof data === 'object') {
+            this.extendData(data);
+        }
         var contents = this.expandTemplate(tplId);
         var $contents = $.contents(contents, true);
         $contents = this.expandContents($contents);
