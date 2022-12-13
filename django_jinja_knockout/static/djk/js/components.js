@@ -19,9 +19,17 @@ function ComponentManager(options) {
 } void function(ComponentManager) {
 
     ComponentManager.init = function(options) {
-        this.elem = options.elem;
+        if (options.elem instanceof jQuery) {
+            if (options.elem.length !== 1) {
+                throw new Error('Component manager requires single top node as root element');
+            }
+            this.$selector = options.elem;
+            this.elem = options.elem.get(0);
+        } else {
+            this.elem = options.elem;
+            this.$selector = $(this.elem);
+        }
         this.$nestedComponents = [];
-        this.$selector = $(this.elem);
         if (this.$selector.data('componentSelector') !== undefined) {
             // Sparse component that contains separate multiple DOM subtrees.
             this.$selector = $(this.$selector.data('componentSelector'));

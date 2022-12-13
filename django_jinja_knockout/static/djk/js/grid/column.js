@@ -2,6 +2,7 @@ import { map, mapObject, find, each } from '../lib/underscore-esm.js';
 import { odict } from '../dash.js';
 import { blockTags } from '../ui.js';
 import { renderNestedList, renderValue } from '../nestedlist.js';
+import { ComponentManager } from '../components.js';
 
 /**
  * Grid column ordering control.
@@ -193,13 +194,24 @@ function GridColumn(options) {
         return cells;
     };
 
-    GridColumn.renderCompound = function($element, cells) {
-        return renderNestedList($element, cells, {
+    GridColumn.renderCompound = function(options, cells) {
+        var $element = options.$element;
+        var $render = $('<div>');
+        var $result = renderNestedList($render, cells, {
             blockTags: this.blockTags,
             fn: 'html',
             showKeys: this.ownerGrid.options.showCompoundKeys,
             i18n: this.getOrders_i18n(),
         });
+        if (options.row.useInitClient > 1) {
+            // Nested components support. See also GridRow.prepare().
+            var cm = new ComponentManager({'elem': $result});
+            cm.detachNestedComponents();
+            $element.data({'componentManager': cm});
+        }
+        $element.get(0).replaceChildren($result.children().get(0));
+        $element.$ul = $result.$ul;
+        return $element;
     };
 
     GridColumn.render = function(options) {
@@ -207,9 +219,15 @@ function GridColumn(options) {
         var cells = this.getCompoundCells(options.row);
         if (cells.length === 1) {
             cells[0].v.attr('data-column-name', cells[0].k);
+            if (options.row.useInitClient > 1) {
+                // Nested components support. See also GridRow.prepare().
+                var cm = new ComponentManager({'elem': cells[0].v});
+                cm.detachNestedComponents();
+                $(cells[0].v).data({'componentManager': cm});
+            }
             options.$element.append(cells[0].v);
         } else if (cells.length > 1) {
-            var $cell = this.renderCompound(options.$element, cells).$ul;
+            var $cell = this.renderCompound(options, cells).$ul;
             var cellNames = this.getFields();
             $cell.attr('data-column-name', JSON.stringify(cellNames));
         }
