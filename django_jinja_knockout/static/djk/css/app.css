@@ -224,6 +224,10 @@ button.close {
 	cursor: pointer;
 }
 
+.nowrap {
+	white-space: nowrap;
+}
+
 .br-after::after {
 	content: '\a';
 	white-space: pre-wrap;
