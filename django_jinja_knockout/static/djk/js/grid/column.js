@@ -194,24 +194,39 @@ function GridColumn(options) {
         return cells;
     };
 
+    // Nested components support. See also GridRow.prepare().
+    GridColumn.prepareCompound = function($render, $element) {
+        var cm = new ComponentManager({'elem': $render});
+        if (cm.detachNestedComponents()) {
+            $element.attr('data-component-manager', '');
+            $element.data({'componentManager': cm});
+        }
+        // $element.get(0).replaceChildren($render.children().get(0));
+        if ($element.find(':first').length === 0) {
+            $element.append($('<span>'));
+        }
+        $element.children().replaceWith(
+            $render.children()
+        );
+        $element.$ul = $render.$ul;
+        cm.$selector = $render.$ul;
+    }
+
     GridColumn.renderCompound = function(options, cells) {
         var $element = options.$element;
-        var $render = $('<div>');
-        var $result = renderNestedList($render, cells, {
+        var renderOptions = {
             blockTags: this.blockTags,
             fn: 'html',
             showKeys: this.ownerGrid.options.showCompoundKeys,
             i18n: this.getOrders_i18n(),
-        });
+        };
         if (options.row.useInitClient > 1) {
-            // Nested components support. See also GridRow.prepare().
-            var cm = new ComponentManager({'elem': $result});
-            cm.detachNestedComponents();
-            $element.data({'componentManager': cm});
+            var $render = renderNestedList($('<div>'), cells, renderOptions);
+            this.prepareCompound($render, $element);
+            return $element;
+        } else {
+            return renderNestedList($element, cells, renderOptions);
         }
-        $element.get(0).replaceChildren($result.children().get(0));
-        $element.$ul = $result.$ul;
-        return $element;
     };
 
     GridColumn.render = function(options) {
@@ -222,8 +237,10 @@ function GridColumn(options) {
             if (options.row.useInitClient > 1) {
                 // Nested components support. See also GridRow.prepare().
                 var cm = new ComponentManager({'elem': cells[0].v});
-                cm.detachNestedComponents();
-                $(cells[0].v).data({'componentManager': cm});
+                if (cm.detachNestedComponents()) {
+                    $(cells[0].v).attr('data-component-manager', '');
+                    $(cells[0].v).data({'componentManager': cm});
+                }
             }
             options.$element.append(cells[0].v);
         } else if (cells.length > 1) {

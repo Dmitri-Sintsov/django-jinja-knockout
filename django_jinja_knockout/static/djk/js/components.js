@@ -51,10 +51,11 @@ function ComponentManager(options) {
             var $v = $(v);
             var $tmpElem = $('<span>')
             .addClass('nested-component-stub')
-            .data('nestedComponentIdx', k);
+            .attr('data-nested-component-idx', k);
             $v.after($tmpElem);
             $v.data('isDetachedComponent', true).detach();
         });
+        return this.$nestedComponents.length;
     };
 
     ComponentManager.reattachNestedComponents = function() {

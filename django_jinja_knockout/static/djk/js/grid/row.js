@@ -24,9 +24,9 @@ function GridRow(options) {
 
     GridRow.prepare = function() {
         if (this.useInitClient > 1) {
-            this.$row.find('[data-column-name]').each(function() {
+            this.$row.find('[data-component-manager]').each(function() {
                 // Nested components support.
-                // See also GridColumn.render() / GridColumn.renderCompound().
+                // See also GridColumn.render() / GridColumn.prepareCompound().
                 var cm = $(this).data('componentManager');
                 if (cm) {
                     cm.reattachNestedComponents();
