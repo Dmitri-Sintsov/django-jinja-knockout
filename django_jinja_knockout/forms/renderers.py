@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 from django.utils.html import format_html, mark_safe
 from django.utils.translation import gettext as _
+from django.utils.text import format_lazy
 
 from djk_ui import conf as djk_ui_conf
 
@@ -39,7 +40,7 @@ def add_input_classes_to_field(model_field):
     if is_select_multiple_field(model_field):
         msg = _('Hold down "Control", or "Command" on a Mac, to select more than one.')
         help_text = model_field.help_text
-        model_field.help_text = tpl.format_lazy('{} {}', help_text, msg) if help_text else msg
+        model_field.help_text = format_lazy('{} {}', help_text, msg) if help_text else msg
 
 
 def get_layout_classes():
