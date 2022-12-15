@@ -111,6 +111,25 @@ function moveOptions(toObj, fromObj, keys) {
     }
 }
 
+function NullChain(childInstance, parentPrototype) {
+
+    this.instance = childInstance;
+    this.proto = parentPrototype;
+
+} void function(NullChain) {
+
+    NullChain._call = function() {
+        return this._apply(arguments[0], Array.prototype.slice.call(arguments, 1));
+    };
+
+    NullChain._apply = function(methodName, args) {
+        console.log('Applying superTop method: ' + methodName);
+        return this.instance._superTop._apply(methodName, args);
+    };
+
+}(NullChain.prototype);
+
+
 /**
  * Implements nested chains of prototypes (multi-level inheritance).
  *
@@ -121,7 +140,7 @@ function moveOptions(toObj, fromObj, keys) {
  *  .proto
  *     prototype of ancestor class (parentPrototype)
  *  ._super
- *     null, when there is no more parent, instance of SuperChain when there are base parents.
+ *     NullChain, when there is no more parent, instance of SuperChain when there are base parents.
  *     Deepest nested level of ._super._super is the context of top class prototype (context of base class).
  */
 function SuperChain(childInstance, parentPrototype) {
@@ -132,10 +151,10 @@ function SuperChain(childInstance, parentPrototype) {
      *
      * this.instance._superTop represents immediate parent call top context (immediate ancestor context).
      */
-    this._super = null;
+    this._super = new NullChain(childInstance, parentPrototype);
     if (typeof childInstance._superTop !== 'undefined') {
         var lastSuper = childInstance._superTop;
-        while (lastSuper._super !== null) {
+        while (!(lastSuper._super instanceof NullChain)) {
             lastSuper = lastSuper._super;
         }
         lastSuper._super = this;
@@ -168,7 +187,7 @@ function SuperChain(childInstance, parentPrototype) {
         if (hasProp && !atTopAndOwnProto) {
             return this;
         }
-        if (this._super !== null) {
+        if (!(this._super instanceof NullChain)) {
             return this._super._find(name, hasOwnProto);
         } else {
             if (hasProp && atTopAndOwnProto) {
