@@ -285,16 +285,16 @@ $.fn.inputAsSelect = function(method) {
     function getInputs(self) {
         return self.findSelf('.input-as-select')
             .find('input[type="checkbox"], input[type="radio"]');
-    };
+    }
 
     function updateLabels($inputs) {
         $inputs.filter(':checked').parent('label').addClass('selected');
         $inputs.filter(':not(:checked)').parent('label').removeClass('selected');
-    };
+    }
 
     function highlightSelection(ev) {
         $(ev.target).closest('.input-as-select').inputAsSelect('update');
-    };
+    }
 
     return {
         'init' : function() {
@@ -320,7 +320,7 @@ $.fn.prefillField = function(method) {
 
     function getAddons(self) {
         return self.findSelf('.prefill-field');
-    };
+    }
 
     function setSelectedChoice($selectedChoice) {
         var matches = $selectedChoice.parents('.prefill-field').prop('id').split(/-PREFILL_CHOICES$/g);
@@ -338,7 +338,7 @@ $.fn.prefillField = function(method) {
                 $fillingInput.autogrow('update');
             }
         }
-    };
+    }
 
     function prefillChoice(ev) {
         var $target = $(ev.target);
@@ -348,19 +348,19 @@ $.fn.prefillField = function(method) {
         } else if ($target.prop('tagName') === 'A') {
             setSelectedChoice($target);
         }
-    };
+    }
 
     function showDropdown(ev) {
         var $invoker = $(ev.relatedTarget);
         $invoker.children('.iconui')
         .removeClass('iconui-chevron-down').addClass('iconui-chevron-up');
-    };
+    }
 
     function hideDropdown(ev) {
         var $invoker = $(ev.relatedTarget);
         $invoker.children('.iconui')
         .removeClass('iconui-chevron-up').addClass('iconui-chevron-down');
-    };
+    }
 
     return {
         'init' : function() {
@@ -394,7 +394,7 @@ $.fn.collapsibleSubmit = function(method) {
         var $input = $(this).closest('.activates-submit-group')
         .data('collapsibleSubmitInit', true)
         .collapsibleSubmit('update');
-    };
+    }
 
     return {
         // Applied to outer container.

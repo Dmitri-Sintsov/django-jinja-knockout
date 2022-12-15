@@ -205,8 +205,8 @@ function ViewModelRouter(viewHandlers) {
 
             throw new Error('ViewModelRouter.show() error');
         }
-        var hasView;
-        if (hasView = (typeof this.handlers[viewModel.view] !== 'undefined')) {
+        var hasView = typeof this.handlers[viewModel.view] !== 'undefined';
+        if (hasView) {
             this.exec(viewModel.view, viewModel, bindContext);
         }
         return hasView;

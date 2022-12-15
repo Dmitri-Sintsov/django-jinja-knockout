@@ -1077,7 +1077,6 @@ function Grid(options) {
     Grid.iocKoFilter_choices = function(filter, options) {
         options.choices = filter.choices;
         return {cls: GridFilter, options: options};
-        var filterModel = new GridFilter(options);
     };
 
     Grid.createKoFilter = function(filter) {

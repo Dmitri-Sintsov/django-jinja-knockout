@@ -210,7 +210,7 @@ function GridColumn(options) {
         );
         $element.$ul = $render.$ul;
         cm.$selector = $render.$ul;
-    }
+    };
 
     GridColumn.renderCompound = function(options, cells) {
         var $element = options.$element;

@@ -146,7 +146,7 @@ function renderNestedList(element, value, options) {
     } else {
         return result;
     }
-};
+}
 
 
 /**
@@ -174,6 +174,6 @@ function renderValue(element, value, getOptions) {
             $(element)[options.fn](value);
         }
     }
-};
+}
 
 export { NestedList, renderNestedList, renderValue };
