@@ -204,7 +204,7 @@ class FormWithInlineFormsets:
     related_form_renderer_cls = renderers.RelatedFormRenderer
     formset_renderer_cls = renderers.FormsetRenderer
 
-    def __init__(self, request, form_class=None, formset_classes=None, create=False, prefix=None):
+    def __init__(self, request, form_class=None, formset_classes=None, create=False, prefix=None, **kwargs):
         if self.FormClass is None:
             self.FormClass = form_class
         if self.FormsetClasses is None:
@@ -225,6 +225,9 @@ class FormWithInlineFormsets:
         return self.FormsetClasses
 
     def get_formset_initial(self, formset_class):
+        return None
+
+    def get_formset_queryset(self, formset_class):
         return None
 
     def get_prefix(self):
@@ -303,6 +306,7 @@ class FormWithInlineFormsets:
         if prefix is not None:
             kwargs['prefix'] = self.get_prefix() + '-' + kwargs['prefix']
         kwargs['initial'] = self.get_formset_initial(formset_class)
+        kwargs['queryset'] = self.get_formset_queryset(formset_class)
         return kwargs
 
     def get_formsets(self):
