@@ -5,10 +5,10 @@ from math import ceil
 from django.conf import settings
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
-from django.template import loader as tpl_loader
 from django.forms import model_to_dict
 
 from ..validators import ViewmodelValidator
+from ..forms.vm_renderers import FormViewmodel, InlineViewmodel
 from ..utils import sdv
 from .. import tpl
 from ..models import (
@@ -189,8 +189,6 @@ class ActionsView(FormatTitleMixin, ViewmodelView):
 class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
 
     context_object_name = 'model'
-    form_template = 'bs_form.htm'
-    inline_template = 'bs_inline_formsets.htm'
     pk_url_kwarg = None
     model = None
     model_fields_i18n = True
@@ -202,6 +200,8 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     formset = None
     form_with_inline_formsets = None
     instance = None
+    vm_form = None
+    vm_inline = None
 
     # GET request usually generates html template, POST - returns AJAX viewmodels.
     def get(self, request, *args, **kwargs):
@@ -279,10 +279,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_all_verbose_names(self):
         return self.get_model_fields_verbose_names() if self.model_fields_i18n else None
 
-    def render_object_desc(self, obj):
-        i18n = self.get_all_verbose_names()
-        return tpl.print_bs_badges(self.get_object_desc(obj), show_keys=None if i18n is None else 1, i18n=i18n)
-
     # Create one model object.
     def get_create_form(self):
         return self.form
@@ -290,6 +286,18 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     # Edit one model object.
     def get_edit_form(self):
         return self.form
+
+    def ioc_vm_form(self, form, instance, source_action=None):
+        vm_form_cls = FormViewmodel if self.vm_form is None else self.vm_form
+        if source_action is None:
+            source_action = self.current_action_name
+        return vm_form_cls(self, form, instance, source_action)
+
+    def ioc_vm_inline(self, ff, instance, source_action=None):
+        vm_inline_cls = InlineViewmodel if self.vm_inline is None else self.vm_inline
+        if source_action is None:
+            source_action = self.current_action_name
+        return vm_inline_cls(self, ff, instance, source_action)
 
     # Create one model object with related objects.
     def get_create_form_with_inline_formsets(self):
@@ -345,67 +353,6 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         if callable(getattr(self, handler_name, None)):
             getattr(self, handler_name)(**kwargs)
 
-    def vm_form(
-            self, form, template=None, verbose_name=None, form_action='save_form',
-            action_query: dict = None, callback_action=None
-    ):
-        if template is None:
-            template = self.form_template
-        if action_query is None:
-            action_query = {}
-        t = tpl_loader.get_template(template)
-        form_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': form,
-            'action': self.get_action_url(form_action, query=action_query),
-            'opts': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(form.Meta.model)
-        vm = {
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': form_html
-        }
-        if callback_action is not None:
-            vm['callback_action'] = callback_action
-        return vm_list(vm)
-
-    def vm_inline(
-            self, ff, template=None, verbose_name=None, form_action='save_inline',
-            action_query: dict = None, callback_action=None
-    ):
-        if template is None:
-            template = self.inline_template
-        if action_query is None:
-            action_query = {}
-        t = tpl_loader.get_template(template)
-        ff_html = t.render(request=self.request, context={
-            '_render_': True,
-            'form': ff.form,
-            'formsets': ff.formsets,
-            'action': self.get_action_url(form_action, query=action_query),
-            'opts': self.get_bs_form_opts()
-        })
-        if verbose_name is None:
-            verbose_name = get_verbose_name(ff.get_form_class().Meta.model)
-        vm = {
-            'last_action': form_action,
-            'title': format_html(
-                '{}: {}',
-                self.get_action_local_name(),
-                verbose_name
-            ),
-            'message': ff_html
-        }
-        if callback_action is not None:
-            vm['callback_action'] = callback_action
-        return vm_list(vm)
-
     def get_initial(self):
         return self.initial.copy()
 
@@ -429,10 +376,9 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def action_create_form(self):
         form_class = self.get_create_form()
         form = form_class(**self.get_form_kwargs(form_class))
-        return self.vm_form(
-            form,
-            action_query=self.get_action_query('create_form', None)
-        )
+        return self.ioc_vm_form(
+            form=form
+        )()
 
     def action_edit_form(self, obj=None):
         """
@@ -442,20 +388,18 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         self.instance = self.get_object_for_action() if obj is None else obj
         form_class = self.get_edit_form()
         form = form_class(instance=self.instance, **self.get_form_kwargs(form_class))
-        return self.vm_form(
-            form,
-            verbose_name=self.render_object_desc(self.instance),
-            action_query=self.get_action_query('edit_form', self.instance)
-        )
+        return self.ioc_vm_form(
+            form=form,
+            instance=self.instance
+        )()
 
     def action_create_inline(self):
         ff_class = self.get_create_form_with_inline_formsets()
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get()
-        return self.vm_inline(
-            ff,
-            action_query=self.get_action_query('create_inline', None)
-        )
+        return self.ioc_vm_inline(
+            ff=ff
+        )()
 
     def action_edit_inline(self, obj=None):
         """
@@ -466,11 +410,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         ff_class = self.get_edit_form_with_inline_formsets()
         ff = ff_class(self.request, **self.get_form_with_inline_formsets_kwargs(ff_class))
         ff.get(instance=self.instance)
-        return self.vm_inline(
-            ff,
-            verbose_name=self.render_object_desc(self.instance),
-            action_query=self.get_action_query('edit_inline', self.instance)
-        )
+        return self.ioc_vm_inline(
+            ff=ff,
+            instance=self.instance,
+        )()
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
         vm = {
@@ -950,7 +893,10 @@ class KoGridView(BaseFilterView, GridActionsMixin):
             # Autodiscover 'fkGridOptions'.
             # It could fail when related_view kwargs are incompatible to view kwargs so use with care.
             self.set_template_options(template_options)
-            view_kwargs = deepcopy(request.resolver_match.kwargs)
+            if request.resolver_match is not None:
+                view_kwargs = deepcopy(request.resolver_match.kwargs)
+            else:
+                view_kwargs = {}
             if 'pageRouteKwargs' in template_options:
                 view_kwargs.update(template_options['pageRouteKwargs'])
             self.setup(request, **view_kwargs)

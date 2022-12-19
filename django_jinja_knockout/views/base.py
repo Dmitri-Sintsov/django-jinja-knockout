@@ -568,7 +568,8 @@ class BaseFilterView(PageContextMixin):
     def get_row_str_fields(self, obj, row=None):
         if self.has_get_str_fields:
             str_fields = OrderedDict()
-            for fieldname, v in ObjDict.from_obj(obj=obj, request_user=self.request.user).get_str_fields().items():
+            user = getattr(self.request, 'user', None)
+            for fieldname, v in ObjDict.from_obj(obj=obj, request_user=user).get_str_fields().items():
                 if fieldname not in self.exclude_fields:
                     str_fields[fieldname] = v
             for fieldname in self.grid_fields_attnames:

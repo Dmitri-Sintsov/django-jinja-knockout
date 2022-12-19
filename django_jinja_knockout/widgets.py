@@ -286,7 +286,10 @@ class BaseGridWidget(UiBaseGridWidget, RequestWidget):
 
     # When current view kwargs are incompatible to widget view kwargs, override these via .widget_view_kwargs.
     def get_widget_view_kwargs(self):
-        return self.request.resolver_match.kwargs if self.widget_view_kwargs is None else self.widget_view_kwargs
+        if self.widget_view_kwargs is None:
+            return {} if self.request.resolver_match is None else self.request.resolver_match.kwargs
+        else:
+            return self.widget_view_kwargs
 
     def get_context(self, name, value, attrs):
         # Do not call ChoiceWidget.get_context() as it would try to serialize the whole fk queryset, which may be huge.
