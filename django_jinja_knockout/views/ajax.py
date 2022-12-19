@@ -287,13 +287,13 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_edit_form(self):
         return self.form
 
-    def ioc_vm_form(self, form, instance, source_action=None):
+    def ioc_vm_form(self, form, instance=None, source_action=None):
         vm_form_cls = FormViewmodel if self.vm_form is None else self.vm_form
         if source_action is None:
             source_action = self.current_action_name
         return vm_form_cls(self, form, instance, source_action)
 
-    def ioc_vm_inline(self, ff, instance, source_action=None):
+    def ioc_vm_inline(self, ff, instance=None, source_action=None):
         vm_inline_cls = InlineViewmodel if self.vm_inline is None else self.vm_inline
         if source_action is None:
             source_action = self.current_action_name
