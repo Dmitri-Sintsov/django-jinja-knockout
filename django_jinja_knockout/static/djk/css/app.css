@@ -274,7 +274,7 @@ button.close {
 }
 
 form label {
-	font-weight: normal;
+	font-weight: 600;
 }
 
 form label.required {
