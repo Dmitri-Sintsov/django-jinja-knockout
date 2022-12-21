@@ -274,11 +274,15 @@ button.close {
 }
 
 form label {
-	font-weight: 600;
+	font-weight: 500;
 }
 
 form label.required {
 	font-weight: 800;
+}
+
+.inline-title {
+	font-size: larger;
 }
 
 form .form-empty input[name$='-DELETE'] {
