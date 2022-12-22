@@ -373,12 +373,18 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
     def get_action_query(self, action, obj=None):
         return {} if obj is None else {'pk_val': obj.pk}
 
+    def get_call_create_form_kwargs(self):
+        return {}
+
     def action_create_form(self):
         form_class = self.get_create_form()
         form = form_class(**self.get_form_kwargs(form_class))
         return self.ioc_vm_form(
             form=form
-        )()
+        )(**self.get_call_create_form_kwargs())
+
+    def get_call_edit_form_kwargs(self):
+        return {}
 
     def action_edit_form(self, obj=None):
         """
@@ -391,7 +397,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.ioc_vm_form(
             form=form,
             instance=self.instance
-        )()
+        )(**self.get_call_edit_form_kwargs())
+
+    def get_call_create_inline_kwargs(self):
+        return {}
 
     def action_create_inline(self):
         ff_class = self.get_create_form_with_inline_formsets()
@@ -399,7 +408,10 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         ff.get()
         return self.ioc_vm_inline(
             ff=ff
-        )()
+        )(**self.get_call_create_inline_kwargs())
+
+    def get_call_edit_inline_kwargs(self):
+        return {}
 
     def action_edit_inline(self, obj=None):
         """
@@ -413,7 +425,7 @@ class ModelFormActionsView(ActionsView, FormViewmodelsMixin):
         return self.ioc_vm_inline(
             ff=ff,
             instance=self.instance,
-        )()
+        )(**self.get_call_edit_inline_kwargs())
 
     def vm_save_form(self, old_obj, new_obj, form=None, ff=None):
         vm = {
