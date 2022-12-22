@@ -285,6 +285,10 @@ form label.required {
 	font-size: larger;
 }
 
+th > .inline-title {
+	font-size: inherit;
+}
+
 form .form-empty input[name$='-DELETE'] {
 	color: red;
 }
