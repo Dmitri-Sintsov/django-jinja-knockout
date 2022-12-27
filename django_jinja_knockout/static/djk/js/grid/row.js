@@ -185,17 +185,11 @@ function GridRow(options) {
         return this.lastRowCss;
     };
 
-    GridRow.init = function(options) {
-        var self = this;
-        this.ownerGrid = options.ownerGrid;
-        if (this.ownerGrid.options.useInitClient !== null) {
-            this.useInitClient = this.ownerGrid.options.useInitClient;
-        }
-        this.index = options.index;
-
-        this.$row = null;
-        // Source data field values. May be used for AJAX DB queries, for example.
-        this.values = options.values;
+    /**
+     * Source data field values. May be used for AJAX DB queries, for example.
+     */
+    GridRow.initValues = function(values) {
+        this.values = values;
         // See views.KoGridView.postprocess_row() how and when this.values.__str_fields are populated.
         if (typeof this.values['__str_fields'] === 'undefined') {
             this.strFields = {};
@@ -215,6 +209,18 @@ function GridRow(options) {
             this.perm = this.values['__perm'];
             delete this.values['__perm'];
         }
+    };
+
+    GridRow.init = function(options) {
+        var self = this;
+        this.ownerGrid = options.ownerGrid;
+        if (this.ownerGrid.options.useInitClient !== null) {
+            this.useInitClient = this.ownerGrid.options.useInitClient;
+        }
+        this.index = options.index;
+
+        this.$row = null;
+        this.initValues(options.values);
         this.initDisplayValues();
 
         // Permissions should be set after the values are initialized, because custom permissions may use this.values.
