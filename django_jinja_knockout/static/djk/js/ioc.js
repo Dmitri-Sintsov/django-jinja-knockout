@@ -91,6 +91,10 @@ var vmRouter = new ViewModelRouter({
         if (typeof viewModel.title === 'undefined') {
             viewModel.title = Trans('Error');
         }
+        if (typeof viewModel.messages !== 'undefined') {
+            // Translate 'form_error' viewmodel .messages arg to .message arg.
+            viewModel.message = viewModel.messages;
+        }
         return import('./dialog.js').then(function(module) {
             new module.Dialog(viewModel).alertError();
         });
