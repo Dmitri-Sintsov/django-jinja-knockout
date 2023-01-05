@@ -7,7 +7,7 @@ from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
 from django.utils import version
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
 from django.db.models.fields.files import FieldFile
@@ -557,6 +557,23 @@ class ListQuerySet(ValuesQuerySetMixin):
 
     def last(self):
         return None if len(self.list) == 0 else self.list[-1]
+
+    def get(self, *args, **kwargs):
+        clone = self.filter(*args, **kwargs)
+        num = len(clone)
+        if num == 1:
+            return clone.list[0]
+        if num == 0:
+            raise ObjectDoesNotExist(
+                "%s matching query does not exist." %
+                'ListQuerySet.get()'
+            )
+        raise MultipleObjectsReturned(
+            'get() returned more than one %s -- it returned %s!' % (
+                clone.list[0]._meta.object_name,
+                num,
+            )
+        )
 
     def __repr__(self):
         return repr(self.list)
