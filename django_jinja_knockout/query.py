@@ -565,8 +565,9 @@ class ListQuerySet(ValuesQuerySetMixin):
             return clone.list[0]
         if num == 0:
             raise ObjectDoesNotExist(
-                "%s matching query does not exist." %
-                'ListQuerySet.get()'
+                "ListQuerySet.get(%s, %s) matching query does not exist." % (
+                    args, kwargs
+                )
             )
         raise MultipleObjectsReturned(
             'get() returned more than one %s -- it returned %s!' % (
