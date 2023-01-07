@@ -11,7 +11,7 @@ from django.core.exceptions import FieldError, ObjectDoesNotExist, MultipleObjec
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
 from django.db.models.fields.files import FieldFile
-from django.db.models import Aggregate, Sum, Q
+from django.db.models import Aggregate, Count, Min, Max, Sum, Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
@@ -549,6 +549,33 @@ class ListQuerySet(ValuesQuerySetMixin):
             row for row in self.list if is_new_hash(row)
         )
 
+    def _aggregate_count(self, alias, field_name):
+        count = 0
+        for row in self.__iter__():
+            if self._get_row_attr(row, field_name) is not None:
+                count += 1
+        return {
+            alias: count
+        }
+
+    def _aggregate_min_max(self, alias, field_name, min=True):
+        extreme = None
+        for row in self.__iter__():
+            current = self._get_row_attr(row, field_name)
+            if current is not None:
+                if extreme is None:
+                    extreme = current
+                else:
+                    if min:
+                        if extreme > current:
+                            extreme = current
+                    else:
+                        if extreme < current:
+                            extreme = current
+        return {
+            alias: extreme
+        }
+
     def _aggregate_sum(self, alias, field_name):
         total = None
         for row in self.__iter__():
@@ -586,7 +613,13 @@ class ListQuerySet(ValuesQuerySetMixin):
                     % (alias, aggregate_expr)
                 )
             expression_name = expressions[0].name
-            if isinstance(aggregate_expr, Sum):
+            if isinstance(aggregate_expr, Count):
+                return self._aggregate_count(alias, expression_name)
+            elif isinstance(aggregate_expr, Min):
+                return self._aggregate_min_max(alias, expression_name, min=True)
+            elif isinstance(aggregate_expr, Max):
+                return self._aggregate_min_max(alias, expression_name, min=False)
+            elif isinstance(aggregate_expr, Sum):
                 return self._aggregate_sum(alias, expression_name)
             else:
                 raise FieldError(
