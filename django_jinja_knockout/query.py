@@ -558,7 +558,7 @@ class ListQuerySet(ValuesQuerySetMixin):
             alias: count
         }
 
-    def _aggregate_min_max(self, alias, field_name, min=True):
+    def _aggregate_min_max(self, alias, field_name, is_min=True):
         extreme = None
         for row in self.__iter__():
             current = self._get_row_attr(row, field_name)
@@ -566,7 +566,7 @@ class ListQuerySet(ValuesQuerySetMixin):
                 if extreme is None:
                     extreme = current
                 else:
-                    if min:
+                    if is_min:
                         if extreme > current:
                             extreme = current
                     else:
@@ -616,9 +616,9 @@ class ListQuerySet(ValuesQuerySetMixin):
             if isinstance(aggregate_expr, Count):
                 return self._aggregate_count(alias, expression_name)
             elif isinstance(aggregate_expr, Min):
-                return self._aggregate_min_max(alias, expression_name, min=True)
+                return self._aggregate_min_max(alias, expression_name, is_min=True)
             elif isinstance(aggregate_expr, Max):
-                return self._aggregate_min_max(alias, expression_name, min=False)
+                return self._aggregate_min_max(alias, expression_name, is_min=False)
             elif isinstance(aggregate_expr, Sum):
                 return self._aggregate_sum(alias, expression_name)
             else:
