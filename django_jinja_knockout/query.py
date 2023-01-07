@@ -7,11 +7,11 @@ from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
 from django.utils import version
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import FieldError, ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
 from django.db.models.fields.files import FieldFile
-from django.db.models import Q
+from django.db.models import Aggregate, Sum, Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
@@ -548,6 +548,51 @@ class ListQuerySet(ValuesQuerySetMixin):
         return self.__class__(
             row for row in self.list if is_new_hash(row)
         )
+
+    def _aggregate_sum(self, alias, field_name):
+        total = None
+        for row in self.__iter__():
+            current = self._get_row_attr(row, field_name)
+            if current is not None:
+                if total is None:
+                    total = current
+                else:
+                    total += current
+        return {
+            alias: total
+        }
+
+    def aggregate(self, *args, **kwargs):
+        for arg in args:
+            # The default_alias property raises TypeError if default_alias
+            # can't be set automatically or AttributeError if it isn't an
+            # attribute.
+            try:
+                arg.default_alias
+            except (AttributeError, TypeError):
+                raise TypeError("Complex aggregates require an alias")
+            kwargs[arg.default_alias] = arg
+
+        for (alias, aggregate_expr) in kwargs.items():
+            if not isinstance(aggregate_expr, Aggregate):
+                raise FieldError(
+                    "Invalid aggregate '%s' '%s'"
+                    % (alias, aggregate_expr)
+                )
+            expressions = aggregate_expr.get_source_expressions()
+            if len(expressions) != 1:
+                raise FieldError(
+                    "Unsupported aggregate expression '%s' '%s'"
+                    % (alias, aggregate_expr)
+                )
+            expression_name = expressions[0].name
+            if isinstance(aggregate_expr, Sum):
+                return self._aggregate_sum(alias, expression_name)
+            else:
+                raise FieldError(
+                    "Unimplemented aggregate '%s' '%s'"
+                    % (alias, aggregate_expr)
+                )
 
     def exists(self):
         return len(self.list) > 0
