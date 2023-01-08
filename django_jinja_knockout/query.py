@@ -1,3 +1,4 @@
+import operator
 import types
 from collections.abc import Mapping
 from distutils.version import LooseVersion
@@ -549,45 +550,34 @@ class ListQuerySet(ValuesQuerySetMixin):
             row for row in self.list if is_new_hash(row)
         )
 
-    def _aggregate_count(self, alias, field_name):
-        count = 0
-        for row in self.__iter__():
-            if self._get_row_attr(row, field_name) is not None:
-                count += 1
-        return {
-            alias: count
-        }
-
-    def _aggregate_min_max(self, alias, field_name, is_min=True):
-        extreme = None
+    def _aggregate_fn(self, alias, field_name, fn=min, initial=None):
+        result = initial
         for row in self.__iter__():
             current = self._get_row_attr(row, field_name)
             if current is not None:
-                if extreme is None:
-                    extreme = current
+                if result is None:
+                    result = current
                 else:
-                    if is_min:
-                        if extreme > current:
-                            extreme = current
-                    else:
-                        if extreme < current:
-                            extreme = current
+                    result = fn(result, current)
         return {
-            alias: extreme
+            alias: result
         }
 
-    def _aggregate_sum(self, alias, field_name):
-        total = None
-        for row in self.__iter__():
-            current = self._get_row_attr(row, field_name)
-            if current is not None:
-                if total is None:
-                    total = current
-                else:
-                    total += current
-        return {
-            alias: total
+    _aggregate_kwargs = {
+        Count: {
+            'fn': lambda result, current: result + 1,
+            'initial': 0,
+        },
+        Min: {
+            'fn': min,
+        },
+        Max: {
+            'fn': max,
+        },
+        Sum: {
+            'fn': operator.add
         }
+    }
 
     def aggregate(self, *args, **kwargs):
         for arg in args:
@@ -613,14 +603,10 @@ class ListQuerySet(ValuesQuerySetMixin):
                     % (alias, aggregate_expr)
                 )
             expression_name = expressions[0].name
-            if isinstance(aggregate_expr, Count):
-                return self._aggregate_count(alias, expression_name)
-            elif isinstance(aggregate_expr, Min):
-                return self._aggregate_min_max(alias, expression_name, is_min=True)
-            elif isinstance(aggregate_expr, Max):
-                return self._aggregate_min_max(alias, expression_name, is_min=False)
-            elif isinstance(aggregate_expr, Sum):
-                return self._aggregate_sum(alias, expression_name)
+            if aggregate_expr.__class__ in self._aggregate_kwargs:
+                return self._aggregate_fn(
+                    alias, expression_name, **self._aggregate_kwargs[aggregate_expr.__class__]
+                )
             else:
                 raise FieldError(
                     "Unimplemented aggregate '%s' '%s'"
