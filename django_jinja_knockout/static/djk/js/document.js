@@ -4,9 +4,10 @@ import Cookies from './lib/js.cookie.js';
 import './lib/jquery.form.min.js'
 
 /**
- * Note: datetime.js is not the part of django-jinja-knockout. It should be created in project static directory,
- * so the moment locales can be customized.
- * See djk-sample datetime.js for example.
+ * Note: datetime.js is not the part of django-jinja-knockout.
+ * It should be created in project static directory, so the Moment.js locales can be customized.
+ * See djk-sample datetime.js for example:
+ * https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/static/djk/js/datetime.js
  */
 import './datetime.js';
 import './lib/bootstrap-datetimepicker.min.js';
