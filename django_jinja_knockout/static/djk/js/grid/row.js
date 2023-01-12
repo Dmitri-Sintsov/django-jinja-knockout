@@ -359,7 +359,7 @@ function GridRow(options) {
         return [this.getPkVal()];
     };
 
-    GridRow.renderDesc = function(renderOptions) {
+    GridRow.renderHeading = function(renderOptions) {
         var descParts = this.getDescParts();
         if (size(descParts) === 0) {
             return '';

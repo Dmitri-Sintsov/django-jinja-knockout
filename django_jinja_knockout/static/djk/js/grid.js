@@ -1486,11 +1486,23 @@ function Grid(options) {
          * Render current row object description in multiple actions menu when there are more than one 'click' type
          * actions for the current grid row.
          */
+        var self = this;
         if (typeof this.lastClickedKoRow !== 'undefined') {
-            var actionHeading = this.lastClickedKoRow.renderDesc(
+            dialog.actionHeading = this.lastClickedKoRow.renderHeading(
                 this.actions.getNestedListOptions()
             );
-            dialog.bdialog.getModalBody().prepend(actionHeading);
+            dialog.actionHeading.filter('*').each(function(k, v) {
+                ko.applyBindings(self, v);
+            });
+            dialog.bdialog.getModalBody().prepend(dialog.actionHeading);
+        }
+    };
+
+    Grid.onActionTemplateDialogHide = function(dialog) {
+        if (typeof dialog.actionHeading !== 'undefined') {
+            dialog.actionHeading.filter('*').each(function(k, v) {
+                ko.cleanNode(v);
+            });
         }
     };
 
