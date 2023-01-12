@@ -66,7 +66,11 @@ def get_meta(obj, meta_attr, fieldname=None):
     if isinstance(related_field, contenttypes.fields.GenericForeignKey):
         return get_meta(obj, meta_attr, related_field.ct_field)
     else:
-        return getattr(related_field, meta_attr)
+        try:
+            return getattr(related_field, meta_attr)
+        except AttributeError:
+            # See django.contrib.admin.utils.label_for_field
+            return getattr(related_field.related_model._meta, meta_attr)
 
 
 def get_verbose_name(obj, fieldname=None):
