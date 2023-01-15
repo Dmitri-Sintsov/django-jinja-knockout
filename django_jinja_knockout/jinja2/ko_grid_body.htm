@@ -229,7 +229,7 @@
                                 css: orderCss
                             " class="iconui-ctrl-before" name="#"></a>
                             <!-- /ko -->
-                            <!-- ko if: !isSortedColumn() -->
+                            <!-- ko if: grid.options.showNonSortableColumnNames && !isSortedColumn() -->
                             <div data-bind="text: name"></div>
                             <!-- /ko -->
                         </th>

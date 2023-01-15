@@ -290,6 +290,7 @@ function Grid(options) {
             // https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html?highlight=separatemeta
             separateMeta: false,
             showCompoundKeys: true,
+            showNonSortableColumnNames: true,
             showSelection: false,
             switchHighlight: true,
             ownerCtrl: null,
