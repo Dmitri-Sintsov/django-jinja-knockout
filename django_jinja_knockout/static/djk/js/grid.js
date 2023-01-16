@@ -156,7 +156,7 @@ function Grid(options) {
             /**
              * this.options.separateMeta == true is required when 'list' action queryArgs / queryFilters depends
              * on result of 'meta' action. For example that is true for grids with advanced allowed_filter_fields
-             * values of dict type: see views.GridActionxMixin.vm_get_filters().
+             * values of dict type: see views.GridActionxMixin.get_filters().
              */
             this.actions.perform('meta', actionOptions, function(viewmodel) {
                 if (self.options.defaultOrderBy !== null) {
