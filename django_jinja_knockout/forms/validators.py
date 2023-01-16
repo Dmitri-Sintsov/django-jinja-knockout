@@ -11,6 +11,7 @@ from ..models import get_related_field
 
 FieldType = namedtuple('FieldType', ['model_field_type', 'field_filter_type', 'form_field_type'])
 
+
 # Used to validate values of submitted filter fields.
 class FieldValidator:
 
