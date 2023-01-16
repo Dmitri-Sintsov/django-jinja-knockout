@@ -32,6 +32,11 @@ class FieldValidator:
             'number',
             None
         ),
+        (
+            'BooleanField',
+            'boolean',
+            None
+        ),
         # Remove when dropping support of Django 2.2:
         (
             'AutoField',
@@ -40,9 +45,12 @@ class FieldValidator:
         ),
     )
 
-    def __init__(self, view, fieldname, model_class=None):
+    def __init__(self, view, fieldname, model_class=None, model_field=None):
         self.view = view
-        self.model_field = get_related_field(view.model if model_class is None else model_class, fieldname)
+        if model_field is None:
+            self.model_field = get_related_field(view.model if model_class is None else model_class, fieldname)
+        else:
+            self.model_field = model_field
         self.form_field, self.field_filter_type = self.get_form_field()
 
     def get_form_field(self):
