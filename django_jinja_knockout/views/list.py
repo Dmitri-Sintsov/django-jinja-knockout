@@ -333,7 +333,7 @@ class ListSortingView(UiListSortingView, FoldingPaginationMixin, BaseFilterView,
             return ErrorFilter(self, fieldname, vm_filter)
         else:
             raise NotImplementedError(
-                f'There is no "{vm_filter["type"]}" filter implementation for "{fieldname}" fieldname'
+                f'There is no {vm_filter["type"]} filter implementation for "{fieldname}" fieldname'
             )
 
     def get_no_match_template(self):

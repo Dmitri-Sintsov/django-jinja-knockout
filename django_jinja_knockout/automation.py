@@ -73,8 +73,8 @@ class AutomationCommands:
 
     def exec(self, *args):
         batch_exec_time = 0
-        for operation, args, kwargs in self.yield_commands(*args):
-            self.context, exec_time = self.exec_command(operation, *args, **kwargs)
+        for operation, op_args, op_kwargs in self.yield_commands(*args):
+            self.context, exec_time = self.exec_command(operation, *op_args, **op_kwargs)
             batch_exec_time += exec_time
         return self.context
 
