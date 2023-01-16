@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
@@ -7,41 +9,38 @@ from django.contrib.admin import site
 from ..models import get_related_field
 
 
+FieldType = namedtuple('FieldType', ['model_field_type', 'field_filter_type', 'form_field_type'])
+
 # Used to validate values of submitted filter fields.
 class FieldValidator:
 
     field_types = (
         # Order is important, because DateTimeField is ancestor of DateField.
-        (
-            'DateTimeField',
-            'datetime',
-            None
+        FieldType(
+            model_field_type='DateTimeField',
+            field_filter_type='datetime',
+            form_field_type=None
         ),
-        (
-            'DateField',
-            'date',
-            None
+        FieldType(
+            model_field_type='DateField',
+            field_filter_type='date',
+            form_field_type=None
         ),
-        (
-            'DecimalField',
-            'number',
-            None
+        FieldType(
+            model_field_type='DecimalField',
+            field_filter_type='number',
+            form_field_type=None
         ),
-        (
-            'IntegerField',
-            'number',
-            None
-        ),
-        (
-            'BooleanField',
-            'boolean',
-            None
+        FieldType(
+            model_field_type='IntegerField',
+            field_filter_type='number',
+            form_field_type=None
         ),
         # Remove when dropping support of Django 2.2:
-        (
-            'AutoField',
-            'number',
-            None
+        FieldType(
+            model_field_type='AutoField',
+            field_filter_type='number',
+            form_field_type=None
         ),
     )
 
