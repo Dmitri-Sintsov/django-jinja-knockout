@@ -139,7 +139,13 @@ function GridActions(options) {
         delete viewModel.pkVals;
         viewModel.callback = function(result) {
             if (result) {
-                self.perform('delete_confirmed', {queryArgs: {'pk_vals': pkVals}});
+                var actionOptions = {
+                    'queryArgs': {
+                        'pk_vals': pkVals
+                    }
+                };
+                $.extend(true, actionOptions, self.grid.lastClickedKoRow.getActionOptions(self.lastKoAction));
+                self.perform('delete_confirmed', actionOptions);
             }
         };
         this.renderDescription(viewModel);

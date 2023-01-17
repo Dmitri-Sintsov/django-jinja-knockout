@@ -12,6 +12,7 @@ from django.core.exceptions import FieldError, ObjectDoesNotExist, MultipleObjec
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
 from django.db.models.fields.files import FieldFile
+from django.db.models import signals
 from django.db.models import Aggregate, Count, Min, Max, Sum, Q
 from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
@@ -448,6 +449,23 @@ class ListQuerySet(ValuesQuerySetMixin):
             copy(self.list)
         )
         return c
+
+    def delete(self):
+        # send pre_delete signals
+        for obj in self.list:
+            model = obj._meta.model
+            if not model._meta.auto_created:
+                signals.pre_delete.send(
+                    sender=model, instance=obj, using=None
+                )
+        # send post_delete signals
+        for obj in self.list:
+            model = obj._meta.model
+            if not model._meta.auto_created:
+                signals.pre_delete.send(
+                    sender=model, instance=obj, using=None
+                )
+        self.list = []
 
     def _match(self, key, query_val, obj):
         if isinstance(key, str):
