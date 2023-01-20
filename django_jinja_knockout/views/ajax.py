@@ -528,7 +528,11 @@ class GridActionsMixin(ModelFormActionsView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
 
+    def get_enable_deletion(self):
+        return self.enable_deletion
+
     def get_actions(self):
+        enable_deletion = self.get_enable_deletion()
         return {
             'built_in': OrderedDict([
                 ('meta', {}),
@@ -538,7 +542,7 @@ class GridActionsMixin(ModelFormActionsView):
                 ('save_form', {}),
                 ('save_inline', {}),
                 ('delete_confirmed', {
-                    'enabled': self.enable_deletion
+                    'enabled': enable_deletion
                 })
             ]),
             # Extendable UI actions.
@@ -615,7 +619,7 @@ class GridActionsMixin(ModelFormActionsView):
                 ('delete', {
                     'localName': _('Remove'),
                     'css': 'iconui-remove',
-                    'enabled': self.enable_deletion
+                    'enabled': enable_deletion
                 })
             ])
         }
