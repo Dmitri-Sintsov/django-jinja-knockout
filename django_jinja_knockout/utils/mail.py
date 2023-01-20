@@ -1,10 +1,13 @@
 from socket import gaierror
 from smtplib import SMTPDataError, SMTPServerDisconnected, SMTPSenderRefused, SMTPRecipientsRefused
 from bleach import linkify
+
+from django.conf import settings
 from django.utils.html import linebreaks
 from django.utils.translation import gettext_lazy as _
 from django.core import mail
 from django.contrib import messages
+
 from ..tpl import html_to_text
 from ..http import is_ajax, ImmediateJsonResponse
 
@@ -73,7 +76,10 @@ class SendmailQueue:
             # raise SMTPDataError(code=123, msg='Test error')
             if hasattr(self.ioc, 'before_sending'):
                 self.ioc.before_sending()
-            result = self.connection.send_messages(self.messages)
+            if getattr(settings, 'DJK_EMAIL_SKIP_SEND', False):
+                result = True
+            else:
+                result = self.connection.send_messages(self.messages)
             if hasattr(self.ioc, 'success'):
                 self.ioc.success()
             self.messages = []
