@@ -569,6 +569,7 @@ class GridActionsMixin(ModelFormActionsView):
                 })
             ]),
             'button_footer': OrderedDict(),
+            'button_pagination': OrderedDict(),
             'pagination': OrderedDict([
                 ('rows_per_page', {
                     'classPath': 'GridRowsPerPageAction',

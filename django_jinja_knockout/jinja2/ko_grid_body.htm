@@ -150,7 +150,7 @@
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
     <li class="nav-item">
-        <form is="form-inline" data-bind="visible: meta.hasSearch() || actionTypes['button']().length > 0">
+        <form is="form-inline" data-bind="visible: meta.hasSearch() || actionTypesLength['button']() > 0">
             <div is="form-group" data-bind="if: meta.hasSearch()">
                 <input data-bind="textInput: gridSearchDisplayStr, attr: {placeholder: meta.searchPlaceholder}" class="form-control" type="search">
                 <button type="button" data-bind="click: onSearchReset" class="btn btn-default">{{ _('Clear') }}</button>
@@ -309,14 +309,14 @@
         <card-header data-bind="text: meta.verboseNamePlural"></card-header>
         <card-body>
     <% } %>
-            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypes['button']().length > 0 -->
+            <!-- ko if: meta.hasSearch() || gridFilters().length > 0 || actionTypesLength['button']() > 0 -->
             <div data-template-id="ko_grid_nav"></div>
             <!-- /ko -->
             <div data-template-id="ko_grid_table"></div>
         <% if (self.get('show_pagination')) { %>
             <div data-template-id="ko_grid_pagination"></div>
         <% } %>
-            <!-- ko if: actionTypes['button_footer']().length > 0 -->
+            <!-- ko if: actionTypesLength['button_footer']() > 0 -->
             <div data-template-id="ko_grid_bottom_nav"></div>
             <!-- /ko -->
     <% if (self.get('show_title')) { %>
@@ -330,12 +330,20 @@
 
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
-    <div data-bind="visible: options.alwaysShowPagination || gridTotalPages() > 1 || actionTypes['pagination']().length > 0" class="pagination-wrapper">
+    <div data-bind="visible: hasVisiblePagination()" class="pagination-wrapper">
         <ul class="pagination flex-wrap default-margin">
+            <!-- ko foreach: {data: actionTypes['button_pagination'], as: 'koAction'} -->
+            <li class="page-item">
+                <a class="btn page-link" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
+                    <span class="iconui" data-bind="css: actionCss('iconui')"></span>
+                    <span data-bind="text: koAction.localName"></span>
+                </a>
+            </li>
+            <!-- /ko -->
             <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
-                <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
-                    <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-button iconui mr-2"></span>
-                </li>
+            <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
+                <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-button iconui mr-2"></span>
+            </li>
             <!-- /ko -->
             <!-- ko foreach: {data: gridPages, as: 'gridPage'} -->
             <li data-bind="

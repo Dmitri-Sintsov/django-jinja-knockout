@@ -260,7 +260,7 @@ function Grid(options) {
         ko.utils.setProps(data, this.meta);
     };
 
-    Grid.uiActionTypes = ['button', 'button_footer', 'pagination', 'click', 'iconui'];
+    Grid.uiActionTypes = ['button', 'button_footer', 'button_pagination', 'pagination', 'click', 'iconui'];
 
     Grid.init = function(options) {
         mixProps(Subscriber.prototype, this);
@@ -328,8 +328,15 @@ function Grid(options) {
         this.meta.firstLoad.subscribe(this.onFirstLoad, this);
         this.meta.rowsPerPage.extend({ rateLimit: 500 });
         this.actionTypes = {};
+        this.actionTypesLength = {};
         each(this.uiActionTypes, function(type) {
             self.actionTypes[type] = ko.observableArray();
+            self.actionTypesLength[type] = function(changes) {
+                return self.actionTypes[type]().length;
+            };
+            self.actionTypes[type].subscribe(
+                self.actionTypesLength[type], this, 'arrayChange'
+            );
         })
         this.actions = this.iocGridActions({
             owner: this,
@@ -341,7 +348,7 @@ function Grid(options) {
         this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
         this.iconuiColumns = ko.computed(function() {
-            return (this.actionTypes['iconui']().length === 0) ? 0 : 1
+            return (this.actionTypesLength['iconui']() === 0) ? 0 : 1
         }, this);
         this.totalColumns = ko.computed(function() {
             var totalColumns = this.gridColumns().length + this.iconuiColumns();
@@ -1218,6 +1225,12 @@ function Grid(options) {
                 'pageNumber': totalPages
             })
         );
+    };
+
+    Grid.hasVisiblePagination = function() {
+        return this.options.alwaysShowPagination ||
+            this.gridTotalPages() > 1 ||
+            (this.actionTypesLength['pagination']() + this.actionTypesLength['button_pagination']()) > 0;
     };
 
     /**
