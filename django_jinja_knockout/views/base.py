@@ -442,7 +442,7 @@ class BaseFilterView(PageContextMixin):
         # Filtered names of grid_fields (no excluded field names)
         self.grid_fields_attnames = None
         # Verbose names of fields
-        self.field_names = None
+        self.field_names = {}
         self.allowed_sort_orders = None
         self.allowed_filter_fields = None
         self.search_fields = None
@@ -608,7 +608,6 @@ class BaseFilterView(PageContextMixin):
         self.allowed_sort_orders = self.get_allowed_sort_orders()
         self.allowed_filter_fields = self.get_allowed_filter_fields()
         self.search_fields = self.get_search_fields()
-        self.field_names = {}
 
         self.has_get_str_fields = hasattr(self.model, 'get_str_fields')
 
