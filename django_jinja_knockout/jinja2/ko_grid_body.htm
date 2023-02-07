@@ -331,15 +331,17 @@
 {% if 'ko_grid_pagination' in _include_ids -%}
 <script type="text/template" id="ko_grid_pagination">
     <div data-bind="visible: hasVisiblePagination()" class="pagination-wrapper">
-        <ul class="pagination flex-wrap default-margin">
+        <ul class="nav nav-pills">
             <!-- ko foreach: {data: actionTypes['button_pagination'], as: 'koAction'} -->
-            <li class="page-item">
-                <a class="btn page-link" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
+            <li class="nav-item">
+                <a class="btn nav-link" data-bind="css: actionCss('button'), click: function(data, ev) { doAction({event: ev}); }">
                     <span class="iconui" data-bind="css: actionCss('iconui')"></span>
                     <span data-bind="text: koAction.localName"></span>
                 </a>
             </li>
             <!-- /ko -->
+        </ul>
+        <ul class="pagination flex-wrap">
             <!-- ko foreach: {data: actionTypes['pagination'], as: 'koAction'} -->
             <li data-bind="click: function(data, ev) { doAction({event: ev}); }" class="page-item">
                 <span data-bind="css: actionCss('iconui'), attr: {title: koAction.localName}" class="page-link iconui-button iconui mr-2"></span>
