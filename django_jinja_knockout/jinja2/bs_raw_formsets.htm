@@ -1,7 +1,7 @@
 {#
  # One or zero ModelForm with one or multiple one to many related inline formsets.
  # For ui rich version, see bs_inline_formsets.htm.
- #}
+-#}
 {% macro bs_raw_formsets(related_form, formsets, action='') -%}
     {{ render_form(request, 'related', related_form, {
         'action': action,

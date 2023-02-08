@@ -1,4 +1,4 @@
-{# http://getbootstrap.com/javascript/#tabs #}
+{# http://getbootstrap.com/javascript/#tabs -#}
 {% macro bs_tabs(tabs=None, tabs_attrs=None, content_attrs=None, component_attrs=None) -%}
 {% if tabs is none -%}
     {% set tabs = [] -%}
@@ -19,7 +19,7 @@
 {% do _tabs_attrs.update(tabs_attrs) -%}
 {% do tpl.prepend_css_classes_to_dict(_tabs_attrs, 'nav nav-tabs') -%}
 
-{% set _content_attrs = {} %}
+{% set _content_attrs = {} -%}
 {% do _content_attrs.update(content_attrs) -%}
 {% do tpl.prepend_css_classes_to_dict(_content_attrs,  'tab-content') -%}
 
