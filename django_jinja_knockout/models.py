@@ -98,10 +98,10 @@ def model_fields_meta(model, meta_attr):
 
 
 def model_fields_verbose_names(model):
+    verbose_names = model_fields_meta(model, 'verbose_name')
     if hasattr(model, 'get_fields_i18n'):
-        return model.get_fields_i18n()
-    else:
-        return model_fields_meta(model, 'verbose_name')
+        verbose_names.update(model.get_fields_i18n())
+    return verbose_names
 
 
 # obj can be model class or an instance of model class.
