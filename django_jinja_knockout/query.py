@@ -8,7 +8,7 @@ from sqlparse.tokens import Token
 from sqlparse.lexer import tokenize
 
 from django.utils import version
-from django.core.exceptions import FieldError, ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import EmptyResultSet, FieldError, ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.db import models
 from django.db.models.fields.files import FieldFile
@@ -18,6 +18,13 @@ from django.db.models.fields import Field
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql import RawQuery
 from django.db.models.query import RawQuerySet, QuerySet
+
+try:
+    from django.core.exceptions import FullResultSet
+except ImportError:
+    # Django <4.2
+    class FullResultSet(Exception):
+        pass
 
 from .models import get_related_field_val
 
@@ -56,33 +63,61 @@ class RawSqlCompiler(SQLCompiler):
             extra_select, order_by, group_by = self.pre_sql_setup()
             if with_limits and self.query.low_mark == self.query.high_mark:
                 return '', ()
-            distinct_args = self.get_distinct()
+            distinct_fields, distinct_params = self.get_distinct()
 
-            where, w_params = self.compile(self.where) if self.where is not None else ("", [])
+            combinator = self.query.combinator
+            if combinator:
+                raise NotImplementedError(
+                    "combinator subqueries are not supported"
+                )
+            try:
+                where, w_params = (
+                    self.compile(self.where) if self.where is not None else ("", [])
+                )
+            except EmptyResultSet:
+                # Django 3.2 has no self.elide_empty
+                if getattr(self, 'elide_empty', None):
+                    raise
+                # Use a predicate that's always False.
+                where, w_params = "0 = 1", []
+            except FullResultSet:
+                where, w_params = "", []
             if where:
                 result.append('WHERE %s' % where)
                 params.extend(w_params)
 
             query_having = getattr(self, 'having', None)
-            having, h_params = self.compile(query_having) if query_having is not None else ("", [])
+            try:
+                having, h_params = (
+                    self.compile(query_having)
+                    if query_having is not None
+                    else ("", [])
+                )
+            except FullResultSet:
+                having, h_params = "", []
             if having:
                 result.append('HAVING %s' % having)
                 params.extend(h_params)
 
             if self.query.distinct:
-                distinct_result = self.connection.ops.distinct_sql(*distinct_args)
+                distinct_result = self.connection.ops.distinct_sql(
+                    distinct_fields,
+                    distinct_params,
+                )
 
             grouping = []
             for g_sql, g_params in group_by:
                 grouping.append(g_sql)
                 params.extend(g_params)
             if grouping:
-                if self.query.distinct:
+                if distinct_fields:
                     raise NotImplementedError(
                         "annotate() + distinct(fields) is not implemented.")
                 if not order_by:
                     order_by = self.connection.ops.force_no_ordering()
                 result.append('GROUP BY %s' % ', '.join(grouping))
+                if self._meta_ordering:
+                    order_by = None
 
             if having:
                 result.append('HAVING %s' % having)
@@ -406,15 +441,20 @@ class FilteredRawQuerySet(ValuesQuerySetMixin, RawQuerySet):
         yield from self._values_list(values_fields, flat=flat)
 
     def __getitem__(self, k):
-        """
-        Retrieves an item or slice from the set of results.
-        """
-        if not isinstance(k, (slice, int)):
-            raise TypeError
-        assert ((not isinstance(k, slice) and (k >= 0)) or
-                (isinstance(k, slice) and (k.start is None or k.start >= 0) and
-                    (k.stop is None or k.stop >= 0))), \
-            "Negative indexing is not supported."
+        """Retrieve an item or slice from the set of results."""
+        if not isinstance(k, (int, slice)):
+            raise TypeError(
+                "QuerySet indices must be integers or slices, not %s."
+                % type(k).__name__
+            )
+        if (isinstance(k, int) and k < 0) or (
+            isinstance(k, slice)
+            and (
+                (k.start is not None and k.start < 0)
+                or (k.stop is not None and k.stop < 0)
+            )
+        ):
+            raise ValueError("Negative indexing is not supported.")
 
         qs = self._clone()
         if isinstance(k, slice):
