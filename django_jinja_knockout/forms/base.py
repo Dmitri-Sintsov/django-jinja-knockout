@@ -106,7 +106,12 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         if attrs is None:
             attrs = {}
         bases = bases + (UnchangeableModelMixin,)
+        # Django <4.2
         attrs['formfield_callback'] = display_model_formfield_callback
+        # Django >=4.2
+        if not 'Meta' in attrs:
+            attrs['Meta'] = type('Meta', bases, attrs)
+        setattr(attrs['Meta'], 'formfield_callback', display_model_formfield_callback)
         if 'template_dir' not in attrs:
             attrs['template_dir'] = 'render/display/'
         if 'layout_type' not in attrs:
