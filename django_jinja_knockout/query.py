@@ -778,13 +778,16 @@ class ListQuerySet(ValuesQuerySetMixin):
 class FutureQuerySet(models.QuerySet):
 
     unique_fields = None
+    update_fields = None
 
     def bulk_create_future(self, objs, **kwargs):
         if len(objs) > 0 and isinstance(objs[0], Mapping):
             objs = [self.model(**obj) for obj in objs]
-        if self.unique_fields is not None and LooseVersion(version.get_version()) >= LooseVersion('4.1'):
+        if self.unique_fields is not None and self.update_fields is not None and \
+                LooseVersion(version.get_version()) >= LooseVersion('4.1'):
             kwargs.update({
                 'update_conflicts': True,
                 'unique_fields': self.unique_fields,
+                'update_fields': self.update_fields,
             })
         return super().bulk_create(objs, **kwargs)
