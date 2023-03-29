@@ -2,6 +2,7 @@ from collections.abc import Sequence, Mapping
 import json
 import traceback
 
+from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.http.response import HttpResponseBase
@@ -30,7 +31,7 @@ class MockRequestFactory(RequestFactory):
             environ['SERVER_NAME'] = settings.ALLOWED_HOSTS[-1]
         elif hasattr(settings, 'DOMAIN_NAME'):
             environ['SERVER_NAME'] = settings.DOMAIN_NAME
-        if 'django.contrib.sites' in settings.INSTALLED_APPS and Site._meta.installed:
+        if 'django.contrib.sites' in settings.INSTALLED_APPS and apps.is_installed('django.contrib.sites'):
             site = Site.objects.get_current()
             environ['SERVER_NAME'] = site.name
         if environ['SERVER_NAME'] not in settings.ALLOWED_HOSTS:
