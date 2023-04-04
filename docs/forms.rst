@@ -5,10 +5,12 @@ Forms
 .. _ajaxform.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ajaxform.js
 .. _base module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/base.py
 .. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=bootstrapmodelform
+.. _fields_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=fields_template&type=code
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
-.. _FieldRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
+.. _FieldRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
 .. _Formset: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=Formset&type=code
-.. _FormBodyRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
+.. _FormBodyRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
+.. _FormFieldsRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formfieldsrenderer
 .. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formsetrenderer
 .. _forms package: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout/forms
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
@@ -16,14 +18,21 @@ Forms
 .. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=relatedformrenderer
 .. _renderers module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/renderers.py
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer&type=code
+.. _render_fields_cls: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=render_fields_cls&type=code
 .. _RendererModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderermodelform
 .. _render_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=HTML&q=render_form
 .. _.render_raw(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=render_raw
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=standaloneformrenderer
 .. _validators module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/validators.py
+.. _vm_renderers module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/vm_renderers.py
 
-forms module is refactored into `forms package`_ with `base module`_ / `renderers module`_ / and `validators module`_.
+forms module is split into `forms package`_ with the following submodules:
+
+* `base module`_
+* `renderers module`_
+* `validators module`_
+* `vm_renderers module`_
 
 .. _forms_renderers:
 
@@ -67,20 +76,24 @@ FieldRenderer
 ~~~~~~~~~~~~~
 Renders model form field.
 
-Default `FieldRenderer`_ attached to each form field will apply bootstrap HTML to the form fields / form field labels.
-It supports both input fields POST forms (non-AJAX and AJAX versions) and the display forms (read-only forms):
+Default `FieldRenderer class`_ instance attached to each form field will apply bootstrap HTML to the form fields / form
+field labels. It supports both input fields POST forms (non-AJAX and AJAX versions) and the display forms (read-only forms):
 `Displaying read-only "forms"`_. Templates are chosen dynamically depending on the field type.
 
-The instance of `FieldRenderer`_ is attached to each visible form field. By default the form fields are rendered this
-way::
+The instance of `FieldRenderer class`_ is attached to each visible form field. By default the form fields are rendered by
+`FormFieldsRenderer`_ this way::
 
     {% for field in form.visible_fields() -%}
-        {{ field.renderer() }}
+        {{ field.djk_renderer() }}
     {% endfor -%}
 
 It's possible to render "raw" field with::
 
     {{ field }}
+
+or formatted field as::
+
+    <div>{{ form.my_field.djk_renderer() }}</div>
 
 and to render the list of selected fields with::
 
@@ -92,11 +105,35 @@ Renders only the form body, no ``<form>`` tag, similar to how Django converts fo
 
 * `FormBodyRenderer`_
 
-  * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+  * `FormFieldsRenderer`_
+
+    * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
 In Jinja2 template call `render_form()`_ template context function::
 
     {{ render_form(request, 'body', form, opts) }}
+
+See `FormBodyRenderer class`_. See `opts argument`_.
+
+FormFieldsRenderer
+~~~~~~~~~~~~~~~~~~
+
+Renders the form fields, by default one by one via their specified order. See `Rendering customization`_ how to override
+the default layout of fields.
+
+* `FormFieldsRenderer`_
+
+  * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+
+In Jinja2 template to call form fields renderer::
+
+    {{ form.djk_renderer['fields']() }}
+
+or::
+
+    {{ render_form(request, 'fields', form, opts) }}
+
+See `FormFieldsRenderer class`_. See `opts argument`_.
 
 StandaloneFormRenderer
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -109,7 +146,9 @@ Renders the instance of model form:
 
   * `FormBodyRenderer`_
 
-    * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+    * `FormFieldsRenderer`_
+
+      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
 In Jinja2 template call :ref:`macros_bs_form` macro or call `render_form()`_ template context function::
 
@@ -128,7 +167,9 @@ the following hierarchy of renderers:
 
   * `FormBodyRenderer`_
 
-    * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+    * `FormFieldsRenderer`_
+
+      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
 * `FormsetRenderer`_ (1)
 
@@ -136,13 +177,17 @@ the following hierarchy of renderers:
 
     * `FormBodyRenderer`_ (1)
 
-      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+      * `FormFieldsRenderer`_ (1)
+
+        * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
   * `InlineFormRenderer`_ (n)
 
     * `FormBodyRenderer`_ (n)
 
-      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+      * `FormFieldsRenderer`_ (n)
+
+        * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
 * `FormsetRenderer`_ (n)
 
@@ -150,13 +195,15 @@ the following hierarchy of renderers:
 
     * `FormBodyRenderer`_ (n)
 
-      * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
+      * `FormFieldsRenderer`_ (n)
+
+        * [`FieldRenderer`_ (1), ... `FieldRenderer`_ (n)]
 
 Note that is the composition hierarchy of instances, not a class inheritance hierarchy.
 
 Single formset is rendered with the following call::
 
-    {{ formset.renderer() }}
+    {{ formset.djk_renderer() }}
 
 .. _forms_opts:
 
@@ -195,7 +242,7 @@ To change field templates one should override `RendererModelForm`_ ``Meta`` clas
     class ClubMemberDisplayForm(WidgetInstancesMixin, RendererModelForm, metaclass=DisplayModelMetaclass):
 
         inline_template = 'inline_form_chevron.htm'
-        body_template = 'form_body_club_group_member_display.htm'
+        fields_template = 'form_fields_club_group_member_display.htm'
 
         class Meta:
 
@@ -210,6 +257,13 @@ To change field templates one should override `RendererModelForm`_ ``Meta`` clas
                 'role': 'field_items.htm',
                 'note': 'field_items.htm',
             }
+
+Since v2.2.0, it's possible to customize fields layout without altering default form body by overriding:
+
+* either `fields_template`_ form attribute (example above)
+* or ``BootstrapModelForm`` ``Meta`` class `render_fields_cls`_ attribute only (example below).
+
+Custom `fields_template`_ can include non-modelform fields and / or custom :ref:`clientside_components`.
 
 To change formset template, one should set the value of formset class attribute like this::
 
@@ -229,7 +283,8 @@ attributes with the extended classes::
     class MyModelForm(BootstrapModelForm):
 
         class Meta(BootstrapModelForm.Meta):
-            render_body_cls = MyFormBodyRenderer
+            render_fields_cls = MyFormFieldsRenderer
+            # render_body_cls = MyFormBodyRenderer
             # render_inline_cls = MyInlineFormRenderer
             # render_related_cls = MyRelatedFormRenderer
             render_standalone_cls = MyStandaloneFormRenderer

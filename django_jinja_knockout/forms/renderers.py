@@ -61,16 +61,16 @@ def ioc_form_renderer(request, typ, context, obj_kwarg=None, default_cls=None):
             default_cls = get_form_renderer(typ, base.BootstrapModelForm)
         obj_kwarg = default_cls.obj_kwarg
     form = context[obj_kwarg]
-    if '_renderer' not in form:
-        form._renderer = {}
-    if typ in form._renderer:
-        renderer = form._renderer[typ]
+    if 'djk_renderer' not in form:
+        form.djk_renderer = {}
+    if typ in form.djk_renderer:
+        renderer = form.djk_renderer[typ]
         renderer.update_context(context)
         return renderer
     else:
         renderer_cls = get_form_renderer(typ, form, default_cls)
         renderer = renderer_cls(request, context=context)
-        form._renderer[typ] = renderer
+        form.djk_renderer[typ] = renderer
         return renderer
 
 
@@ -153,7 +153,7 @@ class FieldRenderer(tpl.Renderer):
         self.context['classes'] = _classes
 
 
-# The instance is stored into form._renderer['fields']
+# The instance is stored into form.djk_renderer['fields']
 class FormFieldsRenderer(RelativeRenderer):
 
     obj_kwarg = 'form'
@@ -205,7 +205,7 @@ class FormBodyRenderer(RelativeRenderer):
 
     def render_raw(self):
         context = self.get_template_context()
-        return context[self.obj_kwarg]._renderer['fields']()
+        return context[self.obj_kwarg].djk_renderer['fields']()
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -218,7 +218,7 @@ class FormBodyRenderer(RelativeRenderer):
         return context
 
 
-# The instance is stored into form._renderer['related'].
+# The instance is stored into form.djk_renderer['related'].
 class RelatedFormRenderer(RelativeRenderer):
 
     obj_kwarg = 'related_form'
@@ -238,7 +238,7 @@ class RelatedFormRenderer(RelativeRenderer):
 
     def render_raw(self):
         context = self.get_template_context()
-        return context[self.obj_kwarg]._renderer['body']()
+        return context[self.obj_kwarg].djk_renderer['body']()
 
     def get_template_context(self):
         context = super().get_template_context()
@@ -250,7 +250,7 @@ class RelatedFormRenderer(RelativeRenderer):
         return context
 
 
-# The instance is stored info form._renderer['standalone'].
+# The instance is stored info form.djk_renderer['standalone'].
 class StandaloneFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
@@ -259,7 +259,7 @@ class StandaloneFormRenderer(RelatedFormRenderer):
     template = 'form.htm'
 
 
-# The instance is stored into form._renderer['inline'].
+# The instance is stored into form.djk_renderer['inline'].
 class InlineFormRenderer(RelatedFormRenderer):
 
     obj_kwarg = 'form'
@@ -300,6 +300,6 @@ class FormsetRenderer(tpl.Renderer):
     def render_raw(self):
         self.get_template_context()
         output = ''.join([
-            form._renderer['inline']() for form in self.obj
+            form.djk_renderer['inline']() for form in self.obj
         ])
         return mark_safe(output)

@@ -68,7 +68,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Supports Django 2.2 LTS, 3.2 LTS, 4.1; Python 3.9 / 3.10 / 3.11.
+* Supports Django 3.2 LTS, 4.1, 4.2 LTS; Python 3.9 / 3.10 / 3.11.
 
 Please contribute to the localization of the project:
 
@@ -133,6 +133,10 @@ It's not a pure SPA framework, but a mixed approach of server-side pages with em
 scripts. Although it may be used for SPA as well. Classical Web applications aren't "outdated" in any way - because such
 applications are much better indexable by web crawlers, Python is better language than Javascript in general, also
 server-side rendering generally is more robust.
+
+Version 2.2.0
+-------------
+``FormFieldsRenderer`` / ``fields_template`` allows simpler customization of `ModelForm`_ fields layout.
 
 Version 2.1.0
 -------------

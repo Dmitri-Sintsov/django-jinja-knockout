@@ -9,7 +9,7 @@
     'role': 'form'
 }) -%}
 <form{{ tpl.json_flatatt(atts) }}>
-    {{ form._renderer['body']() }}
+    {{ form.djk_renderer['body']() }}
     {% if opts.submit_text is defined -%}
     <button type="submit" class="btn btn-primary">{{ opts.submit_text }}</button>
     {% endif -%}

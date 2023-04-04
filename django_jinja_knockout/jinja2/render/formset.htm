@@ -32,14 +32,14 @@
                             {% set formset_form_class = 'form-optional' -%}
                         {% endif -%}
                     {% endif -%}
-                    {% do form._renderer['inline'].update_context({
+                    {% do form.djk_renderer['inline'].update_context({
                         'action': action,
                         'formset_index': loop.index0,
                         'opts': {
                             'formset_form_class': formset_form_class,
                         }
                     }) -%}
-                    {{ form._renderer['inline']() }}
+                    {{ form.djk_renderer['inline']() }}
                     {% if caller -%}
                         {{ caller({'inline_form_end': form, 'opts': opts}) }}
                     {% endif -%}
