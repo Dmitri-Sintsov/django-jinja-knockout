@@ -37,7 +37,7 @@ class FieldValidator:
             field_filter_type='number',
             form_field_type=None
         ),
-        # Remove when dropping support of Django 2.2:
+        # todo: remove?
         FieldType(
             model_field_type='AutoField',
             field_filter_type='number',
