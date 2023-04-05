@@ -5,6 +5,7 @@ Forms
 .. _ajaxform.js: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/ajaxform.js
 .. _base module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/base.py
 .. _BootstrapModelForm: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=bootstrapmodelform
+.. _djk_sample: https://github.com/Dmitri-Sintsov/djk-sample
 .. _fields_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=fields_template&type=code
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _FieldRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=fieldrenderer
@@ -12,9 +13,15 @@ Forms
 .. _FormBodyRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formbodyrenderer
 .. _FormFieldsRenderer class: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formfieldsrenderer
 .. _FormsetRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=formsetrenderer
+.. _FormViewmodel: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=FormViewmodel&type=code
 .. _forms package: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout/forms
+.. _inline formset: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#inline-formsets
 .. _InlineFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=inlineformrenderer
+.. _InlineViewmodel: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=InlineViewmodel&type=code
+.. _ioc_vm_form(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ioc_vm_form&type=code
+.. _ioc_vm_inline(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ioc_vm_inline&type=code
 .. _layout_classes: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=layout_classes
+.. _ModelForm: https://docs.djangoproject.com/en/dev/topics/forms/modelforms/
 .. _RelatedFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=relatedformrenderer
 .. _renderers module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/renderers.py
 .. _Renderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=renderer&type=code
@@ -25,6 +32,8 @@ Forms
 .. _renderer template samples: https://github.com/Dmitri-Sintsov/djk-sample/tree/master/club_app/jinja2/render
 .. _StandaloneFormRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=standaloneformrenderer
 .. _validators module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/validators.py
+.. _vm_form: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=vm_form&type=code
+.. _vm_inline: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=vm_inline&type=code
 .. _vm_renderers module: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/forms/vm_renderers.py
 
 forms module is split into `forms package`_ with the following submodules:
@@ -646,12 +655,18 @@ In your class-based views.py::
         form_with_inline_formsets = ProjectFormWithInlineFormsets
         template_name = 'project_form.htm'
 
+.. _FormWithInlineFormsets:
+
 FormWithInlineFormsets class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-There is extra step of deriving ``ProjectFormWithInlineFormsets`` from  ``forms.FormWithInlineFormsets`` class because
-that class serves as intermediate layer between form with inline formsets and Django views. Besides class-based views
-(``InlineCreateView``, ``InlineDetailView``, ``FormWithInlineFormsetsMixin``) it can be used in traditional functional
-views as well::
+This class encapsulates zero or one related `ModelForm`_ with zero / one / many related `inline formset`_.
+
+``ProjectFormWithInlineFormsets`` derives from  ``forms.FormWithInlineFormsets`` class that serves as an intermediate
+layer between related form with inline formsets and Django view. It populates form data, validates form, formsets and
+non-form errors for both the related form and the inline formsets, used with traditional and AJAX views.
+
+Besides class-based views (``InlineCreateView``, ``InlineDetailView``, ``FormWithInlineFormsetsMixin``) it can be used
+in traditional functional views as well::
 
     ff = ProjectFormWithInlineFormsets(request, create=True)
     if request.method == 'POST':
@@ -673,3 +688,105 @@ views as well::
             'formsets': ff.formsets,
         })
 
+
+forms vm_renderers module
+-------------------------
+Since v2.2.0, AJAX rendering of `ModelForm`_ and `FormWithInlineFormsets`_ are implemented via separate
+`vm_renderers module`_.
+
+It includes `FormViewmodel`_ and `InlineViewmodel`_ classes, which are used to render forms submitted with
+:ref:`viewmodels_ajax_actions`.
+
+It's possible to override the default rendering of AJAX actions `ModelForm`_ and / or `FormWithInlineFormsets`_ by
+extending `FormViewmodel`_ / `InlineViewmodel`_ classes, then overriding AJAX view's `vm_form`_ / `vm_inline`_
+attributes::
+
+    from django_jinja_knockout.forms.vm_renderers import FormViewmodel
+
+    # ... skipped ...
+
+    class UserChangeFormViewmodel(FormViewmodel):
+
+        def get_action_local_name(self):
+            action_local_name = super().get_action_local_name()
+            action_local_name = f'{action_local_name} user {self.instance}'
+            return action_local_name
+
+        def get_verbose_name(self):
+            verbose_names = model_fields_verbose_names(self.instance)
+            verbose_names['full_name'] = 'Full name'
+            str_fields = self.get_object_desc(self.instance)
+            str_fields['full_name'] = f'{str_fields.pop("first_name", "")} {str_fields.pop("last_name", "")}'.strip()
+            if str_fields['full_name'] == '':
+                del str_fields['full_name']
+            return tpl.print_bs_badges(str_fields, show_keys=1, i18n=verbose_names)
+
+
+    class UserChangeView(ModelFormActionsView):
+
+        form = UserPreferencesForm
+        # Overriding vm_form is optional and is not required:
+        vm_form = UserChangeFormViewmodel
+
+and / or calling AJAX view's `ioc_vm_form()`_ / `ioc_vm_inline()`_ methods, which may be used in custom AJAX form actions::
+
+    class ClubEquipmentGrid(EditableClubGrid):
+
+        # ... skipped ...
+        form = ClubForm
+        form_with_inline_formsets = None
+
+        def get_actions(self):
+            actions = super().get_actions()
+            actions['built_in']['save_equipment'] = {}
+            actions['iconui']['add_equipment'] = {
+                'localName': _('Add club equipment'),
+                'css': 'iconui-wrench',
+            }
+            return actions
+
+        # Creates AJAX ClubEquipmentForm bound to particular Club instance.
+        def action_add_equipment(self):
+            club = self.get_object_for_action()
+            if club is None:
+                return vm_list({
+                    'view': 'alert_error',
+                    'title': 'Error',
+                    'message': 'Unknown instance of Club'
+                })
+            equipment_form = ClubEquipmentForm(initial={'club': club.pk})
+            # Generate equipment_form viewmodel
+            vms = self.ioc_vm_form(
+                form=equipment_form
+            )(
+                form_action='save_equipment'
+            )
+            return vms
+
+In more complex scenarios, calling `ioc_vm_form()`_ / `ioc_vm_inline()`_ in :ref:`viewmodels_ajax_actions` handlers
+allows to specify the source action and / or to override the form action, like this example when one view handles
+different Django models::
+
+    class ClubGrid(KoGridView):
+        form = ClubForm
+        # ... skipped ...
+
+        # Custom action to show bound MemberForm, not ClubForm.
+        def action_edit_owner_form(self):
+            club = self.get_object_for_action()
+            obj = club.member_set.get(role='owner')
+            form = MemberForm(instance=obj)
+            # Generates different model instance AJAX form:
+            return self.ioc_vm_form(
+                form=form,
+                source_action=self.current_action_name,
+                instance=obj,
+            )(
+                form_action='save_owner_form',
+                action_query={
+                    # Saved ModelForm object pk.
+                    'pk_val': obj.pk,
+                }
+            )
+
+See `djk_sample`_ demo project for the complete example.
