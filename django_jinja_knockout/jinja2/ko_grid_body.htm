@@ -147,6 +147,18 @@
 </script>
 {% endif -%}
 
+{% if 'ko_grid_navs_filter_popup' in _include_ids -%}
+<script type="text/template" id="ko_grid_navs_filter_popup">
+    <li data-bind="grid_filter">
+        <ul class="nav nav-tabs">
+            <li data-bind="click: onDropdownClick.bind(gridFilter), css: {'bold': hasActiveChoices()}">
+                <a class="nav-link" data-bind="text: name" href="#"></a>
+            </li>
+        </ul>
+    </li>
+</script>
+{% endif -%}
+
 {% if 'ko_grid_search' in _include_ids -%}
 <script type="text/template" id="ko_grid_search">
     <li class="nav-item">

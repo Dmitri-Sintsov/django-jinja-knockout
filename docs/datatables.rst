@@ -52,6 +52,7 @@ Datatables
 .. _GridRangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridDialog&utf8=%E2%9C%93
 .. _GridRow: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=GridRow&utf8=%E2%9C%93
 .. _KoGridAction: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=KoGridAction&type=Code
+.. _ko_grid_navs_filter_choices: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ko_grid_navs_filter_choices&type=code
 .. _ModelFormDialog: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=JavaScript&q=ModelFormDialog
 .. _pageRouteKwargsKeys: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=pageRouteKwargsKeys&type=code
 .. _pageRouteKwargsKeys example: https://github.com/Dmitri-Sintsov/djk-sample/search?q=pageRouteKwargsKeys&type=code
@@ -365,7 +366,9 @@ mentioned above.
     * ``preloadedMetaList`` - see `'meta list' action preload`_.
     * ``searchPlaceholder`` - text to display when search field is empty.
     * ``separateMeta`` - see `'meta_list' action and custom initial field filters`_.
-    * ``showCompoundKeys`` - boolean, whether the names of compound columns should be displayed;
+    * ``showCompoundKeys`` - boolean, whether the names of `Compound columns`_ should be displayed in the grid cells;
+    * ``showNonSortableColumnNames`` - show sortable column names only, hide non-sortable (non-clickable) column names,
+      to minimize visual clutter for `Compound columns`_ headers
     * ``showSelection`` - enable selection of single rows (one model instance of grid).
     * ``ownerCtrl`` - used internally to embed client-side parts of datatables (grids) into another classes, for example
       into `ForeignKeyGridWidget`_ dialogs and `Foreign key filter`_. The value of this option should be the instance of
@@ -439,9 +442,33 @@ the Javascript :ref:`clientside_entry_points` has to be specified. These entry p
   ``exclude_ids`` argument saves a bit of html removing unused underscore.js templates from the resulting page.
   It is also possible to have multiple grids datatables with different styles of filters at the same page. In such case
   ``exclude_ids`` argument should not be used.
+
+* then, generate grid like this::
+
+    {{
+    ko_grid(
+        grid_options={
+            'pageRoute': view.request.resolver_match.view_name,
+            'pageRouteKwargs': view.kwargs,
+        },
+        dom_attrs={
+            'data-template-options': {
+                'templates': {
+                    'ko_grid_filter_choices': 'ko_grid_breadcrumb_filter_choices',
+                    'ko_grid_filter_popup': 'ko_grid_breadcrumb_filter_popup',
+                }
+            },
+        }
+    )
+    }}
+
   There is `cbv_grid_breadcrumbs.htm`_ Jinja2 macro that could be used as ``template_name`` value of ``KoGridView``
   derived grid class attribute to use breadcrumb-style filters. See sample project `club_app.views_ajax`_ for the
   example.
+
+* Since v2.2.0, Bootstrap navs style of Grid filter choices are available: `ko_grid_navs_filter_choices`_ /
+  ``ko_grid_navs_filter_popup``.
+
 
 ==================
 Grid configuration
@@ -2802,8 +2829,15 @@ providing custom list of ``highlightModeRules`` values in overridden (inherited)
 Traditional (non-AJAX) request `views.list.ListSortingView`_ also supports ``highlight_mode`` attribute with similar
 highlighting settings, but no dynamical change of current highlight mode.
 
+Action type 'button_pagination'
+-------------------------------
+Actions of ``button_pagination`` type are similar to `Action type 'button'`_ but they are displayed in the grid footer
+together with `Action type 'pagination'`_ controls.
+
+There are no built-in actions of this type, they are implemented for end-user convenience.
+
 Action type 'iconui'
------------------------
+--------------------
 These actions are designed to process already displayed grid (datatable) row, associated to existing Django model. Their
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
 are visually displayed as iconui links in separate columns of grid.

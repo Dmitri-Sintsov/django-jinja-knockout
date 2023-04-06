@@ -5,6 +5,7 @@ django-jinja-knockout
 .. _custom elements: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/elements.js
 .. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
 .. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
+.. _button_pagination: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=button_pagination&type=code
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _Bootstrap 5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
@@ -15,13 +16,16 @@ django-jinja-knockout
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _es6 modules: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+.. _fields_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=fields_template
 .. _FilteredRawQuerySet: https://django-jinja-knockout.readthedocs.io/en/latest/query.html#filteredrawqueryset
 .. _ForeignKeyGridWidget: https://django-jinja-knockout.readthedocs.io/en/latest/widgets.html#foreignkeygridwidget
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
+.. _FormFieldsRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=FormFieldsRenderer
 .. _get_absolute_url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_absolute_url
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
+.. _ko_grid_navs_filter_choices: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ko_grid_navs_filter_choices&type=code
 .. _ListView: https://docs.djangoproject.com/en/dev/ref/class-based-views/generic-display/#listview
 .. _ListRangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=ListRangeFilter&type=code
 .. _ListSortingView: https://django-jinja-knockout.readthedocs.io/en/latest/views.html#listsortingview
@@ -136,7 +140,16 @@ server-side rendering generally is more robust.
 
 Version 2.2.0
 -------------
-``FormFieldsRenderer`` / ``fields_template`` allows simpler customization of `ModelForm`_ fields layout.
+`FormFieldsRenderer`_ / `fields_template`_ allows fine-grained customization of `ModelForm`_ fields layout.
+
+Load ``jQuery.form`` / ``Moment.js`` / Bootstrap Datetimepicker as `es6 modules`_, which may be included into
+`django_deno`_ generated bundle.
+
+Additional `KoGridView`_ client-side layout options:
+
+* Bootstrap navs style of Grid filter choices: `ko_grid_navs_filter_choices`_
+* ``showNonSortableColumnNames`` option
+* `button_pagination`_ built-in action type
 
 Version 2.1.0
 -------------
