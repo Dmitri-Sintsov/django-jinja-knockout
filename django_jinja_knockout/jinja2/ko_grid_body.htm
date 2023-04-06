@@ -114,7 +114,7 @@
             <li class="bold"><a class="nav-link" data-bind="text: name"></a></li>
              <!-- ko foreach: {data: choices, as: 'filterChoice'} -->
             <li data-bind="css: {active: is_active()}">
-                <a data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind(filterChoice)" name="#"></a>
+                <a class="nav-link" data-bind="css: {bold: is_active()}, text: name, grid_filter_choice, click: onLoadFilter.bind(filterChoice)" name="#"></a>
             </li>
             <!-- /ko -->
         </ul>
