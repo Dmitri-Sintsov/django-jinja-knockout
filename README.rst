@@ -2,6 +2,7 @@
 django-jinja-knockout
 =====================
 
+.. _Compound columns: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#compound-columns
 .. _custom elements: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/elements.js
 .. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
 .. _renderNestedList: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#nested-verbose-field-names
@@ -150,6 +151,8 @@ Additional `KoGridView`_ client-side layout options:
 * Bootstrap navs style of Grid filter choices: `ko_grid_navs_filter_choices`_
 * ``showNonSortableColumnNames`` option
 * `button_pagination`_ built-in action type
+
+`Nested components`_ are supported in Grid cells, including the cells of `Compound columns`_.
 
 Version 2.1.0
 -------------
