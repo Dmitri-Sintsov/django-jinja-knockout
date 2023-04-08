@@ -94,6 +94,7 @@ Datatables
 .. _last_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=last_action&type=code
 .. _callback_action: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=callback_action
 .. _getLastActionUrl(): https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=getLastActionUrl
+.. _useInitClient: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=useInitClient&type=code
 
 .. _discover_grid_options: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?utf8=%E2%9C%93&q=discover_grid_options
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
@@ -385,6 +386,11 @@ mentioned above.
       implementation for example.
     * ``vScrollPage`` - whether datatable with ``"template_args":`` ``{`` ``"vscroll"``: ``true`` ``}`` should have it's
       rows scrolled to the top after each page load; by default is ``True``.
+    * ``useInitClient`` - default value is ``null`` indicates use GridRow `useInitClient`_ value:
+
+      * 0 - do not expand templates
+      * 1 - transform bs attributes
+      * 2 - full initClient
 
 * Optional ``template_args`` argument is passed as ``data-template-args`` attribute to `underscore.js template`_,
   which is then used to alter visual layout of grid. In our case we assume that rows of ``club_app.Club`` may be
@@ -796,7 +802,8 @@ templates, partially covered in modifying_visual_layout_of_grid_)::
 
     (function(MemberGridRow) {
 
-        MemberGridRow.useInitClient = true;
+       // 0 - do not expand templates, 1 - transform bs attributes, 2 - full initClient
+        MemberGridRow.useInitClient = 2;
 
         MemberGridRow.display = function(field) {
             var displayValue = this._super._call('display', field);

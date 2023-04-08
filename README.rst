@@ -46,6 +46,7 @@ django-jinja-knockout
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _terser: https://terser.org
 .. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
+.. _UrlSearchParams: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
 
 .. image:: https://badge.fury.io/py/django-jinja-knockout.png
@@ -146,6 +147,8 @@ Version 2.2.0
 Load ``jQuery.form`` / ``Moment.js`` / Bootstrap Datetimepicker as `es6 modules`_, which may be included into
 `django_deno`_ generated bundle.
 
+``QueryString`` wrapper for `UrlSearchParams`_.
+
 Additional `KoGridView`_ client-side layout options:
 
 * Bootstrap navs style of Grid filter choices: `ko_grid_navs_filter_choices`_
@@ -153,6 +156,8 @@ Additional `KoGridView`_ client-side layout options:
 * `button_pagination`_ built-in action type
 
 `Nested components`_ are supported in Grid cells, including the cells of `Compound columns`_.
+
+Various bugfixes.
 
 Version 2.1.0
 -------------
