@@ -2892,11 +2892,15 @@ or disabled per grid class - if one considers to check the user permissions::
         model = Manufacturer
         form = ManufacturerForm
 
+        # General built-in 'delete' / 'delete_confirmed' rights.
+        def get_enable_deletion(self):
+            return self.request.user.has_perm('club_app.delete_manufacturer')
+
+        # Not required, just an example of setting custom rights
         def get_actions(self):
-            enable_deletion = self.request.user.has_perm('club_app.delete_manufacturer')
             actions = super().get_actions()
-            actions['iconui']['delete']['enabled'] = enable_deletion
-            actions['built_in']['delete_confirmed']['enabled'] = enable_deletion
+            # Only enable to create new rows when the deletion is enabled.
+            actions['button']['create_form']['enabled'] = actions['built_in']['delete_confirmed']['enabled']
             return actions
 
 `views.KoGridView`_ has built-in support permission checking of deletion rights for selected rows lists / querysets.
@@ -2904,14 +2908,22 @@ See `'delete_confirmed' action`_ for the primer of checking delete permissions p
 
 The action itself is defined in `views.GridActionsMixin`_ class::
 
-        OrderedDict([
-            # Delete one or many model object.
-            ('delete', {
-                'localName': _('Remove'),
-                'css': 'iconui-remove',
-                'enabled': self.enable_deletion
-            })
-        ])
+        enable_deletion = self.get_enable_deletion()
+        return {
+            'built_in': OrderedDict([
+                ('delete_confirmed', {
+                    'enabled': enable_deletion
+                })
+            ]),
+            'iconui': OrderedDict([
+                # Delete one or many model object.
+                ('delete', {
+                    'localName': _('Remove'),
+                    'css': 'iconui-remove',
+                    'enabled': enable_deletion
+                })
+            ]),
+        }
 
 See `Implementing custom grid row actions`_ section how to implement custom actions of ``'click'`` and ``'iconui'``
 types.

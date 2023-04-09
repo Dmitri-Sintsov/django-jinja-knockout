@@ -45,6 +45,7 @@ django-jinja-knockout
 .. _SystemJS: https://github.com/systemjs/systemjs
 .. _TemplateResponse: https://docs.djangoproject.com/en/dev/ref/template-response/
 .. _terser: https://terser.org
+.. _Tpl.domTemplate: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=domTemplate&type=code
 .. _UrlPath: https://github.com/Dmitri-Sintsov/djk-sample/search?l=Python&q=UrlPath
 .. _UrlSearchParams: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
 .. _viewmodels: https://django-jinja-knockout.readthedocs.io/en/latest/viewmodels.html
@@ -156,6 +157,8 @@ Additional `KoGridView`_ client-side layout options:
 * `button_pagination`_ built-in action type
 
 `Nested components`_ are supported in Grid cells, including the cells of `Compound columns`_.
+
+`Tpl.domTemplate`_ optional template kwargs support.
 
 Various bugfixes.
 
