@@ -21,6 +21,9 @@
 .. _ModelFormActionsView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ModelFormActionsView
 .. _NavsList: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=NavsList
 .. _RangeFilter: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=RangeFilter&type=code
+.. _request_get: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=request_get&type=code
+.. _request_get_int: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=request_get_int&type=code
+.. _request_get_json: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=request_get_json&type=code
 .. _settings.py: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/djk_sample/settings.py
 .. _set_knockout_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=set_knockout_template
 .. _ViewmodelView: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=ViewmodelView
@@ -34,6 +37,7 @@ Inheritance hierarchy
 Version 1.0.0:
 
 * ``PageContextMixin(TemplateResponseMixin, ContextMixin, View):`` - provides :ref:`PageContext (page_context)`;
+  Also includes `request_get`_ / `request_get_int`_ / `request_get_json`_ helper methods.
 * ``ViewmodelView(TemplateResponseMixin, ContextMixin, View)`` - render component templates and process viewmodels
   response (see :doc:`viewmodels`);
 
