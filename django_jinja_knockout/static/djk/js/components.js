@@ -1,6 +1,74 @@
 import { sprintf } from './lib/sprintf-esm.js';
 
+import { propGet } from './prop.js';
 import { componentIoc } from './ioc.js';
+
+
+function ComponentDescriptor(options) {
+
+    this.init(options);
+
+} void function(ComponentDescriptor) {
+
+    ComponentDescriptor.init = function(options) {
+        this.component = propGet(options, 'component');
+        this.event = propGet(options, 'event');
+    };
+
+    ComponentDescriptor.setHandler = function(components, componentManager) {
+        var self = this;
+        var $selector = componentManager.getSelector();
+        this.handler = function(event) {
+            try {
+                // Re-use already bound component, if any.
+                var component = components.get($selector);
+                component.runComponent($selector, event);
+            } catch (e) {
+                self.component = components.create($selector);
+                if (self.component !== null) {
+                    components.run(self, componentManager);
+                }
+            }
+        };
+        if (this.component !== null) {
+            $selector.on(this.event, this.handler);
+        }
+    };
+
+    ComponentDescriptor.run = function($selector) {
+        if (typeof this.component.runComponent === 'function') {
+            this.component.runComponent($selector);
+        } else {
+            throw new Error(
+                $selector.data('componentClass') + ' component should have runComponent($selector) method defined'
+            );
+        }
+    };
+
+    ComponentDescriptor.resolve = function($selector) {
+        var self = this;
+        if (this.component instanceof Promise) {
+            /**
+             * // For modern browsers:
+             * this.component = await this.component;
+             */
+            this.component.then(function(resolve) {
+                self.component = resolve;
+                self.run($selector);
+            });
+        } else {
+            self.run($selector);
+        }
+    };
+
+    ComponentDescriptor.unbind = function($selector) {
+        if (typeof this.event !== 'undefined') {
+            $selector.unbind(this.event, this.handler);
+        }
+    };
+
+}(ComponentDescriptor.prototype);
+
 
 /**
  * Nested components support.
@@ -139,18 +207,7 @@ function Components() {
         cm.each(function(k, elem) {
             self.bind(desc, elem, freeIdx);
         });
-        if (desc.component instanceof Promise) {
-            /**
-             * // For modern browsers:
-             * desc.component = await desc.component;
-             */
-            desc.component.then(function(resolve) {
-                desc.component = resolve;
-                desc.component.runComponent(cm.$selector);
-            });
-        } else {
-            desc.component.runComponent(cm.$selector);
-        }
+        desc.resolve(cm.$selector);
         cm.reattachNestedComponents();
     };
 
@@ -161,27 +218,17 @@ function Components() {
         var $selector = cm.getSelector();
         cm.detachNestedComponents();
         if (typeof evt === 'undefined') {
-            desc = {'component': this.create(elem)};
+            desc = new ComponentDescriptor({
+                component: this.create(elem),
+            });
             if (desc.component !== null) {
                 this.run(desc, cm);
             }
         } else {
-            desc = {'event': evt};
-            desc.handler = function(event) {
-                try {
-                    // Re-use already bound component, if any.
-                    var component = self.get(elem);
-                    component.runComponent($selector, event);
-                } catch (e) {
-                    desc.component = self.create(elem);
-                    if (desc.component !== null) {
-                        self.run(desc, cm);
-                    }
-                }
-            };
-            if (desc.component !== null) {
-                $selector.on(desc.event, desc.handler);
-            }
+            desc = new ComponentDescriptor({
+                event: evt,
+            })
+            desc.setHandler(this, cm);
         }
     };
 
@@ -223,9 +270,7 @@ function Components() {
             }
             $(elem).removeData('componentIdx');
         });
-        if (typeof desc.event !== 'undefined') {
-            $selector.unbind(desc.event, desc.handler);
-        }
+        desc.unbind($selector);
         if (component !== undefined) {
             if (typeof component.removeComponent !== 'undefined') {
                 component.removeComponent($selector);
