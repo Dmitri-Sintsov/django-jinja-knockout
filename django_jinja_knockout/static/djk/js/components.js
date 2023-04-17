@@ -227,7 +227,7 @@ function Components() {
         } else {
             desc = new ComponentDescriptor({
                 event: evt,
-            })
+            });
             desc.setHandler(this, cm);
         }
     };
