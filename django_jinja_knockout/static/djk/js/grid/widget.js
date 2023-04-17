@@ -97,17 +97,11 @@ function FkGridWidget(options) {
     FkGridWidget.applyBindings = function(selector) {
         var self = this;
         this.componentSelector = $(selector);
-        this.componentSelector.each(function(k, v) {
-            ko.applyBindings(self, v);
-        });
+        ko.applySelector(this);
     };
 
     FkGridWidget.cleanBindings = function() {
-        if (this.componentSelector) {
-            this.componentSelector.each(function(k, v) {
-                ko.cleanNode(v);
-            });
-        }
+        ko.cleanSelector(this);
     };
 
     FkGridWidget.runComponent = function($selector) {

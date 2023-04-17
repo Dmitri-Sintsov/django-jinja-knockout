@@ -50,6 +50,28 @@ function useKo(ko) {
         });
     };
 
+    // Sparse bindings support.
+    ko.applySelector = function(component, selector) {
+        if (typeof selector === 'undefined') {
+            selector = component.componentSelector;
+        }
+        $(selector).each(function(k, rootNode) {
+            ko.applyBindings(component, rootNode);
+        });
+    };
+
+    // Sparse bindings support.
+    ko.cleanSelector = function(component, selector) {
+        if (typeof selector === 'undefined') {
+            selector = component.componentSelector;
+        }
+        if (typeof selector !== 'undefined') {
+            $(selector).each(function(k, rootNode) {
+                ko.cleanNode(rootNode);
+            });
+        }
+    };
+
     /**
      * Use in knockout.js binding handlers that support virtual elements to get real bound DOM element.
         update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {

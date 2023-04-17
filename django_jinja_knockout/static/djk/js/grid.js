@@ -190,20 +190,14 @@ function Grid(options) {
     Grid.applyBindings = function(selector) {
         var self = this;
         this.componentSelector = $(selector);
-        this.componentSelector.each(function(k, v) {
-            ko.applyBindings(self, v);
-        });
+        ko.applySelector(this);
     };
 
     Grid.cleanBindings = function() {
         ko.utils.arrayForEach(this.gridFilters(), function(koFilter) {
             koFilter.cleanBindings();
         });
-        if (this.componentSelector) {
-            this.componentSelector.each(function(k, v) {
-                ko.cleanNode(v);
-            });
-        }
+        ko.cleanSelector(this);
     };
 
     Grid.runComponent = function($selector) {

@@ -95,17 +95,11 @@ function AbstractGridFilter(options) {
     AbstractGridFilter.applyBindings = function(selector) {
         var self = this;
         this.selector = $(selector);
-        this.selector.each(function(k, v) {
-            ko.applyBindings(self, v);
-        });
+        ko.applySelector(this, this.selector);
     };
 
     AbstractGridFilter.cleanBindings = function() {
-        if (this.selector) {
-            this.selector.each(function(k, v) {
-                ko.cleanNode(v);
-            });
-        }
+        ko.cleanSelector(this, this.selector);
     };
 
     AbstractGridFilter.setDropdownElement = function($element) {
