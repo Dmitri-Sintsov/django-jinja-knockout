@@ -1,4 +1,5 @@
-/*! js-cookie v3.0.0-rc.1 | MIT */
+/*! js-cookie v3.0.1 | MIT */
+/* eslint-disable no-var */
 function assign (target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i];
@@ -8,9 +9,14 @@ function assign (target) {
   }
   return target
 }
+/* eslint-enable no-var */
 
+/* eslint-disable no-var */
 var defaultConverter = {
   read: function (value) {
+    if (value[0] === '"') {
+      value = value.slice(1, -1);
+    }
     return value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent)
   },
   write: function (value) {
@@ -20,6 +26,9 @@ var defaultConverter = {
     )
   }
 };
+/* eslint-enable no-var */
+
+/* eslint-disable no-var */
 
 function init (converter, defaultAttributes) {
   function set (key, value, attributes) {
@@ -39,8 +48,6 @@ function init (converter, defaultAttributes) {
     key = encodeURIComponent(key)
       .replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent)
       .replace(/[()]/g, escape);
-
-    value = converter.write(value, key);
 
     var stringifiedAttributes = '';
     for (var attributeName in attributes) {
@@ -64,7 +71,8 @@ function init (converter, defaultAttributes) {
       stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
     }
 
-    return (document.cookie = key + '=' + value + stringifiedAttributes)
+    return (document.cookie =
+      key + '=' + converter.write(value, key) + stringifiedAttributes)
   }
 
   function get (key) {
@@ -80,12 +88,8 @@ function init (converter, defaultAttributes) {
       var parts = cookies[i].split('=');
       var value = parts.slice(1).join('=');
 
-      if (value[0] === '"') {
-        value = value.slice(1, -1);
-      }
-
       try {
-        var foundKey = defaultConverter.read(parts[0]);
+        var foundKey = decodeURIComponent(parts[0]);
         jar[foundKey] = converter.read(value, foundKey);
 
         if (key === foundKey) {
@@ -125,5 +129,6 @@ function init (converter, defaultAttributes) {
 }
 
 var api = init(defaultConverter, { path: '/' });
+/* eslint-enable no-var */
 
 export default api;
