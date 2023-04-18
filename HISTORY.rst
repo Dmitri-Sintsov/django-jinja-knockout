@@ -369,7 +369,7 @@ Alternative breadcrumbs layout of field filters widgets.
 -----
 * ``FormFieldsRenderer`` / ``fields_template`` to customize ``ModelForm`` fields layout.
 * ``ListQuerySet`` implemented ``.delete()`` method and most common ``aggregate`` functions: ``Count``, ``Min``,
-``Max``, ``Sum``.
+  ``Max``, ``Sum``.
 * Load ``jQuery.form`` / ``Moment.js`` / Bootstrap Datetimepicker as ``es6 modules``.
 * ``QueryString`` wrapper for ``UrlSearchParams``.
 * Bootstrap navs style of Grid filter choices: ``ko_grid_navs_filter_choices``.
