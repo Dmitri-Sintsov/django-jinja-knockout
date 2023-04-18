@@ -236,7 +236,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * Implemented ``App.propByPath`` which is now used to load Javascript object specified for ``App.renderNestedList`` as
   ``options.blockTags`` string. That allows to pass Javascript path string as ``options.blockTags`` via server-side AJAX
   response.
-  ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels suppports this functionality when ``message`` option
+  ``App.Dialog`` class, ``'alert'`` / ``'alert_error'`` viewmodels supports this functionality when ``message`` option
   has ``object`` type value.
 * ``App.objByPath`` / ``App.newClassByPath`` is used by ``App.Tpl`` class factories.
 * ``App.ko.Grid.iocKoFilter_*`` methods now are orthogonal thus are easier to override.
@@ -254,7 +254,7 @@ Alternative breadcrumbs layout of field filters widgets.
   for missing ``auto_id`` values and better support for multiple error messages per field.
 * `contenttypes`_: Create content types / user groups / user permissions / Django model migration seeds. For the example
   of seeds, see `djk_seed`_ Django management command.
-* ``FormWithInlineFormsets`` supports form auto_id prefix and optional customizeable form / formset constructor kwargs.
+* ``FormWithInlineFormsets`` supports form auto_id prefix and optional customizable form / formset constructor kwargs.
 * ``json_validators`` module is renamed into `validators`_, which implements generic ``ViewmodelValidator`` class to
   validate AJAX submitted form input and to return error viewmodels when needed.
 * ``DjkJSONEncoder`` serializes lazy strings to prevent json serialization errors.
@@ -364,3 +364,17 @@ Alternative breadcrumbs layout of field filters widgets.
 * ``Bootstrap 5`` compatibility.
 * ``ObjDict`` Django model serializer with built-in field permissions check.
 * ``get_absolute_url`` with optional user permission check.
+
+2.2.0
+-----
+* ``FormFieldsRenderer`` / ``fields_template`` to customize ``ModelForm`` fields layout.
+* ``ListQuerySet`` implemented ``.delete()`` method and most common ``aggregate`` functions: ``Count``, ``Min``,
+``Max``, ``Sum``.
+* Load ``jQuery.form`` / ``Moment.js`` / Bootstrap Datetimepicker as ``es6 modules``.
+* ``QueryString`` wrapper for ``UrlSearchParams``.
+* Bootstrap navs style of Grid filter choices: ``ko_grid_navs_filter_choices``.
+* ``Grid`` ``showNonSortableColumnNames`` option.
+* ``Grid`` ``button_pagination`` built-in action type.
+* Nested components are supported in ``Grid`` cells, including the cells of compound columns.
+* ``Tpl.domTemplate`` optional template kwargs support.
+* ``djk_bootstrap5`` now uses native ``Bootstrap Icons`` font for ``iconui`` actions.

@@ -4,6 +4,12 @@ Datatables
 
 .. _contenttypes framework: https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
 .. _django.contrib.admin.widgets: https://github.com/django/django/blob/master/django/contrib/admin/widgets.py
+.. _djk_bootstrap3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
+.. _djk_bootstrap4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
+.. _djk_bootstrap5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
+.. _Bootstrap Icons: https://icons.getbootstrap.com/
+.. _Font Awesome: https://fontawesome.com/search?m=free&o=r
+.. _Glyphicons: https://getbootstrap.com/docs/3.4/components/
 
 .. _the source code: https://github.com/Dmitri-Sintsov/django-jinja-knockout/tree/master/django_jinja_knockout
 .. _the sample project code: https://github.com/Dmitri-Sintsov/djk-sample/
@@ -2847,13 +2853,19 @@ Action type 'iconui'
 --------------------
 These actions are designed to process already displayed grid (datatable) row, associated to existing Django model. Their
 implementation is very similar to `Action type 'button'`_, but instead of clicking at any place of row, these actions
-are visually displayed as iconui links in separate columns of grid.
+are visually displayed as `iconui`_ links in separate columns of grid.
 
-iconui actions are rendered in the single column of datatable, instead of each action per column for better utilization
-of the display space.
+Visually, `iconui`_ uses the following fonts for each of the supported Bootstrap version:
 
-By default there is no ``iconui`` type actions enabled. But there is one standard action of such type implemented
-for ``KoGridView``: `'delete' action`_.
+* `djk_bootstrap3`_ uses `Glyphicons`_
+* `djk_bootstrap4`_ uses `Font Awesome`_
+* `djk_bootstrap5`_ uses `Bootstrap Icons`_
+
+`iconui`_ actions are rendered in the single column of datatable, instead of each action per column for better
+utilization of the display space.
+
+By default there is no `iconui`_ type actions enabled. But there is one standard action of such type implemented for
+``KoGridView``: `'delete' action`_.
 
 'delete' action
 ~~~~~~~~~~~~~~~

@@ -11,11 +11,13 @@ django-jinja-knockout
 .. _Bootstrap 3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _Bootstrap 4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _Bootstrap 5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
+.. _Bootstrap Icons: https://icons.getbootstrap.com/
 .. _data-bind: https://knockoutjs.com/documentation/binding-syntax.html
 .. _datatables: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html
 .. _django_deno: https://github.com/Dmitri-Sintsov/django-deno
 .. _django-jinja-knockout python localization: https://poeditor.com/join/project/9hqQrFEdDM
 .. _django-jinja-knockout javascript localization: https://poeditor.com/join/project/049HWzP3eb
+.. _djk_bootstrap5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
 .. _empty_form: https://docs.djangoproject.com/en/dev/topics/forms/formsets/#empty-form
 .. _es6 modules: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 .. _fields_template: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=fields_template
@@ -24,6 +26,7 @@ django-jinja-knockout
 .. _ForeignKeyRawIdWidget: https://github.com/django/django/search?l=Python&q=ForeignKeyRawIdWidget
 .. _FormFieldsRenderer: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=FormFieldsRenderer
 .. _get_absolute_url: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?l=Python&q=get_absolute_url
+.. _iconui: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#action-type-iconui
 .. _Jinja2: http://jinja.pocoo.org/docs/dev/
 .. _kiwnix: https://github.com/Dmitri-Sintsov/django-jinja-knockout/commits?author=kiwnix
 .. _Knockout.js: http://knockoutjs.com/
@@ -146,7 +149,7 @@ Version 2.2.0
 -------------
 `FormFieldsRenderer`_ / `fields_template`_ allows fine-grained customization of `ModelForm`_ fields layout.
 
-`ListQuerySet`_ now has basic support of ``.delete()`` method and most common ``aggregate`_ functions: ``Count``,
+`ListQuerySet`_ now has basic support of ``.delete()`` method and most common `aggregate`_ functions: ``Count``,
 ``Min``, ``Max``, ``Sum``.
 
 Load ``jQuery.form`` / ``Moment.js`` / Bootstrap Datetimepicker as `es6 modules`_, which may be included into
@@ -163,6 +166,8 @@ Additional `KoGridView`_ client-side layout options:
 `Nested components`_ are supported in Grid cells, including the cells of `Compound columns`_.
 
 `Tpl.domTemplate`_ optional template kwargs support.
+
+`djk_bootstrap5`_ now uses native `Bootstrap Icons`_ font for `iconui`_ actions.
 
 Various bugfixes.
 
