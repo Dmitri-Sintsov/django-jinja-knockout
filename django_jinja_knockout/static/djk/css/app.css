@@ -35,8 +35,8 @@ body {
 }
 
 .href-target:target {
-	border: 2px solid Aquamarine;
-	background-color: Aquamarine;
+	border: 1px solid #ccc;
+	background-color: #f5f5f5;
 }
 
 .nav-main {
