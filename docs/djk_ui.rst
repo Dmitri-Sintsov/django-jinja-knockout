@@ -32,7 +32,7 @@ on the fly, so that's not much of problem.
 
 conf.py
 -------
-Contains the default ``layout_classes`` values, for example for Bootstrap 5 (version 2.1.0)::
+Contains the default ``layout_classes`` values, for example for Bootstrap 5 (version 2.2.0)::
 
     LAYOUT_CLASSES = {
         '': {

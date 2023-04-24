@@ -11,10 +11,7 @@ import sys
 
 import django_jinja_knockout
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_namespace_packages
 
 version = django_jinja_knockout.__version__
 
@@ -49,6 +46,11 @@ with open('requirements.txt', 'r') as f:
         ] if s != ''
     ]
 
+packages = find_namespace_packages(
+    where='.',
+    include=['django_jinja_knockout', 'django_jinja_knockout.*']
+)
+
 setup(
     name='django-jinja-knockout',
     version=version,
@@ -58,9 +60,7 @@ setup(
     author='Dmitriy Sintsov',
     author_email='questpc256@gmail.com',
     url='https://github.com/Dmitri-Sintsov/django-jinja-knockout',
-    packages=[
-        'django_jinja_knockout',
-    ],
+    packages=packages,
     include_package_data=True,
     install_requires=install_reqs,
     license="LGPL-3.0",
