@@ -87,10 +87,18 @@ bundling app should be used. It also has optional `terser`_ support. There is sa
         'allauth.socialaccount',
     ]
 
+    DENO_ENABLE = True
+    DENO_DEBUG = False
+    DENO_USE_VENDOR = True
+    DENO_RELOAD = False
+    DENO_CHECK_LOCK_FILE = True
+
     DENO_ROLLUP_ENTRY_POINTS = [
         'sample/js/app.js',
         'sample/js/club-grid.js',
+        'sample/js/icon-test.js',
         'sample/js/member-grid.js',
+        'sample/js/tooltips-grid.js',
     ]
 
     DENO_ROLLUP_BUNDLES = {
@@ -115,10 +123,6 @@ bundling app should be used. It also has optional `terser`_ support. There is sa
     DENO_ROLLUP_COLLECT_OPTIONS = {
         'terser': True,
     }
-
-    DENO_ENABLE = True
-    DENO_DEBUG = False
-    DENO_RELOAD = False
 
 Old browsers such as IE11 will use bundled `system.js`_ loader. Note that modern browsers do not require any bundling
 at all, however could benefit from optional generating terser-optimized es6 bundles.

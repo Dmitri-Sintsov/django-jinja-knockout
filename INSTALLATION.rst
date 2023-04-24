@@ -132,6 +132,8 @@ Add ``DJK_APPS`` (if there is any) and ``django_jinja_knockout`` to `INSTALLED_A
 `django_deno`_ may be included to ``OPTIONAL_APPS`` to provide `es6 modules`_ / `terser`_ / `SystemJS`_ support via
 `deno rollup`_. See sample project `settings.py`_ for the example of actual `django_deno`_ configuration.
 
+See :ref:`clientside_es6_module_loader` for more info.
+
 `django-allauth`_ support is not mandatory but optional; just remove the following apps from `INSTALLED_APPS`_ in case
 you do not need it::
 
