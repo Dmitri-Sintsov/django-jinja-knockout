@@ -30,17 +30,16 @@ from .tpl import reverseq, escape_css_selector
 
 
 """
-Selenium tests may require Firefox ESR because Ubuntu sometimes updates Firefox to newer version
-than currently installed Selenium supports.
+Ubuntu 22.04 Firefox from snap may fail to execute selenium tests with external geckodriver.
+To use Mozilla ppa firefox:
+# https://www.linuxcapable.com/how-to-install-firefox-beta-nightly-on-ubuntu-linux/
 
-Here is the example of installing Firefox ESR in Ubuntu 14.04:
-
-apt-get remove firefox
-wget http://ftp.mozilla.org/pub/firefox/releases/45.4.0esr/linux-x86_64/en-US/firefox-45.4.0esr.tar.bz2
-tar -xvjf firefox-45.4.0esr.tar.bz2 -C /opt
-ln -s /opt/firefox/firefox /usr/bin/firefox
-
-Do not forget to update to latest ESR when running the tests.
+snap disable firefox
+apt autoremove firefox --purge -y
+sudo apt install software-properties-common apt-transport-https -y
+sudo add-apt-repository ppa:mozillateam/firefox-next -y
+apt update
+apt install firefox firefox-geckodriver
 """
 
 
@@ -478,11 +477,13 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
         return self.context
 
     def _scroll_to_element(self):
-        # if self.testcase.webdriver_name == 'selenium.webdriver.firefox.webdriver':
+        self.selenium.execute_script("arguments[0].scrollIntoView();", self.context.element)
+        """
         element_location = self.context.element.location
         self.selenium.execute_script(
             f"window.scrollTo({element_location['x']}, {element_location['y']})"
         )
+        """
         return self.context
 
     def get_attributes(self):
@@ -510,7 +511,7 @@ class SeleniumQueryCommands(BaseSeleniumCommands):
             'arguments[0].click();', self.context.element
         )
         """
-        print(f'Clicked element: {self.context.element.tag_name} {self.get_attributes()}')
+        # print(f'Clicked element: {self.context.element.tag_name} {self.get_attributes()}')
         self.context.element.click()
 
         return self.context
