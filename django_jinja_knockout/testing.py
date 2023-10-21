@@ -663,7 +663,16 @@ class DjkTestCase(StaticLiveServerTestCase):
         # DJK_WEBDRIVER='selenium.webdriver.phantomjs.webdriver' ./manage.py test
         cls.webdriver_name = os.environ.get('DJK_WEBDRIVER', cls.DEFAULT_WEBDRIVER)
         webdriver_module = import_module(cls.webdriver_name)
-        return webdriver_module.WebDriver()
+        driver_kwargs = {}
+        if 'chromium' in cls.webdriver_name:
+            # https://github.com/jsoma/selenium-github-actions/blob/main/scraper.py
+            from webdriver_manager.chrome import ChromeDriverManager
+            from webdriver_manager.core.os_manager import ChromeType
+            from selenium.webdriver.chrome.service import Service
+            driver_kwargs['service_kwargs'] = {
+                'executable_path': ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+            }
+        return webdriver_module.WebDriver(**driver_kwargs)
 
     def get_saved_fixtures(self):
         fixture_dir = settings.FIXTURE_DIRS[0]
