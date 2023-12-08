@@ -2,7 +2,6 @@ import json
 from collections import OrderedDict
 from functools import wraps
 from urllib.parse import urlparse
-from ensure import ensure_annotations
 
 from django.core.exceptions import ValidationError, FieldError
 from django.conf import settings
@@ -222,20 +221,16 @@ class ViewmodelView(TemplateResponseMixin, ContextMixin, View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    @ensure_annotations
     def process_error_viewmodel(self, viewmodel: dict):
         viewmodel.setdefault('view', 'alert_error')
 
-    @ensure_annotations
     def process_error_vm_list(self, vms: vm_list):
         for vm in vms:
             self.process_error_viewmodel(vm)
 
-    @ensure_annotations
     def process_success_viewmodel(self, viewmodel: dict):
         viewmodel.setdefault('view', 'alert')
 
-    @ensure_annotations
     def process_success_vm_list(self, vms: vm_list):
         for vm in vms:
             self.process_success_viewmodel(vm)

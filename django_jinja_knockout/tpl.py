@@ -7,7 +7,6 @@ import pytz
 import lxml.html
 from lxml import etree
 from jinja2 import Undefined, DebugUndefined
-from ensure import ensure_annotations
 from datetime import date, datetime
 from urllib.parse import urlencode
 
@@ -53,13 +52,11 @@ def limitstr(value, maxlen=50, suffix='...'):
 
 
 # Insert separator to s between each specified left to right.
-@ensure_annotations
 def repeat_insert(s: str, separator: str = ' ', each: int = 3):
     return ' '.join(s[i:i + each] for i in range(0, len(s), each))
 
 
 # Insert separator to s between each specified right to left.
-@ensure_annotations
 def repeat_insert_rtl(s: str, separator: str = ' ', each: int = 3):
     reversed_insert = repeat_insert(s[::-1], separator, each)
     return reversed_insert[::-1]

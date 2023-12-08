@@ -1,4 +1,3 @@
-from ensure import ensure_annotations
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.db import models
@@ -63,7 +62,6 @@ class ProtectMixin:
 
 
 # http://stackoverflow.com/questions/5197280/for-a-django-model-how-can-i-get-the-django-admin-url-to-add-another-or-list-o
-@ensure_annotations
 def get_admin_url(model: models.Model, action='change'):
     return reverse(
         f"admin:{model._meta.app_label}_{model._meta.model_name}_{action}", args=[model.pk]

@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [3.9, '3.10', 3.11]
-        django: [3.2, '4.1', 4.2]
+        python: ['3.10', '3.11', '3.12']
+        django: ['4.2', '5.0']
         bootstrap: [3, 4, 5]
 
     steps:
