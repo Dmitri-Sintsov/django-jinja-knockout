@@ -231,20 +231,28 @@ function ContentPopover(k, v) {
     var $popover = $(v);
     new UiPopover($popover).create({
         container: 'body',
-        content: function() {
-            var template = $(this).data("contentTemplate");
+        content: function(target) {
+            if (typeof target === 'undefined') {
+                // Bootstrap <5.3
+                target = this;
+            }
+            var template = $(target).data("contentTemplate");
             if (template !== undefined) {
-                var options = $(this).data("contentTemplateOptions");
+                var options = $(target).data("contentTemplateOptions");
                 var processor = globalIoc.factory('Tpl', options);
                 var $content = processor.domTemplate(template);
                 initClient($content);
                 return $content;
             } else {
-                return $(this).attr('bs-content');
+                return $(target).attr('bs-content');
             }
         },
-        title: function() {
-            return $(this).attr('title');
+        title: function(target) {
+            if (typeof target === 'undefined') {
+                // Bootstrap <5.3
+                target = this;
+            }
+            return $(target).attr('title');
         },
     });
     $popover.on("hidden.bs.popover", function(e) {

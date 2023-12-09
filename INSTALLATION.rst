@@ -62,7 +62,7 @@ To install latest master from repository::
 
 To install specific tag::
 
-    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@v2.2.0
+    python3 -m pip install --upgrade git+https://github.com/Dmitri-Sintsov/django-jinja-knockout.git@v2.2.1
 
 settings.py
 -----------

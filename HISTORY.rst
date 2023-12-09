@@ -378,3 +378,7 @@ Alternative breadcrumbs layout of field filters widgets.
 * Nested components are supported in ``Grid`` cells, including the cells of compound columns.
 * ``Tpl.domTemplate`` optional template kwargs support.
 * ``djk_bootstrap5`` now uses native ``Bootstrap Icons`` font for ``iconui`` actions.
+
+2.2.1
+-----
+* Python 3.12 / Django 5.0 compatibility.
