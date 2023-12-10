@@ -9,7 +9,7 @@ from django.contrib import contenttypes
 
 from .. import tpl
 from .. import apps
-from ..utils import sdv
+# from ..utils import sdv
 from ..widgets import DisplayText
 from ..viewmodels import to_json
 
