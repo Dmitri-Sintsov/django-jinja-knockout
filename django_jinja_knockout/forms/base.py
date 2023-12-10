@@ -111,7 +111,7 @@ class DisplayModelMetaclass(ModelFormMetaclass):
         # Django >=4.2
         if 'Meta' not in attrs:
             attrs['Meta'] = type('Meta', bases, attrs)
-        setattr(attrs['Meta'], 'formfield_callback', display_model_formfield_callback)
+        attrs['Meta'].formfield_callback = display_model_formfield_callback
         if 'template_dir' not in attrs:
             attrs['template_dir'] = 'render/display/'
         if 'layout_type' not in attrs:

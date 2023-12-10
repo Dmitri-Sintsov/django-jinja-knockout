@@ -52,8 +52,8 @@ class UrlsExtension(Extension):
         environment.globals['url'] = self._url_reverse
 
     @pass_context
-    def _url_reverse(self, context, name, *args, **kwargs):
-        return tpl.url(name, request=context.get('request'), *args, **kwargs)
+    def _url_reverse(self, context, name, **kwargs):
+        return tpl.url(name, request=context.get('request'), **kwargs)
 
 
 extensions = {
