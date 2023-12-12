@@ -19,6 +19,7 @@
         isSupportObjectConstructor = nativeURLSearchParams && (new nativeURLSearchParams({a: 1})).toString() === 'a=1',
         // There is a bug in safari 10.1 (and earlier) that incorrectly decodes `%2B` as an empty space and not a plus.
         decodesPlusesCorrectly = nativeURLSearchParams && (new nativeURLSearchParams('s=%2B').get('s') === '+'),
+        isSupportSize = nativeURLSearchParams && 'size' in nativeURLSearchParams.prototype,
         __URLSearchParams__ = "__URLSearchParams__",
         // Fix bug in Edge which cannot encode ' &' correctly
         encodesAmpersandsCorrectly = nativeURLSearchParams ? (function() {
@@ -29,7 +30,7 @@
         prototype = URLSearchParamsPolyfill.prototype,
         iterable = !!(self.Symbol && self.Symbol.iterator);
 
-    if (nativeURLSearchParams && isSupportObjectConstructor && decodesPlusesCorrectly && encodesAmpersandsCorrectly) {
+    if (nativeURLSearchParams && isSupportObjectConstructor && decodesPlusesCorrectly && encodesAmpersandsCorrectly && isSupportSize) {
         return;
     }
 
@@ -132,9 +133,8 @@
     };
 
     // There is a bug in Safari 10.1 and `Proxy`ing it is not enough.
-    var forSureUsePolyfill = !decodesPlusesCorrectly;
-    var useProxy = (!forSureUsePolyfill && nativeURLSearchParams && !isSupportObjectConstructor && self.Proxy);
-    var propValue; 
+    var useProxy = self.Proxy && nativeURLSearchParams && (!decodesPlusesCorrectly || !encodesAmpersandsCorrectly || !isSupportObjectConstructor || !isSupportSize);
+    var propValue;
     if (useProxy) {
         // Safari 10.0 doesn't support Proxy, so it won't extend URLSearchParams on safari 10.0
         propValue = new Proxy(nativeURLSearchParams, {
@@ -147,8 +147,9 @@
     } else {
         propValue = URLSearchParamsPolyfill;
     }
+
     /*
-     * Apply polifill to global object and append other prototype into it
+     * Apply polyfill to global object and append other prototype into it
      */
     Object.defineProperty(self, 'URLSearchParams', {
         value: propValue
@@ -158,40 +159,49 @@
 
     USPProto.polyfill = true;
 
+    // Fix #54, `toString.call(new URLSearchParams)` will return correct value when Proxy not used
+    if (!useProxy && self.Symbol) {
+        USPProto[self.Symbol.toStringTag] = 'URLSearchParams';
+    }
+
     /**
      *
      * @param {function} callback
      * @param {object} thisArg
      */
-    USPProto.forEach = USPProto.forEach || function(callback, thisArg) {
-        var dict = parseToDict(this.toString());
-        Object.getOwnPropertyNames(dict).forEach(function(name) {
-            dict[name].forEach(function(value) {
-                callback.call(thisArg, value, name, this);
+    if (!('forEach' in USPProto)) {
+        USPProto.forEach = function(callback, thisArg) {
+            var dict = parseToDict(this.toString());
+            Object.getOwnPropertyNames(dict).forEach(function(name) {
+                dict[name].forEach(function(value) {
+                    callback.call(thisArg, value, name, this);
+                }, this);
             }, this);
-        }, this);
-    };
+        };
+    }
 
     /**
      * Sort all name-value pairs
      */
-    USPProto.sort = USPProto.sort || function() {
-        var dict = parseToDict(this.toString()), keys = [], k, i, j;
-        for (k in dict) {
-            keys.push(k);
-        }
-        keys.sort();
-
-        for (i = 0; i < keys.length; i++) {
-            this['delete'](keys[i]);
-        }
-        for (i = 0; i < keys.length; i++) {
-            var key = keys[i], values = dict[key];
-            for (j = 0; j < values.length; j++) {
-                this.append(key, values[j]);
+    if (!('sort' in USPProto)) {
+        USPProto.sort = function() {
+            var dict = parseToDict(this.toString()), keys = [], k, i, j;
+            for (k in dict) {
+                keys.push(k);
             }
-        }
-    };
+            keys.sort();
+
+            for (i = 0; i < keys.length; i++) {
+                this['delete'](keys[i]);
+            }
+            for (i = 0; i < keys.length; i++) {
+                var key = keys[i], values = dict[key];
+                for (j = 0; j < values.length; j++) {
+                    this.append(key, values[j]);
+                }
+            }
+        };
+    }
 
     /**
      * Returns an iterator allowing to go through all keys of
@@ -199,13 +209,15 @@
      *
      * @returns {function}
      */
-    USPProto.keys = USPProto.keys || function() {
-        var items = [];
-        this.forEach(function(item, name) {
-            items.push(name);
-        });
-        return makeIterator(items);
-    };
+    if (!('keys' in USPProto)) {
+        USPProto.keys = function() {
+            var items = [];
+            this.forEach(function(item, name) {
+                items.push(name);
+            });
+            return makeIterator(items);
+        };
+    }
 
     /**
      * Returns an iterator allowing to go through all values of
@@ -213,13 +225,15 @@
      *
      * @returns {function}
      */
-    USPProto.values = USPProto.values || function() {
-        var items = [];
-        this.forEach(function(item) {
-            items.push(item);
-        });
-        return makeIterator(items);
-    };
+    if (!('values' in USPProto)) {
+        USPProto.values = function() {
+            var items = [];
+            this.forEach(function(item) {
+                items.push(item);
+            });
+            return makeIterator(items);
+        };
+    }
 
     /**
      * Returns an iterator allowing to go through all key/value
@@ -227,19 +241,33 @@
      *
      * @returns {function}
      */
-    USPProto.entries = USPProto.entries || function() {
-        var items = [];
-        this.forEach(function(item, name) {
-            items.push([name, item]);
-        });
-        return makeIterator(items);
-    };
-
+    if (!('entries' in USPProto)) {
+        USPProto.entries = function() {
+            var items = [];
+            this.forEach(function(item, name) {
+                items.push([name, item]);
+            });
+            return makeIterator(items);
+        };
+    }
 
     if (iterable) {
         USPProto[self.Symbol.iterator] = USPProto[self.Symbol.iterator] || USPProto.entries;
     }
 
+    if (!('size' in USPProto)) {
+        Object.defineProperty(USPProto, 'size', {
+            get: function () {
+                var dict = parseToDict(this.toString())
+                if (USPProto === this) {
+                    throw new TypeError('Illegal invocation at URLSearchParams.invokeGetter')
+                }
+                return Object.keys(dict).reduce(function (prev, cur) {
+                    return prev + dict[cur].length;
+                }, 0);
+            }
+        });
+    }
 
     function encode(str) {
         var replace = {
