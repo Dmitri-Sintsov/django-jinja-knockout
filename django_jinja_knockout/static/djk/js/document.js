@@ -1,7 +1,6 @@
 import moment from './lib/moment.js';
 import { sprintf } from './lib/sprintf-esm.js';
 import Cookies from './lib/js.cookie.js';
-import './lib/jquery.form.min.js'
 
 /**
  * Note: datetime.js is not the part of django-jinja-knockout.

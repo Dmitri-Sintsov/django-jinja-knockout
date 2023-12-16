@@ -1,3 +1,4 @@
+import { default as axios } from './lib/axios.js';
 import { create as laddaCreate } from './lib/ladda.js';
 
 import { showAjaxError } from './errors.js';
@@ -71,14 +72,6 @@ function AjaxForms($selector) {
     AjaxForms.submitSelector = 'button[type="submit"], input[type="submit"], input[type="image"]';
     AjaxForms.formSubmitSelector = AjaxForms.formSelector + ', ' + AjaxForms.submitSelector;
 
-    AjaxForms.has = function() {
-        var result = (typeof $.fn.ajaxForm !== 'undefined');
-        if (!result) {
-            console.log('@note: jQuery AJAX form plugin is disabled.');
-        }
-        return result;
-    };
-
     AjaxForms.create = function($selector) {
         this.$forms = $selector.findSelf(this.formSelector);
         this.$cancelButtons = this.$forms.find('.btn-cancel-compose');
@@ -110,10 +103,6 @@ function AjaxForms($selector) {
     };
 
     AjaxForms.init = function() {
-        if (!this.has()) {
-            return;
-        }
-        this.$forms.ajaxForm();
         this.$cancelButtons.on('click', AjaxForms.onCancelButtonClick);
         // Do not use ajaxForm plugin submit event, otherwise form will be double-POSTed.
         this.$submitButtons.on('click', AjaxForms.onSubmitButtonClick);
@@ -121,12 +110,8 @@ function AjaxForms($selector) {
     };
 
     AjaxForms.destroy = function() {
-        if (!this.has()) {
-            return;
-        }
         this.$submitButtons.off('click', AjaxForms.onSubmitButtonClick);
         this.$cancelButtons.off('click', AjaxForms.onCancelButtonClick);
-        this.$forms.ajaxFormUnbind();
     };
 
 }(AjaxForms.prototype);
@@ -184,11 +169,14 @@ function AjaxForm($form) {
     };
 
     AjaxForm.always = function() {
+        this.hasAlways = true;
         enableInputs(this.$form);
         if (this.$form.has(this.$btn).length === 0) {
             enableInput(this.$btn);
         }
-        if (typeof this.options['uploadProgress'] !== 'undefined') {
+        // the order of calling is important - Ladda should be removed only after the inputs are enabled.
+        this.ladder.remove();
+        if (this.$progressBar !== null) {
             this.$progressBar.remove();
         }
         this._callbacks.always();
@@ -207,36 +195,26 @@ function AjaxForm($form) {
 
     AjaxForm.getOptions = function() {
         var self = this;
-        return {
-            'url': this.getUrl(),
-            type: 'post',
-            dataType: 'json',
-            beforeSubmit: function() {
-                self.beforeSubmit();
+        var options = {
+            headers: {
+                // https://github.com/axios/axios/issues/1322#issuecomment-526580627
+                // 'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest',
+                'Content-Type': 'multipart/form-data',
+                'Accept': 'application/json, text/javascript',
             },
-            error: function(jqXHR, exception) {
-                self.always();
-                showAjaxError(jqXHR, exception);
-                self._callbacks.error(jqXHR, exception);
-            },
-            success: function(response) {
-                self.always();
-                if (self._callbacks.success(response)) {
-                    /**
-                     * Set current AjaxForm bindContext for response viewmodel handler,
-                     * to read this.$form in the handler body.
-                     */
-                    vmRouter.respond(response, {context: self});
-                }
-            },
-            complete: function() {
-                self.ladder.remove();
-            }
         };
+        if (this.$progressBar !== null) {
+            options.onUploadProgress = function (progressEvent) {
+                var percentComplete = (progressEvent.loaded / progressEvent.total) * 100;
+                self.$progressBar.find('.progress-bar').css('width', percentComplete + '%');
+            }
+        }
+        return options;
     };
 
     AjaxForm.setupProgressBar = function() {
         var self = this;
+        this.$progressBar = null;
         if (this.$form.find('input[type="file"]').length > 0) {
             this.$progressBar = $.contents(
                 '<div class="default-padding">' +
@@ -246,13 +224,11 @@ function AjaxForm($form) {
                 '</div>'
             );
             this.$progressBar.insertAfter(this.$btn);
-            this.options['uploadProgress'] = function(event, position, total, percentComplete) {
-                self.$progressBar.find('.progress-bar').css('width', percentComplete + '%');
-            };
         }
     };
 
     AjaxForm.submit = function($btn, callbacks) {
+        var self = this;
         this.$btn = $btn;
         if (typeof AppConf('fileMaxSize') !== 'undefined' && !this.checkFiles(AppConf('fileMaxSize'))) {
             return;
@@ -262,17 +238,42 @@ function AjaxForm($form) {
         }
         this._callbacks = $.extend({
                 always: function () {},
-                error: function (jqXHR, exception) {},
+                error: function (request, exception) {},
                 success: function (response) { return true; },
             },
             callbacks
         );
-        this.options = this.getOptions();
         this.setupProgressBar();
         this.ladder = new Ladder(this.$btn);
-        this.$form.ajaxSubmit(this.options);
-        var jqXHR = this.$form.data('jqxhr');
-        jqXHR.setRequestHeader('X_REQUESTED_WITH', 'XMLHttpRequest');
+        this.hasAlways = false;
+        var formData = new FormData(this.$form.get(0));
+        this.beforeSubmit();
+        axios.post(
+            this.getUrl(),
+            formData,
+            this.getOptions()
+        ).then(function (axiosResponse) {
+            self.always();
+            self.hasAlways = true;
+            if (self._callbacks.success(axiosResponse.data)) {
+                /**
+                 * Set current AjaxForm bindContext for response viewmodel handler,
+                 * to read this.$form in the handler body.
+                 */
+                vmRouter.respond(axiosResponse.data, {context: self});
+            }
+        }).catch(function (axiosError) {
+            if (!self.hasAlways) {
+                self.always();
+            };
+            if (typeof axiosError.request !== 'undefined') {
+                showAjaxError(axiosError.request, axiosError.message);
+                self._callbacks.error(axiosError.request, axiosError.message);
+            } else {
+                // Most probably an vmRouter error:
+                console.log(axiosError);
+            }
+        });
         return false;
     };
 
