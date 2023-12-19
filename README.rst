@@ -3,6 +3,7 @@ django-jinja-knockout
 =====================
 
 .. _aggregate: https://docs.djangoproject.com/en/dev/topics/db/aggregation/#generating-aggregates-over-a-queryset
+.. _axios: https://axios-http.com/docs/intro
 .. _Compound columns: https://django-jinja-knockout.readthedocs.io/en/latest/datatables.html#compound-columns
 .. _custom elements: https://github.com/Dmitri-Sintsov/django-jinja-knockout/blob/master/django_jinja_knockout/static/djk/js/elements.js
 .. _renderValue: https://github.com/Dmitri-Sintsov/django-jinja-knockout/search?q=renderValue&unscoped_q=renderValue
@@ -148,6 +149,8 @@ server-side rendering generally is more robust.
 Version 2.2.1
 -------------
 Python 3.12 / Django 5.0 compatibility.
+
+Use `axios`_ instead of outdated jQuery.form plugin.
 
 Version 2.2.0
 -------------

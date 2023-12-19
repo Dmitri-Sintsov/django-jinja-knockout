@@ -382,3 +382,4 @@ Alternative breadcrumbs layout of field filters widgets.
 2.2.1
 -----
 * Python 3.12 / Django 5.0 compatibility.
+* Use axios instead of outdated jQuery.form plugin.
