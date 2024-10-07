@@ -1068,7 +1068,7 @@ function Grid(options) {
 
     Grid.iocKoFilter_date = function(filter, options) {
         options.type = 'date';
-        return {cls: GridRangeFilter, options:options};
+        return {cls: GridRangeFilter, options};
     };
 
     Grid.iocKoFilter_number = function(filter, options) {
