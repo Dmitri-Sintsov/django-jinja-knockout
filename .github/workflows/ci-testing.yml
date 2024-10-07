@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python: ['3.10', '3.11', '3.12']
-        django: ['4.2', '5.0']
+        django: ['4.2', '5.1']
         bootstrap: [3, 4, 5]
 
     steps:

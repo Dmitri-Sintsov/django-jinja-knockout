@@ -80,7 +80,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Supports Django 4.2 LTS, 5.0; Python 3.10 / 3.11 / 3.12.
+* Supports Django 4.2 LTS, 5.1; Python 3.10 / 3.11 / 3.12.
 
 Please contribute to the localization of the project:
 
@@ -148,7 +148,7 @@ server-side rendering generally is more robust.
 
 Version 2.2.1
 -------------
-Python 3.12 / Django 5.0 compatibility.
+Python 3.12 / Django 5.1 compatibility.
 
 Use `axios`_ instead of outdated jQuery.form plugin.
 
