@@ -5,6 +5,7 @@ import { NestedList } from './nestedlist.js';
 import { Tpl } from './tpl.js';
 import { TabList } from './tabpane.js';
 
+import { AppPost } from './url.js';
 import { AjaxForms } from './ajaxform.js';
 
 var globalIoc = new ViewModelRouter({
@@ -80,7 +81,7 @@ var vmRouter = new ViewModelRouter({
         }
     },
     'post': function(viewModel) {
-        DjangoPost(viewModel.route, viewModel.data, viewModel.options);
+        AppPost(viewModel.route, viewModel.data, viewModel.options);
     },
     'alert' : function(viewModel) {
         return import('./dialog.js').then(function(module) {

@@ -200,7 +200,7 @@ $.fn.autogrow = function(method) {
                 if ($(this).val().trim() !== '') {
                     update(this);
                 }
-            })
+            });
         },
         'update' : function() {
             return this.each(function() {
@@ -552,7 +552,7 @@ $.fn.linkPreview = function(method) {
             // console.log('doc.location: ' + doc.location);
             // console.log('doc.location.hostname: ' + doc.location.hostname);
             if (doc.body === null) {
-                if (doc.location.hostname == '') {
+                if (doc.location.hostname === '') {
                     // Embedded object loading random failure in Chrome 47.
                     // Refresh the popover content to try load it again.
                     $iframe.parent().html(this.getPopoverContent());
@@ -696,7 +696,7 @@ $.fn.scroller = function(method) {
             }
             if (this.maxHeight < this.scrollHeight) {
                 // Element already has overflow.
-                console.log('Scroller: element already has overflow.')
+                console.log('Scroller: element already has overflow.');
                 return 0;
             }
             // How much current height is lower than maximally allowed height.

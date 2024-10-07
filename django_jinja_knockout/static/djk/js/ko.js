@@ -202,7 +202,7 @@ function Subscriber() {
         if (typeof this.koSubscriptions === 'undefined') {
             this.koSubscriptions = {};
         }
-        return {'prop': prop, 'method': method, 'hash': hash};
+        return {prop, method, hash};
     };
 
     /**

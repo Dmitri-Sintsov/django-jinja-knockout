@@ -331,7 +331,7 @@ function Grid(options) {
             self.actionTypes[type].subscribe(
                 self.actionTypesLength[type], this, 'arrayChange'
             );
-        })
+        });
         this.actions = this.iocGridActions({
             owner: this,
             route: this.options.pageRoute,
@@ -342,7 +342,7 @@ function Grid(options) {
         this.hasSelectAllRows = ko.observable(false);
         this.gridColumns = ko.observableArray();
         this.iconuiColumns = ko.computed(function() {
-            return (this.actionTypesLength['iconui']() === 0) ? 0 : 1
+            return (this.actionTypesLength['iconui']() === 0) ? 0 : 1;
         }, this);
         this.totalColumns = ko.computed(function() {
             var totalColumns = this.gridColumns().length + this.iconuiColumns();
@@ -410,7 +410,7 @@ function Grid(options) {
             }
         }
         return css;
-    }
+    };
 
     Grid.getHeaderCss = function() {
         this.lastHeaderCss = mapObject(this.lastHeaderCss, function() {
@@ -688,8 +688,8 @@ function Grid(options) {
         });
         if (withKey) {
             return {
-                'koRow': koRow,
-                'key': key
+                koRow,
+                key
             }
         } else {
             return koRow;
@@ -1058,12 +1058,12 @@ function Grid(options) {
             }
         );
         // Will use FkGridFilter to select filter choices.
-        return {cls: FkGridFilter, options: options};
+        return {cls: FkGridFilter, options};
     };
 
     Grid.iocKoFilter_datetime = function(filter, options) {
         options.type = 'datetime';
-        return {cls: GridRangeFilter, options: options};
+        return {cls: GridRangeFilter, options};
     };
 
     Grid.iocKoFilter_date = function(filter, options) {
@@ -1073,12 +1073,12 @@ function Grid(options) {
 
     Grid.iocKoFilter_number = function(filter, options) {
         options.type = 'number';
-        return {cls: GridRangeFilter, options: options};
+        return {cls: GridRangeFilter, options};
     };
 
     Grid.iocKoFilter_choices = function(filter, options) {
         options.choices = filter.choices;
-        return {cls: GridFilter, options: options};
+        return {cls: GridFilter, options};
     };
 
     Grid.createKoFilter = function(filter) {
@@ -1405,7 +1405,7 @@ function Grid(options) {
 
     Grid.performAction = function(actionName, actionType, actionOptions) {
         var koAction = this.getKoAction(actionName, actionType);
-        this.performKoAction(koAction, actionOptions)
+        this.performKoAction(koAction, actionOptions);
     };
 
     Grid.getCellActions = function(actionType, cellNames) {

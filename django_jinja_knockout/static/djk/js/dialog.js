@@ -148,7 +148,7 @@ function Dialog(options) {
                 } else {
                     self.dialogCancel();
                 }
-            }
+            };
         }
     };
 

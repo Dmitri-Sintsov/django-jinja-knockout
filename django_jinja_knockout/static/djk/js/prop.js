@@ -94,7 +94,7 @@ function propGet(self, propChain, defVal, get_context) {
                  * thus next code is commented out:
                  */
                 // return _.bind(propVal, parent.obj);
-                return function() { return {'context': parent.obj, 'fn': propVal } };
+                return function() { return {'context': parent.obj, 'fn': propVal }; };
             }
             return propVal;
         }

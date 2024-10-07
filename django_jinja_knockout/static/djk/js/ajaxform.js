@@ -148,7 +148,7 @@ function AjaxForm($form) {
                             import('./dialog.js').then(function(module) {
                                 new module.Dialog({
                                     'title': file.name,
-                                    'message': message,
+                                    message,
                                     'type': BootstrapDialog.TYPE_DANGER,
                                 }).alert();
                             });
@@ -265,7 +265,7 @@ function AjaxForm($form) {
         }).catch(function (axiosError) {
             if (!self.hasAlways) {
                 self.always();
-            };
+            }
             if (typeof axiosError.request !== 'undefined') {
                 showAjaxError(axiosError.request, axiosError.message);
                 self._callbacks.error(axiosError.request, axiosError.message);

@@ -99,7 +99,7 @@ function Elements(options) {
     Elements.getAdopted = function(tagDef) {
         return function() {
             tagDef.adopted.call(this);
-        }
+        };
     };
 
     Elements.setAttrs = function(attrs, isDefault) {

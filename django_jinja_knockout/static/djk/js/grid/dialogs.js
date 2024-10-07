@@ -164,7 +164,7 @@ function GridDialog(options) {
     GridDialog.onChildGridSelectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
         this.propCall('owner.onGridDialogSelectRow', {
-            'pkVal': pkVal,
+            pkVal,
             'childGrid': this.grid
         });
     };
@@ -172,7 +172,7 @@ function GridDialog(options) {
     GridDialog.onChildGridUnselectRow = function(pkVal) {
         console.log('pkVal: ' + JSON.stringify(pkVal));
         this.propCall('owner.onGridDialogUnselectRow', {
-            'pkVal': pkVal,
+            pkVal,
             'childGrid': this.grid
         });
     };

@@ -265,7 +265,7 @@ function EditForm(options) {
         var queryArgs = (this.pkUrlKwarg === null) ? {pk_val: this.pkVal} : {};
         this.actions.perform(this.initialAction, {
             // 'ajaxIndicator': event.currentTarget,
-            'queryArgs': queryArgs,
+            queryArgs,
         });
     };
 

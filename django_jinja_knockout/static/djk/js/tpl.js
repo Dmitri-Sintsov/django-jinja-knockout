@@ -51,7 +51,7 @@ function Tpl(options) {
     Tpl.parentProps = ['data', 'templates'];
 
     Tpl.init = function(options) {
-        var defOptions = {}
+        var defOptions = {};
         each(this.parentProps, function(propName) {
             defOptions[propName] = {};
         });

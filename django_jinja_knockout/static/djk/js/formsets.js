@@ -53,7 +53,7 @@ function Formset($formsTotalCount, serversideFormsCount, maxFormsCount) {
             }
         });
         self.deleteFormHandler($elements);
-    }
+    };
 
 } void function(Formset) {
 
@@ -170,7 +170,7 @@ function useFormsets(ko) {
             $selector.findSelf('.formset').each(function(k, v) {
                 var $formset = $(v);
                 // Do not bind to display-only formsets.
-                if ($formset.parent('.formsets.display-only').length == 0) {
+                if ($formset.parent('.formsets.display-only').length === 0) {
                     var koFormset = $formset.popInstance('Formset');
                     koFormset.destroy($formset);
                 }

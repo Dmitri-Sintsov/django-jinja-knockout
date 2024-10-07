@@ -259,7 +259,7 @@ function Components() {
         $selector.each(function(k, elem) {
             component = self.get(elem);
             if (componentIdx === undefined) {
-                componentIdx = $(elem).data('componentIdx')
+                componentIdx = $(elem).data('componentIdx');
                 desc = self.list[componentIdx];
             } else if (componentIdx !== $(elem).data('componentIdx')) {
                 throw new Error(sprintf(

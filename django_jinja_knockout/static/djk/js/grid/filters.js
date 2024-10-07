@@ -327,7 +327,7 @@ function FkGridFilter(options) {
             gridDialogOptions = options.fkGridOptions.dialogOptions;
             delete options.fkGridOptions.dialogOptions;
         }
-        var gridDialogOptions = $.extend({
+        gridDialogOptions = $.extend({
             owner: this,
             filterOptions: options.fkGridOptions
         }, gridDialogOptions);

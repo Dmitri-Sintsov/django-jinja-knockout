@@ -262,7 +262,7 @@ function ViewModelRouter(viewHandlers) {
                 this.applyHandler(viewModel, options.before[viewModel.view], bindContext);
             }
             // Execute registered handler.
-            var hasView = this.showView(viewModel, bindContext) || hasView;
+            hasView = this.showView(viewModel, bindContext) || hasView;
             // Execute custom 'after' handler, when available.
             if (typeof options.after[viewModel.view] !== 'undefined') {
                 this.applyHandler(viewModel, options.after[viewModel.view], bindContext);
