@@ -80,7 +80,7 @@ More screenshots with descriptions are available at: https://github.com/Dmitri-S
 
 Documentation (in development): https://django-jinja-knockout.readthedocs.org/
 
-* Supports Django 4.2 LTS, 5.1; Python 3.10 / 3.11 / 3.12.
+* Supports Django 4.2 LTS, 5.1; Python 3.10 / 3.11 / 3.12 / 3.13.
 
 Please contribute to the localization of the project:
 
