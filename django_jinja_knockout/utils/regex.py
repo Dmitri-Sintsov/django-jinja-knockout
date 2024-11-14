@@ -1,3 +1,8 @@
+# https://regexr.com
+class MatchGroup(str):
+    pass
+
+
 # regex can be without capturing group.
 def finditer_with_separators(regex, s):
     matches = []
@@ -6,7 +11,7 @@ def finditer_with_separators(regex, s):
         match_start = match.start()
         if (prev_end != 0 or match_start > 0) and match_start != prev_end:
             matches.append(s[prev_end:match.start()])
-        matches.append(match.group())
+        matches.append(MatchGroup(match.group()))
         prev_end = match.end()
     if prev_end < len(s):
         matches.append(s[prev_end:])
