@@ -3,7 +3,7 @@
 .. _5bs.sh: https://github.com/Dmitri-Sintsov/djk-sample/blob/master/cli/5bs.sh
 .. _Bootstrap 3: https://getbootstrap.com/docs/3.3/
 .. _Bootstrap 4: https://getbootstrap.com/docs/4.6/
-.. _Bootstrap 5: https://getbootstrap.com/docs/5.1/
+.. _Bootstrap 5: https://getbootstrap.com/docs/5.3/
 .. _djk-bootstrap3: https://github.com/Dmitri-Sintsov/djk-bootstrap3
 .. _djk-bootstrap4: https://github.com/Dmitri-Sintsov/djk-bootstrap4
 .. _djk-bootstrap5: https://github.com/Dmitri-Sintsov/djk-bootstrap5
