@@ -13,9 +13,11 @@
 
 // test re-attaching of the already attached element
 function reattachElement(selector) {
-    var $el = $(selector);
-    $el.detach();
-    $(document.body).append($el);
+    let el = document.querySelector(selector);
+    let elClone = el.cloneNode(true);
+    let parent = el.parentNode;
+    parent.removeChild(el);
+    parent.appendChild(elClone);
 }
 
 function Elements(options) {
@@ -44,7 +46,7 @@ function Elements(options) {
         'attributeChanged',
         // initially set DOM attributes
         'attrs',
-        // initlally set DOM classes
+        // initially set DOM classes
         'classes',
         // callback
         'connected',
@@ -246,7 +248,7 @@ function Elements(options) {
         }
 
         var attributeChanged = this.getAttributeChanged(tagDef);
-        $.extend(elProperties, attributeChanged.elProperties);
+        elProperties = Object.assign(elProperties, attributeChanged.elProperties);
 
         var skippedProperties = this.builtInProperties.concat(this.DOMProperties);
 
@@ -318,3 +320,4 @@ function Elements(options) {
 var elements = new Elements();
 
 export { Elements, elements, reattachElement };
+
